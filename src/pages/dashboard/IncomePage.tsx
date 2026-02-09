@@ -6,18 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useIncome, useCreateIncome, useDeleteIncome } from '@/hooks/useIncome';
+import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
-import { Plus, Trash2, TrendingUp } from 'lucide-react';
+import { Income } from '@/types/database';
+import { Plus, Trash2, TrendingUp, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 const IncomePage = () => {
   const { data: income = [], isLoading } = useIncome();
   const { data: properties = [] } = useProperties();
   const createIncome = useCreateIncome();
+  const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [formData, setFormData] = useState({
     source: '',
     amount: '',
@@ -28,6 +31,19 @@ const IncomePage = () => {
 
   const resetForm = () => {
     setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' });
+    setEditingIncome(null);
+  };
+
+  const handleEdit = (item: Income) => {
+    setEditingIncome(item);
+    setFormData({
+      source: item.source,
+      amount: item.amount.toString(),
+      date: item.date,
+      property_id: item.property_id || '',
+      notes: item.notes || '',
+    });
+    setIsOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,13 +54,19 @@ const IncomePage = () => {
       return;
     }
 
-    await createIncome.mutateAsync({
+    const incomeData = {
       source: formData.source,
       amount: parseFloat(formData.amount),
       date: formData.date,
       property_id: formData.property_id || undefined,
       notes: formData.notes || undefined,
-    });
+    };
+
+    if (editingIncome) {
+      await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData });
+    } else {
+      await createIncome.mutateAsync(incomeData);
+    }
 
     setIsOpen(false);
     resetForm();
@@ -76,7 +98,7 @@ const IncomePage = () => {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>إضافة دخل جديد</DialogTitle>
+                <DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -128,8 +150,8 @@ const IncomePage = () => {
                   />
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending}>
-                    إضافة
+                  <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending || updateIncome.isPending}>
+                    {editingIncome ? 'تحديث' : 'إضافة'}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
                     إلغاء
@@ -189,14 +211,23 @@ const IncomePage = () => {
                         <td className="py-3 px-4">{item.property?.property_number || '-'}</td>
                         <td className="py-3 px-4 text-muted-foreground">{item.notes || '-'}</td>
                         <td className="py-3 px-4">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(item.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(item.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}

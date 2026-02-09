@@ -30,27 +30,28 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   
   // Title
   doc.setFontSize(20);
-  doc.text('Annual Waqf Report / Ifsa Al-Sanawi', 105, 20, { align: 'center' });
+  doc.text('تقرير الوقف السنوي / Annual Waqf Report', 105, 20, { align: 'center' });
   
   // Fiscal Year
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Fiscal Year: ${data.fiscalYear}`, 105, 35, { align: 'center' });
+  doc.text(`السنة المالية / Fiscal Year: ${data.fiscalYear}`, 105, 35, { align: 'center' });
   
   // Summary Table
   doc.autoTable({
     startY: 45,
-    head: [['Item', 'Amount (SAR)']],
+    head: [['البند / Item', 'المبلغ (ر.س) / Amount (SAR)']],
     body: [
-      ['Total Income', data.totalIncome.toLocaleString()],
-      ['Total Expenses', `(${data.totalExpenses.toLocaleString()})`],
-      ['Net Revenue', data.netRevenue.toLocaleString()],
-      ['Admin Share (10%)', data.adminShare.toLocaleString()],
-      ['Waqif Share (5%)', data.waqifShare.toLocaleString()],
-      ['Waqf Revenue for Beneficiaries', data.waqfRevenue.toLocaleString()],
+      ['إجمالي الإيرادات / Total Income', data.totalIncome.toLocaleString()],
+      ['إجمالي المصروفات / Total Expenses', `(${data.totalExpenses.toLocaleString()})`],
+      ['صافي الريع / Net Revenue', data.netRevenue.toLocaleString()],
+      ['حصة الناظر (10%) / Admin Share', data.adminShare.toLocaleString()],
+      ['حصة الواقف (5%) / Waqif Share', data.waqifShare.toLocaleString()],
+      ['ريع المستفيدين / Beneficiaries Revenue', data.waqfRevenue.toLocaleString()],
     ],
     theme: 'striped',
     headStyles: { fillColor: [22, 101, 52] },
+    styles: { halign: 'right' },
   });
   
   // Beneficiaries Distribution
@@ -58,11 +59,11 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('Beneficiaries Distribution', 20, finalY + 20);
+  doc.text('توزيع حصص المستفيدين / Beneficiaries Distribution', 105, finalY + 20, { align: 'center' });
   
   doc.autoTable({
     startY: finalY + 30,
-    head: [['Beneficiary Name', 'Share %', 'Amount (SAR)']],
+    head: [['اسم المستفيد / Beneficiary Name', 'النسبة % / Share %', 'المبلغ (ر.س) / Amount (SAR)']],
     body: data.beneficiaries.map(b => [
       b.name,
       `${b.percentage}%`,
@@ -70,6 +71,7 @@ export const generateAnnualReportPDF = (data: ReportData) => {
     ]),
     theme: 'striped',
     headStyles: { fillColor: [202, 138, 4] },
+    styles: { halign: 'right' },
   });
   
   // Footer
@@ -79,7 +81,7 @@ export const generateAnnualReportPDF = (data: ReportData) => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text(
-      `Page ${i} of ${pageCount} - Generated on ${new Date().toLocaleDateString()}`,
+      `صفحة ${i} من ${pageCount} - تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}`,
       105,
       doc.internal.pageSize.height - 10,
       { align: 'center' }
@@ -95,27 +97,28 @@ export const generateBeneficiaryStatementPDF = (beneficiaryName: string, sharePe
   
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.text('Beneficiary Statement', 105, 20, { align: 'center' });
+  doc.text('كشف حساب المستفيد / Beneficiary Statement', 105, 20, { align: 'center' });
   
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Fiscal Year: ${fiscalYear}`, 105, 35, { align: 'center' });
+  doc.text(`السنة المالية / Fiscal Year: ${fiscalYear}`, 105, 35, { align: 'center' });
   
   doc.autoTable({
     startY: 50,
-    head: [['Details', 'Value']],
+    head: [['البيان / Details', 'القيمة / Value']],
     body: [
-      ['Beneficiary Name', beneficiaryName],
-      ['Share Percentage', `${sharePercentage}%`],
-      ['Share Amount', `${shareAmount.toLocaleString()} SAR`],
+      ['اسم المستفيد / Beneficiary Name', beneficiaryName],
+      ['نسبة الحصة / Share Percentage', `${sharePercentage}%`],
+      ['مبلغ الحصة / Share Amount', `${shareAmount.toLocaleString()} ر.س / SAR`],
     ],
     theme: 'grid',
     headStyles: { fillColor: [22, 101, 52] },
+    styles: { halign: 'right' },
   });
   
   doc.setFontSize(10);
   doc.text(
-    `Generated on ${new Date().toLocaleDateString()}`,
+    `تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}`,
     105,
     doc.internal.pageSize.height - 10,
     { align: 'center' }

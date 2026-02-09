@@ -1,20 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
-import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+
+interface AuthUser {
+  id: string;
+  email: string;
+}
 
 const BeneficiariesPage = () => {
   const { data: beneficiaries = [], isLoading } = useBeneficiaries();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
   const deleteBeneficiary = useDeleteBeneficiary();
+
+  // Fetch users with beneficiary role
+  const { data: users = [] } = useQuery({
+    queryKey: ['beneficiary-users'],
+    queryFn: async () => {
+      // Get users who have the beneficiary role
+      const { data: userRoles, error } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'beneficiary');
+      
+      if (error) throw error;
+      
+      // For now, return the user IDs - in a real app, you'd join with a profiles table
+      return userRoles.map(ur => ({ id: ur.user_id, email: ur.user_id })) as AuthUser[];
+    },
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
@@ -25,6 +51,7 @@ const BeneficiariesPage = () => {
     email: '',
     bank_account: '',
     notes: '',
+    user_id: '',
   });
 
   const resetForm = () => {
@@ -35,6 +62,7 @@ const BeneficiariesPage = () => {
       email: '',
       bank_account: '',
       notes: '',
+      user_id: '',
     });
     setEditingBeneficiary(null);
   };
@@ -54,6 +82,7 @@ const BeneficiariesPage = () => {
       email: formData.email || undefined,
       bank_account: formData.bank_account || undefined,
       notes: formData.notes || undefined,
+      user_id: formData.user_id || undefined,
     };
 
     if (editingBeneficiary) {
@@ -75,6 +104,7 @@ const BeneficiariesPage = () => {
       email: beneficiary.email || '',
       bank_account: beneficiary.bank_account || '',
       notes: beneficiary.notes || '',
+      user_id: beneficiary.user_id || '',
     });
     setIsOpen(true);
   };
@@ -107,7 +137,7 @@ const BeneficiariesPage = () => {
               <DialogHeader>
                 <DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
                 <div className="space-y-2">
                   <Label>الاسم *</Label>
                   <Input
@@ -153,6 +183,21 @@ const BeneficiariesPage = () => {
                     placeholder="SA..."
                     dir="ltr"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Link className="w-4 h-4" />
+                    ربط بحساب مستخدم
+                  </Label>
+                  <Input
+                    value={formData.user_id}
+                    onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+                    placeholder="معرف المستخدم (UUID)"
+                    dir="ltr"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    أدخل معرف المستخدم من جدول المستخدمين لربط هذا المستفيد بحسابه
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>ملاحظات</Label>
@@ -223,7 +268,15 @@ const BeneficiariesPage = () => {
               <Card key={beneficiary.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
+                      {beneficiary.user_id && (
+                        <Badge variant="secondary" className="text-xs">
+                          <UserCheck className="w-3 h-3 ml-1" />
+                          مرتبط
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(beneficiary)}>
                         <Edit className="w-4 h-4" />

@@ -42,6 +42,31 @@ export const useCreateExpense = () => {
   });
 };
 
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...expense }: Partial<Expense> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('expenses')
+        .update(expense)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success('تم تحديث المصروف بنجاح');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء تحديث المصروف');
+    },
+  });
+};
+
 export const useDeleteExpense = () => {
   const queryClient = useQueryClient();
 

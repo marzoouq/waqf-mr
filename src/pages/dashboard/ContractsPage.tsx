@@ -1,26 +1,26 @@
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useContracts, useCreateContract, useDeleteContract } from '@/hooks/useContracts';
+import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Calendar, DollarSign, User } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { arSA } from 'date-fns/locale';
 
 const ContractsPage = () => {
   const { data: contracts = [], isLoading } = useContracts();
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
+  const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [formData, setFormData] = useState({
     contract_number: '',
     property_id: '',
@@ -43,6 +43,22 @@ const ContractsPage = () => {
       status: 'active',
       notes: '',
     });
+    setEditingContract(null);
+  };
+
+  const handleEdit = (contract: Contract) => {
+    setEditingContract(contract);
+    setFormData({
+      contract_number: contract.contract_number,
+      property_id: contract.property_id,
+      tenant_name: contract.tenant_name,
+      start_date: contract.start_date,
+      end_date: contract.end_date,
+      rent_amount: contract.rent_amount.toString(),
+      status: contract.status,
+      notes: contract.notes || '',
+    });
+    setIsOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +70,7 @@ const ContractsPage = () => {
       return;
     }
 
-    await createContract.mutateAsync({
+    const contractData = {
       contract_number: formData.contract_number,
       property_id: formData.property_id,
       tenant_name: formData.tenant_name,
@@ -63,7 +79,13 @@ const ContractsPage = () => {
       rent_amount: parseFloat(formData.rent_amount),
       status: formData.status,
       notes: formData.notes || undefined,
-    });
+    };
+
+    if (editingContract) {
+      await updateContract.mutateAsync({ id: editingContract.id, ...contractData });
+    } else {
+      await createContract.mutateAsync(contractData);
+    }
 
     setIsOpen(false);
     resetForm();
@@ -106,7 +128,7 @@ const ContractsPage = () => {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>إضافة عقد جديد</DialogTitle>
+                <DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
                 <div className="space-y-2">
@@ -189,8 +211,8 @@ const ContractsPage = () => {
                   />
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1 gradient-primary" disabled={createContract.isPending}>
-                    إضافة
+                  <Button type="submit" className="flex-1 gradient-primary" disabled={createContract.isPending || updateContract.isPending}>
+                    {editingContract ? 'تحديث' : 'إضافة'}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
                     إلغاء
@@ -239,14 +261,23 @@ const ContractsPage = () => {
                         <td className="py-3 px-4">{Number(contract.rent_amount).toLocaleString()} ر.س</td>
                         <td className="py-3 px-4">{getStatusBadge(contract.status)}</td>
                         <td className="py-3 px-4">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(contract.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(contract)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(contract.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
