@@ -86,9 +86,9 @@ const FinancialReportsPage = () => {
     { month: 'ذو الحجة', income: totalIncome * 0.08 },
   ];
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (currentBeneficiary) {
-      generateBeneficiaryStatementPDF(
+      await generateBeneficiaryStatementPDF(
         currentBeneficiary.name,
         currentBeneficiary.share_percentage,
         myShare,
