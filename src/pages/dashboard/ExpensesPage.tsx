@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useExpenses, useCreateExpense, useDeleteExpense } from '@/hooks/useExpenses';
+import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { useProperties } from '@/hooks/useProperties';
-import { Plus, Trash2, TrendingDown } from 'lucide-react';
+import { Expense } from '@/types/database';
+import { Plus, Trash2, TrendingDown, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EXPENSE_TYPES = [
@@ -27,9 +28,11 @@ const ExpensesPage = () => {
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [formData, setFormData] = useState({
     expense_type: '',
     amount: '',
@@ -40,6 +43,19 @@ const ExpensesPage = () => {
 
   const resetForm = () => {
     setFormData({ expense_type: '', amount: '', date: '', property_id: '', description: '' });
+    setEditingExpense(null);
+  };
+
+  const handleEdit = (item: Expense) => {
+    setEditingExpense(item);
+    setFormData({
+      expense_type: item.expense_type,
+      amount: item.amount.toString(),
+      date: item.date,
+      property_id: item.property_id || '',
+      description: item.description || '',
+    });
+    setIsOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,13 +66,19 @@ const ExpensesPage = () => {
       return;
     }
 
-    await createExpense.mutateAsync({
+    const expenseData = {
       expense_type: formData.expense_type,
       amount: parseFloat(formData.amount),
       date: formData.date,
       property_id: formData.property_id || undefined,
       description: formData.description || undefined,
-    });
+    };
+
+    if (editingExpense) {
+      await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData });
+    } else {
+      await createExpense.mutateAsync(expenseData);
+    }
 
     setIsOpen(false);
     resetForm();
@@ -88,7 +110,7 @@ const ExpensesPage = () => {
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>إضافة مصروف جديد</DialogTitle>
+                <DialogTitle>{editingExpense ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -145,8 +167,8 @@ const ExpensesPage = () => {
                   />
                 </div>
                 <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1 gradient-primary" disabled={createExpense.isPending}>
-                    إضافة
+                  <Button type="submit" className="flex-1 gradient-primary" disabled={createExpense.isPending || updateExpense.isPending}>
+                    {editingExpense ? 'تحديث' : 'إضافة'}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
                     إلغاء
@@ -206,14 +228,23 @@ const ExpensesPage = () => {
                         <td className="py-3 px-4">{item.property?.property_number || '-'}</td>
                         <td className="py-3 px-4 text-muted-foreground">{item.description || '-'}</td>
                         <td className="py-3 px-4">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(item.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(item.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}

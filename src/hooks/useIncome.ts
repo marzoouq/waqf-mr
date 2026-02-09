@@ -42,6 +42,31 @@ export const useCreateIncome = () => {
   });
 };
 
+export const useUpdateIncome = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...income }: Partial<Income> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('income')
+        .update(income)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['income'] });
+      toast.success('تم تحديث الدخل بنجاح');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء تحديث الدخل');
+    },
+  });
+};
+
 export const useDeleteIncome = () => {
   const queryClient = useQueryClient();
 
