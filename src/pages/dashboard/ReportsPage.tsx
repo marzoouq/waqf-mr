@@ -56,8 +56,8 @@ const ReportsPage = () => {
     window.print();
   };
 
-  const handleExportPDF = () => {
-    generateAnnualReportPDF({
+  const handleExportPDF = async () => {
+    await generateAnnualReportPDF({
       fiscalYear: '1446-1447',
       totalIncome,
       totalExpenses,

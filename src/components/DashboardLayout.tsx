@@ -14,6 +14,8 @@ import {
   DollarSign,
   Receipt,
   ChevronLeft,
+  UserCog,
+  Eye,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -36,6 +38,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
     { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
     { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
+    { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
+    { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
   ];
 
   const beneficiaryLinks = [

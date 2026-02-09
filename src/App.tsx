@@ -21,6 +21,7 @@ import ExpensesPage from "./pages/dashboard/ExpensesPage";
 import BeneficiariesPage from "./pages/dashboard/BeneficiariesPage";
 import ReportsPage from "./pages/dashboard/ReportsPage";
 import AccountsPage from "./pages/dashboard/AccountsPage";
+import UserManagementPage from "./pages/dashboard/UserManagementPage";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
@@ -109,11 +110,21 @@ const App = () => (
               }
             />
 
-            {/* Beneficiary Routes */}
+            {/* User Management */}
+            <Route
+              path="/dashboard/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <UserManagementPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Beneficiary Routes (admin can also access) */}
             <Route
               path="/beneficiary"
               element={
-                <ProtectedRoute allowedRoles={['beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <BeneficiaryDashboard />
                 </ProtectedRoute>
               }
@@ -121,7 +132,7 @@ const App = () => (
             <Route
               path="/beneficiary/disclosure"
               element={
-                <ProtectedRoute allowedRoles={['beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <DisclosurePage />
                 </ProtectedRoute>
               }
@@ -129,7 +140,7 @@ const App = () => (
             <Route
               path="/beneficiary/share"
               element={
-                <ProtectedRoute allowedRoles={['beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <MySharePage />
                 </ProtectedRoute>
               }
@@ -137,7 +148,7 @@ const App = () => (
             <Route
               path="/beneficiary/reports"
               element={
-                <ProtectedRoute allowedRoles={['beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <FinancialReportsPage />
                 </ProtectedRoute>
               }

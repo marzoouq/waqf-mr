@@ -1,6 +1,45 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Helper to load and register Amiri Arabic font
+const loadArabicFont = async (doc: jsPDF) => {
+  try {
+    const [regularRes, boldRes] = await Promise.all([
+      fetch('/fonts/Amiri-Regular.ttf'),
+      fetch('/fonts/Amiri-Bold.ttf'),
+    ]);
+
+    const regularBuf = await regularRes.arrayBuffer();
+    const boldBuf = await boldRes.arrayBuffer();
+
+    // Convert ArrayBuffer to base64
+    const toBase64 = (buf: ArrayBuffer) => {
+      const bytes = new Uint8Array(buf);
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    };
+
+    const regularBase64 = toBase64(regularBuf);
+    const boldBase64 = toBase64(boldBuf);
+
+    doc.addFileToVFS('Amiri-Regular.ttf', regularBase64);
+    doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
+
+    doc.addFileToVFS('Amiri-Bold.ttf', boldBase64);
+    doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold');
+
+    doc.setFont('Amiri');
+    return true;
+  } catch (e) {
+    console.warn('Failed to load Arabic font, falling back to helvetica:', e);
+    doc.setFont('helvetica');
+    return false;
+  }
+};
+
 interface ReportData {
   fiscalYear: string;
   totalIncome: number;
@@ -16,56 +55,57 @@ interface ReportData {
   }>;
 }
 
-export const generateAnnualReportPDF = (data: ReportData) => {
+export const generateAnnualReportPDF = async (data: ReportData) => {
   const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
   
-  // Add Arabic font support info
-  doc.setFont('helvetica', 'bold');
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
   
   // Title
+  doc.setFont(fontFamily, 'bold');
   doc.setFontSize(20);
-  doc.text('تقرير الوقف السنوي / Annual Waqf Report', 105, 20, { align: 'center' });
+  doc.text('تقرير الوقف السنوي', 105, 20, { align: 'center' });
   
   // Fiscal Year
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`السنة المالية / Fiscal Year: ${data.fiscalYear}`, 105, 35, { align: 'center' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`السنة المالية: ${data.fiscalYear}`, 105, 35, { align: 'center' });
   
   // Summary Table
-  const summaryTable = autoTable(doc, {
+  autoTable(doc, {
     startY: 45,
-    head: [['البند / Item', 'المبلغ (ر.س) / Amount (SAR)']],
+    head: [['البند', 'المبلغ (ر.س)']],
     body: [
-      ['إجمالي الإيرادات / Total Income', data.totalIncome.toLocaleString()],
-      ['إجمالي المصروفات / Total Expenses', `(${data.totalExpenses.toLocaleString()})`],
-      ['صافي الريع / Net Revenue', data.netRevenue.toLocaleString()],
-      ['حصة الناظر (10%) / Admin Share', data.adminShare.toLocaleString()],
-      ['حصة الواقف (5%) / Waqif Share', data.waqifShare.toLocaleString()],
-      ['ريع المستفيدين / Beneficiaries Revenue', data.waqfRevenue.toLocaleString()],
+      ['إجمالي الإيرادات', data.totalIncome.toLocaleString()],
+      ['إجمالي المصروفات', `(${data.totalExpenses.toLocaleString()})`],
+      ['صافي الريع', data.netRevenue.toLocaleString()],
+      ['حصة الناظر (10%)', data.adminShare.toLocaleString()],
+      ['حصة الواقف (5%)', data.waqifShare.toLocaleString()],
+      ['ريع المستفيدين', data.waqfRevenue.toLocaleString()],
     ],
     theme: 'striped',
-    headStyles: { fillColor: [22, 101, 52] },
-    styles: { halign: 'right' },
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
   });
   
   // Beneficiaries Distribution
   const finalY = (doc as any).lastAutoTable?.finalY || 100;
   
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('توزيع حصص المستفيدين / Beneficiaries Distribution', 105, finalY + 20, { align: 'center' });
+  doc.setFont(fontFamily, 'bold');
+  doc.text('توزيع حصص المستفيدين', 105, finalY + 20, { align: 'center' });
   
   autoTable(doc, {
     startY: finalY + 30,
-    head: [['اسم المستفيد / Beneficiary Name', 'النسبة % / Share %', 'المبلغ (ر.س) / Amount (SAR)']],
+    head: [['اسم المستفيد', 'النسبة %', 'المبلغ (ر.س)']],
     body: data.beneficiaries.map(b => [
       b.name,
       `${b.percentage}%`,
       b.amount.toLocaleString(),
     ]),
     theme: 'striped',
-    headStyles: { fillColor: [202, 138, 4] },
-    styles: { halign: 'right' },
+    headStyles: { fillColor: [202, 138, 4], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
   });
   
   // Footer
@@ -73,7 +113,7 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(fontFamily, 'normal');
     doc.text(
       `صفحة ${i} من ${pageCount} - تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}`,
       105,
@@ -86,31 +126,35 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   doc.save(`waqf-report-${data.fiscalYear}.pdf`);
 };
 
-export const generateBeneficiaryStatementPDF = (beneficiaryName: string, sharePercentage: number, shareAmount: number, fiscalYear: string) => {
+export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, sharePercentage: number, shareAmount: number, fiscalYear: string) => {
   const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
   
-  doc.setFont('helvetica', 'bold');
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+  
+  doc.setFont(fontFamily, 'bold');
   doc.setFontSize(20);
-  doc.text('كشف حساب المستفيد / Beneficiary Statement', 105, 20, { align: 'center' });
+  doc.text('كشف حساب المستفيد', 105, 20, { align: 'center' });
   
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`السنة المالية / Fiscal Year: ${fiscalYear}`, 105, 35, { align: 'center' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`السنة المالية: ${fiscalYear}`, 105, 35, { align: 'center' });
   
   autoTable(doc, {
     startY: 50,
-    head: [['البيان / Details', 'القيمة / Value']],
+    head: [['البيان', 'القيمة']],
     body: [
-      ['اسم المستفيد / Beneficiary Name', beneficiaryName],
-      ['نسبة الحصة / Share Percentage', `${sharePercentage}%`],
-      ['مبلغ الحصة / Share Amount', `${shareAmount.toLocaleString()} ر.س / SAR`],
+      ['اسم المستفيد', beneficiaryName],
+      ['نسبة الحصة', `${sharePercentage}%`],
+      ['مبلغ الحصة', `${shareAmount.toLocaleString()} ر.س`],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [22, 101, 52] },
-    styles: { halign: 'right' },
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
   });
   
   doc.setFontSize(10);
+  doc.setFont(fontFamily, 'normal');
   doc.text(
     `تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}`,
     105,

@@ -32,9 +32,9 @@ const DisclosurePage = () => {
 
   const fiscalYear = '1446-1447هـ';
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (currentBeneficiary) {
-      generateBeneficiaryStatementPDF(
+      await generateBeneficiaryStatementPDF(
         currentBeneficiary.name,
         currentBeneficiary.share_percentage,
         myShare,
