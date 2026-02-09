@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -12,14 +12,19 @@ import { Building2, LogIn, UserPlus } from 'lucide-react';
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, user, role, loading } = useAuth();
   const navigate = useNavigate();
 
-  if (user) {
-    navigate('/dashboard');
-    return null;
-  }
+  useEffect(() => {
+    if (user && !loading) {
+      if (role === 'beneficiary') {
+        navigate('/beneficiary');
+      } else if (role) {
+        navigate('/dashboard');
+      }
+    }
+  }, [user, role, loading, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +32,13 @@ const Auth = () => {
       toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
-    setLoading(true);
+    setIsLoading(true);
     const { error } = await signIn(email, password);
-    setLoading(false);
+    setIsLoading(false);
     if (error) {
       toast.error('خطأ في تسجيل الدخول: ' + error.message);
     } else {
       toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/dashboard');
     }
   };
 
@@ -48,9 +52,9 @@ const Auth = () => {
       toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
-    setLoading(true);
+    setIsLoading(true);
     const { error } = await signUp(email, password);
-    setLoading(false);
+    setIsLoading(false);
     if (error) {
       if (error.message.includes('already registered')) {
         toast.error('هذا البريد الإلكتروني مسجل بالفعل');
@@ -109,8 +113,8 @@ const Auth = () => {
                     dir="ltr"
                   />
                 </div>
-                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-                  {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                  {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                 </Button>
               </form>
             </TabsContent>
@@ -139,8 +143,8 @@ const Auth = () => {
                     dir="ltr"
                   />
                 </div>
-                <Button type="submit" className="w-full gradient-primary" disabled={loading}>
-                  {loading ? 'جاري التسجيل...' : 'إنشاء حساب'}
+                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                  {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
                 </Button>
               </form>
             </TabsContent>
