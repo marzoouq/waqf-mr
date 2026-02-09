@@ -1,11 +1,5 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: unknown) => jsPDF;
-  }
-}
+import autoTable from 'jspdf-autotable';
 
 interface ReportData {
   fiscalYear: string;
@@ -38,7 +32,7 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   doc.text(`السنة المالية / Fiscal Year: ${data.fiscalYear}`, 105, 35, { align: 'center' });
   
   // Summary Table
-  doc.autoTable({
+  const summaryTable = autoTable(doc, {
     startY: 45,
     head: [['البند / Item', 'المبلغ (ر.س) / Amount (SAR)']],
     body: [
@@ -55,13 +49,13 @@ export const generateAnnualReportPDF = (data: ReportData) => {
   });
   
   // Beneficiaries Distribution
-  const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable?.finalY || 100;
+  const finalY = (doc as any).lastAutoTable?.finalY || 100;
   
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('توزيع حصص المستفيدين / Beneficiaries Distribution', 105, finalY + 20, { align: 'center' });
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: finalY + 30,
     head: [['اسم المستفيد / Beneficiary Name', 'النسبة % / Share %', 'المبلغ (ر.س) / Amount (SAR)']],
     body: data.beneficiaries.map(b => [
@@ -103,7 +97,7 @@ export const generateBeneficiaryStatementPDF = (beneficiaryName: string, sharePe
   doc.setFont('helvetica', 'normal');
   doc.text(`السنة المالية / Fiscal Year: ${fiscalYear}`, 105, 35, { align: 'center' });
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: 50,
     head: [['البيان / Details', 'القيمة / Value']],
     body: [
