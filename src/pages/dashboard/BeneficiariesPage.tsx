@@ -108,7 +108,7 @@ const BeneficiariesPage = () => {
       bank_account: beneficiary.bank_account || '',
       notes: beneficiary.notes || '',
       user_id: beneficiary.user_id || '',
-      national_id: (beneficiary as any).national_id || '',
+      national_id: beneficiary.national_id || '',
     });
     setIsOpen(true);
   };
@@ -326,10 +326,10 @@ const BeneficiariesPage = () => {
                       <span dir="ltr">{beneficiary.bank_account}</span>
                     </div>
                   )}
-                  {(beneficiary as any).national_id && (
+                  {beneficiary.national_id && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <IdCard className="w-4 h-4" />
-                      <span dir="ltr">{(beneficiary as any).national_id}</span>
+                      <span dir="ltr">{beneficiary.national_id}</span>
                     </div>
                   )}
                 </CardContent>

@@ -154,26 +154,45 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Link national_id to beneficiary if provided
-        if (body.nationalId) {
-          // Find beneficiary by email and update national_id
+        // Handle beneficiary linking/creation
+        if (body.role === "beneficiary") {
+          // Try to find existing beneficiary by email
+          const { data: existingBeneficiary } = await adminClient
+            .from("beneficiaries")
+            .select("id")
+            .eq("email", email)
+            .maybeSingle();
+
+          if (existingBeneficiary) {
+            // Link existing beneficiary to user and set national_id if provided
+            const updateData: Record<string, unknown> = { user_id: newUser.user.id };
+            if (body.nationalId) updateData.national_id = body.nationalId;
+            await adminClient
+              .from("beneficiaries")
+              .update(updateData)
+              .eq("id", existingBeneficiary.id);
+          } else {
+            // Create new beneficiary record
+            await adminClient.from("beneficiaries").insert({
+              name: email.split("@")[0],
+              email: email,
+              share_percentage: 0,
+              user_id: newUser.user.id,
+              national_id: body.nationalId || null,
+            });
+          }
+        } else if (body.nationalId) {
+          // For non-beneficiary roles, just try to link national_id to existing beneficiary
           const { data: beneficiary } = await adminClient
             .from("beneficiaries")
             .select("id")
             .eq("email", email)
-            .single();
-
+            .maybeSingle();
           if (beneficiary) {
             await adminClient
               .from("beneficiaries")
               .update({ national_id: body.nationalId, user_id: newUser.user.id })
               .eq("id", beneficiary.id);
-          } else {
-            // Update any beneficiary linked to this user
-            await adminClient
-              .from("beneficiaries")
-              .update({ national_id: body.nationalId })
-              .eq("user_id", newUser.user.id);
           }
         }
         
