@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
-import { useContracts, useUpdateContract } from '@/hooks/useContracts';
+import { useContracts, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X, Printer, FileDown, Trash2 } from 'lucide-react';
 import { generateAccountsPDF } from '@/utils/pdfGenerator';
@@ -23,6 +23,7 @@ const AccountsPage = () => {
   const createAccount = useCreateAccount();
   const deleteAccount = useDeleteAccount();
   const updateContract = useUpdateContract();
+  const deleteContract = useDeleteContract();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -258,6 +259,7 @@ const AccountsPage = () => {
                       <TableHead className="text-right">عدد الدفعات</TableHead>
                       <TableHead className="text-right">إجمالي العقد السنوي</TableHead>
                       <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right w-20">إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -270,6 +272,20 @@ const AccountsPage = () => {
                         <TableCell className="text-center">12</TableCell>
                         <TableCell className="font-bold text-primary">{(Number(contract.rent_amount) * 12).toLocaleString()} ريال</TableCell>
                         <TableCell>{statusLabel(contract.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleStartEdit(index)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => {
+                              if (confirm('هل أنت متأكد من حذف هذا العقد؟')) {
+                                deleteContract.mutate(contract.id);
+                              }
+                            }}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -281,6 +297,7 @@ const AccountsPage = () => {
                       <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
                       <TableCell></TableCell>
                       <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
+                      <TableCell></TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   </TableFooter>
