@@ -48,6 +48,8 @@ interface ReportData {
   adminShare: number;
   waqifShare: number;
   waqfRevenue: number;
+  expensesByType: Array<{ type: string; amount: number }>;
+  incomeBySource: Array<{ source: string; amount: number }>;
   beneficiaries: Array<{
     name: string;
     percentage: number;
@@ -76,8 +78,15 @@ export const generateAnnualReportPDF = async (data: ReportData) => {
     startY: 45,
     head: [['البند', 'المبلغ (ر.س)']],
     body: [
-      ['إجمالي الإيرادات', data.totalIncome.toLocaleString()],
-      ['إجمالي المصروفات', `(${data.totalExpenses.toLocaleString()})`],
+      // تفصيل الإيرادات
+      [{ content: '-- الإيرادات --', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 252, 231] } }],
+      ...data.incomeBySource.map(i => [`  ${i.source}`, `+${i.amount.toLocaleString()}`]),
+      [{ content: 'إجمالي الإيرادات', styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }],
+      // تفصيل المصروفات
+      [{ content: '-- المصروفات --', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [254, 226, 226] } }],
+      ...data.expensesByType.map(e => [`  ${e.type}`, `-${e.amount.toLocaleString()}`]),
+      [{ content: 'إجمالي المصروفات', styles: { fontStyle: 'bold' } }, { content: `(${data.totalExpenses.toLocaleString()})`, styles: { fontStyle: 'bold' } }],
+      // صافي الريع والتوزيع
       ['صافي الريع', data.netRevenue.toLocaleString()],
       ['حصة الناظر (10%)', data.adminShare.toLocaleString()],
       ['حصة الواقف (5%)', data.waqifShare.toLocaleString()],
