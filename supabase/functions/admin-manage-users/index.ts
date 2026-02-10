@@ -172,9 +172,10 @@ Deno.serve(async (req) => {
             .maybeSingle();
 
           if (existingBeneficiary) {
-            // Link existing beneficiary to user and set national_id if provided
+            // Link existing beneficiary to user and update name/national_id
             const updateData: Record<string, unknown> = { user_id: newUser.user.id };
             if (body.nationalId) updateData.national_id = body.nationalId;
+            if (body.name) updateData.name = body.name;
             await adminClient
               .from("beneficiaries")
               .update(updateData)
@@ -182,7 +183,7 @@ Deno.serve(async (req) => {
           } else {
             // Create new beneficiary record
             await adminClient.from("beneficiaries").insert({
-              name: email.split("@")[0],
+              name: body.name || email.split("@")[0],
               email: email,
               share_percentage: 0,
               user_id: newUser.user.id,

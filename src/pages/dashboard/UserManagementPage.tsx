@@ -39,7 +39,7 @@ const UserManagementPage = () => {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
-  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '' });
+  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
@@ -76,13 +76,13 @@ const UserManagementPage = () => {
   });
 
   const createUser = useMutation({
-    mutationFn: (data: { email: string; password: string; role: string; nationalId?: string }) =>
+    mutationFn: (data: { email: string; password: string; role: string; nationalId: string; name: string }) =>
       callAdminApi({ action: 'create_user', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم إنشاء المستخدم بنجاح');
       setIsCreateOpen(false);
-      setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '' });
+      setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
     },
     onError: (e: Error) => toast.error('خطأ: ' + e.message),
   });
@@ -201,6 +201,16 @@ const UserManagementPage = () => {
                 className="space-y-4"
               >
                 <div className="space-y-2">
+                  <Label>اسم المستخدم</Label>
+                  <Input
+                    type="text"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    placeholder="أدخل اسم المستخدم"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>البريد الإلكتروني</Label>
                   <Input
                     type="email"
@@ -224,13 +234,14 @@ const UserManagementPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>رقم الهوية الوطنية (اختياري)</Label>
+                  <Label>رقم الهوية الوطنية</Label>
                   <Input
                     type="text"
                     value={createForm.nationalId}
                     onChange={(e) => setCreateForm({ ...createForm, nationalId: e.target.value })}
                     placeholder="1234567890"
                     dir="ltr"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
