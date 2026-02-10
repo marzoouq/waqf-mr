@@ -37,8 +37,25 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-hero pattern-islamic-strong min-h-[90vh] flex items-center">
-        {/* Decorative elements */}
+      <section className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center">
+        {/* Islamic geometric SVG decoration */}
+        <div className="absolute inset-0 opacity-[0.07]">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="islamicPattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+                <path d="M60 0L120 60L60 120L0 60Z" fill="none" stroke="#d4af37" strokeWidth="0.8"/>
+                <path d="M60 15L105 60L60 105L15 60Z" fill="none" stroke="#d4af37" strokeWidth="0.5"/>
+                <path d="M60 30L90 60L60 90L30 60Z" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
+                <circle cx="60" cy="60" r="10" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
+                <circle cx="60" cy="60" r="4" fill="none" stroke="#d4af37" strokeWidth="0.3"/>
+                <line x1="60" y1="0" x2="60" y2="120" stroke="#d4af37" strokeWidth="0.2"/>
+                <line x1="0" y1="60" x2="120" y2="60" stroke="#d4af37" strokeWidth="0.2"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
+          </svg>
+        </div>
+        {/* Decorative glows */}
         <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" />
         
@@ -57,13 +74,13 @@ const Index = () => {
                 <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
               </div>
 
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
+              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                 نظام إدارة الوقف
               </h1>
-              <p className="text-lg md:text-xl text-primary-foreground/85 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
+              <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
                 منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين
               </p>
-              <p className="text-sm md:text-base text-secondary/90 mb-10 font-arabic">
+              <p className="text-sm md:text-base text-secondary mb-10 font-arabic font-medium">
                 حفظ الأمانة · إدارة الممتلكات · توزيع عادل
               </p>
             </div>
@@ -85,7 +102,7 @@ const Index = () => {
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
                   <div className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">{stat.value}</div>
-                  <div className="text-sm text-primary-foreground/70 mt-1">{stat.label}</div>
+                  <div className="text-sm text-white/70 mt-1">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -94,7 +111,7 @@ const Index = () => {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="w-6 h-6 text-primary-foreground/40" />
+          <ChevronDown className="w-6 h-6 text-white/40" />
         </div>
       </section>
 
