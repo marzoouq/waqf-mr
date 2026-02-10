@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useAccounts, useCreateAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
-import { Wallet, Plus, Calculator } from 'lucide-react';
+import { useContracts } from '@/hooks/useContracts';
+import { useBeneficiaries } from '@/hooks/useBeneficiaries';
+import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
@@ -12,21 +14,41 @@ const AccountsPage = () => {
   const { data: accounts = [], isLoading } = useAccounts();
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
+  const { data: contracts = [] } = useContracts();
+  const { data: beneficiaries = [] } = useBeneficiaries();
   const createAccount = useCreateAccount();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
-  // Use stored account values if available, fallback to dynamic calculation
   const currentAccount = accounts[0];
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * 0.10;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * 0.05;
   const netRevenue = totalIncome - totalExpenses;
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
   const waqfRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
 
+  // Group income by source
+  const incomeBySource = income.reduce((acc, item) => {
+    const source = item.source || 'غير محدد';
+    acc[source] = (acc[source] || 0) + Number(item.amount);
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Group expenses by type
+  const expensesByType = expenses.reduce((acc, item) => {
+    const type = item.expense_type || 'غير محدد';
+    acc[type] = (acc[type] || 0) + Number(item.amount);
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Total contracts rent
+  const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+
+  // Waqf corpus (رقبة الوقف)
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const waqfCorpus = waqfRevenue * (1 - totalBeneficiaryPercentage / 100);
+
   const handleCreateAccount = async () => {
-    const currentYear = new Date().toLocaleDateString('ar-SA', { year: 'numeric' });
-    
     await createAccount.mutateAsync({
       fiscal_year: `25/10/2024 - 25/10/2025م`,
       total_income: totalIncome,
@@ -35,6 +57,15 @@ const AccountsPage = () => {
       waqif_share: waqifShare,
       waqf_revenue: waqfRevenue,
     });
+  };
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'نشط';
+      case 'expired': return 'منتهي';
+      case 'cancelled': return 'ملغي';
+      default: return status;
+    }
   };
 
   return (
@@ -52,7 +83,7 @@ const AccountsPage = () => {
           </Button>
         </div>
 
-        {/* Current Summary */}
+        {/* 1. Current Summary */}
         <Card className="shadow-sm gradient-hero text-primary-foreground">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -90,7 +121,221 @@ const AccountsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Previous Accounts */}
+        {/* 2. Contracts */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              العقود
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contracts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">رقم العقد</TableHead>
+                      <TableHead className="text-right">المستأجر</TableHead>
+                      <TableHead className="text-right">قيمة الإيجار</TableHead>
+                      <TableHead className="text-right">تاريخ البداية</TableHead>
+                      <TableHead className="text-right">تاريخ النهاية</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contracts.map((contract) => (
+                      <TableRow key={contract.id}>
+                        <TableCell className="font-medium">{contract.contract_number}</TableCell>
+                        <TableCell>{contract.tenant_name}</TableCell>
+                        <TableCell>{Number(contract.rent_amount).toLocaleString()}</TableCell>
+                        <TableCell>{contract.start_date}</TableCell>
+                        <TableCell>{contract.end_date}</TableCell>
+                        <TableCell>{statusLabel(contract.status)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
+                  <span className="font-medium">إجمالي قيم الإيجار</span>
+                  <span className="font-bold text-primary">{totalRent.toLocaleString()} ريال</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 3. Income Details */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              تفصيل الإيرادات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {income.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">لا توجد إيرادات مسجلة</p>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">المصدر</TableHead>
+                      <TableHead className="text-right">المبلغ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(incomeBySource).map(([source, amount]) => (
+                      <TableRow key={source}>
+                        <TableCell className="font-medium">{source}</TableCell>
+                        <TableCell className="text-success">+{amount.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
+                  <span className="font-medium">إجمالي الإيرادات</span>
+                  <span className="font-bold text-success">+{totalIncome.toLocaleString()} ريال</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 4. Expenses Details */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5" />
+              تفصيل المصروفات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expenses.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">النوع</TableHead>
+                      <TableHead className="text-right">المبلغ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(expensesByType).map(([type, amount]) => (
+                      <TableRow key={type}>
+                        <TableCell className="font-medium">{type}</TableCell>
+                        <TableCell className="text-destructive">-{amount.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
+                  <span className="font-medium">إجمالي المصروفات</span>
+                  <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ريال</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 5. Distribution & Shares */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="w-5 h-5" />
+              التوزيع والحصص
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right">البند</TableHead>
+                  <TableHead className="text-right">النسبة</TableHead>
+                  <TableHead className="text-right">المبلغ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">صافي الريع</TableCell>
+                  <TableCell>100%</TableCell>
+                  <TableCell className="font-bold">{netRevenue.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">حصة الناظر</TableCell>
+                  <TableCell>10%</TableCell>
+                  <TableCell>{adminShare.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">حصة الواقف</TableCell>
+                  <TableCell>5%</TableCell>
+                  <TableCell>{waqifShare.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">ريع الوقف (للتوزيع)</TableCell>
+                  <TableCell>85%</TableCell>
+                  <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">رقبة الوقف</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>{waqfCorpus.toLocaleString()}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* 6. Beneficiary Distribution */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              توزيع حصص المستفيدين
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {beneficiaries.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">المستفيد</TableHead>
+                      <TableHead className="text-right">النسبة</TableHead>
+                      <TableHead className="text-right">المبلغ المستحق</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {beneficiaries.map((b) => (
+                      <TableRow key={b.id}>
+                        <TableCell className="font-medium">{b.name}</TableCell>
+                        <TableCell>{Number(b.share_percentage).toFixed(2)}%</TableCell>
+                        <TableCell className="text-primary font-medium">
+                          {(waqfRevenue * Number(b.share_percentage) / 100).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
+                  <span className="font-medium">إجمالي التوزيع</span>
+                  <span className="font-bold text-primary">
+                    {(waqfRevenue * totalBeneficiaryPercentage / 100).toLocaleString()} ريال
+                  </span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 7. Previous Accounts */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>السجلات السابقة</CardTitle>
