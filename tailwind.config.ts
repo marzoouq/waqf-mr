@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         arabic: ['Tajawal', 'sans-serif'],
+        display: ['Amiri', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
