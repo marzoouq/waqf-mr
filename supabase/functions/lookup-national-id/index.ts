@@ -21,25 +21,36 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Missing env vars:", { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey });
+      return new Response(
+        JSON.stringify({ error: "خطأ في إعدادات الخادم" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
 
     const { data, error } = await supabase
       .from("beneficiaries")
       .select("email")
       .eq("national_id", national_id)
-      .maybeSingle();
+      .limit(1);
 
     if (error) {
+      console.error("DB query error:", JSON.stringify(error));
       return new Response(
-        JSON.stringify({ error: "خطأ في البحث" }),
+        JSON.stringify({ error: "خطأ في البحث: " + error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!data?.email) {
+    if (!data || data.length === 0 || !data[0]?.email) {
       return new Response(
         JSON.stringify({ error: "رقم الهوية غير مسجل في النظام" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -47,7 +58,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ email: data.email }),
+      JSON.stringify({ email: data[0].email }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
