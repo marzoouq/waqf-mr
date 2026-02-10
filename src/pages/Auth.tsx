@@ -57,7 +57,6 @@ const Auth = () => {
         setIsLoading(false);
         return;
       }
-      // Lookup email by national_id
       const { data: beneficiary, error: lookupError } = await supabase
         .from('beneficiaries')
         .select('email')
@@ -117,203 +116,177 @@ const Auth = () => {
     }
   };
 
+  const LoginForm = ({ idSuffix = '' }: { idSuffix?: string }) => (
+    <form onSubmit={handleSignIn} className="space-y-5">
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">طريقة تسجيل الدخول</Label>
+        <RadioGroup
+          value={loginMethod}
+          onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
+          className="flex gap-3"
+          dir="rtl"
+        >
+          <label
+            htmlFor={`method-email${idSuffix}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+              loginMethod === 'email'
+                ? 'border-primary bg-accent shadow-sm'
+                : 'border-border hover:border-primary/30'
+            }`}
+          >
+            <RadioGroupItem value="email" id={`method-email${idSuffix}`} />
+            <Mail className="w-4 h-4" />
+            <span className="text-sm">البريد الإلكتروني</span>
+          </label>
+          <label
+            htmlFor={`method-id${idSuffix}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
+              loginMethod === 'national_id'
+                ? 'border-primary bg-accent shadow-sm'
+                : 'border-border hover:border-primary/30'
+            }`}
+          >
+            <RadioGroupItem value="national_id" id={`method-id${idSuffix}`} />
+            <IdCard className="w-4 h-4" />
+            <span className="text-sm">رقم الهوية</span>
+          </label>
+        </RadioGroup>
+      </div>
+
+      {loginMethod === 'email' ? (
+        <div className="space-y-2">
+          <Label htmlFor={`signin-email${idSuffix}`}>البريد الإلكتروني</Label>
+          <Input
+            id={`signin-email${idSuffix}`}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@email.com"
+            dir="ltr"
+            className="h-11"
+          />
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor={`signin-national-id${idSuffix}`}>رقم الهوية الوطنية</Label>
+          <Input
+            id={`signin-national-id${idSuffix}`}
+            type="text"
+            value={nationalId}
+            onChange={(e) => setNationalId(e.target.value)}
+            placeholder="1234567890"
+            dir="ltr"
+            className="h-11"
+          />
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor={`signin-password${idSuffix}`}>كلمة المرور</Label>
+        <Input
+          id={`signin-password${idSuffix}`}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          dir="ltr"
+          className="h-11"
+        />
+      </div>
+      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
+        {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+      </Button>
+    </form>
+  );
+
   return (
-    <div className="min-h-screen gradient-hero pattern-islamic flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-elegant animate-slide-up">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-            <Building2 className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-2xl font-bold">نظام إدارة الوقف</CardTitle>
-          <CardDescription>
-            {registrationEnabled ? 'تسجيل الدخول أو إنشاء حساب جديد' : 'تسجيل الدخول'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {registrationEnabled ? (
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin" className="gap-2">
-                  <LogIn className="w-4 h-4" />
-                  تسجيل الدخول
-                </TabsTrigger>
-                <TabsTrigger value="signup" className="gap-2">
-                  <UserPlus className="w-4 h-4" />
-                  حساب جديد
-                </TabsTrigger>
-              </TabsList>
+    <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative orbs */}
+      <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-secondary/5 blur-3xl" />
+      <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl" />
 
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-3">
-                    <Label>طريقة تسجيل الدخول</Label>
-                    <RadioGroup
-                      value={loginMethod}
-                      onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
-                      className="flex gap-4"
-                      dir="rtl"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="email" id="method-email" />
-                        <Label htmlFor="method-email" className="flex items-center gap-1 cursor-pointer">
-                          <Mail className="w-4 h-4" />
-                          البريد الإلكتروني
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="national_id" id="method-id" />
-                        <Label htmlFor="method-id" className="flex items-center gap-1 cursor-pointer">
-                          <IdCard className="w-4 h-4" />
-                          رقم الهوية
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+      <div className="w-full max-w-md relative z-10">
+        <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-sm bg-card/95">
+          <CardHeader className="text-center space-y-5 pb-2">
+            {/* Logo with glow */}
+            <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
+              <Building2 className="w-10 h-10 text-primary-foreground" />
+            </div>
 
-                  {loginMethod === 'email' ? (
+            {/* Title with Amiri font */}
+            <div className="space-y-2">
+              <CardTitle className="text-3xl font-display font-bold tracking-wide">
+                نظام إدارة الوقف
+              </CardTitle>
+              <div className="ornament-divider py-2">
+                <span className="text-gradient-gold text-sm font-display px-4">❖</span>
+              </div>
+              <CardDescription className="text-base">
+                {registrationEnabled ? 'تسجيل الدخول أو إنشاء حساب جديد' : 'تسجيل الدخول إلى النظام'}
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            {registrationEnabled ? (
+              <Tabs defaultValue="signin" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 h-11">
+                  <TabsTrigger value="signin" className="gap-2 text-sm">
+                    <LogIn className="w-4 h-4" />
+                    تسجيل الدخول
+                  </TabsTrigger>
+                  <TabsTrigger value="signup" className="gap-2 text-sm">
+                    <UserPlus className="w-4 h-4" />
+                    حساب جديد
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="signin">
+                  <LoginForm />
+                </TabsContent>
+
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignUp} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="signin-email">البريد الإلكتروني</Label>
+                      <Label htmlFor="signup-email">البريد الإلكتروني</Label>
                       <Input
-                        id="signin-email"
+                        id="signup-email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="example@email.com"
                         dir="ltr"
+                        className="h-11"
                       />
                     </div>
-                  ) : (
                     <div className="space-y-2">
-                      <Label htmlFor="signin-national-id">رقم الهوية الوطنية</Label>
+                      <Label htmlFor="signup-password">كلمة المرور</Label>
                       <Input
-                        id="signin-national-id"
-                        type="text"
-                        value={nationalId}
-                        onChange={(e) => setNationalId(e.target.value)}
-                        placeholder="1234567890"
+                        id="signup-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
                         dir="ltr"
+                        className="h-11"
                       />
                     </div>
-                  )}
+                    <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
+                      {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <LoginForm idSuffix="-direct" />
+            )}
+          </CardContent>
+        </Card>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">كلمة المرور</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      dir="ltr"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                    {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">البريد الإلكتروني</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="example@email.com"
-                      dir="ltr"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">كلمة المرور</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      dir="ltr"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                    {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-3">
-                <Label>طريقة تسجيل الدخول</Label>
-                <RadioGroup
-                  value={loginMethod}
-                  onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
-                  className="flex gap-4"
-                  dir="rtl"
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="email" id="method-email-direct" />
-                    <Label htmlFor="method-email-direct" className="flex items-center gap-1 cursor-pointer">
-                      <Mail className="w-4 h-4" />
-                      البريد الإلكتروني
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="national_id" id="method-id-direct" />
-                    <Label htmlFor="method-id-direct" className="flex items-center gap-1 cursor-pointer">
-                      <IdCard className="w-4 h-4" />
-                      رقم الهوية
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {loginMethod === 'email' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email-direct">البريد الإلكتروني</Label>
-                  <Input
-                    id="signin-email-direct"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@email.com"
-                    dir="ltr"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="signin-national-id-direct">رقم الهوية الوطنية</Label>
-                  <Input
-                    id="signin-national-id-direct"
-                    type="text"
-                    value={nationalId}
-                    onChange={(e) => setNationalId(e.target.value)}
-                    placeholder="1234567890"
-                    dir="ltr"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="signin-password-direct">كلمة المرور</Label>
-                <Input
-                  id="signin-password-direct"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  dir="ltr"
-                />
-              </div>
-              <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+        {/* Footer text */}
+        <p className="text-center text-primary-foreground/40 text-xs mt-6 font-display">
+          ❖ بركة الوقف ❖
+        </p>
+      </div>
     </div>
   );
 };
