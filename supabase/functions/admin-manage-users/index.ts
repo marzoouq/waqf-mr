@@ -164,7 +164,6 @@ Deno.serve(async (req) => {
 
         // Handle beneficiary linking/creation
         if (body.role === "beneficiary") {
-          // Try to find existing beneficiary by email
           const { data: existingBeneficiary } = await adminClient
             .from("beneficiaries")
             .select("id")
@@ -172,7 +171,6 @@ Deno.serve(async (req) => {
             .maybeSingle();
 
           if (existingBeneficiary) {
-            // Link existing beneficiary to user and update name/national_id
             const updateData: Record<string, unknown> = { user_id: newUser.user.id };
             if (body.nationalId) updateData.national_id = body.nationalId;
             if (body.name) updateData.name = body.name;
@@ -181,7 +179,6 @@ Deno.serve(async (req) => {
               .update(updateData)
               .eq("id", existingBeneficiary.id);
           } else {
-            // Create new beneficiary record
             await adminClient.from("beneficiaries").insert({
               name: body.name || email.split("@")[0],
               email: email,
@@ -191,7 +188,6 @@ Deno.serve(async (req) => {
             });
           }
         } else if (body.nationalId) {
-          // For non-beneficiary roles, just try to link national_id to existing beneficiary
           const { data: beneficiary } = await adminClient
             .from("beneficiaries")
             .select("id")
@@ -206,6 +202,60 @@ Deno.serve(async (req) => {
         }
         
         return new Response(JSON.stringify({ success: true, user: newUser.user }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      case "bulk_create_users": {
+        const { users } = body;
+        if (!users || !Array.isArray(users) || users.length === 0) {
+          throw new Error("users array is required");
+        }
+
+        const results = [];
+        const errors = [];
+
+        for (const u of users) {
+          try {
+            // Create auth user
+            const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+              email: u.email,
+              password: u.password,
+              email_confirm: true,
+            });
+            if (createError) {
+              errors.push({ email: u.email, error: createError.message });
+              continue;
+            }
+
+            // Set beneficiary role
+            await adminClient.from("user_roles").insert({
+              user_id: newUser.user.id,
+              role: "beneficiary",
+            });
+
+            // Create beneficiary record
+            await adminClient.from("beneficiaries").insert({
+              name: u.name,
+              email: u.email,
+              share_percentage: 0,
+              user_id: newUser.user.id,
+              national_id: u.national_id || null,
+            });
+
+            results.push({ email: u.email, userId: newUser.user.id, success: true });
+          } catch (err) {
+            errors.push({ email: u.email, error: err.message });
+          }
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          created: results.length, 
+          failed: errors.length,
+          results,
+          errors 
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
