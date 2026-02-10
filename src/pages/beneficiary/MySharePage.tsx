@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
+import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, Percent, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -15,6 +16,7 @@ const MySharePage = () => {
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
+  const { data: accounts = [] } = useAccounts();
 
   // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
@@ -39,9 +41,12 @@ const MySharePage = () => {
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
   const netRevenue = totalIncome - totalExpenses;
-  const adminShare = netRevenue * 0.10;
-  const waqifShare = netRevenue * 0.05;
-  const beneficiariesShare = netRevenue - adminShare - waqifShare;
+
+  // Use stored account values if available
+  const currentAccount = accounts[0];
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
+  const beneficiariesShare = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
