@@ -62,7 +62,7 @@ const ReportsPage = () => {
 
   const handleExportPDF = async () => {
     await generateAnnualReportPDF({
-      fiscalYear: '1446-1447',
+      fiscalYear: '25/10/2024 - 25/10/2025',
       totalIncome,
       totalExpenses,
       netRevenue,
@@ -132,7 +132,7 @@ const ReportsPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              الإفصاح السنوي (من 25/10/1446 إلى 25/10/1447هـ)
+              الإفصاح السنوي (من 25/10/2024 إلى 25/10/2025م)
             </CardTitle>
           </CardHeader>
           <CardContent>

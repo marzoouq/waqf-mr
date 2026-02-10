@@ -92,7 +92,7 @@ const FinancialReportsPage = () => {
         currentBeneficiary.name,
         currentBeneficiary.share_percentage,
         myShare,
-        '1446-1447هـ'
+        '25/10/2024 - 25/10/2025م'
       );
     }
   };

@@ -83,7 +83,7 @@ const BeneficiaryDashboard = () => {
         {/* Annual Disclosure */}
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>الإفصاح السنوي (1446-1447هـ)</CardTitle>
+            <CardTitle>الإفصاح السنوي (25/10/2024 - 25/10/2025م)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

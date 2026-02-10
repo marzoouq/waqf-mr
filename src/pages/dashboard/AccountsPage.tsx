@@ -28,7 +28,7 @@ const AccountsPage = () => {
     const currentYear = new Date().toLocaleDateString('ar-SA', { year: 'numeric' });
     
     await createAccount.mutateAsync({
-      fiscal_year: `1446-1447هـ`,
+      fiscal_year: `25/10/2024 - 25/10/2025م`,
       total_income: totalIncome,
       total_expenses: totalExpenses,
       admin_share: adminShare,
