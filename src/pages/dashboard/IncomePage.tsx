@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown } from 'lucide-react';
+import { generateIncomePDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
@@ -90,13 +91,22 @@ const IncomePage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الدخل</h1>
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة مصادر الدخل</p>
           </div>
-          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary gap-2">
-                <Plus className="w-4 h-4" />
-                إضافة دخل
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome)} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary gap-2">
+                  <Plus className="w-4 h-4" />
+                  إضافة دخل
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle>
@@ -161,6 +171,7 @@ const IncomePage = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Total Income Card */}
