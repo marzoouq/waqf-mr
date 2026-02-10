@@ -45,6 +45,38 @@ const AccountsPage = () => {
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
 
+  // Tenant payment data (actual collection from analyzed records)
+  const tenantPaymentData: Record<string, { paidMonths: number; notes: string }> = {
+    '10610950434': { paidMonths: 8, notes: 'متأخر 4 أشهر' },
+    '10704863702': { paidMonths: 7, notes: 'شاغرة 5 أشهر' },
+    '10704863703': { paidMonths: 6, notes: 'منتهي/شاغر 6 أشهر' },
+    '10704863704': { paidMonths: 11, notes: 'عقد جديد أكتوبر' },
+  };
+
+  const collectionData = contracts.map((contract, index) => {
+    const paymentInfo = tenantPaymentData[contract.contract_number];
+    const paidMonths = paymentInfo ? paymentInfo.paidMonths : 12;
+    const monthlyRent = Number(contract.rent_amount);
+    const totalCollected = monthlyRent * paidMonths;
+    const arrears = (monthlyRent * 12) - totalCollected;
+    return {
+      index: index + 1,
+      tenantName: contract.tenant_name,
+      monthlyRent,
+      expectedPayments: 12,
+      paidMonths,
+      totalCollected,
+      arrears,
+      status: arrears === 0 ? 'مكتمل' : 'متأخر',
+      notes: paymentInfo?.notes || '',
+    };
+  });
+
+  const totalCollectedAll = collectionData.reduce((sum, d) => sum + d.totalCollected, 0);
+  const totalArrearsAll = collectionData.reduce((sum, d) => sum + d.arrears, 0);
+  const totalPaidMonths = collectionData.reduce((sum, d) => sum + d.paidMonths, 0);
+  const totalExpectedPayments = collectionData.reduce((sum, d) => sum + d.expectedPayments, 0);
+
   // Waqf corpus (رقبة الوقف)
   const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
   const waqfCorpus = waqfRevenue * (1 - totalBeneficiaryPercentage / 100);
@@ -173,6 +205,68 @@ const AccountsPage = () => {
                   </TableFooter>
                 </Table>
               </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 2.5 Collection & Arrears Details */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5" />
+              تفصيل التحصيل والمتأخرات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contracts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right w-12">#</TableHead>
+                    <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right">الإيجار الشهري</TableHead>
+                    <TableHead className="text-right">الدفعات المتوقعة</TableHead>
+                    <TableHead className="text-right">الدفعات المحصّلة</TableHead>
+                    <TableHead className="text-right">الإجمالي المحصّل</TableHead>
+                    <TableHead className="text-right">المتأخرات</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {collectionData.map((item) => (
+                    <TableRow key={item.index}>
+                      <TableCell className="text-muted-foreground">{item.index}</TableCell>
+                      <TableCell className="font-medium">{item.tenantName}</TableCell>
+                      <TableCell className="font-bold text-primary">{item.monthlyRent.toLocaleString()} ريال</TableCell>
+                      <TableCell className="text-center">{item.expectedPayments}</TableCell>
+                      <TableCell className="text-center">{item.paidMonths}</TableCell>
+                      <TableCell className="font-bold text-primary">{item.totalCollected.toLocaleString()} ريال</TableCell>
+                      <TableCell className={`font-bold ${item.arrears > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                        {item.arrears.toLocaleString()} ريال
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {item.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow className="bg-muted/70 font-bold">
+                    <TableCell>الإجمالي</TableCell>
+                    <TableCell>{contracts.length} مستأجر</TableCell>
+                    <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
+                    <TableCell className="text-center">{totalExpectedPayments}</TableCell>
+                    <TableCell className="text-center">{totalPaidMonths}</TableCell>
+                    <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>
+                    <TableCell className="text-destructive font-bold">{totalArrearsAll.toLocaleString()} ريال</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
             )}
           </CardContent>
         </Card>
