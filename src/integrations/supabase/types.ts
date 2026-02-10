@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       beneficiaries: {
         Row: {
           bank_account: string | null
@@ -57,6 +78,7 @@ export type Database = {
           email: string | null
           id: string
           name: string
+          national_id: string | null
           notes: string | null
           phone: string | null
           share_percentage: number
@@ -69,6 +91,7 @@ export type Database = {
           email?: string | null
           id?: string
           name: string
+          national_id?: string | null
           notes?: string | null
           phone?: string | null
           share_percentage: number
@@ -81,6 +104,7 @@ export type Database = {
           email?: string | null
           id?: string
           name?: string
+          national_id?: string | null
           notes?: string | null
           phone?: string | null
           share_percentage?: number
