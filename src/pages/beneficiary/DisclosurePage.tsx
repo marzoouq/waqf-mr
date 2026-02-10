@@ -33,7 +33,7 @@ const DisclosurePage = () => {
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
 
-  const fiscalYear = '1446-1447هـ';
+  const fiscalYear = '25/10/2024 - 25/10/2025م';
 
   const handleDownloadPDF = async () => {
     if (currentBeneficiary) {
