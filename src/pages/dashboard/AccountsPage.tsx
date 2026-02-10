@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounts, useCreateAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
-import { useContracts } from '@/hooks/useContracts';
+import { useContracts, useUpdateContract } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart } from 'lucide-react';
+import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
@@ -17,6 +20,7 @@ const AccountsPage = () => {
   const { data: contracts = [] } = useContracts();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const createAccount = useCreateAccount();
+  const updateContract = useUpdateContract();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -46,15 +50,24 @@ const AccountsPage = () => {
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
 
   // Tenant payment data (actual collection from analyzed records)
-  const tenantPaymentData: Record<string, { paidMonths: number; notes: string }> = {
+  const [localPaymentData, setLocalPaymentData] = useState<Record<string, { paidMonths: number; notes: string }>>({
     '10610950434': { paidMonths: 8, notes: 'متأخر 4 أشهر' },
     '10023960935': { paidMonths: 7, notes: 'شاغرة 5 أشهر' },
     '10888316394': { paidMonths: 6, notes: 'منتهي/شاغر 6 أشهر' },
     '10969934020': { paidMonths: 11, notes: 'عقد جديد أكتوبر' },
-  };
+  });
+
+  // Editing state
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editData, setEditData] = useState<{
+    tenantName: string;
+    monthlyRent: number;
+    paidMonths: number;
+    status: string;
+  } | null>(null);
 
   const collectionData = contracts.map((contract, index) => {
-    const paymentInfo = tenantPaymentData[contract.contract_number];
+    const paymentInfo = localPaymentData[contract.contract_number];
     const paidMonths = paymentInfo ? paymentInfo.paidMonths : 12;
     const monthlyRent = Number(contract.rent_amount);
     const totalCollected = monthlyRent * paidMonths;
@@ -98,6 +111,51 @@ const AccountsPage = () => {
       case 'expired': return 'منتهي';
       case 'cancelled': return 'ملغي';
       default: return status;
+    }
+  };
+
+  const handleStartEdit = (index: number) => {
+    const item = collectionData[index];
+    setEditingIndex(index);
+    setEditData({
+      tenantName: item.tenantName,
+      monthlyRent: item.monthlyRent,
+      paidMonths: item.paidMonths,
+      status: item.status,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(null);
+    setEditData(null);
+  };
+
+  const handleSaveEdit = async (index: number) => {
+    if (!editData) return;
+    const contract = contracts[index];
+    
+    try {
+      // Update contract in DB
+      await updateContract.mutateAsync({
+        id: contract.id,
+        tenant_name: editData.tenantName,
+        rent_amount: editData.monthlyRent,
+      });
+
+      // Update local payment data
+      const newPaidMonths = editData.paidMonths;
+      setLocalPaymentData(prev => ({
+        ...prev,
+        [contract.contract_number]: {
+          paidMonths: newPaidMonths,
+          notes: editData.status === 'مكتمل' ? '' : `متأخر ${12 - newPaidMonths} أشهر`,
+        },
+      }));
+
+      setEditingIndex(null);
+      setEditData(null);
+    } catch {
+      // toast handled by useUpdateContract
     }
   };
 
@@ -232,27 +290,97 @@ const AccountsPage = () => {
                     <TableHead className="text-right">الإجمالي المحصّل</TableHead>
                     <TableHead className="text-right">المتأخرات</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right w-24">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {collectionData.map((item) => (
-                    <TableRow key={item.index}>
-                      <TableCell className="text-muted-foreground">{item.index}</TableCell>
-                      <TableCell className="font-medium">{item.tenantName}</TableCell>
-                      <TableCell className="font-bold text-primary">{item.monthlyRent.toLocaleString()} ريال</TableCell>
-                      <TableCell className="text-center">{item.expectedPayments}</TableCell>
-                      <TableCell className="text-center">{item.paidMonths}</TableCell>
-                      <TableCell className="font-bold text-primary">{item.totalCollected.toLocaleString()} ريال</TableCell>
-                      <TableCell className={`font-bold ${item.arrears > 0 ? 'text-destructive' : 'text-green-600'}`}>
-                        {item.arrears.toLocaleString()} ريال
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {item.status}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {collectionData.map((item, idx) => {
+                    const isEditing = editingIndex === idx;
+                    const editRent = editData?.monthlyRent ?? item.monthlyRent;
+                    const editPaid = editData?.paidMonths ?? item.paidMonths;
+                    const editTotal = editRent * editPaid;
+                    const editArrears = (editRent * 12) - editTotal;
+
+                    return (
+                      <TableRow key={item.index}>
+                        <TableCell className="text-muted-foreground">{item.index}</TableCell>
+                        <TableCell className="font-medium">
+                          {isEditing ? (
+                            <Input
+                              value={editData?.tenantName ?? ''}
+                              onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
+                              className="h-8 w-32"
+                            />
+                          ) : item.tenantName}
+                        </TableCell>
+                        <TableCell className="font-bold text-primary">
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              value={editData?.monthlyRent ?? 0}
+                              onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
+                              className="h-8 w-24"
+                            />
+                          ) : `${item.monthlyRent.toLocaleString()} ريال`}
+                        </TableCell>
+                        <TableCell className="text-center">{item.expectedPayments}</TableCell>
+                        <TableCell className="text-center">
+                          {isEditing ? (
+                            <Input
+                              type="number"
+                              min={0}
+                              max={12}
+                              value={editData?.paidMonths ?? 0}
+                              onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
+                              className="h-8 w-16"
+                            />
+                          ) : item.paidMonths}
+                        </TableCell>
+                        <TableCell className="font-bold text-primary">
+                          {isEditing ? `${editTotal.toLocaleString()} ريال` : `${item.totalCollected.toLocaleString()} ريال`}
+                        </TableCell>
+                        <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                          {(isEditing ? editArrears : item.arrears).toLocaleString()} ريال
+                        </TableCell>
+                        <TableCell>
+                          {isEditing ? (
+                            <Select
+                              value={editData?.status ?? 'متأخر'}
+                              onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : prev)}
+                            >
+                              <SelectTrigger className="h-8 w-24">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="مكتمل">مكتمل</SelectItem>
+                                <SelectItem value="متأخر">متأخر</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                              {item.status}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isEditing ? (
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => handleSaveEdit(idx)} disabled={updateContract.isPending}>
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={handleCancelEdit}>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleStartEdit(idx)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
                 <TableFooter>
                   <TableRow className="bg-muted/70 font-bold">
@@ -263,6 +391,7 @@ const AccountsPage = () => {
                     <TableCell className="text-center">{totalPaidMonths}</TableCell>
                     <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>
                     <TableCell className="text-destructive font-bold">{totalArrearsAll.toLocaleString()} ريال</TableCell>
+                    <TableCell></TableCell>
                     <TableCell></TableCell>
                   </TableRow>
                 </TableFooter>
