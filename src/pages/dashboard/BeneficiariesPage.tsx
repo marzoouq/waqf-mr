@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
-import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -52,6 +52,7 @@ const BeneficiariesPage = () => {
     bank_account: '',
     notes: '',
     user_id: '',
+    national_id: '',
   });
 
   const resetForm = () => {
@@ -63,6 +64,7 @@ const BeneficiariesPage = () => {
       bank_account: '',
       notes: '',
       user_id: '',
+      national_id: '',
     });
     setEditingBeneficiary(null);
   };
@@ -83,6 +85,7 @@ const BeneficiariesPage = () => {
       bank_account: formData.bank_account || undefined,
       notes: formData.notes || undefined,
       user_id: formData.user_id || undefined,
+      national_id: formData.national_id || undefined,
     };
 
     if (editingBeneficiary) {
@@ -105,6 +108,7 @@ const BeneficiariesPage = () => {
       bank_account: beneficiary.bank_account || '',
       notes: beneficiary.notes || '',
       user_id: beneficiary.user_id || '',
+      national_id: (beneficiary as any).national_id || '',
     });
     setIsOpen(true);
   };
@@ -181,6 +185,18 @@ const BeneficiariesPage = () => {
                     value={formData.bank_account}
                     onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })}
                     placeholder="SA..."
+                    dir="ltr"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <IdCard className="w-4 h-4" />
+                    رقم الهوية الوطنية
+                  </Label>
+                  <Input
+                    value={formData.national_id}
+                    onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+                    placeholder="1234567890"
                     dir="ltr"
                   />
                 </div>
@@ -308,6 +324,12 @@ const BeneficiariesPage = () => {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <CreditCard className="w-4 h-4" />
                       <span dir="ltr">{beneficiary.bank_account}</span>
+                    </div>
+                  )}
+                  {(beneficiary as any).national_id && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <IdCard className="w-4 h-4" />
+                      <span dir="ltr">{(beneficiary as any).national_id}</span>
                     </div>
                   )}
                 </CardContent>
