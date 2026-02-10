@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { Property } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown } from 'lucide-react';
+import { generatePropertiesPDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 
 const PropertiesPage = () => {
@@ -90,13 +91,22 @@ const PropertiesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة العقارات</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة جميع عقارات الوقف</p>
           </div>
-          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary gap-2">
-                <Plus className="w-4 h-4" />
-                إضافة عقار
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => generatePropertiesPDF(properties)} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary gap-2">
+                  <Plus className="w-4 h-4" />
+                  إضافة عقار
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>{editingProperty ? 'تعديل العقار' : 'إضافة عقار جديد'}</DialogTitle>
@@ -154,6 +164,7 @@ const PropertiesPage = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Properties Grid */}

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
-import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Printer, FileDown } from 'lucide-react';
+import { generateBeneficiariesPDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -130,13 +131,22 @@ const BeneficiariesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المستفيدين</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة المستفيدين من الوقف</p>
           </div>
-          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary gap-2">
-                <Plus className="w-4 h-4" />
-                إضافة مستفيد
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => generateBeneficiariesPDF(beneficiaries)} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary gap-2">
+                  <Plus className="w-4 h-4" />
+                  إضافة مستفيد
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle>
@@ -234,6 +244,7 @@ const BeneficiariesPage = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Summary */}

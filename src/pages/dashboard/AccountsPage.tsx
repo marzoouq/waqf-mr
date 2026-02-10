@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAccounts, useCreateAccount } from '@/hooks/useAccounts';
+import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts, useUpdateContract } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X } from 'lucide-react';
+import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X, Printer, FileDown, Trash2 } from 'lucide-react';
+import { generateAccountsPDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
@@ -20,6 +21,7 @@ const AccountsPage = () => {
   const { data: contracts = [] } = useContracts();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const createAccount = useCreateAccount();
+  const deleteAccount = useDeleteAccount();
   const updateContract = useUpdateContract();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -168,10 +170,31 @@ const AccountsPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
             <p className="text-muted-foreground mt-1">إدارة ومتابعة الحسابات السنوية</p>
           </div>
-          <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
-            <Plus className="w-4 h-4" />
-            إنشاء حساب ختامي
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => generateAccountsPDF({
+              contracts,
+              incomeBySource,
+              expensesByType,
+              totalIncome,
+              totalExpenses,
+              netRevenue,
+              adminShare,
+              waqifShare,
+              waqfRevenue,
+              beneficiaries,
+            })} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+            <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
+              <Plus className="w-4 h-4" />
+              إنشاء حساب ختامي
+            </Button>
+          </div>
         </div>
 
         {/* 1. Current Summary */}
@@ -593,6 +616,7 @@ const AccountsPage = () => {
                     <TableHead className="text-right">حصة الناظر</TableHead>
                     <TableHead className="text-right">حصة الواقف</TableHead>
                     <TableHead className="text-right">ريع الوقف</TableHead>
+                    <TableHead className="text-right w-20">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -604,6 +628,15 @@ const AccountsPage = () => {
                       <TableCell>{Number(account.admin_share).toLocaleString()}</TableCell>
                       <TableCell>{Number(account.waqif_share).toLocaleString()}</TableCell>
                       <TableCell className="text-primary font-medium">{Number(account.waqf_revenue).toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          if (confirm('هل أنت متأكد من حذف هذا الحساب؟')) {
+                            deleteAccount.mutate(account.id);
+                          }
+                        }} className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { useProperties } from '@/hooks/useProperties';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit } from 'lucide-react';
+import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown } from 'lucide-react';
+import { generateExpensesPDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
@@ -102,13 +103,22 @@ const ExpensesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المصروفات</h1>
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة المصروفات</p>
           </div>
-          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary gap-2">
-                <Plus className="w-4 h-4" />
-                إضافة مصروف
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => generateExpensesPDF(expenses, totalExpenses)} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary gap-2">
+                  <Plus className="w-4 h-4" />
+                  إضافة مصروف
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>{editingExpense ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle>
@@ -178,6 +188,7 @@ const ExpensesPage = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Total Expenses Card */}
