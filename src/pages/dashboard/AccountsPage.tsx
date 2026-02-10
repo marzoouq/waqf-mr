@@ -16,10 +16,13 @@ const AccountsPage = () => {
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+
+  // Use stored account values if available, fallback to dynamic calculation
+  const currentAccount = accounts[0];
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * 0.10;
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * 0.05;
   const netRevenue = totalIncome - totalExpenses;
-  const adminShare = netRevenue * 0.10;
-  const waqifShare = netRevenue * 0.05;
-  const waqfRevenue = netRevenue - adminShare - waqifShare;
+  const waqfRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
 
   const handleCreateAccount = async () => {
     const currentYear = new Date().toLocaleDateString('ar-SA', { year: 'numeric' });

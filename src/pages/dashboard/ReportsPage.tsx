@@ -7,6 +7,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
+import { useAccounts } from '@/hooks/useAccounts';
 import { BarChart3, Download, FileText, Printer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
@@ -17,16 +18,18 @@ const ReportsPage = () => {
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
+  const { data: accounts = [] } = useAccounts();
   const reportRef = useRef<HTMLDivElement>(null);
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
   const netRevenue = totalIncome - totalExpenses;
 
-  // Calculate shares
-  const adminShare = netRevenue * 0.10; // 10% for admin
-  const waqifShare = netRevenue * 0.05; // 5% for waqif
-  const beneficiariesShare = netRevenue - adminShare - waqifShare; // Remaining for beneficiaries
+  // Use stored account values if available
+  const currentAccount = accounts[0];
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
+  const beneficiariesShare = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
 
   // Income by source
   const incomeBySource = income.reduce((acc, item) => {

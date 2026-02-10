@@ -4,7 +4,8 @@ import { useContracts } from '@/hooks/useContracts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet } from 'lucide-react';
+import { useAccounts } from '@/hooks/useAccounts';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -15,19 +16,27 @@ const AdminDashboard = () => {
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
   const { data: beneficiaries = [] } = useBeneficiaries();
+  const { data: accounts = [] } = useAccounts();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  const netRevenue = totalIncome - totalExpenses;
   const activeContracts = contracts.filter(c => c.status === 'active').length;
+
+  // Use stored account values if available, fallback to dynamic calculation
+  const currentAccount = accounts[0];
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * 0.10;
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * 0.05;
+  const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : (totalIncome - totalExpenses) - adminShare - waqifShare;
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
     { title: 'العقود النشطة', value: activeContracts, icon: FileText, color: 'bg-secondary' },
     { title: 'إجمالي الدخل', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
-    { title: 'صافي الريع', value: `${netRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
-    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-secondary' },
+    { title: 'حصة الناظر', value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
+    { title: 'حصة الواقف', value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
+    { title: 'ريع الوقف للمستفيدين', value: `${netRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
+    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 
   // Monthly income/expense chart data
