@@ -28,6 +28,7 @@ import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
 import DisclosurePage from "./pages/beneficiary/DisclosurePage";
 import MySharePage from "./pages/beneficiary/MySharePage";
 import FinancialReportsPage from "./pages/beneficiary/FinancialReportsPage";
+import AccountsViewPage from "./pages/beneficiary/AccountsViewPage";
 
 const queryClient = new QueryClient();
 
@@ -150,6 +151,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <FinancialReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/accounts"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <AccountsViewPage />
                 </ProtectedRoute>
               }
             />

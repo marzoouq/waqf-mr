@@ -47,6 +47,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
     { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
     { to: '/beneficiary/share', icon: Wallet, label: 'حصتي من الريع' },
+    { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
     { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
   ];
 
