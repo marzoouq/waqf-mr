@@ -31,7 +31,7 @@ const BeneficiaryDashboard = () => {
       <div className="p-6 space-y-6">
         {/* Welcome */}
         <div className="animate-slide-up">
-          <h1 className="text-3xl font-bold">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
           <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
         </div>
 
@@ -44,7 +44,7 @@ const BeneficiaryDashboard = () => {
                   <Wallet className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm opacity-80">حصتي من الريع</p>
+                  <p className="text-sm text-primary-foreground/90">حصتي من الريع</p>
                   <p className="text-2xl font-bold">{myShare.toLocaleString()} ر.س</p>
                 </div>
               </div>

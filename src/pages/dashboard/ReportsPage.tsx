@@ -10,6 +10,7 @@ import { useContracts } from '@/hooks/useContracts';
 import { BarChart3, Download, FileText, Printer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 const ReportsPage = () => {
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
@@ -80,7 +81,7 @@ const ReportsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between print:hidden">
           <div>
-            <h1 className="text-3xl font-bold">التقارير</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير</h1>
             <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
           </div>
           <div className="flex gap-2">
@@ -262,31 +263,29 @@ const ReportsPage = () => {
           </CardHeader>
           <CardContent>
             {distributionData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">المستفيد</th>
-                      <th className="py-3 px-4 text-right font-medium">النسبة</th>
-                      <th className="py-3 px-4 text-right font-medium">المبلغ المستحق</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {distributionData.map((item, index) => (
-                      <tr key={index} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4 font-medium">{item.name}</td>
-                        <td className="py-3 px-4">{item.percentage}%</td>
-                        <td className="py-3 px-4 text-primary font-medium">{item.amount.toLocaleString()} ر.س</td>
-                      </tr>
-                    ))}
-                    <tr className="bg-muted/50 font-bold">
-                      <td className="py-3 px-4">الإجمالي</td>
-                      <td className="py-3 px-4">{beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0)}%</td>
-                      <td className="py-3 px-4 text-primary">{beneficiariesShare.toLocaleString()} ر.س</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">المستفيد</TableHead>
+                    <TableHead className="text-right">النسبة</TableHead>
+                    <TableHead className="text-right">المبلغ المستحق</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {distributionData.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell>{item.percentage}%</TableCell>
+                      <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell>الإجمالي</TableCell>
+                    <TableCell>{beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0)}%</TableCell>
+                    <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             ) : (
               <div className="py-12 text-center text-muted-foreground">
                 لا يوجد مستفيدين مسجلين

@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 interface ManagedUser {
   id: string;
@@ -277,95 +278,93 @@ const UserManagementPage = () => {
             {isLoading ? (
               <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">البريد الإلكتروني</th>
-                      <th className="py-3 px-4 text-right font-medium">الدور</th>
-                      <th className="py-3 px-4 text-right font-medium">الحالة</th>
-                      <th className="py-3 px-4 text-right font-medium">آخر دخول</th>
-                      <th className="py-3 px-4 text-right font-medium">الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4" dir="ltr">{user.email}</td>
-                        <td className="py-3 px-4">{getRoleBadge(user.role)}</td>
-                        <td className="py-3 px-4">
-                          {user.email_confirmed_at ? (
-                            <Badge className="bg-success/20 text-success gap-1">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                    <TableHead className="text-right">الدور</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">آخر دخول</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell dir="ltr">{user.email}</TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>
+                        {user.email_confirmed_at ? (
+                          <Badge className="bg-success/20 text-success gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            مفعل
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-destructive/20 text-destructive gap-1">
+                            <XCircle className="w-3 h-3" />
+                            غير مفعل
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.last_sign_in_at
+                          ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                          : 'لم يسجل دخول'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {!user.email_confirmed_at && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs"
+                              onClick={() => confirmEmail.mutate(user.id)}
+                              disabled={confirmEmail.isPending}
+                            >
                               <CheckCircle className="w-3 h-3" />
-                              مفعل
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-destructive/20 text-destructive gap-1">
-                              <XCircle className="w-3 h-3" />
-                              غير مفعل
-                            </Badge>
+                              تفعيل
+                            </Button>
                           )}
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground">
-                          {user.last_sign_in_at
-                            ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
-                            : 'لم يسجل دخول'}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-1 flex-wrap">
-                            {!user.email_confirmed_at && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="gap-1 text-xs"
-                                onClick={() => confirmEmail.mutate(user.id)}
-                                disabled={confirmEmail.isPending}
-                              >
-                                <CheckCircle className="w-3 h-3" />
-                                تفعيل
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 text-xs"
-                              onClick={() => {
-                                setEditingUser(user);
-                                setEditEmail(user.email);
-                                setEditRole(user.role || '');
-                              }}
-                            >
-                              <Edit className="w-3 h-3" />
-                              تعديل
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 text-xs"
-                              onClick={() => setPasswordDialog(user.id)}
-                            >
-                              <Key className="w-3 h-3" />
-                              كلمة المرور
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 text-xs text-destructive hover:text-destructive"
-                              onClick={() => {
-                                if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-                                  deleteUser.mutate(user.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-xs"
+                            onClick={() => {
+                              setEditingUser(user);
+                              setEditEmail(user.email);
+                              setEditRole(user.role || '');
+                            }}
+                          >
+                            <Edit className="w-3 h-3" />
+                            تعديل
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-xs"
+                            onClick={() => setPasswordDialog(user.id)}
+                          >
+                            <Key className="w-3 h-3" />
+                            كلمة المرور
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 text-xs text-destructive hover:text-destructive"
+                            onClick={() => {
+                              if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+                                deleteUser.mutate(user.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

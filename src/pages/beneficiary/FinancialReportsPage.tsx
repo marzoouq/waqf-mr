@@ -103,7 +103,7 @@ const FinancialReportsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="animate-slide-up">
-            <h1 className="text-3xl font-bold">التقارير المالية</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
             <p className="text-muted-foreground mt-1">عرض وتحليل البيانات المالية للوقف</p>
           </div>
           <Button onClick={handleDownloadPDF} className="gap-2" disabled={!currentBeneficiary}>
@@ -163,7 +163,7 @@ const FinancialReportsPage = () => {
                   <PieChart className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm opacity-80">حصتي</p>
+                  <p className="text-sm text-primary-foreground/90">حصتي</p>
                   <p className="text-xl font-bold">{myShare.toLocaleString()}</p>
                 </div>
               </div>

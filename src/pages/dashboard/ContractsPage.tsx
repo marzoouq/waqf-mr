@@ -10,6 +10,7 @@ import { useContracts, useCreateContract, useUpdateContract, useDeleteContract }
 import { useProperties } from '@/hooks/useProperties';
 import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
 const ContractsPage = () => {
@@ -116,7 +117,7 @@ const ContractsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">إدارة العقود</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة العقود</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة عقود الإيجار</p>
           </div>
           <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
@@ -236,54 +237,43 @@ const ContractsPage = () => {
                 <p className="text-muted-foreground">لا توجد عقود مسجلة</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">رقم العقد</th>
-                      <th className="py-3 px-4 text-right font-medium">العقار</th>
-                      <th className="py-3 px-4 text-right font-medium">المستأجر</th>
-                      <th className="py-3 px-4 text-right font-medium">تاريخ البداية</th>
-                      <th className="py-3 px-4 text-right font-medium">تاريخ النهاية</th>
-                      <th className="py-3 px-4 text-right font-medium">قيمة الإيجار</th>
-                      <th className="py-3 px-4 text-right font-medium">الحالة</th>
-                      <th className="py-3 px-4 text-right font-medium">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {contracts.map((contract) => (
-                      <tr key={contract.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4 font-medium">{contract.contract_number}</td>
-                        <td className="py-3 px-4">{contract.property?.property_number || '-'}</td>
-                        <td className="py-3 px-4">{contract.tenant_name}</td>
-                        <td className="py-3 px-4">{contract.start_date}</td>
-                        <td className="py-3 px-4">{contract.end_date}</td>
-                        <td className="py-3 px-4">{Number(contract.rent_amount).toLocaleString()} ر.س</td>
-                        <td className="py-3 px-4">{getStatusBadge(contract.status)}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(contract)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(contract.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">رقم العقد</TableHead>
+                    <TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right">تاريخ البداية</TableHead>
+                    <TableHead className="text-right">تاريخ النهاية</TableHead>
+                    <TableHead className="text-right">قيمة الإيجار</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">إجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contracts.map((contract) => (
+                    <TableRow key={contract.id}>
+                      <TableCell className="font-medium">{contract.contract_number}</TableCell>
+                      <TableCell>{contract.property?.property_number || '-'}</TableCell>
+                      <TableCell>{contract.tenant_name}</TableCell>
+                      <TableCell>{contract.start_date}</TableCell>
+                      <TableCell>{contract.end_date}</TableCell>
+                      <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(contract.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

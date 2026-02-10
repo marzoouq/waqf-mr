@@ -127,7 +127,7 @@ const BeneficiariesPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">إدارة المستفيدين</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المستفيدين</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة المستفيدين من الوقف</p>
           </div>
           <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
