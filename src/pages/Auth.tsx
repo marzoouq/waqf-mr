@@ -61,7 +61,7 @@ const Auth = () => {
         .from('beneficiaries')
         .select('email')
         .eq('national_id', nationalId)
-        .single();
+        .maybeSingle();
 
       if (lookupError || !beneficiary?.email) {
         toast.error('رقم الهوية غير مسجل في النظام');

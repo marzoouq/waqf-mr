@@ -58,6 +58,7 @@ export interface Beneficiary {
   phone?: string;
   email?: string;
   bank_account?: string;
+  national_id?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
