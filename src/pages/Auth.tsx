@@ -116,7 +116,7 @@ const Auth = () => {
     }
   };
 
-  const LoginForm = ({ idSuffix = '' }: { idSuffix?: string }) => (
+  const renderLoginForm = (idSuffix = '') => (
     <form onSubmit={handleSignIn} className="space-y-5">
       <div className="space-y-3">
         <Label className="text-sm font-medium">طريقة تسجيل الدخول</Label>
@@ -241,7 +241,7 @@ const Auth = () => {
                 </TabsList>
 
                 <TabsContent value="signin">
-                  <LoginForm />
+                  {renderLoginForm()}
                 </TabsContent>
 
                 <TabsContent value="signup">
@@ -277,7 +277,7 @@ const Auth = () => {
                 </TabsContent>
               </Tabs>
             ) : (
-              <LoginForm idSuffix="-direct" />
+              renderLoginForm('-direct')
             )}
           </CardContent>
         </Card>
