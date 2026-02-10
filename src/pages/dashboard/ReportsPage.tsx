@@ -65,6 +65,8 @@ const ReportsPage = () => {
       adminShare,
       waqifShare,
       waqfRevenue: beneficiariesShare,
+      expensesByType: expenseTypeData.map(d => ({ type: d.name, amount: d.value })),
+      incomeBySource: incomeSourceData.map(d => ({ source: d.name, amount: d.value })),
       beneficiaries: distributionData.map(d => ({
         name: d.name,
         percentage: d.percentage,
@@ -139,14 +141,37 @@ const ReportsPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b">
-                    <td className="py-3 px-4">إجمالي الإيرادات</td>
-                    <td className="py-3 px-4 font-medium text-success">+{totalIncome.toLocaleString()}</td>
+                  {/* قسم الإيرادات */}
+                  <tr className="bg-green-50 dark:bg-green-950/30">
+                    <td colSpan={2} className="py-2 px-4 font-bold text-green-700 dark:text-green-400 text-center">-- الإيرادات --</td>
                   </tr>
-                  <tr className="border-b">
-                    <td className="py-3 px-4">إجمالي المصروفات</td>
-                    <td className="py-3 px-4 font-medium text-destructive">-{totalExpenses.toLocaleString()}</td>
+                  {incomeSourceData.map((item, index) => (
+                    <tr key={`income-${index}`} className="border-b">
+                      <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
+                      <td className="py-2 px-4 font-medium text-green-600 dark:text-green-400">+{item.value.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-b-2 border-green-500 bg-green-50 dark:bg-green-950/20">
+                    <td className="py-3 px-4 font-bold">إجمالي الإيرادات</td>
+                    <td className="py-3 px-4 font-bold text-green-700 dark:text-green-400">+{totalIncome.toLocaleString()}</td>
                   </tr>
+
+                  {/* قسم المصروفات */}
+                  <tr className="bg-red-50 dark:bg-red-950/30">
+                    <td colSpan={2} className="py-2 px-4 font-bold text-red-700 dark:text-red-400 text-center">-- المصروفات --</td>
+                  </tr>
+                  {expenseTypeData.map((item, index) => (
+                    <tr key={`expense-${index}`} className="border-b">
+                      <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
+                      <td className="py-2 px-4 font-medium text-red-600 dark:text-red-400">-{item.value.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-b-2 border-red-500 bg-red-50 dark:bg-red-950/20">
+                    <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
+                    <td className="py-3 px-4 font-bold text-red-700 dark:text-red-400">-{totalExpenses.toLocaleString()}</td>
+                  </tr>
+
+                  {/* صافي الريع والتوزيع */}
                   <tr className="border-b-2 border-primary bg-muted/50">
                     <td className="py-3 px-4 font-bold">صافي الريع</td>
                     <td className="py-3 px-4 font-bold text-primary">{netRevenue.toLocaleString()}</td>
