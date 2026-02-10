@@ -6,6 +6,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const AdminDashboard = () => {
@@ -55,7 +56,7 @@ const AdminDashboard = () => {
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="animate-slide-up">
-          <h1 className="text-3xl font-bold text-foreground">لوحة التحكم</h1>
+          <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
           <p className="text-muted-foreground mt-1">مرحباً بك في نظام إدارة الوقف</p>
         </div>
 
@@ -134,43 +135,41 @@ const AdminDashboard = () => {
             <CardTitle>آخر العقود</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground">رقم العقد</th>
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground">المستأجر</th>
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground">قيمة الإيجار</th>
-                    <th className="py-3 px-4 text-right font-medium text-muted-foreground">الحالة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contracts.slice(0, 5).map((contract) => (
-                    <tr key={contract.id} className="border-b hover:bg-muted/50">
-                      <td className="py-3 px-4">{contract.contract_number}</td>
-                      <td className="py-3 px-4">{contract.tenant_name}</td>
-                      <td className="py-3 px-4">{Number(contract.rent_amount).toLocaleString()} ر.س</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          contract.status === 'active' 
-                            ? 'bg-success/20 text-success' 
-                            : 'bg-destructive/20 text-destructive'
-                        }`}>
-                          {contract.status === 'active' ? 'نشط' : 'منتهي'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {contracts.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                        لا توجد عقود حالياً
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right">رقم العقد</TableHead>
+                  <TableHead className="text-right">المستأجر</TableHead>
+                  <TableHead className="text-right">قيمة الإيجار</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contracts.slice(0, 5).map((contract) => (
+                  <TableRow key={contract.id}>
+                    <TableCell>{contract.contract_number}</TableCell>
+                    <TableCell>{contract.tenant_name}</TableCell>
+                    <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        contract.status === 'active' 
+                          ? 'bg-success/20 text-success' 
+                          : 'bg-destructive/20 text-destructive'
+                      }`}>
+                        {contract.status === 'active' ? 'نشط' : 'منتهي'}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {contracts.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                      لا توجد عقود حالياً
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>

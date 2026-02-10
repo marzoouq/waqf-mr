@@ -5,6 +5,7 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { Wallet, Percent, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,7 +71,7 @@ const MySharePage = () => {
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="animate-slide-up">
-          <h1 className="text-3xl font-bold">حصتي من الريع</h1>
+          <h1 className="text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
           <p className="text-muted-foreground mt-1">تفاصيل حصتك من ريع الوقف</p>
         </div>
 
@@ -83,7 +84,7 @@ const MySharePage = () => {
                   <Wallet className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm opacity-80">الحصة المستحقة</p>
+                  <p className="text-sm text-primary-foreground/90">الحصة المستحقة</p>
                   <p className="text-2xl font-bold">{myShare.toLocaleString()} ر.س</p>
                 </div>
               </div>
@@ -176,28 +177,26 @@ const MySharePage = () => {
                 <p className="text-muted-foreground">لا توجد توزيعات مسجلة بعد</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">التاريخ</th>
-                      <th className="py-3 px-4 text-right font-medium">السنة المالية</th>
-                      <th className="py-3 px-4 text-right font-medium">المبلغ</th>
-                      <th className="py-3 px-4 text-right font-medium">الحالة</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {distributions.map((dist) => (
-                      <tr key={dist.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4">{dist.date}</td>
-                        <td className="py-3 px-4">{dist.account?.fiscal_year || '-'}</td>
-                        <td className="py-3 px-4 font-bold">{Number(dist.amount).toLocaleString()} ر.س</td>
-                        <td className="py-3 px-4">{getStatusBadge(dist.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">التاريخ</TableHead>
+                    <TableHead className="text-right">السنة المالية</TableHead>
+                    <TableHead className="text-right">المبلغ</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {distributions.map((dist) => (
+                    <TableRow key={dist.id}>
+                      <TableCell>{dist.date}</TableCell>
+                      <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
+                      <TableCell className="font-bold">{Number(dist.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{getStatusBadge(dist.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

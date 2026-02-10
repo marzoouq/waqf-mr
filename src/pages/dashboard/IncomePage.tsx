@@ -10,6 +10,7 @@ import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/
 import { useProperties } from '@/hooks/useProperties';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
 const IncomePage = () => {
@@ -86,7 +87,7 @@ const IncomePage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">إدارة الدخل</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الدخل</h1>
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة مصادر الدخل</p>
           </div>
           <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
@@ -170,7 +171,7 @@ const IncomePage = () => {
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm opacity-80">إجمالي الدخل</p>
+                <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
                 <p className="text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p>
               </div>
             </div>
@@ -190,50 +191,39 @@ const IncomePage = () => {
                 <p className="text-muted-foreground">لا توجد سجلات دخل</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">المصدر</th>
-                      <th className="py-3 px-4 text-right font-medium">المبلغ</th>
-                      <th className="py-3 px-4 text-right font-medium">التاريخ</th>
-                      <th className="py-3 px-4 text-right font-medium">العقار</th>
-                      <th className="py-3 px-4 text-right font-medium">ملاحظات</th>
-                      <th className="py-3 px-4 text-right font-medium">إجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {income.map((item) => (
-                      <tr key={item.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4 font-medium">{item.source}</td>
-                        <td className="py-3 px-4 text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</td>
-                        <td className="py-3 px-4">{item.date}</td>
-                        <td className="py-3 px-4">{item.property?.property_number || '-'}</td>
-                        <td className="py-3 px-4 text-muted-foreground">{item.notes || '-'}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(item.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">المصدر</TableHead>
+                    <TableHead className="text-right">المبلغ</TableHead>
+                    <TableHead className="text-right">التاريخ</TableHead>
+                    <TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">ملاحظات</TableHead>
+                    <TableHead className="text-right">إجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {income.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.source}</TableCell>
+                      <TableCell className="text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{item.date}</TableCell>
+                      <TableCell>{item.property?.property_number || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

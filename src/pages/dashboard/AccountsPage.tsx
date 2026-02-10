@@ -5,6 +5,7 @@ import { useAccounts, useCreateAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { Wallet, Plus, Calculator } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
 const AccountsPage = () => {
@@ -39,7 +40,7 @@ const AccountsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">الحسابات الختامية</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
             <p className="text-muted-foreground mt-1">إدارة ومتابعة الحسابات السنوية</p>
           </div>
           <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
@@ -57,29 +58,29 @@ const AccountsPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">إجمالي الدخل</p>
+                <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
                 <p className="text-xl font-bold">{totalIncome.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">إجمالي المصروفات</p>
+                <p className="text-sm text-primary-foreground/90">إجمالي المصروفات</p>
                 <p className="text-xl font-bold">{totalExpenses.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">صافي الريع</p>
+                <p className="text-sm text-primary-foreground/90">صافي الريع</p>
                 <p className="text-xl font-bold">{netRevenue.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">حصة الناظر</p>
+                <p className="text-sm text-primary-foreground/90">حصة الناظر</p>
                 <p className="text-xl font-bold">{adminShare.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">حصة الواقف</p>
+                <p className="text-sm text-primary-foreground/90">حصة الواقف</p>
                 <p className="text-xl font-bold">{waqifShare.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm opacity-80">ريع الوقف</p>
+                <p className="text-sm text-primary-foreground/90">ريع الوقف</p>
                 <p className="text-xl font-bold">{waqfRevenue.toLocaleString()}</p>
               </div>
             </div>
@@ -102,32 +103,30 @@ const AccountsPage = () => {
                 <p className="text-muted-foreground">لا توجد حسابات ختامية مسجلة</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="py-3 px-4 text-right font-medium">السنة المالية</th>
-                      <th className="py-3 px-4 text-right font-medium">إجمالي الدخل</th>
-                      <th className="py-3 px-4 text-right font-medium">إجمالي المصروفات</th>
-                      <th className="py-3 px-4 text-right font-medium">حصة الناظر</th>
-                      <th className="py-3 px-4 text-right font-medium">حصة الواقف</th>
-                      <th className="py-3 px-4 text-right font-medium">ريع الوقف</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accounts.map((account) => (
-                      <tr key={account.id} className="border-b hover:bg-muted/30">
-                        <td className="py-3 px-4 font-medium">{account.fiscal_year}</td>
-                        <td className="py-3 px-4 text-success">+{Number(account.total_income).toLocaleString()}</td>
-                        <td className="py-3 px-4 text-destructive">-{Number(account.total_expenses).toLocaleString()}</td>
-                        <td className="py-3 px-4">{Number(account.admin_share).toLocaleString()}</td>
-                        <td className="py-3 px-4">{Number(account.waqif_share).toLocaleString()}</td>
-                        <td className="py-3 px-4 text-primary font-medium">{Number(account.waqf_revenue).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">السنة المالية</TableHead>
+                    <TableHead className="text-right">إجمالي الدخل</TableHead>
+                    <TableHead className="text-right">إجمالي المصروفات</TableHead>
+                    <TableHead className="text-right">حصة الناظر</TableHead>
+                    <TableHead className="text-right">حصة الواقف</TableHead>
+                    <TableHead className="text-right">ريع الوقف</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {accounts.map((account) => (
+                    <TableRow key={account.id}>
+                      <TableCell className="font-medium">{account.fiscal_year}</TableCell>
+                      <TableCell className="text-success">+{Number(account.total_income).toLocaleString()}</TableCell>
+                      <TableCell className="text-destructive">-{Number(account.total_expenses).toLocaleString()}</TableCell>
+                      <TableCell>{Number(account.admin_share).toLocaleString()}</TableCell>
+                      <TableCell>{Number(account.waqif_share).toLocaleString()}</TableCell>
+                      <TableCell className="text-primary font-medium">{Number(account.waqf_revenue).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>
