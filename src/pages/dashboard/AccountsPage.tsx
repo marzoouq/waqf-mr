@@ -7,7 +7,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 
 const AccountsPage = () => {
@@ -43,6 +43,7 @@ const AccountsPage = () => {
 
   // Total contracts rent
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
 
   // Waqf corpus (رقبة الوقف)
   const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
@@ -134,34 +135,43 @@ const AccountsPage = () => {
               <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
             ) : (
               <>
-                <Table>
+              <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
+                      <TableHead className="text-right w-12">#</TableHead>
                       <TableHead className="text-right">رقم العقد</TableHead>
                       <TableHead className="text-right">المستأجر</TableHead>
-                      <TableHead className="text-right">قيمة الإيجار</TableHead>
-                      <TableHead className="text-right">تاريخ البداية</TableHead>
-                      <TableHead className="text-right">تاريخ النهاية</TableHead>
+                      <TableHead className="text-right">الإيجار الشهري</TableHead>
+                      <TableHead className="text-right">عدد الدفعات</TableHead>
+                      <TableHead className="text-right">إجمالي العقد السنوي</TableHead>
                       <TableHead className="text-right">الحالة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {contracts.map((contract) => (
+                    {contracts.map((contract, index) => (
                       <TableRow key={contract.id}>
+                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                         <TableCell className="font-medium">{contract.contract_number}</TableCell>
                         <TableCell>{contract.tenant_name}</TableCell>
-                        <TableCell>{Number(contract.rent_amount).toLocaleString()}</TableCell>
-                        <TableCell>{contract.start_date}</TableCell>
-                        <TableCell>{contract.end_date}</TableCell>
+                        <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
+                        <TableCell className="text-center">12</TableCell>
+                        <TableCell className="font-bold text-primary">{(Number(contract.rent_amount) * 12).toLocaleString()} ريال</TableCell>
                         <TableCell>{statusLabel(contract.status)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
+                  <TableFooter>
+                    <TableRow className="bg-muted/70 font-bold">
+                      <TableCell>الإجمالي</TableCell>
+                      <TableCell></TableCell>
+                      <TableCell>{contracts.length} عقد</TableCell>
+                      <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
+                      <TableCell></TableCell>
+                      <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableFooter>
                 </Table>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">إجمالي قيم الإيجار</span>
-                  <span className="font-bold text-primary">{totalRent.toLocaleString()} ريال</span>
-                </div>
               </>
             )}
           </CardContent>
