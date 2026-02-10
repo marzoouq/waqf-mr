@@ -51,6 +51,18 @@ Deno.serve(async (req) => {
     const { action, userId, email, password } = body;
 
     switch (action) {
+      case "toggle_registration": {
+        const enabled = body.enabled ? "true" : "false";
+        const { error } = await adminClient
+          .from("app_settings")
+          .update({ value: enabled, updated_at: new Date().toISOString() })
+          .eq("key", "registration_enabled");
+        if (error) throw error;
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       case "list_users": {
         const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 100 });
         if (error) throw error;
@@ -140,6 +152,29 @@ Deno.serve(async (req) => {
             user_id: newUser.user.id,
             role: body.role,
           });
+        }
+
+        // Link national_id to beneficiary if provided
+        if (body.nationalId) {
+          // Find beneficiary by email and update national_id
+          const { data: beneficiary } = await adminClient
+            .from("beneficiaries")
+            .select("id")
+            .eq("email", email)
+            .single();
+
+          if (beneficiary) {
+            await adminClient
+              .from("beneficiaries")
+              .update({ national_id: body.nationalId, user_id: newUser.user.id })
+              .eq("id", beneficiary.id);
+          } else {
+            // Update any beneficiary linked to this user
+            await adminClient
+              .from("beneficiaries")
+              .update({ national_id: body.nationalId })
+              .eq("user_id", newUser.user.id);
+          }
         }
         
         return new Response(JSON.stringify({ success: true, user: newUser.user }), {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock } from 'lucide-react';
 
 interface ManagedUser {
   id: string;
@@ -38,9 +39,33 @@ const UserManagementPage = () => {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
-  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary' });
+  const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
+  const [registrationEnabled, setRegistrationEnabled] = useState(false);
+
+  // Fetch registration setting
+  useEffect(() => {
+    const fetchSetting = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'registration_enabled')
+        .single();
+      if (data) setRegistrationEnabled(data.value === 'true');
+    };
+    fetchSetting();
+  }, []);
+
+  const toggleRegistration = async (enabled: boolean) => {
+    try {
+      await callAdminApi({ action: 'toggle_registration', enabled });
+      setRegistrationEnabled(enabled);
+      toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
+    } catch (e: any) {
+      toast.error('خطأ: ' + e.message);
+    }
+  };
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -51,13 +76,13 @@ const UserManagementPage = () => {
   });
 
   const createUser = useMutation({
-    mutationFn: (data: { email: string; password: string; role: string }) =>
+    mutationFn: (data: { email: string; password: string; role: string; nationalId?: string }) =>
       callAdminApi({ action: 'create_user', ...data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم إنشاء المستخدم بنجاح');
       setIsCreateOpen(false);
-      setCreateForm({ email: '', password: '', role: 'beneficiary' });
+      setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '' });
     },
     onError: (e: Error) => toast.error('خطأ: ' + e.message),
   });
@@ -128,10 +153,33 @@ const UserManagementPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Registration Settings Card */}
+        <Card className="shadow-sm border-dashed">
+          <CardContent className="flex items-center justify-between py-4 px-6">
+            <div className="flex items-center gap-3">
+              {registrationEnabled ? (
+                <Unlock className="w-5 h-5 text-success" />
+              ) : (
+                <Lock className="w-5 h-5 text-destructive" />
+              )}
+              <div>
+                <p className="font-medium">التسجيل العام</p>
+                <p className="text-sm text-muted-foreground">
+                  {registrationEnabled ? 'التسجيل مفتوح للجميع' : 'التسجيل مقفل - فقط من لوحة الناظر'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={registrationEnabled}
+              onCheckedChange={toggleRegistration}
+            />
+          </CardContent>
+        </Card>
+
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">إدارة المستخدمين</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">إدارة المستخدمين</h1>
             <p className="text-muted-foreground mt-1">إنشاء وتعديل حسابات المستخدمين وصلاحياتهم</p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -173,6 +221,16 @@ const UserManagementPage = () => {
                     dir="ltr"
                     required
                     minLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>رقم الهوية الوطنية (اختياري)</Label>
+                  <Input
+                    type="text"
+                    value={createForm.nationalId}
+                    onChange={(e) => setCreateForm({ ...createForm, nationalId: e.target.value })}
+                    placeholder="1234567890"
+                    dir="ltr"
                   />
                 </div>
                 <div className="space-y-2">
