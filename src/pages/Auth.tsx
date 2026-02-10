@@ -57,18 +57,16 @@ const Auth = () => {
         setIsLoading(false);
         return;
       }
-      const { data: beneficiary, error: lookupError } = await supabase
-        .from('beneficiaries')
-        .select('email')
-        .eq('national_id', nationalId)
-        .maybeSingle();
+      const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
+        body: { national_id: nationalId }
+      });
 
-      if (lookupError || !beneficiary?.email) {
-        toast.error('رقم الهوية غير مسجل في النظام');
+      if (lookupError || !data?.email) {
+        toast.error(data?.error || 'رقم الهوية غير مسجل في النظام');
         setIsLoading(false);
         return;
       }
-      loginEmail = beneficiary.email;
+      loginEmail = data.email;
     } else {
       if (!loginEmail) {
         toast.error('يرجى إدخال البريد الإلكتروني');
