@@ -48,9 +48,9 @@ const AccountsPage = () => {
   // Tenant payment data (actual collection from analyzed records)
   const tenantPaymentData: Record<string, { paidMonths: number; notes: string }> = {
     '10610950434': { paidMonths: 8, notes: 'متأخر 4 أشهر' },
-    '10704863702': { paidMonths: 7, notes: 'شاغرة 5 أشهر' },
-    '10704863703': { paidMonths: 6, notes: 'منتهي/شاغر 6 أشهر' },
-    '10704863704': { paidMonths: 11, notes: 'عقد جديد أكتوبر' },
+    '10023960935': { paidMonths: 7, notes: 'شاغرة 5 أشهر' },
+    '10888316394': { paidMonths: 6, notes: 'منتهي/شاغر 6 أشهر' },
+    '10969934020': { paidMonths: 11, notes: 'عقد جديد أكتوبر' },
   };
 
   const collectionData = contracts.map((contract, index) => {
