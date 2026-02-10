@@ -1,47 +1,118 @@
 
-# اصلاح صفحة الهبوط - اظهار المحتوى وتحسين التصميم
+# فحص الهوية البصرية الشامل - تقرير وخطة الاصلاح
 
-## المشكلة الرئيسية
-النصوص في قسم البطل (Hero) غير مرئية بسبب مشكلة في الحركات (animations):
-- الكلاس `animate-slide-up` يبدأ العناصر بـ `opacity: 0` لكن لا يوجد `animation-fill-mode: forwards` مما يعني أن العناصر قد تعود لحالة الاختفاء
-- نفس المشكلة تنطبق على `animate-fade-in`
+## نتائج الفحص
 
-## الحل المقترح
+### 1. مشاكل الخطوط وحجمها
 
-### 1. اصلاح الحركات في `src/index.css`
-- اضافة `animation-fill-mode: forwards` و `opacity: 0` كحالة ابتدائية للعناصر المتحركة لضمان ظهورها بعد انتهاء الحركة
-- او الاستغناء عن الحركات التي تبدأ بـ opacity: 0 واستبدالها بحركات اكثر امانا
+**مشكلة: عدم استخدام خط Amiri للعناوين بشكل متسق**
+- العناوين في الصفحات الداخلية (لوحة التحكم، العقارات، العقود، الخ) تستخدم `text-3xl font-bold` بدون `font-display` (خط Amiri)
+- يجب ان تكون جميع العناوين الرئيسية (h1) بخط Amiri عبر كلاس `font-display`
+- الصفحات المتأثرة: AdminDashboard, PropertiesPage, ContractsPage, IncomePage, ExpensesPage, BeneficiariesPage, ReportsPage, AccountsPage, UserManagementPage, BeneficiaryDashboard, DisclosurePage, MySharePage, FinancialReportsPage
 
-### 2. تحسين صفحة الهبوط في `src/pages/Index.tsx`
-- استخدام الوان صريحة (white) بدلا من `text-primary-foreground` لضمان الوضوح
-- اضافة زخارف اسلامية متقدمة عبر CSS (نجمة ثمانية، اطارات هندسية)
-- اضافة خلفية SVG اسلامية مدمجة مباشرة في الكود
-- تحسين التباعد والتنسيق على الجوال والديسكتوب
+**مشكلة: احجام الخطوط على الجوال**
+- العناوين `text-3xl` (30px) كبيرة جدا على شاشات الجوال الصغيرة
+- يجب استخدام `text-2xl md:text-3xl` للتدرج المتجاوب
 
-### 3. اضافة زخارف اسلامية محسنة في `src/index.css`
-- نمط زخرفي جديد بنجمة ثمانية اسلامية اكثر تعقيدا وجمالا
-- تحسين نمط `pattern-islamic-strong` ليكون اكثر وضوحا وتفصيلا
+### 2. مشاكل الجداول
+
+**مشكلة: الجداول تستخدم HTML خام بدون مكون Table الموحد**
+- جميع الجداول في التطبيق تستخدم `<table>` HTML مباشرة بدلا من مكون `src/components/ui/table.tsx` الموجود
+- هذا يسبب عدم اتساق في التصميم والتنسيق بين الجداول
+- الجداول المتأثرة: AdminDashboard (اخر العقود)، ContractsPage، IncomePage، ExpensesPage، ReportsPage (3 جداول)، AccountsPage، UserManagementPage، MySharePage
+
+**مشكلة: الجداول على الجوال**
+- رغم وجود `overflow-x-auto` الا ان النصوص في الاعمدة تنضغط كثيرا
+- لا يوجد مؤشر للمستخدم ان الجدول قابل للتمرير افقيا
+
+**مشكلة: تباعد الخلايا غير متناسق**
+- بعض الجداول تستخدم `py-3 px-4` والبعض `py-2 px-4`
+- رؤوس الجداول: بعضها يحتوي `text-muted-foreground` والبعض لا
+
+### 3. مشاكل الالوان والتباين
+
+**مشكلة: استخدام الوان success/warning/info كمتغيرات CSS بدون foreground**
+- الالوان `success`, `warning`, `info` معرفة كقيمة واحدة فقط بدون `foreground`
+- هذا يعني ان `text-success` و `bg-success` يستخدمان نفس اللون مما قد يسبب مشاكل تباين عند استخدامهما معا
+
+**مشكلة: تداخل الالوان في بطاقات الحسابات**
+- صفحة AccountsPage تستخدم `gradient-hero text-primary-foreground` لبطاقة الملخص، لكن `primary-foreground` هو لون فاتح والنص "اجمالي الدخل" يستخدم `opacity-80` مما يقلل الوضوح
+
+### 4. مشاكل التصميم العامة
+
+**مشكلة: عدم وجود font-display في عناوين CardTitle**
+- عناوين البطاقات `CardTitle` لا تستخدم خط Amiri الزخرفي بشكل متسق
+
+**مشكلة: الـ Sidebar المصغر (w-16)**
+- عند طي الشريط الجانبي على الديسكتوب يصبح بعرض 16 (64px) والايقونات فقط، لكن لا يوجد tooltip يوضح اسم الصفحة عند التمرير فوق الايقونة
+
+**مشكلة: صفحة الحسابات - بطاقات الارقام على الجوال**
+- الشبكة `grid-cols-2 md:grid-cols-3 lg:grid-cols-6` تعني 6 اعمدة على الديسكتوب و2 على الجوال، مما يجعل النصوص مضغوطة
+
+### 5. مشاكل الـ Animations
+
+**تم اصلاحها جزئيا** - تم اضافة `forwards` لكن بعض العناصر تستخدم `animate-slide-up` و `animate-fade-in` من Tailwind config (بدون forwards) بينما اخرى تستخدم الكلاسات المخصصة من CSS
+
+**مشكلة: تعارض بين animations في Tailwind config وCSS**
+- tailwind.config.ts يعرف `animate-fade-in` و `animate-slide-up` بدون `forwards`
+- index.css يعرف `.animate-fade-in` و `.animate-slide-up` مع `forwards`
+- CSS utilities (من @layer utilities) لها اولوية اعلى لذا ستعمل، لكن هذا تعارض يجب تنظيفه
+
+---
+
+## خطة الاصلاح
+
+### المرحلة 1: توحيد الخطوط والعناوين (13 ملف)
+- اضافة `font-display` لجميع عناوين h1 في الصفحات
+- توحيد احجام العناوين باستخدام `text-2xl md:text-3xl`
+- الملفات: جميع صفحات dashboard و beneficiary
+
+### المرحلة 2: تنظيف الـ Animations
+- ازالة تعريفات الحركة المكررة من tailwind.config.ts او اضافة `fillMode: 'forwards'` لها
+- ضمان توافق التعريفات بين CSS و Tailwind
+
+### المرحلة 3: توحيد تصميم الجداول
+- استبدال جداول HTML الخام بمكون Table من shadcn/ui
+- توحيد التباعد: `py-3 px-4` لجميع الخلايا
+- توحيد الوان الرؤوس: `text-muted-foreground font-medium`
+- اضافة `bg-muted/50` لرؤوس جميع الجداول
+
+### المرحلة 4: تحسين التجاوب على الجوال
+- تعديل شبكة بطاقات صفحة الحسابات
+- تحسين عرض الازرار في رأس الصفحات (stack vertically على الجوال)
+
+### المرحلة 5: تحسينات تباين الالوان
+- مراجعة استخدام `opacity-80` على الخلفيات الداكنة
+- التأكد من ان جميع النصوص تحقق نسبة تباين WCAG AA (4.5:1)
+
+---
 
 ## التفاصيل التقنية
 
-### اصلاح CSS (index.css)
-```css
-.animate-slide-up {
-  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+### الملفات المتأثرة:
+1. `tailwind.config.ts` - تنظيف تعريفات الحركة
+2. `src/pages/dashboard/AdminDashboard.tsx` - خط العنوان + جدول
+3. `src/pages/dashboard/PropertiesPage.tsx` - خط العنوان
+4. `src/pages/dashboard/ContractsPage.tsx` - خط العنوان + جدول
+5. `src/pages/dashboard/IncomePage.tsx` - خط العنوان + جدول
+6. `src/pages/dashboard/ExpensesPage.tsx` - خط العنوان + جدول
+7. `src/pages/dashboard/BeneficiariesPage.tsx` - خط العنوان
+8. `src/pages/dashboard/ReportsPage.tsx` - خط العنوان + جداول
+9. `src/pages/dashboard/AccountsPage.tsx` - خط العنوان + جدول + تجاوب
+10. `src/pages/dashboard/UserManagementPage.tsx` - خط العنوان + جدول
+11. `src/pages/beneficiary/BeneficiaryDashboard.tsx` - خط العنوان
+12. `src/pages/beneficiary/DisclosurePage.tsx` - خط العنوان
+13. `src/pages/beneficiary/MySharePage.tsx` - خط العنوان + جدول
+14. `src/pages/beneficiary/FinancialReportsPage.tsx` - خط العنوان
 
-.animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+### التغييرات النمطية لكل صفحة:
+```text
+قبل: <h1 className="text-3xl font-bold">العنوان</h1>
+بعد: <h1 className="text-2xl md:text-3xl font-bold font-display">العنوان</h1>
 ```
 
-### تحسين Index.tsx
-- استبدال `text-primary-foreground` بـ `text-white` في قسم البطل
-- اضافة عناصر SVG زخرفية اسلامية كخلفية
-- تحسين حجم النصوص والتباعد
-
-### النتيجة المتوقعة
-- العنوان "نظام ادارة الوقف" يظهر بوضوح تام
-- الوصف والعبارات تظهر بتباين عالي
-- زخارف اسلامية هندسية جميلة في الخلفية
-- تصميم متجاوب يعمل على جميع الاجهزة
+### توحيد الجداول:
+```text
+قبل: <table className="w-full text-sm">
+بعد: استخدام مكونات Table, TableHeader, TableBody, TableRow, TableHead, TableCell
+```
