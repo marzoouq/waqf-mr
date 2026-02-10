@@ -130,10 +130,10 @@ Deno.serve(async (req) => {
 
       case "delete_user": {
         if (!userId) throw new Error("userId required");
-        // Remove user_id references from beneficiaries to avoid FK constraint
+        // Delete beneficiary records linked to this user
         await adminClient
           .from("beneficiaries")
-          .update({ user_id: null })
+          .delete()
           .eq("user_id", userId);
         // Delete user role
         await adminClient.from("user_roles").delete().eq("user_id", userId);
