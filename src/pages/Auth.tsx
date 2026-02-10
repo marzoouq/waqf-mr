@@ -130,91 +130,89 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className={`grid w-full mb-6 ${registrationEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              <TabsTrigger value="signin" className="gap-2">
-                <LogIn className="w-4 h-4" />
-                تسجيل الدخول
-              </TabsTrigger>
-              {registrationEnabled && (
+          {registrationEnabled ? (
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin" className="gap-2">
+                  <LogIn className="w-4 h-4" />
+                  تسجيل الدخول
+                </TabsTrigger>
                 <TabsTrigger value="signup" className="gap-2">
                   <UserPlus className="w-4 h-4" />
                   حساب جديد
                 </TabsTrigger>
-              )}
-            </TabsList>
+              </TabsList>
 
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-3">
-                  <Label>طريقة تسجيل الدخول</Label>
-                  <RadioGroup
-                    value={loginMethod}
-                    onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
-                    className="flex gap-4"
-                    dir="rtl"
-                  >
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="email" id="method-email" />
-                      <Label htmlFor="method-email" className="flex items-center gap-1 cursor-pointer">
-                        <Mail className="w-4 h-4" />
-                        البريد الإلكتروني
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value="national_id" id="method-id" />
-                      <Label htmlFor="method-id" className="flex items-center gap-1 cursor-pointer">
-                        <IdCard className="w-4 h-4" />
-                        رقم الهوية
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+              <TabsContent value="signin">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>طريقة تسجيل الدخول</Label>
+                    <RadioGroup
+                      value={loginMethod}
+                      onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
+                      className="flex gap-4"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="email" id="method-email" />
+                        <Label htmlFor="method-email" className="flex items-center gap-1 cursor-pointer">
+                          <Mail className="w-4 h-4" />
+                          البريد الإلكتروني
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="national_id" id="method-id" />
+                        <Label htmlFor="method-id" className="flex items-center gap-1 cursor-pointer">
+                          <IdCard className="w-4 h-4" />
+                          رقم الهوية
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
 
-                {loginMethod === 'email' ? (
+                  {loginMethod === 'email' ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">البريد الإلكتروني</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="example@email.com"
+                        dir="ltr"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-national-id">رقم الهوية الوطنية</Label>
+                      <Input
+                        id="signin-national-id"
+                        type="text"
+                        value={nationalId}
+                        onChange={(e) => setNationalId(e.target.value)}
+                        placeholder="1234567890"
+                        dir="ltr"
+                      />
+                    </div>
+                  )}
+
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">البريد الإلكتروني</Label>
+                    <Label htmlFor="signin-password">كلمة المرور</Label>
                     <Input
-                      id="signin-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="example@email.com"
+                      id="signin-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
                       dir="ltr"
                     />
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-national-id">رقم الهوية الوطنية</Label>
-                    <Input
-                      id="signin-national-id"
-                      type="text"
-                      value={nationalId}
-                      onChange={(e) => setNationalId(e.target.value)}
-                      placeholder="1234567890"
-                      dir="ltr"
-                    />
-                  </div>
-                )}
+                  <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                    {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+                  </Button>
+                </form>
+              </TabsContent>
 
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">كلمة المرور</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    dir="ltr"
-                  />
-                </div>
-                <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                  {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-                </Button>
-              </form>
-            </TabsContent>
-
-            {registrationEnabled && (
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
@@ -244,8 +242,76 @@ const Auth = () => {
                   </Button>
                 </form>
               </TabsContent>
-            )}
-          </Tabs>
+            </Tabs>
+          ) : (
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-3">
+                <Label>طريقة تسجيل الدخول</Label>
+                <RadioGroup
+                  value={loginMethod}
+                  onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
+                  className="flex gap-4"
+                  dir="rtl"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="email" id="method-email-direct" />
+                    <Label htmlFor="method-email-direct" className="flex items-center gap-1 cursor-pointer">
+                      <Mail className="w-4 h-4" />
+                      البريد الإلكتروني
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="national_id" id="method-id-direct" />
+                    <Label htmlFor="method-id-direct" className="flex items-center gap-1 cursor-pointer">
+                      <IdCard className="w-4 h-4" />
+                      رقم الهوية
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {loginMethod === 'email' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email-direct">البريد الإلكتروني</Label>
+                  <Input
+                    id="signin-email-direct"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    dir="ltr"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="signin-national-id-direct">رقم الهوية الوطنية</Label>
+                  <Input
+                    id="signin-national-id-direct"
+                    type="text"
+                    value={nationalId}
+                    onChange={(e) => setNationalId(e.target.value)}
+                    placeholder="1234567890"
+                    dir="ltr"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="signin-password-direct">كلمة المرور</Label>
+                <Input
+                  id="signin-password-direct"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  dir="ltr"
+                />
+              </div>
+              <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
+                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
