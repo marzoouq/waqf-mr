@@ -101,9 +101,9 @@ const BeneficiariesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المستفيدين</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة المستفيدين من الوقف</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
+            <Button variant="outline" size="sm" onClick={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مستفيد</Button></DialogTrigger>
               <DialogContent className="max-w-md">

@@ -74,9 +74,9 @@ const IncomePage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الدخل</h1>
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة مصادر الدخل</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
+            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة دخل</Button></DialogTrigger>
               <DialogContent className="max-w-md">
@@ -124,7 +124,7 @@ const IncomePage = () => {
             ) : filteredIncome.length === 0 ? (
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
-              <Table>
+              <Table className="min-w-[650px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">المصدر</TableHead><TableHead className="text-right">المبلغ</TableHead>

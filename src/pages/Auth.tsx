@@ -121,7 +121,7 @@ const Auth = () => {
         <RadioGroup
           value={loginMethod}
           onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
-          className="flex gap-3"
+          className="flex flex-wrap gap-3"
           dir="rtl"
         >
           <label

@@ -296,10 +296,10 @@ const AccountsPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
             <p className="text-muted-foreground mt-1">إدارة ومتابعة الحسابات السنوية</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
-              طباعة
+              <span className="hidden sm:inline">طباعة</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => generateAccountsPDF({
               contracts,
@@ -317,7 +317,7 @@ const AccountsPage = () => {
               waqfCapital: waqfRevenue * (1 - totalBeneficiaryPercentage / 100),
             }, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
-              تصدير PDF
+              <span className="hidden sm:inline">تصدير PDF</span>
             </Button>
             <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
               <Plus className="w-4 h-4" />
@@ -426,7 +426,7 @@ const AccountsPage = () => {
             {contracts.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
             ) : (
-              <Table>
+              <Table className="min-w-[750px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right w-12">#</TableHead>
@@ -491,7 +491,7 @@ const AccountsPage = () => {
             {contracts.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
             ) : (
-              <Table>
+              <Table className="min-w-[850px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right w-12">#</TableHead>
@@ -821,7 +821,7 @@ const AccountsPage = () => {
                 <p className="text-muted-foreground">لا توجد حسابات ختامية مسجلة</p>
               </div>
             ) : (
-              <Table>
+              <Table className="min-w-[750px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">السنة المالية</TableHead>

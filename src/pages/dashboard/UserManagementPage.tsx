@@ -280,7 +280,7 @@ const UserManagementPage = () => {
             {isLoading ? (
               <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p>
             ) : (
-              <Table>
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">البريد الإلكتروني</TableHead>

@@ -166,8 +166,8 @@ const InvoicesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الفواتير</h1>
             <p className="text-muted-foreground mt-1">رفع وإدارة جميع أنواع الفواتير</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
             <Button variant="outline" size="sm" onClick={async () => {
               try {
                 await generateInvoicesViewPDF(
@@ -185,7 +185,7 @@ const InvoicesPage = () => {
               } catch {
                 toast.error('حدث خطأ أثناء تصدير PDF');
               }
-            }} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            }} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
@@ -309,7 +309,7 @@ const InvoicesPage = () => {
                 <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد فواتير مرفوعة'}</p>
               </div>
             ) : (
-              <Table>
+              <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">النوع</TableHead>
