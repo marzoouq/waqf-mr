@@ -10,12 +10,14 @@ export interface WaqfInfo {
   waqf_nazara_number: string;
   waqf_nazara_date: string;
   waqf_court: string;
+  waqf_logo_url: string;
 }
 
 const WAQF_KEYS = [
   'waqf_name', 'waqf_founder', 'waqf_admin',
   'waqf_deed_number', 'waqf_deed_date',
   'waqf_nazara_number', 'waqf_nazara_date', 'waqf_court',
+  'waqf_logo_url',
 ];
 
 export const useWaqfInfo = () => {
@@ -43,6 +45,7 @@ export const useWaqfInfo = () => {
         waqf_nazara_number: info.waqf_nazara_number || '',
         waqf_nazara_date: info.waqf_nazara_date || '',
         waqf_court: info.waqf_court || '',
+        waqf_logo_url: info.waqf_logo_url || '',
       };
     },
     staleTime: 1000 * 60 * 10,
