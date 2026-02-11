@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
+import { useUnits } from '@/hooks/useUnits';
 import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
@@ -34,19 +35,21 @@ const ContractsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
-    contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
+    contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
     payment_type: 'annual', payment_count: '1',
   });
 
+  const { data: propertyUnits = [] } = useUnits(formData.property_id || undefined);
+
   const resetForm = () => {
-    setFormData({ contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '', payment_type: 'annual', payment_count: '1' });
+    setFormData({ contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '', payment_type: 'annual', payment_count: '1' });
     setEditingContract(null);
   };
 
   const handleEdit = (contract: Contract) => {
     setEditingContract(contract);
     setFormData({
-      contract_number: contract.contract_number, property_id: contract.property_id, tenant_name: contract.tenant_name,
+      contract_number: contract.contract_number, property_id: contract.property_id, unit_id: contract.unit_id || '', tenant_name: contract.tenant_name,
       start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
@@ -64,7 +67,7 @@ const ContractsPage = () => {
     const rentAmount = parseFloat(formData.rent_amount);
     const paymentAmount = rentAmount / paymentCount;
     const contractData = {
-      contract_number: formData.contract_number, property_id: formData.property_id, tenant_name: formData.tenant_name,
+      contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
       start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
       status: formData.status, notes: formData.notes || undefined,
       payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
@@ -93,10 +96,12 @@ const ContractsPage = () => {
     }
   };
 
+  const getPaymentTypeLabel = (type?: string) => type === 'monthly' ? 'شهري' : type === 'annual' ? 'سنوي' : 'متعدد';
+
   const filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q);
+    return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q);
   });
 
   return (
@@ -125,6 +130,18 @@ const ContractsPage = () => {
                       <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
+                  {formData.property_id && (
+                    <div className="space-y-2">
+                      <Label>الوحدة</Label>
+                      <Select value={formData.unit_id} onValueChange={(value) => setFormData({ ...formData, unit_id: value === 'full' ? '' : value })}>
+                        <SelectTrigger><SelectValue placeholder="العقار كامل" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="full">العقار كامل</SelectItem>
+                          {propertyUnits.map((u) => (<SelectItem key={u.id} value={u.id}>وحدة {u.unit_number}</SelectItem>))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div className="space-y-2"><Label>اسم المستأجر *</Label><Input value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2"><Label>تاريخ البداية *</Label><Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
@@ -186,12 +203,14 @@ const ContractsPage = () => {
             ) : filteredContracts.length === 0 ? (
               <div className="py-12 text-center"><FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p></div>
             ) : (
-              <Table className="min-w-[750px]">
+              <Table className="min-w-[1000px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">الوحدة</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
-                    <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">قيمة الإيجار</TableHead>
+                    <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
+                    <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
                     <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -200,10 +219,15 @@ const ContractsPage = () => {
                     <TableRow key={contract.id}>
                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
                       <TableCell>{contract.property?.property_number || '-'}</TableCell>
+                      <TableCell>{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'العقار كامل'}</TableCell>
                       <TableCell>{contract.tenant_name}</TableCell>
                       <TableCell>{contract.start_date}</TableCell>
                       <TableCell>{contract.end_date}</TableCell>
                       <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>
+                        {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
+                      </TableCell>
+                      <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
                       <TableCell>{getStatusBadge(contract.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">

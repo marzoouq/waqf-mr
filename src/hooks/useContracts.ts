@@ -9,7 +9,7 @@ export const useContracts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contracts')
-        .select('*, property:properties(*)')
+        .select('*, property:properties(*), unit:units(*)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
