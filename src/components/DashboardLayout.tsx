@@ -18,22 +18,43 @@ import {
   Eye,
   Settings,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
+
+// Map route segments to settings keys
+const adminSectionKeys: Record<string, string> = {
+  '/dashboard/properties': 'properties',
+  '/dashboard/contracts': 'contracts',
+  '/dashboard/income': 'income',
+  '/dashboard/expenses': 'expenses',
+  '/dashboard/beneficiaries': 'beneficiaries',
+  '/dashboard/reports': 'reports',
+  '/dashboard/accounts': 'accounts',
+  '/dashboard/users': 'users',
+};
+
+const beneficiarySectionKeys: Record<string, string> = {
+  '/beneficiary/disclosure': 'disclosure',
+  '/beneficiary/share': 'share',
+  '/beneficiary/accounts': 'accounts',
+  '/beneficiary/reports': 'reports',
+};
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, role, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
 
-  const adminLinks = [
+  const allAdminLinks = [
     { to: '/dashboard', icon: Home, label: 'الرئيسية' },
     { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
     { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
@@ -47,7 +68,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
   ];
 
-  const beneficiaryLinks = [
+  const allBeneficiaryLinks = [
     { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
     { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
     { to: '/beneficiary/share', icon: Wallet, label: 'حصتي من الريع' },
@@ -55,7 +76,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
   ];
 
-  const links = role === 'admin' ? adminLinks : beneficiaryLinks;
+  const sectionsVisibility = getJsonSetting('sections_visibility', { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true });
+  const beneficiarySections = getJsonSetting('beneficiary_sections', { disclosure: true, share: true, accounts: true, reports: true });
+
+  const links = useMemo(() => {
+    if (role === 'admin') {
+      return allAdminLinks.filter((link) => {
+        const key = adminSectionKeys[link.to];
+        return !key || sectionsVisibility[key] !== false;
+      });
+    }
+    return allBeneficiaryLinks.filter((link) => {
+      const key = beneficiarySectionKeys[link.to];
+      return !key || beneficiarySections[key] !== false;
+    });
+  }, [role, sectionsVisibility, beneficiarySections]);
 
   const handleSignOut = async () => {
     await signOut();
