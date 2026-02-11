@@ -26,12 +26,13 @@ const loadArabicFont = async (doc: jsPDF) => {
     const boldBase64 = toBase64(boldBuf);
 
     doc.addFileToVFS('Amiri-Regular.ttf', regularBase64);
-    doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal');
+    doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal', 'Identity-H');
 
     doc.addFileToVFS('Amiri-Bold.ttf', boldBase64);
-    doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold');
+    doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold', 'Identity-H');
 
     doc.setFont('Amiri');
+    doc.setLanguage('ar');
     return true;
   } catch (e) {
     console.warn('Failed to load Arabic font, falling back to helvetica:', e);
