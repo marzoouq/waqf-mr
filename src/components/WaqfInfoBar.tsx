@@ -86,7 +86,7 @@ const WaqfInfoBar = () => {
 
   return (
     <>
-      <div className="w-full gradient-gold px-4 py-2 shadow-sm">
+      <div className="flex-1 gradient-gold px-4 py-2 shadow-sm">
         <div className="flex items-center justify-center">
           <Popover>
             <PopoverTrigger asChild>

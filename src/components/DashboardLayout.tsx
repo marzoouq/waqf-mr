@@ -188,7 +188,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         'pt-14 lg:pt-0',
         sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
       )}>
-        <WaqfInfoBar />
+        <div className="hidden lg:flex items-center justify-between">
+          <WaqfInfoBar />
+          <div className="px-4 py-2">
+            <NotificationBell />
+          </div>
+        </div>
+        <div className="lg:hidden">
+          <WaqfInfoBar />
+        </div>
         {children}
       </main>
     </div>
