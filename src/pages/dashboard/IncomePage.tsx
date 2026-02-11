@@ -10,6 +10,7 @@ import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/
 import { useProperties } from '@/hooks/useProperties';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown, Search } from 'lucide-react';
+import TablePagination from '@/components/TablePagination';
 import { generateIncomePDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
@@ -28,6 +29,8 @@ const IncomePage = () => {
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
 
   const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };
@@ -128,7 +131,7 @@ const IncomePage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredIncome.map((item) => (
+                  {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
                       <TableCell className="text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</TableCell>
@@ -146,6 +149,7 @@ const IncomePage = () => {
                 </TableBody>
               </Table>
             )}
+            <TablePagination currentPage={currentPage} totalItems={filteredIncome.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
 

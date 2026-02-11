@@ -10,6 +10,7 @@ import { useContracts, useCreateContract, useUpdateContract, useDeleteContract }
 import { useProperties } from '@/hooks/useProperties';
 import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search } from 'lucide-react';
+import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
@@ -28,6 +29,8 @@ const ContractsPage = () => {
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
   });
@@ -160,7 +163,7 @@ const ContractsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredContracts.map((contract) => (
+                  {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
                       <TableCell>{contract.property?.property_number || '-'}</TableCell>
@@ -180,6 +183,7 @@ const ContractsPage = () => {
                 </TableBody>
               </Table>
             )}
+            <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
 
