@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { useWaqfInfo } from '@/hooks/useWaqfInfo';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -46,6 +47,34 @@ const beneficiarySectionKeys: Record<string, string> = {
   '/beneficiary/share': 'share',
   '/beneficiary/accounts': 'accounts',
   '/beneficiary/reports': 'reports',
+};
+
+const PrintHeader = () => {
+  const { data: waqfInfo } = useWaqfInfo();
+  const waqfName = waqfInfo?.waqf_name || 'وقف مرزوق بن علي الثبيتي';
+  const waqfAdmin = waqfInfo?.waqf_admin || '';
+  const deedNumber = waqfInfo?.waqf_deed_number || '';
+
+  return (
+    <div className="hidden print:block mb-6 px-6 pt-4">
+      <div className="flex items-center justify-between border-b-2 border-primary pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
+            <Building2 className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold font-display">{waqfName}</h1>
+            <p className="text-sm text-muted-foreground">ناظر الوقف: {waqfAdmin}</p>
+            {deedNumber && <p className="text-xs text-muted-foreground">رقم الصك: {deedNumber}</p>}
+          </div>
+        </div>
+        <div className="text-left text-sm text-muted-foreground">
+          <p>تاريخ الطباعة</p>
+          <p className="font-bold">{new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
@@ -228,6 +257,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         'pt-14 lg:pt-0',
         sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
       )}>
+        {/* Print-only Header */}
+        <PrintHeader />
         <div className="hidden lg:flex items-center justify-between">
           <WaqfInfoBar />
           <div className="px-4 py-2">
@@ -238,6 +269,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <WaqfInfoBar />
         </div>
         {children}
+        {/* Print-only Footer */}
+        <div className="hidden print:block border-t-2 border-primary mt-8 pt-4 px-6 text-center text-sm text-muted-foreground">
+          <p>تمت الطباعة بتاريخ: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
       </main>
     </div>
   );
