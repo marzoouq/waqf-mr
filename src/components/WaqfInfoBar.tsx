@@ -130,9 +130,13 @@ const WaqfInfoBar = () => {
           <Popover>
             <PopoverTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group">
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-primary-foreground" />
-                </div>
+                {waqfInfo.waqf_logo_url ? (
+                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-8 h-8 rounded-lg object-contain" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                )}
                 <span className="font-display font-bold text-sm md:text-base text-primary-foreground">
                   {waqfInfo.waqf_name}
                 </span>
