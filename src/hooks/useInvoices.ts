@@ -75,12 +75,36 @@ export const useCreateInvoice = () => {
   });
 };
 
+export const useUpdateInvoice = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...invoice }: { id: string; [key: string]: any }) => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .update(invoice)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('تم تحديث الفاتورة بنجاح');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء تحديث الفاتورة');
+    },
+  });
+};
+
 export const useDeleteInvoice = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, file_path }: { id: string; file_path?: string | null }) => {
-      // Delete file from storage if exists
       if (file_path) {
         await supabase.storage.from('invoices').remove([file_path]);
       }
