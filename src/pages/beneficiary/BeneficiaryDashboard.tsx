@@ -1,26 +1,27 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, FileText, BarChart3 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
+  const { data: accounts = [] } = useAccounts();
 
   // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  // Use the latest account data entered by the admin (first record)
+  const latestAccount = accounts[0];
+
+  const totalIncome = Number(latestAccount?.total_income || 0);
+  const totalExpenses = Number(latestAccount?.total_expenses || 0);
+  const adminShare = Number(latestAccount?.admin_share || 0);
+  const waqifShare = Number(latestAccount?.waqif_share || 0);
+  const beneficiariesShare = Number(latestAccount?.waqf_revenue || 0);
   const netRevenue = totalIncome - totalExpenses;
-  const adminShare = netRevenue * 0.10;
-  const waqifShare = netRevenue * 0.05;
-  const beneficiariesShare = netRevenue - adminShare - waqifShare;
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
@@ -83,7 +84,7 @@ const BeneficiaryDashboard = () => {
         {/* Annual Disclosure */}
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>الإفصاح السنوي (25/10/2024 - 25/10/2025م)</CardTitle>
+            <CardTitle>الإفصاح السنوي ({latestAccount?.fiscal_year || ''})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
