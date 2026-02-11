@@ -286,3 +286,111 @@
   -ms-user-select: none;
   user-select: none;
 }
+
+/* ===== Print Styles ===== */
+@media print {
+  /* Hide navigation, sidebar, and non-essential UI */
+  aside,
+  nav,
+  .sidebar,
+  [data-sidebar],
+  header:has(button),
+  .no-print,
+  button,
+  [role="dialog"],
+  [role="alertdialog"],
+  .sonner-toaster,
+  .fixed {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  main,
+  .main-content,
+  [role="main"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Make cards flat for print */
+  .card,
+  [class*="Card"] {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+
+  /* Ensure tables print well */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #ccc !important;
+    padding: 6px 8px !important;
+    font-size: 11pt;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Page break controls */
+  h1, h2, h3 {
+    break-after: avoid;
+  }
+
+  .page-break {
+    break-before: always;
+  }
+
+  /* Show full content without scroll */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  [class*="ScrollArea"] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* Hide gradient backgrounds, show plain */
+  .gradient-primary,
+  .gradient-hero {
+    background: #f5f5f5 !important;
+    color: #333 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Add print header */
+  @page {
+    size: A4;
+    margin: 15mm 10mm;
+  }
+
+  /* Preserve badge colors */
+  .badge,
+  [class*="Badge"] {
+    border: 1px solid #999 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Charts don't print well, add note */
+  .recharts-responsive-container {
+    break-inside: avoid;
+  }
+}
