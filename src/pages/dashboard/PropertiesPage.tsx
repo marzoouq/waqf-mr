@@ -10,6 +10,7 @@ import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generatePropertiesPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const PropertiesPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
@@ -109,7 +111,7 @@ const PropertiesPage = () => {
               <Printer className="w-4 h-4" />
               طباعة
             </Button>
-            <Button variant="outline" size="sm" onClick={() => generatePropertiesPDF(properties)} className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => generatePropertiesPDF(properties, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
               تصدير PDF
             </Button>

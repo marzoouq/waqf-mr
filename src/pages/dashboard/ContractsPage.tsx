@@ -12,6 +12,7 @@ import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import {
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const ContractsPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: contracts = [], isLoading } = useContracts();
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
@@ -101,7 +103,7 @@ const ContractsPage = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateContractsPDF(contracts)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            <Button variant="outline" size="sm" onClick={() => generateContractsPDF(contracts, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقد</Button>

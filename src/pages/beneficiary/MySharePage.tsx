@@ -10,9 +10,11 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMySharePDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 const MySharePage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: accounts = [] } = useAccounts();
@@ -76,7 +78,7 @@ const MySharePage = () => {
           amount: Number(d.amount),
           status: d.status,
         })),
-      });
+      }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');

@@ -12,6 +12,7 @@ import { Expense } from '@/types/database';
 import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generateExpensesPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import {
@@ -21,6 +22,7 @@ import {
 const EXPENSE_TYPES = ['كهرباء', 'مياه', 'صيانة', 'عمالة', 'منصة إيجار', 'كتابة عقود', 'تأمين', 'ضرائب', 'أخرى'];
 
 const ExpensesPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
@@ -76,7 +78,7 @@ const ExpensesPage = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateExpensesPDF(expenses, totalExpenses)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            <Button variant="outline" size="sm" onClick={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
               <DialogContent className="max-w-md">

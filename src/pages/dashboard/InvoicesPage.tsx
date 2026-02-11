@@ -12,6 +12,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown } from 'lucide-react';
 import { generateInvoicesViewPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const InvoicesPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: invoices = [], isLoading } = useInvoices();
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
@@ -176,7 +178,8 @@ const InvoicesPage = () => {
                     date: inv.date,
                     property_number: inv.property?.property_number || '-',
                     status: inv.status,
-                  }))
+                  })),
+                  pdfWaqfInfo
                 );
                 toast.success('تم تحميل ملف PDF بنجاح');
               } catch {

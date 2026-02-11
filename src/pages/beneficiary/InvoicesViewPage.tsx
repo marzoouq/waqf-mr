@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { generateInvoicesViewPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 const InvoicesViewPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: invoices = [], isLoading } = useInvoices();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +54,8 @@ const InvoicesViewPage = () => {
           date: inv.date,
           property_number: inv.property?.property_number || '-',
           status: inv.status,
-        }))
+        })),
+        pdfWaqfInfo
       );
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {

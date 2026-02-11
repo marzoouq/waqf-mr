@@ -9,6 +9,7 @@ import { BarChart3, Download, PieChart, TrendingUp, Building, Printer } from 'lu
 import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 
@@ -16,6 +17,7 @@ const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
 const FinancialReportsPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: income = [] } = useIncome();
@@ -105,7 +107,7 @@ const FinancialReportsPage = () => {
           percentage: Number(b.share_percentage),
           amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
         })),
-      });
+      }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');

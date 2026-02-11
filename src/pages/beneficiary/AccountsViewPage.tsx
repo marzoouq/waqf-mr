@@ -9,12 +9,14 @@ import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { generateAccountsPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
 const AccountsViewPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: income = [] } = useIncome();
@@ -110,7 +112,7 @@ const AccountsViewPage = () => {
                       name: b.name,
                       share_percentage: Number(b.share_percentage),
                     })),
-                  });
+                  }, pdfWaqfInfo);
                   toast.success('تم تصدير الحسابات الختامية بنجاح');
                 } catch {
                   toast.error('حدث خطأ أثناء تصدير PDF');

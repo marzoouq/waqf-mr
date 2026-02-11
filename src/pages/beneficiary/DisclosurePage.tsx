@@ -8,11 +8,13 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { FileText, Download, TrendingUp, TrendingDown, Wallet, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
 const DisclosurePage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: income = [] } = useIncome();
@@ -69,7 +71,7 @@ const DisclosurePage = () => {
         beneficiariesShare,
         incomeBySource,
         expensesByType,
-      });
+      }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');

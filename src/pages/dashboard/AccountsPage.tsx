@@ -13,6 +13,7 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X, Printer, FileDown, Trash2, Settings } from 'lucide-react';
 import { generateAccountsPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/dialog';
 
 const AccountsPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: accounts = [], isLoading } = useAccounts();
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
@@ -303,7 +305,7 @@ const AccountsPage = () => {
               vatAmount,
               distributionsAmount: 995000,
               waqfCapital: waqfRevenue - 995000,
-            })} className="gap-2">
+            }, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
               تصدير PDF
             </Button>
