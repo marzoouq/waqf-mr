@@ -1,14 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown } from 'lucide-react';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Download } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useMemo } from 'react';
 
 const AdminDashboard = () => {
   const { data: properties = [] } = useProperties();
@@ -17,15 +20,18 @@ const AdminDashboard = () => {
   const { data: expenses = [] } = useExpenses();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: accounts = [] } = useAccounts();
+  const { data: settings } = useAppSettings();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
   const activeContracts = contracts.filter(c => c.status === 'active').length;
 
-  // Use stored account values if available, fallback to dynamic calculation
+  // Use stored account values if available, fallback to dynamic calculation with settings
   const currentAccount = accounts[0];
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * 0.10;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * 0.05;
+  const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
+  const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * (adminPct / 100);
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * (waqifPct / 100);
   const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : (totalIncome - totalExpenses) - adminShare - waqifShare;
 
   const stats = [
@@ -39,34 +45,59 @@ const AdminDashboard = () => {
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 
-  // Monthly income/expense chart data
-  const monthlyData = [
-    { month: 'محرم', income: 50000, expenses: 15000 },
-    { month: 'صفر', income: 52000, expenses: 18000 },
-    { month: 'ربيع الأول', income: 48000, expenses: 12000 },
-    { month: 'ربيع الثاني', income: 55000, expenses: 20000 },
-    { month: 'جمادى الأولى', income: 53000, expenses: 16000 },
-    { month: 'جمادى الثانية', income: 51000, expenses: 14000 },
-  ];
+  // Aggregate real monthly income/expense data
+  const monthlyData = useMemo(() => {
+    const months: Record<string, { income: number; expenses: number }> = {};
+    income.forEach(item => {
+      const month = item.date?.substring(0, 7); // YYYY-MM
+      if (month) {
+        if (!months[month]) months[month] = { income: 0, expenses: 0 };
+        months[month].income += Number(item.amount);
+      }
+    });
+    expenses.forEach(item => {
+      const month = item.date?.substring(0, 7);
+      if (month) {
+        if (!months[month]) months[month] = { income: 0, expenses: 0 };
+        months[month].expenses += Number(item.amount);
+      }
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, data]) => ({
+        month,
+        income: data.income,
+        expenses: data.expenses,
+      }));
+  }, [income, expenses]);
 
-  // Expense distribution
-  const expenseTypes = [
-    { name: 'كهرباء', value: 25 },
-    { name: 'مياه', value: 15 },
-    { name: 'صيانة', value: 30 },
-    { name: 'عمالة', value: 20 },
-    { name: 'أخرى', value: 10 },
-  ];
+  // Aggregate real expense distribution
+  const expenseTypes = useMemo(() => {
+    const types: Record<string, number> = {};
+    expenses.forEach(item => {
+      const type = item.expense_type || 'أخرى';
+      types[type] = (types[type] || 0) + Number(item.amount);
+    });
+    return Object.entries(types).map(([name, value]) => ({ name, value }));
+  }, [expenses]);
 
-  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626'];
+  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
 
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="animate-slide-up">
-          <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
-          <p className="text-muted-foreground mt-1">مرحباً بك في نظام إدارة الوقف</p>
+        <div className="flex items-center justify-between animate-slide-up">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
+            <p className="text-muted-foreground mt-1">مرحباً بك في نظام إدارة الوقف</p>
+          </div>
+          <div className="flex gap-2 print:hidden">
+            <Button variant="outline" onClick={() => window.print()} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -96,16 +127,20 @@ const AdminDashboard = () => {
               <CardTitle>الدخل والمصروفات الشهرية</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="income" fill="hsl(158, 64%, 25%)" name="الدخل" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expenses" fill="hsl(43, 74%, 49%)" name="المصروفات" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {monthlyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                    <Bar dataKey="income" fill="hsl(158, 64%, 25%)" name="الدخل" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" fill="hsl(43, 74%, 49%)" name="المصروفات" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
             </CardContent>
           </Card>
 
@@ -115,25 +150,29 @@ const AdminDashboard = () => {
               <CardTitle>توزيع المصروفات</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={expenseTypes}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {expenseTypes.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {expenseTypes.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={expenseTypes}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {expenseTypes.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
             </CardContent>
           </Card>
         </div>

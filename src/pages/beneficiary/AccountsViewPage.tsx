@@ -312,17 +312,17 @@ const AccountsViewPage = () => {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">حصة الناظر</TableCell>
-                  <TableCell>10%</TableCell>
+                  <TableCell>{netRevenue > 0 ? ((adminShare / netRevenue) * 100).toFixed(1) : '0'}%</TableCell>
                   <TableCell>{adminShare.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">حصة الواقف</TableCell>
-                  <TableCell>5%</TableCell>
+                  <TableCell>{netRevenue > 0 ? ((waqifShare / netRevenue) * 100).toFixed(1) : '0'}%</TableCell>
                   <TableCell>{waqifShare.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">ريع الوقف (للتوزيع)</TableCell>
-                  <TableCell>85%</TableCell>
+                  <TableCell>{netRevenue > 0 ? ((waqfRevenue / netRevenue) * 100).toFixed(1) : '0'}%</TableCell>
                   <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>

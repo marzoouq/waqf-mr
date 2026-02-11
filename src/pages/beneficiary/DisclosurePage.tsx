@@ -192,11 +192,11 @@ const DisclosurePage = () => {
                   <span className="font-bold text-primary text-lg">{netRevenue.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>حصة الناظر (10%)</span>
+                  <span>حصة الناظر ({netRevenue > 0 ? ((adminShare / netRevenue) * 100).toFixed(1) : '0'}%)</span>
                   <span>-{adminShare.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>حصة الواقف (5%)</span>
+                  <span>حصة الواقف ({netRevenue > 0 ? ((waqifShare / netRevenue) * 100).toFixed(1) : '0'}%)</span>
                   <span>-{waqifShare.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 font-bold">
