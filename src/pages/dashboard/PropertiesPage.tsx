@@ -796,12 +796,12 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             <TableCell>{tenant?.end_date || <span className="text-muted-foreground">-</span>}</TableCell>
                             <TableCell>
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
+                                <span className="font-medium">{(tenant.rent_amount / 12).toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
                               )}
                             </TableCell>
                             <TableCell>
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">{(tenant.rent_amount * 12).toLocaleString('ar-SA')} ريال</span>
+                                <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
                               )}
                             </TableCell>
                             <TableCell>
