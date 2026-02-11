@@ -9,10 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown, Search } from 'lucide-react';
 import { generateIncomePDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const IncomePage = () => {
   const { data: income = [], isLoading } = useIncome();
@@ -23,198 +26,109 @@ const IncomePage = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
-  const [formData, setFormData] = useState({
-    source: '',
-    amount: '',
-    date: '',
-    property_id: '',
-    notes: '',
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
 
-  const resetForm = () => {
-    setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' });
-    setEditingIncome(null);
-  };
+  const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };
 
   const handleEdit = (item: Income) => {
     setEditingIncome(item);
-    setFormData({
-      source: item.source,
-      amount: item.amount.toString(),
-      date: item.date,
-      property_id: item.property_id || '',
-      notes: item.notes || '',
-    });
+    setFormData({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
     setIsOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.source || !formData.amount || !formData.date) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-
-    const incomeData = {
-      source: formData.source,
-      amount: parseFloat(formData.amount),
-      date: formData.date,
-      property_id: formData.property_id || undefined,
-      notes: formData.notes || undefined,
-    };
-
-    if (editingIncome) {
-      await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData });
-    } else {
-      await createIncome.mutateAsync(incomeData);
-    }
-
+    if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    const incomeData = { source: formData.source, amount: parseFloat(formData.amount), date: formData.date, property_id: formData.property_id || undefined, notes: formData.notes || undefined };
+    if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData }); } else { await createIncome.mutateAsync(incomeData); }
     setIsOpen(false);
     resetForm();
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا الدخل؟')) {
-      await deleteIncome.mutateAsync(id);
-    }
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    await deleteIncome.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   };
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
 
+  const filteredIncome = income.filter((item) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return item.source.toLowerCase().includes(q) || (item.notes || '').toLowerCase().includes(q) || item.date.includes(q);
+  });
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الدخل</h1>
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة مصادر الدخل</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome)} className="gap-2">
-              <FileDown className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
+            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2">
-                  <Plus className="w-4 h-4" />
-                  إضافة دخل
-                </Button>
-              </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>المصدر *</Label>
-                  <Input
-                    value={formData.source}
-                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    placeholder="إيجار، استثمار، تبرع..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>المبلغ (ر.س) *</Label>
-                  <Input
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    placeholder="10000"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>التاريخ *</Label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>العقار (اختياري)</Label>
-                  <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر العقار" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {properties.map((property) => (
-                        <SelectItem key={property.id} value={property.id}>
-                          {property.property_number} - {property.location}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>ملاحظات</Label>
-                  <Input
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="ملاحظات إضافية"
-                  />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending || updateIncome.isPending}>
-                    {editingIncome ? 'تحديث' : 'إضافة'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
-                    إلغاء
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة دخل</Button></DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader><DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle></DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2"><Label>المصدر *</Label><Input value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} placeholder="إيجار، استثمار، تبرع..." /></div>
+                  <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
+                  <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
+                  <div className="space-y-2">
+                    <Label>العقار (اختياري)</Label>
+                    <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
+                      <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
+                      <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
+                  <div className="flex gap-2 pt-4">
+                    <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending || updateIncome.isPending}>{editingIncome ? 'تحديث' : 'إضافة'}</Button>
+                    <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-        {/* Total Income Card */}
         <Card className="shadow-sm gradient-primary text-primary-foreground">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
-                <p className="text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p>
-              </div>
+              <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center"><TrendingUp className="w-6 h-6" /></div>
+              <div><p className="text-sm text-primary-foreground/90">إجمالي الدخل</p><p className="text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p></div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Income Table */}
+        <div className="relative max-w-md">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10" />
+        </div>
+
         <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">جاري التحميل...</p>
-              </div>
-            ) : income.length === 0 ? (
-              <div className="py-12 text-center">
-                <TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">لا توجد سجلات دخل</p>
-              </div>
+              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+            ) : filteredIncome.length === 0 ? (
+              <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">المصدر</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">العقار</TableHead>
-                    <TableHead className="text-right">ملاحظات</TableHead>
-                    <TableHead className="text-right">إجراءات</TableHead>
+                    <TableHead className="text-right">المصدر</TableHead><TableHead className="text-right">المبلغ</TableHead>
+                    <TableHead className="text-right">التاريخ</TableHead><TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">ملاحظات</TableHead><TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {income.map((item) => (
+                  {filteredIncome.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
                       <TableCell className="text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</TableCell>
@@ -223,12 +137,8 @@ const IncomePage = () => {
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -238,6 +148,19 @@ const IncomePage = () => {
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
+              <AlertDialogDescription>سيتم حذف {deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">تأكيد الحذف</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

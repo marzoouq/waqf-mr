@@ -327,6 +327,41 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_payments: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          paid_months: number
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_months?: number
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_months?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: true
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
