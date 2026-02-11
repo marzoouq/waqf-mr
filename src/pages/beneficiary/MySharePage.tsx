@@ -2,8 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, Percent, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -14,8 +12,6 @@ import { supabase } from '@/integrations/supabase/client';
 const MySharePage = () => {
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
   const { data: accounts = [] } = useAccounts();
 
   // Find current user's beneficiary record
@@ -38,15 +34,14 @@ const MySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  const netRevenue = totalIncome - totalExpenses;
-
-  // Use stored account values if available
+  // Use stored account values from admin
   const currentAccount = accounts[0];
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
-  const beneficiariesShare = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
+  const totalIncome = Number(currentAccount?.total_income || 0);
+  const totalExpenses = Number(currentAccount?.total_expenses || 0);
+  const netRevenue = totalIncome - totalExpenses;
+  const adminShare = Number(currentAccount?.admin_share || 0);
+  const waqifShare = Number(currentAccount?.waqif_share || 0);
+  const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
