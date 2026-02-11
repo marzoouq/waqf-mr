@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Progress } from '@/components/ui/progress';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -510,101 +511,90 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-muted/40">
                     <TableHead className="text-right">رقم الوحدة</TableHead>
                     <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">الدور</TableHead>
-                    <TableHead className="text-right">المساحة</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead>
                     <TableHead className="text-right">بداية العقد</TableHead>
                     <TableHead className="text-right">نهاية العقد</TableHead>
+                    <TableHead className="text-right">الإيجار الشهري</TableHead>
                     <TableHead className="text-right">الإيجار السنوي</TableHead>
-                    <TableHead className="text-right">الدفعات المسددة</TableHead>
+                    <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
                     <TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {units.map((unit) => (
-                    <TableRow key={unit.id}>
+                  {units.map((unit, idx) => {
+                    const tenant = getTenant(unit.id);
+                    const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
+                    const isComplete = paid >= 12;
+                    const progressPercent = (paid / 12) * 100;
+                    return (
+                    <TableRow key={unit.id} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
                       <TableCell className="font-medium">{unit.unit_number}</TableCell>
                       <TableCell>{unit.unit_type}</TableCell>
-                      <TableCell>{unit.floor || '-'}</TableCell>
-                      <TableCell>{unit.area ? `${unit.area} م²` : '-'}</TableCell>
                       <TableCell>
                         <Badge variant={statusColor(unit.status)}>{unit.status}</Badge>
                       </TableCell>
                       <TableCell>
-                        {(() => {
-                          const tenant = getTenant(unit.id);
-                          if (!tenant) return <span className="text-muted-foreground">-</span>;
-                          return (
-                            <span>
-                              {tenant.name}
-                              {tenant.status !== 'active' && (
-                                <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
-                              )}
-                            </span>
-                          );
-                        })()}
+                        {!tenant ? <span className="text-muted-foreground">-</span> : (
+                          <span>
+                            {tenant.name}
+                            {tenant.status !== 'active' && (
+                              <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
+                            )}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {(() => {
-                          const tenant = getTenant(unit.id);
-                          return tenant?.start_date || <span className="text-muted-foreground">-</span>;
-                        })()}
+                        {tenant?.start_date || <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell>
-                        {(() => {
-                          const tenant = getTenant(unit.id);
-                          return tenant?.end_date || <span className="text-muted-foreground">-</span>;
-                        })()}
+                        {tenant?.end_date || <span className="text-muted-foreground">-</span>}
                       </TableCell>
                       <TableCell>
-                        {(() => {
-                          const tenant = getTenant(unit.id);
-                          if (!tenant) return <span className="text-muted-foreground">-</span>;
-                          const annual = tenant.rent_amount * 12;
-                          return (
-                            <div>
-                              <span className="font-medium">{annual.toLocaleString('ar-SA')} ريال</span>
-                              <p className="text-[10px] text-muted-foreground">(شهري: {tenant.rent_amount.toLocaleString('ar-SA')})</p>
-                            </div>
-                          );
-                        })()}
+                        {!tenant ? <span className="text-muted-foreground">-</span> : (
+                          <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        {(() => {
-                          const tenant = getTenant(unit.id);
-                          if (!tenant) return <span className="text-muted-foreground">-</span>;
-                          const paid = getPaymentInfo(tenant.contract_id);
-                          const isComplete = paid >= 12;
-                          return (
-                            <div className="flex items-center gap-1">
+                        {!tenant ? <span className="text-muted-foreground">-</span> : (
+                          <span className="font-medium">{(tenant.rent_amount * 12).toLocaleString('ar-SA')} ريال</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!tenant ? <span className="text-muted-foreground">-</span> : (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-2">
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-6 w-6"
+                                className="h-7 w-7"
                                 disabled={paid <= 0 || upsertPayment.isPending}
                                 onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })}
                               >
                                 <MinusIcon className="w-3 h-3" />
                               </Button>
-                              <span className={`min-w-[3rem] text-center font-medium ${isComplete ? 'text-green-600' : 'text-destructive'}`}>
+                              <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-green-600' : 'text-destructive'}`}>
                                 {paid}/12
                               </span>
                               <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-6 w-6"
+                                className="h-7 w-7"
                                 disabled={paid >= 12 || upsertPayment.isPending}
                                 onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid + 1 })}
                               >
                                 <Plus className="w-3 h-3" />
                               </Button>
                             </div>
-                          );
-                        })()}
+                            <Progress
+                              value={progressPercent}
+                              className={`h-2 ${isComplete ? '[&>div]:bg-green-500' : paid >= 6 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-destructive'}`}
+                            />
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
@@ -617,7 +607,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
