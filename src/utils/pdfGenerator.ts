@@ -70,8 +70,8 @@ const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo)
   if (!waqfInfo?.waqfName) return 15; // no header, return default startY
 
   const pageW = doc.internal.pageSize.width;
-  const margin = 15;
-  let currentY = 12;
+  const margin = 18;
+  let currentY = 14;
 
   // Try to load and add logo
   if (waqfInfo.logoUrl) {
@@ -117,7 +117,7 @@ const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfI
   if (!waqfInfo?.waqfName) return;
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.width;
-  const margin = 15;
+  const margin = 18;
 
   for (let i = 2; i <= pageCount; i++) {
     doc.setPage(i);
@@ -131,17 +131,48 @@ const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfI
   }
 };
 
+// Decorative border with outer gold frame, inner green frame, and corner ornaments
+const addPageBorder = (doc: jsPDF) => {
+  const pageW = doc.internal.pageSize.width;
+  const pageH = doc.internal.pageSize.height;
+
+  // Outer gold frame (1.5pt) at 8mm from edge
+  doc.setDrawColor(202, 138, 4);
+  doc.setLineWidth(1.5);
+  doc.rect(8, 8, pageW - 16, pageH - 16);
+
+  // Inner green frame (0.5pt) at 11mm from edge
+  doc.setDrawColor(22, 101, 52);
+  doc.setLineWidth(0.5);
+  doc.rect(11, 11, pageW - 22, pageH - 22);
+
+  // Corner ornaments – small gold filled squares at four corners
+  doc.setFillColor(202, 138, 4);
+  const cs = 3; // corner square size
+  // Top-left
+  doc.rect(8, 8, cs, cs, 'F');
+  // Top-right
+  doc.rect(pageW - 8 - cs, 8, cs, cs, 'F');
+  // Bottom-left
+  doc.rect(8, pageH - 8 - cs, cs, cs, 'F');
+  // Bottom-right
+  doc.rect(pageW - 8 - cs, pageH - 8 - cs, cs, cs, 'F');
+};
+
 const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
   const pageCount = doc.getNumberOfPages();
   const now = new Date();
   const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
   const pageW = doc.internal.pageSize.width;
-  const margin = 15;
+  const margin = 18;
 
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     const pageH = doc.internal.pageSize.height;
-    const footerY = pageH - 10;
+    const footerY = pageH - 14;
+
+    // Add decorative border to every page
+    addPageBorder(doc);
 
     // Gray separator line
     doc.setDrawColor(180, 180, 180);
