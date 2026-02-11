@@ -16,10 +16,10 @@ export const useTenantPayments = () => {
     queryKey: ['tenant_payments'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('tenant_payments' as any)
+        .from('tenant_payments')
         .select('*');
       if (error) throw error;
-      return (data as any[]) as TenantPayment[];
+      return data as TenantPayment[];
     },
   });
 };
@@ -29,7 +29,7 @@ export const useUpsertTenantPayment = () => {
   return useMutation({
     mutationFn: async (payment: { contract_id: string; paid_months: number; notes?: string }) => {
       const { data, error } = await supabase
-        .from('tenant_payments' as any)
+        .from('tenant_payments')
         .upsert(
           {
             contract_id: payment.contract_id,

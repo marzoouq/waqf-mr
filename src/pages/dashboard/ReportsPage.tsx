@@ -9,7 +9,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
 import { BarChart3, Download, FileText, Printer } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -64,7 +64,7 @@ const ReportsPage = () => {
 
   const handleExportPDF = async () => {
     await generateAnnualReportPDF({
-      fiscalYear: '25/10/2024 - 25/10/2025',
+      fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
       totalIncome,
       totalExpenses,
       netRevenue,
@@ -134,7 +134,7 @@ const ReportsPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              الإفصاح السنوي (من 25/10/2024 إلى 25/10/2025م)
+              الإفصاح السنوي ({currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ'})
             </CardTitle>
           </CardHeader>
           <CardContent>

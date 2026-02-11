@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,8 +59,8 @@ const AccountsPage = () => {
       const { data } = await supabase.from('app_settings').select('*');
       if (data) {
         data.forEach((s: { key: string; value: string }) => {
-          if (s.key === 'admin_percent') setAdminPercent(Number(s.value));
-          if (s.key === 'waqif_percent') setWaqifPercent(Number(s.value));
+          if (s.key === 'admin_share_percentage') setAdminPercent(Number(s.value));
+          if (s.key === 'waqif_share_percentage') setWaqifPercent(Number(s.value));
           if (s.key === 'fiscal_year') setFiscalYear(s.value);
         });
       }
@@ -68,20 +68,30 @@ const AccountsPage = () => {
     loadSettings();
   }, []);
 
+  const saveSettingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveSetting = useCallback(async (key: string, value: string) => {
-    await supabase.from('app_settings').upsert({ key, value }, { onConflict: 'key' } as any);
+    if (saveSettingTimeout.current) clearTimeout(saveSettingTimeout.current);
+    saveSettingTimeout.current = setTimeout(async () => {
+      try {
+        const { error } = await supabase.from('app_settings').upsert({ key, value }, { onConflict: 'key' });
+        if (error) throw error;
+        toast.success('تم حفظ الإعداد');
+      } catch (err) {
+        toast.error('خطأ في حفظ الإعداد: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+      }
+    }, 500);
   }, []);
 
   const handleAdminPercentChange = (val: string) => {
     const num = Number(val);
     setAdminPercent(num);
-    saveSetting('admin_percent', val);
+    saveSetting('admin_share_percentage', val);
   };
 
   const handleWaqifPercentChange = (val: string) => {
     const num = Number(val);
     setWaqifPercent(num);
-    saveSetting('waqif_percent', val);
+    saveSetting('waqif_share_percentage', val);
   };
 
   const handleFiscalYearChange = (val: string) => {
@@ -179,8 +189,8 @@ const AccountsPage = () => {
       waqif_share: waqifShare,
       waqf_revenue: waqfRevenue,
       vat_amount: vatAmount,
-      distributions_amount: 995000,
-      waqf_capital: waqfRevenue - 995000,
+      distributions_amount: waqfRevenue * (totalBeneficiaryPercentage / 100),
+      waqf_capital: waqfRevenue * (1 - totalBeneficiaryPercentage / 100),
       net_after_expenses: netAfterExpenses,
       net_after_vat: netAfterVat,
     });
@@ -303,8 +313,8 @@ const AccountsPage = () => {
               waqfRevenue,
               beneficiaries,
               vatAmount,
-              distributionsAmount: 995000,
-              waqfCapital: waqfRevenue - 995000,
+              distributionsAmount: waqfRevenue * (totalBeneficiaryPercentage / 100),
+              waqfCapital: waqfRevenue * (1 - totalBeneficiaryPercentage / 100),
             }, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
               تصدير PDF
@@ -739,12 +749,12 @@ const AccountsPage = () => {
                 <TableRow>
                   <TableCell className="font-medium">التوزيعات الفعلية</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell>{(995000).toLocaleString()}</TableCell>
+                  <TableCell>{(waqfRevenue * totalBeneficiaryPercentage / 100).toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">رقبة الوقف</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell>{(waqfRevenue - 995000).toLocaleString()}</TableCell>
+                  <TableCell>{(waqfRevenue * (1 - totalBeneficiaryPercentage / 100)).toLocaleString()}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
