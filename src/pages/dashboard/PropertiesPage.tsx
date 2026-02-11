@@ -278,7 +278,7 @@ const PropertiesPage = () => {
 // ─── Property Units Dialog Component ─────────────────────────────────
 interface PropertyUnitsDialogProps {
   property: Property;
-  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string }>;
+  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string; start_date: string; end_date: string }>;
   onClose: () => void;
 }
 
@@ -350,11 +350,11 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   };
 
   // Get tenant for a unit - prioritize active contracts, fallback to expired
-  const getTenant = (unitId: string): { name: string; status: string } | null => {
+  const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null } | null => {
     const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
-    if (activeContract) return { name: activeContract.tenant_name, status: 'active' };
+    if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date };
     const anyContract = contracts.find(c => c.unit_id === unitId);
-    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status };
+    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date };
     return null;
   };
 
@@ -509,6 +509,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                     <TableHead className="text-right">المساحة</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right">بداية العقد</TableHead>
+                    <TableHead className="text-right">نهاية العقد</TableHead>
                     <TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -534,6 +536,18 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               )}
                             </span>
                           );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tenant = getTenant(unit.id);
+                          return tenant?.start_date || <span className="text-muted-foreground">-</span>;
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tenant = getTenant(unit.id);
+                          return tenant?.end_date || <span className="text-muted-foreground">-</span>;
                         })()}
                       </TableCell>
                       <TableCell>
