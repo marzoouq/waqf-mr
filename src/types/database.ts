@@ -41,7 +41,7 @@ export interface Contract {
   created_at: string;
   updated_at: string;
   property?: Property;
-  unit?: Unit;
+  unit?: Unit | null;
 }
 
 export interface Income {
