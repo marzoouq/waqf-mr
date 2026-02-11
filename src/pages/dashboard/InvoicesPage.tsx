@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown } from 'lucide-react';
+import { generateInvoicesViewPDF } from '@/utils/pdfGenerator';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -163,10 +164,29 @@ const InvoicesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة الفواتير</h1>
             <p className="text-muted-foreground mt-1">رفع وإدارة جميع أنواع الفواتير</p>
           </div>
-          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
+            <Button variant="outline" size="sm" onClick={async () => {
+              try {
+                await generateInvoicesViewPDF(
+                  filteredInvoices.map(inv => ({
+                    invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+                    invoice_number: inv.invoice_number,
+                    amount: Number(inv.amount),
+                    date: inv.date,
+                    property_number: inv.property?.property_number || '-',
+                    status: inv.status,
+                  }))
+                );
+                toast.success('تم تحميل ملف PDF بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير PDF');
+              }
+            }} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -267,7 +287,8 @@ const InvoicesPage = () => {
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         <div className="relative max-w-md">
