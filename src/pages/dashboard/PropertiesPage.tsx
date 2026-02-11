@@ -375,7 +375,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   return (
     <>
       <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Building2 className="w-5 h-5" />
@@ -515,7 +515,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                     <TableHead className="text-right">رقم الوحدة</TableHead>
                     <TableHead className="text-right">النوع</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right min-w-[120px]">المستأجر</TableHead>
                     <TableHead className="text-right">بداية العقد</TableHead>
                     <TableHead className="text-right">نهاية العقد</TableHead>
                     <TableHead className="text-right">الإيجار الشهري</TableHead>
@@ -539,7 +539,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       </TableCell>
                       <TableCell>
                         {!tenant ? <span className="text-muted-foreground">-</span> : (
-                          <span>
+                          <span className="whitespace-nowrap">
                             {tenant.name}
                             {tenant.status !== 'active' && (
                               <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
