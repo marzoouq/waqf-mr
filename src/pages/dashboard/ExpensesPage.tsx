@@ -10,6 +10,7 @@ import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } fro
 import { useProperties } from '@/hooks/useProperties';
 import { Expense } from '@/types/database';
 import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search } from 'lucide-react';
+import TablePagination from '@/components/TablePagination';
 import { generateExpensesPDF } from '@/utils/pdfGenerator';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
@@ -30,6 +31,8 @@ const ExpensesPage = () => {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({ expense_type: '', amount: '', date: '', property_id: '', description: '' });
 
   const resetForm = () => { setFormData({ expense_type: '', amount: '', date: '', property_id: '', description: '' }); setEditingExpense(null); };
@@ -136,7 +139,7 @@ const ExpensesPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredExpenses.map((item) => (
+                  {filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.expense_type}</TableCell>
                       <TableCell className="text-destructive font-medium">-{Number(item.amount).toLocaleString()} ر.س</TableCell>
@@ -154,6 +157,7 @@ const ExpensesPage = () => {
                 </TableBody>
               </Table>
             )}
+            <TablePagination currentPage={currentPage} totalItems={filteredExpenses.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
 
