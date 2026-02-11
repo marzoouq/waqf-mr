@@ -19,21 +19,20 @@ const DisclosurePage = () => {
   // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  const netRevenue = totalIncome - totalExpenses;
-
-  // Use stored account values if available
+  // Use stored account values from admin
   const currentAccount = accounts[0];
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
-  const beneficiariesShare = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
+  const totalIncome = Number(currentAccount?.total_income || 0);
+  const totalExpenses = Number(currentAccount?.total_expenses || 0);
+  const netRevenue = totalIncome - totalExpenses;
+  const adminShare = Number(currentAccount?.admin_share || 0);
+  const waqifShare = Number(currentAccount?.waqif_share || 0);
+  const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
 
-  const fiscalYear = '25/10/2024 - 25/10/2025م';
+  const fiscalYear = currentAccount?.fiscal_year || '';
 
   const handleDownloadPDF = async () => {
     if (currentBeneficiary) {

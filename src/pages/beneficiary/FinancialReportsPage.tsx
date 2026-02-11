@@ -22,12 +22,14 @@ const FinancialReportsPage = () => {
   // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  // Use stored account values from admin
+  const currentAccount = accounts[0];
+  const totalIncome = Number(currentAccount?.total_income || 0);
+  const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netRevenue = totalIncome - totalExpenses;
-  const adminShare = netRevenue * 0.10;
-  const waqifShare = netRevenue * 0.05;
-  const beneficiariesShare = netRevenue - adminShare - waqifShare;
+  const adminShare = Number(currentAccount?.admin_share || 0);
+  const waqifShare = Number(currentAccount?.waqif_share || 0);
+  const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
@@ -70,6 +72,8 @@ const FinancialReportsPage = () => {
     { name: 'الواقف', value: waqifShare, fill: '#8b5cf6' },
   ];
 
+  const fiscalYear = currentAccount?.fiscal_year || '';
+
   // Monthly income trend (mock data for demo)
   const monthlyData = [
     { month: 'محرم', income: totalIncome * 0.08 },
@@ -92,7 +96,7 @@ const FinancialReportsPage = () => {
         currentBeneficiary.name,
         currentBeneficiary.share_percentage,
         myShare,
-        '25/10/2024 - 25/10/2025م'
+        fiscalYear
       );
     }
   };
