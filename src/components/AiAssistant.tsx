@@ -5,12 +5,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Send, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const AiAssistant = () => {
+  const { user } = useAuth();
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -91,6 +94,8 @@ const AiAssistant = () => {
       setIsLoading(false);
     }
   };
+
+  if (!user) return null;
 
   if (!open) {
     return (
