@@ -47,7 +47,7 @@ export const useUpsertTenantPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
       toast.success('تم حفظ بيانات التحصيل');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error('خطأ في حفظ بيانات التحصيل: ' + error.message);
     },
   });

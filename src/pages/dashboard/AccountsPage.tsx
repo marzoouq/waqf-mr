@@ -56,7 +56,7 @@ const AccountsPage = () => {
     const loadSettings = async () => {
       const { data } = await supabase.from('app_settings').select('*');
       if (data) {
-        data.forEach((s: any) => {
+        data.forEach((s: { key: string; value: string }) => {
           if (s.key === 'admin_percent') setAdminPercent(Number(s.value));
           if (s.key === 'waqif_percent') setWaqifPercent(Number(s.value));
           if (s.key === 'fiscal_year') setFiscalYear(s.value);
@@ -234,7 +234,7 @@ const AccountsPage = () => {
   };
 
   // Contract edit in contracts table
-  const handleOpenContractEdit = (contract: any) => {
+  const handleOpenContractEdit = (contract: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string }) => {
     setEditingContractData({
       id: contract.id,
       tenant_name: contract.tenant_name,
@@ -873,7 +873,7 @@ const AccountsPage = () => {
                   <Label>اسم المستأجر</Label>
                   <Input
                     value={editingContractData.tenant_name}
-                    onChange={(e) => setEditingContractData((prev: any) => ({ ...prev, tenant_name: e.target.value }))}
+                    onChange={(e) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, tenant_name: e.target.value } : prev)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -881,12 +881,12 @@ const AccountsPage = () => {
                   <Input
                     type="number"
                     value={editingContractData.rent_amount}
-                    onChange={(e) => setEditingContractData((prev: any) => ({ ...prev, rent_amount: Number(e.target.value) }))}
+                    onChange={(e) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, rent_amount: Number(e.target.value) } : prev)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>الحالة</Label>
-                  <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev: any) => ({ ...prev, status: val }))}>
+                  <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, status: val } : prev)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
