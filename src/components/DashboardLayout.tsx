@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import WaqfInfoBar from '@/components/WaqfInfoBar';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -184,6 +185,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         'pt-14 lg:pt-0',
         sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
       )}>
+        <WaqfInfoBar />
         {children}
       </main>
     </div>
