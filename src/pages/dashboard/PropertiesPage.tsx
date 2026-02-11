@@ -11,9 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
 import { useContracts } from '@/hooks/useContracts';
-import { useTenantPayments } from '@/hooks/useTenantPayments';
+import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { Property } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generatePropertiesPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -286,6 +286,7 @@ interface PropertyUnitsDialogProps {
 const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDialogProps) => {
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
+  const upsertPayment = useUpsertTenantPayment();
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const deleteUnit = useDeleteUnit();
@@ -563,7 +564,13 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         {(() => {
                           const tenant = getTenant(unit.id);
                           if (!tenant) return <span className="text-muted-foreground">-</span>;
-                          return <span>{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>;
+                          const annual = tenant.rent_amount * 12;
+                          return (
+                            <div>
+                              <span className="font-medium">{annual.toLocaleString('ar-SA')} ريال</span>
+                              <p className="text-[10px] text-muted-foreground">(شهري: {tenant.rent_amount.toLocaleString('ar-SA')})</p>
+                            </div>
+                          );
                         })()}
                       </TableCell>
                       <TableCell>
@@ -573,9 +580,29 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                           const paid = getPaymentInfo(tenant.contract_id);
                           const isComplete = paid >= 12;
                           return (
-                            <span className={isComplete ? 'text-green-600 font-medium' : 'text-destructive font-medium'}>
-                              {paid}/12
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                disabled={paid <= 0 || upsertPayment.isPending}
+                                onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })}
+                              >
+                                <MinusIcon className="w-3 h-3" />
+                              </Button>
+                              <span className={`min-w-[3rem] text-center font-medium ${isComplete ? 'text-green-600' : 'text-destructive'}`}>
+                                {paid}/12
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                disabled={paid >= 12 || upsertPayment.isPending}
+                                onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid + 1 })}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
                           );
                         })()}
                       </TableCell>
