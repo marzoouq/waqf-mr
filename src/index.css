@@ -296,11 +296,29 @@
   [data-sidebar],
   header:has(button),
   .no-print,
-  button,
-  [role="dialog"],
+  .print\\:hidden,
   [role="alertdialog"],
   .sonner-toaster,
-  .fixed {
+  .fixed:not([role="dialog"]) {
+    display: none !important;
+  }
+
+  /* Dialog: make it print-friendly (remove overlay, position static) */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Hide dialog overlay/backdrop */
+  [data-radix-dialog-overlay],
+  [data-state="open"].fixed:has([role="dialog"]) > :not([role="dialog"]) {
     display: none !important;
   }
 

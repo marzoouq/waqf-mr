@@ -16,7 +16,7 @@ import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPaym
 import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
-import { generatePropertiesPDF } from '@/utils/pdfGenerator';
+import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import {
@@ -285,6 +285,7 @@ interface PropertyUnitsDialogProps {
 }
 
 const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDialogProps) => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
   const upsertPayment = useUpsertTenantPayment();
@@ -375,7 +376,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   return (
     <>
       <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent className="max-w-6xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Building2 className="w-5 h-5" />
@@ -420,12 +421,35 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
             </div>
           )}
 
-          {/* Add unit button */}
-          <div className="flex justify-between items-center">
+          {/* Add unit button + export/print */}
+          <div className="flex justify-between items-center flex-wrap gap-2">
             <h3 className="font-semibold">الوحدات السكنية</h3>
-            <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
-              <Plus className="w-4 h-4" /> إضافة وحدة
-            </Button>
+            <div className="flex gap-2 flex-wrap print:hidden">
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
+                <Printer className="w-4 h-4" /> طباعة
+              </Button>
+              <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                const pdfRows: UnitPdfRow[] = units.map(u => {
+                  const tenant = getTenant(u.id);
+                  return {
+                    unit_number: u.unit_number,
+                    unit_type: u.unit_type,
+                    status: u.status,
+                    tenant_name: tenant?.name || null,
+                    start_date: tenant?.start_date || null,
+                    end_date: tenant?.end_date || null,
+                    rent_amount: tenant?.rent_amount || null,
+                    paid_months: tenant ? getPaymentInfo(tenant.contract_id) : 0,
+                  };
+                });
+                generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
+              }}>
+                <FileDown className="w-4 h-4" /> تصدير PDF
+              </Button>
+              <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
+                <Plus className="w-4 h-4" /> إضافة وحدة
+              </Button>
+            </div>
           </div>
 
           {/* Unit form */}
@@ -508,8 +532,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
               <p className="text-xs text-muted-foreground mt-1">اضغط "إضافة وحدة" لبدء تسجيل الوحدات السكنية</p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
+            <div className="rounded-md border overflow-x-auto">
+              <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead className="text-right">رقم الوحدة</TableHead>
