@@ -65,8 +65,8 @@ const UserManagementPage = () => {
       await callAdminApi({ action: 'toggle_registration', enabled });
       setRegistrationEnabled(enabled);
       toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
-    } catch (e: any) {
-      toast.error('خطأ: ' + e.message);
+    } catch (e: unknown) {
+      toast.error('خطأ: ' + (e instanceof Error ? e.message : 'حدث خطأ غير متوقع'));
     }
   };
 

@@ -55,7 +55,7 @@ export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (invoice: { invoice_type: string; [key: string]: any }) => {
+    mutationFn: async (invoice: { invoice_type: string; [key: string]: string | number | boolean | null | undefined }) => {
       const { data, error } = await supabase
         .from('invoices')
         .insert([invoice])
@@ -79,7 +79,7 @@ export const useUpdateInvoice = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...invoice }: { id: string; [key: string]: any }) => {
+    mutationFn: async ({ id, ...invoice }: { id: string; [key: string]: string | number | boolean | null | undefined }) => {
       const { data, error } = await supabase
         .from('invoices')
         .update(invoice)
