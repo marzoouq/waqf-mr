@@ -6,6 +6,7 @@ import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { BarChart3, Download, PieChart, TrendingUp, Building, Printer } from 'lucide-react';
+import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
@@ -75,21 +76,19 @@ const FinancialReportsPage = () => {
 
   const fiscalYear = currentAccount?.fiscal_year || '';
 
-  // Monthly income trend (mock data for demo)
-  const monthlyData = [
-    { month: 'محرم', income: totalIncome * 0.08 },
-    { month: 'صفر', income: totalIncome * 0.09 },
-    { month: 'ربيع أول', income: totalIncome * 0.085 },
-    { month: 'ربيع ثاني', income: totalIncome * 0.082 },
-    { month: 'جمادى أولى', income: totalIncome * 0.088 },
-    { month: 'جمادى ثانية', income: totalIncome * 0.09 },
-    { month: 'رجب', income: totalIncome * 0.075 },
-    { month: 'شعبان', income: totalIncome * 0.08 },
-    { month: 'رمضان', income: totalIncome * 0.085 },
-    { month: 'شوال', income: totalIncome * 0.088 },
-    { month: 'ذو القعدة', income: totalIncome * 0.078 },
-    { month: 'ذو الحجة', income: totalIncome * 0.08 },
-  ];
+  // Aggregate real monthly income data
+  const monthlyData = useMemo(() => {
+    const months: Record<string, number> = {};
+    income.forEach(item => {
+      const month = item.date?.substring(0, 7); // YYYY-MM
+      if (month) {
+        months[month] = (months[month] || 0) + Number(item.amount);
+      }
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, total]) => ({ month, income: total }));
+  }, [income]);
 
   const handleDownloadPDF = async () => {
     try {

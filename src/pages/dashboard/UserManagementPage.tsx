@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface ManagedUser {
   id: string;
@@ -44,6 +45,7 @@ const UserManagementPage = () => {
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
 
   // Fetch registration setting
   useEffect(() => {
@@ -351,11 +353,7 @@ const UserManagementPage = () => {
                             size="sm"
                             variant="outline"
                             className="gap-1 text-xs text-destructive hover:text-destructive"
-                            onClick={() => {
-                              if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-                                deleteUser.mutate(user.id);
-                              }
-                            }}
+                            onClick={() => setDeleteUserId(user.id)}
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
@@ -448,6 +446,32 @@ const UserManagementPage = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تأكيد حذف المستخدم</AlertDialogTitle>
+              <AlertDialogDescription>
+                هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (deleteUserId) {
+                    deleteUser.mutate(deleteUserId);
+                    setDeleteUserId(null);
+                  }
+                }}
+              >
+                حذف
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

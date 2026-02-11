@@ -181,11 +181,11 @@ const ReportsPage = () => {
                     <td className="py-3 px-4 font-bold text-primary">{netRevenue.toLocaleString()}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4">حصة الناظر (10%)</td>
+                    <td className="py-3 px-4">حصة الناظر ({netRevenue > 0 ? ((adminShare / netRevenue) * 100).toFixed(1) : '0'}%)</td>
                     <td className="py-3 px-4">{adminShare.toLocaleString()}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4">حصة الواقف (5%)</td>
+                    <td className="py-3 px-4">حصة الواقف ({netRevenue > 0 ? ((waqifShare / netRevenue) * 100).toFixed(1) : '0'}%)</td>
                     <td className="py-3 px-4">{waqifShare.toLocaleString()}</td>
                   </tr>
                   <tr className="border-b-2 border-primary bg-muted/50">

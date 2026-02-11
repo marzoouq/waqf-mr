@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, BarChart3 } from 'lucide-react';
+import { Wallet, FileText, BarChart3, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import DashboardLayout from '@/components/DashboardLayout';
 
 const BeneficiaryDashboard = () => {
@@ -31,9 +32,15 @@ const BeneficiaryDashboard = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Welcome */}
-        <div className="animate-slide-up">
-          <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
-          <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
+        <div className="flex items-center justify-between animate-slide-up">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
+            <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
+          </div>
+          <Button variant="outline" onClick={() => window.print()} className="gap-2 print:hidden">
+            <Printer className="w-4 h-4" />
+            طباعة
+          </Button>
         </div>
 
         {/* Stats */}
