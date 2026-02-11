@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
 import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Printer, FileDown, Search } from 'lucide-react';
+import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/maskData';
 import { generateBeneficiariesPDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -185,10 +186,10 @@ const BeneficiariesPage = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{beneficiary.share_percentage}%</span></div>
-                    {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Phone className="w-4 h-4" /><span dir="ltr">{beneficiary.phone}</span></div>)}
-                    {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Mail className="w-4 h-4" /><span dir="ltr">{beneficiary.email}</span></div>)}
-                    {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><CreditCard className="w-4 h-4" /><span dir="ltr">{beneficiary.bank_account}</span></div>)}
-                    {beneficiary.national_id && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><IdCard className="w-4 h-4" /><span dir="ltr">{beneficiary.national_id}</span></div>)}
+                    {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Phone className="w-4 h-4" /><span dir="ltr">{maskPhone(beneficiary.phone)}</span></div>)}
+                    {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Mail className="w-4 h-4" /><span dir="ltr">{maskEmail(beneficiary.email)}</span></div>)}
+                    {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><CreditCard className="w-4 h-4" /><span dir="ltr">{maskBankAccount(beneficiary.bank_account)}</span></div>)}
+                    {beneficiary.national_id && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><IdCard className="w-4 h-4" /><span dir="ltr">{maskNationalId(beneficiary.national_id)}</span></div>)}
                   </CardContent>
                 </Card>
               ))}

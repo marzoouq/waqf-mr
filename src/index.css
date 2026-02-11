@@ -278,3 +278,11 @@
   .ornament-divider::before { right: 0; }
   .ornament-divider::after { left: 0; }
 }
+
+/* Security: Prevent selection and copying of sensitive data */
+[data-sensitive] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
