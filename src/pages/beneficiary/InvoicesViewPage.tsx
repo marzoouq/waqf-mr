@@ -3,12 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useInvoices, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/useInvoices';
-import { FileText, Search, Eye } from 'lucide-react';
+import { FileText, Search, Eye, Download, Printer } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { generateInvoicesViewPDF } from '@/utils/pdfGenerator';
 
 const InvoicesViewPage = () => {
   const { data: invoices = [], isLoading } = useInvoices();
@@ -41,12 +42,46 @@ const InvoicesViewPage = () => {
     return 'secondary';
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      await generateInvoicesViewPDF(
+        filteredInvoices.map(inv => ({
+          invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+          invoice_number: inv.invoice_number,
+          amount: Number(inv.amount),
+          date: inv.date,
+          property_number: inv.property?.property_number || '-',
+          status: inv.status,
+        }))
+      );
+      toast.success('تم تحميل ملف PDF بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير PDF');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
-          <p className="text-muted-foreground mt-1">عرض جميع فواتير الوقف</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
+            <p className="text-muted-foreground mt-1">عرض جميع فواتير الوقف</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button onClick={handleDownloadPDF} className="gap-2">
+              <Download className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+          </div>
         </div>
 
         <div className="relative max-w-md">

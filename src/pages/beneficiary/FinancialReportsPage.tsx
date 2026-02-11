@@ -5,9 +5,10 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { BarChart3, Download, PieChart, TrendingUp, Building } from 'lucide-react';
+import { BarChart3, Download, PieChart, TrendingUp, Building, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateBeneficiaryStatementPDF } from '@/utils/pdfGenerator';
+import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
@@ -91,14 +92,31 @@ const FinancialReportsPage = () => {
   ];
 
   const handleDownloadPDF = async () => {
-    if (currentBeneficiary) {
-      await generateBeneficiaryStatementPDF(
-        currentBeneficiary.name,
-        currentBeneficiary.share_percentage,
-        myShare,
-        fiscalYear
-      );
+    try {
+      await generateAnnualReportPDF({
+        fiscalYear,
+        totalIncome,
+        totalExpenses,
+        netRevenue,
+        adminShare,
+        waqifShare,
+        waqfRevenue: beneficiariesShare,
+        expensesByType: Object.entries(expensesByType).map(([type, amount]) => ({ type, amount })),
+        incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
+        beneficiaries: beneficiaries.map(b => ({
+          name: b.name,
+          percentage: Number(b.share_percentage),
+          amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
+        })),
+      });
+      toast.success('تم تحميل ملف PDF بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير PDF');
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -110,10 +128,16 @@ const FinancialReportsPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
             <p className="text-muted-foreground mt-1">عرض وتحليل البيانات المالية للوقف</p>
           </div>
-          <Button onClick={handleDownloadPDF} className="gap-2" disabled={!currentBeneficiary}>
-            <Download className="w-4 h-4" />
-            تحميل التقرير
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button onClick={handleDownloadPDF} className="gap-2">
+              <Download className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}

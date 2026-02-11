@@ -5,9 +5,10 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { FileText, Download, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { FileText, Download, TrendingUp, TrendingDown, Wallet, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateBeneficiaryStatementPDF } from '@/utils/pdfGenerator';
+import { generateDisclosurePDF } from '@/utils/pdfGenerator';
+import { toast } from 'sonner';
 
 const DisclosurePage = () => {
   const { user } = useAuth();
@@ -34,17 +35,6 @@ const DisclosurePage = () => {
 
   const fiscalYear = currentAccount?.fiscal_year || '';
 
-  const handleDownloadPDF = async () => {
-    if (currentBeneficiary) {
-      await generateBeneficiaryStatementPDF(
-        currentBeneficiary.name,
-        currentBeneficiary.share_percentage,
-        myShare,
-        fiscalYear
-      );
-    }
-  };
-
   // Group income by source
   const incomeBySource = income.reduce((acc, item) => {
     const source = item.source || 'أخرى';
@@ -59,6 +49,32 @@ const DisclosurePage = () => {
     return acc;
   }, {} as Record<string, number>);
 
+  const handleDownloadPDF = async () => {
+    try {
+      await generateDisclosurePDF({
+        fiscalYear,
+        beneficiaryName: currentBeneficiary?.name || '',
+        sharePercentage: currentBeneficiary?.share_percentage || 0,
+        myShare,
+        totalIncome,
+        totalExpenses,
+        netRevenue,
+        adminShare,
+        waqifShare,
+        beneficiariesShare,
+        incomeBySource,
+        expensesByType,
+      });
+      toast.success('تم تحميل ملف PDF بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير PDF');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
@@ -68,10 +84,16 @@ const DisclosurePage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
             <p className="text-muted-foreground mt-1">السنة المالية: {fiscalYear}</p>
           </div>
-          <Button onClick={handleDownloadPDF} className="gap-2" disabled={!currentBeneficiary}>
-            <Download className="w-4 h-4" />
-            تحميل PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button onClick={handleDownloadPDF} className="gap-2">
+              <Download className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}

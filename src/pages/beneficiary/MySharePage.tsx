@@ -1,13 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, Percent, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, Printer } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { generateMySharePDF } from '@/utils/pdfGenerator';
+import { toast } from 'sonner';
 
 const MySharePage = () => {
   const { user } = useAuth();
@@ -55,6 +58,36 @@ const MySharePage = () => {
     .filter(d => d.status === 'pending')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
+  const handleDownloadPDF = async () => {
+    if (!currentBeneficiary) return;
+    try {
+      await generateMySharePDF({
+        beneficiaryName: currentBeneficiary.name,
+        sharePercentage: currentBeneficiary.share_percentage,
+        myShare,
+        totalReceived,
+        pendingAmount,
+        netRevenue,
+        adminShare,
+        waqifShare,
+        beneficiariesShare,
+        distributions: distributions.map(d => ({
+          date: d.date,
+          fiscalYear: d.account?.fiscal_year || '-',
+          amount: Number(d.amount),
+          status: d.status,
+        })),
+      });
+      toast.success('تم تحميل ملف PDF بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير PDF');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -70,9 +103,21 @@ const MySharePage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="animate-slide-up">
-          <h1 className="text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
-          <p className="text-muted-foreground mt-1">تفاصيل حصتك من ريع الوقف</p>
+        <div className="flex items-center justify-between">
+          <div className="animate-slide-up">
+            <h1 className="text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
+            <p className="text-muted-foreground mt-1">تفاصيل حصتك من ريع الوقف</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint} className="gap-2">
+              <Printer className="w-4 h-4" />
+              طباعة
+            </Button>
+            <Button onClick={handleDownloadPDF} className="gap-2" disabled={!currentBeneficiary}>
+              <Download className="w-4 h-4" />
+              تصدير PDF
+            </Button>
+          </div>
         </div>
 
         {/* Share Summary */}

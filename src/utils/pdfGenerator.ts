@@ -436,3 +436,196 @@ export const generateAccountsPDF = async (data: {
   addFooter(doc, fontFamily);
   doc.save('accounts-report.pdf');
 };
+
+export const generateMySharePDF = async (data: {
+  beneficiaryName: string;
+  sharePercentage: number;
+  myShare: number;
+  totalReceived: number;
+  pendingAmount: number;
+  netRevenue: number;
+  adminShare: number;
+  waqifShare: number;
+  beneficiariesShare: number;
+  distributions: Array<{ date: string; fiscalYear: string; amount: number; status: string }>;
+}) => {
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(20);
+  doc.text('تقرير حصتي من الريع', 105, 20, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`المستفيد: ${data.beneficiaryName}`, 105, 35, { align: 'center' });
+
+  autoTable(doc, {
+    startY: 45,
+    head: [['البيان', 'القيمة']],
+    body: [
+      ['نسبة الحصة', `${data.sharePercentage}%`],
+      ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
+      ['(-) حصة الناظر (10%)', `${data.adminShare.toLocaleString()} ر.س`],
+      ['(-) حصة الواقف (5%)', `${data.waqifShare.toLocaleString()} ر.س`],
+      ['صافي ريع المستفيدين', `${data.beneficiariesShare.toLocaleString()} ر.س`],
+      ['حصتي المستحقة', `${data.myShare.toLocaleString()} ر.س`],
+      ['المبالغ المستلمة', `${data.totalReceived.toLocaleString()} ر.س`],
+      ['المبالغ المعلقة', `${data.pendingAmount.toLocaleString()} ر.س`],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+  });
+
+  if (data.distributions.length > 0) {
+    const finalY = (doc as any).lastAutoTable?.finalY + 15 || 120;
+    doc.setFont(fontFamily, 'bold');
+    doc.setFontSize(14);
+    doc.text('سجل التوزيعات', 105, finalY, { align: 'center' });
+
+    autoTable(doc, {
+      startY: finalY + 10,
+      head: [['التاريخ', 'السنة المالية', 'المبلغ', 'الحالة']],
+      body: data.distributions.map(d => [
+        d.date,
+        d.fiscalYear,
+        `${d.amount.toLocaleString()} ر.س`,
+        d.status === 'paid' ? 'مستلم' : 'معلق',
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [202, 138, 4], font: fontFamily, fontStyle: 'bold' },
+      styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+    });
+  }
+
+  addFooter(doc, fontFamily);
+  doc.save(`my-share-${data.beneficiaryName}.pdf`);
+};
+
+export const generateDisclosurePDF = async (data: {
+  fiscalYear: string;
+  beneficiaryName: string;
+  sharePercentage: number;
+  myShare: number;
+  totalIncome: number;
+  totalExpenses: number;
+  netRevenue: number;
+  adminShare: number;
+  waqifShare: number;
+  beneficiariesShare: number;
+  incomeBySource: Record<string, number>;
+  expensesByType: Record<string, number>;
+}) => {
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(20);
+  doc.text('الإفصاح السنوي', 105, 20, { align: 'center' });
+
+  doc.setFontSize(12);
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`السنة المالية: ${data.fiscalYear}`, 105, 35, { align: 'center' });
+
+  // Income
+  autoTable(doc, {
+    startY: 45,
+    head: [['المصدر', 'المبلغ (ر.س)']],
+    body: [
+      ...Object.entries(data.incomeBySource).map(([source, amount]) => [source, `+${amount.toLocaleString()}`]),
+      [{ content: 'إجمالي الإيرادات', styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }],
+    ],
+    theme: 'striped',
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+  });
+
+  let y = (doc as any).lastAutoTable?.finalY + 10 || 100;
+
+  // Expenses
+  autoTable(doc, {
+    startY: y,
+    head: [['النوع', 'المبلغ (ر.س)']],
+    body: [
+      ...Object.entries(data.expensesByType).map(([type, amount]) => [type, `-${amount.toLocaleString()}`]),
+      [{ content: 'إجمالي المصروفات', styles: { fontStyle: 'bold' } }, { content: `-${data.totalExpenses.toLocaleString()}`, styles: { fontStyle: 'bold' } }],
+    ],
+    theme: 'striped',
+    headStyles: { fillColor: [220, 38, 38], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+  });
+
+  y = (doc as any).lastAutoTable?.finalY + 10 || 160;
+
+  // Distribution
+  autoTable(doc, {
+    startY: y,
+    head: [['البند', 'المبلغ (ر.س)']],
+    body: [
+      ['صافي الريع', data.netRevenue.toLocaleString()],
+      ['حصة الناظر (10%)', `-${data.adminShare.toLocaleString()}`],
+      ['حصة الواقف (5%)', `-${data.waqifShare.toLocaleString()}`],
+      ['صافي ريع المستفيدين', data.beneficiariesShare.toLocaleString()],
+      [{ content: `حصتي (${data.sharePercentage}%)`, styles: { fontStyle: 'bold' } }, { content: `${data.myShare.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' } }],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+  });
+
+  addFooter(doc, fontFamily);
+  doc.save(`disclosure-${data.fiscalYear}.pdf`);
+};
+
+export const generateInvoicesViewPDF = async (invoices: Array<{
+  invoice_type: string;
+  invoice_number: string | null;
+  amount: number;
+  date: string;
+  property_number: string;
+  status: string;
+}>) => {
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(20);
+  doc.text('تقرير الفواتير', 105, 20, { align: 'center' });
+
+  const statusLabel = (s: string) => {
+    switch (s) {
+      case 'paid': return 'مدفوعة';
+      case 'pending': return 'معلّقة';
+      case 'cancelled': return 'ملغاة';
+      default: return s;
+    }
+  };
+
+  const total = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+
+  autoTable(doc, {
+    startY: 35,
+    head: [['#', 'النوع', 'رقم الفاتورة', 'المبلغ', 'التاريخ', 'العقار', 'الحالة']],
+    body: invoices.map((item, i) => [
+      i + 1,
+      item.invoice_type,
+      item.invoice_number || '-',
+      `${Number(item.amount).toLocaleString()} ر.س`,
+      item.date,
+      item.property_number || '-',
+      statusLabel(item.status),
+    ]),
+    foot: [['', 'الإجمالي', '', `${total.toLocaleString()} ر.س`, '', '', '']],
+    theme: 'striped',
+    headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    footStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
+    styles: { halign: 'right', font: fontFamily, fontStyle: 'normal' },
+  });
+
+  addFooter(doc, fontFamily);
+  doc.save('invoices-report.pdf');
+};
