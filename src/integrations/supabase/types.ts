@@ -140,6 +140,7 @@ export type Database = {
           start_date: string
           status: string
           tenant_name: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -153,6 +154,7 @@ export type Database = {
           start_date: string
           status?: string
           tenant_name: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           start_date?: string
           status?: string
           tenant_name?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -174,6 +177,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -547,6 +557,53 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: true
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      units: {
+        Row: {
+          area: number | null
+          created_at: string
+          floor: string | null
+          id: string
+          notes: string | null
+          property_id: string
+          status: string
+          unit_number: string
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          area?: number | null
+          created_at?: string
+          floor?: string | null
+          id?: string
+          notes?: string | null
+          property_id: string
+          status?: string
+          unit_number: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: number | null
+          created_at?: string
+          floor?: string | null
+          id?: string
+          notes?: string | null
+          property_id?: string
+          status?: string
+          unit_number?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]

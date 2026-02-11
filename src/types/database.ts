@@ -11,10 +11,24 @@ export interface Property {
   updated_at: string;
 }
 
+export interface Unit {
+  id: string;
+  property_id: string;
+  unit_number: string;
+  unit_type: string;
+  floor?: string;
+  area?: number;
+  status: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Contract {
   id: string;
   contract_number: string;
   property_id: string;
+  unit_id?: string;
   tenant_name: string;
   start_date: string;
   end_date: string;
@@ -24,6 +38,7 @@ export interface Contract {
   created_at: string;
   updated_at: string;
   property?: Property;
+  unit?: Unit;
 }
 
 export interface Income {
