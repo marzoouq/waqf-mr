@@ -5,7 +5,7 @@ import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download } from 'lucide-react';
+import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { generateAccountsPDF } from '@/utils/pdfGenerator';
@@ -74,40 +74,50 @@ const AccountsViewPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
             <p className="text-muted-foreground mt-1">عرض تفصيلي للحسابات الختامية للوقف</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              try {
-                await generateAccountsPDF({
-                  contracts: contracts.map(c => ({
-                    contract_number: c.contract_number,
-                    tenant_name: c.tenant_name,
-                    rent_amount: Number(c.rent_amount),
-                    status: c.status,
-                  })),
-                  incomeBySource,
-                  expensesByType,
-                  totalIncome,
-                  totalExpenses,
-                  netRevenue,
-                  adminShare,
-                  waqifShare,
-                  waqfRevenue,
-                  beneficiaries: beneficiaries.map(b => ({
-                    name: b.name,
-                    share_percentage: Number(b.share_percentage),
-                  })),
-                });
-                toast.success('تم تصدير الحسابات الختامية بنجاح');
-              } catch {
-                toast.error('حدث خطأ أثناء تصدير PDF');
-              }
-            }}
-          >
-            <Download className="w-4 h-4 ml-2" />
-            تصدير PDF
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+            >
+              <Printer className="w-4 h-4 ml-2" />
+              طباعة
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await generateAccountsPDF({
+                    contracts: contracts.map(c => ({
+                      contract_number: c.contract_number,
+                      tenant_name: c.tenant_name,
+                      rent_amount: Number(c.rent_amount),
+                      status: c.status,
+                    })),
+                    incomeBySource,
+                    expensesByType,
+                    totalIncome,
+                    totalExpenses,
+                    netRevenue,
+                    adminShare,
+                    waqifShare,
+                    waqfRevenue,
+                    beneficiaries: beneficiaries.map(b => ({
+                      name: b.name,
+                      share_percentage: Number(b.share_percentage),
+                    })),
+                  });
+                  toast.success('تم تصدير الحسابات الختامية بنجاح');
+                } catch {
+                  toast.error('حدث خطأ أثناء تصدير PDF');
+                }
+              }}
+            >
+              <Download className="w-4 h-4 ml-2" />
+              تصدير PDF
+            </Button>
+          </div>
         </div>
 
         {/* Summary */}
