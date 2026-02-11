@@ -16,10 +16,12 @@ import {
   ChevronLeft,
   UserCog,
   Eye,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
+import NotificationBell from '@/components/NotificationBell';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -41,6 +43,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
     { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
     { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
+    { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
     { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
   ];
 
@@ -148,7 +151,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <Menu className="w-6 h-6" />
         </Button>
         <span className="font-display font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
-        <div className="w-10" />
+        <NotificationBell />
       </div>
 
       {/* Mobile Sidebar Overlay */}

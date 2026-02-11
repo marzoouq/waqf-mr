@@ -22,6 +22,7 @@ import BeneficiariesPage from "./pages/dashboard/BeneficiariesPage";
 import ReportsPage from "./pages/dashboard/ReportsPage";
 import AccountsPage from "./pages/dashboard/AccountsPage";
 import UserManagementPage from "./pages/dashboard/UserManagementPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
@@ -117,6 +118,16 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <UserManagementPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Settings */}
+            <Route
+              path="/dashboard/settings"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <SettingsPage />
                 </ProtectedRoute>
               }
             />
