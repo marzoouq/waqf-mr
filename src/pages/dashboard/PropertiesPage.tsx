@@ -163,7 +163,7 @@ const PropertiesPage = () => {
           <Input
             placeholder="بحث في العقارات..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="pr-10"
           />
         </div>
