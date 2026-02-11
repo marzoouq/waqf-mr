@@ -777,6 +777,81 @@ export const generateDisclosurePDF = async (data: {
   doc.save(`disclosure-${data.fiscalYear}.pdf`);
 };
 
+// ========== UNITS PDF GENERATOR ==========
+
+export interface UnitPdfRow {
+  unit_number: string;
+  unit_type: string;
+  status: string;
+  tenant_name: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  rent_amount: number | null;
+  paid_months: number;
+}
+
+export const generateUnitsPDF = async (
+  propertyNumber: string,
+  propertyLocation: string,
+  units: UnitPdfRow[],
+  waqfInfo?: PdfWaqfInfo
+) => {
+  const doc = new jsPDF('landscape');
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  const startY = await addHeader(doc, fontFamily, waqfInfo);
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(16);
+  doc.text(`تقرير الوحدات السكنية - عقار ${propertyNumber}`, doc.internal.pageSize.width / 2, startY + 5, { align: 'center' });
+
+  doc.setFontSize(10);
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`الموقع: ${propertyLocation}`, doc.internal.pageSize.width / 2, startY + 14, { align: 'center' });
+
+  const statusLabel = (s: string) => s;
+
+  let totalMonthly = 0;
+  let totalAnnual = 0;
+
+  const body = units.map((u, i) => {
+    const monthly = u.rent_amount || 0;
+    const annual = monthly * 12;
+    if (u.rent_amount) {
+      totalMonthly += monthly;
+      totalAnnual += annual;
+    }
+    return [
+      i + 1,
+      u.unit_number,
+      u.unit_type,
+      statusLabel(u.status),
+      u.tenant_name || '-',
+      u.start_date || '-',
+      u.end_date || '-',
+      u.rent_amount ? `${monthly.toLocaleString()}` : '-',
+      u.rent_amount ? `${annual.toLocaleString()}` : '-',
+      u.tenant_name ? `${u.paid_months}/12` : '-',
+    ];
+  });
+
+  autoTable(doc, {
+    startY: startY + 20,
+    head: [['#', 'رقم الوحدة', 'النوع', 'الحالة', 'المستأجر', 'بداية العقد', 'نهاية العقد', 'الإيجار الشهري', 'الإيجار السنوي', 'الدفعات']],
+    body,
+    foot: [['', '', '', '', '', '', 'الإجمالي', `${totalMonthly.toLocaleString()}`, `${totalAnnual.toLocaleString()}`, '']],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...footStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save(`units-report-${propertyNumber}.pdf`);
+};
+
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
   invoice_number: string | null;
