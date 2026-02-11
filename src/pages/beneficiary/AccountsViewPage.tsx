@@ -5,8 +5,11 @@ import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator } from 'lucide-react';
+import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { generateAccountsPDF } from '@/utils/pdfGenerator';
+import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const AccountsViewPage = () => {
@@ -66,9 +69,45 @@ const AccountsViewPage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="animate-slide-up">
-          <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
-          <p className="text-muted-foreground mt-1">عرض تفصيلي للحسابات الختامية للوقف</p>
+        <div className="animate-slide-up flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
+            <p className="text-muted-foreground mt-1">عرض تفصيلي للحسابات الختامية للوقف</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await generateAccountsPDF({
+                  contracts: contracts.map(c => ({
+                    contract_number: c.contract_number,
+                    tenant_name: c.tenant_name,
+                    rent_amount: Number(c.rent_amount),
+                    status: c.status,
+                  })),
+                  incomeBySource,
+                  expensesByType,
+                  totalIncome,
+                  totalExpenses,
+                  netRevenue,
+                  adminShare,
+                  waqifShare,
+                  waqfRevenue,
+                  beneficiaries: beneficiaries.map(b => ({
+                    name: b.name,
+                    share_percentage: Number(b.share_percentage),
+                  })),
+                });
+                toast.success('تم تصدير الحسابات الختامية بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير PDF');
+              }
+            }}
+          >
+            <Download className="w-4 h-4 ml-2" />
+            تصدير PDF
+          </Button>
         </div>
 
         {/* Summary */}
