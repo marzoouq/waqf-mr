@@ -10,6 +10,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 
+const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
+
 const DisclosurePage = () => {
   const { user } = useAuth();
   const { data: beneficiaries = [] } = useBeneficiaries();
@@ -17,14 +19,15 @@ const DisclosurePage = () => {
   const { data: expenses = [] } = useExpenses();
   const { data: accounts = [] } = useAccounts();
 
-  // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
   // Use stored account values from admin
   const currentAccount = accounts[0];
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
-  const netRevenue = totalIncome - totalExpenses;
+  const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
+  const vatAmount = Number(currentAccount?.vat_amount || 0);
+  const netAfterVat = Number(currentAccount?.net_after_vat || 0);
   const adminShare = Number(currentAccount?.admin_share || 0);
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
@@ -42,12 +45,14 @@ const DisclosurePage = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  // Group expenses by type
-  const expensesByType = expenses.reduce((acc, item) => {
-    const type = item.expense_type || 'أخرى';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
+  // Group expenses by type - exclude VAT entries
+  const expensesByType = expenses
+    .filter(item => item.description !== VAT_DESCRIPTION)
+    .reduce((acc, item) => {
+      const type = item.expense_type || 'أخرى';
+      acc[type] = (acc[type] || 0) + Number(item.amount);
+      return acc;
+    }, {} as Record<string, number>);
 
   const handleDownloadPDF = async () => {
     try {
@@ -58,7 +63,7 @@ const DisclosurePage = () => {
         myShare,
         totalIncome,
         totalExpenses,
-        netRevenue,
+        netRevenue: netAfterVat,
         adminShare,
         waqifShare,
         beneficiariesShare,
@@ -168,7 +173,7 @@ const DisclosurePage = () => {
                 </div>
               </div>
 
-              {/* Expenses Breakdown */}
+              {/* Expenses Breakdown - without VAT */}
               <div>
                 <h3 className="font-bold text-lg mb-3 text-destructive">المصروفات</h3>
                 <div className="space-y-2">
@@ -185,22 +190,30 @@ const DisclosurePage = () => {
                 </div>
               </div>
 
-              {/* Net Calculation */}
+              {/* Full Financial Sequence */}
               <div className="border-t-2 pt-4 space-y-3">
                 <div className="flex justify-between items-center py-2">
-                  <span className="font-bold">صافي الريع</span>
-                  <span className="font-bold text-primary text-lg">{netRevenue.toLocaleString()} ر.س</span>
+                  <span className="font-bold">الصافي بعد المصاريف</span>
+                  <span className="font-bold text-lg">{netAfterExpenses.toLocaleString()} ر.س</span>
+                </div>
+                <div className="flex justify-between items-center py-2 text-destructive">
+                  <span>(-) ضريبة القيمة المضافة</span>
+                  <span>-{vatAmount.toLocaleString()} ر.س</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="font-bold">الصافي بعد خصم الضريبة</span>
+                  <span className="font-bold text-primary text-lg">{netAfterVat.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>حصة الناظر ({netRevenue > 0 ? ((adminShare / netRevenue) * 100).toFixed(1) : '0'}%)</span>
+                  <span>(-) حصة الناظر (10%)</span>
                   <span>-{adminShare.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>حصة الواقف ({netRevenue > 0 ? ((waqifShare / netRevenue) * 100).toFixed(1) : '0'}%)</span>
+                  <span>(-) حصة الواقف (5%)</span>
                   <span>-{waqifShare.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 font-bold">
-                  <span>صافي ريع المستفيدين</span>
+                  <span>الإجمالي القابل للتوزيع</span>
                   <span>{beneficiariesShare.toLocaleString()} ر.س</span>
                 </div>
               </div>

@@ -11,18 +11,17 @@ const BeneficiaryDashboard = () => {
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: accounts = [] } = useAccounts();
 
-  // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-
-  // Use the latest account data entered by the admin (first record)
   const latestAccount = accounts[0];
 
   const totalIncome = Number(latestAccount?.total_income || 0);
   const totalExpenses = Number(latestAccount?.total_expenses || 0);
+  const netAfterExpenses = Number(latestAccount?.net_after_expenses || 0);
+  const vatAmount = Number(latestAccount?.vat_amount || 0);
+  const netAfterVat = Number(latestAccount?.net_after_vat || 0);
   const adminShare = Number(latestAccount?.admin_share || 0);
   const waqifShare = Number(latestAccount?.waqif_share || 0);
   const beneficiariesShare = Number(latestAccount?.waqf_revenue || 0);
-  const netRevenue = totalIncome - totalExpenses;
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
@@ -104,11 +103,27 @@ const BeneficiaryDashboard = () => {
                 <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span>صافي الريع</span>
-                <span className="font-bold text-primary">{netRevenue.toLocaleString()} ر.س</span>
+                <span>الصافي بعد المصاريف</span>
+                <span className="font-bold">{netAfterExpenses.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span>ريع المستفيدين (بعد خصم حصة الناظر والواقف)</span>
+                <span>(-) ضريبة القيمة المضافة</span>
+                <span className="font-bold text-destructive">-{vatAmount.toLocaleString()} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span>الصافي بعد خصم الضريبة</span>
+                <span className="font-bold text-primary">{netAfterVat.toLocaleString()} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
+                <span>(-) حصة الناظر (10%)</span>
+                <span>{adminShare.toLocaleString()} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
+                <span>(-) حصة الواقف (5%)</span>
+                <span>{waqifShare.toLocaleString()} ر.س</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span>الإجمالي القابل للتوزيع</span>
                 <span className="font-bold">{beneficiariesShare.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4 mt-4">

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
+const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
 const FinancialReportsPage = () => {
   const { user } = useAuth();
@@ -21,14 +22,12 @@ const FinancialReportsPage = () => {
   const { data: expenses = [] } = useExpenses();
   const { data: accounts = [] } = useAccounts();
 
-  // Find current user's beneficiary record
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Use stored account values from admin
   const currentAccount = accounts[0];
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
-  const netRevenue = totalIncome - totalExpenses;
+  const netAfterVat = Number(currentAccount?.net_after_vat || 0);
   const adminShare = Number(currentAccount?.admin_share || 0);
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
@@ -37,25 +36,25 @@ const FinancialReportsPage = () => {
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
 
-  // Prepare data for charts
   const incomeVsExpenses = [
     { name: 'الإيرادات', value: totalIncome, fill: '#22c55e' },
     { name: 'المصروفات', value: totalExpenses, fill: '#ef4444' },
   ];
 
-  // Group expenses by type for pie chart
-  const expensesByType = expenses.reduce((acc, item) => {
-    const type = item.expense_type || 'أخرى';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
+  // Group expenses by type - exclude VAT
+  const expensesByType = expenses
+    .filter(item => item.description !== VAT_DESCRIPTION)
+    .reduce((acc, item) => {
+      const type = item.expense_type || 'أخرى';
+      acc[type] = (acc[type] || 0) + Number(item.amount);
+      return acc;
+    }, {} as Record<string, number>);
 
   const expensesPieData = Object.entries(expensesByType).map(([name, value]) => ({
     name,
     value,
   }));
 
-  // Group income by source for pie chart
   const incomeBySource = income.reduce((acc, item) => {
     const source = item.source || 'أخرى';
     acc[source] = (acc[source] || 0) + Number(item.amount);
@@ -67,7 +66,7 @@ const FinancialReportsPage = () => {
     value,
   }));
 
-  // Revenue distribution
+  // Revenue distribution based on netAfterVat
   const distributionData = [
     { name: 'المستفيدين', value: beneficiariesShare, fill: '#3b82f6' },
     { name: 'الناظر', value: adminShare, fill: '#f59e0b' },
@@ -76,11 +75,10 @@ const FinancialReportsPage = () => {
 
   const fiscalYear = currentAccount?.fiscal_year || '';
 
-  // Aggregate real monthly income data
   const monthlyData = useMemo(() => {
     const months: Record<string, number> = {};
     income.forEach(item => {
-      const month = item.date?.substring(0, 7); // YYYY-MM
+      const month = item.date?.substring(0, 7);
       if (month) {
         months[month] = (months[month] || 0) + Number(item.amount);
       }
@@ -96,7 +94,7 @@ const FinancialReportsPage = () => {
         fiscalYear,
         totalIncome,
         totalExpenses,
-        netRevenue,
+        netRevenue: netAfterVat,
         adminShare,
         waqifShare,
         waqfRevenue: beneficiariesShare,
@@ -176,8 +174,8 @@ const FinancialReportsPage = () => {
                   <Building className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">صافي الريع</p>
-                  <p className="text-xl font-bold text-primary">{netRevenue.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">الصافي بعد الضريبة</p>
+                  <p className="text-xl font-bold text-primary">{netAfterVat.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -200,7 +198,6 @@ const FinancialReportsPage = () => {
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Income vs Expenses */}
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>مقارنة الإيرادات والمصروفات</CardTitle>
@@ -222,7 +219,6 @@ const FinancialReportsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Revenue Distribution */}
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>توزيع الريع</CardTitle>
@@ -252,7 +248,6 @@ const FinancialReportsPage = () => {
 
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Income by Source */}
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>الإيرادات حسب المصدر</CardTitle>
@@ -279,7 +274,6 @@ const FinancialReportsPage = () => {
             </CardContent>
           </Card>
 
-          {/* Expenses by Type */}
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>المصروفات حسب النوع</CardTitle>
