@@ -89,6 +89,14 @@ const AccountsPage = () => {
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  
+  // Separate VAT from regular expenses
+  const vatExpenses = expenses.filter(e => e.description?.includes('ضريبة القيمة المضافة'));
+  const vatAmount = vatExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const regularExpenses = totalExpenses - vatAmount;
+  
+  const netAfterExpenses = totalIncome - regularExpenses;
+  const netAfterVat = netAfterExpenses - vatAmount;
   const netRevenue = totalIncome - totalExpenses;
   const adminShare = netRevenue * (adminPercent / 100);
   const waqifShare = netRevenue * (waqifPercent / 100);
@@ -168,6 +176,11 @@ const AccountsPage = () => {
       admin_share: adminShare,
       waqif_share: waqifShare,
       waqf_revenue: waqfRevenue,
+      vat_amount: vatAmount,
+      distributions_amount: 995000,
+      waqf_capital: waqfRevenue - 995000,
+      net_after_expenses: netAfterExpenses,
+      net_after_vat: netAfterVat,
     });
   };
 
@@ -287,6 +300,9 @@ const AccountsPage = () => {
               waqifShare,
               waqfRevenue,
               beneficiaries,
+              vatAmount,
+              distributionsAmount: 995000,
+              waqfCapital: waqfRevenue - 995000,
             })} className="gap-2">
               <FileDown className="w-4 h-4" />
               تصدير PDF
@@ -349,18 +365,26 @@ const AccountsPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
                 <p className="text-xl font-bold">{totalIncome.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">إجمالي المصروفات</p>
-                <p className="text-xl font-bold">{totalExpenses.toLocaleString()}</p>
+                <p className="text-sm text-primary-foreground/90">المصروفات (بدون الضريبة)</p>
+                <p className="text-xl font-bold">{regularExpenses.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">صافي الريع</p>
-                <p className="text-xl font-bold">{netRevenue.toLocaleString()}</p>
+                <p className="text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
+                <p className="text-xl font-bold">{netAfterExpenses.toLocaleString()}</p>
+              </div>
+              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
+                <p className="text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
+                <p className="text-xl font-bold">{vatAmount.toLocaleString()}</p>
+              </div>
+              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
+                <p className="text-sm text-primary-foreground/90">الصافي بعد خصم الضريبة</p>
+                <p className="text-xl font-bold">{netAfterVat.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">حصة الناظر ({adminPercent}%)</p>
@@ -670,30 +694,55 @@ const AccountsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">صافي الريع</TableCell>
-                  <TableCell>100%</TableCell>
-                  <TableCell className="font-bold">{netRevenue.toLocaleString()}</TableCell>
+                <TableRow className="bg-green-50">
+                  <TableCell className="font-medium">إجمالي الدخل</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="font-bold text-green-700">{totalIncome.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">حصة الناظر</TableCell>
+                  <TableCell className="font-medium">(-) إجمالي المصروفات (بدون الضريبة)</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="text-destructive">{regularExpenses.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/30 font-semibold">
+                  <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="font-bold">{netAfterExpenses.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="text-destructive">{vatAmount.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/30 font-semibold">
+                  <TableCell className="font-bold">الصافي بعد خصم الضريبة</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className="font-bold">{netAfterVat.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">(-) حصة الناظر</TableCell>
                   <TableCell>{adminPercent}%</TableCell>
                   <TableCell>{adminShare.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">حصة الواقف</TableCell>
+                  <TableCell className="font-medium">(-) حصة الواقف</TableCell>
                   <TableCell>{waqifPercent}%</TableCell>
                   <TableCell>{waqifShare.toLocaleString()}</TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">ريع الوقف (للتوزيع)</TableCell>
+                <TableRow className="bg-primary/10 font-bold">
+                  <TableCell className="font-bold">ريع الوقف (للتوزيع)</TableCell>
                   <TableCell>{100 - adminPercent - waqifPercent}%</TableCell>
                   <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell className="font-medium">التوزيعات الفعلية</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>{(995000).toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell className="font-medium">رقبة الوقف</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell>{waqfCorpus.toLocaleString()}</TableCell>
+                  <TableCell>{(waqfRevenue - 995000).toLocaleString()}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
