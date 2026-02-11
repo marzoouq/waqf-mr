@@ -1,10 +1,76 @@
+import { useState } from 'react';
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Building2, ScrollText, User, Landmark, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Building2, ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+const FIELDS = [
+  { key: 'waqf_name', label: 'اسم الوقف', icon: Building2 },
+  { key: 'waqf_founder', label: 'الواقف', icon: User },
+  { key: 'waqf_admin', label: 'الناظر', icon: User },
+  { key: 'waqf_deed_number', label: 'رقم صك الوقف', icon: ScrollText },
+  { key: 'waqf_deed_date', label: 'تاريخ صك الوقف', icon: ScrollText },
+  { key: 'waqf_nazara_number', label: 'رقم صك النظارة', icon: ScrollText },
+  { key: 'waqf_nazara_date', label: 'تاريخ صك النظارة', icon: ScrollText },
+  { key: 'waqf_court', label: 'المحكمة', icon: Landmark },
+] as const;
 
 const WaqfInfoBar = () => {
   const { data: waqfInfo, isLoading } = useWaqfInfo();
+  const { role } = useAuth();
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const openEdit = () => {
+    if (!waqfInfo) return;
+    setFormData({
+      waqf_name: waqfInfo.waqf_name,
+      waqf_founder: waqfInfo.waqf_founder,
+      waqf_admin: waqfInfo.waqf_admin,
+      waqf_deed_number: waqfInfo.waqf_deed_number,
+      waqf_deed_date: waqfInfo.waqf_deed_date,
+      waqf_nazara_number: waqfInfo.waqf_nazara_number,
+      waqf_nazara_date: waqfInfo.waqf_nazara_date,
+      waqf_court: waqfInfo.waqf_court,
+    });
+    setEditOpen(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      for (const field of FIELDS) {
+        const value = (formData[field.key] || '').trim();
+        if (value.length > 500) {
+          toast.error(`الحقل "${field.label}" طويل جداً`);
+          setSaving(false);
+          return;
+        }
+        const { error } = await supabase
+          .from('app_settings')
+          .update({ value, updated_at: new Date().toISOString() })
+          .eq('key', field.key);
+        if (error) throw error;
+      }
+      await queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
+      toast.success('تم حفظ بيانات الوقف بنجاح');
+      setEditOpen(false);
+    } catch {
+      toast.error('حدث خطأ أثناء الحفظ');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -16,56 +82,91 @@ const WaqfInfoBar = () => {
 
   if (!waqfInfo?.waqf_name) return null;
 
-  const details = [
-    { icon: User, label: 'الواقف', value: waqfInfo.waqf_founder },
-    { icon: User, label: 'الناظر', value: waqfInfo.waqf_admin },
-    { icon: ScrollText, label: 'رقم صك الوقف', value: waqfInfo.waqf_deed_number },
-    { icon: ScrollText, label: 'تاريخ صك الوقف', value: waqfInfo.waqf_deed_date },
-    { icon: ScrollText, label: 'رقم صك النظارة', value: waqfInfo.waqf_nazara_number },
-    { icon: ScrollText, label: 'تاريخ صك النظارة', value: waqfInfo.waqf_nazara_date },
-    { icon: Landmark, label: 'المحكمة', value: waqfInfo.waqf_court },
-  ];
+  const displayFields = FIELDS.filter((f) => f.key !== 'waqf_name');
 
   return (
-    <div className="w-full gradient-gold px-4 py-2 shadow-sm">
-      <div className="flex items-center justify-center">
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group">
-              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-primary-foreground" />
+    <>
+      <div className="w-full gradient-gold px-4 py-2 shadow-sm">
+        <div className="flex items-center justify-center">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-display font-bold text-sm md:text-base text-primary-foreground">
+                  {waqfInfo.waqf_name}
+                </span>
+                <Info className="w-4 h-4 text-primary-foreground/60 group-hover:text-primary-foreground transition-colors" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 md:w-96 p-0" align="center" sideOffset={8}>
+              <div className="gradient-hero rounded-t-md p-3 flex items-center justify-center gap-2">
+                <h3 className="font-display font-bold text-sidebar-foreground text-lg">
+                  {waqfInfo.waqf_name}
+                </h3>
+                {role === 'admin' && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    onClick={openEdit}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                )}
               </div>
-              <span className="font-display font-bold text-sm md:text-base text-primary-foreground">
-                {waqfInfo.waqf_name}
-              </span>
-              <Info className="w-4 h-4 text-primary-foreground/60 group-hover:text-primary-foreground transition-colors" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 md:w-96 p-0" align="center" sideOffset={8}>
-            <div className="gradient-hero rounded-t-md p-3 text-center">
-              <h3 className="font-display font-bold text-sidebar-foreground text-lg">
-                {waqfInfo.waqf_name}
-              </h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {details.map((item, index) => (
-                item.value && (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <item.icon className="w-3.5 h-3.5 text-primary" />
+              <div className="p-4 space-y-3">
+                {displayFields.map((field) => {
+                  const value = waqfInfo[field.key as keyof typeof waqfInfo];
+                  if (!value) return null;
+                  return (
+                    <div key={field.key} className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <field.icon className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground">{field.label}</p>
+                        <p className="text-sm font-medium text-foreground">{value}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground">{item.label}</p>
-                      <p className="text-sm font-medium text-foreground">{item.value}</p>
-                    </div>
-                  </div>
-                )
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
-    </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">تعديل بيانات الوقف</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            {FIELDS.map((field) => (
+              <div key={field.key} className="space-y-1.5">
+                <Label htmlFor={field.key}>{field.label}</Label>
+                <Input
+                  id={field.key}
+                  value={formData[field.key] || ''}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  maxLength={500}
+                />
+              </div>
+            ))}
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleSave} disabled={saving} className="flex-1">
+                {saving ? 'جارٍ الحفظ...' : 'حفظ'}
+              </Button>
+              <Button variant="outline" onClick={() => setEditOpen(false)} className="flex-1">
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
