@@ -23,6 +23,7 @@ import ReportsPage from "./pages/dashboard/ReportsPage";
 import AccountsPage from "./pages/dashboard/AccountsPage";
 import UserManagementPage from "./pages/dashboard/UserManagementPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
+import MessagesPage from "./pages/dashboard/MessagesPage";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
@@ -30,6 +31,10 @@ import DisclosurePage from "./pages/beneficiary/DisclosurePage";
 import MySharePage from "./pages/beneficiary/MySharePage";
 import FinancialReportsPage from "./pages/beneficiary/FinancialReportsPage";
 import AccountsViewPage from "./pages/beneficiary/AccountsViewPage";
+import BeneficiaryMessagesPage from "./pages/beneficiary/BeneficiaryMessagesPage";
+
+// AI Assistant
+import AiAssistant from "./components/AiAssistant";
 
 const queryClient = new QueryClient();
 
@@ -132,6 +137,16 @@ const App = () => (
               }
             />
 
+            {/* Messages */}
+            <Route
+              path="/dashboard/messages"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <MessagesPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Beneficiary Routes (admin can also access) */}
             <Route
               path="/beneficiary"
@@ -173,10 +188,19 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/beneficiary/messages"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <BeneficiaryMessagesPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AiAssistant />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
