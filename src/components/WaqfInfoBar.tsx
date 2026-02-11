@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';
+import { Building2, ScrollText, User, Landmark, Info, Pencil, Upload, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,6 +30,9 @@ const WaqfInfoBar = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const openEdit = () => {
     if (!waqfInfo) return;
@@ -43,12 +46,48 @@ const WaqfInfoBar = () => {
       waqf_nazara_date: waqfInfo.waqf_nazara_date,
       waqf_court: waqfInfo.waqf_court,
     });
+    setLogoFile(null);
+    setLogoPreview(waqfInfo.waqf_logo_url || null);
     setEditOpen(true);
+  };
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('يرجى اختيار ملف صورة');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
+      return;
+    }
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Upload logo if changed
+      let logoUrl = waqfInfo?.waqf_logo_url || '';
+      if (logoFile) {
+        const ext = logoFile.name.split('.').pop();
+        const path = `logo.${ext}`;
+        const { error: uploadErr } = await supabase.storage
+          .from('waqf-assets')
+          .upload(path, logoFile, { upsert: true });
+        if (uploadErr) throw uploadErr;
+        const { data: urlData } = supabase.storage.from('waqf-assets').getPublicUrl(path);
+        logoUrl = urlData.publicUrl;
+      }
+
+      // Save logo URL
+      await supabase
+        .from('app_settings')
+        .update({ value: logoUrl, updated_at: new Date().toISOString() })
+        .eq('key', 'waqf_logo_url');
+
       for (const field of FIELDS) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) {
@@ -144,6 +183,46 @@ const WaqfInfoBar = () => {
             <DialogTitle className="font-display text-lg">تعديل بيانات الوقف</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <Label>شعار الوقف</Label>
+              <div className="flex items-center gap-3">
+                {logoPreview ? (
+                  <div className="relative">
+                    <img src={logoPreview} alt="شعار الوقف" className="w-16 h-16 rounded-lg object-contain border" />
+                    <button
+                      type="button"
+                      onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                      className="absolute -top-2 -left-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-muted-foreground/50" />
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-4 h-4 ml-2" />
+                  {logoPreview ? 'تغيير' : 'رفع شعار'}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoSelect}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">يظهر في رأس صفحة الطباعة (حد أقصى 2 ميجابايت)</p>
+            </div>
+
             {FIELDS.map((field) => (
               <div key={field.key} className="space-y-1.5">
                 <Label htmlFor={field.key}>{field.label}</Label>
