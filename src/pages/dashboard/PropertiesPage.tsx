@@ -9,11 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
-import { useContracts } from '@/hooks/useContracts';
+import { useContracts, useCreateContract, useUpdateContract } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
-import { Property } from '@/types/database';
+import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdfGenerator';
@@ -277,10 +278,17 @@ const PropertiesPage = () => {
   );
 };
 
+// ─── Payment types ───────────────────────────────────────────────────
+const PAYMENT_TYPES = [
+  { value: 'annual', label: 'سنوي' },
+  { value: 'monthly', label: 'شهري' },
+  { value: 'multi', label: 'دفعات متعددة' },
+];
+
 // ─── Property Units Dialog Component ─────────────────────────────────
 interface PropertyUnitsDialogProps {
   property: Property;
-  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string; start_date: string; end_date: string; rent_amount: number }>;
+  contracts: Contract[];
   onClose: () => void;
 }
 
@@ -292,11 +300,33 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const deleteUnit = useDeleteUnit();
+  const createContract = useCreateContract();
+  const updateContractMutation = useUpdateContract();
 
+  const [rentalMode, setRentalMode] = useState<'units' | 'whole'>('units');
   const [isUnitFormOpen, setIsUnitFormOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
   const [deleteUnitTarget, setDeleteUnitTarget] = useState<UnitRow | null>(null);
-  const [unitForm, setUnitForm] = useState<UnitInsert>({
+
+  // Whole property rental form
+  const [wholeRentalForm, setWholeRentalForm] = useState({
+    tenant_name: '',
+    rent_amount: '',
+    payment_type: 'annual',
+    payment_count: '1',
+    start_date: '',
+    end_date: '',
+  });
+  const [isWholeFormOpen, setIsWholeFormOpen] = useState(false);
+
+  const [unitForm, setUnitForm] = useState<UnitInsert & {
+    tenant_name?: string;
+    rent_amount?: string;
+    payment_type?: string;
+    payment_count?: string;
+    contract_start_date?: string;
+    contract_end_date?: string;
+  }>({
     property_id: property.id,
     unit_number: '',
     unit_type: 'شقة',
@@ -304,10 +334,19 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     area: undefined,
     status: 'شاغرة',
     notes: '',
+    tenant_name: '',
+    rent_amount: '',
+    payment_type: 'annual',
+    payment_count: '1',
+    contract_start_date: '',
+    contract_end_date: '',
   });
 
   const resetUnitForm = () => {
-    setUnitForm({ property_id: property.id, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '' });
+    setUnitForm({
+      property_id: property.id, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '',
+      tenant_name: '', rent_amount: '', payment_type: 'annual', payment_count: '1', contract_start_date: '', contract_end_date: '',
+    });
     setEditingUnit(null);
     setIsUnitFormOpen(false);
   };
@@ -318,6 +357,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
       toast.error('يرجى إدخال رقم الوحدة');
       return;
     }
+
+    let savedUnitId: string | undefined;
+
     if (editingUnit) {
       await updateUnit.mutateAsync({
         id: editingUnit.id,
@@ -328,13 +370,65 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
         status: unitForm.status,
         notes: unitForm.notes || null,
       });
+      savedUnitId = editingUnit.id;
     } else {
-      await createUnit.mutateAsync(unitForm);
+      const result = await createUnit.mutateAsync({
+        property_id: unitForm.property_id,
+        unit_number: unitForm.unit_number,
+        unit_type: unitForm.unit_type,
+        floor: unitForm.floor || '',
+        area: unitForm.area,
+        status: unitForm.status,
+        notes: unitForm.notes || '',
+      });
+      savedUnitId = result?.id;
     }
+
+    // Auto-create/update contract if status is rented
+    if (unitForm.status === 'مؤجرة' && unitForm.tenant_name && unitForm.rent_amount && savedUnitId) {
+      const rentAmount = parseFloat(unitForm.rent_amount);
+      const paymentCount = unitForm.payment_type === 'monthly' ? 12 : unitForm.payment_type === 'multi' ? parseInt(unitForm.payment_count || '1') : 1;
+      const paymentAmount = rentAmount / paymentCount;
+
+      const existingContract = contracts.find(c => c.unit_id === savedUnitId && c.status === 'active');
+
+      if (existingContract) {
+        await updateContractMutation.mutateAsync({
+          id: existingContract.id,
+          tenant_name: unitForm.tenant_name,
+          rent_amount: rentAmount,
+          payment_type: unitForm.payment_type || 'annual',
+          payment_count: paymentCount,
+          payment_amount: paymentAmount,
+          start_date: unitForm.contract_start_date || existingContract.start_date,
+          end_date: unitForm.contract_end_date || existingContract.end_date,
+        });
+      } else {
+        if (!unitForm.contract_start_date || !unitForm.contract_end_date) {
+          toast.error('يرجى تحديد تاريخ بداية ونهاية العقد');
+          return;
+        }
+        await createContract.mutateAsync({
+          contract_number: `C-${property.property_number}-${unitForm.unit_number}-${Date.now().toString(36)}`,
+          property_id: property.id,
+          unit_id: savedUnitId,
+          tenant_name: unitForm.tenant_name,
+          rent_amount: rentAmount,
+          start_date: unitForm.contract_start_date,
+          end_date: unitForm.contract_end_date,
+          status: 'active',
+          payment_type: unitForm.payment_type || 'annual',
+          payment_count: paymentCount,
+          payment_amount: paymentAmount,
+        });
+      }
+    }
+
     resetUnitForm();
   };
 
   const handleEditUnit = (unit: UnitRow) => {
+    const existingContract = contracts.find(c => c.unit_id === unit.id && c.status === 'active');
     setEditingUnit(unit);
     setUnitForm({
       property_id: property.id,
@@ -344,6 +438,12 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
       area: unit.area ?? undefined,
       status: unit.status,
       notes: unit.notes || '',
+      tenant_name: existingContract?.tenant_name || '',
+      rent_amount: existingContract?.rent_amount?.toString() || '',
+      payment_type: existingContract?.payment_type || 'annual',
+      payment_count: existingContract?.payment_count?.toString() || '1',
+      contract_start_date: existingContract?.start_date || '',
+      contract_end_date: existingContract?.end_date || '',
     });
     setIsUnitFormOpen(true);
   };
@@ -354,7 +454,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     setDeleteUnitTarget(null);
   };
 
-  // Get tenant for a unit - prioritize active contracts, fallback to expired
+  // Get tenant for a unit
   const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null; rent_amount: number; contract_id: string } | null => {
     const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
     if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date, rent_amount: activeContract.rent_amount, contract_id: activeContract.id };
@@ -368,10 +468,55 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     return payment ? payment.paid_months : 0;
   };
 
+  // Whole property contract (no unit_id)
+  const wholePropertyContract = contracts.find(c => c.property_id === property.id && !c.unit_id);
+
+  const handleWholePropertySave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!wholeRentalForm.tenant_name || !wholeRentalForm.rent_amount || !wholeRentalForm.start_date || !wholeRentalForm.end_date) {
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+    const rentAmount = parseFloat(wholeRentalForm.rent_amount);
+    const paymentCount = wholeRentalForm.payment_type === 'monthly' ? 12 : wholeRentalForm.payment_type === 'multi' ? parseInt(wholeRentalForm.payment_count || '1') : 1;
+    const paymentAmount = rentAmount / paymentCount;
+
+    if (wholePropertyContract) {
+      await updateContractMutation.mutateAsync({
+        id: wholePropertyContract.id,
+        tenant_name: wholeRentalForm.tenant_name,
+        rent_amount: rentAmount,
+        payment_type: wholeRentalForm.payment_type,
+        payment_count: paymentCount,
+        payment_amount: paymentAmount,
+        start_date: wholeRentalForm.start_date,
+        end_date: wholeRentalForm.end_date,
+      });
+    } else {
+      await createContract.mutateAsync({
+        contract_number: `C-${property.property_number}-WHOLE-${Date.now().toString(36)}`,
+        property_id: property.id,
+        tenant_name: wholeRentalForm.tenant_name,
+        rent_amount: rentAmount,
+        start_date: wholeRentalForm.start_date,
+        end_date: wholeRentalForm.end_date,
+        status: 'active',
+        payment_type: wholeRentalForm.payment_type,
+        payment_count: paymentCount,
+        payment_amount: paymentAmount,
+      });
+    }
+    setIsWholeFormOpen(false);
+  };
+
   // Count stats
   const rented = units.filter(u => u.status === 'مؤجرة').length;
   const vacant = units.filter(u => u.status === 'شاغرة').length;
   const maintenance = units.filter(u => u.status === 'صيانة').length;
+
+  const computedPaymentAmount = unitForm.rent_amount
+    ? parseFloat(unitForm.rent_amount) / (unitForm.payment_type === 'monthly' ? 12 : unitForm.payment_type === 'multi' ? parseInt(unitForm.payment_count || '1') : 1)
+    : 0;
 
   return (
     <>
@@ -404,239 +549,363 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
             </div>
           </div>
 
-          {/* Stats badges */}
-          {units.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              <Badge variant="default" className="gap-1">
-                <Home className="w-3 h-3" /> مؤجرة: {rented}
-              </Badge>
-              <Badge variant="secondary" className="gap-1">
-                <DoorOpen className="w-3 h-3" /> شاغرة: {vacant}
-              </Badge>
-              {maintenance > 0 && (
-                <Badge variant="destructive" className="gap-1">
-                  صيانة: {maintenance}
-                </Badge>
+          {/* Rental mode tabs */}
+          <Tabs value={rentalMode} onValueChange={(v) => setRentalMode(v as 'units' | 'whole')} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="units">وحدات منفصلة</TabsTrigger>
+              <TabsTrigger value="whole">العقار كامل</TabsTrigger>
+            </TabsList>
+
+            {/* ─── Units Tab ─── */}
+            <TabsContent value="units" className="space-y-4 mt-4">
+              {/* Stats badges */}
+              {units.length > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  <Badge variant="default" className="gap-1"><Home className="w-3 h-3" /> مؤجرة: {rented}</Badge>
+                  <Badge variant="secondary" className="gap-1"><DoorOpen className="w-3 h-3" /> شاغرة: {vacant}</Badge>
+                  {maintenance > 0 && <Badge variant="destructive" className="gap-1">صيانة: {maintenance}</Badge>}
+                </div>
               )}
-            </div>
-          )}
 
-          {/* Add unit button + export/print */}
-          <div className="flex justify-between items-center flex-wrap gap-2">
-            <h3 className="font-semibold">الوحدات السكنية</h3>
-            <div className="flex gap-2 flex-wrap print:hidden">
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
-                <Printer className="w-4 h-4" /> طباعة
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1" onClick={() => {
-                const pdfRows: UnitPdfRow[] = units.map(u => {
-                  const tenant = getTenant(u.id);
-                  return {
-                    unit_number: u.unit_number,
-                    unit_type: u.unit_type,
-                    status: u.status,
-                    tenant_name: tenant?.name || null,
-                    start_date: tenant?.start_date || null,
-                    end_date: tenant?.end_date || null,
-                    rent_amount: tenant?.rent_amount || null,
-                    paid_months: tenant ? getPaymentInfo(tenant.contract_id) : 0,
-                  };
-                });
-                generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
-              }}>
-                <FileDown className="w-4 h-4" /> تصدير PDF
-              </Button>
-              <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
-                <Plus className="w-4 h-4" /> إضافة وحدة
-              </Button>
-            </div>
-          </div>
+              {/* Add unit button + export/print */}
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <h3 className="font-semibold">الوحدات السكنية</h3>
+                <div className="flex gap-2 flex-wrap print:hidden">
+                  <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
+                    <Printer className="w-4 h-4" /> <span className="hidden sm:inline">طباعة</span>
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                    const pdfRows: UnitPdfRow[] = units.map(u => {
+                      const tenant = getTenant(u.id);
+                      return {
+                        unit_number: u.unit_number, unit_type: u.unit_type, status: u.status,
+                        tenant_name: tenant?.name || null, start_date: tenant?.start_date || null, end_date: tenant?.end_date || null,
+                        rent_amount: tenant?.rent_amount || null, paid_months: tenant ? getPaymentInfo(tenant.contract_id) : 0,
+                      };
+                    });
+                    generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
+                  }}>
+                    <FileDown className="w-4 h-4" /> <span className="hidden sm:inline">تصدير PDF</span>
+                  </Button>
+                  <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
+                    <Plus className="w-4 h-4" /> إضافة وحدة
+                  </Button>
+                </div>
+              </div>
 
-          {/* Unit form */}
-          {isUnitFormOpen && (
-            <Card className="border-primary/20">
-              <CardContent className="pt-4">
-                <form onSubmit={handleUnitSubmit} className="space-y-3">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">رقم الوحدة *</Label>
-                      <Input
-                        value={unitForm.unit_number}
-                        onChange={(e) => setUnitForm({ ...unitForm, unit_number: e.target.value })}
-                        placeholder="شقة 1"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">النوع</Label>
-                      <Select value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {UNIT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">الدور</Label>
-                      <Select value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })}>
-                        <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
-                        <SelectContent>
-                          {FLOORS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">المساحة (م²)</Label>
-                      <Input
-                        type="number"
-                        value={unitForm.area ?? ''}
-                        onChange={(e) => setUnitForm({ ...unitForm, area: e.target.value ? parseFloat(e.target.value) : undefined })}
-                        placeholder="80"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">الحالة</Label>
-                      <Select value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {UNIT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">ملاحظات</Label>
-                      <Input
-                        value={unitForm.notes || ''}
-                        onChange={(e) => setUnitForm({ ...unitForm, notes: e.target.value })}
-                        placeholder="ملاحظات"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" size="sm" disabled={createUnit.isPending || updateUnit.isPending}>
-                      {editingUnit ? 'تحديث' : 'إضافة'}
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={resetUnitForm}>إلغاء</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
+              {/* Unit form */}
+              {isUnitFormOpen && (
+                <Card className="border-primary/20">
+                  <CardContent className="pt-4">
+                    <form onSubmit={handleUnitSubmit} className="space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">رقم الوحدة *</Label>
+                          <Input value={unitForm.unit_number} onChange={(e) => setUnitForm({ ...unitForm, unit_number: e.target.value })} placeholder="شقة 1" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">النوع</Label>
+                          <Select value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{UNIT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">الدور</Label>
+                          <Select value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })}>
+                            <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                            <SelectContent>{FLOORS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">المساحة (م²)</Label>
+                          <Input type="number" value={unitForm.area ?? ''} onChange={(e) => setUnitForm({ ...unitForm, area: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="80" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">الحالة</Label>
+                          <Select value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{UNIT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">ملاحظات</Label>
+                          <Input value={unitForm.notes || ''} onChange={(e) => setUnitForm({ ...unitForm, notes: e.target.value })} placeholder="ملاحظات" />
+                        </div>
+                      </div>
 
-          {/* Units table */}
-          {isLoading ? (
-            <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
-          ) : units.length === 0 ? (
-            <div className="text-center py-8">
-              <DoorOpen className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">لا توجد وحدات مسجلة لهذا العقار</p>
-              <p className="text-xs text-muted-foreground mt-1">اضغط "إضافة وحدة" لبدء تسجيل الوحدات السكنية</p>
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table className="min-w-[800px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/40">
-                    <TableHead className="text-right">رقم الوحدة</TableHead>
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right min-w-[120px]">المستأجر</TableHead>
-                    <TableHead className="text-right">بداية العقد</TableHead>
-                    <TableHead className="text-right">نهاية العقد</TableHead>
-                    <TableHead className="text-right">الإيجار الشهري</TableHead>
-                    <TableHead className="text-right">الإيجار السنوي</TableHead>
-                    <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
-                    <TableHead className="text-right">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {units.map((unit, idx) => {
-                    const tenant = getTenant(unit.id);
-                    const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
-                    const isComplete = paid >= 12;
-                    const progressPercent = (paid / 12) * 100;
-                    return (
-                    <TableRow key={unit.id} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
-                      <TableCell className="font-medium">{unit.unit_number}</TableCell>
-                      <TableCell>{unit.unit_type}</TableCell>
-                      <TableCell>
-                        <Badge variant={statusColor(unit.status)}>{unit.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {!tenant ? <span className="text-muted-foreground">-</span> : (
-                          <span className="whitespace-nowrap">
-                            {tenant.name}
-                            {tenant.status !== 'active' && (
-                              <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
-                            )}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {tenant?.start_date || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell>
-                        {tenant?.end_date || <span className="text-muted-foreground">-</span>}
-                      </TableCell>
-                      <TableCell>
-                        {!tenant ? <span className="text-muted-foreground">-</span> : (
-                          <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {!tenant ? <span className="text-muted-foreground">-</span> : (
-                          <span className="font-medium">{(tenant.rent_amount * 12).toLocaleString('ar-SA')} ريال</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {!tenant ? <span className="text-muted-foreground">-</span> : (
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-7 w-7"
-                                disabled={paid <= 0 || upsertPayment.isPending}
-                                onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })}
-                              >
-                                <MinusIcon className="w-3 h-3" />
-                              </Button>
-                              <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-green-600' : 'text-destructive'}`}>
-                                {paid}/12
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-7 w-7"
-                                disabled={paid >= 12 || upsertPayment.isPending}
-                                onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid + 1 })}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
+                      {/* Rental fields - shown when status is مؤجرة */}
+                      {unitForm.status === 'مؤجرة' && (
+                        <div className="border-t pt-3 mt-3 space-y-3">
+                          <h4 className="font-semibold text-sm text-primary">بيانات الإيجار</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <Label className="text-xs">اسم المستأجر *</Label>
+                              <Input value={unitForm.tenant_name || ''} onChange={(e) => setUnitForm({ ...unitForm, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
                             </div>
-                            <Progress
-                              value={progressPercent}
-                              className={`h-2 ${isComplete ? '[&>div]:bg-green-500' : paid >= 6 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-destructive'}`}
-                            />
+                            <div className="space-y-1">
+                              <Label className="text-xs">قيمة الإيجار السنوي *</Label>
+                              <Input type="number" value={unitForm.rent_amount || ''} onChange={(e) => setUnitForm({ ...unitForm, rent_amount: e.target.value })} placeholder="50000" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">نوع الدفع</Label>
+                              <Select value={unitForm.payment_type || 'annual'} onValueChange={(v) => setUnitForm({ ...unitForm, payment_type: v })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>{PAYMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                              </Select>
+                            </div>
+                            {unitForm.payment_type === 'multi' && (
+                              <div className="space-y-1">
+                                <Label className="text-xs">عدد الدفعات</Label>
+                                <Input type="number" value={unitForm.payment_count || '1'} onChange={(e) => setUnitForm({ ...unitForm, payment_count: e.target.value })} placeholder="4" min="1" />
+                              </div>
+                            )}
+                            <div className="space-y-1">
+                              <Label className="text-xs">تاريخ بداية العقد *</Label>
+                              <Input type="date" value={unitForm.contract_start_date || ''} onChange={(e) => setUnitForm({ ...unitForm, contract_start_date: e.target.value })} />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">تاريخ نهاية العقد *</Label>
+                              <Input type="date" value={unitForm.contract_end_date || ''} onChange={(e) => setUnitForm({ ...unitForm, contract_end_date: e.target.value })} />
+                            </div>
+                          </div>
+                          {unitForm.rent_amount && (
+                            <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                              <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
+                              <span className="font-semibold">{computedPaymentAmount.toLocaleString('ar-SA')} ريال</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-2">
+                        <Button type="submit" size="sm" disabled={createUnit.isPending || updateUnit.isPending || createContract.isPending || updateContractMutation.isPending}>
+                          {editingUnit ? 'تحديث' : 'إضافة'}
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={resetUnitForm}>إلغاء</Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Units table */}
+              {isLoading ? (
+                <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
+              ) : units.length === 0 ? (
+                <div className="text-center py-8">
+                  <DoorOpen className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-muted-foreground">لا توجد وحدات مسجلة لهذا العقار</p>
+                  <p className="text-xs text-muted-foreground mt-1">اضغط "إضافة وحدة" لبدء تسجيل الوحدات السكنية</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table className="min-w-[800px]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/40">
+                        <TableHead className="text-right">رقم الوحدة</TableHead>
+                        <TableHead className="text-right">النوع</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right min-w-[120px]">المستأجر</TableHead>
+                        <TableHead className="text-right">بداية العقد</TableHead>
+                        <TableHead className="text-right">نهاية العقد</TableHead>
+                        <TableHead className="text-right">الإيجار الشهري</TableHead>
+                        <TableHead className="text-right">الإيجار السنوي</TableHead>
+                        <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
+                        <TableHead className="text-right">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {units.map((unit, idx) => {
+                        const tenant = getTenant(unit.id);
+                        const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
+                        const isComplete = paid >= 12;
+                        const progressPercent = (paid / 12) * 100;
+                        return (
+                          <TableRow key={unit.id} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
+                            <TableCell className="font-medium">{unit.unit_number}</TableCell>
+                            <TableCell>{unit.unit_type}</TableCell>
+                            <TableCell><Badge variant={statusColor(unit.status)}>{unit.status}</Badge></TableCell>
+                            <TableCell>
+                              {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                <span className="whitespace-nowrap">
+                                  {tenant.name}
+                                  {tenant.status !== 'active' && (
+                                    <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
+                                  )}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>{tenant?.start_date || <span className="text-muted-foreground">-</span>}</TableCell>
+                            <TableCell>{tenant?.end_date || <span className="text-muted-foreground">-</span>}</TableCell>
+                            <TableCell>
+                              {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                <span className="font-medium">{(tenant.rent_amount * 12).toLocaleString('ar-SA')} ريال</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
+                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })}>
+                                      <MinusIcon className="w-3 h-3" />
+                                    </Button>
+                                    <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-green-600' : 'text-destructive'}`}>{paid}/12</span>
+                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending}
+                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid + 1 })}>
+                                      <Plus className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  <Progress value={progressPercent} className={`h-2 ${isComplete ? '[&>div]:bg-green-500' : paid >= 6 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-destructive'}`} />
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}><Edit className="w-3 h-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)}><Trash2 className="w-3 h-3" /></Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* ─── Whole Property Tab ─── */}
+            <TabsContent value="whole" className="space-y-4 mt-4">
+              {wholePropertyContract ? (
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <h3 className="font-semibold text-lg">بيانات عقد العقار كامل</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground">المستأجر</p>
+                        <p className="font-medium">{wholePropertyContract.tenant_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">الإيجار السنوي</p>
+                        <p className="font-medium">{wholePropertyContract.rent_amount.toLocaleString('ar-SA')} ريال</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">نوع الدفع</p>
+                        <p className="font-medium">{PAYMENT_TYPES.find(t => t.value === wholePropertyContract.payment_type)?.label || wholePropertyContract.payment_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">عدد الدفعات</p>
+                        <p className="font-medium">{wholePropertyContract.payment_count}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">قيمة الدفعة</p>
+                        <p className="font-medium">{(wholePropertyContract.payment_amount || 0).toLocaleString('ar-SA')} ريال</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">الحالة</p>
+                        <Badge variant={wholePropertyContract.status === 'active' ? 'default' : 'secondary'}>{wholePropertyContract.status === 'active' ? 'ساري' : 'منتهي'}</Badge>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">بداية العقد</p>
+                        <p className="font-medium">{wholePropertyContract.start_date}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">نهاية العقد</p>
+                        <p className="font-medium">{wholePropertyContract.end_date}</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setWholeRentalForm({
+                        tenant_name: wholePropertyContract.tenant_name,
+                        rent_amount: wholePropertyContract.rent_amount.toString(),
+                        payment_type: wholePropertyContract.payment_type || 'annual',
+                        payment_count: wholePropertyContract.payment_count?.toString() || '1',
+                        start_date: wholePropertyContract.start_date,
+                        end_date: wholePropertyContract.end_date,
+                      });
+                      setIsWholeFormOpen(true);
+                    }}>
+                      <Edit className="w-4 h-4 ml-2" /> تعديل العقد
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : !isWholeFormOpen ? (
+                <div className="text-center py-8 space-y-3">
+                  <Building2 className="w-10 h-10 mx-auto text-muted-foreground" />
+                  <p className="text-muted-foreground">لا يوجد عقد لتأجير العقار كامل</p>
+                  <Button onClick={() => {
+                    setWholeRentalForm({ tenant_name: '', rent_amount: '', payment_type: 'annual', payment_count: '1', start_date: '', end_date: '' });
+                    setIsWholeFormOpen(true);
+                  }}>
+                    <Plus className="w-4 h-4 ml-2" /> إضافة عقد للعقار
+                  </Button>
+                </div>
+              ) : null}
+
+              {/* Whole property rental form */}
+              {isWholeFormOpen && (
+                <Card className="border-primary/20">
+                  <CardContent className="pt-4">
+                    <form onSubmit={handleWholePropertySave} className="space-y-3">
+                      <h4 className="font-semibold text-sm text-primary">بيانات عقد العقار كامل</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">اسم المستأجر *</Label>
+                          <Input value={wholeRentalForm.tenant_name} onChange={(e) => setWholeRentalForm({ ...wholeRentalForm, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">قيمة الإيجار السنوي *</Label>
+                          <Input type="number" value={wholeRentalForm.rent_amount} onChange={(e) => setWholeRentalForm({ ...wholeRentalForm, rent_amount: e.target.value })} placeholder="50000" />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">نوع الدفع</Label>
+                          <Select value={wholeRentalForm.payment_type} onValueChange={(v) => setWholeRentalForm({ ...wholeRentalForm, payment_type: v })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>{PAYMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        {wholeRentalForm.payment_type === 'multi' && (
+                          <div className="space-y-1">
+                            <Label className="text-xs">عدد الدفعات</Label>
+                            <Input type="number" value={wholeRentalForm.payment_count} onChange={(e) => setWholeRentalForm({ ...wholeRentalForm, payment_count: e.target.value })} placeholder="4" min="1" />
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}>
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
+                        <div className="space-y-1">
+                          <Label className="text-xs">تاريخ بداية العقد *</Label>
+                          <Input type="date" value={wholeRentalForm.start_date} onChange={(e) => setWholeRentalForm({ ...wholeRentalForm, start_date: e.target.value })} />
                         </div>
-                      </TableCell>
-                    </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                        <div className="space-y-1">
+                          <Label className="text-xs">تاريخ نهاية العقد *</Label>
+                          <Input type="date" value={wholeRentalForm.end_date} onChange={(e) => setWholeRentalForm({ ...wholeRentalForm, end_date: e.target.value })} />
+                        </div>
+                      </div>
+                      {wholeRentalForm.rent_amount && (
+                        <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                          <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
+                          <span className="font-semibold">
+                            {(parseFloat(wholeRentalForm.rent_amount) / (wholeRentalForm.payment_type === 'monthly' ? 12 : wholeRentalForm.payment_type === 'multi' ? parseInt(wholeRentalForm.payment_count || '1') : 1)).toLocaleString('ar-SA')} ريال
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex gap-2 pt-2">
+                        <Button type="submit" size="sm" disabled={createContract.isPending || updateContractMutation.isPending}>
+                          {wholePropertyContract ? 'تحديث العقد' : 'إنشاء العقد'}
+                        </Button>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setIsWholeFormOpen(false)}>إلغاء</Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
