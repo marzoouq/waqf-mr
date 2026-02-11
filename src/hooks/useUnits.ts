@@ -25,6 +25,17 @@ export interface UnitInsert {
   notes?: string;
 }
 
+export const useAllUnits = () => {
+  return useQuery({
+    queryKey: ['all-units'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('units').select('*');
+      if (error) throw error;
+      return data as UnitRow[];
+    },
+  });
+};
+
 export const useUnits = (propertyId?: string) => {
   return useQuery({
     queryKey: ['units', propertyId],
