@@ -72,6 +72,11 @@ export interface Account {
   admin_share: number;
   waqif_share: number;
   waqf_revenue: number;
+  vat_amount: number;
+  distributions_amount: number;
+  waqf_capital: number;
+  net_after_expenses: number;
+  net_after_vat: number;
   created_at: string;
   updated_at: string;
 }

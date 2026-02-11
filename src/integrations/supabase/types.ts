@@ -18,33 +18,48 @@ export type Database = {
         Row: {
           admin_share: number
           created_at: string
+          distributions_amount: number
           fiscal_year: string
           id: string
+          net_after_expenses: number
+          net_after_vat: number
           total_expenses: number
           total_income: number
           updated_at: string
+          vat_amount: number
+          waqf_capital: number
           waqf_revenue: number
           waqif_share: number
         }
         Insert: {
           admin_share?: number
           created_at?: string
+          distributions_amount?: number
           fiscal_year: string
           id?: string
+          net_after_expenses?: number
+          net_after_vat?: number
           total_expenses?: number
           total_income?: number
           updated_at?: string
+          vat_amount?: number
+          waqf_capital?: number
           waqf_revenue?: number
           waqif_share?: number
         }
         Update: {
           admin_share?: number
           created_at?: string
+          distributions_amount?: number
           fiscal_year?: string
           id?: string
+          net_after_expenses?: number
+          net_after_vat?: number
           total_expenses?: number
           total_income?: number
           updated_at?: string
+          vat_amount?: number
+          waqf_capital?: number
           waqf_revenue?: number
           waqif_share?: number
         }

@@ -337,6 +337,9 @@ export const generateAccountsPDF = async (data: {
   waqifShare: number;
   waqfRevenue: number;
   beneficiaries: Array<{ name: string; share_percentage: number }>;
+  vatAmount?: number;
+  distributionsAmount?: number;
+  waqfCapital?: number;
 }) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
@@ -399,16 +402,26 @@ export const generateAccountsPDF = async (data: {
   y = (doc as any).lastAutoTable?.finalY + 10 || 200;
 
   // Distribution
+  const regularExp = data.totalExpenses - (data.vatAmount || 0);
+  const netAfterExp = data.totalIncome - regularExp;
+  const netAfterVat = netAfterExp - (data.vatAmount || 0);
+  
   doc.setFont(fontFamily, 'bold');
   doc.text('التوزيع', 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 5,
     head: [['البند', 'المبلغ']],
     body: [
-      ['صافي الريع', data.netRevenue.toLocaleString()],
-      ['حصة الناظر (10%)', data.adminShare.toLocaleString()],
-      ['حصة الواقف (5%)', data.waqifShare.toLocaleString()],
+      ['إجمالي الدخل', `+${data.totalIncome.toLocaleString()}`],
+      ['(-) المصروفات (بدون الضريبة)', `(${regularExp.toLocaleString()})`],
+      ['الصافي بعد المصاريف', netAfterExp.toLocaleString()],
+      ['(-) ضريبة القيمة المضافة', `(${(data.vatAmount || 0).toLocaleString()})`],
+      ['الصافي بعد خصم الضريبة', netAfterVat.toLocaleString()],
+      ['(-) حصة الناظر (10%)', `(${data.adminShare.toLocaleString()})`],
+      ['(-) حصة الواقف (5%)', `(${data.waqifShare.toLocaleString()})`],
       ['ريع الوقف', data.waqfRevenue.toLocaleString()],
+      ['التوزيعات الفعلية', (data.distributionsAmount || 0).toLocaleString()],
+      ['رقبة الوقف', (data.waqfCapital || 0).toLocaleString()],
     ],
     theme: 'striped',
     headStyles: { fillColor: [22, 101, 52], font: fontFamily, fontStyle: 'bold' },
