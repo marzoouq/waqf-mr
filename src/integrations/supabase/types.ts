@@ -327,6 +327,79 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount: number
+          contract_id: string | null
+          created_at: string
+          date: string
+          description: string | null
+          expense_id: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          invoice_number: string | null
+          invoice_type: string
+          property_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          contract_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          expense_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          invoice_number?: string | null
+          invoice_type: string
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          expense_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          invoice_number?: string | null
+          invoice_type?: string
+          property_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
