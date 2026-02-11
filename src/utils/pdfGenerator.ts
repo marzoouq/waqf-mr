@@ -43,16 +43,17 @@ const loadArabicFont = async (doc: jsPDF) => {
 
 const addFooter = (doc: jsPDF, fontFamily: string) => {
   const pageCount = doc.getNumberOfPages();
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}`;
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+    const pageH = doc.internal.pageSize.height;
+    const footerY = pageH - 10;
     doc.setFontSize(10);
     doc.setFont(fontFamily, 'normal');
-    doc.text(
-      `صفحة ${i} من ${pageCount} - تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}`,
-      105,
-      doc.internal.pageSize.height - 10,
-      { align: 'center' }
-    );
+    // Render date on the left side and page info on the right to avoid RTL mixing issues
+    doc.text(dateStr, 15, footerY, { align: 'left' });
+    doc.text(`${i} / ${pageCount}`, 195, footerY, { align: 'right' });
   }
 };
 
