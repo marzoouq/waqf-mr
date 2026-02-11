@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
-import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
+import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, useAllUnits, UnitRow, UnitInsert } from '@/hooks/useUnits';
+import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts, useCreateContract, useUpdateContract } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { Property, Contract } from '@/types/database';
@@ -48,6 +49,8 @@ const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
   const { data: contracts = [] } = useContracts();
+  const { data: allUnits = [] } = useAllUnits();
+  const { data: expenses = [] } = useExpenses();
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
@@ -208,7 +211,26 @@ const PropertiesPage = () => {
         ) : (
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => (
+            {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
+              const propertyUnits = allUnits.filter(u => u.property_id === property.id);
+              const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
+              const vacant = propertyUnits.filter(u => u.status === 'شاغرة').length;
+              const maintenance = propertyUnits.filter(u => u.status === 'صيانة').length;
+              const totalUnits = propertyUnits.length;
+              const occupancy = totalUnits > 0 ? Math.round((rented / totalUnits) * 100) : 0;
+
+              const activeContracts = contracts.filter(c => c.property_id === property.id && c.status === 'active');
+              const annualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+              const monthlyRent = annualRent / 12;
+
+              const propExpenses = expenses.filter(e => e.property_id === property.id);
+              const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+              const netIncome = annualRent - totalExpenses;
+
+              const occupancyColor = occupancy >= 80 ? 'text-green-600' : occupancy >= 50 ? 'text-yellow-600' : 'text-red-600';
+              const progressColor = occupancy >= 80 ? '[&>div]:bg-green-500' : occupancy >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500';
+
+              return (
               <Card
                 key={property.id}
                 className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
@@ -228,25 +250,59 @@ const PropertiesPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Building2 className="w-4 h-4" /><span>{property.property_type}</span>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                    <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
+                    <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" />{property.area} م²</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" /><span>{property.location}</span>
+
+                  {/* المؤشرات التشغيلية */}
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex gap-3 flex-wrap">
+                        <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-green-600" />مؤجرة: <strong>{rented}</strong></span>
+                        <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
+                        {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                      </div>
+                    </div>
+                    {totalUnits > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                        <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Ruler className="w-4 h-4" /><span>{property.area} م²</span>
+
+                  {/* المؤشرات المالية */}
+                  <div className="border-t pt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">الشهري:</span>
+                      <span className="font-medium">{monthlyRent.toLocaleString('ar-SA')} ريال</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">السنوي:</span>
+                      <span className="font-medium">{annualRent.toLocaleString('ar-SA')} ريال</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">المصروفات:</span>
+                      <span className="font-medium">{totalExpenses.toLocaleString('ar-SA')} ريال</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">الصافي:</span>
+                      <span className={`font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {netIncome.toLocaleString('ar-SA')} ريال
+                      </span>
+                    </div>
                   </div>
-                  {property.description && (
-                    <p className="text-sm text-muted-foreground border-t pt-2 mt-2">{property.description}</p>
-                  )}
-                  <div className="border-t pt-2 mt-2 flex items-center gap-2 text-sm text-primary">
-                    <DoorOpen className="w-4 h-4" />
-                    <span>اضغط لعرض الوحدات السكنية</span>
+
+                  <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
+                    <DoorOpen className="w-3.5 h-3.5" />
+                    <span>اضغط لعرض الوحدات</span>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </>
