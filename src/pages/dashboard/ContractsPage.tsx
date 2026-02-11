@@ -35,10 +35,11 @@ const ContractsPage = () => {
   const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
+    payment_type: 'annual', payment_count: '1',
   });
 
   const resetForm = () => {
-    setFormData({ contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '' });
+    setFormData({ contract_number: '', property_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '', payment_type: 'annual', payment_count: '1' });
     setEditingContract(null);
   };
 
@@ -48,6 +49,7 @@ const ContractsPage = () => {
       contract_number: contract.contract_number, property_id: contract.property_id, tenant_name: contract.tenant_name,
       start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
       status: contract.status, notes: contract.notes || '',
+      payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
     });
     setIsOpen(true);
   };
@@ -58,10 +60,14 @@ const ContractsPage = () => {
       toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
+    const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
+    const rentAmount = parseFloat(formData.rent_amount);
+    const paymentAmount = rentAmount / paymentCount;
     const contractData = {
       contract_number: formData.contract_number, property_id: formData.property_id, tenant_name: formData.tenant_name,
-      start_date: formData.start_date, end_date: formData.end_date, rent_amount: parseFloat(formData.rent_amount),
+      start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
       status: formData.status, notes: formData.notes || undefined,
+      payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
     };
     if (editingContract) {
       await updateContract.mutateAsync({ id: editingContract.id, ...contractData });
@@ -124,7 +130,32 @@ const ContractsPage = () => {
                     <div className="space-y-2"><Label>تاريخ البداية *</Label><Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
                     <div className="space-y-2"><Label>تاريخ النهاية *</Label><Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
                   </div>
-                  <div className="space-y-2"><Label>قيمة الإيجار (ر.س) *</Label><Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" /></div>
+                  <div className="space-y-2"><Label>قيمة الإيجار السنوي (ر.س) *</Label><Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" /></div>
+                  <div className="space-y-2">
+                    <Label>نوع الدفع *</Label>
+                    <Select value={formData.payment_type} onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'annual' ? '1' : formData.payment_count })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="annual">سنوي (دفعة واحدة)</SelectItem>
+                        <SelectItem value="monthly">شهري (12 دفعة)</SelectItem>
+                        <SelectItem value="multi">دفعات متعددة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.payment_type === 'multi' && (
+                    <div className="space-y-2">
+                      <Label>عدد الدفعات *</Label>
+                      <Input type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
+                    </div>
+                  )}
+                  {formData.rent_amount && (
+                    <div className="p-3 rounded-lg bg-muted/50 text-sm">
+                      <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
+                      <span className="font-bold text-primary">
+                        {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                      </span>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>الحالة</Label>
                     <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>

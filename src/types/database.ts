@@ -34,6 +34,9 @@ export interface Contract {
   end_date: string;
   rent_amount: number;
   status: string;
+  payment_type?: string;
+  payment_count?: number;
+  payment_amount?: number;
   notes?: string;
   created_at: string;
   updated_at: string;

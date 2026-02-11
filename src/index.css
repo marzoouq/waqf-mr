@@ -290,6 +290,7 @@
 /* ===== Print Styles ===== */
 @media print {
   /* Hide navigation, sidebar, and non-essential UI */
+  /* Hide navigation, sidebar, and non-essential UI */
   aside,
   nav,
   .sidebar,
@@ -298,9 +299,19 @@
   .no-print,
   .print\\:hidden,
   [role="alertdialog"],
-  .sonner-toaster,
-  .fixed:not([role="dialog"]) {
+  .sonner-toaster {
     display: none !important;
+  }
+
+  /* Hide all fixed elements EXCEPT dialog portals */
+  .fixed:not([role="dialog"]):not(:has([role="dialog"])) {
+    display: none !important;
+  }
+
+  /* Ensure Radix portal is visible */
+  [data-radix-portal] {
+    position: static !important;
+    display: block !important;
   }
 
   /* Dialog: make it print-friendly (remove overlay, position static) */
@@ -317,8 +328,7 @@
   }
 
   /* Hide dialog overlay/backdrop */
-  [data-radix-dialog-overlay],
-  [data-state="open"].fixed:has([role="dialog"]) > :not([role="dialog"]) {
+  [data-radix-dialog-overlay] {
     display: none !important;
   }
 

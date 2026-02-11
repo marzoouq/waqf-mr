@@ -135,6 +135,9 @@ export type Database = {
           end_date: string
           id: string
           notes: string | null
+          payment_amount: number | null
+          payment_count: number
+          payment_type: string
           property_id: string
           rent_amount: number
           start_date: string
@@ -149,6 +152,9 @@ export type Database = {
           end_date: string
           id?: string
           notes?: string | null
+          payment_amount?: number | null
+          payment_count?: number
+          payment_type?: string
           property_id: string
           rent_amount: number
           start_date: string
@@ -163,6 +169,9 @@ export type Database = {
           end_date?: string
           id?: string
           notes?: string | null
+          payment_amount?: number | null
+          payment_count?: number
+          payment_type?: string
           property_id?: string
           rent_amount?: number
           start_date?: string
