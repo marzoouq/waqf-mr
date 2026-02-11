@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+/* PDF Generator - Waqf Management System */
 
 // Waqf info passed optionally to PDF generators
 export interface PdfWaqfInfo {
