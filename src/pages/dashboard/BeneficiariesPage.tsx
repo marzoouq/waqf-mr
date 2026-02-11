@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import TablePagination from '@/components/TablePagination';
+
+const ITEMS_PER_PAGE = 9;
 
 interface AuthUser { id: string; email: string; }
 
@@ -38,6 +41,7 @@ const BeneficiariesPage = () => {
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '',
   });
@@ -148,7 +152,7 @@ const BeneficiariesPage = () => {
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10" />
+          <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
         </div>
 
         {isLoading ? (
@@ -161,33 +165,41 @@ const BeneficiariesPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredBeneficiaries.map((beneficiary) => (
-              <Card key={beneficiary.id} className="shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
-                      {beneficiary.user_id && (
-                        <Badge variant="secondary" className="text-xs"><UserCheck className="w-3 h-3 ml-1" />مرتبط</Badge>
-                      )}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
+                <Card key={beneficiary.id} className="shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
+                        {beneficiary.user_id && (
+                          <Badge variant="secondary" className="text-xs"><UserCheck className="w-3 h-3 ml-1" />مرتبط</Badge>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(beneficiary)}><Edit className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: beneficiary.id, name: `المستفيد ${beneficiary.name}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(beneficiary)}><Edit className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: beneficiary.id, name: `المستفيد ${beneficiary.name}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{beneficiary.share_percentage}%</span></div>
-                  {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Phone className="w-4 h-4" /><span dir="ltr">{beneficiary.phone}</span></div>)}
-                  {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Mail className="w-4 h-4" /><span dir="ltr">{beneficiary.email}</span></div>)}
-                  {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><CreditCard className="w-4 h-4" /><span dir="ltr">{beneficiary.bank_account}</span></div>)}
-                  {beneficiary.national_id && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><IdCard className="w-4 h-4" /><span dir="ltr">{beneficiary.national_id}</span></div>)}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{beneficiary.share_percentage}%</span></div>
+                    {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Phone className="w-4 h-4" /><span dir="ltr">{beneficiary.phone}</span></div>)}
+                    {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><Mail className="w-4 h-4" /><span dir="ltr">{beneficiary.email}</span></div>)}
+                    {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><CreditCard className="w-4 h-4" /><span dir="ltr">{beneficiary.bank_account}</span></div>)}
+                    {beneficiary.national_id && (<div className="flex items-center gap-2 text-sm text-muted-foreground"><IdCard className="w-4 h-4" /><span dir="ltr">{beneficiary.national_id}</span></div>)}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={filteredBeneficiaries.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
