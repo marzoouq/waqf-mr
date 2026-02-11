@@ -125,7 +125,9 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   const ext = file.name.split('.').pop();
   const path = `${crypto.randomUUID()}.${ext}`;
 
-  const { error } = await supabase.storage.from('invoices').upload(path, file);
+  const { error } = await supabase.storage.from('invoices').upload(path, file, {
+    contentType: file.type,
+  });
   if (error) throw error;
 
   return { path, name: file.name };
