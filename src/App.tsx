@@ -35,7 +35,7 @@ import BeneficiaryMessagesPage from "./pages/beneficiary/BeneficiaryMessagesPage
 
 // AI Assistant
 import AiAssistant from "./components/AiAssistant";
-
+import SecurityGuard from "./components/SecurityGuard";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -201,6 +201,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <AiAssistant />
+          <SecurityGuard />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
