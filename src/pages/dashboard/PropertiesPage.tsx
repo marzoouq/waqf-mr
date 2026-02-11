@@ -5,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
+import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
+import { useContracts } from '@/hooks/useContracts';
 import { Property } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generatePropertiesPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -23,9 +28,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+const UNIT_TYPES = ['شقة', 'محل', 'مكتب', 'مستودع', 'أخرى'];
+const FLOORS = ['بدروم', 'أرضي', 'ميزانين', 'أول', 'ثاني', 'ثالث', 'رابع', 'خامس', 'سطح'];
+const UNIT_STATUSES = ['شاغرة', 'مؤجرة', 'صيانة'];
+
+const statusColor = (status: string) => {
+  switch (status) {
+    case 'مؤجرة': return 'default';
+    case 'شاغرة': return 'secondary';
+    case 'صيانة': return 'destructive';
+    default: return 'outline';
+  }
+};
+
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
+  const { data: contracts = [] } = useContracts();
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
@@ -43,6 +62,9 @@ const PropertiesPage = () => {
     area: '',
     description: '',
   });
+
+  // Units detail dialog
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const resetForm = () => {
     setFormData({ property_number: '', property_type: '', location: '', area: '', description: '' });
@@ -71,7 +93,8 @@ const PropertiesPage = () => {
     resetForm();
   };
 
-  const handleEdit = (property: Property) => {
+  const handleEdit = (property: Property, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingProperty(property);
     setFormData({
       property_number: property.property_number,
@@ -183,15 +206,19 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => (
-              <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow">
+              <Card
+                key={property.id}
+                className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedProperty(property)}
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{property.property_number}</CardTitle>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(property)}>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` })} className="text-destructive hover:text-destructive">
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -210,12 +237,25 @@ const PropertiesPage = () => {
                   {property.description && (
                     <p className="text-sm text-muted-foreground border-t pt-2 mt-2">{property.description}</p>
                   )}
+                  <div className="border-t pt-2 mt-2 flex items-center gap-2 text-sm text-primary">
+                    <DoorOpen className="w-4 h-4" />
+                    <span>اضغط لعرض الوحدات السكنية</span>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
           <TablePagination currentPage={currentPage} totalItems={filteredProperties.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </>
+        )}
+
+        {/* Property Units Dialog */}
+        {selectedProperty && (
+          <PropertyUnitsDialog
+            property={selectedProperty}
+            contracts={contracts}
+            onClose={() => setSelectedProperty(null)}
+          />
         )}
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
@@ -232,6 +272,291 @@ const PropertiesPage = () => {
         </AlertDialog>
       </div>
     </DashboardLayout>
+  );
+};
+
+// ─── Property Units Dialog Component ─────────────────────────────────
+interface PropertyUnitsDialogProps {
+  property: Property;
+  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string }>;
+  onClose: () => void;
+}
+
+const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDialogProps) => {
+  const { data: units = [], isLoading } = useUnits(property.id);
+  const createUnit = useCreateUnit();
+  const updateUnit = useUpdateUnit();
+  const deleteUnit = useDeleteUnit();
+
+  const [isUnitFormOpen, setIsUnitFormOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<UnitRow | null>(null);
+  const [deleteUnitTarget, setDeleteUnitTarget] = useState<UnitRow | null>(null);
+  const [unitForm, setUnitForm] = useState<UnitInsert>({
+    property_id: property.id,
+    unit_number: '',
+    unit_type: 'شقة',
+    floor: '',
+    area: undefined,
+    status: 'شاغرة',
+    notes: '',
+  });
+
+  const resetUnitForm = () => {
+    setUnitForm({ property_id: property.id, unit_number: '', unit_type: 'شقة', floor: '', area: undefined, status: 'شاغرة', notes: '' });
+    setEditingUnit(null);
+    setIsUnitFormOpen(false);
+  };
+
+  const handleUnitSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!unitForm.unit_number) {
+      toast.error('يرجى إدخال رقم الوحدة');
+      return;
+    }
+    if (editingUnit) {
+      await updateUnit.mutateAsync({
+        id: editingUnit.id,
+        unit_number: unitForm.unit_number,
+        unit_type: unitForm.unit_type,
+        floor: unitForm.floor || null,
+        area: unitForm.area ?? null,
+        status: unitForm.status,
+        notes: unitForm.notes || null,
+      });
+    } else {
+      await createUnit.mutateAsync(unitForm);
+    }
+    resetUnitForm();
+  };
+
+  const handleEditUnit = (unit: UnitRow) => {
+    setEditingUnit(unit);
+    setUnitForm({
+      property_id: property.id,
+      unit_number: unit.unit_number,
+      unit_type: unit.unit_type,
+      floor: unit.floor || '',
+      area: unit.area ?? undefined,
+      status: unit.status,
+      notes: unit.notes || '',
+    });
+    setIsUnitFormOpen(true);
+  };
+
+  const handleConfirmDeleteUnit = async () => {
+    if (!deleteUnitTarget) return;
+    await deleteUnit.mutateAsync({ id: deleteUnitTarget.id, propertyId: property.id });
+    setDeleteUnitTarget(null);
+  };
+
+  // Get tenant for a unit from active contracts
+  const getTenant = (unitId: string) => {
+    const contract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
+    return contract?.tenant_name || null;
+  };
+
+  // Count stats
+  const rented = units.filter(u => u.status === 'مؤجرة').length;
+  const vacant = units.filter(u => u.status === 'شاغرة').length;
+  const maintenance = units.filter(u => u.status === 'صيانة').length;
+
+  return (
+    <>
+      <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Building2 className="w-5 h-5" />
+              عقار {property.property_number} - {property.location}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Property info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/50">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">النوع</p>
+              <p className="font-medium text-sm">{property.property_type}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">الموقع</p>
+              <p className="font-medium text-sm">{property.location}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">المساحة</p>
+              <p className="font-medium text-sm">{property.area} م²</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">إجمالي الوحدات</p>
+              <p className="font-medium text-sm">{units.length}</p>
+            </div>
+          </div>
+
+          {/* Stats badges */}
+          {units.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant="default" className="gap-1">
+                <Home className="w-3 h-3" /> مؤجرة: {rented}
+              </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <DoorOpen className="w-3 h-3" /> شاغرة: {vacant}
+              </Badge>
+              {maintenance > 0 && (
+                <Badge variant="destructive" className="gap-1">
+                  صيانة: {maintenance}
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* Add unit button */}
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold">الوحدات السكنية</h3>
+            <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
+              <Plus className="w-4 h-4" /> إضافة وحدة
+            </Button>
+          </div>
+
+          {/* Unit form */}
+          {isUnitFormOpen && (
+            <Card className="border-primary/20">
+              <CardContent className="pt-4">
+                <form onSubmit={handleUnitSubmit} className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">رقم الوحدة *</Label>
+                      <Input
+                        value={unitForm.unit_number}
+                        onChange={(e) => setUnitForm({ ...unitForm, unit_number: e.target.value })}
+                        placeholder="شقة 1"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">النوع</Label>
+                      <Select value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {UNIT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">الدور</Label>
+                      <Select value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })}>
+                        <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                        <SelectContent>
+                          {FLOORS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">المساحة (م²)</Label>
+                      <Input
+                        type="number"
+                        value={unitForm.area ?? ''}
+                        onChange={(e) => setUnitForm({ ...unitForm, area: e.target.value ? parseFloat(e.target.value) : undefined })}
+                        placeholder="80"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">الحالة</Label>
+                      <Select value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {UNIT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">ملاحظات</Label>
+                      <Input
+                        value={unitForm.notes || ''}
+                        onChange={(e) => setUnitForm({ ...unitForm, notes: e.target.value })}
+                        placeholder="ملاحظات"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button type="submit" size="sm" disabled={createUnit.isPending || updateUnit.isPending}>
+                      {editingUnit ? 'تحديث' : 'إضافة'}
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={resetUnitForm}>إلغاء</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Units table */}
+          {isLoading ? (
+            <p className="text-center text-muted-foreground py-8">جاري التحميل...</p>
+          ) : units.length === 0 ? (
+            <div className="text-center py-8">
+              <DoorOpen className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+              <p className="text-muted-foreground">لا توجد وحدات مسجلة لهذا العقار</p>
+              <p className="text-xs text-muted-foreground mt-1">اضغط "إضافة وحدة" لبدء تسجيل الوحدات السكنية</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">رقم الوحدة</TableHead>
+                    <TableHead className="text-right">النوع</TableHead>
+                    <TableHead className="text-right">الدور</TableHead>
+                    <TableHead className="text-right">المساحة</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right">إجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {units.map((unit) => (
+                    <TableRow key={unit.id}>
+                      <TableCell className="font-medium">{unit.unit_number}</TableCell>
+                      <TableCell>{unit.unit_type}</TableCell>
+                      <TableCell>{unit.floor || '-'}</TableCell>
+                      <TableCell>{unit.area ? `${unit.area} م²` : '-'}</TableCell>
+                      <TableCell>
+                        <Badge variant={statusColor(unit.status)}>{unit.status}</Badge>
+                      </TableCell>
+                      <TableCell>{getTenant(unit.id) || <span className="text-muted-foreground">-</span>}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}>
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete unit confirmation */}
+      <AlertDialog open={!!deleteUnitTarget} onOpenChange={(open) => !open && setDeleteUnitTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الوحدة</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف الوحدة "{deleteUnitTarget?.unit_number}"؟ العقود المرتبطة بها ستبقى ولكن بدون ربط بوحدة.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeleteUnit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              تأكيد الحذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
