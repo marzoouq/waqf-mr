@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useInvoices, useCreateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from '@/hooks/useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Download } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +24,10 @@ const InvoicesPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
   const createInvoice = useCreateInvoice();
+  const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
+
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +52,23 @@ const InvoicesPage = () => {
   const resetForm = () => {
     setFormData({ invoice_number: '', invoice_type: '', amount: '', date: '', property_id: '', contract_id: '', description: '', status: 'pending' });
     setSelectedFile(null);
+    setEditingInvoice(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleEdit = (item: Invoice) => {
+    setEditingInvoice(item);
+    setFormData({
+      invoice_number: item.invoice_number || '',
+      invoice_type: item.invoice_type,
+      amount: item.amount.toString(),
+      date: item.date,
+      property_id: item.property_id || '',
+      contract_id: item.contract_id || '',
+      description: item.description || '',
+      status: item.status,
+    });
+    setIsOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,32 +77,46 @@ const InvoicesPage = () => {
       toast.error('يرجى ملء الحقول المطلوبة');
       return;
     }
-    if (!selectedFile) {
+    if (!editingInvoice && !selectedFile) {
       toast.error('يرجى رفع ملف الفاتورة');
       return;
     }
 
     try {
       setUploading(true);
-      const { path, name } = await uploadInvoiceFile(selectedFile);
 
-      await createInvoice.mutateAsync({
-        invoice_number: formData.invoice_number || undefined,
+      const invoiceData: Record<string, any> = {
+        invoice_number: formData.invoice_number || null,
         invoice_type: formData.invoice_type,
         amount: parseFloat(formData.amount) || 0,
         date: formData.date,
-        property_id: formData.property_id || undefined,
-        contract_id: formData.contract_id || undefined,
-        description: formData.description || undefined,
+        property_id: formData.property_id || null,
+        contract_id: formData.contract_id || null,
+        description: formData.description || null,
         status: formData.status,
-        file_path: path,
-        file_name: name,
-      } as any);
+      };
+
+      // Upload new file if selected
+      if (selectedFile) {
+        // Remove old file if replacing
+        if (editingInvoice?.file_path) {
+          await supabase.storage.from('invoices').remove([editingInvoice.file_path]);
+        }
+        const { path, name } = await uploadInvoiceFile(selectedFile);
+        invoiceData.file_path = path;
+        invoiceData.file_name = name;
+      }
+
+      if (editingInvoice) {
+        await updateInvoice.mutateAsync({ id: editingInvoice.id, ...invoiceData });
+      } else {
+        await createInvoice.mutateAsync(invoiceData as any);
+      }
 
       setIsOpen(false);
       resetForm();
     } catch {
-      toast.error('حدث خطأ أثناء رفع الفاتورة');
+      toast.error('حدث خطأ أثناء حفظ الفاتورة');
     } finally {
       setUploading(false);
     }
@@ -134,17 +168,17 @@ const InvoicesPage = () => {
               <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>رفع فاتورة جديدة</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>ملف الفاتورة (صورة أو PDF) *</Label>
+                  <Label>{editingInvoice ? 'تغيير ملف الفاتورة (اختياري)' : 'ملف الفاتورة (صورة أو PDF) *'}</Label>
                   <div
                     className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      {selectedFile ? selectedFile.name : 'اضغط لاختيار ملف أو اسحبه هنا'}
+                      {selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
                     </p>
                     <input
                       ref={fileInputRef}
@@ -226,8 +260,8 @@ const InvoicesPage = () => {
                 </div>
 
                 <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1 gradient-primary" disabled={uploading || createInvoice.isPending}>
-                    {uploading ? 'جاري الرفع...' : 'رفع الفاتورة'}
+                  <Button type="submit" className="flex-1 gradient-primary" disabled={uploading || createInvoice.isPending || updateInvoice.isPending}>
+                    {uploading ? 'جاري الحفظ...' : editingInvoice ? 'تحديث' : 'رفع الفاتورة'}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
                 </div>
@@ -286,14 +320,19 @@ const InvoicesPage = () => {
                         ) : '-'}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
