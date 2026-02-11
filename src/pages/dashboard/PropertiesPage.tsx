@@ -349,10 +349,13 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     setDeleteUnitTarget(null);
   };
 
-  // Get tenant for a unit from active contracts
-  const getTenant = (unitId: string) => {
-    const contract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
-    return contract?.tenant_name || null;
+  // Get tenant for a unit - prioritize active contracts, fallback to expired
+  const getTenant = (unitId: string): { name: string; status: string } | null => {
+    const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
+    if (activeContract) return { name: activeContract.tenant_name, status: 'active' };
+    const anyContract = contracts.find(c => c.unit_id === unitId);
+    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status };
+    return null;
   };
 
   // Count stats
@@ -519,7 +522,20 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       <TableCell>
                         <Badge variant={statusColor(unit.status)}>{unit.status}</Badge>
                       </TableCell>
-                      <TableCell>{getTenant(unit.id) || <span className="text-muted-foreground">-</span>}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tenant = getTenant(unit.id);
+                          if (!tenant) return <span className="text-muted-foreground">-</span>;
+                          return (
+                            <span>
+                              {tenant.name}
+                              {tenant.status !== 'active' && (
+                                <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
+                              )}
+                            </span>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}>
