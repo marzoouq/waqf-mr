@@ -143,7 +143,7 @@ const ContractsPage = () => {
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pr-10" />
+          <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
         </div>
 
         <Card className="shadow-sm">
