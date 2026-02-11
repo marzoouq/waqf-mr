@@ -107,9 +107,9 @@ const ContractsPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة العقود</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة عقود الإيجار</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateContractsPDF(contracts, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
+            <Button variant="outline" size="sm" onClick={() => generateContractsPDF(contracts, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقد</Button>
@@ -186,7 +186,7 @@ const ContractsPage = () => {
             ) : filteredContracts.length === 0 ? (
               <div className="py-12 text-center"><FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p></div>
             ) : (
-              <Table>
+              <Table className="min-w-[750px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>

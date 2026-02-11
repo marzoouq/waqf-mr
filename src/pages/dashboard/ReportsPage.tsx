@@ -89,14 +89,14 @@ const ReportsPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير</h1>
             <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button onClick={handleExportPDF} variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
-              تصدير PDF
+              <span className="hidden sm:inline">تصدير PDF</span>
             </Button>
             <Button onClick={handlePrint} className="gradient-primary gap-2">
               <Printer className="w-4 h-4" />
-              طباعة التقرير
+              <span className="hidden sm:inline">طباعة التقرير</span>
             </Button>
           </div>
         </div>

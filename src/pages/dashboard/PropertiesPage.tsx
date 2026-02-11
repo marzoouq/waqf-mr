@@ -131,14 +131,14 @@ const PropertiesPage = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة العقارات</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة جميع عقارات الوقف</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
-              طباعة
+              <span className="hidden sm:inline">طباعة</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => generatePropertiesPDF(properties, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
-              تصدير PDF
+              <span className="hidden sm:inline">تصدير PDF</span>
             </Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
