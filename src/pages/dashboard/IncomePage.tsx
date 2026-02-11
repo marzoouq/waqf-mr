@@ -12,6 +12,7 @@ import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import { generateIncomePDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import {
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const IncomePage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: income = [], isLoading } = useIncome();
   const { data: properties = [] } = useProperties();
   const createIncome = useCreateIncome();
@@ -74,7 +76,7 @@ const IncomePage = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة دخل</Button></DialogTrigger>
               <DialogContent className="max-w-md">

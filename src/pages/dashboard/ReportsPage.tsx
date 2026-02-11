@@ -11,8 +11,10 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { BarChart3, Download, FileText, Printer } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 const ReportsPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
   const { data: beneficiaries = [] } = useBeneficiaries();
@@ -76,7 +78,7 @@ const ReportsPage = () => {
         percentage: d.percentage,
         amount: d.amount,
       })),
-    });
+    }, pdfWaqfInfo);
   };
   return (
     <DashboardLayout>

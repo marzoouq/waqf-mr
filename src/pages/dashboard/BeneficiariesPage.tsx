@@ -10,6 +10,7 @@ import { Beneficiary } from '@/types/database';
 import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Printer, FileDown, Search } from 'lucide-react';
 import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/maskData';
 import { generateBeneficiariesPDF } from '@/utils/pdfGenerator';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -24,6 +25,7 @@ const ITEMS_PER_PAGE = 9;
 interface AuthUser { id: string; email: string; }
 
 const BeneficiariesPage = () => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: beneficiaries = [], isLoading } = useBeneficiaries();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
@@ -101,7 +103,7 @@ const BeneficiariesPage = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" />طباعة</Button>
-            <Button variant="outline" size="sm" onClick={() => generateBeneficiariesPDF(beneficiaries)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
+            <Button variant="outline" size="sm" onClick={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" />تصدير PDF</Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مستفيد</Button></DialogTrigger>
               <DialogContent className="max-w-md">
