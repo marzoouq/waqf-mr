@@ -25,6 +25,7 @@ import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+import waqfLogo from '@/assets/waqf-logo.png';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -59,9 +60,7 @@ const PrintHeader = () => {
     <div className="hidden print:block mb-6 px-6 pt-4">
       <div className="flex items-center justify-between border-b-2 border-primary pb-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-primary" />
-          </div>
+          <img src={waqfLogo} alt="شعار الوقف" className="w-16 h-16 rounded-xl object-contain" />
           <div>
             <h1 className="text-xl font-bold font-display">{waqfName}</h1>
             <p className="text-sm text-muted-foreground">ناظر الوقف: {waqfAdmin}</p>
