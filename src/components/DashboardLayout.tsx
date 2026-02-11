@@ -67,6 +67,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
     { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
     { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
+    { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
     { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
   ];
 
@@ -77,6 +78,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
     { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
     { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
+    { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
   ];
 
   const sectionsVisibility = getJsonSetting('sections_visibility', { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true });
