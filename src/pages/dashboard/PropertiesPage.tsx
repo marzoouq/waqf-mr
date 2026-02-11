@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
 import { useContracts } from '@/hooks/useContracts';
+import { useTenantPayments } from '@/hooks/useTenantPayments';
 import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
@@ -278,12 +279,13 @@ const PropertiesPage = () => {
 // ─── Property Units Dialog Component ─────────────────────────────────
 interface PropertyUnitsDialogProps {
   property: Property;
-  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string; start_date: string; end_date: string }>;
+  contracts: Array<{ id: string; tenant_name: string; status: string; unit_id?: string; property_id: string; start_date: string; end_date: string; rent_amount: number }>;
   onClose: () => void;
 }
 
 const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDialogProps) => {
   const { data: units = [], isLoading } = useUnits(property.id);
+  const { data: tenantPayments = [] } = useTenantPayments();
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const deleteUnit = useDeleteUnit();
@@ -350,12 +352,17 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   };
 
   // Get tenant for a unit - prioritize active contracts, fallback to expired
-  const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null } | null => {
+  const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null; rent_amount: number; contract_id: string } | null => {
     const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
-    if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date };
+    if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date, rent_amount: activeContract.rent_amount, contract_id: activeContract.id };
     const anyContract = contracts.find(c => c.unit_id === unitId);
-    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date };
+    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date, rent_amount: anyContract.rent_amount, contract_id: anyContract.id };
     return null;
+  };
+
+  const getPaymentInfo = (contractId: string) => {
+    const payment = tenantPayments.find(p => p.contract_id === contractId);
+    return payment ? payment.paid_months : 0;
   };
 
   // Count stats
@@ -511,6 +518,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                     <TableHead className="text-right">المستأجر</TableHead>
                     <TableHead className="text-right">بداية العقد</TableHead>
                     <TableHead className="text-right">نهاية العقد</TableHead>
+                    <TableHead className="text-right">الإيجار السنوي</TableHead>
+                    <TableHead className="text-right">الدفعات المسددة</TableHead>
                     <TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -548,6 +557,26 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         {(() => {
                           const tenant = getTenant(unit.id);
                           return tenant?.end_date || <span className="text-muted-foreground">-</span>;
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tenant = getTenant(unit.id);
+                          if (!tenant) return <span className="text-muted-foreground">-</span>;
+                          return <span>{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>;
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const tenant = getTenant(unit.id);
+                          if (!tenant) return <span className="text-muted-foreground">-</span>;
+                          const paid = getPaymentInfo(tenant.contract_id);
+                          const isComplete = paid >= 12;
+                          return (
+                            <span className={isComplete ? 'text-green-600 font-medium' : 'text-destructive font-medium'}>
+                              {paid}/12
+                            </span>
+                          );
                         })()}
                       </TableCell>
                       <TableCell>
