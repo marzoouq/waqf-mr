@@ -11,8 +11,9 @@ import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Plus, Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
+import ExportMenu from '@/components/ExportMenu';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import { generateExpensesPDF } from '@/utils/pdf';
@@ -106,8 +107,7 @@ const ExpensesPage = () => {
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة المصروفات</p>
           </div>
            <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
-            <Button variant="outline" size="sm" onClick={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
+            <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
               <DialogContent className="max-w-md">

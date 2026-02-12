@@ -10,9 +10,10 @@ import { useContracts, useCreateContract, useUpdateContract, useDeleteContract }
 import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
+import ExportMenu from '@/components/ExportMenu';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -128,8 +129,7 @@ const ContractsPage = () => {
             <p className="text-muted-foreground mt-1">عرض وإدارة عقود الإيجار</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
-            <Button variant="outline" size="sm" onClick={() => generateContractsPDF(contracts, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
+            <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقد</Button>

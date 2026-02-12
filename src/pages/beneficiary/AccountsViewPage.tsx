@@ -5,7 +5,8 @@ import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download, Printer } from 'lucide-react';
+import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { generateAccountsPDF } from '@/utils/pdf';
@@ -85,58 +86,43 @@ const AccountsViewPage = () => {
             <p className="text-muted-foreground mt-1">عرض تفصيلي للحسابات الختامية للوقف</p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-            >
-              <Printer className="w-4 h-4 ml-2" />
-              طباعة
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await generateAccountsPDF({
-                    contracts: contracts.map(c => ({
-                      contract_number: c.contract_number,
-                      tenant_name: c.tenant_name,
-                      rent_amount: Number(c.rent_amount),
-                      status: c.status,
-                    })),
-                    incomeBySource,
-                    expensesByType,
-                    totalIncome,
-                    totalExpenses,
-                    netRevenue: netAfterVat,
-                    adminShare,
-                    waqifShare,
-                    waqfRevenue,
-                    beneficiaries: beneficiaries.map(b => ({
-                      name: b.name,
-                      share_percentage: Number(b.share_percentage),
-                    })),
-                    vatAmount,
-                    zakatAmount,
-                    waqfCorpusPrevious,
-                    grandTotal,
-                    netAfterExpenses,
-                    netAfterVat,
-                    waqfCapital: waqfCorpusManual,
-                    distributionsAmount,
-                    availableAmount: distributableAmount,
-                    remainingBalance: distributableAmount - distributionsAmount,
-                  }, pdfWaqfInfo);
-                  toast.success('تم تصدير الحسابات الختامية بنجاح');
-                } catch {
-                  toast.error('حدث خطأ أثناء تصدير PDF');
-                }
-              }}
-            >
-              <Download className="w-4 h-4 ml-2" />
-              تصدير PDF
-            </Button>
+            <ExportMenu onExportPdf={async () => {
+              try {
+                await generateAccountsPDF({
+                  contracts: contracts.map(c => ({
+                    contract_number: c.contract_number,
+                    tenant_name: c.tenant_name,
+                    rent_amount: Number(c.rent_amount),
+                    status: c.status,
+                  })),
+                  incomeBySource,
+                  expensesByType,
+                  totalIncome,
+                  totalExpenses,
+                  netRevenue: netAfterVat,
+                  adminShare,
+                  waqifShare,
+                  waqfRevenue,
+                  beneficiaries: beneficiaries.map(b => ({
+                    name: b.name,
+                    share_percentage: Number(b.share_percentage),
+                  })),
+                  vatAmount,
+                  zakatAmount,
+                  waqfCorpusPrevious,
+                  grandTotal,
+                  netAfterExpenses,
+                  netAfterVat,
+                  waqfCapital: waqfCorpusManual,
+                  distributionsAmount,
+                  availableAmount: distributableAmount,
+                  remainingBalance: distributableAmount - distributionsAmount,
+                }, pdfWaqfInfo);
+                toast.success('تم تصدير الحسابات الختامية بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير PDF');
+              }
+            }} />
           </div>
         </div>
 

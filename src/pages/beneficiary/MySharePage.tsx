@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, Printer, FileText } from 'lucide-react';
+import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, FileText } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
@@ -90,9 +91,7 @@ const MySharePage = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // handlePrint removed - ExportMenu handles it
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -115,14 +114,7 @@ const MySharePage = () => {
             <p className="text-muted-foreground mt-1">تفاصيل حصتك من ريع الوقف</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrint} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button onClick={handleDownloadPDF} className="gap-2" disabled={!currentBeneficiary}>
-              <Download className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 
