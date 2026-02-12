@@ -44,7 +44,7 @@ const BeneficiaryDashboard = () => {
       title: 'حصتي من الريع',
       description: 'تفاصيل حصتك وسجل التوزيعات',
       icon: PieChart,
-      path: '/beneficiary/my-share',
+      path: '/beneficiary/share',
       color: 'bg-success/10 text-success',
     },
     {
