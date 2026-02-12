@@ -5,7 +5,7 @@ import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download } from 'lucide-react';
+import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -13,17 +13,25 @@ import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
-  const { data: contracts = [] } = useContracts();
-  const { data: accounts = [] } = useAccounts();
+  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
+  const { data: income = [], isLoading: incomeLoading } = useIncome();
+  const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
+  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
+
+  const isPageLoading = beneficiariesLoading || incomeLoading || expensesLoading || contractsLoading || accountsLoading;
+  const pageError = beneficiariesError || accountsError;
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
@@ -75,6 +83,26 @@ const AccountsViewPage = () => {
       default: return status;
     }
   };
+
+  if (isPageLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (pageError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <p className="text-muted-foreground text-center">{pageError.message}</p>
+          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -303,7 +331,7 @@ const AccountsViewPage = () => {
               <Button
                 variant="link"
                 className="text-primary gap-1"
-                onClick={() => window.location.href = '/beneficiary/disclosure'}
+                onClick={() => navigate('/beneficiary/disclosure')}
               >
                 <PieChart className="w-4 h-4" />
                 صفحة الإفصاح السنوي

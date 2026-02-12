@@ -4,7 +4,7 @@ import { Account } from '@/types/database';
 const accountsCrud = useCrudFactory<'accounts', Account>({
   table: 'accounts',
   queryKey: 'accounts',
-  orderBy: 'fiscal_year',
+  orderBy: 'created_at',
   ascending: false,
   label: 'الحساب',
 });

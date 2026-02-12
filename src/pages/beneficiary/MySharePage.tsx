@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, Percent, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -18,6 +19,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
@@ -228,7 +230,7 @@ const MySharePage = () => {
               <Button
                 variant="link"
                 className="text-primary gap-1"
-                onClick={() => window.location.href = '/beneficiary/disclosure'}
+                onClick={() => navigate('/beneficiary/disclosure')}
               >
                 <FileText className="w-4 h-4" />
                 صفحة الإفصاح السنوي
