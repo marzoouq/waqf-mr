@@ -91,6 +91,12 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
+  // Expenses grouped excluding VAT entries (used by Disclosure & Financial Reports)
+  const expensesByTypeExcludingVat = useMemo(() => {
+    const filtered = expenses.filter(e => e.description !== 'ضريبة القيمة المضافة المحصلة من الهيئة');
+    return groupExpensesByType(filtered);
+  }, [expenses]);
+
   return {
     // Raw data
     income,
@@ -115,5 +121,6 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
     // Grouped
     incomeBySource,
     expensesByType,
+    expensesByTypeExcludingVat,
   };
 };
