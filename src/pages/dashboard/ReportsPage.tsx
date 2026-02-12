@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFoo
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -22,7 +24,17 @@ const ReportsPage = () => {
   const { data: allUnits = [] } = useAllUnits();
   const reportRef = useRef<HTMLDivElement>(null);
 
-  // TODO: ReportsPage should eventually support fiscal year selection
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFiscalYearId, setSelectedFiscalYearId] = useState<string>('');
+
+  useEffect(() => {
+    if (activeFY && !selectedFiscalYearId) {
+      setSelectedFiscalYearId(activeFY.id);
+    }
+  }, [activeFY]);
+
+  const selectedFiscalYearLabel = fiscalYears.find(fy => fy.id === selectedFiscalYearId)?.label;
+
   const {
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,
@@ -31,7 +43,7 @@ const ReportsPage = () => {
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
     incomeBySource, expensesByType,
-  } = useFinancialSummary();
+  } = useFinancialSummary(selectedFiscalYearId || undefined, selectedFiscalYearLabel);
 
   const beneficiariesShare = availableAmount;
   const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
@@ -122,9 +134,16 @@ const ReportsPage = () => {
       <div className="p-6 space-y-6" ref={reportRef}>
         {/* Header */}
         <div className="flex items-center justify-between print:hidden">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير</h1>
-            <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير</h1>
+              <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
+            </div>
+            <FiscalYearSelector
+              value={selectedFiscalYearId}
+              onChange={setSelectedFiscalYearId}
+              showAll={false}
+            />
           </div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={async () => {
