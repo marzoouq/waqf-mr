@@ -1,11 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, FileText, TrendingUp, TrendingDown, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -16,17 +17,24 @@ import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableC
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-
-
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Fiscal year selection
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+
   const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: income = [], isLoading: incomeLoading } = useIncome();
-  const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: income = [], isLoading: incomeLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: contracts = [], isLoading: contractsLoading } = useContracts();
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
 
@@ -35,7 +43,11 @@ const AccountsViewPage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const currentAccount = accounts[0];
+  // Filter account by selected fiscal year label
+  const currentAccount = selectedFY
+    ? accounts.find(a => a.fiscal_year === selectedFY.label) || accounts[0]
+    : accounts[0];
+
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
@@ -44,14 +56,12 @@ const AccountsViewPage = () => {
   const vatAmount = Number(currentAccount?.vat_amount || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
   const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(currentAccount?.admin_share || 0);
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
   const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
-  const waqfCapital = Number(currentAccount?.waqf_capital || 0);
 
   // Group income by source
   const incomeBySource = income.reduce((acc, item) => {
@@ -61,15 +71,13 @@ const AccountsViewPage = () => {
   }, {} as Record<string, number>);
 
   // Group expenses by type
-  const expensesByType = expenses
-    .reduce((acc, item) => {
-      const type = item.expense_type || 'غير محدد';
-      acc[type] = (acc[type] || 0) + Number(item.amount);
-      return acc;
-    }, {} as Record<string, number>);
+  const expensesByType = expenses.reduce((acc, item) => {
+    const type = item.expense_type || 'غير محدد';
+    acc[type] = (acc[type] || 0) + Number(item.amount);
+    return acc;
+  }, {} as Record<string, number>);
 
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-  const totalMonthlyRent = Math.round(totalRent / 12);
 
   const myShare = currentBeneficiary
     ? (distributableAmount * Number(currentBeneficiary.share_percentage)) / 100
@@ -153,6 +161,9 @@ const AccountsViewPage = () => {
             }} />
           </div>
         </div>
+
+        {/* Fiscal Year Selector */}
+        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary */}
         <Card className="shadow-sm gradient-hero text-primary-foreground">
@@ -289,7 +300,7 @@ const AccountsViewPage = () => {
           </CardContent>
         </Card>
 
-        {/* Expenses Details - without VAT */}
+        {/* Expenses Details */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
