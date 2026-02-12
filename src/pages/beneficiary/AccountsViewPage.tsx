@@ -13,7 +13,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
-const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
+
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -30,12 +30,13 @@ const AccountsViewPage = () => {
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
+  const waqfCorpusPrevious = Number(currentAccount?.waqf_corpus_previous || 0);
+  const grandTotal = totalIncome + waqfCorpusPrevious;
   const vatAmount = Number(currentAccount?.vat_amount || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
   const zakatAmount = Number(currentAccount?.zakat_amount || 0);
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(currentAccount?.admin_share || 0);
-  const afterAdmin = netAfterZakat - adminShare;
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
   const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
@@ -50,9 +51,8 @@ const AccountsViewPage = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  // Group expenses by type - exclude VAT
+  // Group expenses by type
   const expensesByType = expenses
-    .filter(item => item.description !== VAT_DESCRIPTION)
     .reduce((acc, item) => {
       const type = item.expense_type || 'غير محدد';
       acc[type] = (acc[type] || 0) + Number(item.amount);
@@ -315,11 +315,25 @@ const AccountsViewPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {waqfCorpusPrevious > 0 && (
+                  <TableRow>
+                    <TableCell className="font-medium">رقبة الوقف المرحلة</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="font-bold text-success">+{waqfCorpusPrevious.toLocaleString()}</TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
-                  <TableCell className="font-medium">إجمالي الإيرادات</TableCell>
+                  <TableCell className="font-medium">إجمالي الدخل</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell className="font-bold text-success">+{totalIncome.toLocaleString()}</TableCell>
                 </TableRow>
+                {waqfCorpusPrevious > 0 && (
+                  <TableRow className="bg-muted/30">
+                    <TableCell className="font-bold">الإجمالي الشامل</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="font-bold">{grandTotal.toLocaleString()}</TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
                   <TableCell className="font-medium">(-) إجمالي المصروفات</TableCell>
                   <TableCell>-</TableCell>
@@ -358,11 +372,6 @@ const AccountsViewPage = () => {
                   <TableCell className="font-medium">(-) حصة الناظر</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell>{adminShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/20">
-                  <TableCell className="font-medium">الباقي بعد حصة الناظر</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{afterAdmin.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">(-) حصة الواقف</TableCell>
@@ -422,7 +431,7 @@ const AccountsViewPage = () => {
                           </TableCell>
                           <TableCell>{Number(b.share_percentage).toFixed(2)}%</TableCell>
                           <TableCell className="text-primary font-medium">
-                            {(waqfRevenue * Number(b.share_percentage) / 100).toLocaleString()}
+                            {(distributableAmount * Number(b.share_percentage) / 100).toLocaleString()}
                           </TableCell>
                         </TableRow>
                       );
