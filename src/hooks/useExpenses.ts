@@ -32,9 +32,16 @@ export const useCreateExpense = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('تم إضافة المصروف بنجاح');
+      // Notify beneficiaries
+      supabase.rpc('notify_all_beneficiaries', {
+        p_title: 'مصروف جديد',
+        p_message: `تم تسجيل مصروف جديد (${data.expense_type}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
+        p_type: 'payment',
+        p_link: '/beneficiary/disclosure',
+      }).then();
     },
     onError: () => {
       toast.error('حدث خطأ أثناء إضافة المصروف');
