@@ -28,8 +28,10 @@ export type Database = {
           updated_at: string
           vat_amount: number
           waqf_capital: number
+          waqf_corpus_manual: number
           waqf_revenue: number
           waqif_share: number
+          zakat_amount: number
         }
         Insert: {
           admin_share?: number
@@ -44,8 +46,10 @@ export type Database = {
           updated_at?: string
           vat_amount?: number
           waqf_capital?: number
+          waqf_corpus_manual?: number
           waqf_revenue?: number
           waqif_share?: number
+          zakat_amount?: number
         }
         Update: {
           admin_share?: number
@@ -60,8 +64,10 @@ export type Database = {
           updated_at?: string
           vat_amount?: number
           waqf_capital?: number
+          waqf_corpus_manual?: number
           waqf_revenue?: number
           waqif_share?: number
+          zakat_amount?: number
         }
         Relationships: []
       }

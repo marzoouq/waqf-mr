@@ -515,6 +515,8 @@ export const generateAccountsPDF = async (data: {
   vatAmount?: number;
   distributionsAmount?: number;
   waqfCapital?: number;
+  zakatAmount?: number;
+  netAfterZakat?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
@@ -578,10 +580,12 @@ export const generateAccountsPDF = async (data: {
 
   y = (doc as any).lastAutoTable?.finalY + 10 || 200;
 
-  // Distribution
+  // Distribution - Sequential (step-down) calculation
   const regularExp = data.totalExpenses - (data.vatAmount || 0);
   const netAfterExp = data.totalIncome - regularExp;
   const netAfterVat = netAfterExp - (data.vatAmount || 0);
+  const zakatAmt = data.zakatAmount || 0;
+  const netAfterZakatVal = data.netAfterZakat || (netAfterVat - zakatAmt);
 
   doc.setFont(fontFamily, 'bold');
   doc.text('التوزيع', 105, y, { align: 'center' });
@@ -594,11 +598,14 @@ export const generateAccountsPDF = async (data: {
       ['الصافي بعد المصاريف', netAfterExp.toLocaleString()],
       ['(-) ضريبة القيمة المضافة', `(${(data.vatAmount || 0).toLocaleString()})`],
       ['الصافي بعد خصم الضريبة', netAfterVat.toLocaleString()],
-      ['(-) حصة الناظر (10%)', `(${data.adminShare.toLocaleString()})`],
-      ['(-) حصة الواقف (5%)', `(${data.waqifShare.toLocaleString()})`],
+      ['(-) الزكاة', `(${zakatAmt.toLocaleString()})`],
+      ['الصافي بعد الزكاة', netAfterZakatVal.toLocaleString()],
+      ['(-) حصة الناظر', `(${data.adminShare.toLocaleString()})`],
+      [`الباقي بعد حصة الناظر`, `${(netAfterZakatVal - data.adminShare).toLocaleString()}`],
+      ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
       ['ريع الوقف', data.waqfRevenue.toLocaleString()],
-      ['التوزيعات الفعلية', (data.distributionsAmount || 0).toLocaleString()],
-      ['رقبة الوقف', (data.waqfCapital || 0).toLocaleString()],
+      ['(-) رقبة الوقف', `(${(data.waqfCapital || 0).toLocaleString()})`],
+      ['المبلغ القابل للتوزيع', (data.distributionsAmount || 0).toLocaleString()],
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),

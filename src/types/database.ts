@@ -95,6 +95,8 @@ export interface Account {
   waqf_capital: number;
   net_after_expenses: number;
   net_after_vat: number;
+  zakat_amount: number;
+  waqf_corpus_manual: number;
   created_at: string;
   updated_at: string;
 }
