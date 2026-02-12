@@ -51,6 +51,7 @@ export interface Income {
   date: string;
   property_id?: string;
   contract_id?: string;
+  fiscal_year_id?: string;
   notes?: string;
   created_at: string;
   property?: Property;
@@ -63,6 +64,7 @@ export interface Expense {
   amount: number;
   date: string;
   property_id?: string;
+  fiscal_year_id?: string;
   description?: string;
   created_at: string;
   property?: Property;
