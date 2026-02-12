@@ -2,30 +2,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, FileText, BarChart3, Printer } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
+import { Wallet, FileText, BarChart3, Printer, PieChart, Calculator, Bell, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useNavigate } from 'react-router-dom';
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: accounts = [] } = useAccounts();
+  const { data: notifications = [] } = useNotifications();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const latestAccount = accounts[0];
 
   const totalIncome = Number(latestAccount?.total_income || 0);
-  const totalExpenses = Number(latestAccount?.total_expenses || 0);
-  const netAfterExpenses = Number(latestAccount?.net_after_expenses || 0);
-  const vatAmount = Number(latestAccount?.vat_amount || 0);
-  const netAfterVat = Number(latestAccount?.net_after_vat || 0);
-  const zakatAmount = Number(latestAccount?.zakat_amount || 0);
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const adminShare = Number(latestAccount?.admin_share || 0);
-  const waqifShare = Number(latestAccount?.waqif_share || 0);
   const waqfRevenue = Number(latestAccount?.waqf_revenue || 0);
-  const waqfCorpusPrevious = Number(latestAccount?.waqf_corpus_previous || 0);
-  const grandTotal = totalIncome + waqfCorpusPrevious;
   const waqfCorpusManual = Number(latestAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
@@ -33,6 +28,39 @@ const BeneficiaryDashboard = () => {
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
+
+  const recentNotifications = notifications.slice(0, 3);
+
+  const quickLinks = [
+    {
+      title: 'الإفصاح السنوي',
+      description: 'البيان المالي التفصيلي الكامل',
+      icon: FileText,
+      path: '/beneficiary/disclosure',
+      color: 'bg-primary/10 text-primary',
+    },
+    {
+      title: 'حصتي من الريع',
+      description: 'تفاصيل حصتك وسجل التوزيعات',
+      icon: PieChart,
+      path: '/beneficiary/my-share',
+      color: 'bg-success/10 text-success',
+    },
+    {
+      title: 'الحسابات الختامية',
+      description: 'العقود والإيرادات والمصروفات',
+      icon: Calculator,
+      path: '/beneficiary/accounts',
+      color: 'bg-secondary/10 text-secondary',
+    },
+    {
+      title: 'التقارير المالية',
+      description: 'الرسوم البيانية والإحصائيات',
+      icon: BarChart3,
+      path: '/beneficiary/reports',
+      color: 'bg-warning/10 text-warning',
+    },
+  ];
 
   return (
     <DashboardLayout>
@@ -94,84 +122,67 @@ const BeneficiaryDashboard = () => {
           </Card>
         </div>
 
-        {/* Annual Disclosure */}
+        {/* Quick Links */}
+        <div>
+          <h2 className="text-lg font-bold mb-3">الوصول السريع</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickLinks.map((link) => (
+              <Card
+                key={link.path}
+                className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
+                onClick={() => navigate(link.path)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}>
+                      <link.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm">{link.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
+                    </div>
+                    <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Notifications */}
         <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>الإفصاح السنوي ({latestAccount?.fiscal_year || ''})</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bell className="w-5 h-5" />
+              آخر الإشعارات
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>
+              عرض الكل
+            </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {waqfCorpusPrevious > 0 && (
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span>رقبة الوقف المرحلة</span>
-                  <span className="font-bold text-success">+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>إجمالي الدخل</span>
-                <span className="font-bold text-success">+{totalIncome.toLocaleString()} ر.س</span>
+            {recentNotifications.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">لا توجد إشعارات جديدة</p>
+            ) : (
+              <div className="space-y-3">
+                {recentNotifications.map((n) => (
+                  <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm">{n.title}</p>
+                        {!n.is_read && (
+                          <Badge variant="default" className="text-[10px] px-1.5 py-0">جديد</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {new Date(n.created_at).toLocaleDateString('ar-SA')}
+                    </span>
+                  </div>
+                ))}
               </div>
-              {waqfCorpusPrevious > 0 && (
-                <div className="flex justify-between items-center py-2 border-b bg-muted/30 px-2 rounded">
-                  <span className="font-bold">الإجمالي الشامل</span>
-                  <span className="font-bold">{grandTotal.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>إجمالي المصروفات</span>
-                <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>الصافي بعد المصاريف</span>
-                <span className="font-bold">{netAfterExpenses.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>(-) ضريبة القيمة المضافة</span>
-                <span className="font-bold text-destructive">-{vatAmount.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>الصافي بعد خصم الضريبة</span>
-                <span className="font-bold text-primary">{netAfterVat.toLocaleString()} ر.س</span>
-              </div>
-              {zakatAmount > 0 && (
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span>(-) الزكاة</span>
-                  <span className="font-bold text-destructive">-{zakatAmount.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              {zakatAmount > 0 && (
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span>الصافي بعد الزكاة</span>
-                  <span className="font-bold">{netAfterZakat.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الناظر</span>
-                <span>{adminShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الواقف</span>
-                <span>{waqifShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>ريع الوقف</span>
-                <span className="font-bold">{waqfRevenue.toLocaleString()} ر.س</span>
-              </div>
-              {waqfCorpusManual > 0 && (
-                <div className="flex justify-between items-center py-2 border-b">
-                  <span>(-) رقبة الوقف</span>
-                  <span>{waqfCorpusManual.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>الإجمالي القابل للتوزيع</span>
-                <span className="font-bold">{beneficiariesShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4 mt-4">
-                <span className="font-bold">حصتي المستحقة ({currentBeneficiary?.share_percentage || 0}%)</span>
-                <span className="font-bold text-primary text-xl">{myShare.toLocaleString()} ر.س</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
