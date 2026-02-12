@@ -8,14 +8,18 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 
 const AdminDashboard = () => {
-  const { data: activeFiscalYear, isLoading: fyLoading } = useActiveFiscalYear();
+  const { data: activeFiscalYear, fiscalYears, isLoading: fyLoading } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFiscalYear?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContracts();
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
@@ -24,7 +28,7 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
-  } = useFinancialSummary(activeFiscalYear?.id, activeFiscalYear?.label);
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const isLoading = fyLoading || propsLoading || contractsLoading || unitsLoading;
 
@@ -113,10 +117,11 @@ const AdminDashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
             <p className="text-muted-foreground mt-1">
               مرحباً بك في نظام إدارة الوقف
-              {activeFiscalYear && <span className="text-primary font-medium"> — {activeFiscalYear.label}</span>}
+              {selectedFY && <span className="text-primary font-medium"> — {selectedFY.label}</span>}
             </p>
           </div>
           <div className="flex gap-2 print:hidden">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
               طباعة
