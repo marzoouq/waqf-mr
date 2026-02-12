@@ -1,103 +1,99 @@
 
 
-# تقسيم AccountsPage.tsx إلى مكونات فرعية
+# تقسيم pdfGenerator.ts إلى وحدات منفصلة
 
 ## المبدأ الأساسي
-نقل JSX فقط إلى مكونات فرعية مع تمرير البيانات والدوال كـ Props. المنطق الحسابي والحالة (state) تبقى في الصفحة الرئيسية بدون أي تغيير.
+نقل الدوال إلى ملفات متخصصة مع الحفاظ على ملف `index.ts` يعيد تصدير كل شيء لضمان التوافق الكامل مع جميع الاستيرادات الحالية (14 ملف يستورد من هذا الملف).
 
-## المكونات الفرعية المقترحة
+## هيكل الملفات الجديدة
 
-### 1. `components/accounts/AccountsSettingsBar.tsx`
-- شريط الإعدادات (السطور 412-507)
-- يستقبل Props: القيم الحالية (fiscalYear, adminPercent, waqifPercent, الخ) + دوال التغيير + calculatedVat + commercialRent + vatPercentage
-
-### 2. `components/accounts/AccountsSummaryCards.tsx`
-- بطاقات الملخص المالي (السطور 509-581)
-- يستقبل Props: جميع القيم المالية المحسوبة (totalIncome, totalExpenses, adminShare, الخ)
-
-### 3. `components/accounts/AccountsContractsTable.tsx`
-- جدول العقود (السطور 583-646)
-- يستقبل Props: contracts, getPaymentPerPeriod, getExpectedPayments, totalPaymentPerPeriod, totalAnnualRent, statusLabel, handleOpenContractEdit, setDeleteTarget
-
-### 4. `components/accounts/AccountsCollectionTable.tsx`
-- جدول التحصيل والمتأخرات (السطور 648-779)
-- يستقبل Props: collectionData, editingIndex, editData, setEditData, handleStartEdit, handleCancelEdit, handleSaveEdit, totals, isPending flags
-
-### 5. `components/accounts/AccountsIncomeTable.tsx`
-- تفصيل الإيرادات (السطور 781-817)
-- يستقبل Props: income, incomeBySource, totalIncome
-
-### 6. `components/accounts/AccountsExpensesTable.tsx`
-- تفصيل المصروفات (السطور 819-855)
-- يستقبل Props: expenses, expensesByType, totalExpenses
-
-### 7. `components/accounts/AccountsDistributionTable.tsx`
-- جدول التوزيع والحصص (السطور 857-962)
-- يستقبل Props: جميع القيم المالية من التسلسل الهرمي
-
-### 8. `components/accounts/AccountsBeneficiariesTable.tsx`
-- جدول توزيع حصص المستفيدين (السطور 964-1006)
-- يستقبل Props: beneficiaries, manualDistributions, totalBeneficiaryPercentage
-
-### 9. `components/accounts/AccountsSavedTable.tsx`
-- السجلات السابقة (السطور 1008-1056)
-- يستقبل Props: accounts, isLoading, setDeleteTarget
-
-### 10. `components/accounts/AccountsDialogs.tsx`
-- حوارات التعديل والحذف (السطور 1058-1124)
-- يستقبل Props: deleteTarget, setDeleteTarget, handleConfirmDelete, contractEditOpen, setContractEditOpen, editingContractData, setEditingContractData, handleSaveContractEdit, isPending
-
-## النتيجة المتوقعة
-
-`AccountsPage.tsx` سيتقلص من **1,130 سطر** إلى حوالي **350-400 سطر** تحتوي فقط على:
-- استدعاء الـ Hooks
-- إدارة الحالة (useState/useEffect)
-- المنطق الحسابي والدوال
-- تركيب المكونات الفرعية مع تمرير Props
-
-## القسم التقني
-
-### هيكل الملفات الجديدة
 ```text
-src/components/accounts/
-  AccountsSettingsBar.tsx
-  AccountsSummaryCards.tsx
-  AccountsContractsTable.tsx
-  AccountsCollectionTable.tsx
-  AccountsIncomeTable.tsx
-  AccountsExpensesTable.tsx
-  AccountsDistributionTable.tsx
-  AccountsBeneficiariesTable.tsx
-  AccountsSavedTable.tsx
-  AccountsDialogs.tsx
+src/utils/pdf/
+  core.ts        - الأنواع + الدوال المشتركة (الخط، الرأس، التذييل، الإطار، أنماط الجداول)
+  reports.ts     - generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF
+  entities.ts    - generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF
+  expenses.ts    - generateExpensesPDF, generateIncomePDF
+  accounts.ts    - generateAccountsPDF
+  beneficiary.ts - generateMySharePDF, generateDisclosurePDF
+  invoices.ts    - generateInvoicesViewPDF
+  index.ts       - re-export لكل الدوال والأنواع
 ```
 
-### مثال على الشكل النهائي لـ AccountsPage.tsx (الجزء JSX)
+## التوزيع التفصيلي
+
+### `core.ts` (~215 سطر) - السطور 1-215
+- `PdfWaqfInfo` (interface)
+- `UnitPdfRow` (interface)
+- `loadArabicFont()` 
+- `loadLogoBase64()`
+- `addHeader()`
+- `addHeaderToAllPages()`
+- `addPageBorder()`
+- `addFooter()`
+- ثوابت الألوان: `TABLE_HEAD_GREEN`, `TABLE_HEAD_GOLD`, `TABLE_HEAD_RED`
+- دوال الأنماط: `baseTableStyles()`, `headStyles()`, `footStyles()`
+
+### `reports.ts` (~160 سطر) - التقارير الإدارية
+- `generateAnnualReportPDF` (السطور 235-292)
+- `generateBeneficiaryStatementPDF` (السطور 294-324)
+- `generateAnnualDisclosurePDF` (السطور 814-956)
+
+### `entities.ts` (~130 سطر) - تقارير الكيانات
+- `generatePropertiesPDF` (السطور 328-358)
+- `generateContractsPDF` (السطور 360-400)
+- `generateBeneficiariesPDF` (السطور 468-502)
+- `generateUnitsPDF` (السطور 971-1031)
+
+### `expenses.ts` (~70 سطر) - تقارير الدخل والمصروفات
+- `generateIncomePDF` (السطور 402-433)
+- `generateExpensesPDF` (السطور 435-466)
+
+### `accounts.ts` (~160 سطر) - الحسابات الختامية
+- `generateAccountsPDF` (السطور 504-661)
+
+### `beneficiary.ts` (~140 سطر) - تقارير المستفيد
+- `generateMySharePDF` (السطور 663-731)
+- `generateDisclosurePDF` (السطور 733-810)
+
+### `invoices.ts` (~55 سطر) - تقارير الفواتير
+- `generateInvoicesViewPDF` (السطور 1033-1084)
+
+### `index.ts` - إعادة التصدير
 ```text
-return (
-  <DashboardLayout>
-    <div className="p-6 space-y-6">
-      {/* Header + Buttons */}
-      ...
-      <AccountsSettingsBar ... />
-      <AccountsSummaryCards ... />
-      <AccountsContractsTable ... />
-      <AccountsCollectionTable ... />
-      <AccountsIncomeTable ... />
-      <AccountsExpensesTable ... />
-      <AccountsDistributionTable ... />
-      <AccountsBeneficiariesTable ... />
-      <AccountsSavedTable ... />
-      <AccountsDialogs ... />
-    </div>
-  </DashboardLayout>
-);
+export { PdfWaqfInfo, UnitPdfRow } from './core';
+export { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from './reports';
+export { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
+export { generateIncomePDF, generateExpensesPDF } from './expenses';
+export { generateAccountsPDF } from './accounts';
+export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
+export { generateInvoicesViewPDF } from './invoices';
 ```
 
-### ضمانات السلامة
-- لا تغيير في أي منطق حسابي أو حالة
-- لا تغيير في أي استعلام قاعدة بيانات
-- لا تغيير في أي دالة handler
-- كل مكون يستقبل بياناته كـ Props من الصفحة الرئيسية
-- الملف الأصلي يحتفظ بكامل المنطق ويتم تبسيط JSX فقط
+## التوافق مع الاستيرادات الحالية
+
+الملف الأصلي `src/utils/pdfGenerator.ts` سيُحذف ويُستبدل بـ `src/utils/pdf/index.ts`. جميع الاستيرادات الحالية (14 ملف) تُحدّث لتشير إلى `@/utils/pdf` بدلاً من `@/utils/pdfGenerator`:
+
+| الملف | الاستيراد الحالي | الاستيراد الجديد |
+|-------|-----------------|-----------------|
+| ExpensesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| IncomePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| PropertiesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| ContractsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| BeneficiariesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| AccountsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| ReportsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| InvoicesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| DisclosurePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| MySharePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| FinancialReportsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| AccountsViewPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| InvoicesViewPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+| usePdfWaqfInfo.ts | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
+
+## ضمانات السلامة
+- لا تغيير في أي دالة PDF - نقل حرفي فقط
+- لا تغيير في أي واجهة (interface) أو نوع
+- كل ملف فرعي يستورد الدوال المشتركة من `core.ts`
+- ملف `index.ts` يضمن أن كل الاستيرادات الخارجية تعمل بنفس الطريقة
+- حذف الملف القديم `pdfGenerator.ts` بعد التأكد من عمل كل شيء
 
