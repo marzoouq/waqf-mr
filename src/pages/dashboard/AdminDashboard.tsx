@@ -10,11 +10,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 
 const AdminDashboard = () => {
-  const { data: properties = [] } = useProperties();
-  const { data: contracts = [] } = useContracts();
-  const { data: allUnits = [] } = useAllUnits();
+  const { data: activeFiscalYear, isLoading: fyLoading } = useActiveFiscalYear();
+  const { data: properties = [], isLoading: propsLoading } = useProperties();
+  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
+  const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
 
   const {
     income, expenses, beneficiaries,
@@ -22,6 +26,18 @@ const AdminDashboard = () => {
     adminShare, waqifShare, waqfRevenue,
   } = useFinancialSummary();
 
+  const isLoading = fyLoading || propsLoading || contractsLoading || unitsLoading;
+
+  // Filter income/expenses by active fiscal year
+  const filteredIncome = useMemo(() => {
+    if (!activeFiscalYear) return income;
+    return income.filter(i => i.fiscal_year_id === activeFiscalYear.id);
+  }, [income, activeFiscalYear]);
+
+  const filteredExpenses = useMemo(() => {
+    if (!activeFiscalYear) return expenses;
+    return expenses.filter(e => e.fiscal_year_id === activeFiscalYear.id);
+  }, [expenses, activeFiscalYear]);
   const activeContractsCount = contracts.filter(c => c.status === 'active').length;
   const contractualRevenue = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
@@ -37,17 +53,17 @@ const AdminDashboard = () => {
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 
-  // Aggregate real monthly income/expense data
+  // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
     const months: Record<string, { income: number; expenses: number }> = {};
-    income.forEach(item => {
+    filteredIncome.forEach(item => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
         months[month].income += Number(item.amount);
       }
     });
-    expenses.forEach(item => {
+    filteredExpenses.forEach(item => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
@@ -61,17 +77,17 @@ const AdminDashboard = () => {
         income: data.income,
         expenses: data.expenses,
       }));
-  }, [income, expenses]);
+  }, [filteredIncome, filteredExpenses]);
 
-  // Aggregate real expense distribution
+  // Aggregate real expense distribution (filtered by fiscal year)
   const expenseTypes = useMemo(() => {
     const types: Record<string, number> = {};
-    expenses.forEach(item => {
+    filteredExpenses.forEach(item => {
       const type = item.expense_type || 'أخرى';
       types[type] = (types[type] || 0) + Number(item.amount);
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
 
@@ -87,14 +103,25 @@ const AdminDashboard = () => {
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between animate-slide-up">
+        <div className="flex items-center justify-between animate-slide-up flex-wrap gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
-            <p className="text-muted-foreground mt-1">مرحباً بك في نظام إدارة الوقف</p>
+            <p className="text-muted-foreground mt-1">
+              مرحباً بك في نظام إدارة الوقف
+              {activeFiscalYear && <span className="text-primary font-medium"> — {activeFiscalYear.label}</span>}
+            </p>
           </div>
           <div className="flex gap-2 print:hidden">
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
