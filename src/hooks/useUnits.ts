@@ -1,21 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCrudFactory } from './useCrudFactory';
+import { Unit } from '@/types/database';
 
-export interface UnitRow {
-  id: string;
-  property_id: string;
-  unit_number: string;
-  unit_type: string;
-  floor: string | null;
-  area: number | null;
-  status: string;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UnitInsert {
+// Re-export types for backward compatibility
+export type UnitRow = Unit;
+export type UnitInsert = {
   property_id: string;
   unit_number: string;
   unit_type?: string;
@@ -23,67 +14,47 @@ export interface UnitInsert {
   area?: number;
   status?: string;
   notes?: string;
-}
-
-export const useAllUnits = () => {
-  return useQuery({
-    queryKey: ['all-units'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('units').select('*');
-      if (error) throw error;
-      return data as UnitRow[];
-    },
-  });
 };
 
+// ---------------------------------------------------------------------------
+// Factory-based CRUD (all units, no filter)
+// ---------------------------------------------------------------------------
+
+const unitsCrud = useCrudFactory<'units', Unit>({
+  table: 'units',
+  queryKey: 'all-units',
+  orderBy: 'unit_number',
+  ascending: true,
+  label: 'الوحدة',
+});
+
+/** Fetch all units (no property filter) */
+export const useAllUnits = unitsCrud.useList;
+export const useCreateUnit = unitsCrud.useCreate;
+export const useUpdateUnit = unitsCrud.useUpdate;
+
+// ---------------------------------------------------------------------------
+// Custom hooks that need special behavior
+// ---------------------------------------------------------------------------
+
+/** Fetch units filtered by property_id */
 export const useUnits = (propertyId?: string) => {
   return useQuery({
     queryKey: ['units', propertyId],
     queryFn: async () => {
-      let query = supabase.from('units').select('*').order('unit_number');
-      if (propertyId) {
-        query = query.eq('property_id', propertyId);
-      }
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .eq('property_id', propertyId!)
+        .order('unit_number');
       if (error) throw error;
-      return data as UnitRow[];
+      return data as Unit[];
     },
     enabled: !!propertyId,
   });
 };
 
-export const useCreateUnit = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (unit: UnitInsert) => {
-      const { data, error } = await supabase.from('units').insert(unit).select().single();
-      if (error) throw error;
-      return data as UnitRow;
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['units', variables.property_id] });
-      toast.success('تم إضافة الوحدة بنجاح');
-    },
-    onError: () => toast.error('حدث خطأ أثناء إضافة الوحدة'),
-  });
-};
-
-export const useUpdateUnit = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<UnitRow> & { id: string }) => {
-      const { data, error } = await supabase.from('units').update(updates).eq('id', id).select().single();
-      if (error) throw error;
-      return data as UnitRow;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['units', data.property_id] });
-      toast.success('تم تحديث الوحدة بنجاح');
-    },
-    onError: () => toast.error('حدث خطأ أثناء تحديث الوحدة'),
-  });
-};
-
+/** Delete unit – invalidates both 'all-units' and per-property caches */
 export const useDeleteUnit = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -93,6 +64,7 @@ export const useDeleteUnit = () => {
       return propertyId;
     },
     onSuccess: (propertyId) => {
+      queryClient.invalidateQueries({ queryKey: ['all-units'] });
       queryClient.invalidateQueries({ queryKey: ['units', propertyId] });
       toast.success('تم حذف الوحدة بنجاح');
     },

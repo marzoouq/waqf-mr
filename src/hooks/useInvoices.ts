@@ -1,6 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useCrudFactory } from './useCrudFactory';
+
+// ---------------------------------------------------------------------------
+// Types & constants
+// ---------------------------------------------------------------------------
 
 export interface Invoice {
   id: string;
@@ -21,84 +26,39 @@ export interface Invoice {
   contract?: { id: string; contract_number: string; tenant_name: string } | null;
 }
 
-const INVOICE_TYPE_LABELS: Record<string, string> = {
+export const INVOICE_TYPE_LABELS: Record<string, string> = {
   utilities: 'خدمات (كهرباء/مياه)',
   maintenance: 'صيانة ومقاولات',
   rent: 'إيجار',
   other: 'أخرى',
 };
 
-const INVOICE_STATUS_LABELS: Record<string, string> = {
+export const INVOICE_STATUS_LABELS: Record<string, string> = {
   pending: 'معلّقة',
   paid: 'مدفوعة',
   cancelled: 'ملغاة',
 };
 
-export { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS };
+// ---------------------------------------------------------------------------
+// Factory-based CRUD
+// ---------------------------------------------------------------------------
 
-export const useInvoices = () => {
-  return useQuery({
-    queryKey: ['invoices'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)')
-        .order('date', { ascending: false });
+const invoicesCrud = useCrudFactory<'invoices', Invoice>({
+  table: 'invoices',
+  queryKey: 'invoices',
+  select: '*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)',
+  orderBy: 'date',
+  ascending: false,
+  label: 'الفاتورة',
+});
 
-      if (error) throw error;
-      return data as Invoice[];
-    },
-  });
-};
+export const useInvoices = invoicesCrud.useList;
+export const useCreateInvoice = invoicesCrud.useCreate;
+export const useUpdateInvoice = invoicesCrud.useUpdate;
 
-export const useCreateInvoice = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (invoice: { invoice_type: string; [key: string]: string | number | boolean | null | undefined }) => {
-      const { data, error } = await supabase
-        .from('invoices')
-        .insert([invoice])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success('تم إضافة الفاتورة بنجاح');
-    },
-    onError: () => {
-      toast.error('حدث خطأ أثناء إضافة الفاتورة');
-    },
-  });
-};
-
-export const useUpdateInvoice = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, ...invoice }: { id: string; [key: string]: string | number | boolean | null | undefined }) => {
-      const { data, error } = await supabase
-        .from('invoices')
-        .update(invoice)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success('تم تحديث الفاتورة بنجاح');
-    },
-    onError: () => {
-      toast.error('حدث خطأ أثناء تحديث الفاتورة');
-    },
-  });
-};
+// ---------------------------------------------------------------------------
+// Custom delete – cleans up storage file before deleting row
+// ---------------------------------------------------------------------------
 
 export const useDeleteInvoice = () => {
   const queryClient = useQueryClient();
@@ -121,6 +81,10 @@ export const useDeleteInvoice = () => {
   });
 };
 
+// ---------------------------------------------------------------------------
+// Storage utilities
+// ---------------------------------------------------------------------------
+
 export const uploadInvoiceFile = async (file: File): Promise<{ path: string; name: string }> => {
   const ext = file.name.split('.').pop();
   const path = `${crypto.randomUUID()}.${ext}`;
@@ -141,7 +105,7 @@ export const getInvoiceFileUrl = (filePath: string) => {
 export const getInvoiceSignedUrl = async (filePath: string) => {
   const { data, error } = await supabase.storage
     .from('invoices')
-    .createSignedUrl(filePath, 3600); // 1 hour
+    .createSignedUrl(filePath, 3600);
   if (error) throw error;
   return data.signedUrl;
 };
