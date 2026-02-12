@@ -124,17 +124,11 @@ export const getInvoiceFileUrl = (filePath: string) => {
 };
 
 export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
-  // Create a signed URL then fetch it as a blob to bypass Chrome domain blocking
   const { data, error } = await supabase.storage
     .from('invoices')
-    .createSignedUrl(filePath, 3600);
+    .download(filePath);
 
-  if (error || !data?.signedUrl) throw new Error('فشل في إنشاء رابط الملف');
+  if (error || !data) throw new Error('فشل في تحميل الملف');
 
-  // Fetch the file and create a local blob URL to avoid Chrome blocking the storage domain
-  const response = await fetch(data.signedUrl);
-  if (!response.ok) throw new Error('فشل في تحميل الملف');
-
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+  return URL.createObjectURL(data);
 };
