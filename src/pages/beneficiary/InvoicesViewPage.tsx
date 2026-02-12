@@ -2,7 +2,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useInvoices, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import { useInvoices, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { FileText, Search, Eye, Download, LayoutGrid, List } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
@@ -28,14 +29,7 @@ const InvoicesViewPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  const handleViewFile = async (filePath: string) => {
-    try {
-      const url = await getInvoiceSignedUrl(filePath);
-      window.open(url, '_blank');
-    } catch {
-      toast.error('حدث خطأ أثناء فتح الملف');
-    }
-  };
+  const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
   const filteredInvoices = invoices.filter((item) => {
     if (!searchQuery) return true;
@@ -154,7 +148,7 @@ const InvoicesViewPage = () => {
                         </TableCell>
                         <TableCell>
                           {item.file_path ? (
-                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => handleViewFile(item.file_path!)}>
+                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
                               <Eye className="w-4 h-4" />عرض
                             </Button>
                           ) : '-'}
@@ -168,6 +162,12 @@ const InvoicesViewPage = () => {
             </CardContent>
           </Card>
         )}
+        <InvoiceViewer
+          open={!!viewerFile}
+          onOpenChange={(open) => !open && setViewerFile(null)}
+          filePath={viewerFile?.path || null}
+          fileName={viewerFile?.name || null}
+        />
       </div>
     </DashboardLayout>
   );

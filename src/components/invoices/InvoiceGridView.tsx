@@ -2,8 +2,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon } from 'lucide-react';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, getInvoiceSignedUrl } from '@/hooks/useInvoices';
-import { toast } from 'sonner';
+import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
+import InvoiceViewer from '@/components/invoices/InvoiceViewer';
+import { useState } from 'react';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];
@@ -12,14 +13,7 @@ interface InvoiceGridViewProps {
 }
 
 const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, readOnly = false }) => {
-  const handleViewFile = async (filePath: string) => {
-    try {
-      const url = await getInvoiceSignedUrl(filePath);
-      window.open(url, '_blank');
-    } catch {
-      toast.error('حدث خطأ أثناء فتح الملف');
-    }
-  };
+  const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
   const statusBadgeVariant = (status: string) => {
     if (status === 'paid') return 'default' as const;
@@ -42,6 +36,7 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
   }
 
   return (
+    <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
       {invoices.map((inv) => (
         <Card
@@ -63,7 +58,7 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
                 className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleViewFile(inv.file_path!);
+                  setViewerFile({ path: inv.file_path!, name: inv.file_name });
                 }}
               >
                 <Eye className="w-3 h-3" />
@@ -103,6 +98,13 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
         </Card>
       ))}
     </div>
+      <InvoiceViewer
+        open={!!viewerFile}
+        onOpenChange={(open) => !open && setViewerFile(null)}
+        filePath={viewerFile?.path || null}
+        fileName={viewerFile?.name || null}
+      />
+    </>
   );
 };
 
