@@ -1,223 +1,182 @@
 
 
-# مراجعة شاملة ومعمقة للنظام - جميع الملاحظات والمشاكل والاخطاء
+# تصحيح الخطة: حساب الضريبة (VAT) على التجاري فقط + التسلسل المالي الكامل
 
 ---
 
-## المرحلة 1: اخطاء محاسبية حرجة (تؤثر على صحة الارقام المالية)
+## التصحيح المطلوب على الخطة السابقة
 
-### خطأ 1 - الحسابات الختامية: rent_amount يُعامل كشهري وهو سنوي
-**الملف:** `AccountsPage.tsx` سطور 131-132، 159-161، 448-450
-
-```text
-// سطر 131 - يعتبر rent_amount شهري:
-const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-
-// سطر 132 - يضرب السنوي x12 = قيمة مضخمة 12 ضعف:
-const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
-
-// سطر 448 - عمود "الإيجار الشهري" يعرض rent_amount كاملا:
-{Number(contract.rent_amount).toLocaleString()} ريال  // يعرض 16,200 كشهري!
-
-// سطر 450 - عمود "إجمالي العقد السنوي" يضرب x12:
-{(Number(contract.rent_amount) * 12).toLocaleString()} ريال  // يعرض 194,400!
-```
-
-**النتيجة:** عقد بقيمة 16,200 سنوي يظهر كـ 16,200 شهري و 194,400 سنوي. خطأ كارثي.
-
-**الاصلاح:**
-- عمود "الشهري" = `payment_amount` او `rent_amount / 12` حسب `payment_type`
-- عمود "السنوي" = `rent_amount` (هو اصلا السنوي)
-- الاجمالي يجمع `rent_amount` بدون ضرب
-
-### خطأ 2 - جدول التحصيل والمتأخرات: نفس الخطأ
-**الملف:** `AccountsPage.tsx` سطور 156-173
-
-```text
-// سطر 159 - يعتبر rent_amount شهري:
-const monthlyRent = Number(contract.rent_amount);  // 16,200 = شهري؟!
-
-// سطر 160 - المحصّل = شهري x دفعات:
-const totalCollected = monthlyRent * paidMonths;    // 16,200 x 12 = 194,400!
-
-// سطر 161 - المتأخرات:
-const arrears = (monthlyRent * 12) - totalCollected; // (194,400) - (194,400) = 0
-```
-
-**النتيجة:** ارقام التحصيل والمتأخرات مضخمة 12 ضعف. تقرير غير صالح للمراجعة.
-
-**الاصلاح:**
-- الشهري الحقيقي = `payment_amount` او `rent_amount / payment_count`
-- المحصّل = الشهري الحقيقي x الدفعات المسددة
-- المتأخرات = الشهري الحقيقي x (الدفعات المتوقعة - المسددة)
-
-### خطأ 3 - تعديل الاجار يحفظ rent_amount كشهري
-**الملف:** `AccountsPage.tsx` سطور 224-233
-
-```text
-await updateContract.mutateAsync({
-  id: contract.id,
-  tenant_name: editData.tenantName,
-  rent_amount: editData.monthlyRent,  // يحفظ القيمة "الشهرية" في حقل السنوي!
-});
-```
-
-**النتيجة:** عند تعديل عقد من جدول التحصيل، يتم حفظ القيمة المعدلة في `rent_amount` كأنها شهرية، مما يُفسد بيانات العقد بالكامل.
-
-**الاصلاح:** يجب تعديل `payment_amount` وليس `rent_amount`، او التوضيح للمستخدم ان الحقل هو الايجار السنوي.
-
-### خطأ 4 - صفحة التقارير: النسب ثابتة بالكود
-**الملف:** `ReportsPage.tsx` سطور 36-38
-
-```text
-const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
-const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
-```
-
-اذا لم يوجد حساب ختامي محفوظ، تُستخدم نسب 10% و 5% الثابتة بدلا من قراءتها من `app_settings`. هذا يتناقض مع `AccountsPage` التي تقرأ النسب من قاعدة البيانات.
-
-### خطأ 5 - واجهة المستفيد: النسب ثابتة في العرض
-**الملف:** `BeneficiaryDashboard.tsx` سطور 118-123
-
-```text
-<span>(-) حصة الناظر (10%)</span>
-<span>(-) حصة الواقف (5%)</span>
-```
-
-النسب مكتوبة يدويا "10%" و "5%" في النص. اذا غيّر الناظر النسب في الاعدادات، واجهة المستفيد تعرض النسب القديمة. يجب قراءتها من `app_settings` او من الحساب الختامي.
+الضريبة لا تُحسب على كل الإيرادات. القاعدة:
+- **العقارات التجارية** (محلات، معارض): تخضع لضريبة القيمة المضافة 15%
+- **العقارات السكنية** (شقق): معفاة حالياً لكن قد يتغير القرار مستقبلاً
 
 ---
 
-## المرحلة 2: مشاكل في اتساق البيانات بين الصفحات
+## البيانات الحالية في النظام
 
-### مشكلة 6 - تقرير اداء العقارات: نشطة فقط
-**الملف:** `ReportsPage.tsx` سطر 93-105
+| العقار | النوع | ملاحظة |
+|--------|-------|--------|
+| 001 | تجاري | يخضع للضريبة |
+| 002 | تجاري سكني | مختلط (الوحدات: محل = ضريبة، شقة = معفي) |
+| 003 | تجاري سكني | مختلط |
+| 101 | مبنى سكني | معفي |
+| 102 | شقق سكنية | معفي (لكن يوجد "محل الشاورما" فيه!) |
 
-```text
-const activeContracts = contracts.filter(c => c.property_id === property.id && c.status === 'active');
-const annualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-```
-
-صفحة العقارات تعرض "الايرادات التعاقدية" (نشطة + منتهية)، لكن صفحة التقارير تحسب النشطة فقط. تناقض بين الصفحتين.
-
-### مشكلة 7 - صفحة العقود: الاحصائيات نشطة فقط
-**الملف:** `ContractsPage.tsx` سطر 111
-
-```text
-const totalRent = active.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
-```
-
-بطاقة "اجمالي الايجارات" تعرض النشطة فقط. حسب المبدأ المحاسبي المتفق عليه، يجب عرض مؤشرين: التعاقدي الشامل والنشط.
-
-### مشكلة 8 - لوحة التحكم: لا تعرض الايرادات التعاقدية
-**الملف:** `AdminDashboard.tsx` سطر 25
-
-```text
-const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-```
-
-تعرض الدخل من جدول `income` فقط (المبالغ المسجلة فعليا)، بدون مؤشر للايرادات التعاقدية المتوقعة من العقود.
+أنواع الوحدات: "محل" و "شقة"
 
 ---
 
-## المرحلة 3: مشاكل منطقية (Logic Bugs)
-
-### مشكلة 9 - getTenant لا يرتب العقود زمنيا
-**الملف:** `PropertiesPage.tsx` سطر 548
+## التسلسل المالي الصحيح النهائي
 
 ```text
-const anyContract = contracts.find(c => c.unit_id === unitId);
+إجمالي الإيرادات
+  (-) المصروفات التشغيلية
+  = الصافي بعد المصاريف
+  (-) ضريبة القيمة المضافة (15% من إيجارات المحلات/التجاري فقط)
+  = الصافي بعد الضريبة
+  (-) الزكاة (مبلغ يدوي)
+  = الصافي بعد الزكاة
+  (-) حصة الناظر (10% من الصافي بعد الزكاة)
+  = الباقي بعد حصة الناظر
+  (-) حصة الواقف (5% من الباقي بعد حصة الناظر) [تتابعي]
+  = ريع الوقف
+  (-) رقبة الوقف (مبلغ يدوي يحدده الناظر)
+  = المبلغ القابل للتوزيع على المستفيدين
 ```
-
-`find` تعيد اول عقد تجده. اذا كان للوحدة عقدان منتهيان، قد تعرض الاقدم بدلا من الاحدث. يجب ترتيب العقود بـ `end_date` تنازليا.
-
-### مشكلة 10 - wholePropertyContract يعرض عقد واحد فقط
-**الملف:** `PropertiesPage.tsx` سطر 559
-
-```text
-const wholePropertyContract = contracts.find(c => c.property_id === property.id && !c.unit_id);
-```
-
-`find` تعيد اول عقد فقط. اذا كان للعقار عقدان "كامل" (نشط ومنتهي)، يعرض واحد فقط والاخر يختفي.
-
-### مشكلة 11 - صف الاجمالي لا يشمل عقود "العقار كامل"
-**الملف:** `PropertiesPage.tsx` سطور 872-900
-
-صف الاجمالي يجمع فقط العقود المربوطة بوحدات عبر `getTenant(unit.id)`. العقود المربوطة بالعقار كامل (بدون `unit_id`) لا تدخل في الاجمالي.
-
-### مشكلة 12 - الدفعات المتوقعة ثابتة على 12
-**الملف:** `AccountsPage.tsx` سطر 166
-
-```text
-expectedPayments: 12,
-```
-
-العقد الذي نوع دفعه "سنوي" دفعته المتوقعة 1، والمتعدد حسب `payment_count`. الرقم 12 صحيح فقط للشهري.
 
 ---
 
-## المرحلة 4: مشاكل تجربة المستخدم (UX)
+## التغييرات المطلوبة
 
-### مشكلة 13 - حوارات بدون DialogDescription
-جميع حوارات Dialog في الصفحات التالية تفتقد لـ `DialogDescription`:
-- `PropertiesPage.tsx`
-- `ContractsPage.tsx`
-- `ExpensesPage.tsx`
-- `AccountsPage.tsx`
+### 1. قاعدة البيانات
 
-هذا يسبب تحذيرات مستمرة في المتصفح ويؤثر على accessibility.
+إضافة 3 أعمدة لجدول `accounts`:
+- `zakat_amount` (numeric, افتراضي 0) - مبلغ الزكاة اليدوي
+- `waqf_corpus_manual` (numeric, افتراضي 0) - مبلغ رقبة الوقف اليدوي
+- `residential_vat_exempt` (boolean, افتراضي true) - إعفاء السكني من الضريبة
 
-### مشكلة 14 - تعديل وحدة بعقد منتهي لا يحمل بيانات المستأجر
-عند تعديل وحدة لها عقد منتهي فقط (بدون نشط)، لا يتم تحميل بيانات الايجار السابقة في نموذج التعديل.
+إضافة إعداد في `app_settings`:
+- `vat_percentage` (افتراضي "15") - نسبة الضريبة
+- `residential_vat_exempt` (افتراضي "true") - هل السكني معفي
 
-### مشكلة 15 - عدم التحقق من مجموع نسب المستفيدين
-**الملف:** `AccountsPage.tsx` سطر 180
+### 2. حساب الضريبة التلقائي (AccountsPage.tsx)
 
-لا يوجد تحقق ان مجموع نسب المستفيدين لا يتجاوز 100%. اذا تجاوز، تنتج مبالغ توزيع اكبر من المتاح.
+بدلا من قراءة الضريبة من المصروفات، يتم حسابها تلقائيا:
+- جلب العقود مع بيانات العقار والوحدة
+- تحديد العقود التجارية: إذا كان نوع الوحدة "محل" أو نوع العقار "تجاري"
+- حساب VAT = مجموع إيجارات العقود التجارية x 15%
+- إذا تم تعطيل إعفاء السكني مستقبلاً: يشمل الكل
+
+### 3. تصحيح التسلسل التتابعي (AccountsPage.tsx)
+
+الحالي (خطأ):
+```text
+adminShare = netRevenue x 10%
+waqifShare = netRevenue x 5%    // متوازي - خطأ
+```
+
+الجديد (صحيح):
+```text
+netAfterZakat = netAfterVat - zakatAmount
+adminShare = netAfterZakat x 10%
+afterAdmin = netAfterZakat - adminShare
+waqifShare = afterAdmin x 5%    // تتابعي - من الباقي بعد الناظر
+waqfRevenue = afterAdmin - waqifShare
+distributable = waqfRevenue - waqfCorpusManual
+```
+
+### 4. واجهة المستخدم (AccountsPage.tsx)
+
+- إضافة حقل إدخال "مبلغ الزكاة" (يدوي)
+- إضافة حقل إدخال "رقبة الوقف" (يدوي يحدده الناظر)
+- عرض تفصيل الضريبة: إيجارات تجارية خاضعة / سكنية معفاة
+- إضافة إعداد "إعفاء السكني" (مفتاح تبديل) في الإعدادات
+
+### 5. تحديث جميع الصفحات المرتبطة
+
+- `ReportsPage.tsx` - التسلسل التتابعي + الضريبة التجارية + الزكاة
+- `BeneficiaryDashboard.tsx` - عرض التسلسل الجديد للمستفيدين
+- `DisclosurePage.tsx` - الإفصاح السنوي
+- `MySharePage.tsx` - حصة المستفيد
+- `FinancialReportsPage.tsx` - التقارير المالية
+- `AccountsViewPage.tsx` - عرض الحسابات
+- `pdfGenerator.ts` - تصدير PDF بالتسلسل الجديد
+
+### 6. تحديث النسب الديناميكية (ReportsPage.tsx)
+
+استخدام `useAppSettings` لقراءة النسب بدلا من القيم الثابتة 10%/5%
+
+### 7. إضافة DialogDescription (جميع الحوارات)
+
+إضافة `DialogDescription` مخفي (`sr-only`) لكل حوار Dialog في 10 ملفات لإزالة تحذيرات المتصفح
+
+### 8. التحقق من نسب المستفيدين
+
+إضافة تحذير إذا تجاوز مجموع نسب المستفيدين 100% في AccountsPage وBeneficiariesPage
 
 ---
 
-## ملخص الاولويات
+## مثال رقمي بالتسلسل الجديد
 
-| # | الاولوية | الملف | المشكلة | التأثير |
-|---|----------|-------|---------|---------|
-| 1 | حرج | AccountsPage | rent_amount x 12 خاطئ | ارقام مالية مضخمة 12 ضعف |
-| 2 | حرج | AccountsPage | التحصيل يعتبر rent_amount شهري | متأخرات وتحصيل خاطئة |
-| 3 | حرج | AccountsPage | تعديل يحفظ شهري في حقل سنوي | افساد بيانات العقود |
-| 4 | عالي | ReportsPage | نسب ثابتة 10%/5% | تناقض مع الاعدادات |
-| 5 | عالي | BeneficiaryDashboard | نسب ثابتة في النص | عرض خاطئ للمستفيدين |
-| 6 | عالي | ReportsPage | اداء العقارات نشطة فقط | تناقض مع بطاقات العقارات |
-| 7 | متوسط | ContractsPage | احصائيات نشطة فقط | عدم شمولية |
-| 8 | متوسط | AdminDashboard | لا يوجد مؤشر تعاقدي | نقص في المعلومات |
-| 9 | متوسط | PropertiesPage | getTenant بدون ترتيب زمني | عرض عقد قديم |
-| 10 | متوسط | PropertiesPage | wholePropertyContract واحد فقط | فقدان عقود |
-| 11 | متوسط | PropertiesPage | اجمالي بدون عقود العقار كامل | ارقام ناقصة |
-| 12 | متوسط | AccountsPage | دفعات متوقعة = 12 دائما | خطأ للسنوي والمتعدد |
-| 13 | منخفض | عدة ملفات | DialogDescription مفقود | تحذيرات المتصفح |
-| 14 | منخفض | PropertiesPage | تعديل وحدة منتهية | تجربة مستخدم |
-| 15 | منخفض | AccountsPage | نسب المستفيدين بدون تحقق | خطر تجاوز 100% |
+| البند | المبلغ |
+|-------|--------|
+| إجمالي الإيرادات | 1,490,380 |
+| (-) المصروفات التشغيلية | 125,240 |
+| = الصافي بعد المصاريف | 1,365,140 |
+| إيجارات تجارية خاضعة للضريبة | 619,192 |
+| (-) ضريبة 15% | 92,879 |
+| = الصافي بعد الضريبة | 1,272,261 |
+| (-) الزكاة (يدوي) | 0 |
+| = الصافي بعد الزكاة | 1,272,261 |
+| (-) حصة الناظر 10% | 127,226 |
+| = بعد الناظر | 1,145,035 |
+| (-) حصة الواقف 5% من بعد الناظر | 57,252 |
+| = ريع الوقف | 1,087,783 |
+| (-) رقبة الوقف (يدوي) | حسب الناظر |
+| = للتوزيع | الباقي |
 
 ---
 
-## خطة الاصلاح المقترحة
+## قسم تقني
 
-### المرحلة 1 - الاخطاء الحرجة (AccountsPage.tsx)
-1. تصحيح جدول العقود: الشهري = `payment_amount` او `rent_amount/payment_count`، السنوي = `rent_amount`
-2. تصحيح جدول التحصيل: استخدام الشهري الحقيقي واعتماد `payment_count` كدفعات متوقعة
-3. تصحيح التعديل المباشر: عدم الكتابة فوق `rent_amount`
-4. تصحيح اجماليات الجداول
+### Migration SQL:
+```text
+ALTER TABLE accounts ADD COLUMN zakat_amount numeric NOT NULL DEFAULT 0;
+ALTER TABLE accounts ADD COLUMN waqf_corpus_manual numeric NOT NULL DEFAULT 0;
 
-### المرحلة 2 - توحيد البيانات
-5. `ReportsPage.tsx`: قراءة النسب من `app_settings` واضافة الايرادات التعاقدية
-6. `BeneficiaryDashboard.tsx`: قراءة النسب من الحساب الختامي ديناميكيا
-7. `ContractsPage.tsx`: اضافة مؤشر الايرادات التعاقدية الشاملة
-8. `AdminDashboard.tsx`: اضافة بطاقة الايرادات التعاقدية
+INSERT INTO app_settings (key, value) VALUES ('vat_percentage', '15') ON CONFLICT (key) DO NOTHING;
+INSERT INTO app_settings (key, value) VALUES ('residential_vat_exempt', 'true') ON CONFLICT (key) DO NOTHING;
+```
 
-### المرحلة 3 - اصلاحات منطقية وتحسينات
-9. ترتيب العقود في `getTenant` زمنيا
-10. تحويل `wholePropertyContract` الى `filter` بدلا من `find`
-11. تضمين عقود العقار كامل في صف الاجمالي
-12. استخدام `payment_count` كدفعات متوقعة
-13. اضافة `DialogDescription` لجميع الحوارات
-14. اضافة تحقق من مجموع نسب المستفيدين
+### منطق تحديد العقود التجارية:
+```text
+// عقد تجاري إذا:
+// 1. نوع الوحدة = "محل" أو
+// 2. نوع العقار = "تجاري" (وليس له وحدة محددة)
+const isCommercial = (contract) => {
+  if (contract.unit?.unit_type === 'محل') return true;
+  if (!contract.unit_id && contract.property?.property_type === 'تجاري') return true;
+  return false;
+};
+// إذا تم تعطيل الإعفاء: جميع العقود تخضع
+```
+
+### الملفات المتأثرة (الإجمالي):
+1. `AccountsPage.tsx` - التسلسل + الضريبة + الزكاة + رقبة الوقف
+2. `ReportsPage.tsx` - التسلسل + النسب الديناميكية
+3. `BeneficiaryDashboard.tsx` - العرض
+4. `DisclosurePage.tsx` - الإفصاح
+5. `MySharePage.tsx` - حصتي
+6. `FinancialReportsPage.tsx` - التقارير
+7. `AccountsViewPage.tsx` - الحسابات
+8. `pdfGenerator.ts` - التصدير
+9. `PropertiesPage.tsx` - DialogDescription
+10. `ContractsPage.tsx` - DialogDescription
+11. `ExpensesPage.tsx` - DialogDescription
+12. `IncomePage.tsx` - DialogDescription
+13. `BeneficiariesPage.tsx` - DialogDescription + تحقق النسب
+14. `InvoicesPage.tsx` - DialogDescription
+15. `UserManagementPage.tsx` - DialogDescription
+16. `MessagesPage.tsx` - DialogDescription
+17. `BeneficiaryMessagesPage.tsx` - DialogDescription
 
