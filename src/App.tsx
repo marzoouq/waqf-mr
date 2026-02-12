@@ -35,6 +35,7 @@ import FinancialReportsPage from "./pages/beneficiary/FinancialReportsPage";
 import AccountsViewPage from "./pages/beneficiary/AccountsViewPage";
 import BeneficiaryMessagesPage from "./pages/beneficiary/BeneficiaryMessagesPage";
 import InvoicesViewPage from "./pages/beneficiary/InvoicesViewPage";
+import NotificationsPage from "./pages/beneficiary/NotificationsPage";
 
 // AI Assistant
 import AiAssistant from "./components/AiAssistant";
@@ -212,6 +213,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <InvoicesViewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/notifications"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />
