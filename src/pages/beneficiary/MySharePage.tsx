@@ -4,21 +4,23 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, FileText } from 'lucide-react';
+import { Wallet, Percent, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMySharePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: accounts = [] } = useAccounts();
+  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
+  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
@@ -103,6 +105,45 @@ const MySharePage = () => {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
+
+  const isLoading = beneficiariesLoading || accountsLoading;
+  const error = beneficiariesError || accountsError;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <p className="text-muted-foreground text-center">{error.message}</p>
+          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!currentBeneficiary) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <UserX className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-bold">لم يتم العثور على سجل المستفيد</h2>
+          <p className="text-muted-foreground text-center">حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
