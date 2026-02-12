@@ -1,182 +1,123 @@
 
 
-# تصحيح الخطة: حساب الضريبة (VAT) على التجاري فقط + التسلسل المالي الكامل
+# إكمال المتطلبات المتبقية وتحقيق التوافق الكامل
+
+## الوضع الحالي
+
+التسلسل المالي التتابعي تم تنفيذه بنجاح في `AccountsPage.tsx`، لكن 3 صفحات لا تزال تعرض بيانات غير متسقة مع التسلسل الجديد، بالإضافة لمتطلبات تحسين الوصولية (Accessibility) وتحقق النسب.
 
 ---
 
-## التصحيح المطلوب على الخطة السابقة
+## المهام المطلوبة (مرتبة حسب الأولوية)
 
-الضريبة لا تُحسب على كل الإيرادات. القاعدة:
-- **العقارات التجارية** (محلات، معارض): تخضع لضريبة القيمة المضافة 15%
-- **العقارات السكنية** (شقق): معفاة حالياً لكن قد يتغير القرار مستقبلاً
+### 1. تصحيح FinancialReportsPage.tsx (أولوية عالية)
 
----
+**المشكلة:** سطر 35 يستخدم `waqf_revenue` مباشرة لحساب حصة المستفيد بدون خصم رقبة الوقف.
 
-## البيانات الحالية في النظام
+**الإصلاح:**
+- قراءة `zakat_amount` و `waqf_corpus_manual` من الحساب الختامي
+- حساب `distributableAmount = waqfRevenue - waqfCorpusManual`
+- استخدام `distributableAmount` لحساب `myShare` و `beneficiariesShare` في الرسوم البيانية
+- إضافة بطاقات ملخص للزكاة ورقبة الوقف
 
-| العقار | النوع | ملاحظة |
-|--------|-------|--------|
-| 001 | تجاري | يخضع للضريبة |
-| 002 | تجاري سكني | مختلط (الوحدات: محل = ضريبة، شقة = معفي) |
-| 003 | تجاري سكني | مختلط |
-| 101 | مبنى سكني | معفي |
-| 102 | شقق سكنية | معفي (لكن يوجد "محل الشاورما" فيه!) |
+### 2. تصحيح جدول الإفصاح في ReportsPage.tsx (أولوية عالية)
 
-أنواع الوحدات: "محل" و "شقة"
+**المشكلة:** جدول الإفصاح السنوي (سطر 249-264) يعرض "صافي الريع" كـ `totalIncome - totalExpenses` بدون فصل الضريبة والزكاة ورقبة الوقف كبنود مستقلة.
 
----
+**الإصلاح:**
+- تعديل الجدول ليعرض التسلسل الكامل:
+  - الصافي بعد المصاريف
+  - (-) ضريبة القيمة المضافة
+  - = الصافي بعد الضريبة
+  - (-) الزكاة
+  - = الصافي بعد الزكاة
+  - (-) حصة الناظر (من الصافي بعد الزكاة)
+  - (-) حصة الواقف (من الباقي بعد الناظر)
+  - = ريع الوقف
+  - (-) رقبة الوقف
+  - = المبلغ القابل للتوزيع
+- تصحيح نسبة الناظر (سطر 254) لتكون من `netAfterZakat` بدلا من `netRevenue`
+- تصحيح نسبة الواقف (سطر 258) لتكون من `afterAdmin` بدلا من `netRevenue`
 
-## التسلسل المالي الصحيح النهائي
+### 3. إضافة DialogDescription لـ 10 ملفات (أولوية متوسطة)
 
-```text
-إجمالي الإيرادات
-  (-) المصروفات التشغيلية
-  = الصافي بعد المصاريف
-  (-) ضريبة القيمة المضافة (15% من إيجارات المحلات/التجاري فقط)
-  = الصافي بعد الضريبة
-  (-) الزكاة (مبلغ يدوي)
-  = الصافي بعد الزكاة
-  (-) حصة الناظر (10% من الصافي بعد الزكاة)
-  = الباقي بعد حصة الناظر
-  (-) حصة الواقف (5% من الباقي بعد حصة الناظر) [تتابعي]
-  = ريع الوقف
-  (-) رقبة الوقف (مبلغ يدوي يحدده الناظر)
-  = المبلغ القابل للتوزيع على المستفيدين
-```
+إضافة `DialogDescription` مخفي بصريا (`className="sr-only"`) بعد كل `DialogTitle` في:
 
----
+| الملف | عدد الحوارات |
+|-------|-------------|
+| PropertiesPage.tsx | 2 |
+| ContractsPage.tsx | 1 |
+| ExpensesPage.tsx | 1 |
+| IncomePage.tsx | 1 |
+| AccountsPage.tsx | 1 |
+| BeneficiariesPage.tsx | 1 |
+| InvoicesPage.tsx | 1 |
+| UserManagementPage.tsx | 3 |
+| MessagesPage.tsx | 1 |
+| BeneficiaryMessagesPage.tsx | 1 |
 
-## التغييرات المطلوبة
+### 4. التحقق من مجموع نسب المستفيدين (أولوية متوسطة)
 
-### 1. قاعدة البيانات
-
-إضافة 3 أعمدة لجدول `accounts`:
-- `zakat_amount` (numeric, افتراضي 0) - مبلغ الزكاة اليدوي
-- `waqf_corpus_manual` (numeric, افتراضي 0) - مبلغ رقبة الوقف اليدوي
-- `residential_vat_exempt` (boolean, افتراضي true) - إعفاء السكني من الضريبة
-
-إضافة إعداد في `app_settings`:
-- `vat_percentage` (افتراضي "15") - نسبة الضريبة
-- `residential_vat_exempt` (افتراضي "true") - هل السكني معفي
-
-### 2. حساب الضريبة التلقائي (AccountsPage.tsx)
-
-بدلا من قراءة الضريبة من المصروفات، يتم حسابها تلقائيا:
-- جلب العقود مع بيانات العقار والوحدة
-- تحديد العقود التجارية: إذا كان نوع الوحدة "محل" أو نوع العقار "تجاري"
-- حساب VAT = مجموع إيجارات العقود التجارية x 15%
-- إذا تم تعطيل إعفاء السكني مستقبلاً: يشمل الكل
-
-### 3. تصحيح التسلسل التتابعي (AccountsPage.tsx)
-
-الحالي (خطأ):
-```text
-adminShare = netRevenue x 10%
-waqifShare = netRevenue x 5%    // متوازي - خطأ
-```
-
-الجديد (صحيح):
-```text
-netAfterZakat = netAfterVat - zakatAmount
-adminShare = netAfterZakat x 10%
-afterAdmin = netAfterZakat - adminShare
-waqifShare = afterAdmin x 5%    // تتابعي - من الباقي بعد الناظر
-waqfRevenue = afterAdmin - waqifShare
-distributable = waqfRevenue - waqfCorpusManual
-```
-
-### 4. واجهة المستخدم (AccountsPage.tsx)
-
-- إضافة حقل إدخال "مبلغ الزكاة" (يدوي)
-- إضافة حقل إدخال "رقبة الوقف" (يدوي يحدده الناظر)
-- عرض تفصيل الضريبة: إيجارات تجارية خاضعة / سكنية معفاة
-- إضافة إعداد "إعفاء السكني" (مفتاح تبديل) في الإعدادات
-
-### 5. تحديث جميع الصفحات المرتبطة
-
-- `ReportsPage.tsx` - التسلسل التتابعي + الضريبة التجارية + الزكاة
-- `BeneficiaryDashboard.tsx` - عرض التسلسل الجديد للمستفيدين
-- `DisclosurePage.tsx` - الإفصاح السنوي
-- `MySharePage.tsx` - حصة المستفيد
-- `FinancialReportsPage.tsx` - التقارير المالية
-- `AccountsViewPage.tsx` - عرض الحسابات
-- `pdfGenerator.ts` - تصدير PDF بالتسلسل الجديد
-
-### 6. تحديث النسب الديناميكية (ReportsPage.tsx)
-
-استخدام `useAppSettings` لقراءة النسب بدلا من القيم الثابتة 10%/5%
-
-### 7. إضافة DialogDescription (جميع الحوارات)
-
-إضافة `DialogDescription` مخفي (`sr-only`) لكل حوار Dialog في 10 ملفات لإزالة تحذيرات المتصفح
-
-### 8. التحقق من نسب المستفيدين
-
-إضافة تحذير إذا تجاوز مجموع نسب المستفيدين 100% في AccountsPage وBeneficiariesPage
-
----
-
-## مثال رقمي بالتسلسل الجديد
-
-| البند | المبلغ |
-|-------|--------|
-| إجمالي الإيرادات | 1,490,380 |
-| (-) المصروفات التشغيلية | 125,240 |
-| = الصافي بعد المصاريف | 1,365,140 |
-| إيجارات تجارية خاضعة للضريبة | 619,192 |
-| (-) ضريبة 15% | 92,879 |
-| = الصافي بعد الضريبة | 1,272,261 |
-| (-) الزكاة (يدوي) | 0 |
-| = الصافي بعد الزكاة | 1,272,261 |
-| (-) حصة الناظر 10% | 127,226 |
-| = بعد الناظر | 1,145,035 |
-| (-) حصة الواقف 5% من بعد الناظر | 57,252 |
-| = ريع الوقف | 1,087,783 |
-| (-) رقبة الوقف (يدوي) | حسب الناظر |
-| = للتوزيع | الباقي |
+- في `BeneficiariesPage.tsx`: عند حفظ مستفيد جديد/تعديل، حساب المجموع الكلي ومنع الحفظ إذا تجاوز 100%
+- في `AccountsPage.tsx`: عرض تحذير بصري إذا تجاوز المجموع 100%
 
 ---
 
 ## قسم تقني
 
-### Migration SQL:
+### FinancialReportsPage.tsx - التعديلات:
 ```text
-ALTER TABLE accounts ADD COLUMN zakat_amount numeric NOT NULL DEFAULT 0;
-ALTER TABLE accounts ADD COLUMN waqf_corpus_manual numeric NOT NULL DEFAULT 0;
+// الحالي (خطأ):
+const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
+const myShare = (beneficiariesShare * percentage) / 100;
 
-INSERT INTO app_settings (key, value) VALUES ('vat_percentage', '15') ON CONFLICT (key) DO NOTHING;
-INSERT INTO app_settings (key, value) VALUES ('residential_vat_exempt', 'true') ON CONFLICT (key) DO NOTHING;
+// الجديد (صحيح):
+const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
+const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
+const zakatAmount = Number(currentAccount?.zakat_amount || 0);
+const distributableAmount = waqfRevenue - waqfCorpusManual;
+const myShare = (distributableAmount * percentage) / 100;
 ```
 
-### منطق تحديد العقود التجارية:
+### ReportsPage.tsx - إفصاح سنوي جديد:
 ```text
-// عقد تجاري إذا:
-// 1. نوع الوحدة = "محل" أو
-// 2. نوع العقار = "تجاري" (وليس له وحدة محددة)
-const isCommercial = (contract) => {
-  if (contract.unit?.unit_type === 'محل') return true;
-  if (!contract.unit_id && contract.property?.property_type === 'تجاري') return true;
-  return false;
-};
-// إذا تم تعطيل الإعفاء: جميع العقود تخضع
+// بعد سطر "إجمالي المصروفات" مباشرة، نضيف:
+// الصافي بعد المصاريف = netAfterExpenses
+// (-) ضريبة القيمة المضافة = vatAmount  
+// = الصافي بعد الضريبة = netAfterVat
+// (-) الزكاة = zakatAmount
+// = الصافي بعد الزكاة = netAfterZakat
+// ثم حصة الناظر من netAfterZakat
+// ثم حصة الواقف من afterAdmin (= netAfterZakat - adminShare)
+// ثم رقبة الوقف = waqfCorpusManual
+// ثم المبلغ القابل للتوزيع = distributableAmount
 ```
 
-### الملفات المتأثرة (الإجمالي):
-1. `AccountsPage.tsx` - التسلسل + الضريبة + الزكاة + رقبة الوقف
-2. `ReportsPage.tsx` - التسلسل + النسب الديناميكية
-3. `BeneficiaryDashboard.tsx` - العرض
-4. `DisclosurePage.tsx` - الإفصاح
-5. `MySharePage.tsx` - حصتي
-6. `FinancialReportsPage.tsx` - التقارير
-7. `AccountsViewPage.tsx` - الحسابات
-8. `pdfGenerator.ts` - التصدير
-9. `PropertiesPage.tsx` - DialogDescription
-10. `ContractsPage.tsx` - DialogDescription
-11. `ExpensesPage.tsx` - DialogDescription
-12. `IncomePage.tsx` - DialogDescription
-13. `BeneficiariesPage.tsx` - DialogDescription + تحقق النسب
-14. `InvoicesPage.tsx` - DialogDescription
-15. `UserManagementPage.tsx` - DialogDescription
-16. `MessagesPage.tsx` - DialogDescription
-17. `BeneficiaryMessagesPage.tsx` - DialogDescription
+### DialogDescription - نمط الإضافة:
+```text
+import { DialogDescription } from '@/components/ui/dialog';
+
+<DialogHeader>
+  <DialogTitle>العنوان</DialogTitle>
+  <DialogDescription className="sr-only">وصف الحوار</DialogDescription>
+</DialogHeader>
+```
+
+### BeneficiariesPage.tsx - تحقق النسب:
+```text
+const currentTotal = beneficiaries
+  .filter(b => b.id !== editingBeneficiary?.id)
+  .reduce((sum, b) => sum + Number(b.share_percentage), 0);
+const newPercentage = Number(formData.share_percentage);
+if (currentTotal + newPercentage > 100) {
+  toast.error('مجموع نسب المستفيدين يتجاوز 100%');
+  return;
+}
+```
+
+### الملفات المتأثرة (14 ملف):
+1. `FinancialReportsPage.tsx` - حساب المبلغ القابل للتوزيع
+2. `ReportsPage.tsx` - جدول الإفصاح الكامل
+3. `BeneficiariesPage.tsx` - تحقق النسب + DialogDescription
+4-13. عشر ملفات DialogDescription (PropertiesPage, ContractsPage, ExpensesPage, IncomePage, AccountsPage, InvoicesPage, UserManagementPage, MessagesPage, BeneficiaryMessagesPage)
 
