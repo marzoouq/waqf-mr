@@ -7,7 +7,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { FileText, Download, TrendingUp, TrendingDown, Wallet, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateDisclosurePDF } from '@/utils/pdfGenerator';
+import { generateDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 

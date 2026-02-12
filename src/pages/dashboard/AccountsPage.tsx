@@ -11,7 +11,7 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Plus, Printer, FileDown } from 'lucide-react';
-import { generateAccountsPDF } from '@/utils/pdfGenerator';
+import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';

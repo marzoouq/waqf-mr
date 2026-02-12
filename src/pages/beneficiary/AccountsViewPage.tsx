@@ -8,7 +8,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, FileText, TrendingUp, TrendingDown, Users, PieChart, Calculator, Download, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { generateAccountsPDF } from '@/utils/pdfGenerator';
+import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';

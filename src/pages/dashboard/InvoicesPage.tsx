@@ -11,7 +11,7 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uplo
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown } from 'lucide-react';
-import { generateInvoicesViewPDF } from '@/utils/pdfGenerator';
+import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';

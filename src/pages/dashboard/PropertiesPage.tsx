@@ -18,7 +18,7 @@ import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPaym
 import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
-import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdfGenerator';
+import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import {

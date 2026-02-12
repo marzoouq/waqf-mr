@@ -13,7 +13,7 @@ import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
-import { generateContractsPDF } from '@/utils/pdfGenerator';
+import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';

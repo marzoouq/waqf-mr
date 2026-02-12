@@ -8,7 +8,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { BarChart3, Download, PieChart, TrendingUp, Building, Printer } from 'lucide-react';
 import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { generateAnnualReportPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';

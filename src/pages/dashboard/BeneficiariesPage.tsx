@@ -9,7 +9,7 @@ import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDelete
 import { Beneficiary } from '@/types/database';
 import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Printer, FileDown, Search } from 'lucide-react';
 import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/maskData';
-import { generateBeneficiariesPDF } from '@/utils/pdfGenerator';
+import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';

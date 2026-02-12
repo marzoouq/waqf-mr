@@ -7,7 +7,7 @@ import { useContracts } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdfGenerator';
+import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
