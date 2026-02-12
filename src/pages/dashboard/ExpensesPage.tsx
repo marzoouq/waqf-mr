@@ -11,7 +11,7 @@ import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
@@ -28,9 +28,11 @@ const EXPENSE_TYPES = ['كهرباء', 'مياه', 'صيانة', 'عمالة', '
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY } = useActiveFiscalYear();
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
   const [selectedFY, setSelectedFY] = useState<string>('');
   const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const isClosed = currentFY?.status === 'closed';
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoices();
@@ -107,7 +109,7 @@ const ExpensesPage = () => {
             <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
             <Button variant="outline" size="sm" onClick={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingExpense ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,6 +142,11 @@ const ExpensesPage = () => {
 
         <div className="flex flex-wrap items-center gap-4">
           <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
+          {isClosed && (
+            <span className="text-sm text-destructive font-medium flex items-center gap-1">
+              <Lock className="w-3 h-3" /> سنة مقفلة - لا يمكن التعديل
+            </span>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -226,10 +233,12 @@ const ExpensesPage = () => {
                           </TableCell>
                           <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
                           <TableCell>
+                            {!isClosed && (
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
                               <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                             </div>
+                            )}
                           </TableCell>
                         </TableRow>
                         {isExpanded && (
