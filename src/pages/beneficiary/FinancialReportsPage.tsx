@@ -16,6 +16,18 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
+const formatArabicMonth = (month: string) => {
+  const arabicMonths: Record<string, string> = {
+    '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
+    '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
+    '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
+  };
+  const parts = month.split('-');
+  return arabicMonths[parts[1]] || month;
+};
+
+const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
@@ -242,8 +254,8 @@ const FinancialReportsPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} />
-                  <Bar dataKey="value" fill="#8884d8">
+                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {incomeVsExpenses.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -258,24 +270,30 @@ const FinancialReportsPage = () => {
               <CardTitle>توزيع الريع</CardTitle>
             </CardHeader>
             <CardContent>
+              {distributionData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
                   <Pie
                     data={distributionData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
+                    outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    labelLine={true}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    style={{ fontSize: '12px' }}
                   >
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} />
+                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend />
                 </RePieChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -287,24 +305,30 @@ const FinancialReportsPage = () => {
               <CardTitle>الإيرادات حسب المصدر</CardTitle>
             </CardHeader>
             <CardContent>
+              {incomePieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
                   <Pie
                     data={incomePieData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
+                    outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    labelLine={true}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    style={{ fontSize: '12px' }}
                   >
                     {incomePieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} />
+                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend />
                 </RePieChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
             </CardContent>
           </Card>
 
@@ -313,24 +337,30 @@ const FinancialReportsPage = () => {
               <CardTitle>المصروفات حسب النوع</CardTitle>
             </CardHeader>
             <CardContent>
+              {expensesPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <RePieChart>
                   <Pie
                     data={expensesPieData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
+                    outerRadius={90}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    labelLine={true}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    style={{ fontSize: '12px' }}
                   >
                     {expensesPieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} />
+                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend />
                 </RePieChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -340,17 +370,21 @@ const FinancialReportsPage = () => {
           <CardHeader>
             <CardTitle>الإيرادات الشهرية</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => Math.round(value).toLocaleString() + ' ر.س'} />
-                <Bar dataKey="income" fill="#22c55e" name="الإيرادات" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
+            <CardContent>
+              {monthlyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
+                  <YAxis />
+                  <Tooltip formatter={(value: number) => Math.round(value).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                  <Bar dataKey="income" fill="#22c55e" name="الإيرادات" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+              )}
+            </CardContent>
         </Card>
       </div>
     </DashboardLayout>

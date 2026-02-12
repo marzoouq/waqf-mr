@@ -6,7 +6,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
@@ -45,6 +45,8 @@ const ReportsPage = () => {
   }));
 
   const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+
+  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   const handlePrint = () => {
     window.print();
@@ -336,12 +338,13 @@ const ReportsPage = () => {
                   {incomeSourceData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
-                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} fill="#8884d8" dataKey="value">
+                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="#8884d8" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                        <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                        <Legend />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -360,7 +363,7 @@ const ReportsPage = () => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
-                        <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                        <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
                         <Bar dataKey="value" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>

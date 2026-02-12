@@ -7,7 +7,7 @@ import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 
@@ -74,6 +74,18 @@ const AdminDashboard = () => {
   }, [expenses]);
 
   const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+
+  const formatArabicMonth = (month: string) => {
+    const arabicMonths: Record<string, string> = {
+      '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
+      '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
+      '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
+    };
+    const parts = month.split('-');
+    return arabicMonths[parts[1]] || month;
+  };
+
+  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   return (
     <DashboardLayout>
@@ -163,12 +175,13 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               {monthlyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={monthlyData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
+                    <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
                     <YAxis />
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                    <Legend />
                     <Bar dataKey="income" fill="hsl(158, 64%, 25%)" name="الدخل" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="expenses" fill="hsl(43, 74%, 49%)" name="المصروفات" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -192,17 +205,19 @@ const AdminDashboard = () => {
                       data={expenseTypes}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={100}
+                      labelLine={true}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
+                      style={{ fontSize: '12px' }}
                     >
                       {expenseTypes.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} />
+                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
