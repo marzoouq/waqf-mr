@@ -659,6 +659,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_admins: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: undefined
+      }
       notify_all_beneficiaries: {
         Args: {
           p_link?: string
