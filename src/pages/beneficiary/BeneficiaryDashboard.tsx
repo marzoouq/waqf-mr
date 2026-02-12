@@ -3,7 +3,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Wallet, FileText, BarChart3, Printer, PieChart, Calculator, Bell, ArrowLeft } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, Calculator, Bell, ArrowLeft } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -71,10 +72,7 @@ const BeneficiaryDashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
             <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
           </div>
-          <Button variant="outline" onClick={() => window.print()} className="gap-2 print:hidden">
-            <Printer className="w-4 h-4" />
-            طباعة
-          </Button>
+          <ExportMenu hidePdf />
         </div>
 
         {/* Stats */}

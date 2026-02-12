@@ -11,7 +11,8 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useActiveFiscalYear, useFiscalYears } from '@/hooks/useFiscalYears';
-import { Plus, Printer, FileDown, Lock } from 'lucide-react';
+import { Plus, Lock } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
@@ -442,11 +443,7 @@ const AccountsPage = () => {
             <p className="text-muted-foreground mt-1">إدارة ومتابعة الحسابات السنوية</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">طباعة</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => generateAccountsPDF({
+            <ExportMenu onExportPdf={() => generateAccountsPDF({
               contracts,
               incomeBySource,
               expensesByType,
@@ -466,10 +463,7 @@ const AccountsPage = () => {
               grandTotal,
               availableAmount,
               remainingBalance,
-            }, pdfWaqfInfo)} className="gap-2">
-              <FileDown className="w-4 h-4" />
-              <span className="hidden sm:inline">تصدير PDF</span>
-            </Button>
+            }, pdfWaqfInfo)} />
             <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending || isClosed}>
               <Plus className="w-4 h-4" />
               إنشاء حساب ختامي

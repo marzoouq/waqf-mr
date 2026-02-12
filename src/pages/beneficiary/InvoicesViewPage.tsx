@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useInvoices, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import { FileText, Search, Eye, Download, Printer, LayoutGrid, List } from 'lucide-react';
+import { FileText, Search, Eye, Download, LayoutGrid, List } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
@@ -80,14 +81,7 @@ const InvoicesViewPage = () => {
             <p className="text-muted-foreground mt-1">عرض جميع فواتير الوقف</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.print()} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button onClick={handleDownloadPDF} className="gap-2">
-              <Download className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 

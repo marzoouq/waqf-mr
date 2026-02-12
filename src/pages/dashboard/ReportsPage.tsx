@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react';
+import { BarChart3, Download, FileText, TrendingUp } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -48,9 +49,7 @@ const ReportsPage = () => {
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // handlePrint removed - ExportMenu handles it
 
   const handleExportPDF = async () => {
     await generateAnnualReportPDF({
@@ -160,14 +159,7 @@ const ReportsPage = () => {
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
             </Button>
-            <Button onClick={handleExportPDF} variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">تصدير PDF</span>
-            </Button>
-            <Button onClick={handlePrint} className="gradient-primary gap-2">
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">طباعة التقرير</span>
-            </Button>
+            <ExportMenu onExportPdf={handleExportPDF} />
           </div>
         </div>
 

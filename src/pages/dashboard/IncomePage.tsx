@@ -10,8 +10,9 @@ import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncome
 import { useProperties } from '@/hooks/useProperties';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown, Search, Lock } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
+import ExportMenu from '@/components/ExportMenu';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -90,8 +91,7 @@ const IncomePage = () => {
             <p className="text-muted-foreground mt-1">تسجيل ومتابعة مصادر الدخل</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
-            <Button variant="outline" size="sm" onClick={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
+            <ExportMenu onExportPdf={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة دخل</Button></DialogTrigger>
               <DialogContent className="max-w-md">

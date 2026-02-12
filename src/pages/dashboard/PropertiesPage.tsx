@@ -16,8 +16,9 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useContracts, useCreateContract, useUpdateContract } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { Property, Contract } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Printer, FileDown, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
+import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
@@ -136,14 +137,7 @@ const PropertiesPage = () => {
             <p className="text-muted-foreground mt-1">عرض وإدارة جميع عقارات الوقف</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">طباعة</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => generatePropertiesPDF(properties, pdfWaqfInfo)} className="gap-2">
-              <FileDown className="w-4 h-4" />
-              <span className="hidden sm:inline">تصدير PDF</span>
-            </Button>
+            <ExportMenu onExportPdf={() => generatePropertiesPDF(properties, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2">
@@ -667,10 +661,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <h3 className="font-semibold">الوحدات السكنية</h3>
                 <div className="flex gap-2 flex-wrap print:hidden">
-                  <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
-                    <Printer className="w-4 h-4" /> <span className="hidden sm:inline">طباعة</span>
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+                  <ExportMenu onExportPdf={() => {
                     const pdfRows: UnitPdfRow[] = units.map(u => {
                       const tenant = getTenant(u.id);
                       return {
@@ -680,9 +671,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       };
                     });
                     generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);
-                  }}>
-                    <FileDown className="w-4 h-4" /> <span className="hidden sm:inline">تصدير PDF</span>
-                  </Button>
+                  }} />
                   <Button size="sm" className="gap-1" onClick={() => { resetUnitForm(); setIsUnitFormOpen(true); }}>
                     <Plus className="w-4 h-4" /> إضافة وحدة
                   </Button>

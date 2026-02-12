@@ -11,7 +11,8 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uplo
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown, LayoutGrid, List } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
@@ -178,8 +179,7 @@ const InvoicesPage = () => {
             <p className="text-muted-foreground mt-1">رفع وإدارة جميع أنواع الفواتير</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2"><Printer className="w-4 h-4" /><span className="hidden sm:inline">طباعة</span></Button>
-            <Button variant="outline" size="sm" onClick={async () => {
+            <ExportMenu onExportPdf={async () => {
               try {
                 await generateInvoicesViewPDF(
                   filteredInvoices.map(inv => ({
@@ -196,7 +196,7 @@ const InvoicesPage = () => {
               } catch {
                 toast.error('حدث خطأ أثناء تصدير PDF');
               }
-            }} className="gap-2"><FileDown className="w-4 h-4" /><span className="hidden sm:inline">تصدير PDF</span></Button>
+            }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>

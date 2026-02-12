@@ -5,7 +5,8 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { FileText, Download, TrendingUp, TrendingDown, Wallet, Printer } from 'lucide-react';
+import { FileText, Download, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -83,9 +84,7 @@ const DisclosurePage = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // handlePrint removed - ExportMenu handles it
 
   return (
     <DashboardLayout>
@@ -97,14 +96,7 @@ const DisclosurePage = () => {
             <p className="text-muted-foreground mt-1">السنة المالية: {fiscalYear}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrint} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button onClick={handleDownloadPDF} className="gap-2">
-              <Download className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 

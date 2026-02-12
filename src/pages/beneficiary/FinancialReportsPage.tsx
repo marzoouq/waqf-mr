@@ -5,7 +5,8 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { BarChart3, Download, PieChart, TrendingUp, Building, Printer } from 'lucide-react';
+import { BarChart3, Download, PieChart, TrendingUp, Building } from 'lucide-react';
+import ExportMenu from '@/components/ExportMenu';
 import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateAnnualReportPDF } from '@/utils/pdf';
@@ -131,9 +132,7 @@ const FinancialReportsPage = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // handlePrint removed - ExportMenu handles it
 
   return (
     <DashboardLayout>
@@ -145,14 +144,7 @@ const FinancialReportsPage = () => {
             <p className="text-muted-foreground mt-1">عرض وتحليل البيانات المالية للوقف</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrint} className="gap-2">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button onClick={handleDownloadPDF} className="gap-2">
-              <Download className="w-4 h-4" />
-              تصدير PDF
-            </Button>
+            <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 
