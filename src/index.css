@@ -290,14 +290,13 @@
 /* ===== Print Styles ===== */
 @media print {
   /* Hide navigation, sidebar, and non-essential UI */
-  /* Hide navigation, sidebar, and non-essential UI */
   aside,
   nav,
   .sidebar,
   [data-sidebar],
   header:has(button),
   .no-print,
-  .print\\:hidden,
+  .print\:hidden,
   [role="alertdialog"],
   .sonner-toaster {
     display: none !important;
@@ -314,7 +313,7 @@
     display: block !important;
   }
 
-  /* Dialog: make it print-friendly (remove overlay, position static) */
+  /* Dialog: make it print-friendly */
   [role="dialog"] {
     position: static !important;
     transform: none !important;
@@ -327,7 +326,6 @@
     padding: 0 !important;
   }
 
-  /* Hide dialog overlay/backdrop */
   [data-radix-dialog-overlay] {
     display: none !important;
   }
@@ -336,8 +334,8 @@
   body {
     background: white !important;
     color: black !important;
-    font-size: 12pt;
-    line-height: 1.5;
+    font-size: 11pt;
+    line-height: 1.6;
   }
 
   main,
@@ -365,19 +363,27 @@
 
   th, td {
     border: 1px solid #ccc !important;
-    padding: 6px 8px !important;
-    font-size: 11pt;
+    padding: 5px 8px !important;
+    font-size: 10pt;
   }
 
-  th {
-    background-color: #f0f0f0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  /* Preserve important background colors */
+  th,
+  .bg-green-50, .bg-red-50, .bg-amber-50,
+  .bg-primary\/5, .bg-primary\/10,
+  .bg-destructive\/5, .bg-destructive\/10,
+  .bg-secondary\/10, .bg-secondary\/20 {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Page break controls */
   h1, h2, h3 {
     break-after: avoid;
+  }
+
+  tr {
+    break-inside: avoid;
   }
 
   .page-break {
@@ -399,26 +405,55 @@
   .gradient-hero {
     background: #f5f5f5 !important;
     color: #333 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
-  /* Add print header */
+  /* Page setup */
   @page {
     size: A4;
-    margin: 15mm 10mm;
+    margin: 12mm 10mm 18mm 10mm;
+  }
+
+  @page :first {
+    margin-top: 8mm;
   }
 
   /* Preserve badge colors */
   .badge,
   [class*="Badge"] {
     border: 1px solid #999 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* Charts don't print well, add note */
+  /* Charts: hide and show message */
   .recharts-responsive-container {
-    break-inside: avoid;
+    display: none !important;
+  }
+
+  .recharts-responsive-container + .print-chart-notice,
+  .print-chart-notice {
+    display: block !important;
+  }
+
+  /* Print header/footer visibility */
+  .print-header {
+    display: block !important;
+  }
+
+  .print-footer {
+    display: block !important;
+    margin-top: 2rem;
+    padding-top: 0.75rem;
+  }
+
+  /* Page numbers via CSS counters */
+  .print-page-number::after {
+    counter-increment: page;
+    content: "صفحة " counter(page);
+  }
+
+  /* WaqfInfoBar: hide on print (PrintHeader replaces it) */
+  .waqf-info-bar {
+    display: none !important;
   }
 }

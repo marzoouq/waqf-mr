@@ -27,6 +27,7 @@ import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PrintHeader from '@/components/PrintHeader';
+import PrintFooter from '@/components/PrintFooter';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -248,9 +249,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
         {children}
         {/* Print-only Footer */}
-        <div className="hidden print:block border-t-2 border-primary mt-8 pt-4 px-6 text-center text-sm text-muted-foreground">
-          <p>تمت الطباعة بتاريخ: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        </div>
+        <PrintFooter />
       </main>
     </div>
   );
