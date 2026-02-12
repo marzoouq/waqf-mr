@@ -1,3 +1,9 @@
+/**
+ * هوكات إدارة المصروفات (CRUD)
+ * يوفر: useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpensesByFiscalYear
+ * الجدول: expenses | الربط: properties | الترتيب: حسب التاريخ
+ * عند إضافة مصروف جديد: يتم إرسال إشعار تلقائي لجميع المستفيدين
+ */
 import { useCrudFactory } from './useCrudFactory';
 import { Expense } from '@/types/database';
 import { notifyAllBeneficiaries } from '@/utils/notifications';

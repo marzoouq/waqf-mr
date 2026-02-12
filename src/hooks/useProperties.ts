@@ -1,3 +1,8 @@
+/**
+ * هوكات إدارة العقارات (CRUD)
+ * يوفر: useProperties (جلب), useCreateProperty, useUpdateProperty, useDeleteProperty
+ * الجدول: properties | الترتيب: حسب تاريخ الإنشاء (تنازلي)
+ */
 import { useCrudFactory } from './useCrudFactory';
 import { Property } from '@/types/database';
 

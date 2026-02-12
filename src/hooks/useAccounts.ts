@@ -1,3 +1,8 @@
+/**
+ * هوكات إدارة الحسابات الختامية (CRUD)
+ * يوفر: useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount
+ * الجدول: accounts | يخزن القيم المالية المحسوبة لكل سنة مالية
+ */
 import { useCrudFactory } from '@/hooks/useCrudFactory';
 import { Account } from '@/types/database';
 

@@ -1,3 +1,11 @@
+/**
+ * سياق المصادقة (AuthContext)
+ * يدير حالة تسجيل الدخول والخروج وجلب دور المستخدم من جدول user_roles.
+ * يوفر: user, session, role, loading, signIn, signUp, signOut
+ * 
+ * الأدوار المدعومة: admin (ناظر), beneficiary (مستفيد), waqif (واقف)
+ * يتم جلب الدور تلقائياً عند تسجيل الدخول ومسحه عند الخروج.
+ */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';

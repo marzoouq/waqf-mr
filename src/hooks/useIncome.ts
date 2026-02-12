@@ -1,3 +1,9 @@
+/**
+ * هوكات إدارة الإيرادات (CRUD)
+ * يوفر: useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear
+ * الجدول: income | الربط: properties | الترتيب: حسب التاريخ
+ * عند إضافة دخل جديد: يتم إرسال إشعار تلقائي لجميع المستفيدين
+ */
 import { useCrudFactory } from './useCrudFactory';
 import { Income } from '@/types/database';
 import { notifyAllBeneficiaries } from '@/utils/notifications';

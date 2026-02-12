@@ -1,3 +1,8 @@
+/**
+ * هوكات إدارة العقود (CRUD)
+ * يوفر: useContracts (جلب مع ربط العقار والوحدة), useCreateContract, useUpdateContract, useDeleteContract
+ * الجدول: contracts | الربط: properties, units
+ */
 import { useCrudFactory } from './useCrudFactory';
 import { Contract } from '@/types/database';
 

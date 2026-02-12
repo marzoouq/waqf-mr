@@ -1,3 +1,13 @@
+/**
+ * التخطيط العام للوحة التحكم (DashboardLayout)
+ * يوفر الشريط الجانبي (قابل للطي) مع التنقل الديناميكي حسب دور المستخدم.
+ * 
+ * - الناظر: يرى 14 رابط (بما فيها واجهة المستفيد)
+ * - المستفيد/الواقف: يرى 8 روابط
+ * - الأقسام قابلة للإخفاء عبر إعدادات التطبيق (sections_visibility)
+ * - يدعم الجوال مع قائمة منزلقة
+ * - يتضمن رأس وتذييل للطباعة (مخفي في العرض العادي)
+ */
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
