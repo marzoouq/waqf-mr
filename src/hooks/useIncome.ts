@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Income } from '@/types/database';
 import { toast } from 'sonner';
+import { notifyAllBeneficiaries } from '@/utils/notifications';
 
 export const useIncome = () => {
   return useQuery({
@@ -35,13 +36,12 @@ export const useCreateIncome = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['income'] });
       toast.success('تم إضافة الدخل بنجاح');
-      // Notify beneficiaries
-      supabase.rpc('notify_all_beneficiaries', {
-        p_title: 'دخل جديد',
-        p_message: `تم تسجيل دخل جديد (${data.source}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
-        p_type: 'payment',
-        p_link: '/beneficiary/disclosure',
-      }).then();
+      notifyAllBeneficiaries(
+        'دخل جديد',
+        `تم تسجيل دخل جديد (${data.source}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
+        'payment',
+        '/beneficiary/disclosure',
+      );
     },
     onError: () => {
       toast.error('حدث خطأ أثناء إضافة الدخل');

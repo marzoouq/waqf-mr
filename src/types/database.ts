@@ -120,3 +120,34 @@ export interface UserRole {
   role: AppRole;
   created_at: string;
 }
+
+export interface Conversation {
+  id: string;
+  type: string;
+  subject: string | null;
+  status: string;
+  created_by: string;
+  participant_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  link: string | null;
+  created_at: string;
+}

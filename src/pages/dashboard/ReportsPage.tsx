@@ -2,73 +2,39 @@ import { useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { useAccounts } from '@/hooks/useAccounts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
-import { useAppSettings } from '@/hooks/useAppSettings';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: settings } = useAppSettings();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
-  const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
-  const { data: accounts = [] } = useAccounts();
   const { data: allUnits = [] } = useAllUnits();
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  
-  // Use stored account values if available
-  const currentAccount = accounts[0];
-  
-  const waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
-  const vatAmount = currentAccount ? Number(currentAccount.vat_amount) : 0;
-  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : 0;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : 0;
-  const waqfRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : 0;
-  const waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
-  const distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+  const {
+    income, expenses, beneficiaries, currentAccount,
+    totalIncome, totalExpenses, adminPct, waqifPct,
+    zakatAmount, vatAmount, waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
+    grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
+    adminShare, waqifShare, waqfRevenue,
+    availableAmount, remainingBalance,
+    incomeBySource, expensesByType,
+  } = useFinancialSummary();
 
-  const grandTotal = totalIncome + waqfCorpusPrevious;
-  const netAfterExpenses = currentAccount ? Number(currentAccount.net_after_expenses) : grandTotal - totalExpenses;
-  const netAfterVat = currentAccount ? Number(currentAccount.net_after_vat) : netAfterExpenses - vatAmount;
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
-  const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
-  const availableAmount = waqfRevenue - waqfCorpusManual;
-  const remainingBalance = availableAmount - distributionsAmount;
   const beneficiariesShare = availableAmount;
   const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
 
-  // Income by source
-  const incomeBySource = income.reduce((acc, item) => {
-    acc[item.source] = (acc[item.source] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
-
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
-
-  // Expenses by type
-  const expensesByType = expenses.reduce((acc, item) => {
-    acc[item.expense_type] = (acc[item.expense_type] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
-
   const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
 
   // Beneficiary distributions

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/types/database';
 import { toast } from 'sonner';
+import { notifyAllBeneficiaries } from '@/utils/notifications';
 
 export const useExpenses = () => {
   return useQuery({
@@ -35,13 +36,12 @@ export const useCreateExpense = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       toast.success('تم إضافة المصروف بنجاح');
-      // Notify beneficiaries
-      supabase.rpc('notify_all_beneficiaries', {
-        p_title: 'مصروف جديد',
-        p_message: `تم تسجيل مصروف جديد (${data.expense_type}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
-        p_type: 'payment',
-        p_link: '/beneficiary/disclosure',
-      }).then();
+      notifyAllBeneficiaries(
+        'مصروف جديد',
+        `تم تسجيل مصروف جديد (${data.expense_type}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
+        'payment',
+        '/beneficiary/disclosure',
+      );
     },
     onError: () => {
       toast.error('حدث خطأ أثناء إضافة المصروف');

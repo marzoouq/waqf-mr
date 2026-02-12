@@ -2,12 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useAppSettings } from '@/hooks/useAppSettings';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Download, Gauge } from 'lucide-react';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -18,28 +14,16 @@ import { Progress } from '@/components/ui/progress';
 const AdminDashboard = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: accounts = [] } = useAccounts();
   const { data: allUnits = [] } = useAllUnits();
-  const { data: settings } = useAppSettings();
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  const {
+    income, expenses, beneficiaries,
+    totalIncome, totalExpenses,
+    adminShare, waqifShare, waqfRevenue,
+  } = useFinancialSummary();
+
   const activeContractsCount = contracts.filter(c => c.status === 'active').length;
   const contractualRevenue = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-
-  // Use stored account values if available, fallback to dynamic calculation with settings
-  const currentAccount = accounts[0];
-  const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
-  const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
-  // أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
-  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-  const fallbackShareBase = totalIncome - totalExpenses - zakatAmount;
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : fallbackShareBase * (adminPct / 100);
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : fallbackShareBase * (waqifPct / 100);
-  const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : fallbackShareBase - adminShare - waqifShare;
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
@@ -49,7 +33,7 @@ const AdminDashboard = () => {
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
     { title: 'حصة الناظر', value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
     { title: 'حصة الواقف', value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
-    { title: 'ريع الوقف للمستفيدين', value: `${netRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
+    { title: 'ريع الوقف للمستفيدين', value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 
@@ -57,7 +41,7 @@ const AdminDashboard = () => {
   const monthlyData = useMemo(() => {
     const months: Record<string, { income: number; expenses: number }> = {};
     income.forEach(item => {
-      const month = item.date?.substring(0, 7); // YYYY-MM
+      const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
         months[month].income += Number(item.amount);
@@ -214,7 +198,7 @@ const AdminDashboard = () => {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {expenseTypes.map((entry, index) => (
+                      {expenseTypes.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>

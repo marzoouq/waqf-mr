@@ -6,6 +6,7 @@ import { Bot, Send, X, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
 
@@ -37,7 +38,7 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
-      const { data: sessionData } = await (await import('@/integrations/supabase/client')).supabase.auth.getSession();
+      const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       const resp = await fetch(AI_URL, {

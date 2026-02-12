@@ -20,6 +20,8 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
+import { notifyAllBeneficiaries } from '@/utils/notifications';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,8 +125,7 @@ const AccountsPage = () => {
     saveSetting('fiscal_year', val);
   };
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  const { totalIncome, totalExpenses } = computeTotals(income, expenses);
   
   // VAT is now a manual field, no need to filter from expenses
 
@@ -149,32 +150,19 @@ const AccountsPage = () => {
     .reduce((sum, c) => sum + Number(c.rent_amount), 0);
   const calculatedVat = commercialRent * (vatPercentage / 100);
 
-  // === NEW FINANCIAL SEQUENCE ===
-  const grandTotal = totalIncome + waqfCorpusPrevious;
-  const netAfterExpenses = grandTotal - totalExpenses;
-  const netAfterVat = netAfterExpenses - manualVat;
-  const netAfterZakat = netAfterVat - zakatAmount;
-  // أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
-  const shareBase = totalIncome - totalExpenses - zakatAmount;
-  const adminShare = shareBase * (adminPercent / 100);
-  const waqifShare = shareBase * (waqifPercent / 100);
-  const waqfRevenue = netAfterZakat - adminShare - waqifShare;
-  const availableAmount = waqfRevenue - waqfCorpusManual;
-  const remainingBalance = availableAmount - manualDistributions;
+  // === FINANCIAL SEQUENCE (using shared calculation) ===
+  const financials = calculateFinancials({
+    totalIncome, totalExpenses, waqfCorpusPrevious, manualVat: manualVat,
+    zakatAmount, adminPercent: adminPercent, waqifPercent: waqifPercent,
+    waqfCorpusManual, manualDistributions,
+  });
+  const { grandTotal, netAfterExpenses, netAfterVat, netAfterZakat, shareBase, adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance } = financials;
 
   // Group income by source
-  const incomeBySource = income.reduce((acc, item) => {
-    const source = item.source || 'غير محدد';
-    acc[source] = (acc[source] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
+  const incomeBySource = groupIncomeBySource(income);
 
   // Group expenses by type
-  const expensesByType = expenses.reduce((acc, item) => {
-    const type = item.expense_type || 'غير محدد';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
+  const expensesByType = groupExpensesByType(expenses);
 
   // rent_amount هو الإيجار السنوي
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
@@ -267,23 +255,19 @@ const AccountsPage = () => {
     });
 
     // إرسال إشعارات تلقائية لجميع المستفيدين
-    try {
-      await supabase.rpc('notify_all_beneficiaries', {
-        p_title: 'تحديث الحسابات الختامية',
-        p_message: `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
-        p_type: 'payment',
-        p_link: '/beneficiary/accounts',
-      });
-      if (manualDistributions > 0) {
-        await supabase.rpc('notify_all_beneficiaries', {
-          p_title: 'تحديث التوزيعات المالية',
-          p_message: `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
-          p_type: 'payment',
-          p_link: '/beneficiary/my-share',
-        });
-      }
-    } catch (e) {
-      console.error('Failed to send notifications:', e);
+    notifyAllBeneficiaries(
+      'تحديث الحسابات الختامية',
+      `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
+      'payment',
+      '/beneficiary/accounts',
+    );
+    if (manualDistributions > 0) {
+      notifyAllBeneficiaries(
+        'تحديث التوزيعات المالية',
+        `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
+        'payment',
+        '/beneficiary/my-share',
+      );
     }
   };
 
