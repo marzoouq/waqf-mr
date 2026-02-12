@@ -2,26 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import { Conversation, Message } from '@/types/database';
+import { notifyUser } from '@/utils/notifications';
 
-export interface Conversation {
-  id: string;
-  type: string;
-  subject: string | null;
-  status: string;
-  created_by: string;
-  participant_id: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Message {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  content: string;
-  is_read: boolean;
-  created_at: string;
-}
+export type { Conversation, Message };
 
 export const useConversations = (type?: string) => {
   const { user } = useAuth();
@@ -99,7 +83,6 @@ export const useSendMessage = () => {
         content: trimmed,
       });
       if (error) throw error;
-      // Update conversation updated_at
       await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
 
       // If admin sends a message, notify the beneficiary participant
@@ -111,13 +94,13 @@ export const useSendMessage = () => {
             .eq('id', conversationId)
             .single();
           if (conv?.participant_id) {
-            await supabase.from('notifications').insert({
-              user_id: conv.participant_id,
-              title: 'رسالة جديدة من ناظر الوقف',
-              message: `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,
-              type: 'message',
-              link: '/beneficiary/messages',
-            });
+            notifyUser(
+              conv.participant_id,
+              'رسالة جديدة من ناظر الوقف',
+              `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,
+              'message',
+              '/beneficiary/messages',
+            );
           }
         } catch (e) {
           console.error('Failed to send message notification:', e);

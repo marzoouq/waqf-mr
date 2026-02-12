@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Beneficiary } from '@/types/database';
 import { toast } from 'sonner';
+import { notifyAdmins } from '@/utils/notifications';
 
 export const useBeneficiaries = () => {
   return useQuery({
@@ -35,12 +36,12 @@ export const useCreateBeneficiary = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
       toast.success('تم إضافة المستفيد بنجاح');
-      supabase.rpc('notify_admins', {
-        p_title: 'مستفيد جديد',
-        p_message: `تم تسجيل مستفيد جديد: ${data.name}`,
-        p_type: 'info',
-        p_link: '/dashboard/beneficiaries',
-      }).then();
+      notifyAdmins(
+        'مستفيد جديد',
+        `تم تسجيل مستفيد جديد: ${data.name}`,
+        'info',
+        '/dashboard/beneficiaries',
+      );
     },
     onError: () => {
       toast.error('حدث خطأ أثناء إضافة المستفيد');
