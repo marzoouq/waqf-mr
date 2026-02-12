@@ -6,15 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/useExpenses';
+import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpensesByFiscalYear } from '@/hooks/useExpenses';
+import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search } from 'lucide-react';
+import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search, Paperclip, ChevronDown, ChevronUp } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
+import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -23,7 +28,12 @@ const EXPENSE_TYPES = ['كهرباء', 'مياه', 'صيانة', 'عمالة', '
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: expenses = [], isLoading } = useExpenses();
+  const { data: activeFY } = useActiveFiscalYear();
+  const [selectedFY, setSelectedFY] = useState<string>('');
+  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+
+  const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
+  const { data: allInvoices = [] } = useInvoices();
   const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
@@ -34,6 +44,7 @@ const ExpensesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({ expense_type: '', amount: '', date: '', property_id: '', description: '' });
 
@@ -48,8 +59,14 @@ const ExpensesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.expense_type || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const expenseData = { expense_type: formData.expense_type, amount: parseFloat(formData.amount), date: formData.date, property_id: formData.property_id || undefined, description: formData.description || undefined };
-    if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData }); } else { await createExpense.mutateAsync(expenseData); }
+    const expenseData: Record<string, unknown> = {
+      expense_type: formData.expense_type, amount: parseFloat(formData.amount), date: formData.date,
+      property_id: formData.property_id || undefined, description: formData.description || undefined,
+    };
+    if (!editingExpense && activeFY) {
+      expenseData.fiscal_year_id = activeFY.id;
+    }
+    if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as any); } else { await createExpense.mutateAsync(expenseData as any); }
     setIsOpen(false);
     resetForm();
   };
@@ -61,6 +78,16 @@ const ExpensesPage = () => {
   };
 
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+
+  // Count documented vs undocumented expenses
+  const expenseInvoiceMap = new Map<string, number>();
+  allInvoices.forEach((inv) => {
+    if (inv.expense_id) {
+      expenseInvoiceMap.set(inv.expense_id, (expenseInvoiceMap.get(inv.expense_id) || 0) + 1);
+    }
+  });
+  const documentedCount = expenses.filter((e) => expenseInvoiceMap.has(e.id)).length;
+  const documentationRate = expenses.length > 0 ? Math.round((documentedCount / expenses.length) * 100) : 0;
 
   const filteredExpenses = expenses.filter((item) => {
     if (!searchQuery) return true;
@@ -111,14 +138,39 @@ const ExpensesPage = () => {
           </div>
         </div>
 
-        <Card className="shadow-sm bg-destructive/10 border-destructive/20">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-destructive/20 rounded-xl flex items-center justify-center"><TrendingDown className="w-6 h-6 text-destructive" /></div>
-              <div><p className="text-sm text-muted-foreground">إجمالي المصروفات</p><p className="text-3xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p></div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-wrap items-center gap-4">
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="shadow-sm bg-destructive/10 border-destructive/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-destructive/20 rounded-xl flex items-center justify-center"><TrendingDown className="w-5 h-5 text-destructive" /></div>
+                <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p></div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center"><Paperclip className="w-5 h-5 text-primary" /></div>
+                <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-2xl font-bold">{documentationRate}%</p></div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center">
+                  <Badge variant="outline" className="text-xs">{documentedCount}/{expenses.length}</Badge>
+                </div>
+                <div><p className="text-xs text-muted-foreground">موثق / إجمالي</p><p className="text-sm text-muted-foreground">{expenses.length - documentedCount} مصروف بدون فاتورة</p></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -132,30 +184,64 @@ const ExpensesPage = () => {
             ) : filteredExpenses.length === 0 ? (
               <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (
-              <Table className="min-w-[650px]">
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
+                    <TableHead className="text-right w-8"></TableHead>
                     <TableHead className="text-right">النوع</TableHead><TableHead className="text-right">المبلغ</TableHead>
                     <TableHead className="text-right">التاريخ</TableHead><TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">المرفقات</TableHead>
                     <TableHead className="text-right">الوصف</TableHead><TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.expense_type}</TableCell>
-                      <TableCell className="text-destructive font-medium">-{Number(item.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>{item.date}</TableCell>
-                      <TableCell>{item.property?.property_number || '-'}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => {
+                    const attachCount = expenseInvoiceMap.get(item.id) || 0;
+                    const isExpanded = expandedRow === item.id;
+                    return (
+                      <>
+                        <TableRow key={item.id} className={isExpanded ? 'border-b-0' : ''}>
+                          <TableCell className="p-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-6 h-6"
+                              onClick={() => setExpandedRow(isExpanded ? null : item.id)}
+                            >
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </Button>
+                          </TableCell>
+                          <TableCell className="font-medium">{item.expense_type}</TableCell>
+                          <TableCell className="text-destructive font-medium">-{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{item.date}</TableCell>
+                          <TableCell>{item.property?.property_number || '-'}</TableCell>
+                          <TableCell>
+                            {attachCount > 0 ? (
+                              <Badge variant="secondary" className="gap-1">
+                                <Paperclip className="w-3 h-3" />{attachCount}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {isExpanded && (
+                          <TableRow key={`${item.id}-expand`}>
+                            <TableCell colSpan={8} className="p-0 bg-muted/10">
+                              <ExpenseAttachments expenseId={item.id} />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}

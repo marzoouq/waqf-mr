@@ -1,6 +1,8 @@
 import { useCrudFactory } from './useCrudFactory';
 import { Income } from '@/types/database';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const incomeCrud = useCrudFactory<'income', Income>({
   table: 'income',
@@ -22,3 +24,19 @@ export const useIncome = incomeCrud.useList;
 export const useCreateIncome = incomeCrud.useCreate;
 export const useUpdateIncome = incomeCrud.useUpdate;
 export const useDeleteIncome = incomeCrud.useDelete;
+
+/** Income filtered by fiscal year */
+export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
+  return useQuery({
+    queryKey: ['income', 'fiscal_year', fiscalYearId],
+    queryFn: async () => {
+      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false });
+      if (fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Income[];
+    },
+  });
+};

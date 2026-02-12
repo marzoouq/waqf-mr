@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown } from 'lucide-react';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, Printer, FileDown, LayoutGrid, List } from 'lucide-react';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
+import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +26,12 @@ import {
 
 const InvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: invoices = [], isLoading } = useInvoices();
+  const { data: activeFY } = useActiveFiscalYear();
+  const [selectedFY, setSelectedFY] = useState<string>('');
+  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
+  const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContracts();
   const createInvoice = useCreateInvoice();
@@ -99,9 +107,12 @@ const InvoicesPage = () => {
         status: formData.status,
       };
 
-      // Upload new file if selected
+      // Auto-assign active fiscal year for new records
+      if (!editingInvoice && activeFY) {
+        invoiceData.fiscal_year_id = activeFY.id;
+      }
+
       if (selectedFile) {
-        // Remove old file if replacing
         if (editingInvoice?.file_path) {
           await supabase.storage.from('invoices').remove([editingInvoice.file_path]);
         }
@@ -294,78 +305,106 @@ const InvoicesPage = () => {
           </div>
         </div>
 
+        <div className="flex flex-wrap items-center gap-4 justify-between">
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
+          <div className="flex gap-1 border rounded-lg p-1">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+              className="gap-1"
+            >
+              <List className="w-4 h-4" />
+              <span className="hidden sm:inline">جدول</span>
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="gap-1"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">شبكي</span>
+            </Button>
+          </div>
+        </div>
+
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="بحث في الفواتير..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
         </div>
 
-        <Card className="shadow-sm">
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
-            ) : filteredInvoices.length === 0 ? (
-              <div className="py-12 text-center">
-                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد فواتير مرفوعة'}</p>
-              </div>
-            ) : (
-              <Table className="min-w-[800px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">رقم الفاتورة</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">العقار</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">الملف</TableHead>
-                    <TableHead className="text-right">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
-                      <TableCell>{item.invoice_number || '-'}</TableCell>
-                      <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>{item.date}</TableCell>
-                      <TableCell>{item.property?.property_number || '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant={statusBadgeVariant(item.status)}>
-                          {INVOICE_STATUS_LABELS[item.status] || item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item.file_path ? (
-                          <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => handleViewFile(item.file_path!)}>
-                            <Eye className="w-4 h-4" />
-                            <span className="text-xs truncate max-w-[80px]">{item.file_name}</span>
-                          </Button>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+        {viewMode === 'grid' ? (
+          <InvoiceGridView invoices={filteredInvoices} onEdit={handleEdit} />
+        ) : (
+          <Card className="shadow-sm">
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+              ) : filteredInvoices.length === 0 ? (
+                <div className="py-12 text-center">
+                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد فواتير مرفوعة'}</p>
+                </div>
+              ) : (
+                <Table className="min-w-[800px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">النوع</TableHead>
+                      <TableHead className="text-right">رقم الفاتورة</TableHead>
+                      <TableHead className="text-right">المبلغ</TableHead>
+                      <TableHead className="text-right">التاريخ</TableHead>
+                      <TableHead className="text-right">العقار</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">الملف</TableHead>
+                      <TableHead className="text-right">إجراءات</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
+                        <TableCell>{item.invoice_number || '-'}</TableCell>
+                        <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell>{item.date}</TableCell>
+                        <TableCell>{item.property?.property_number || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusBadgeVariant(item.status)}>
+                            {INVOICE_STATUS_LABELS[item.status] || item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {item.file_path ? (
+                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => handleViewFile(item.file_path!)}>
+                              <Eye className="w-4 h-4" />
+                              <span className="text-xs truncate max-w-[80px]">{item.file_name}</span>
+                            </Button>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+            </CardContent>
+          </Card>
+        )}
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>
