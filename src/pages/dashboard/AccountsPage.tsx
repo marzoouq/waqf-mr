@@ -87,17 +87,27 @@ const AccountsPage = () => {
     }
   }, [appSettings.data]);
 
-  // Load values from latest account
+  // Load values from the account matching selected fiscal year
   useEffect(() => {
-    if (accounts.length > 0) {
-      const latest = accounts[0];
-      if (latest.zakat_amount !== undefined) setZakatAmount(Number(latest.zakat_amount));
-      if (latest.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(latest.waqf_corpus_manual));
-      if (latest.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(latest.waqf_corpus_previous));
-      if (latest.vat_amount !== undefined) setManualVat(Number(latest.vat_amount));
-      if (latest.distributions_amount !== undefined) setManualDistributions(Number(latest.distributions_amount));
+    const fyLabel = selectedFY?.label;
+    const matchingAccount = fyLabel
+      ? accounts.find(a => a.fiscal_year === fyLabel)
+      : accounts.length === 1 ? accounts[0] : null;
+    if (matchingAccount) {
+      if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
+      if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
+      if (matchingAccount.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(matchingAccount.waqf_corpus_previous));
+      if (matchingAccount.vat_amount !== undefined) setManualVat(Number(matchingAccount.vat_amount));
+      if (matchingAccount.distributions_amount !== undefined) setManualDistributions(Number(matchingAccount.distributions_amount));
+    } else {
+      // No matching account — reset to zero for clean dynamic calculation
+      setZakatAmount(0);
+      setWaqfCorpusManual(0);
+      setWaqfCorpusPrevious(0);
+      setManualVat(0);
+      setManualDistributions(0);
     }
-  }, [accounts]);
+  }, [accounts, selectedFY?.label]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const saveSetting = useCallback(async (key: string, value: string) => {
