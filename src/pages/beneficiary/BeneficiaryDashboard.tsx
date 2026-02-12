@@ -1,28 +1,31 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useAccounts } from '@/hooks/useAccounts';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Wallet, FileText, BarChart3, PieChart, Calculator, Bell, ArrowLeft } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useNavigate } from 'react-router-dom';
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: accounts = [] } = useAccounts();
   const { data: notifications = [] } = useNotifications();
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+
+  const { waqfRevenue, waqfCorpusManual } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const latestAccount = accounts.length > 0 ? accounts[0] : null;
-
-  const totalIncome = Number(latestAccount?.total_income || 0);
-  const waqfRevenue = Number(latestAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number(latestAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
 
@@ -72,7 +75,10 @@ const BeneficiaryDashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
             <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
           </div>
-          <ExportMenu hidePdf />
+          <div className="flex items-center gap-3">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
+            <ExportMenu hidePdf />
+          </div>
         </div>
 
         {/* Stats */}
