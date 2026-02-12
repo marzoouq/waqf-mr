@@ -35,11 +35,12 @@ const FinancialReportsPage = () => {
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
   const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const beneficiariesShare = distributableAmount;
+  const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
+  const beneficiariesShare = distributionsAmount;
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
 
-  const myShare = currentBeneficiary 
-    ? (distributableAmount * currentBeneficiary.share_percentage) / 100 
+  const myShare = currentBeneficiary && totalBeneficiaryPercentage > 0
+    ? (distributionsAmount * currentBeneficiary.share_percentage) / totalBeneficiaryPercentage
     : 0;
 
   const incomeVsExpenses = [
@@ -109,7 +110,7 @@ const FinancialReportsPage = () => {
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
           percentage: Number(b.share_percentage),
-          amount: (distributableAmount * Number(b.share_percentage)) / 100,
+          amount: totalBeneficiaryPercentage > 0 ? (distributionsAmount * Number(b.share_percentage)) / totalBeneficiaryPercentage : 0,
         })),
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');

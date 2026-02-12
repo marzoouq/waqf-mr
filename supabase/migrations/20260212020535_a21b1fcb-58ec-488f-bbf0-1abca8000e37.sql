@@ -1,0 +1,1 @@
+ALTER TABLE public.accounts ADD COLUMN waqf_corpus_previous numeric NOT NULL DEFAULT 0;

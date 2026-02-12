@@ -517,6 +517,10 @@ export const generateAccountsPDF = async (data: {
   waqfCapital?: number;
   zakatAmount?: number;
   netAfterZakat?: number;
+  waqfCorpusPrevious?: number;
+  grandTotal?: number;
+  availableAmount?: number;
+  remainingBalance?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
@@ -580,33 +584,50 @@ export const generateAccountsPDF = async (data: {
 
   y = (doc as any).lastAutoTable?.finalY + 10 || 200;
 
-  // Distribution - Sequential (step-down) calculation
+  // Distribution - Full hierarchical sequence
+  const corpusPrev = data.waqfCorpusPrevious || 0;
+  const gt = data.grandTotal || (data.totalIncome + corpusPrev);
   const regularExp = data.totalExpenses - (data.vatAmount || 0);
-  const netAfterExp = data.totalIncome - regularExp;
+  const netAfterExp = gt - regularExp;
   const netAfterVat = netAfterExp - (data.vatAmount || 0);
   const zakatAmt = data.zakatAmount || 0;
   const netAfterZakatVal = data.netAfterZakat || (netAfterVat - zakatAmt);
+  const avail = data.availableAmount || (data.waqfRevenue - (data.waqfCapital || 0));
+  const remaining = data.remainingBalance || (avail - (data.distributionsAmount || 0));
+
+  const distributionRows: string[][] = [];
+  if (corpusPrev > 0) {
+    distributionRows.push(['رقبة الوقف المرحلة من العام السابق', `+${corpusPrev.toLocaleString()}`]);
+  }
+  distributionRows.push(
+    ['إجمالي الدخل', `+${data.totalIncome.toLocaleString()}`],
+  );
+  if (corpusPrev > 0) {
+    distributionRows.push(['الإجمالي الشامل', gt.toLocaleString()]);
+  }
+  distributionRows.push(
+    ['(-) المصروفات التشغيلية', `(${regularExp.toLocaleString()})`],
+    ['الصافي بعد المصاريف', netAfterExp.toLocaleString()],
+    ['(-) ضريبة القيمة المضافة', `(${(data.vatAmount || 0).toLocaleString()})`],
+    ['الصافي بعد الضريبة', netAfterVat.toLocaleString()],
+    ['(-) الزكاة', `(${zakatAmt.toLocaleString()})`],
+    ['الصافي بعد الزكاة', netAfterZakatVal.toLocaleString()],
+    ['(-) حصة الناظر', `(${data.adminShare.toLocaleString()})`],
+    [`الباقي بعد حصة الناظر`, `${(netAfterZakatVal - data.adminShare).toLocaleString()}`],
+    ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
+    ['ريع الوقف (الإجمالي القابل للتوزيع)', data.waqfRevenue.toLocaleString()],
+    ['(-) رقبة الوقف للعام الحالي', `(${(data.waqfCapital || 0).toLocaleString()})`],
+    ['المبلغ المتاح', avail.toLocaleString()],
+    ['(-) التوزيعات', `(${(data.distributionsAmount || 0).toLocaleString()})`],
+    ['الرصيد المتبقي', remaining.toLocaleString()],
+  );
 
   doc.setFont(fontFamily, 'bold');
   doc.text('التوزيع', 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 6,
     head: [['البند', 'المبلغ']],
-    body: [
-      ['إجمالي الدخل', `+${data.totalIncome.toLocaleString()}`],
-      ['(-) المصروفات (بدون الضريبة)', `(${regularExp.toLocaleString()})`],
-      ['الصافي بعد المصاريف', netAfterExp.toLocaleString()],
-      ['(-) ضريبة القيمة المضافة', `(${(data.vatAmount || 0).toLocaleString()})`],
-      ['الصافي بعد خصم الضريبة', netAfterVat.toLocaleString()],
-      ['(-) الزكاة', `(${zakatAmt.toLocaleString()})`],
-      ['الصافي بعد الزكاة', netAfterZakatVal.toLocaleString()],
-      ['(-) حصة الناظر', `(${data.adminShare.toLocaleString()})`],
-      [`الباقي بعد حصة الناظر`, `${(netAfterZakatVal - data.adminShare).toLocaleString()}`],
-      ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
-      ['ريع الوقف', data.waqfRevenue.toLocaleString()],
-      ['(-) رقبة الوقف', `(${(data.waqfCapital || 0).toLocaleString()})`],
-      ['المبلغ القابل للتوزيع', (data.distributionsAmount || 0).toLocaleString()],
-    ],
+    body: distributionRows,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
@@ -615,6 +636,8 @@ export const generateAccountsPDF = async (data: {
   y = (doc as any).lastAutoTable?.finalY + 10 || 250;
 
   // Beneficiaries
+  const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const distAmount = data.distributionsAmount || 0;
   doc.setFont(fontFamily, 'bold');
   doc.text('حصص المستفيدين', 105, y, { align: 'center' });
   autoTable(doc, {
@@ -623,7 +646,7 @@ export const generateAccountsPDF = async (data: {
     body: data.beneficiaries.map(b => [
       b.name,
       `${Number(b.share_percentage).toFixed(2)}%`,
-      (data.waqfRevenue * Number(b.share_percentage) / 100).toLocaleString(),
+      totalBenPct > 0 ? (distAmount * Number(b.share_percentage) / totalBenPct).toLocaleString() : '0',
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),

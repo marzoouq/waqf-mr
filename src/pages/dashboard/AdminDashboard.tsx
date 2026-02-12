@@ -7,11 +7,13 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Download } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Download, Gauge } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useMemo } from 'react';
+import { Progress } from '@/components/ui/progress';
 
 const AdminDashboard = () => {
   const { data: properties = [] } = useProperties();
@@ -20,6 +22,7 @@ const AdminDashboard = () => {
   const { data: expenses = [] } = useExpenses();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: accounts = [] } = useAccounts();
+  const { data: allUnits = [] } = useAllUnits();
   const { data: settings } = useAppSettings();
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -120,6 +123,49 @@ const AdminDashboard = () => {
             </Card>
           ))}
         </div>
+
+        {/* KPI Panel */}
+        {(() => {
+          const collectionRate = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
+          const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
+          const totalUnitsCount = allUnits.length;
+          const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
+          const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
+          const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+
+          const kpis = [
+            { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-green-600' : collectionRate >= 50 ? 'text-yellow-600' : 'text-red-600', progressColor: collectionRate >= 80 ? '[&>div]:bg-green-500' : collectionRate >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
+            { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-green-600' : occupancyRate >= 50 ? 'text-yellow-600' : 'text-red-600', progressColor: occupancyRate >= 80 ? '[&>div]:bg-green-500' : occupancyRate >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
+            { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
+            { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-green-600' : expenseRatio <= 40 ? 'text-yellow-600' : 'text-red-600', progressColor: expenseRatio <= 20 ? '[&>div]:bg-green-500' : expenseRatio <= 40 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
+          ];
+
+          return (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gauge className="w-5 h-5" />
+                  مؤشرات الأداء الرئيسية (KPI)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {kpis.map((kpi, idx) => (
+                    <div key={idx} className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
+                      <p className="text-sm text-muted-foreground">{kpi.label}</p>
+                      <p className={`text-3xl font-bold ${kpi.color}`}>
+                        {kpi.value.toLocaleString()}{kpi.suffix}
+                      </p>
+                      {kpi.progressColor && (
+                        <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
