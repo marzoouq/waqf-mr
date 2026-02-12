@@ -1,89 +1,34 @@
-# المرحلة 2: توحيد المنطق المالي في صفحات المستفيد
 
----
+# اصلاح عرض UUID في صفحة المستفيدين
 
-## الهدف
+## المشكلة
 
-قما سابقا بالاصلاح لنفس الاخطاء والملاحظات لماذا لم تنجح
+صفحة المستفيدين (BeneficiariesPage) بها مشكلتان:
 
-استبدال المنطق المالي المكرر في 4 صفحات للمستفيد باستخدام هوك `useFinancialSummary` الموحد، مما يضمن تطابق الارقام ويسهل الصيانة المستقبلية.
+1. **استعلام المستخدمين (سطر 40)**: يعرض `user_id` (UUID) بدلا من البريد الالكتروني الفعلي لان الكود يقرا فقط من جدول `user_roles` ويضع الـ UUID كبريد
+2. **نموذج ربط المستفيد (سطر 126-129)**: يطلب من الناظر ادخال UUID يدويا في حقل نصي، وهو غير عملي
 
----
+## الحل
 
-## التغييرات المطلوبة
+### 1. استبدال استعلام المستخدمين باستدعاء edge function
 
-### 1. تحسين useFinancialSummary (ملف واحد)
+**الملف**: `src/pages/dashboard/BeneficiariesPage.tsx`
 
-**الملف**: `src/hooks/useFinancialSummary.ts`
+استبدال الاستعلام الحالي (اسطر 35-42) الذي يقرا من `user_roles` فقط، باستدعاء `admin-manage-users` مع `action: 'list_users'` (نفس النمط المستخدم في `UserManagementPage`). هذا يجلب البريد الالكتروني الفعلي من نظام المصادقة.
 
-اضافة قيمة `expensesByTypeExcludingVat` للتعامل مع حالة استبعاد الضريبة من المصروفات (مطلوبة في صفحتي الإفصاح والتقارير المالية). هذا يحل مشكلة #6 (تناقض استبعاد VAT بين الصفحات).
+### 2. استبدال حقل UUID بقائمة منسدلة
 
----
+استبدال حقل `Input` لـ `user_id` (اسطر 126-129) بمكون `Select` يعرض قائمة المستخدمين الذين يحملون دور "beneficiary" ولم يتم ربطهم بمستفيد بعد، مع عرض البريد الالكتروني بدلا من الـ UUID.
 
-### 2. تبسيط DisclosurePage
+### التفاصيل التقنية
 
-**الملف**: `src/pages/beneficiary/DisclosurePage.tsx`
+- جلب المستخدمين عبر: `supabase.functions.invoke('admin-manage-users', { body: { action: 'list_users' } })`
+- فلترة القائمة المنسدلة لاظهار فقط المستخدمين بدور `beneficiary` الذين ليس لهم ربط حالي في جدول المستفيدين
+- اضافة خيار "بدون ربط" لالغاء الربط
+- عند التعديل، اظهار البريد الحالي للمستخدم المرتبط
 
-- ازالة الاستيرادات المكررة: `useIncomeByFiscalYear`, `useExpensesByFiscalYear`, `useAccounts`, `useBeneficiaries`
-- ازالة حسابات `currentAccount`, `totalIncome`, `totalExpenses`, `netAfterExpenses`, etc (حوالي 20 سطر)
-- ازالة `incomeBySource` و `expensesByType` المحسوبة محليا
-- استبدالها بـ `useFinancialSummary(fiscalYearId, selectedFY?.label)` واستخراج كل القيم منه
-- الاحتفاظ بمنطق `currentBeneficiary` و `myShare` المحسوب من قيم الهوك
+### الملفات المتأثرة
 
----
-
-### 3. تبسيط MySharePage
-
-**الملف**: `src/pages/beneficiary/MySharePage.tsx`
-
-- ازالة `useAccounts`, `useBeneficiaries` المكررة
-- ازالة حسابات `currentAccount` والقيم المالية (حوالي 15 سطر)
-- استبدالها بـ `useFinancialSummary`
-- الاحتفاظ بمنطق `distributions` الخاص بالصفحة (فريد ومطلوب)
-
----
-
-### 4. تبسيط FinancialReportsPage
-
-**الملف**: `src/pages/beneficiary/FinancialReportsPage.tsx`
-
-- ازالة الاستيرادات والحسابات المكررة
-- استبدالها بـ `useFinancialSummary`
-- استخدام `expensesByTypeExcludingVat` الجديد بدلا من الفلترة المحلية
-- الاحتفاظ بمنطق الرسوم البيانية والبيانات الشهرية (فريد)
-
----
-
-### 5. تبسيط AccountsViewPage
-
-**الملف**: `src/pages/beneficiary/AccountsViewPage.tsx`
-
-- ازالة الاستيرادات والحسابات المكررة
-- استبدالها بـ `useFinancialSummary`
-- الاحتفاظ بمنطق العقود وجدول العقود (فريد ومطلوب)
-
----
-
-## ملاحظة حول fiscal_year_id في الدخل والمصروفات
-
-تم التحقق من ان صفحتي `IncomePage` و `ExpensesPage` تضيفان `fiscal_year_id` تلقائيا عند انشاء سجلات جديدة (اسطر 63-65 و 69-71). لا يوجد تغيير مطلوب هنا.
-
----
-
-## ملخص الاثر
-
-```text
-+----------------------------+----------------+----------------+
-| الملف                       | اسطر تُزال     | اسطر تُضاف     |
-+----------------------------+----------------+----------------+
-| useFinancialSummary.ts     | 0              | ~5             |
-| DisclosurePage.tsx         | ~25            | ~5             |
-| MySharePage.tsx            | ~20            | ~5             |
-| FinancialReportsPage.tsx   | ~25            | ~5             |
-| AccountsViewPage.tsx       | ~25            | ~5             |
-+----------------------------+----------------+----------------+
-| الإجمالي                    | ~95 سطر        | ~25 سطر        |
-+----------------------------+----------------+----------------+
-```
-
-النتيجة: تقليل ~70 سطرا من الكود المكرر وتوحيد مصدر الحقيقة المالية في هوك واحد.
+| الملف | التغيير |
+|---|---|
+| `src/pages/dashboard/BeneficiariesPage.tsx` | استبدال استعلام المستخدمين + استبدال حقل UUID بقائمة منسدلة |
