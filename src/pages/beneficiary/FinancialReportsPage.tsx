@@ -1,13 +1,13 @@
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { BarChart3, Download, PieChart, TrendingUp, Building, AlertCircle, RefreshCw } from 'lucide-react';
+import { BarChart3, PieChart, TrendingUp, Building, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateAnnualReportPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
@@ -35,14 +37,25 @@ const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  // Fiscal year selection
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+
   const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: income = [], isLoading: incomeLoading } = useIncome();
-  const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: income = [], isLoading: incomeLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const currentAccount = accounts[0];
+  // Filter account by selected fiscal year label
+  const currentAccount = selectedFY
+    ? accounts.find(a => a.fiscal_year === selectedFY.label) || accounts[0]
+    : accounts[0];
+
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
@@ -51,7 +64,6 @@ const FinancialReportsPage = () => {
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
   const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  // توحيد حساب الحصة: نفس المعادلة المستخدمة في MySharePage و DisclosurePage
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
 
@@ -76,10 +88,7 @@ const FinancialReportsPage = () => {
       return acc;
     }, {} as Record<string, number>);
 
-  const expensesPieData = Object.entries(expensesByType).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  const expensesPieData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
 
   const incomeBySource = income.reduce((acc, item) => {
     const source = item.source || 'أخرى';
@@ -87,19 +96,15 @@ const FinancialReportsPage = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const incomePieData = Object.entries(incomeBySource).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  const incomePieData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
 
-  // Revenue distribution based on netAfterVat
   const distributionData = [
     { name: 'المستفيدين', value: beneficiariesShare, fill: '#3b82f6' },
     { name: 'الناظر', value: adminShare, fill: '#f59e0b' },
     { name: 'الواقف', value: waqifShare, fill: '#8b5cf6' },
   ];
 
-  const fiscalYear = currentAccount?.fiscal_year || '';
+  const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 
   const monthlyData = useMemo(() => {
     const months: Record<string, number> = {};
@@ -138,8 +143,6 @@ const FinancialReportsPage = () => {
     }
   };
 
-  // handlePrint removed - ExportMenu handles it
-
   if (isPageLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
@@ -173,6 +176,9 @@ const FinancialReportsPage = () => {
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
+
+        {/* Fiscal Year Selector */}
+        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">

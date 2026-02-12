@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { FileText, Download, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
@@ -13,6 +14,8 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
 
@@ -20,9 +23,16 @@ const DisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  // Fiscal year selection
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+
   const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: income = [], isLoading: incomeLoading } = useIncome();
-  const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: income = [], isLoading: incomeLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
 
   const isPageLoading = beneficiariesLoading || incomeLoading || expensesLoading || accountsLoading;
@@ -30,8 +40,11 @@ const DisclosurePage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Use stored account values from admin
-  const currentAccount = accounts[0];
+  // Filter account by selected fiscal year label
+  const currentAccount = selectedFY
+    ? accounts.find(a => a.fiscal_year === selectedFY.label) || accounts[0]
+    : accounts[0];
+
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
@@ -50,7 +63,7 @@ const DisclosurePage = () => {
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
 
-  const fiscalYear = currentAccount?.fiscal_year || '';
+  const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 
   // Group income by source
   const incomeBySource = income.reduce((acc, item) => {
@@ -90,8 +103,6 @@ const DisclosurePage = () => {
     }
   };
 
-  // handlePrint removed - ExportMenu handles it
-
   if (isPageLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
@@ -125,6 +136,9 @@ const DisclosurePage = () => {
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
+
+        {/* Fiscal Year Selector */}
+        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
