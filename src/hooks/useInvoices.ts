@@ -118,26 +118,23 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
 };
 
 export const getInvoiceFileUrl = (filePath: string) => {
+  // This returns a direct storage URL - use getInvoiceSignedUrl for blob-based access
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  return `${supabaseUrl}/functions/v1/serve-invoice?path=${encodeURIComponent(filePath)}`;
+  return `${supabaseUrl}/storage/v1/object/public/invoices/${filePath}`;
 };
 
 export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('يجب تسجيل الدخول لعرض الفواتير');
-  
-  const url = `${supabaseUrl}/functions/v1/serve-invoice?path=${encodeURIComponent(filePath)}`;
-  
-  // Fetch the file with auth header and create a blob URL
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${session.access_token}`,
-    },
-  });
-  
+  // Create a signed URL then fetch it as a blob to bypass Chrome domain blocking
+  const { data, error } = await supabase.storage
+    .from('invoices')
+    .createSignedUrl(filePath, 3600);
+
+  if (error || !data?.signedUrl) throw new Error('فشل في إنشاء رابط الملف');
+
+  // Fetch the file and create a local blob URL to avoid Chrome blocking the storage domain
+  const response = await fetch(data.signedUrl);
   if (!response.ok) throw new Error('فشل في تحميل الملف');
-  
+
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 };
