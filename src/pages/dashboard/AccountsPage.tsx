@@ -271,7 +271,7 @@ const AccountsPage = () => {
         'تحديث التوزيعات المالية',
         `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
         'payment',
-        '/beneficiary/my-share',
+        '/beneficiary/share',
       );
     }
   };
