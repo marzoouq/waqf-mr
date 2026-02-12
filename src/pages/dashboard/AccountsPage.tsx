@@ -126,10 +126,7 @@ const AccountsPage = () => {
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
   
-  // Separate VAT from regular expenses for reference
-  const vatExpenses = expenses.filter(e => e.description?.includes('ضريبة القيمة المضافة'));
-  const vatAmountFromExpenses = vatExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const regularExpenses = totalExpenses - vatAmountFromExpenses;
+  // VAT is now a manual field, no need to filter from expenses
 
   // Auto-calculate commercial VAT for reference only
   const vatPercentage = Number(appSettings.data?.['vat_percentage'] || '15');
@@ -154,13 +151,12 @@ const AccountsPage = () => {
 
   // === NEW FINANCIAL SEQUENCE ===
   const grandTotal = totalIncome + waqfCorpusPrevious;
-  const netAfterExpenses = grandTotal - regularExpenses;
+  const netAfterExpenses = grandTotal - totalExpenses;
   const netAfterVat = netAfterExpenses - manualVat;
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = netAfterZakat * (adminPercent / 100);
-  const afterAdmin = netAfterZakat - adminShare;
-  const waqifShare = afterAdmin * (waqifPercent / 100);
-  const waqfRevenue = afterAdmin - waqifShare;
+  const waqifShare = netAfterZakat * (waqifPercent / 100);
+  const waqfRevenue = netAfterZakat - adminShare - waqifShare;
   const availableAmount = waqfRevenue - waqfCorpusManual;
   const remainingBalance = availableAmount - manualDistributions;
 
@@ -532,7 +528,7 @@ const AccountsPage = () => {
               )}
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
-                <p className="text-xl font-bold">{regularExpenses.toLocaleString()}</p>
+                <p className="text-xl font-bold">{totalExpenses.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
@@ -892,7 +888,7 @@ const AccountsPage = () => {
                 <TableRow>
                   <TableCell className="font-medium">(-) المصروفات التشغيلية</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">{regularExpenses.toLocaleString()}</TableCell>
+                  <TableCell className="text-destructive">{totalExpenses.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-muted/30 font-semibold">
                   <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
@@ -923,11 +919,6 @@ const AccountsPage = () => {
                   <TableCell className="font-medium">(-) حصة الناظر</TableCell>
                   <TableCell>{adminPercent}%</TableCell>
                   <TableCell>{adminShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/20">
-                  <TableCell className="font-medium">الباقي بعد حصة الناظر</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{afterAdmin.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">(-) حصة الواقف</TableCell>
