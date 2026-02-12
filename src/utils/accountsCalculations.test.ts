@@ -153,3 +153,77 @@ describe('computeTotals – حساب الإجماليات', () => {
     expect(totalExpenses).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// تكامل: محاكاة منطق useFinancialSummary مع حساب مخزن (currentAccount)
+// يتحقق من أن القيم المحسوبة ديناميكياً تتطابق مع القراءة المباشرة
+// ---------------------------------------------------------------------------
+describe('تكامل: تطابق calculateFinancials مع سجل حساب مخزن', () => {
+  // بيانات مأخوذة من ملف الإقفال السنوي المدقق
+  const storedAccount = {
+    total_income: 1_254_000,
+    total_expenses: 121_723.02,
+    waqf_corpus_previous: 236_380,
+    vat_amount: 0,
+    zakat_amount: 0,
+    admin_share: 113_227.698,
+    waqif_share: 56_613.849,
+    waqf_revenue: 1_198_815.433,
+    waqf_corpus_manual: 174_388.543,
+    distributions_amount: 1_024_426.89,
+    net_after_expenses: 1_368_656.98,
+    net_after_vat: 1_368_656.98,
+  };
+
+  const params = {
+    totalIncome: storedAccount.total_income,
+    totalExpenses: storedAccount.total_expenses,
+    waqfCorpusPrevious: storedAccount.waqf_corpus_previous,
+    manualVat: storedAccount.vat_amount,
+    zakatAmount: storedAccount.zakat_amount,
+    adminPercent: 10,
+    waqifPercent: 5,
+    waqfCorpusManual: storedAccount.waqf_corpus_manual,
+    manualDistributions: storedAccount.distributions_amount,
+  };
+
+  const result = calculateFinancials(params);
+
+  it('الإجمالي الشامل = إيرادات + مرحل', () => {
+    expect(result.grandTotal).toBeCloseTo(
+      storedAccount.total_income + storedAccount.waqf_corpus_previous, 2,
+    );
+  });
+
+  it('صافي بعد المصروفات يطابق المخزن', () => {
+    expect(result.netAfterExpenses).toBeCloseTo(storedAccount.net_after_expenses, 2);
+  });
+
+  it('صافي بعد الضريبة يطابق المخزن', () => {
+    expect(result.netAfterVat).toBeCloseTo(storedAccount.net_after_vat, 2);
+  });
+
+  it('حصة الناظر تطابق المخزن', () => {
+    expect(result.adminShare).toBeCloseTo(storedAccount.admin_share, 2);
+  });
+
+  it('حصة الواقف تطابق المخزن', () => {
+    expect(result.waqifShare).toBeCloseTo(storedAccount.waqif_share, 2);
+  });
+
+  it('ريع الوقف يطابق المخزن', () => {
+    expect(result.waqfRevenue).toBeCloseTo(storedAccount.waqf_revenue, 2);
+  });
+
+  it('المبلغ القابل للتوزيع يطابق الحساب', () => {
+    expect(result.availableAmount).toBeCloseTo(
+      storedAccount.waqf_revenue - storedAccount.waqf_corpus_manual, 2,
+    );
+  });
+
+  it('الرصيد المتبقي يطابق الحساب', () => {
+    expect(result.remainingBalance).toBeCloseTo(
+      storedAccount.waqf_revenue - storedAccount.waqf_corpus_manual - storedAccount.distributions_amount, 2,
+    );
+  });
+});
