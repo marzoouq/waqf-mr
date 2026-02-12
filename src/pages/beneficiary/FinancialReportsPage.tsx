@@ -51,10 +51,10 @@ const FinancialReportsPage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Filter account by selected fiscal year label
+  // Find account matching the fiscal year label — NO fallback to accounts[0]
   const currentAccount = selectedFY
-    ? accounts.find(a => a.fiscal_year === selectedFY.label) || accounts[0]
-    : accounts[0];
+    ? accounts.find(a => a.fiscal_year === selectedFY.label) || null
+    : null;
 
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);

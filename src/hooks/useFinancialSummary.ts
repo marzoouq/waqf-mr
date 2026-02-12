@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAppSettings } from '@/hooks/useAppSettings';
@@ -13,12 +13,13 @@ import {
 
 /**
  * Shared hook that provides unified financial data and computed values.
- * Used by AdminDashboard, ReportsPage, and other read-only views.
- * AccountsPage uses its own editable state but can import calculation utilities directly.
+ * Accepts an optional fiscalYearId to filter income/expenses and match the correct account.
+ * When no stored account exists for the selected year, values are calculated dynamically.
  */
-export const useFinancialSummary = () => {
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
+export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string) => {
+  const fyFilter = fiscalYearId || 'all';
+  const { data: income = [] } = useIncomeByFiscalYear(fyFilter);
+  const { data: expenses = [] } = useExpensesByFiscalYear(fyFilter);
   const { data: accounts = [] } = useAccounts();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: settings } = useAppSettings();
@@ -28,7 +29,16 @@ export const useFinancialSummary = () => {
     [income, expenses],
   );
 
-  const currentAccount = accounts[0] || null;
+  // Find account matching the fiscal year label — NO fallback to accounts[0]
+  const currentAccount = useMemo(() => {
+    if (fiscalYearLabel) {
+      return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
+    }
+    // If no label provided but only one account exists, use it
+    if (accounts.length === 1) return accounts[0];
+    return null;
+  }, [accounts, fiscalYearLabel]);
+
   const adminPct = settings?.admin_share_percentage
     ? parseFloat(settings.admin_share_percentage)
     : 10;

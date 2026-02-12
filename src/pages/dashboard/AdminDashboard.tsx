@@ -24,20 +24,13 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
-  } = useFinancialSummary();
+  } = useFinancialSummary(activeFiscalYear?.id, activeFiscalYear?.label);
 
   const isLoading = fyLoading || propsLoading || contractsLoading || unitsLoading;
 
-  // Filter income/expenses by active fiscal year
-  const filteredIncome = useMemo(() => {
-    if (!activeFiscalYear) return income;
-    return income.filter(i => i.fiscal_year_id === activeFiscalYear.id);
-  }, [income, activeFiscalYear]);
-
-  const filteredExpenses = useMemo(() => {
-    if (!activeFiscalYear) return expenses;
-    return expenses.filter(e => e.fiscal_year_id === activeFiscalYear.id);
-  }, [expenses, activeFiscalYear]);
+  // Income/expenses are already filtered by fiscal year via the hook
+  const filteredIncome = income;
+  const filteredExpenses = expenses;
   const activeContractsCount = contracts.filter(c => c.status === 'active').length;
   const contractualRevenue = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
