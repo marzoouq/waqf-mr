@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useAccounts } from '@/hooks/useAccounts';
-import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, Printer } from 'lucide-react';
+import { Wallet, Percent, Clock, CheckCircle, AlertCircle, Download, Printer, FileText } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
@@ -185,71 +185,21 @@ const MySharePage = () => {
           </Card>
         </div>
 
-        {/* Share Calculation Details */}
+        {/* Link to Disclosure */}
         <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>تفاصيل احتساب الحصة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>إجمالي الإيرادات</span>
-                <span className="font-bold text-success">+{totalIncome.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>(-) إجمالي المصروفات</span>
-                <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>الصافي بعد المصاريف</span>
-                <span className="font-bold">{netAfterExpenses.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b text-destructive">
-                <span>(-) ضريبة القيمة المضافة</span>
-                <span>-{vatAmount.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span className="font-bold">الصافي بعد خصم الضريبة</span>
-                <span className="font-bold text-primary">{netAfterVat.toLocaleString()} ر.س</span>
-              </div>
-              {zakatAmount > 0 && (
-                <>
-                  <div className="flex justify-between items-center py-2 border-b text-destructive">
-                    <span>(-) الزكاة</span>
-                    <span>-{zakatAmount.toLocaleString()} ر.س</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="font-bold">الصافي بعد الزكاة</span>
-                    <span className="font-bold">{netAfterZakat.toLocaleString()} ر.س</span>
-                  </div>
-                </>
-              )}
-              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الناظر</span>
-                <span>{adminShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الواقف</span>
-                <span>{waqifShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>ريع الوقف</span>
-                <span className="font-bold">{waqfRevenue.toLocaleString()} ر.س</span>
-              </div>
-              {waqfCorpusManual > 0 && (
-                <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                  <span>(-) رقبة الوقف</span>
-                  <span>{waqfCorpusManual.toLocaleString()} ر.س</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center py-2 border-b">
-                <span>الإجمالي القابل للتوزيع</span>
-                <span className="font-bold">{beneficiariesShare.toLocaleString()} ر.س</span>
-              </div>
-              <div className="flex justify-between items-center py-3 bg-primary/10 rounded-lg px-4 mt-4">
-                <span className="font-bold">حصتي ({currentBeneficiary?.share_percentage || 0}%)</span>
-                <span className="font-bold text-primary text-xl">{myShare.toLocaleString()} ر.س</span>
-              </div>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                لمعرفة تفاصيل احتساب الحصة والتسلسل المالي الكامل
+              </p>
+              <Button
+                variant="link"
+                className="text-primary gap-1"
+                onClick={() => window.location.href = '/beneficiary/disclosure'}
+              >
+                <FileText className="w-4 h-4" />
+                صفحة الإفصاح السنوي
+              </Button>
             </div>
           </CardContent>
         </Card>

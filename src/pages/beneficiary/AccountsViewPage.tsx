@@ -307,155 +307,22 @@ const AccountsViewPage = () => {
           </CardContent>
         </Card>
 
-        {/* Distribution & Shares - Full Financial Sequence */}
+        {/* Link to Disclosure */}
         <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
-              التوزيع والحصص
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-right">البند</TableHead>
-                  <TableHead className="text-right">النسبة</TableHead>
-                  <TableHead className="text-right">المبلغ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {waqfCorpusPrevious > 0 && (
-                  <TableRow>
-                    <TableCell className="font-medium">رقبة الوقف المرحلة</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="font-bold text-success">+{waqfCorpusPrevious.toLocaleString()}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow>
-                  <TableCell className="font-medium">إجمالي الدخل</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold text-success">+{totalIncome.toLocaleString()}</TableCell>
-                </TableRow>
-                {waqfCorpusPrevious > 0 && (
-                  <TableRow className="bg-muted/30">
-                    <TableCell className="font-bold">الإجمالي الشامل</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="font-bold">{grandTotal.toLocaleString()}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow>
-                  <TableCell className="font-medium">(-) إجمالي المصروفات</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">-{totalExpenses.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30">
-                  <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold">{netAfterExpenses.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">-{vatAmount.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30">
-                  <TableCell className="font-bold">الصافي بعد خصم الضريبة</TableCell>
-                  <TableCell>100%</TableCell>
-                  <TableCell className="font-bold text-primary">{netAfterVat.toLocaleString()}</TableCell>
-                </TableRow>
-                {zakatAmount > 0 && (
-                  <>
-                    <TableRow>
-                      <TableCell className="font-medium">(-) الزكاة</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell className="text-destructive">-{zakatAmount.toLocaleString()}</TableCell>
-                    </TableRow>
-                    <TableRow className="bg-muted/30">
-                      <TableCell className="font-bold">الصافي بعد الزكاة</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell className="font-bold">{netAfterZakat.toLocaleString()}</TableCell>
-                    </TableRow>
-                  </>
-                )}
-                <TableRow>
-                  <TableCell className="font-medium">(-) حصة الناظر</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{adminShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) حصة الواقف</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{waqifShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-primary/5">
-                  <TableCell className="font-bold">ريع الوقف</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
-                </TableRow>
-                {waqfCorpusManual > 0 && (
-                  <TableRow>
-                    <TableCell className="font-medium">(-) رقبة الوقف</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>{waqfCorpusManual.toLocaleString()}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow className="bg-primary/10">
-                  <TableCell className="font-bold">الإجمالي القابل للتوزيع</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-primary font-bold">{distributableAmount.toLocaleString()}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Beneficiary Distribution */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              توزيع حصص المستفيدين
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {beneficiaries.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">المستفيد</TableHead>
-                      <TableHead className="text-right">النسبة</TableHead>
-                      <TableHead className="text-right">المبلغ المستحق</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {beneficiaries.map((b) => {
-                      const isMe = b.user_id === user?.id;
-                      return (
-                        <TableRow key={b.id} className={isMe ? 'bg-primary/5' : ''}>
-                          <TableCell className="font-medium">
-                            {b.name} {isMe && <span className="text-primary text-xs mr-1">(أنت)</span>}
-                          </TableCell>
-                          <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
-                          <TableCell className="text-primary font-medium">
-                            {(distributableAmount * Number(b.share_percentage) / 100).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">إجمالي التوزيع</span>
-                  <span className="font-bold text-primary">
-                    {distributionsAmount.toLocaleString()} ريال
-                  </span>
-                </div>
-              </>
-            )}
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                للاطلاع على التسلسل المالي الكامل وتوزيع الحصص
+              </p>
+              <Button
+                variant="link"
+                className="text-primary gap-1"
+                onClick={() => window.location.href = '/beneficiary/disclosure'}
+              >
+                <PieChart className="w-4 h-4" />
+                صفحة الإفصاح السنوي
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
