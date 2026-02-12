@@ -60,7 +60,7 @@ const AccountsViewPage = () => {
     }, {} as Record<string, number>);
 
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-  const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
+  const totalMonthlyRent = Math.round(totalRent / 12);
 
   const myShare = currentBeneficiary
     ? (distributableAmount * Number(currentBeneficiary.share_percentage)) / 100
@@ -201,8 +201,8 @@ const AccountsViewPage = () => {
                     <TableHead className="text-right w-12">#</TableHead>
                     <TableHead className="text-right">رقم العقد</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead>
+                    <TableHead className="text-right">الإيجار السنوي</TableHead>
                     <TableHead className="text-right">الإيجار الشهري</TableHead>
-                    <TableHead className="text-right">إجمالي العقد السنوي</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -213,7 +213,7 @@ const AccountsViewPage = () => {
                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
                       <TableCell>{contract.tenant_name}</TableCell>
                       <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
-                      <TableCell className="font-bold text-primary">{(Number(contract.rent_amount) * 12).toLocaleString()} ريال</TableCell>
+                      <TableCell className="font-bold text-primary">{Math.round(Number(contract.rent_amount) / 12).toLocaleString()} ريال</TableCell>
                       <TableCell>{statusLabel(contract.status)}</TableCell>
                     </TableRow>
                   ))}
@@ -224,7 +224,7 @@ const AccountsViewPage = () => {
                     <TableCell></TableCell>
                     <TableCell>{contracts.length} عقد</TableCell>
                     <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
-                    <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
+                    <TableCell className="text-primary font-bold">{Math.round(totalRent / 12).toLocaleString()} ريال</TableCell>
                     <TableCell></TableCell>
                   </TableRow>
                 </TableFooter>
