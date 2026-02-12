@@ -154,8 +154,10 @@ const AccountsPage = () => {
   const netAfterExpenses = grandTotal - totalExpenses;
   const netAfterVat = netAfterExpenses - manualVat;
   const netAfterZakat = netAfterVat - zakatAmount;
-  const adminShare = netAfterZakat * (adminPercent / 100);
-  const waqifShare = netAfterZakat * (waqifPercent / 100);
+  // أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
+  const shareBase = totalIncome - totalExpenses - zakatAmount;
+  const adminShare = shareBase * (adminPercent / 100);
+  const waqifShare = shareBase * (waqifPercent / 100);
   const waqfRevenue = netAfterZakat - adminShare - waqifShare;
   const availableAmount = waqfRevenue - waqfCorpusManual;
   const remainingBalance = availableAmount - manualDistributions;

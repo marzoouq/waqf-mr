@@ -34,9 +34,11 @@ const AdminDashboard = () => {
   const currentAccount = accounts[0];
   const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
   const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : (totalIncome - totalExpenses) * (adminPct / 100);
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : (totalIncome - totalExpenses) * (waqifPct / 100);
-  const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : (totalIncome - totalExpenses) - adminShare - waqifShare;
+  // أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
+  const fallbackShareBase = totalIncome - totalExpenses;
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : fallbackShareBase * (adminPct / 100);
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : fallbackShareBase * (waqifPct / 100);
+  const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : fallbackShareBase - adminShare - waqifShare;
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },

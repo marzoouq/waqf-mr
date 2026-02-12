@@ -13,11 +13,13 @@ import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const { data: settings } = useAppSettings();
   const { data: income = [] } = useIncome();
   const { data: expenses = [] } = useExpenses();
   const { data: beneficiaries = [] } = useBeneficiaries();
@@ -46,7 +48,8 @@ const ReportsPage = () => {
   const netAfterExpenses = currentAccount ? Number(currentAccount.net_after_expenses) : grandTotal - totalExpenses;
   const netAfterVat = currentAccount ? Number(currentAccount.net_after_vat) : netAfterExpenses - vatAmount;
   const netAfterZakat = netAfterVat - zakatAmount;
-  const afterAdmin = netAfterZakat - adminShare;
+  const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
+  const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
   const availableAmount = waqfRevenue - waqfCorpusManual;
   const remainingBalance = availableAmount - distributionsAmount;
   const beneficiariesShare = distributionsAmount;
@@ -289,11 +292,11 @@ const ReportsPage = () => {
                         </>
                       )}
                       <tr className="border-b">
-                        <td className="py-3 px-4">حصة الناظر ({netAfterZakat > 0 ? ((adminShare / netAfterZakat) * 100).toFixed(1) : '0'}%)</td>
+                        <td className="py-3 px-4">حصة الناظر ({adminPct}%)</td>
                         <td className="py-3 px-4">{adminShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">حصة الواقف ({afterAdmin > 0 ? ((waqifShare / afterAdmin) * 100).toFixed(1) : '0'}%)</td>
+                        <td className="py-3 px-4">حصة الواقف ({waqifPct}%)</td>
                         <td className="py-3 px-4">{waqifShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b-2 border-primary bg-muted/50">
