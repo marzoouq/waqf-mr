@@ -265,6 +265,26 @@ const AccountsPage = () => {
       waqf_corpus_manual: waqfCorpusManual,
       waqf_corpus_previous: waqfCorpusPrevious,
     });
+
+    // إرسال إشعارات تلقائية لجميع المستفيدين
+    try {
+      await supabase.rpc('notify_all_beneficiaries', {
+        p_title: 'تحديث الحسابات الختامية',
+        p_message: `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
+        p_type: 'payment',
+        p_link: '/beneficiary/accounts',
+      });
+      if (manualDistributions > 0) {
+        await supabase.rpc('notify_all_beneficiaries', {
+          p_title: 'تحديث التوزيعات المالية',
+          p_message: `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
+          p_type: 'payment',
+          p_link: '/beneficiary/my-share',
+        });
+      }
+    } catch (e) {
+      console.error('Failed to send notifications:', e);
+    }
   };
 
   const statusLabel = (status: string) => {
