@@ -1,5 +1,5 @@
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
-import type { PdfWaqfInfo } from '@/utils/pdfGenerator';
+import type { PdfWaqfInfo } from '@/utils/pdf';
 
 export const usePdfWaqfInfo = (): PdfWaqfInfo => {
   const { data: waqfInfo } = useWaqfInfo();

@@ -11,7 +11,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { Expense } from '@/types/database';
 import { Plus, Trash2, TrendingDown, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
-import { generateExpensesPDF } from '@/utils/pdfGenerator';
+import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
