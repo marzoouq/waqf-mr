@@ -32,9 +32,15 @@ export const useCreateBeneficiary = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
       toast.success('تم إضافة المستفيد بنجاح');
+      supabase.rpc('notify_admins', {
+        p_title: 'مستفيد جديد',
+        p_message: `تم تسجيل مستفيد جديد: ${data.name}`,
+        p_type: 'info',
+        p_link: '/dashboard/beneficiaries',
+      }).then();
     },
     onError: () => {
       toast.error('حدث خطأ أثناء إضافة المستفيد');

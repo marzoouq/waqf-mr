@@ -201,6 +201,16 @@ Deno.serve(async (req) => {
           }
         }
         
+        // Notify admins about new beneficiary
+        if (body.role === "beneficiary") {
+          await adminClient.rpc('notify_admins', {
+            p_title: 'مستفيد جديد',
+            p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`,
+            p_type: 'info',
+            p_link: '/dashboard/beneficiaries',
+          });
+        }
+
         return new Response(JSON.stringify({ success: true, user: newUser.user }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -241,6 +251,14 @@ Deno.serve(async (req) => {
               share_percentage: 0,
               user_id: newUser.user.id,
               national_id: u.national_id || null,
+            });
+
+            // Notify admins about new beneficiary
+            await adminClient.rpc('notify_admins', {
+              p_title: 'مستفيد جديد',
+              p_message: `تم تسجيل مستفيد جديد: ${u.name}`,
+              p_type: 'info',
+              p_link: '/dashboard/beneficiaries',
             });
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
