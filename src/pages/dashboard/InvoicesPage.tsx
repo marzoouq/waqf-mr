@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
@@ -191,7 +191,7 @@ const InvoicesPage = () => {
                 <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
               </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>{editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle><DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label>{editingInvoice ? 'تغيير ملف الفاتورة (اختياري)' : 'ملف الفاتورة (صورة أو PDF) *'}</Label>

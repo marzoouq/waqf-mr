@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Send, Plus, Users, ArrowLeft } from 'lucide-react';
@@ -178,6 +178,7 @@ const MessagesPage = () => {
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle className="font-display">محادثة جديدة</DialogTitle>
+            <DialogDescription className="sr-only">بدء محادثة جديدة مع مستفيد</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">

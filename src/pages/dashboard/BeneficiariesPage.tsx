@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
 import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Printer, FileDown, Search } from 'lucide-react';
@@ -57,6 +57,11 @@ const BeneficiariesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.share_percentage) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    const newPercentage = parseFloat(formData.share_percentage);
+    const currentTotal = beneficiaries
+      .filter(b => b.id !== editingBeneficiary?.id)
+      .reduce((sum, b) => sum + Number(b.share_percentage), 0);
+    if (currentTotal + newPercentage > 100) { toast.error('مجموع نسب المستفيدين يتجاوز 100%'); return; }
     const beneficiaryData = {
       name: formData.name, share_percentage: parseFloat(formData.share_percentage),
       phone: formData.phone || undefined, email: formData.email || undefined,
@@ -107,7 +112,7 @@ const BeneficiariesPage = () => {
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مستفيد</Button></DialogTrigger>
               <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل بيانات مستفيد</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
                   <div className="space-y-2"><Label>الاسم *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" /></div>
                   <div className="space-y-2"><Label>نسبة الحصة (%) *</Label><Input type="number" step="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" /></div>

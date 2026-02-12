@@ -246,21 +246,51 @@ const ReportsPage = () => {
                         <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
                         <td className="py-3 px-4 font-bold text-red-700 dark:text-red-400">-{totalExpenses.toLocaleString()}</td>
                       </tr>
-                      <tr className="border-b-2 border-primary bg-muted/50">
-                        <td className="py-3 px-4 font-bold">صافي الريع</td>
-                        <td className="py-3 px-4 font-bold text-primary">{netRevenue.toLocaleString()}</td>
+                      <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                        <td className="py-3 px-4 font-bold">الصافي بعد المصاريف</td>
+                        <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterExpenses.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">حصة الناظر ({netRevenue > 0 ? ((adminShare / netRevenue) * 100).toFixed(1) : '0'}%)</td>
+                        <td className="py-3 px-4 text-muted-foreground">(-) ضريبة القيمة المضافة</td>
+                        <td className="py-3 px-4 text-red-600 dark:text-red-400">-{vatAmount.toLocaleString()}</td>
+                      </tr>
+                      <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                        <td className="py-3 px-4 font-bold">الصافي بعد الضريبة</td>
+                        <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterVat.toLocaleString()}</td>
+                      </tr>
+                      {zakatAmount > 0 && (
+                        <>
+                          <tr className="border-b">
+                            <td className="py-3 px-4 text-muted-foreground">(-) الزكاة</td>
+                            <td className="py-3 px-4 text-red-600 dark:text-red-400">-{zakatAmount.toLocaleString()}</td>
+                          </tr>
+                          <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                            <td className="py-3 px-4 font-bold">الصافي بعد الزكاة</td>
+                            <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterZakat.toLocaleString()}</td>
+                          </tr>
+                        </>
+                      )}
+                      <tr className="border-b">
+                        <td className="py-3 px-4">حصة الناظر ({netAfterZakat > 0 ? ((adminShare / netAfterZakat) * 100).toFixed(1) : '0'}%)</td>
                         <td className="py-3 px-4">{adminShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">حصة الواقف ({netRevenue > 0 ? ((waqifShare / netRevenue) * 100).toFixed(1) : '0'}%)</td>
+                        <td className="py-3 px-4">حصة الواقف ({(netAfterZakat - adminShare) > 0 ? ((waqifShare / (netAfterZakat - adminShare)) * 100).toFixed(1) : '0'}%)</td>
                         <td className="py-3 px-4">{waqifShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b-2 border-primary bg-muted/50">
-                        <td className="py-3 px-4 font-bold">ريع الوقف للمستفيدين</td>
-                        <td className="py-3 px-4 font-bold text-primary">{beneficiariesShare.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold">ريع الوقف</td>
+                        <td className="py-3 px-4 font-bold text-primary">{waqfRevenue.toLocaleString()}</td>
+                      </tr>
+                      {waqfCorpusManual > 0 && (
+                        <tr className="border-b">
+                          <td className="py-3 px-4 text-muted-foreground">(-) رقبة الوقف</td>
+                          <td className="py-3 px-4 text-red-600 dark:text-red-400">-{waqfCorpusManual.toLocaleString()}</td>
+                        </tr>
+                      )}
+                      <tr className="border-b-2 border-primary bg-primary/10">
+                        <td className="py-3 px-4 font-bold text-lg">المبلغ القابل للتوزيع</td>
+                        <td className="py-3 px-4 font-bold text-lg text-primary">{beneficiariesShare.toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>

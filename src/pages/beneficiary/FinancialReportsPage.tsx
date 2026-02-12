@@ -32,10 +32,14 @@ const FinancialReportsPage = () => {
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
   const adminShare = Number(currentAccount?.admin_share || 0);
   const waqifShare = Number(currentAccount?.waqif_share || 0);
-  const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
+  const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
+  const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
+  const zakatAmount = Number(currentAccount?.zakat_amount || 0);
+  const distributableAmount = waqfRevenue - waqfCorpusManual;
+  const beneficiariesShare = distributableAmount;
 
   const myShare = currentBeneficiary 
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
+    ? (distributableAmount * currentBeneficiary.share_percentage) / 100 
     : 0;
 
   const incomeVsExpenses = [
@@ -105,7 +109,7 @@ const FinancialReportsPage = () => {
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
           percentage: Number(b.share_percentage),
-          amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
+          amount: (distributableAmount * Number(b.share_percentage)) / 100,
         })),
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
@@ -140,7 +144,7 @@ const FinancialReportsPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <Card className="shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
@@ -192,6 +196,33 @@ const FinancialReportsPage = () => {
                 <div>
                   <p className="text-sm text-primary-foreground/90">حصتي</p>
                   <p className="text-xl font-bold">{myShare.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">الزكاة</p>
+                  <p className="text-xl font-bold text-orange-600">{zakatAmount.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-violet-500/20 rounded-xl flex items-center justify-center">
+                  <Building className="w-6 h-6 text-violet-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">رقبة الوقف</p>
+                  <p className="text-xl font-bold text-violet-600">{waqfCorpusManual.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
