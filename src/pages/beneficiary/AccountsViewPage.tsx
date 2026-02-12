@@ -117,6 +117,16 @@ const AccountsViewPage = () => {
                       name: b.name,
                       share_percentage: Number(b.share_percentage),
                     })),
+                    vatAmount,
+                    zakatAmount,
+                    waqfCorpusPrevious,
+                    grandTotal,
+                    netAfterExpenses,
+                    netAfterVat,
+                    waqfCapital: waqfCorpusManual,
+                    distributionsAmount,
+                    availableAmount: distributableAmount,
+                    remainingBalance: distributableAmount - distributionsAmount,
                   }, pdfWaqfInfo);
                   toast.success('تم تصدير الحسابات الختامية بنجاح');
                 } catch {
@@ -429,7 +439,7 @@ const AccountsViewPage = () => {
                           <TableCell className="font-medium">
                             {b.name} {isMe && <span className="text-primary text-xs mr-1">(أنت)</span>}
                           </TableCell>
-                          <TableCell>{Number(b.share_percentage).toFixed(2)}%</TableCell>
+                          <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
                           <TableCell className="text-primary font-medium">
                             {(distributableAmount * Number(b.share_percentage) / 100).toLocaleString()}
                           </TableCell>

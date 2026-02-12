@@ -484,12 +484,12 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
     body: beneficiaries.map((b, i) => [
       i + 1,
       b.name,
-      `${Number(b.share_percentage).toFixed(2)}%`,
+      `${Number(b.share_percentage).toFixed(6)}%`,
       b.phone || '-',
       b.email || '-',
       b.bank_account || '-',
     ]),
-    foot: [['', 'الإجمالي', `${total.toFixed(2)}%`, '', '', '']],
+    foot: [['', 'الإجمالي', `${total.toFixed(6)}%`, '', '', '']],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),
@@ -519,6 +519,8 @@ export const generateAccountsPDF = async (data: {
   netAfterZakat?: number;
   waqfCorpusPrevious?: number;
   grandTotal?: number;
+  netAfterExpenses?: number;
+  netAfterVat?: number;
   availableAmount?: number;
   remainingBalance?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
@@ -537,12 +539,12 @@ export const generateAccountsPDF = async (data: {
   doc.text('العقود', 105, startY + 18, { align: 'center' });
   autoTable(doc, {
     startY: startY + 24,
-    head: [['رقم العقد', 'المستأجر', 'الإيجار الشهري', 'السنوي']],
+    head: [['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري']],
     body: data.contracts.map(c => [
       c.contract_number,
       c.tenant_name,
       `${Number(c.rent_amount).toLocaleString()}`,
-      `${(Number(c.rent_amount) * 12).toLocaleString()}`,
+      `${Math.round(Number(c.rent_amount) / 12).toLocaleString()}`,
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -587,13 +589,13 @@ export const generateAccountsPDF = async (data: {
   // Distribution - Full hierarchical sequence
   const corpusPrev = data.waqfCorpusPrevious || 0;
   const gt = data.grandTotal || (data.totalIncome + corpusPrev);
-  const regularExp = data.totalExpenses - (data.vatAmount || 0);
-  const netAfterExp = gt - regularExp;
-  const netAfterVat = netAfterExp - (data.vatAmount || 0);
+  const regularExp = data.totalExpenses;
+  const netAfterExp = data.netAfterExpenses ?? (gt - regularExp);
+  const netAfterVat = data.netAfterVat ?? (netAfterExp - (data.vatAmount || 0));
   const zakatAmt = data.zakatAmount || 0;
   const netAfterZakatVal = data.netAfterZakat || (netAfterVat - zakatAmt);
-  const avail = data.availableAmount || (data.waqfRevenue - (data.waqfCapital || 0));
-  const remaining = data.remainingBalance || (avail - (data.distributionsAmount || 0));
+  const avail = data.availableAmount ?? (data.waqfRevenue - (data.waqfCapital || 0));
+  const remaining = data.remainingBalance ?? (avail - (data.distributionsAmount || 0));
 
   const distributionRows: string[][] = [];
   if (corpusPrev > 0) {
@@ -645,7 +647,7 @@ export const generateAccountsPDF = async (data: {
     head: [['المستفيد', 'النسبة', 'المبلغ']],
     body: data.beneficiaries.map(b => [
       b.name,
-      `${Number(b.share_percentage).toFixed(2)}%`,
+      `${Number(b.share_percentage).toFixed(6)}%`,
       totalBenPct > 0 ? (distAmount * Number(b.share_percentage) / totalBenPct).toLocaleString() : '0',
     ]),
     theme: 'striped',
@@ -805,6 +807,152 @@ export const generateDisclosurePDF = async (data: {
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
   doc.save(`disclosure-${data.fiscalYear}.pdf`);
+};
+
+// ========== ANNUAL DISCLOSURE PDF ==========
+
+export const generateAnnualDisclosurePDF = async (data: {
+  fiscalYear: string;
+  totalIncome: number;
+  totalExpenses: number;
+  waqfCorpusPrevious: number;
+  grandTotal: number;
+  netAfterExpenses: number;
+  vatAmount: number;
+  netAfterVat: number;
+  zakatAmount: number;
+  netAfterZakat: number;
+  adminShare: number;
+  waqifShare: number;
+  waqfRevenue: number;
+  waqfCorpusManual: number;
+  availableAmount: number;
+  distributionsAmount: number;
+  remainingBalance: number;
+  incomeBySource: Record<string, number>;
+  expensesByType: Record<string, number>;
+  beneficiaries: Array<{ name: string; share_percentage: number; amount: number }>;
+  adminPct: number;
+  waqifPct: number;
+}, waqfInfo?: PdfWaqfInfo) => {
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  const startY = await addHeader(doc, fontFamily, waqfInfo);
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(18);
+  doc.text('الإفصاح السنوي الشامل', 105, startY + 5, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`السنة المالية: ${data.fiscalYear}`, 105, startY + 16, { align: 'center' });
+
+  // 1. Full Financial Hierarchy
+  const hierarchyRows: string[][] = [];
+  if (data.waqfCorpusPrevious > 0) {
+    hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${data.waqfCorpusPrevious.toLocaleString()}`]);
+  }
+  hierarchyRows.push(
+    ['إجمالي الإيرادات', `+${data.totalIncome.toLocaleString()}`],
+  );
+  if (data.waqfCorpusPrevious > 0) {
+    hierarchyRows.push(['الإجمالي الشامل', data.grandTotal.toLocaleString()]);
+  }
+  hierarchyRows.push(
+    ['(-) المصروفات التشغيلية', `(${data.totalExpenses.toLocaleString()})`],
+    ['الصافي بعد المصاريف', data.netAfterExpenses.toLocaleString()],
+    ['(-) ضريبة القيمة المضافة', `(${data.vatAmount.toLocaleString()})`],
+    ['الصافي بعد الضريبة', data.netAfterVat.toLocaleString()],
+  );
+  if (data.zakatAmount > 0) {
+    hierarchyRows.push(
+      ['(-) الزكاة', `(${data.zakatAmount.toLocaleString()})`],
+      ['الصافي بعد الزكاة', data.netAfterZakat.toLocaleString()],
+    );
+  }
+  hierarchyRows.push(
+    [`(-) حصة الناظر (${data.adminPct}%)`, `(${data.adminShare.toLocaleString()})`],
+    [`(-) حصة الواقف (${data.waqifPct}%)`, `(${data.waqifShare.toLocaleString()})`],
+    ['ريع الوقف', data.waqfRevenue.toLocaleString()],
+  );
+  if (data.waqfCorpusManual > 0) {
+    hierarchyRows.push(['(-) رقبة الوقف للعام الحالي', `(${data.waqfCorpusManual.toLocaleString()})`]);
+  }
+  hierarchyRows.push(
+    ['المبلغ المتاح للتوزيع', data.availableAmount.toLocaleString()],
+    ['(-) التوزيعات الفعلية', `(${data.distributionsAmount.toLocaleString()})`],
+    ['الرصيد المتبقي', data.remainingBalance.toLocaleString()],
+  );
+
+  autoTable(doc, {
+    startY: startY + 24,
+    head: [['البند', 'المبلغ (ر.س)']],
+    body: hierarchyRows,
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  let y = (doc as any).lastAutoTable?.finalY + 12 || 150;
+
+  // 2. Income by source
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(13);
+  doc.text('تفصيل الإيرادات حسب المصدر', 105, y, { align: 'center' });
+  autoTable(doc, {
+    startY: y + 6,
+    head: [['المصدر', 'المبلغ (ر.س)']],
+    body: Object.entries(data.incomeBySource).map(([s, a]) => [s, `+${a.toLocaleString()}`]),
+    foot: [['الإجمالي', `+${data.totalIncome.toLocaleString()}`]],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...footStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  y = (doc as any).lastAutoTable?.finalY + 12 || 200;
+
+  // 3. Expenses by type
+  doc.setFont(fontFamily, 'bold');
+  doc.text('تفصيل المصروفات حسب النوع', 105, y, { align: 'center' });
+  autoTable(doc, {
+    startY: y + 6,
+    head: [['النوع', 'المبلغ (ر.س)']],
+    body: Object.entries(data.expensesByType).map(([t, a]) => [t, `-${a.toLocaleString()}`]),
+    foot: [['الإجمالي', `-${data.totalExpenses.toLocaleString()}`]],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_RED, fontFamily),
+    ...footStyles(TABLE_HEAD_RED, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  y = (doc as any).lastAutoTable?.finalY + 12 || 250;
+
+  // 4. Beneficiary distributions
+  const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const totalBenAmt = data.beneficiaries.reduce((s, b) => s + Number(b.amount), 0);
+  doc.setFont(fontFamily, 'bold');
+  doc.text('التوزيعات الفعلية للمستفيدين', 105, y, { align: 'center' });
+  autoTable(doc, {
+    startY: y + 6,
+    head: [['المستفيد', 'النسبة %', 'المبلغ (ر.س)']],
+    body: data.beneficiaries.map(b => [
+      b.name,
+      `${Number(b.share_percentage).toFixed(6)}%`,
+      b.amount.toLocaleString(),
+    ]),
+    foot: [['الإجمالي', `${totalBenPct.toFixed(6)}%`, totalBenAmt.toLocaleString()]],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GOLD, fontFamily),
+    ...footStyles(TABLE_HEAD_GOLD, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save(`annual-disclosure-${data.fiscalYear}.pdf`);
 };
 
 // ========== UNITS PDF GENERATOR ==========

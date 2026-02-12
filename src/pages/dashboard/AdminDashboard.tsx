@@ -35,7 +35,8 @@ const AdminDashboard = () => {
   const adminPct = settings?.admin_share_percentage ? parseFloat(settings.admin_share_percentage) : 10;
   const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
   // أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
-  const fallbackShareBase = totalIncome - totalExpenses;
+  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
+  const fallbackShareBase = totalIncome - totalExpenses - zakatAmount;
   const adminShare = currentAccount ? Number(currentAccount.admin_share) : fallbackShareBase * (adminPct / 100);
   const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : fallbackShareBase * (waqifPct / 100);
   const netRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : fallbackShareBase - adminShare - waqifShare;

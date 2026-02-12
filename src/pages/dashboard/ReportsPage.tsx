@@ -11,7 +11,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { BarChart3, Download, FileText, Printer, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { generateAnnualReportPDF } from '@/utils/pdfGenerator';
+import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
@@ -52,8 +52,8 @@ const ReportsPage = () => {
   const waqifPct = settings?.waqif_share_percentage ? parseFloat(settings.waqif_share_percentage) : 5;
   const availableAmount = waqfRevenue - waqfCorpusManual;
   const remainingBalance = availableAmount - distributionsAmount;
-  const beneficiariesShare = distributionsAmount;
-  const netRevenue = totalIncome - totalExpenses;
+  const beneficiariesShare = availableAmount;
+  const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
 
   // Income by source
   const incomeBySource = income.reduce((acc, item) => {
@@ -92,7 +92,7 @@ const ReportsPage = () => {
       netRevenue,
       adminShare,
       waqifShare,
-      waqfRevenue: beneficiariesShare,
+      waqfRevenue,
       expensesByType: expenseTypeData.map(d => ({ type: d.name, amount: d.value })),
       incomeBySource: incomeSourceData.map(d => ({ source: d.name, amount: d.value })),
       beneficiaries: distributionData.map(d => ({
@@ -159,6 +159,39 @@ const ReportsPage = () => {
             <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button onClick={async () => {
+              await generateAnnualDisclosurePDF({
+                fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
+                totalIncome,
+                totalExpenses,
+                waqfCorpusPrevious,
+                grandTotal,
+                netAfterExpenses,
+                vatAmount,
+                netAfterVat,
+                zakatAmount,
+                netAfterZakat: netAfterVat - zakatAmount,
+                adminShare,
+                waqifShare,
+                waqfRevenue,
+                waqfCorpusManual,
+                availableAmount,
+                distributionsAmount,
+                remainingBalance: availableAmount - distributionsAmount,
+                incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
+                expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
+                beneficiaries: distributionData.map(d => ({
+                  name: d.name,
+                  share_percentage: d.percentage,
+                  amount: d.amount,
+                })),
+                adminPct,
+                waqifPct,
+              }, pdfWaqfInfo);
+            }} variant="outline" className="gap-2">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
+            </Button>
             <Button onClick={handleExportPDF} variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">تصدير PDF</span>
