@@ -1,123 +1,114 @@
 
 
-# إكمال المتطلبات المتبقية وتحقيق التوافق الكامل
+# تعديل التسلسل المالي الشامل مع إبقاء الزكاة والضريبة كبنود مستقلة
 
-## الوضع الحالي
+## التسلسل المالي النهائي المطلوب
 
-التسلسل المالي التتابعي تم تنفيذه بنجاح في `AccountsPage.tsx`، لكن 3 صفحات لا تزال تعرض بيانات غير متسقة مع التسلسل الجديد، بالإضافة لمتطلبات تحسين الوصولية (Accessibility) وتحقق النسب.
+```text
+رقبة الوقف المرحلة من العام السابق (يدوي)
+   + إجمالي الإيرادات
+   = الإجمالي الشامل
+   - المصروفات التشغيلية (بدون الضريبة)
+   = الصافي بعد المصاريف
+   - ضريبة القيمة المضافة (يدوي)
+   = الصافي بعد الضريبة
+   - الزكاة (يدوي)
+   = الصافي بعد الزكاة
+   - حصة الناظر (نسبة % من الصافي بعد الزكاة)
+   - حصة الواقف (نسبة % من الباقي بعد الناظر)
+   = ريع الوقف (الإجمالي القابل للتوزيع)
+   - رقبة الوقف للعام الحالي (يدوي)
+   = المبلغ المتاح
+   - التوزيعات (يدوي - يحددها الناظر)
+   = الرصيد المتبقي (محسوب)
+```
 
 ---
 
-## المهام المطلوبة (مرتبة حسب الأولوية)
+## التغييرات المطلوبة
 
-### 1. تصحيح FinancialReportsPage.tsx (أولوية عالية)
+### 1. تعديل قاعدة البيانات
 
-**المشكلة:** سطر 35 يستخدم `waqf_revenue` مباشرة لحساب حصة المستفيد بدون خصم رقبة الوقف.
+اضافة حقل جديد لجدول `accounts`:
+- `waqf_corpus_previous` (numeric, default 0) - رقبة الوقف المرحلة من العام السابق
 
-**الإصلاح:**
-- قراءة `zakat_amount` و `waqf_corpus_manual` من الحساب الختامي
-- حساب `distributableAmount = waqfRevenue - waqfCorpusManual`
-- استخدام `distributableAmount` لحساب `myShare` و `beneficiariesShare` في الرسوم البيانية
-- إضافة بطاقات ملخص للزكاة ورقبة الوقف
+### 2. تعديل types/database.ts
 
-### 2. تصحيح جدول الإفصاح في ReportsPage.tsx (أولوية عالية)
+اضافة `waqf_corpus_previous: number` لواجهة Account.
 
-**المشكلة:** جدول الإفصاح السنوي (سطر 249-264) يعرض "صافي الريع" كـ `totalIncome - totalExpenses` بدون فصل الضريبة والزكاة ورقبة الوقف كبنود مستقلة.
+### 3. تعديل AccountsPage.tsx (التغيير الرئيسي)
 
-**الإصلاح:**
-- تعديل الجدول ليعرض التسلسل الكامل:
-  - الصافي بعد المصاريف
-  - (-) ضريبة القيمة المضافة
-  - = الصافي بعد الضريبة
-  - (-) الزكاة
-  - = الصافي بعد الزكاة
-  - (-) حصة الناظر (من الصافي بعد الزكاة)
-  - (-) حصة الواقف (من الباقي بعد الناظر)
-  - = ريع الوقف
-  - (-) رقبة الوقف
-  - = المبلغ القابل للتوزيع
-- تصحيح نسبة الناظر (سطر 254) لتكون من `netAfterZakat` بدلا من `netRevenue`
-- تصحيح نسبة الواقف (سطر 258) لتكون من `afterAdmin` بدلا من `netRevenue`
+**حقول يدوية جديدة (state):**
+- `waqfCorpusPrevious` - رقبة وقف مرحلة من عام سابق
+- `manualVat` - مبلغ الضريبة (يدوي بدلا من الحساب التلقائي)
+- `manualDistributions` - مبلغ التوزيعات (يحدده الناظر)
 
-### 3. إضافة DialogDescription لـ 10 ملفات (أولوية متوسطة)
+**ازالة:**
+- ازالة `effectiveVat` و `calculatedVat` و `commercialRent` و `residentialRent` (الحساب التلقائي للضريبة)
+- ابقاء الحساب التلقائي كنص استرشادي فقط
 
-إضافة `DialogDescription` مخفي بصريا (`className="sr-only"`) بعد كل `DialogTitle` في:
+**التسلسل الجديد في الكود:**
+```text
+grandTotal = totalIncome + waqfCorpusPrevious
+netAfterExpenses = grandTotal - regularExpenses
+netAfterVat = netAfterExpenses - manualVat
+netAfterZakat = netAfterVat - zakatAmount          // الزكاة تبقى بند مستقل
+adminShare = netAfterZakat * (adminPercent / 100)
+afterAdmin = netAfterZakat - adminShare
+waqifShare = afterAdmin * (waqifPercent / 100)
+waqfRevenue = afterAdmin - waqifShare              // ريع الوقف
+availableAmount = waqfRevenue - waqfCorpusManual   // بعد رقبة الوقف الحالية
+remainingBalance = availableAmount - manualDistributions  // الرصيد المتبقي
+```
 
-| الملف | عدد الحوارات |
-|-------|-------------|
-| PropertiesPage.tsx | 2 |
-| ContractsPage.tsx | 1 |
-| ExpensesPage.tsx | 1 |
-| IncomePage.tsx | 1 |
-| AccountsPage.tsx | 1 |
-| BeneficiariesPage.tsx | 1 |
-| InvoicesPage.tsx | 1 |
-| UserManagementPage.tsx | 3 |
-| MessagesPage.tsx | 1 |
-| BeneficiaryMessagesPage.tsx | 1 |
+**تعديل شريط الاعدادات:**
+- اضافة حقل "رقبة وقف مرحلة من عام سابق" (يدوي)
+- تحويل حقل الضريبة ليدوي (مع ابقاء النص الاسترشادي)
+- اضافة حقل "مبلغ التوزيعات" (يدوي يحدده الناظر)
 
-### 4. التحقق من مجموع نسب المستفيدين (أولوية متوسطة)
+**تعديل بطاقات الملخص:**
+- اضافة بطاقة "رقبة وقف مرحلة"
+- اضافة بطاقة "الإجمالي الشامل"
+- اضافة بطاقة "التوزيعات"
+- اضافة بطاقة "الرصيد المتبقي"
 
-- في `BeneficiariesPage.tsx`: عند حفظ مستفيد جديد/تعديل، حساب المجموع الكلي ومنع الحفظ إذا تجاوز 100%
-- في `AccountsPage.tsx`: عرض تحذير بصري إذا تجاوز المجموع 100%
+**تعديل جدول التوزيع والحصص:** اضافة الصفوف الجديدة (الإجمالي الشامل، المبلغ المتاح، التوزيعات، الرصيد المتبقي)
+
+**تعديل دالة handleCreateAccount:** حفظ القيم الجديدة (`waqf_corpus_previous`, `vat_amount` من manualVat, `distributions_amount` من manualDistributions)
+
+### 4. تعديل ReportsPage.tsx
+
+- اضافة بند "رقبة وقف مرحلة" و "الإجمالي الشامل" في بداية جدول الافصاح
+- ابقاء الزكاة والضريبة كبنود مستقلة (كما هي حاليا)
+- اضافة بنود "رقبة الوقف الحالية" و "التوزيعات" و "الرصيد المتبقي" في نهاية الجدول
+
+### 5. تعديل FinancialReportsPage.tsx
+
+- تحديث حساب حصة المستفيد ليستخدم `distributableAmount` الجديد
+
+### 6. لوحة KPI في AdminDashboard.tsx
+
+اضافة 4 مؤشرات اداء رئيسية:
+- **نسبة التحصيل**: (الدخل الفعلي / الإيرادات التعاقدية) x 100%
+- **معدل الاشغال**: (وحدات مؤجرة / إجمالي الوحدات) x 100%
+- **متوسط الايجار**: إجمالي الإيجارات / عدد العقود النشطة
+- **نسبة المصروفات**: (المصروفات / الدخل) x 100%
+
+### 7. تحديث pdfGenerator.ts
+
+تحديث بيانات PDF لتعكس التسلسل الجديد بالكامل
 
 ---
 
-## قسم تقني
+## الملفات المتأثرة (7 ملفات)
 
-### FinancialReportsPage.tsx - التعديلات:
-```text
-// الحالي (خطأ):
-const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
-const myShare = (beneficiariesShare * percentage) / 100;
-
-// الجديد (صحيح):
-const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
-const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
-const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-const distributableAmount = waqfRevenue - waqfCorpusManual;
-const myShare = (distributableAmount * percentage) / 100;
-```
-
-### ReportsPage.tsx - إفصاح سنوي جديد:
-```text
-// بعد سطر "إجمالي المصروفات" مباشرة، نضيف:
-// الصافي بعد المصاريف = netAfterExpenses
-// (-) ضريبة القيمة المضافة = vatAmount  
-// = الصافي بعد الضريبة = netAfterVat
-// (-) الزكاة = zakatAmount
-// = الصافي بعد الزكاة = netAfterZakat
-// ثم حصة الناظر من netAfterZakat
-// ثم حصة الواقف من afterAdmin (= netAfterZakat - adminShare)
-// ثم رقبة الوقف = waqfCorpusManual
-// ثم المبلغ القابل للتوزيع = distributableAmount
-```
-
-### DialogDescription - نمط الإضافة:
-```text
-import { DialogDescription } from '@/components/ui/dialog';
-
-<DialogHeader>
-  <DialogTitle>العنوان</DialogTitle>
-  <DialogDescription className="sr-only">وصف الحوار</DialogDescription>
-</DialogHeader>
-```
-
-### BeneficiariesPage.tsx - تحقق النسب:
-```text
-const currentTotal = beneficiaries
-  .filter(b => b.id !== editingBeneficiary?.id)
-  .reduce((sum, b) => sum + Number(b.share_percentage), 0);
-const newPercentage = Number(formData.share_percentage);
-if (currentTotal + newPercentage > 100) {
-  toast.error('مجموع نسب المستفيدين يتجاوز 100%');
-  return;
-}
-```
-
-### الملفات المتأثرة (14 ملف):
-1. `FinancialReportsPage.tsx` - حساب المبلغ القابل للتوزيع
-2. `ReportsPage.tsx` - جدول الإفصاح الكامل
-3. `BeneficiariesPage.tsx` - تحقق النسب + DialogDescription
-4-13. عشر ملفات DialogDescription (PropertiesPage, ContractsPage, ExpensesPage, IncomePage, AccountsPage, InvoicesPage, UserManagementPage, MessagesPage, BeneficiaryMessagesPage)
+| الملف | التغيير |
+|-------|---------|
+| Migration SQL | اضافة عمود waqf_corpus_previous |
+| types/database.ts | اضافة الحقل الجديد |
+| AccountsPage.tsx | اعادة هيكلة التسلسل + حقول يدوية |
+| ReportsPage.tsx | تحديث جدول الافصاح |
+| FinancialReportsPage.tsx | تحديث حساب حصة المستفيد |
+| AdminDashboard.tsx | اضافة لوحة KPI |
+| pdfGenerator.ts | تحديث تصدير PDF |
 
