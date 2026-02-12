@@ -28,6 +28,12 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
       return;
     }
 
+    // Revoke previous blob URL before creating a new one
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      setBlobUrl(null);
+    }
+
     let revoked = false;
     setLoading(true);
     getInvoiceSignedUrl(filePath)
@@ -42,6 +48,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
     return () => {
       revoked = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filePath]);
 
   const handleDownload = () => {

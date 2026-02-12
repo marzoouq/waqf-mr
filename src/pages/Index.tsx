@@ -29,7 +29,7 @@ const Index = () => {
   ];
 
   const stats = [
-    { label: 'عقار مُدار', value: '٢٠+' },
+    { label: 'عقار مُدار', value: '٥' },
     { label: 'مستفيد', value: '١٤' },
     { label: 'تقرير سنوي', value: '٤' },
   ];
