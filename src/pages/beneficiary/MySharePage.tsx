@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,15 @@ import { generateMySharePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || '';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -42,7 +49,7 @@ const MySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  const currentAccount = accounts[0];
+  const currentAccount = accounts.find(a => a.fiscal_year === selectedFY?.label) || accounts[0];
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
@@ -61,11 +68,15 @@ const MySharePage = () => {
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
 
-  const totalReceived = distributions
+  const filteredDistributions = currentAccount
+    ? distributions.filter(d => d.account_id === currentAccount.id)
+    : distributions;
+
+  const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
-  const pendingAmount = distributions
+  const pendingAmount = filteredDistributions
     .filter(d => d.status === 'pending')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
@@ -82,7 +93,7 @@ const MySharePage = () => {
         adminShare,
         waqifShare,
         beneficiariesShare,
-        distributions: distributions.map(d => ({
+        distributions: filteredDistributions.map(d => ({
           date: d.date,
           fiscalYear: d.account?.fiscal_year || '-',
           amount: Number(d.amount),
@@ -151,12 +162,13 @@ const MySharePage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="animate-slide-up">
             <h1 className="text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
             <p className="text-muted-foreground mt-1">تفاصيل حصتك من ريع الوقف</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
@@ -245,7 +257,7 @@ const MySharePage = () => {
             <CardTitle>سجل التوزيعات</CardTitle>
           </CardHeader>
           <CardContent>
-            {distributions.length === 0 ? (
+            {filteredDistributions.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">لا توجد توزيعات مسجلة بعد</p>
@@ -261,7 +273,7 @@ const MySharePage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {distributions.map((dist) => (
+                  {filteredDistributions.map((dist) => (
                     <TableRow key={dist.id}>
                       <TableCell>{dist.date}</TableCell>
                       <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
