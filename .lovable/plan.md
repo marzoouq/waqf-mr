@@ -1,99 +1,78 @@
 
 
-# تقسيم pdfGenerator.ts إلى وحدات منفصلة
+# خطة الفحص الشامل والتوحيد النهائي
 
-## المبدأ الأساسي
-نقل الدوال إلى ملفات متخصصة مع الحفاظ على ملف `index.ts` يعيد تصدير كل شيء لضمان التوافق الكامل مع جميع الاستيرادات الحالية (14 ملف يستورد من هذا الملف).
+## الجزء الأول: التحقق من عمل الصفحات بعد تحويل CRUD Factory
 
-## هيكل الملفات الجديدة
+### النتائج الفعلية (تم التحقق الآن):
+- **صفحة العقارات** (`/dashboard/properties`): تعمل بشكل مثالي - 5 عقارات تظهر مع جميع البيانات والوحدات
+- **صفحة الفواتير** (`/dashboard/invoices`): تعمل بشكل مثالي - لا توجد أخطاء في وحدة التحكم
+- **لا توجد أخطاء JavaScript** في أي من الصفحتين
+
+---
+
+## الجزء الثاني: توحيد useAccounts إلى CRUD Factory
+
+### الملف المستهدف: `src/hooks/useAccounts.ts`
+
+هذا هو الملف الوحيد المتبقي الذي يستخدم النمط اليدوي ويمكن تحويله للـ Factory. الملفات الأخرى (`useNotifications`, `useMessaging`, `useAppSettings`, `useTenantPayments`) لها سلوك خاص لا يناسب النمط العام.
+
+**التغيير:**
+تحويل الـ 90 سطرًا الحالية إلى ~10 أسطر باستخدام `useCrudFactory`:
 
 ```text
-src/utils/pdf/
-  core.ts        - الأنواع + الدوال المشتركة (الخط، الرأس، التذييل، الإطار، أنماط الجداول)
-  reports.ts     - generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF
-  entities.ts    - generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF
-  expenses.ts    - generateExpensesPDF, generateIncomePDF
-  accounts.ts    - generateAccountsPDF
-  beneficiary.ts - generateMySharePDF, generateDisclosurePDF
-  invoices.ts    - generateInvoicesViewPDF
-  index.ts       - re-export لكل الدوال والأنواع
+useCrudFactory<'accounts', Account>({
+  table: 'accounts',
+  queryKey: 'accounts',
+  orderBy: 'fiscal_year',
+  ascending: false,
+  label: 'الحساب',
+});
 ```
 
-## التوزيع التفصيلي
+---
 
-### `core.ts` (~215 سطر) - السطور 1-215
-- `PdfWaqfInfo` (interface)
-- `UnitPdfRow` (interface)
-- `loadArabicFont()` 
-- `loadLogoBase64()`
-- `addHeader()`
-- `addHeaderToAllPages()`
-- `addPageBorder()`
-- `addFooter()`
-- ثوابت الألوان: `TABLE_HEAD_GREEN`, `TABLE_HEAD_GOLD`, `TABLE_HEAD_RED`
-- دوال الأنماط: `baseTableStyles()`, `headStyles()`, `footStyles()`
+## الجزء الثالث: معالجة نتائج الفحص الأمني
 
-### `reports.ts` (~160 سطر) - التقارير الإدارية
-- `generateAnnualReportPDF` (السطور 235-292)
-- `generateBeneficiaryStatementPDF` (السطور 294-324)
-- `generateAnnualDisclosurePDF` (السطور 814-956)
+### الفحص الأمني الحالي (10 نتائج):
 
-### `entities.ts` (~130 سطر) - تقارير الكيانات
-- `generatePropertiesPDF` (السطور 328-358)
-- `generateContractsPDF` (السطور 360-400)
-- `generateBeneficiariesPDF` (السطور 468-502)
-- `generateUnitsPDF` (السطور 971-1031)
+| # | المشكلة | المستوى | الإجراء |
+|---|---------|---------|---------|
+| 1 | حماية كلمات المرور المسربة معطلة | تحذير | يتطلب تفعيلاً يدوياً من إعدادات المشروع - خارج نطاق الكود |
+| 2 | بيانات المستفيدين الحساسة | خطأ | **تجاهل مبرر** - محمية بـ RLS (المستفيد يرى بياناته فقط + الناظر يرى الكل) مع إخفاء أرقام الهوية والحسابات في الواجهة |
+| 3-7 | عقود/دخل/مصروفات/فواتير/حسابات مرئية لجميع المستفيدين | تحذير/معلومات | **تجاهل مبرر** - مبدأ الشفافية المالية للوقف يتطلب اطلاع جميع المستفيدين المصرح لهم |
+| 8 | إعدادات التطبيق مرئية | معلومات | **تجاهل مبرر** - تحتوي فقط على نسب الحصص وإعدادات العرض |
+| 9 | محادثات بدون مشارك محدد | تحذير | **تجاهل مبرر** - الناظر ينشئ محادثات مع مشاركين محددين دائماً |
+| 10 | أدوار المستخدمين | معلومات | **تجاهل مبرر** - `has_role()` دالة SECURITY DEFINER محمية |
 
-### `expenses.ts` (~70 سطر) - تقارير الدخل والمصروفات
-- `generateIncomePDF` (السطور 402-433)
-- `generateExpensesPDF` (السطور 435-466)
+**الإجراء:** تحديث حالة النتائج الأمنية لتعكس القرارات المبررة.
 
-### `accounts.ts` (~160 سطر) - الحسابات الختامية
-- `generateAccountsPDF` (السطور 504-661)
+---
 
-### `beneficiary.ts` (~140 سطر) - تقارير المستفيد
-- `generateMySharePDF` (السطور 663-731)
-- `generateDisclosurePDF` (السطور 733-810)
+## الجزء الرابع: ملخص الحالة النهائية للتوحيد
 
-### `invoices.ts` (~55 سطر) - تقارير الفواتير
-- `generateInvoicesViewPDF` (السطور 1033-1084)
+### الهيكل بعد التنفيذ:
 
-### `index.ts` - إعادة التصدير
-```text
-export { PdfWaqfInfo, UnitPdfRow } from './core';
-export { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from './reports';
-export { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
-export { generateIncomePDF, generateExpensesPDF } from './expenses';
-export { generateAccountsPDF } from './accounts';
-export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
-export { generateInvoicesViewPDF } from './invoices';
-```
+| Hook | يستخدم Factory | السبب إن لم يستخدم |
+|------|:-:|---|
+| `useProperties` | نعم | - |
+| `useContracts` | نعم | - |
+| `useIncome` | نعم | - |
+| `useExpenses` | نعم | - |
+| `useBeneficiaries` | نعم | - |
+| `useUnits` | نعم (جزئياً) | فلترة بـ propertyId + حذف مخصص |
+| `useInvoices` | نعم (جزئياً) | حذف يشمل تنظيف التخزين |
+| `useAccounts` | **سيتم** | التحويل في هذه الخطة |
+| `useTenantPayments` | لا | يستخدم upsert خاص |
+| `useNotifications` | لا | Realtime + user-scoped |
+| `useMessaging` | لا | Realtime + منطق محادثات |
+| `useAppSettings` | لا | بنية key-value مخصصة |
 
-## التوافق مع الاستيرادات الحالية
+---
 
-الملف الأصلي `src/utils/pdfGenerator.ts` سيُحذف ويُستبدل بـ `src/utils/pdf/index.ts`. جميع الاستيرادات الحالية (14 ملف) تُحدّث لتشير إلى `@/utils/pdf` بدلاً من `@/utils/pdfGenerator`:
+## خطوات التنفيذ:
 
-| الملف | الاستيراد الحالي | الاستيراد الجديد |
-|-------|-----------------|-----------------|
-| ExpensesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| IncomePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| PropertiesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| ContractsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| BeneficiariesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| AccountsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| ReportsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| InvoicesPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| DisclosurePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| MySharePage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| FinancialReportsPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| AccountsViewPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| InvoicesViewPage.tsx | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-| usePdfWaqfInfo.ts | `from '@/utils/pdfGenerator'` | `from '@/utils/pdf'` |
-
-## ضمانات السلامة
-- لا تغيير في أي دالة PDF - نقل حرفي فقط
-- لا تغيير في أي واجهة (interface) أو نوع
-- كل ملف فرعي يستورد الدوال المشتركة من `core.ts`
-- ملف `index.ts` يضمن أن كل الاستيرادات الخارجية تعمل بنفس الطريقة
-- حذف الملف القديم `pdfGenerator.ts` بعد التأكد من عمل كل شيء
+1. تحويل `useAccounts.ts` لاستخدام `useCrudFactory`
+2. تحديث النتائج الأمنية (تجاهل مبرر للنتائج المتعلقة بالشفافية المالية)
+3. التحقق من عمل صفحة الحسابات الختامية بعد التحويل
 
