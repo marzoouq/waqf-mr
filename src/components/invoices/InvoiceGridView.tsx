@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon } from 'lucide-react';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
+import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, getInvoiceFileUrl } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useState } from 'react';
 
@@ -45,9 +45,21 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
           onClick={() => !readOnly && onEdit?.(inv)}
         >
           {/* Thumbnail / Icon area */}
-          <div className="h-32 bg-muted/30 flex items-center justify-center border-b relative">
-            {isImage(inv.file_name) ? (
-              <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
+          <div className="h-32 bg-muted/30 flex items-center justify-center border-b relative overflow-hidden">
+            {isImage(inv.file_name) && inv.file_path ? (
+              <>
+                <img
+                  src={getInvoiceFileUrl(inv.file_path)}
+                  alt={inv.file_name || 'معاينة الفاتورة'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                    e.currentTarget.style.display = 'none';
+                    if (fallback) fallback.style.display = '';
+                  }}
+                />
+                <ImageIcon className="w-12 h-12 text-muted-foreground/50" style={{ display: 'none' }} />
+              </>
             ) : (
               <FileText className="w-12 h-12 text-muted-foreground/50" />
             )}
