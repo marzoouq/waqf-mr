@@ -1,10 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -14,31 +10,24 @@ import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPaym
 import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import { Wallet, Plus, Calculator, FileText, TrendingUp, TrendingDown, Users, PieChart, Pencil, Check, X, Printer, FileDown, Trash2, Settings } from 'lucide-react';
+import { Plus, Printer, FileDown } from 'lucide-react';
 import { generateAccountsPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
-import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+
+import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
+import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
+import AccountsContractsTable from '@/components/accounts/AccountsContractsTable';
+import AccountsCollectionTable from '@/components/accounts/AccountsCollectionTable';
+import AccountsIncomeTable from '@/components/accounts/AccountsIncomeTable';
+import AccountsExpensesTable from '@/components/accounts/AccountsExpensesTable';
+import AccountsDistributionTable from '@/components/accounts/AccountsDistributionTable';
+import AccountsBeneficiariesTable from '@/components/accounts/AccountsBeneficiariesTable';
+import AccountsSavedTable from '@/components/accounts/AccountsSavedTable';
+import AccountsDialogs from '@/components/accounts/AccountsDialogs';
 
 const AccountsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -109,14 +98,12 @@ const AccountsPage = () => {
   }, []);
 
   const handleAdminPercentChange = (val: string) => {
-    const num = Number(val);
-    setAdminPercent(num);
+    setAdminPercent(Number(val));
     saveSetting('admin_share_percentage', val);
   };
 
   const handleWaqifPercentChange = (val: string) => {
-    const num = Number(val);
-    setWaqifPercent(num);
+    setWaqifPercent(Number(val));
     saveSetting('waqif_share_percentage', val);
   };
 
@@ -126,8 +113,6 @@ const AccountsPage = () => {
   };
 
   const { totalIncome, totalExpenses } = computeTotals(income, expenses);
-  
-  // VAT is now a manual field, no need to filter from expenses
 
   // Auto-calculate commercial VAT for reference only
   const vatPercentage = Number(appSettings.data?.['vat_percentage'] || '15');
@@ -152,11 +137,11 @@ const AccountsPage = () => {
 
   // === FINANCIAL SEQUENCE (using shared calculation) ===
   const financials = calculateFinancials({
-    totalIncome, totalExpenses, waqfCorpusPrevious, manualVat: manualVat,
-    zakatAmount, adminPercent: adminPercent, waqifPercent: waqifPercent,
+    totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
+    zakatAmount, adminPercent, waqifPercent,
     waqfCorpusManual, manualDistributions,
   });
-  const { grandTotal, netAfterExpenses, netAfterVat, netAfterZakat, shareBase, adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance } = financials;
+  const { grandTotal, netAfterExpenses, netAfterVat, netAfterZakat, adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance } = financials;
 
   // Group income by source
   const incomeBySource = groupIncomeBySource(income);
@@ -254,7 +239,6 @@ const AccountsPage = () => {
       waqf_corpus_previous: waqfCorpusPrevious,
     });
 
-    // إرسال إشعارات تلقائية لجميع المستفيدين
     notifyAllBeneficiaries(
       'تحديث الحسابات الختامية',
       `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
@@ -409,719 +393,131 @@ const AccountsPage = () => {
           </div>
         </div>
 
-        {/* Settings Bar */}
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">إعدادات:</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">السنة المالية:</Label>
-                <Input
-                  value={fiscalYear}
-                  onChange={(e) => handleFiscalYearChange(e.target.value)}
-                  className="h-8 w-52"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">نسبة الناظر (%):</Label>
-                <Input
-                  type="number"
-                  value={adminPercent}
-                  onChange={(e) => handleAdminPercentChange(e.target.value)}
-                  className="h-8 w-20"
-                  min={0}
-                  max={100}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">نسبة الواقف (%):</Label>
-                <Input
-                  type="number"
-                  value={waqifPercent}
-                  onChange={(e) => handleWaqifPercentChange(e.target.value)}
-                  className="h-8 w-20"
-                  min={0}
-                  max={100}
-                />
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">رقبة وقف مرحلة من عام سابق (ر.س):</Label>
-                <Input
-                  type="number"
-                  value={waqfCorpusPrevious}
-                  onChange={(e) => setWaqfCorpusPrevious(Number(e.target.value))}
-                  className="h-8 w-28"
-                  min={0}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">ضريبة القيمة المضافة (ر.س):</Label>
-                <Input
-                  type="number"
-                  value={manualVat}
-                  onChange={(e) => setManualVat(Number(e.target.value))}
-                  className="h-8 w-28"
-                  min={0}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">مبلغ الزكاة (ر.س):</Label>
-                <Input
-                  type="number"
-                  value={zakatAmount}
-                  onChange={(e) => setZakatAmount(Number(e.target.value))}
-                  className="h-8 w-28"
-                  min={0}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">رقبة الوقف للعام الحالي (ر.س):</Label>
-                <Input
-                  type="number"
-                  value={waqfCorpusManual}
-                  onChange={(e) => setWaqfCorpusManual(Number(e.target.value))}
-                  className="h-8 w-28"
-                  min={0}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">مبلغ التوزيعات (ر.س):</Label>
-                <Input
-                  type="number"
-                  value={manualDistributions}
-                  onChange={(e) => setManualDistributions(Number(e.target.value))}
-                  className="h-8 w-28"
-                  min={0}
-                />
-              </div>
-            </div>
-            <div className="text-xs text-muted-foreground mt-2">
-              ضريبة تجارية محسوبة (استرشادي): {calculatedVat.toLocaleString()} ر.س (من إيجارات {commercialRent.toLocaleString()} تجاري × {vatPercentage}%)
-            </div>
-          </CardContent>
-        </Card>
+        <AccountsSettingsBar
+          fiscalYear={fiscalYear}
+          adminPercent={adminPercent}
+          waqifPercent={waqifPercent}
+          waqfCorpusPrevious={waqfCorpusPrevious}
+          manualVat={manualVat}
+          zakatAmount={zakatAmount}
+          waqfCorpusManual={waqfCorpusManual}
+          manualDistributions={manualDistributions}
+          calculatedVat={calculatedVat}
+          commercialRent={commercialRent}
+          vatPercentage={vatPercentage}
+          onFiscalYearChange={handleFiscalYearChange}
+          onAdminPercentChange={handleAdminPercentChange}
+          onWaqifPercentChange={handleWaqifPercentChange}
+          onWaqfCorpusPreviousChange={setWaqfCorpusPrevious}
+          onManualVatChange={setManualVat}
+          onZakatAmountChange={setZakatAmount}
+          onWaqfCorpusManualChange={setWaqfCorpusManual}
+          onManualDistributionsChange={setManualDistributions}
+        />
 
-        {/* 1. Current Summary */}
-        <Card className="shadow-sm gradient-hero text-primary-foreground">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              ملخص الحسابات الحالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {waqfCorpusPrevious > 0 && (
-                <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                  <p className="text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
-                  <p className="text-xl font-bold">{waqfCorpusPrevious.toLocaleString()}</p>
-                </div>
-              )}
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
-                <p className="text-xl font-bold">{totalIncome.toLocaleString()}</p>
-              </div>
-              {waqfCorpusPrevious > 0 && (
-                <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                  <p className="text-sm text-primary-foreground/90">الإجمالي الشامل</p>
-                  <p className="text-xl font-bold">{grandTotal.toLocaleString()}</p>
-                </div>
-              )}
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
-                <p className="text-xl font-bold">{totalExpenses.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
-                <p className="text-xl font-bold">{netAfterExpenses.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
-                <p className="text-xl font-bold">{manualVat.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">الصافي بعد الضريبة</p>
-                <p className="text-xl font-bold">{netAfterVat.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">الزكاة</p>
-                <p className="text-xl font-bold">{zakatAmount.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">حصة الناظر ({adminPercent}%)</p>
-                <p className="text-xl font-bold">{adminShare.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">حصة الواقف ({waqifPercent}%)</p>
-                <p className="text-xl font-bold">{waqifShare.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">ريع الوقف</p>
-                <p className="text-xl font-bold">{waqfRevenue.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
-                <p className="text-xl font-bold">{waqfCorpusManual.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">التوزيعات</p>
-                <p className="text-xl font-bold">{manualDistributions.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">الرصيد المتبقي</p>
-                <p className="text-xl font-bold">{remainingBalance.toLocaleString()}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AccountsSummaryCards
+          waqfCorpusPrevious={waqfCorpusPrevious}
+          totalIncome={totalIncome}
+          grandTotal={grandTotal}
+          totalExpenses={totalExpenses}
+          netAfterExpenses={netAfterExpenses}
+          manualVat={manualVat}
+          netAfterVat={netAfterVat}
+          zakatAmount={zakatAmount}
+          adminPercent={adminPercent}
+          adminShare={adminShare}
+          waqifPercent={waqifPercent}
+          waqifShare={waqifShare}
+          waqfRevenue={waqfRevenue}
+          waqfCorpusManual={waqfCorpusManual}
+          manualDistributions={manualDistributions}
+          remainingBalance={remainingBalance}
+        />
 
-        {/* 2. Contracts */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              العقود
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {contracts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
-            ) : (
-              <Table className="min-w-[750px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right w-12">#</TableHead>
-                    <TableHead className="text-right">رقم العقد</TableHead>
-                    <TableHead className="text-right">المستأجر</TableHead>
-                    <TableHead className="text-right">قيمة الدفعة</TableHead>
-                    <TableHead className="text-right">عدد الدفعات</TableHead>
-                    <TableHead className="text-right">الإيجار السنوي</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right w-20">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contracts.map((contract, index) => (
-                    <TableRow key={contract.id}>
-                      <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                      <TableCell>{contract.tenant_name}</TableCell>
-                      <TableCell className="font-bold text-primary">{getPaymentPerPeriod(contract).toLocaleString()} ريال</TableCell>
-                      <TableCell className="text-center">{getExpectedPayments(contract)}</TableCell>
-                      <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
-                      <TableCell>{statusLabel(contract.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleOpenContractEdit(contract)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ type: 'contract', id: contract.id, name: `العقد ${contract.contract_number}` })}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-                <TableFooter>
-                  <TableRow className="bg-muted/70 font-bold">
-                    <TableCell>الإجمالي</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell>{contracts.length} عقد</TableCell>
-                    <TableCell className="text-primary font-bold">{totalPaymentPerPeriod.toLocaleString()} ريال</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <AccountsContractsTable
+          contracts={contracts}
+          getPaymentPerPeriod={getPaymentPerPeriod}
+          getExpectedPayments={getExpectedPayments}
+          totalPaymentPerPeriod={totalPaymentPerPeriod}
+          totalAnnualRent={totalAnnualRent}
+          statusLabel={statusLabel}
+          onEditContract={handleOpenContractEdit}
+          onDeleteContract={(id, name) => setDeleteTarget({ type: 'contract', id, name })}
+        />
 
-        {/* 2.5 Collection & Arrears Details */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              تفصيل التحصيل والمتأخرات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {contracts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
-            ) : (
-              <Table className="min-w-[850px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right w-12">#</TableHead>
-                    <TableHead className="text-right">المستأجر</TableHead>
-                    <TableHead className="text-right">الإيجار الشهري</TableHead>
-                    <TableHead className="text-right">الدفعات المتوقعة</TableHead>
-                    <TableHead className="text-right">الدفعات المحصّلة</TableHead>
-                    <TableHead className="text-right">الإجمالي المحصّل</TableHead>
-                    <TableHead className="text-right">المتأخرات</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right w-24">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {collectionData.map((item, idx) => {
-                    const isEditing = editingIndex === idx;
-                    const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
-                    const editPaid = editData?.paidMonths ?? item.paidMonths;
-                    const editTotal = editRent * editPaid;
-                    const editArrears = (editRent * item.expectedPayments) - editTotal;
+        <AccountsCollectionTable
+          contracts={contracts}
+          collectionData={collectionData}
+          editingIndex={editingIndex}
+          editData={editData}
+          setEditData={setEditData}
+          onStartEdit={handleStartEdit}
+          onCancelEdit={handleCancelEdit}
+          onSaveEdit={handleSaveEdit}
+          totalExpectedPayments={totalExpectedPayments}
+          totalPaidMonths={totalPaidMonths}
+          totalCollectedAll={totalCollectedAll}
+          totalArrearsAll={totalArrearsAll}
+          isUpdatePending={updateContract.isPending}
+          isUpsertPending={upsertPayment.isPending}
+        />
 
-                    return (
-                      <TableRow key={item.index}>
-                        <TableCell className="text-muted-foreground">{item.index}</TableCell>
-                        <TableCell className="font-medium">
-                          {isEditing ? (
-                            <Input
-                              value={editData?.tenantName ?? ''}
-                              onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
-                              className="h-8 w-32"
-                            />
-                          ) : item.tenantName}
-                        </TableCell>
-                        <TableCell className="font-bold text-primary">
-                          {isEditing ? (
-                            <Input
-                              type="number"
-                              value={editData?.monthlyRent ?? 0}
-                              onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
-                              className="h-8 w-24"
-                            />
-                          ) : `${item.paymentPerPeriod.toLocaleString()} ريال`}
-                        </TableCell>
-                        <TableCell className="text-center">{item.expectedPayments}</TableCell>
-                        <TableCell className="text-center">
-                          {isEditing ? (
-                            <Input
-                              type="number"
-                              min={0}
-                              max={12}
-                              value={editData?.paidMonths ?? 0}
-                              onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
-                              className="h-8 w-16"
-                            />
-                          ) : item.paidMonths}
-                        </TableCell>
-                        <TableCell className="font-bold text-primary">
-                          {isEditing ? `${editTotal.toLocaleString()} ريال` : `${item.totalCollected.toLocaleString()} ريال`}
-                        </TableCell>
-                        <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-green-600'}`}>
-                          {(isEditing ? editArrears : item.arrears).toLocaleString()} ريال
-                        </TableCell>
-                        <TableCell>
-                          {isEditing ? (
-                            <Select
-                              value={editData?.status ?? 'متأخر'}
-                              onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : prev)}
-                            >
-                              <SelectTrigger className="h-8 w-24">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="مكتمل">مكتمل</SelectItem>
-                                <SelectItem value="متأخر">متأخر</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {item.status}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {isEditing ? (
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => handleSaveEdit(idx)} disabled={updateContract.isPending || upsertPayment.isPending}>
-                                <Check className="w-4 h-4" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={handleCancelEdit}>
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleStartEdit(idx)}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-                <TableFooter>
-                  <TableRow className="bg-muted/70 font-bold">
-                    <TableCell>الإجمالي</TableCell>
-                    <TableCell>{contracts.length} مستأجر</TableCell>
-                    <TableCell className="text-primary font-bold">{collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0).toLocaleString()} ريال</TableCell>
-                    <TableCell className="text-center">{totalExpectedPayments}</TableCell>
-                    <TableCell className="text-center">{totalPaidMonths}</TableCell>
-                    <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>
-                    <TableCell className="text-destructive font-bold">{totalArrearsAll.toLocaleString()} ريال</TableCell>
-                    <TableCell></TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <AccountsIncomeTable
+          incomeCount={income.length}
+          incomeBySource={incomeBySource}
+          totalIncome={totalIncome}
+        />
 
-        {/* 3. Income Details */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              تفصيل الإيرادات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {income.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد إيرادات مسجلة</p>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">المصدر</TableHead>
-                      <TableHead className="text-right">المبلغ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Object.entries(incomeBySource).map(([source, amount]) => (
-                      <TableRow key={source}>
-                        <TableCell className="font-medium">{source}</TableCell>
-                        <TableCell className="text-success">+{amount.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">إجمالي الإيرادات</span>
-                  <span className="font-bold text-success">+{totalIncome.toLocaleString()} ريال</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <AccountsExpensesTable
+          expensesCount={expenses.length}
+          expensesByType={expensesByType}
+          totalExpenses={totalExpenses}
+        />
 
-        {/* 4. Expenses Details */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingDown className="w-5 h-5" />
-              تفصيل المصروفات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {expenses.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">النوع</TableHead>
-                      <TableHead className="text-right">المبلغ</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Object.entries(expensesByType).map(([type, amount]) => (
-                      <TableRow key={type}>
-                        <TableCell className="font-medium">{type}</TableCell>
-                        <TableCell className="text-destructive">-{amount.toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">إجمالي المصروفات</span>
-                  <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ريال</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <AccountsDistributionTable
+          waqfCorpusPrevious={waqfCorpusPrevious}
+          totalIncome={totalIncome}
+          grandTotal={grandTotal}
+          totalExpenses={totalExpenses}
+          netAfterExpenses={netAfterExpenses}
+          manualVat={manualVat}
+          netAfterVat={netAfterVat}
+          zakatAmount={zakatAmount}
+          netAfterZakat={netAfterZakat}
+          adminPercent={adminPercent}
+          adminShare={adminShare}
+          waqifPercent={waqifPercent}
+          waqifShare={waqifShare}
+          waqfRevenue={waqfRevenue}
+          waqfCorpusManual={waqfCorpusManual}
+          availableAmount={availableAmount}
+          manualDistributions={manualDistributions}
+          remainingBalance={remainingBalance}
+        />
 
-        {/* 5. Distribution & Shares - NEW SEQUENCE */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="w-5 h-5" />
-              التوزيع والحصص
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-right">البند</TableHead>
-                  <TableHead className="text-right">النسبة</TableHead>
-                  <TableHead className="text-right">المبلغ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {waqfCorpusPrevious > 0 && (
-                  <TableRow>
-                    <TableCell className="font-medium">رقبة الوقف المرحلة من العام السابق</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="font-bold text-success">{waqfCorpusPrevious.toLocaleString()}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow className="bg-success/10">
-                  <TableCell className="font-medium">إجمالي الدخل</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold text-success">{totalIncome.toLocaleString()}</TableCell>
-                </TableRow>
-                {waqfCorpusPrevious > 0 && (
-                  <TableRow className="bg-success/20 font-semibold">
-                    <TableCell className="font-bold">الإجمالي الشامل</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell className="font-bold text-success">{grandTotal.toLocaleString()}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow>
-                  <TableCell className="font-medium">(-) المصروفات التشغيلية</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">{totalExpenses.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30 font-semibold">
-                  <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold">{netAfterExpenses.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">{manualVat.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30 font-semibold">
-                  <TableCell className="font-bold">الصافي بعد الضريبة</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold">{netAfterVat.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) الزكاة</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">{zakatAmount.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30 font-semibold">
-                  <TableCell className="font-bold">الصافي بعد الزكاة</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold">{netAfterZakat.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) حصة الناظر</TableCell>
-                  <TableCell>{adminPercent}%</TableCell>
-                  <TableCell>{adminShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) حصة الواقف</TableCell>
-                  <TableCell>{waqifPercent}%</TableCell>
-                  <TableCell>{waqifShare.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-primary/10 font-bold">
-                  <TableCell className="font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) رقبة الوقف للعام الحالي</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{waqfCorpusManual.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-primary/5 font-bold">
-                  <TableCell className="font-bold">المبلغ المتاح</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="text-primary font-bold">{availableAmount.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) التوزيعات</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell>{manualDistributions.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-accent/20 font-bold">
-                  <TableCell className="font-bold text-lg">الرصيد المتبقي</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className={`font-bold text-lg ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <AccountsBeneficiariesTable
+          beneficiaries={beneficiaries}
+          manualDistributions={manualDistributions}
+          totalBeneficiaryPercentage={totalBeneficiaryPercentage}
+        />
 
-        {/* 6. Beneficiary Distribution */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              توزيع حصص المستفيدين
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {beneficiaries.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">المستفيد</TableHead>
-                      <TableHead className="text-right">النسبة</TableHead>
-                      <TableHead className="text-right">المبلغ المستحق</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {beneficiaries.map((b) => (
-                      <TableRow key={b.id}>
-                        <TableCell className="font-medium">{b.name}</TableCell>
-                        <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
-                        <TableCell className="text-primary font-medium">
-                          {(manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-                  <span className="font-medium">إجمالي التوزيع</span>
-                  <span className="font-bold text-primary">
-                    {manualDistributions.toLocaleString()} ريال
-                  </span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <AccountsSavedTable
+          accounts={accounts}
+          isLoading={isLoading}
+          onDeleteAccount={(id, name) => setDeleteTarget({ type: 'account', id, name })}
+        />
 
-        {/* 7. Previous Accounts */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>السجلات السابقة</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">جاري التحميل...</p>
-              </div>
-            ) : accounts.length === 0 ? (
-              <div className="py-12 text-center">
-                <Wallet className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">لا توجد حسابات ختامية مسجلة</p>
-              </div>
-            ) : (
-              <Table className="min-w-[750px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">السنة المالية</TableHead>
-                    <TableHead className="text-right">إجمالي الدخل</TableHead>
-                    <TableHead className="text-right">إجمالي المصروفات</TableHead>
-                    <TableHead className="text-right">حصة الناظر</TableHead>
-                    <TableHead className="text-right">حصة الواقف</TableHead>
-                    <TableHead className="text-right">ريع الوقف</TableHead>
-                    <TableHead className="text-right w-20">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {accounts.map((account) => (
-                    <TableRow key={account.id}>
-                      <TableCell className="font-medium">{account.fiscal_year}</TableCell>
-                      <TableCell className="text-success">+{Number(account.total_income).toLocaleString()}</TableCell>
-                      <TableCell className="text-destructive">-{Number(account.total_expenses).toLocaleString()}</TableCell>
-                      <TableCell>{Number(account.admin_share).toLocaleString()}</TableCell>
-                      <TableCell>{Number(account.waqif_share).toLocaleString()}</TableCell>
-                      <TableCell className="text-primary font-medium">{Number(account.waqf_revenue).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ type: 'account', id: account.id, name: `حساب ${account.fiscal_year}` })} className="text-destructive hover:text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>هل أنت متأكد من الحذف؟</AlertDialogTitle>
-              <AlertDialogDescription>
-                سيتم حذف {deleteTarget?.name} نهائياً ولا يمكن التراجع عن هذا الإجراء.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-row-reverse gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                تأكيد الحذف
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Contract Edit Dialog */}
-        <Dialog open={contractEditOpen} onOpenChange={setContractEditOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>تعديل العقد {editingContractData?.contract_number}</DialogTitle>
-              <DialogDescription className="sr-only">نموذج تعديل بيانات العقد</DialogDescription>
-            </DialogHeader>
-            {editingContractData && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>اسم المستأجر</Label>
-                  <Input
-                    value={editingContractData.tenant_name}
-                    onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, tenant_name: e.target.value } : prev)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>قيمة الإيجار (ر.س)</Label>
-                  <Input
-                    type="number"
-                    value={editingContractData.rent_amount}
-                    onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, rent_amount: Number(e.target.value) } : prev)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>الحالة</Label>
-                  <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev) => prev ? { ...prev, status: val } : prev)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">نشط</SelectItem>
-                      <SelectItem value="expired">منتهي</SelectItem>
-                      <SelectItem value="cancelled">ملغي</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button className="flex-1 gradient-primary" onClick={handleSaveContractEdit} disabled={updateContract.isPending}>
-                    تحديث
-                  </Button>
-                  <Button variant="outline" onClick={() => setContractEditOpen(false)}>
-                    إلغاء
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <AccountsDialogs
+          deleteTarget={deleteTarget}
+          setDeleteTarget={setDeleteTarget}
+          onConfirmDelete={handleConfirmDelete}
+          contractEditOpen={contractEditOpen}
+          setContractEditOpen={setContractEditOpen}
+          editingContractData={editingContractData}
+          setEditingContractData={setEditingContractData}
+          onSaveContractEdit={handleSaveContractEdit}
+          isUpdatePending={updateContract.isPending}
+        />
       </div>
     </DashboardLayout>
   );
