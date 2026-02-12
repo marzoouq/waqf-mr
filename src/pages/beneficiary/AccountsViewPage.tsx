@@ -32,13 +32,13 @@ const AccountsViewPage = () => {
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
   const vatAmount = Number(currentAccount?.vat_amount || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
-  const zakatAmount = Number((currentAccount as Record<string, unknown>)?.zakat_amount || 0);
+  const zakatAmount = Number(currentAccount?.zakat_amount || 0);
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(currentAccount?.admin_share || 0);
   const afterAdmin = netAfterZakat - adminShare;
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number((currentAccount as Record<string, unknown>)?.waqf_corpus_manual || 0);
+  const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
   const waqfCapital = Number(currentAccount?.waqf_capital || 0);

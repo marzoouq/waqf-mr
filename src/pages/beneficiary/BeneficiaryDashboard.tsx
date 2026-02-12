@@ -19,13 +19,13 @@ const BeneficiaryDashboard = () => {
   const netAfterExpenses = Number(latestAccount?.net_after_expenses || 0);
   const vatAmount = Number(latestAccount?.vat_amount || 0);
   const netAfterVat = Number(latestAccount?.net_after_vat || 0);
-  const zakatAmount = Number((latestAccount as Record<string, unknown>)?.zakat_amount || 0);
+  const zakatAmount = Number(latestAccount?.zakat_amount || 0);
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(latestAccount?.admin_share || 0);
   const waqifShare = Number(latestAccount?.waqif_share || 0);
   const afterAdmin = netAfterZakat - adminShare;
   const waqfRevenue = Number(latestAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number((latestAccount as Record<string, unknown>)?.waqf_corpus_manual || 0);
+  const waqfCorpusManual = Number(latestAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
 

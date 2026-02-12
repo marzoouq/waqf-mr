@@ -36,12 +36,12 @@ const ReportsPage = () => {
   const vatAmount = currentAccount ? Number(currentAccount.vat_amount) : 0;
   const netAfterExpenses = currentAccount ? Number(currentAccount.net_after_expenses) : totalIncome - totalExpenses;
   const netAfterVat = currentAccount ? Number(currentAccount.net_after_vat) : netAfterExpenses - vatAmount;
-  const zakatAmount = currentAccount ? Number((currentAccount as Record<string, unknown>)?.zakat_amount || 0) : 0;
+  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = currentAccount ? Number(currentAccount.admin_share) : 0;
   const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : 0;
   const waqfRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : 0;
-  const waqfCorpusManual = currentAccount ? Number((currentAccount as Record<string, unknown>)?.waqf_corpus_manual || 0) : 0;
+  const waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
   const netRevenue = totalIncome - totalExpenses;
