@@ -281,14 +281,32 @@ const AccountsPage = () => {
     if (!selectedFY || selectedFY.status === 'closed') return;
     setIsClosingYear(true);
     try {
-      // 1. Close current year
+      // Step A: Auto-save final account snapshot before closing
+      await createAccount.mutateAsync({
+        fiscal_year: fiscalYear,
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+        admin_share: adminShare,
+        waqif_share: waqifShare,
+        waqf_revenue: waqfRevenue,
+        vat_amount: manualVat,
+        distributions_amount: manualDistributions,
+        waqf_capital: waqfCorpusManual,
+        net_after_expenses: netAfterExpenses,
+        net_after_vat: netAfterVat,
+        zakat_amount: zakatAmount,
+        waqf_corpus_manual: waqfCorpusManual,
+        waqf_corpus_previous: waqfCorpusPrevious,
+      });
+
+      // Step B: Close current fiscal year
       const { error: closeErr } = await supabase
         .from('fiscal_years')
         .update({ status: 'closed' })
         .eq('id', selectedFY.id);
       if (closeErr) throw closeErr;
 
-      // 2. Check if next year exists
+      // Step C: Create next fiscal year with carried-forward balance
       const nextStartDate = selectedFY.end_date;
       const nextEndYear = new Date(selectedFY.end_date);
       nextEndYear.setFullYear(nextEndYear.getFullYear() + 1);
@@ -316,9 +334,9 @@ const AccountsPage = () => {
         nextFYId = newFY.id;
       }
 
-      // 3. Carry forward remaining balance
+      // Step D: Create initial account for new year with only carried-forward balance
       if (nextFYId) {
-        await supabase.from('accounts').upsert({
+        await supabase.from('accounts').insert({
           fiscal_year: nextLabel,
           waqf_corpus_previous: remainingBalance,
           total_income: 0, total_expenses: 0, admin_share: 0, waqif_share: 0,
@@ -328,9 +346,20 @@ const AccountsPage = () => {
         });
       }
 
+      // Step E: Invalidate all relevant caches
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+
+      // Step F: Notify beneficiaries
+      notifyAllBeneficiaries(
+        'إقفال السنة المالية',
+        `تم إقفال السنة المالية ${selectedFY.label} وأرشفة جميع البيانات. تم ترحيل الرصيد المتبقي (${remainingBalance.toLocaleString()} ر.س) كرقبة وقف للسنة الجديدة.`,
+        'info',
+        '/beneficiary/accounts',
+      );
+
       toast.success(`تم إقفال السنة المالية ${selectedFY.label} وترحيل الرصيد بنجاح`);
       setCloseYearOpen(false);
     } catch (err) {
@@ -618,10 +647,17 @@ const AccountsPage = () => {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>تأكيد إقفال السنة المالية</AlertDialogTitle>
-              <AlertDialogDescription>
-                سيتم إقفال السنة المالية <strong>{selectedFY?.label}</strong> نهائياً.
-                لن تتمكن من إضافة أو تعديل أو حذف أي دخل أو مصروفات لهذه السنة بعد الإقفال.
-                سيتم ترحيل الرصيد المتبقي ({remainingBalance.toLocaleString()} ر.س) إلى السنة التالية تلقائياً.
+              <AlertDialogDescription asChild>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>سيتم تنفيذ الخطوات التالية عند تأكيد الإقفال:</p>
+                  <ul className="list-disc list-inside space-y-1 mr-2">
+                    <li>حفظ الحساب الختامي النهائي وأرشفة جميع البيانات للسنة <strong className="text-foreground">{selectedFY?.label}</strong></li>
+                    <li>إقفال السنة المالية نهائياً (لن يمكن التعديل بعد الإقفال)</li>
+                    <li>ترحيل الرصيد المتبقي <strong className="text-foreground">({remainingBalance.toLocaleString()} ر.س)</strong> كرقبة وقف للسنة الجديدة</li>
+                    <li>إشعار جميع المستفيدين بإقفال السنة</li>
+                  </ul>
+                  <p className="text-xs mt-2">جميع البيانات المؤرشفة ستبقى متاحة للاطلاع عليها.</p>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-row-reverse gap-2">
