@@ -88,6 +88,7 @@ export const useMessages = (conversationId: string | null) => {
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
+  const { role } = useAuth();
   return useMutation({
     mutationFn: async ({ conversationId, content, senderId }: { conversationId: string; content: string; senderId: string }) => {
       const trimmed = content.trim();
@@ -100,6 +101,28 @@ export const useSendMessage = () => {
       if (error) throw error;
       // Update conversation updated_at
       await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+
+      // If admin sends a message, notify the beneficiary participant
+      if (role === 'admin') {
+        try {
+          const { data: conv } = await supabase
+            .from('conversations')
+            .select('participant_id, subject')
+            .eq('id', conversationId)
+            .single();
+          if (conv?.participant_id) {
+            await supabase.from('notifications').insert({
+              user_id: conv.participant_id,
+              title: 'رسالة جديدة من ناظر الوقف',
+              message: `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,
+              type: 'message',
+              link: '/beneficiary/messages',
+            });
+          }
+        } catch (e) {
+          console.error('Failed to send message notification:', e);
+        }
+      }
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['messages', vars.conversationId] });

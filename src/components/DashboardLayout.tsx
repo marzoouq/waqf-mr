@@ -18,6 +18,7 @@ import {
   Eye,
   Settings,
   MessageSquare,
+  Bell,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
@@ -111,6 +112,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
     { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
     { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
+    { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
     { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
   ];
 
