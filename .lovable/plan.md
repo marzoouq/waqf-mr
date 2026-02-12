@@ -1,163 +1,103 @@
 
 
-# تقرير تدقيق شامل لهيكل المشروع
+# تقسيم AccountsPage.tsx إلى مكونات فرعية
 
-## 1. ملخص تنفيذي
+## المبدأ الأساسي
+نقل JSX فقط إلى مكونات فرعية مع تمرير البيانات والدوال كـ Props. المنطق الحسابي والحالة (state) تبقى في الصفحة الرئيسية بدون أي تغيير.
 
-المشروع مبني بشكل جيد بشكل عام مع فصل واضح بين الصفحات والـ Hooks وطبقة البيانات. ومع ذلك، هناك عدة نقاط تحتاج إلى تحسين تتراوح بين مشاكل حرجة ومشاكل تحسينية.
+## المكونات الفرعية المقترحة
 
----
+### 1. `components/accounts/AccountsSettingsBar.tsx`
+- شريط الإعدادات (السطور 412-507)
+- يستقبل Props: القيم الحالية (fiscalYear, adminPercent, waqifPercent, الخ) + دوال التغيير + calculatedVat + commercialRent + vatPercentage
 
-## 2. المشاكل مرتبة حسب الأهمية
+### 2. `components/accounts/AccountsSummaryCards.tsx`
+- بطاقات الملخص المالي (السطور 509-581)
+- يستقبل Props: جميع القيم المالية المحسوبة (totalIncome, totalExpenses, adminShare, الخ)
 
-### [حرج] 2.1 - صفحة AccountsPage.tsx عملاقة (1,146 سطر)
+### 3. `components/accounts/AccountsContractsTable.tsx`
+- جدول العقود (السطور 583-646)
+- يستقبل Props: contracts, getPaymentPerPeriod, getExpectedPayments, totalPaymentPerPeriod, totalAnnualRent, statusLabel, handleOpenContractEdit, setDeleteTarget
 
-هذا الملف يحتوي على:
-- منطق حسابي معقد (حساب الحصص، الضريبة، الزكاة، التوزيعات)
-- إدارة الإعدادات (حفظ النسب في app_settings)
-- عرض جداول العقود والتحصيل والمستفيدين
-- إدارة حالة التعديل والحذف لعدة كيانات
-- إرسال الإشعارات
+### 4. `components/accounts/AccountsCollectionTable.tsx`
+- جدول التحصيل والمتأخرات (السطور 648-779)
+- يستقبل Props: collectionData, editingIndex, editData, setEditData, handleStartEdit, handleCancelEdit, handleSaveEdit, totals, isPending flags
 
-**التوصية**: تقسيم الملف إلى:
-- `utils/accountsCalculations.ts` - المنطق الحسابي المالي
-- `components/accounts/SettingsBar.tsx` - شريط الإعدادات
-- `components/accounts/ContractsTable.tsx` - جدول العقود
-- `components/accounts/CollectionTable.tsx` - جدول التحصيل
-- `components/accounts/BeneficiariesTable.tsx` - جدول المستفيدين
-- `components/accounts/AccountsSummary.tsx` - بطاقات الملخص
+### 5. `components/accounts/AccountsIncomeTable.tsx`
+- تفصيل الإيرادات (السطور 781-817)
+- يستقبل Props: income, incomeBySource, totalIncome
 
-### [حرج] 2.2 - تكرار منطق الحسابات المالية
+### 6. `components/accounts/AccountsExpensesTable.tsx`
+- تفصيل المصروفات (السطور 819-855)
+- يستقبل Props: expenses, expensesByType, totalExpenses
 
-نفس الحسابات المالية (الدخل، المصروفات، الحصص، الزكاة) مكررة في ثلاثة ملفات:
-- `AccountsPage.tsx` (سطور 126-163)
-- `AdminDashboard.tsx` (سطور 28-42)
-- `ReportsPage.tsx` (سطور 32-56)
+### 7. `components/accounts/AccountsDistributionTable.tsx`
+- جدول التوزيع والحصص (السطور 857-962)
+- يستقبل Props: جميع القيم المالية من التسلسل الهرمي
 
-**التوصية**: إنشاء hook مشترك `useFinancialSummary.ts` يحسب كل القيم المالية مرة واحدة.
+### 8. `components/accounts/AccountsBeneficiariesTable.tsx`
+- جدول توزيع حصص المستفيدين (السطور 964-1006)
+- يستقبل Props: beneficiaries, manualDistributions, totalBeneficiaryPercentage
 
-### [مهم] 2.3 - منطق الإشعارات مبعثر في الكود
+### 9. `components/accounts/AccountsSavedTable.tsx`
+- السجلات السابقة (السطور 1008-1056)
+- يستقبل Props: accounts, isLoading, setDeleteTarget
 
-إرسال الإشعارات موزع عبر عدة ملفات:
-- `useExpenses.ts` (onSuccess)
-- `useIncome.ts` (onSuccess)
-- `useBeneficiaries.ts` (onSuccess)
-- `useMessaging.ts` (داخل mutationFn)
-- `AccountsPage.tsx` (داخل handler)
+### 10. `components/accounts/AccountsDialogs.tsx`
+- حوارات التعديل والحذف (السطور 1058-1124)
+- يستقبل Props: deleteTarget, setDeleteTarget, handleConfirmDelete, contractEditOpen, setContractEditOpen, editingContractData, setEditingContractData, handleSaveContractEdit, isPending
 
-مشكلة التناسق: في `useMessaging.ts` الإشعار يُرسل داخل `mutationFn` بينما في الباقي يُرسل في `onSuccess`. هذا يعني أن فشل إرسال الإشعار في المراسلات سيؤدي لفشل العملية كلها، بينما في البقية لن يؤثر.
+## النتيجة المتوقعة
 
-**التوصية**: إنشاء utility مركزي `utils/notifications.ts` يحتوي على دوال إرسال الإشعارات، وتوحيد النمط (دائماً في onSuccess مع `.then()` لعدم حجب العملية الأساسية).
+`AccountsPage.tsx` سيتقلص من **1,130 سطر** إلى حوالي **350-400 سطر** تحتوي فقط على:
+- استدعاء الـ Hooks
+- إدارة الحالة (useState/useEffect)
+- المنطق الحسابي والدوال
+- تركيب المكونات الفرعية مع تمرير Props
 
-### [مهم] 2.4 - تكرار نمط CRUD في الـ Hooks
+## القسم التقني
 
-الملفات التالية تتبع نمطاً متطابقاً تماماً:
-- `useExpenses.ts`
-- `useIncome.ts`
-- `useBeneficiaries.ts`
-- `useAccounts.ts`
-- `useContracts.ts`
-- `useProperties.ts`
-
-كل ملف يحتوي على 4 hooks متشابهة (useList, useCreate, useUpdate, useDelete) بنفس الهيكل.
-
-**التوصية**: إنشاء factory function:
+### هيكل الملفات الجديدة
 ```text
-createCrudHooks('expenses', { 
-  queryKey: 'expenses',
-  table: 'expenses',
-  select: '*, property:properties(*)',
-  orderBy: 'date'
-})
-```
-هذا يقلل التكرار بشكل كبير ويسهل الصيانة.
-
-### [مهم] 2.5 - pdfGenerator.ts ملف ضخم (1,084 سطر)
-
-ملف واحد يحتوي على جميع مولدات PDF (تقارير، إفصاحات، عقود، مصروفات، إلخ).
-
-**التوصية**: تقسيمه إلى:
-- `utils/pdf/core.ts` - الدوال المشتركة (loadArabicFont, addHeader, addFooter, addPageBorder)
-- `utils/pdf/reports.ts` - تقارير مالية
-- `utils/pdf/entities.ts` - تقارير الكيانات (عقارات، عقود، مستفيدين)
-- `utils/pdf/accounts.ts` - تقرير الحسابات الختامية
-
-### [متوسط] 2.6 - SecurityGuard مضلل ولا يوفر حماية حقيقية
-
-هذا المكون يمنع right-click وdev tools shortcuts. هذا:
-- لا يوفر حماية فعلية (يمكن تجاوزه بسهولة)
-- يزعج المستخدمين العاديين
-- يعطي إحساساً زائفاً بالأمان
-
-**التوصية**: إزالته أو تقليل نطاقه ليشمل فقط منع نسخ البيانات الحساسة (`[data-sensitive]`).
-
-### [متوسط] 2.7 - AiAssistant يستورد supabase client بشكل ديناميكي
-
-في السطر 40:
-```text
-const { data: sessionData } = await (await import('@/integrations/supabase/client')).supabase.auth.getSession();
-```
-هذا استيراد ديناميكي غير ضروري بينما `supabase` مستورد بالفعل في أعلى الملف بشكل غير مباشر عبر `useAuth`.
-
-**التوصية**: استيراد `supabase` مباشرة في أعلى الملف.
-
-### [متوسط] 2.8 - أنواع مكررة بين types/database.ts و hooks
-
-`useMessaging.ts` و `useNotifications.ts` يعرّفان interfaces محلية (`Conversation`, `Message`, `Notification`) بينما يجب أن تكون في `types/database.ts` مع باقي الأنواع.
-
-**التوصية**: نقل جميع الأنواع إلى `types/database.ts` واستيرادها من هناك.
-
-### [متوسط] 2.9 - DashboardLayout يحتوي على مكون PrintHeader داخلي
-
-مكون `PrintHeader` معرف داخل ملف `DashboardLayout.tsx` ويستخدم hooks خاصة به. يجب فصله.
-
-**التوصية**: نقل `PrintHeader` إلى `components/PrintHeader.tsx`.
-
-### [تحسيني] 2.10 - عدم وجود مجلدات فرعية للمكونات
-
-جميع المكونات غير UI موجودة في مستوى واحد تحت `src/components/`. مع نمو المشروع سيصبح هذا فوضوياً.
-
-**التوصية**: تنظيم المكونات:
-```text
-components/
-  layout/     -> DashboardLayout, NavLink, WaqfInfoBar
-  auth/       -> ProtectedRoute
-  shared/     -> TablePagination, ErrorBoundary, NotificationBell
-  accounts/   -> (مكونات AccountsPage المقسمة)
-  ai/         -> AiAssistant
+src/components/accounts/
+  AccountsSettingsBar.tsx
+  AccountsSummaryCards.tsx
+  AccountsContractsTable.tsx
+  AccountsCollectionTable.tsx
+  AccountsIncomeTable.tsx
+  AccountsExpensesTable.tsx
+  AccountsDistributionTable.tsx
+  AccountsBeneficiariesTable.tsx
+  AccountsSavedTable.tsx
+  AccountsDialogs.tsx
 ```
 
-### [تحسيني] 2.11 - تكرار حساب incomeBySource و expensesByType
+### مثال على الشكل النهائي لـ AccountsPage.tsx (الجزء JSX)
+```text
+return (
+  <DashboardLayout>
+    <div className="p-6 space-y-6">
+      {/* Header + Buttons */}
+      ...
+      <AccountsSettingsBar ... />
+      <AccountsSummaryCards ... />
+      <AccountsContractsTable ... />
+      <AccountsCollectionTable ... />
+      <AccountsIncomeTable ... />
+      <AccountsExpensesTable ... />
+      <AccountsDistributionTable ... />
+      <AccountsBeneficiariesTable ... />
+      <AccountsSavedTable ... />
+      <AccountsDialogs ... />
+    </div>
+  </DashboardLayout>
+);
+```
 
-هذا الحساب مكرر حرفياً في `AccountsPage.tsx` و `ReportsPage.tsx` و `AdminDashboard.tsx`.
-
-**التوصية**: إنشاء hooks مخصصة `useIncomeBySource` و `useExpensesByType` أو ضمها في `useFinancialSummary`.
-
----
-
-## 3. خطة التنفيذ المقترحة (بالترتيب)
-
-| الخطوة | الأولوية | الوصف |
-|--------|----------|-------|
-| 1 | حرج | استخراج المنطق المالي المشترك إلى `hooks/useFinancialSummary.ts` |
-| 2 | حرج | تقسيم `AccountsPage.tsx` إلى مكونات فرعية |
-| 3 | مهم | توحيد منطق الإشعارات في `utils/notifications.ts` |
-| 4 | مهم | نقل الأنواع المكررة إلى `types/database.ts` |
-| 5 | مهم | تقسيم `pdfGenerator.ts` إلى ملفات منفصلة |
-| 6 | متوسط | إصلاح الاستيراد الديناميكي في AiAssistant |
-| 7 | متوسط | فصل PrintHeader من DashboardLayout |
-| 8 | تحسيني | إنشاء CRUD factory hook لتقليل التكرار |
-| 9 | تحسيني | تنظيم مجلدات المكونات |
-| 10 | تحسيني | مراجعة جدوى SecurityGuard |
-
----
-
-## 4. ملاحظات إيجابية
-
-- فصل واضح بين صفحات Admin و Beneficiary
-- استخدام React Query بشكل صحيح ومتسق
-- نظام الأدوار والصلاحيات (RLS) مطبق بشكل جيد
-- الـ hooks مسماة بوضوح وسهلة الفهم
-- استخدام TypeScript بشكل جيد مع أنواع واضحة
-- Realtime subscriptions مطبقة بشكل صحيح في المراسلات والإشعارات
+### ضمانات السلامة
+- لا تغيير في أي منطق حسابي أو حالة
+- لا تغيير في أي استعلام قاعدة بيانات
+- لا تغيير في أي دالة handler
+- كل مكون يستقبل بياناته كـ Props من الصفحة الرئيسية
+- الملف الأصلي يحتفظ بكامل المنطق ويتم تبسيط JSX فقط
 
