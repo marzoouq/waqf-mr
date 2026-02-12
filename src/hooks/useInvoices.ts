@@ -118,14 +118,26 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
 };
 
 export const getInvoiceFileUrl = (filePath: string) => {
-  const { data } = supabase.storage.from('invoices').getPublicUrl(filePath);
-  return data.publicUrl;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  return `${supabaseUrl}/functions/v1/serve-invoice?path=${encodeURIComponent(filePath)}`;
 };
 
-export const getInvoiceSignedUrl = async (filePath: string) => {
-  const { data, error } = await supabase.storage
-    .from('invoices')
-    .createSignedUrl(filePath, 3600);
-  if (error) throw error;
-  return data.signedUrl;
+export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('يجب تسجيل الدخول لعرض الفواتير');
+  
+  const url = `${supabaseUrl}/functions/v1/serve-invoice?path=${encodeURIComponent(filePath)}`;
+  
+  // Fetch the file with auth header and create a blob URL
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+  });
+  
+  if (!response.ok) throw new Error('فشل في تحميل الملف');
+  
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 };
