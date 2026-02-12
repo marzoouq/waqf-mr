@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, Paperclip } from 'lucide-react';
-import { useInvoices, getInvoiceSignedUrl } from '@/hooks/useInvoices';
-import { toast } from 'sonner';
+import { useInvoices } from '@/hooks/useInvoices';
+import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 
 interface ExpenseAttachmentsProps {
   expenseId: string;
@@ -10,15 +11,7 @@ interface ExpenseAttachmentsProps {
 const ExpenseAttachments: React.FC<ExpenseAttachmentsProps> = ({ expenseId }) => {
   const { data: invoices = [] } = useInvoices();
   const attachments = invoices.filter((inv) => inv.expense_id === expenseId);
-
-  const handleView = async (filePath: string) => {
-    try {
-      const url = await getInvoiceSignedUrl(filePath);
-      window.open(url, '_blank');
-    } catch {
-      toast.error('حدث خطأ أثناء فتح الملف');
-    }
-  };
+  const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
   if (attachments.length === 0) {
     return (
@@ -42,7 +35,7 @@ const ExpenseAttachments: React.FC<ExpenseAttachmentsProps> = ({ expenseId }) =>
             variant="outline"
             size="sm"
             className="gap-1.5 text-xs"
-            onClick={() => att.file_path && handleView(att.file_path)}
+            onClick={() => att.file_path && setViewerFile({ path: att.file_path, name: att.file_name })}
           >
             <FileText className="w-3 h-3" />
             {att.file_name || 'مستند'}
@@ -50,6 +43,12 @@ const ExpenseAttachments: React.FC<ExpenseAttachmentsProps> = ({ expenseId }) =>
           </Button>
         ))}
       </div>
+      <InvoiceViewer
+        open={!!viewerFile}
+        onOpenChange={(open) => !open && setViewerFile(null)}
+        filePath={viewerFile?.path || null}
+        fileName={viewerFile?.name || null}
+      />
     </div>
   );
 };

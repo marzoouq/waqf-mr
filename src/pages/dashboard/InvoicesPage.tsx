@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, getInvoiceSignedUrl, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
@@ -137,14 +138,7 @@ const InvoicesPage = () => {
     }
   };
 
-  const handleViewFile = async (filePath: string) => {
-    try {
-      const url = await getInvoiceSignedUrl(filePath);
-      window.open(url, '_blank');
-    } catch {
-      toast.error('حدث خطأ أثناء فتح الملف');
-    }
-  };
+  const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
@@ -375,7 +369,7 @@ const InvoicesPage = () => {
                         </TableCell>
                         <TableCell>
                           {item.file_path ? (
-                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => handleViewFile(item.file_path!)}>
+                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
                               <Eye className="w-4 h-4" />
                               <span className="text-xs truncate max-w-[80px]">{item.file_name}</span>
                             </Button>
@@ -418,6 +412,12 @@ const InvoicesPage = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <InvoiceViewer
+          open={!!viewerFile}
+          onOpenChange={(open) => !open && setViewerFile(null)}
+          filePath={viewerFile?.path || null}
+          fileName={viewerFile?.name || null}
+        />
       </div>
     </DashboardLayout>
   );
