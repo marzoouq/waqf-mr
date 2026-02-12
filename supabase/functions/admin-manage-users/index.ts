@@ -50,6 +50,24 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, userId, email, password } = body;
 
+    // Input validation helpers
+    const validateEmail = (e: string) => {
+      if (!e || typeof e !== "string" || e.length > 255) throw new Error("بريد إلكتروني غير صالح");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("صيغة البريد الإلكتروني غير صالحة");
+    };
+    const validatePassword = (p: string) => {
+      if (!p || typeof p !== "string" || p.length < 6 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+    };
+    const validateUuid = (id: string) => {
+      if (!id || typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("معرف غير صالح");
+    };
+    const validateRole = (r: string) => {
+      if (!["admin", "beneficiary", "waqif"].includes(r)) throw new Error("دور غير صالح");
+    };
+    const validateNationalId = (nid: string | undefined) => {
+      if (nid && (typeof nid !== "string" || !/^\d{10}$/.test(nid))) throw new Error("رقم الهوية يجب أن يكون 10 أرقام");
+    };
+
     switch (action) {
       case "toggle_registration": {
         const enabled = body.enabled ? "true" : "false";
@@ -85,6 +103,8 @@ Deno.serve(async (req) => {
       }
 
       case "update_email": {
+        validateUuid(userId);
+        validateEmail(email);
         if (!userId || !email) throw new Error("userId and email required");
         const { error } = await adminClient.auth.admin.updateUserById(userId, { email });
         if (error) throw error;
@@ -94,6 +114,8 @@ Deno.serve(async (req) => {
       }
 
       case "update_password": {
+        validateUuid(userId);
+        validatePassword(password);
         if (!userId || !password) throw new Error("userId and password required");
         const { error } = await adminClient.auth.admin.updateUserById(userId, { password });
         if (error) throw error;
@@ -114,6 +136,8 @@ Deno.serve(async (req) => {
       }
 
       case "set_role": {
+        validateUuid(userId);
+        validateRole(body.role);
         if (!userId || !body.role) throw new Error("userId and role required");
         // Delete existing role
         await adminClient.from("user_roles").delete().eq("user_id", userId);
@@ -146,6 +170,10 @@ Deno.serve(async (req) => {
       }
 
       case "create_user": {
+        validateEmail(email);
+        validatePassword(password);
+        if (body.role) validateRole(body.role);
+        if (body.nationalId) validateNationalId(body.nationalId);
         if (!email || !password) throw new Error("email and password required");
         const { data: newUser, error } = await adminClient.auth.admin.createUser({
           email,

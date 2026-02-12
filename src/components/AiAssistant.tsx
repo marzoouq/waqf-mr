@@ -39,7 +39,10 @@ const AiAssistant = () => {
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const token = sessionData?.session?.access_token;
+      if (!token) {
+        throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      }
 
       const resp = await fetch(AI_URL, {
         method: 'POST',
