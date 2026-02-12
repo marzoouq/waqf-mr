@@ -982,7 +982,7 @@ const AccountsPage = () => {
                     {beneficiaries.map((b) => (
                       <TableRow key={b.id}>
                         <TableCell className="font-medium">{b.name}</TableCell>
-                        <TableCell>{Number(b.share_percentage).toFixed(2)}%</TableCell>
+                        <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
                         <TableCell className="text-primary font-medium">
                           {(manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage).toLocaleString()}
                         </TableCell>
