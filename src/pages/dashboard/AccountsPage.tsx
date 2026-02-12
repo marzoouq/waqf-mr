@@ -33,6 +33,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -1005,6 +1006,7 @@ const AccountsPage = () => {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>تعديل العقد {editingContractData?.contract_number}</DialogTitle>
+              <DialogDescription className="sr-only">نموذج تعديل بيانات العقد</DialogDescription>
             </DialogHeader>
             {editingContractData && (
               <div className="space-y-4">

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageSquare, Send, Plus, ArrowLeft, Headphones } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -164,6 +164,7 @@ const BeneficiaryMessagesPage = () => {
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle className="font-display">طلب دعم فني</DialogTitle>
+            <DialogDescription className="sr-only">إرسال طلب دعم فني جديد</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">

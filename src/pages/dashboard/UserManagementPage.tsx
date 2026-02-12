@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -195,6 +195,7 @@ const UserManagementPage = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>إنشاء مستخدم جديد</DialogTitle>
+                <DialogDescription className="sr-only">نموذج إنشاء حساب مستخدم جديد</DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
@@ -372,6 +373,7 @@ const UserManagementPage = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>تعديل المستخدم</DialogTitle>
+              <DialogDescription className="sr-only">تعديل بيانات المستخدم وصلاحياته</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -423,6 +425,7 @@ const UserManagementPage = () => {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>تغيير كلمة المرور</DialogTitle>
+              <DialogDescription className="sr-only">إدخال كلمة مرور جديدة للمستخدم</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
