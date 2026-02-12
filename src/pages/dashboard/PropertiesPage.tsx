@@ -219,13 +219,25 @@ const PropertiesPage = () => {
               const totalUnits = propertyUnits.length;
               const occupancy = totalUnits > 0 ? Math.round((rented / totalUnits) * 100) : 0;
 
-              const activeContracts = contracts.filter(c => c.property_id === property.id && c.status === 'active');
-              const annualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-              const monthlyRent = annualRent / 12;
+              // جميع العقود المرتبطة بالعقار (نشطة + منتهية) - الإيرادات التعاقدية
+              const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
+              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+              
+              // العقود النشطة فقط - الدخل النشط الحالي
+              const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
+              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+              
+              // الشهري الفعلي محسوب حسب نوع الدفع لكل عقد
+              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
+                const rent = Number(c.rent_amount);
+                if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
+                if (c.payment_type === 'multi') return sum + (Number(c.payment_amount) || rent / (c.payment_count || 1));
+                return sum + rent / 12; // annual
+              }, 0);
 
               const propExpenses = expenses.filter(e => e.property_id === property.id);
               const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-              const netIncome = annualRent - totalExpenses;
+              const netIncome = contractualRevenue - totalExpenses;
 
               const occupancyColor = occupancy >= 80 ? 'text-green-600' : occupancy >= 50 ? 'text-yellow-600' : 'text-red-600';
               const progressColor = occupancy >= 80 ? '[&>div]:bg-green-500' : occupancy >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500';
@@ -289,20 +301,24 @@ const PropertiesPage = () => {
                   </div>
 
                   {/* المؤشرات المالية */}
-                  <div className="border-t pt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <div className="border-t pt-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">الإيرادات التعاقدية:</span>
+                      <span className="font-semibold">{contractualRevenue.toLocaleString('ar-SA')} ريال</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">الدخل النشط:</span>
+                      <span className="font-medium text-green-600">{activeAnnualRent.toLocaleString('ar-SA')} ريال</span>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">الشهري:</span>
                       <span className="font-medium">{monthlyRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">السنوي:</span>
-                      <span className="font-medium">{annualRent.toLocaleString('ar-SA')} ريال</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="text-muted-foreground">المصروفات:</span>
                       <span className="font-medium">{totalExpenses.toLocaleString('ar-SA')} ريال</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between border-t pt-1 mt-1">
                       <span className="text-muted-foreground">الصافي:</span>
                       <span className={`font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {netIncome.toLocaleString('ar-SA')} ريال
@@ -525,12 +541,12 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     setDeleteUnitTarget(null);
   };
 
-  // Get tenant for a unit
-  const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null; rent_amount: number; contract_id: string } | null => {
+  // Get tenant for a unit - مع بيانات الدفع الكاملة
+  const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null; rent_amount: number; contract_id: string; payment_type: string; payment_amount: number | null; payment_count: number } | null => {
     const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
-    if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date, rent_amount: activeContract.rent_amount, contract_id: activeContract.id };
+    if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date, rent_amount: activeContract.rent_amount, contract_id: activeContract.id, payment_type: activeContract.payment_type || 'annual', payment_amount: activeContract.payment_amount ?? null, payment_count: activeContract.payment_count || 1 };
     const anyContract = contracts.find(c => c.unit_id === unitId);
-    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date, rent_amount: anyContract.rent_amount, contract_id: anyContract.id };
+    if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date, rent_amount: anyContract.rent_amount, contract_id: anyContract.id, payment_type: anyContract.payment_type || 'annual', payment_amount: anyContract.payment_amount ?? null, payment_count: anyContract.payment_count || 1 };
     return null;
   };
 
@@ -811,7 +827,14 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             <TableCell>{tenant?.end_date || <span className="text-muted-foreground">-</span>}</TableCell>
                             <TableCell>
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">{(tenant.rent_amount / 12).toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                                <span className="font-medium">
+                                  {(() => {
+                                    const rent = Number(tenant.rent_amount);
+                                    if (tenant.payment_type === 'monthly') return (Number(tenant.payment_amount) || rent / 12);
+                                    if (tenant.payment_type === 'multi') return (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1));
+                                    return rent / 12;
+                                  })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
+                                </span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -846,6 +869,35 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                           </TableRow>
                         );
                       })}
+                      {/* صف الإجمالي الشامل */}
+                      {(() => {
+                        const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
+                          const rent = Number(t.rent_amount);
+                          if (t.payment_type === 'monthly') return Number(t.payment_amount) || rent / 12;
+                          if (t.payment_type === 'multi') return Number(t.payment_amount) || rent / (t.payment_count || 1);
+                          return rent / 12;
+                        };
+                        let totalAnnual = 0;
+                        let totalMonthly = 0;
+                        units.forEach(u => {
+                          const t = getTenant(u.id);
+                          if (t) {
+                            totalAnnual += Number(t.rent_amount);
+                            totalMonthly += getMonthlyForTenant(t);
+                          }
+                        });
+                        return (
+                          <TableRow className="bg-primary/10 font-bold border-t-2">
+                            <TableCell colSpan={3} className="text-right">
+                              الإجمالي <Badge variant="outline" className="mr-2 text-[10px]">شامل النشط والمنتهي</Badge>
+                            </TableCell>
+                            <TableCell colSpan={3}></TableCell>
+                            <TableCell>{totalMonthly.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</TableCell>
+                            <TableCell>{totalAnnual.toLocaleString('ar-SA')} ريال</TableCell>
+                            <TableCell colSpan={2}></TableCell>
+                          </TableRow>
+                        );
+                      })()}
                     </TableBody>
                   </Table>
                 </div>
