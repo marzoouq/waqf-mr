@@ -19,6 +19,7 @@ import {
   Settings,
   MessageSquare,
   Bell,
+  ShieldCheck,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
@@ -72,6 +73,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
     { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
     { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
+    { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
     { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
   ];
 
