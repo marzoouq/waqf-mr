@@ -115,11 +115,11 @@ const BeneficiaryDashboard = () => {
                 <span className="font-bold text-primary">{netAfterVat.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الناظر (10%)</span>
+                <span>(-) حصة الناظر ({netAfterVat > 0 ? ((adminShare / netAfterVat) * 100).toFixed(0) : '0'}%)</span>
                 <span>{adminShare.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b text-muted-foreground">
-                <span>(-) حصة الواقف (5%)</span>
+                <span>(-) حصة الواقف ({netAfterVat > 0 ? ((waqifShare / netAfterVat) * 100).toFixed(0) : '0'}%)</span>
                 <span>{waqifShare.toLocaleString()} ر.س</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
