@@ -10,7 +10,8 @@ import { useContracts, useCreateContract, useUpdateContract, useDeleteContract }
 import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit, Printer, FileDown, Search, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
+import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdfGenerator';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -104,6 +105,19 @@ const ContractsPage = () => {
     return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q);
   });
 
+  const stats = useMemo(() => {
+    const active = contracts.filter(c => c.status === 'active');
+    const expired = contracts.filter(c => c.status === 'expired');
+    const totalRent = active.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
+    const now = new Date().getTime();
+    const soon = active.filter(c => {
+      const days = (new Date(c.end_date).getTime() - now) / (1000 * 3600 * 24);
+      return days > 0 && days <= 90;
+    });
+    const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
+    return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, expiringSoon: soon.length };
+  }, [contracts]);
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
@@ -189,6 +203,40 @@ const ContractsPage = () => {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        {/* مربعات إحصائية */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"><FileText className="w-5 h-5" /></div>
+              <div><p className="text-xs text-muted-foreground">إجمالي العقود</p><p className="text-xl font-bold">{stats.total}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"><CheckCircle className="w-5 h-5" /></div>
+              <div><p className="text-xs text-muted-foreground">العقود النشطة</p><p className="text-xl font-bold">{stats.active} <span className="text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"><XCircle className="w-5 h-5" /></div>
+              <div><p className="text-xs text-muted-foreground">العقود المنتهية</p><p className="text-xl font-bold">{stats.expired}</p></div>
+            </CardContent>
+          </Card>
+          <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"><DollarSign className="w-5 h-5" /></div>
+              <div><p className="text-xs text-muted-foreground">إجمالي الإيجارات السنوية</p><p className="text-lg font-bold">{stats.totalRent.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p></div>
+            </CardContent>
+          </Card>
+          <Card className={`${stats.expiringSoon > 0 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-800' : 'border-orange-200 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-900'}`}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400' : 'bg-orange-100/50 dark:bg-orange-900/30 text-orange-400 dark:text-orange-600'}`}><AlertTriangle className="w-5 h-5" /></div>
+              <div><p className="text-xs text-muted-foreground">قريبة الانتهاء (90 يوم)</p><p className="text-xl font-bold">{stats.expiringSoon}</p></div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="relative max-w-md">
