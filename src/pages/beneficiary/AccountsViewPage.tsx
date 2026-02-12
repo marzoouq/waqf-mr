@@ -32,9 +32,14 @@ const AccountsViewPage = () => {
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
   const vatAmount = Number(currentAccount?.vat_amount || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
+  const zakatAmount = Number((currentAccount as Record<string, unknown>)?.zakat_amount || 0);
+  const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(currentAccount?.admin_share || 0);
+  const afterAdmin = netAfterZakat - adminShare;
   const waqifShare = Number(currentAccount?.waqif_share || 0);
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
+  const waqfCorpusManual = Number((currentAccount as Record<string, unknown>)?.waqf_corpus_manual || 0);
+  const distributableAmount = waqfRevenue - waqfCorpusManual;
   const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
   const waqfCapital = Number(currentAccount?.waqf_capital || 0);
 
@@ -58,7 +63,7 @@ const AccountsViewPage = () => {
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
 
   const myShare = currentBeneficiary
-    ? (waqfRevenue * Number(currentBeneficiary.share_percentage)) / 100
+    ? (distributableAmount * Number(currentBeneficiary.share_percentage)) / 100
     : 0;
 
   const statusLabel = (status: string) => {
@@ -335,30 +340,51 @@ const AccountsViewPage = () => {
                   <TableCell>100%</TableCell>
                   <TableCell className="font-bold text-primary">{netAfterVat.toLocaleString()}</TableCell>
                 </TableRow>
+                {zakatAmount > 0 && (
+                  <>
+                    <TableRow>
+                      <TableCell className="font-medium">(-) الزكاة</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell className="text-destructive">-{zakatAmount.toLocaleString()}</TableCell>
+                    </TableRow>
+                    <TableRow className="bg-muted/30">
+                      <TableCell className="font-bold">الصافي بعد الزكاة</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell className="font-bold">{netAfterZakat.toLocaleString()}</TableCell>
+                    </TableRow>
+                  </>
+                )}
                 <TableRow>
                   <TableCell className="font-medium">(-) حصة الناظر</TableCell>
-                  <TableCell>10%</TableCell>
+                  <TableCell>-</TableCell>
                   <TableCell>{adminShare.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/20">
+                  <TableCell className="font-medium">الباقي بعد حصة الناظر</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>{afterAdmin.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-medium">(-) حصة الواقف</TableCell>
-                  <TableCell>5%</TableCell>
+                  <TableCell>-</TableCell>
                   <TableCell>{waqifShare.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-primary/5">
-                  <TableCell className="font-bold">الإجمالي القابل للتوزيع</TableCell>
-                  <TableCell>85%</TableCell>
+                  <TableCell className="font-bold">ريع الوقف</TableCell>
+                  <TableCell>-</TableCell>
                   <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">(-) التوزيعات</TableCell>
+                {waqfCorpusManual > 0 && (
+                  <TableRow>
+                    <TableCell className="font-medium">(-) رقبة الوقف</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>{waqfCorpusManual.toLocaleString()}</TableCell>
+                  </TableRow>
+                )}
+                <TableRow className="bg-primary/10">
+                  <TableCell className="font-bold">الإجمالي القابل للتوزيع</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell>{distributionsAmount.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow className="bg-muted/30">
-                  <TableCell className="font-bold">رقبة الوقف</TableCell>
-                  <TableCell>-</TableCell>
-                  <TableCell className="font-bold">{waqfCapital.toLocaleString()}</TableCell>
+                  <TableCell className="text-primary font-bold">{distributableAmount.toLocaleString()}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

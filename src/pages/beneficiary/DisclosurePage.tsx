@@ -30,9 +30,14 @@ const DisclosurePage = () => {
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
   const vatAmount = Number(currentAccount?.vat_amount || 0);
   const netAfterVat = Number(currentAccount?.net_after_vat || 0);
+  const zakatAmount = Number((currentAccount as Record<string, unknown>)?.zakat_amount || 0);
+  const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(currentAccount?.admin_share || 0);
   const waqifShare = Number(currentAccount?.waqif_share || 0);
-  const beneficiariesShare = Number(currentAccount?.waqf_revenue || 0);
+  const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
+  const waqfCorpusManual = Number((currentAccount as Record<string, unknown>)?.waqf_corpus_manual || 0);
+  const distributableAmount = waqfRevenue - waqfCorpusManual;
+  const beneficiariesShare = distributableAmount;
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
@@ -206,14 +211,36 @@ const DisclosurePage = () => {
                   <span className="font-bold">الصافي بعد خصم الضريبة</span>
                   <span className="font-bold text-primary text-lg">{netAfterVat.toLocaleString()} ر.س</span>
                 </div>
+                {zakatAmount > 0 && (
+                  <>
+                    <div className="flex justify-between items-center py-2 text-destructive">
+                      <span>(-) الزكاة</span>
+                      <span>-{zakatAmount.toLocaleString()} ر.س</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="font-bold">الصافي بعد الزكاة</span>
+                      <span className="font-bold">{netAfterZakat.toLocaleString()} ر.س</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>(-) حصة الناظر (10%)</span>
+                  <span>(-) حصة الناظر</span>
                   <span>-{adminShare.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>(-) حصة الواقف (5%)</span>
+                  <span>(-) حصة الواقف</span>
                   <span>-{waqifShare.toLocaleString()} ر.س</span>
                 </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="font-bold">ريع الوقف</span>
+                  <span className="font-bold">{waqfRevenue.toLocaleString()} ر.س</span>
+                </div>
+                {waqfCorpusManual > 0 && (
+                  <div className="flex justify-between items-center py-2 text-muted-foreground">
+                    <span>(-) رقبة الوقف</span>
+                    <span>-{waqfCorpusManual.toLocaleString()} ر.س</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 font-bold">
                   <span>الإجمالي القابل للتوزيع</span>
                   <span>{beneficiariesShare.toLocaleString()} ر.س</span>
