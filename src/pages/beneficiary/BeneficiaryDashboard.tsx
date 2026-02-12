@@ -23,8 +23,9 @@ const BeneficiaryDashboard = () => {
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = Number(latestAccount?.admin_share || 0);
   const waqifShare = Number(latestAccount?.waqif_share || 0);
-  const afterAdmin = netAfterZakat - adminShare;
   const waqfRevenue = Number(latestAccount?.waqf_revenue || 0);
+  const waqfCorpusPrevious = Number(latestAccount?.waqf_corpus_previous || 0);
+  const grandTotal = totalIncome + waqfCorpusPrevious;
   const waqfCorpusManual = Number(latestAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
@@ -100,10 +101,22 @@ const BeneficiaryDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {waqfCorpusPrevious > 0 && (
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span>رقبة الوقف المرحلة</span>
+                  <span className="font-bold text-success">+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
+                </div>
+              )}
               <div className="flex justify-between items-center py-2 border-b">
-                <span>إجمالي إيرادات الوقف</span>
+                <span>إجمالي الدخل</span>
                 <span className="font-bold text-success">+{totalIncome.toLocaleString()} ر.س</span>
               </div>
+              {waqfCorpusPrevious > 0 && (
+                <div className="flex justify-between items-center py-2 border-b bg-muted/30 px-2 rounded">
+                  <span className="font-bold">الإجمالي الشامل</span>
+                  <span className="font-bold">{grandTotal.toLocaleString()} ر.س</span>
+                </div>
+              )}
               <div className="flex justify-between items-center py-2 border-b">
                 <span>إجمالي المصروفات</span>
                 <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ر.س</span>
