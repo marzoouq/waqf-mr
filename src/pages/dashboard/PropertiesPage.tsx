@@ -258,18 +258,33 @@ const PropertiesPage = () => {
 
                   {/* المؤشرات التشغيلية */}
                   <div className="border-t pt-3 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex gap-3 flex-wrap">
-                        <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-green-600" />مؤجرة: <strong>{rented}</strong></span>
-                        <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
-                        {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
-                      </div>
-                    </div>
-                    {totalUnits > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
-                        <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
-                      </div>
+                    {totalUnits > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex gap-3 flex-wrap">
+                            <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-green-600" />مؤجرة: <strong>{rented}</strong></span>
+                            <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
+                            {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                          <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                        </div>
+                      </>
+                    ) : activeContracts.length > 0 ? (
+                      <>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Home className="w-3.5 h-3.5 text-green-600" />
+                          <span className="font-medium text-green-600">مؤجر بالكامل</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress value={100} className="h-2 flex-1 [&>div]:bg-green-500" />
+                          <span className="text-xs font-semibold text-green-600">100%</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
                     )}
                   </div>
 
@@ -277,7 +292,7 @@ const PropertiesPage = () => {
                   <div className="border-t pt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">الشهري:</span>
-                      <span className="font-medium">{monthlyRent.toLocaleString('ar-SA')} ريال</span>
+                      <span className="font-medium">{monthlyRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">السنوي:</span>
