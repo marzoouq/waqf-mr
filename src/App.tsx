@@ -26,6 +26,7 @@ import UserManagementPage from "./pages/dashboard/UserManagementPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import MessagesPage from "./pages/dashboard/MessagesPage";
 import InvoicesPage from "./pages/dashboard/InvoicesPage";
+import AuditLogPage from "./pages/dashboard/AuditLogPage";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
@@ -156,6 +157,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <InvoicesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/audit-log"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AuditLogPage />
                 </ProtectedRoute>
               }
             />
