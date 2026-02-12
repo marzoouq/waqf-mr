@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TablePagination from '@/components/TablePagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -35,9 +36,15 @@ const BeneficiariesPage = () => {
   const { data: users = [] } = useQuery({
     queryKey: ['beneficiary-users'],
     queryFn: async () => {
-      const { data: userRoles, error } = await supabase.from('user_roles').select('user_id').eq('role', 'beneficiary');
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'list_users' },
+      });
       if (error) throw error;
-      return userRoles.map(ur => ({ id: ur.user_id, email: ur.user_id })) as AuthUser[];
+      const allUsers: AuthUser[] = (data?.users || []).map((u: any) => ({ id: u.id, email: u.email || u.id }));
+      // Filter to only beneficiary-role users
+      const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'beneficiary');
+      const beneficiaryIds = new Set((roles || []).map((r: any) => r.user_id));
+      return allUsers.filter(u => beneficiaryIds.has(u.id));
     },
   });
 
@@ -49,6 +56,14 @@ const BeneficiariesPage = () => {
   const [formData, setFormData] = useState({
     name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '',
   });
+
+  // Users available for linking (beneficiary role, not already linked to another beneficiary)
+  const availableUsers = useMemo(() => {
+    const linkedUserIds = new Set(
+      beneficiaries.filter(b => b.user_id && b.id !== editingBeneficiary?.id).map(b => b.user_id)
+    );
+    return users.filter(u => !linkedUserIds.has(u.id));
+  }, [users, beneficiaries, editingBeneficiary]);
 
   const resetForm = () => {
     setFormData({ name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '' });
@@ -125,8 +140,21 @@ const BeneficiariesPage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2"><Link className="w-4 h-4" />ربط بحساب مستخدم</Label>
-                    <Input value={formData.user_id} onChange={(e) => setFormData({ ...formData, user_id: e.target.value })} placeholder="معرف المستخدم (UUID)" dir="ltr" />
-                    <p className="text-xs text-muted-foreground">أدخل معرف المستخدم من جدول المستخدمين لربط هذا المستفيد بحسابه</p>
+                    <Select
+                      value={formData.user_id || '__none__'}
+                      onValueChange={(value) => setFormData({ ...formData, user_id: value === '__none__' ? '' : value })}
+                    >
+                      <SelectTrigger dir="ltr">
+                        <SelectValue placeholder="اختر مستخدم للربط" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">بدون ربط</SelectItem>
+                        {availableUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>{user.email}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">اختر حساب المستفيد لربطه بملفه الشخصي</p>
                   </div>
                   <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
                   <div className="flex gap-2 pt-4">
