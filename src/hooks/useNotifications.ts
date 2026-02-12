@@ -58,6 +58,30 @@ export const useNotifications = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
+  const deleteRead = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('is_read', true);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  });
+
+  const deleteOne = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+  });
+
   // Realtime subscription
   useEffect(() => {
     if (!user) return;
@@ -70,5 +94,5 @@ export const useNotifications = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user, queryClient]);
 
-  return { ...query, unreadCount, markAsRead, markAllAsRead };
+  return { ...query, unreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

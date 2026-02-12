@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Bell, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter } from 'lucide-react';
+import { Bell, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -19,7 +20,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 const NotificationsPage = () => {
-  const { data: notifications = [], markAsRead, markAllAsRead, unreadCount } = useNotifications();
+  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, unreadCount } = useNotifications();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
@@ -27,6 +28,7 @@ const NotificationsPage = () => {
     ? notifications
     : notifications.filter((n) => n.type === typeFilter);
 
+  const readCount = notifications.filter((n) => n.is_read).length;
   const uniqueTypes = [...new Set(notifications.map((n) => n.type))];
 
   const handleClick = (notification: typeof notifications[0]) => {
@@ -71,6 +73,26 @@ const NotificationsPage = () => {
                 <CheckCheck className="w-4 h-4" />
                 قراءة الكل
               </Button>
+            )}
+            {readCount > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                    حذف المقروءة
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>حذف الإشعارات المقروءة</AlertDialogTitle>
+                    <AlertDialogDescription>سيتم حذف {readCount} إشعار مقروء نهائياً. هل أنت متأكد؟</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteRead.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
