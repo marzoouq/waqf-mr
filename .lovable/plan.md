@@ -1,47 +1,58 @@
 
 
-# إصلاح مشكلة فتح الفواتير - النهج الصحيح
+# إصلاح مشكلة فتح الفواتير - عرض داخلي بدلاً من نافذة خارجية
 
-## تحليل السبب الجذري
+## المشكلة الحقيقية
 
-الكود الحالي في `getInvoiceSignedUrl` يقوم بخطوتين:
-1. إنشاء رابط موقّع عبر SDK (يعمل بشكل صحيح)
-2. استدعاء `fetch(data.signedUrl)` مباشرة للنطاق المحظور (هنا تحدث المشكلة)
-
-الخطوة الثانية تفشل لأن `fetch` يذهب مباشرة لنطاق `epopjqrwsztgxigmgurj.supabase.co` الذي حظره Chrome.
+جميع الأماكن الأربعة التي تفتح الفواتير تستخدم:
+```typescript
+window.open(url, '_blank');
+```
+هذا يفتح **نافذة خارجية جديدة** يتم حظرها من المتصفح (popup blocker). المشكلة ليست في تحميل الملف بل في طريقة العرض.
 
 ## الحل
 
-استبدال `createSignedUrl + fetch` بـ `supabase.storage.from('invoices').download(filePath)` الذي:
-- يعمل عبر SDK الداخلي (نفس الآلية التي تعمل بها باقي العمليات كالمصادقة وقراءة البيانات)
-- يُرجع `Blob` مباشرة بدون الحاجة لـ fetch منفصل
-- يتجاوز حظر Chrome لأنه لا يفتح النطاق مباشرة
+عرض الفواتير **داخل التطبيق** باستخدام Dialog يحتوي على `<iframe>` للـ PDF أو `<img>` للصور، مع زر تحميل مباشر كبديل.
 
-## التغيير المطلوب
+## التغييرات المطلوبة
 
-ملف واحد فقط: `src/hooks/useInvoices.ts`
+### 1. إنشاء مكوّن عارض الفواتير (جديد)
+ملف: `src/components/invoices/InvoiceViewer.tsx`
 
-تحديث دالة `getInvoiceSignedUrl` لتصبح:
+- Dialog يعرض الملف داخل التطبيق
+- يدعم PDF (عبر iframe/embed) والصور (عبر img)
+- يحتوي على زر تحميل مباشر (باستخدام `<a download>`)
+- يعرض حالة التحميل أثناء جلب الملف
 
-```typescript
-export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
-  const { data, error } = await supabase.storage
-    .from('invoices')
-    .download(filePath);
+### 2. تحديث 4 ملفات لاستبدال `window.open` بالعارض الداخلي
 
-  if (error || !data) throw new Error('فشل في تحميل الملف');
+الملفات المتأثرة:
+- `src/pages/dashboard/InvoicesPage.tsx`
+- `src/pages/beneficiary/InvoicesViewPage.tsx`
+- `src/components/invoices/InvoiceGridView.tsx`
+- `src/components/expenses/ExpenseAttachments.tsx`
 
-  return URL.createObjectURL(data);
-};
-```
+في كل ملف:
+- إضافة state لتتبع الملف المختار (`selectedFile`)
+- استبدال `window.open(url, '_blank')` بفتح الـ Dialog
+- إضافة مكوّن `InvoiceViewer` في JSX
 
-## لماذا هذا الحل سيعمل
-
-- عمليات قاعدة البيانات والمصادقة تعمل بشكل طبيعي عبر SDK رغم حظر النطاق
-- دالة `download()` تستخدم نفس آلية SDK الداخلية
-- النتيجة blob URL محلي (`blob:https://preview-domain/...`) لا علاقة له بالنطاق المحظور
+### 3. إضافة دالة تحميل مباشر
+في `src/hooks/useInvoices.ts` إضافة دالة `downloadInvoiceFile` تستخدم `<a>` مخفي لتحميل الملف مباشرة بدون فتح نافذة.
 
 ## التفاصيل التقنية
 
-- سياسة RLS على التخزين تسمح لجميع المستخدمين المصادق عليهم بعرض الفواتير (SELECT policy موجودة)
-- لا حاجة لتعديل أي ملف آخر - جميع الصفحات تستدعي `getInvoiceSignedUrl` بنفس الطريقة
+المكوّن الجديد `InvoiceViewer`:
+```
+Dialog (ملء الشاشة تقريباً)
+├── DialogHeader: اسم الملف + زر تحميل
+└── DialogContent:
+    ├── إذا PDF → iframe/object عرض مباشر
+    ├── إذا صورة → img tag
+    └── أنواع أخرى → رسالة + زر تحميل
+```
+
+- يستخدم `getInvoiceSignedUrl` (التي تعمل بـ download + blob) لجلب الملف
+- يعرض الـ blob URL داخل iframe/img بدون فتح نافذة خارجية
+- يدعم أنواع الملفات: PDF, PNG, JPG, JPEG, WebP
+
