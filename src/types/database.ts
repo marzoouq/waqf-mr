@@ -97,6 +97,7 @@ export interface Account {
   net_after_vat: number;
   zakat_amount: number;
   waqf_corpus_manual: number;
+  waqf_corpus_previous: number;
   created_at: string;
   updated_at: string;
 }

@@ -33,17 +33,23 @@ const ReportsPage = () => {
   // Use stored account values if available
   const currentAccount = accounts[0];
   
+  const waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
   const vatAmount = currentAccount ? Number(currentAccount.vat_amount) : 0;
-  const netAfterExpenses = currentAccount ? Number(currentAccount.net_after_expenses) : totalIncome - totalExpenses;
-  const netAfterVat = currentAccount ? Number(currentAccount.net_after_vat) : netAfterExpenses - vatAmount;
   const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-  const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = currentAccount ? Number(currentAccount.admin_share) : 0;
   const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : 0;
   const waqfRevenue = currentAccount ? Number(currentAccount.waqf_revenue) : 0;
   const waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const beneficiariesShare = distributableAmount;
+  const distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+
+  const grandTotal = totalIncome + waqfCorpusPrevious;
+  const netAfterExpenses = currentAccount ? Number(currentAccount.net_after_expenses) : grandTotal - totalExpenses;
+  const netAfterVat = currentAccount ? Number(currentAccount.net_after_vat) : netAfterExpenses - vatAmount;
+  const netAfterZakat = netAfterVat - zakatAmount;
+  const afterAdmin = netAfterZakat - adminShare;
+  const availableAmount = waqfRevenue - waqfCorpusManual;
+  const remainingBalance = availableAmount - distributionsAmount;
+  const beneficiariesShare = distributionsAmount;
   const netRevenue = totalIncome - totalExpenses;
 
   // Income by source
@@ -220,6 +226,12 @@ const ReportsPage = () => {
                       </tr>
                     </thead>
                     <tbody>
+                      {waqfCorpusPrevious > 0 && (
+                        <tr className="border-b bg-violet-50 dark:bg-violet-950/20">
+                          <td className="py-3 px-4 font-medium">رقبة الوقف المرحلة من العام السابق</td>
+                          <td className="py-3 px-4 font-bold text-violet-600 dark:text-violet-400">+{waqfCorpusPrevious.toLocaleString()}</td>
+                        </tr>
+                      )}
                       <tr className="bg-green-50 dark:bg-green-950/30">
                         <td colSpan={2} className="py-2 px-4 font-bold text-green-700 dark:text-green-400 text-center">-- الإيرادات --</td>
                       </tr>
@@ -233,6 +245,12 @@ const ReportsPage = () => {
                         <td className="py-3 px-4 font-bold">إجمالي الإيرادات</td>
                         <td className="py-3 px-4 font-bold text-green-700 dark:text-green-400">+{totalIncome.toLocaleString()}</td>
                       </tr>
+                      {waqfCorpusPrevious > 0 && (
+                        <tr className="border-b-2 border-green-500 bg-green-100 dark:bg-green-950/30">
+                          <td className="py-3 px-4 font-bold">الإجمالي الشامل</td>
+                          <td className="py-3 px-4 font-bold text-green-700 dark:text-green-400">{grandTotal.toLocaleString()}</td>
+                        </tr>
+                      )}
                       <tr className="bg-red-50 dark:bg-red-950/30">
                         <td colSpan={2} className="py-2 px-4 font-bold text-red-700 dark:text-red-400 text-center">-- المصروفات --</td>
                       </tr>
@@ -275,22 +293,30 @@ const ReportsPage = () => {
                         <td className="py-3 px-4">{adminShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b">
-                        <td className="py-3 px-4">حصة الواقف ({(netAfterZakat - adminShare) > 0 ? ((waqifShare / (netAfterZakat - adminShare)) * 100).toFixed(1) : '0'}%)</td>
+                        <td className="py-3 px-4">حصة الواقف ({afterAdmin > 0 ? ((waqifShare / afterAdmin) * 100).toFixed(1) : '0'}%)</td>
                         <td className="py-3 px-4">{waqifShare.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b-2 border-primary bg-muted/50">
-                        <td className="py-3 px-4 font-bold">ريع الوقف</td>
+                        <td className="py-3 px-4 font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</td>
                         <td className="py-3 px-4 font-bold text-primary">{waqfRevenue.toLocaleString()}</td>
                       </tr>
                       {waqfCorpusManual > 0 && (
                         <tr className="border-b">
-                          <td className="py-3 px-4 text-muted-foreground">(-) رقبة الوقف</td>
+                          <td className="py-3 px-4 text-muted-foreground">(-) رقبة الوقف للعام الحالي</td>
                           <td className="py-3 px-4 text-red-600 dark:text-red-400">-{waqfCorpusManual.toLocaleString()}</td>
                         </tr>
                       )}
+                      <tr className="border-b bg-primary/5">
+                        <td className="py-3 px-4 font-bold">المبلغ المتاح</td>
+                        <td className="py-3 px-4 font-bold text-primary">{availableAmount.toLocaleString()}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-3 px-4 text-muted-foreground">(-) التوزيعات</td>
+                        <td className="py-3 px-4">{distributionsAmount.toLocaleString()}</td>
+                      </tr>
                       <tr className="border-b-2 border-primary bg-primary/10">
-                        <td className="py-3 px-4 font-bold text-lg">المبلغ القابل للتوزيع</td>
-                        <td className="py-3 px-4 font-bold text-lg text-primary">{beneficiariesShare.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-lg">الرصيد المتبقي</td>
+                        <td className={`py-3 px-4 font-bold text-lg ${remainingBalance >= 0 ? 'text-primary' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>

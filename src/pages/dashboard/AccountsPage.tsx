@@ -61,6 +61,9 @@ const AccountsPage = () => {
   const [fiscalYear, setFiscalYear] = useState('25/10/1446 - 25/10/1447هـ');
   const [zakatAmount, setZakatAmount] = useState(0);
   const [waqfCorpusManual, setWaqfCorpusManual] = useState(0);
+  const [waqfCorpusPrevious, setWaqfCorpusPrevious] = useState(0);
+  const [manualVat, setManualVat] = useState(0);
+  const [manualDistributions, setManualDistributions] = useState(0);
 
   // Load settings from app_settings
   useEffect(() => {
@@ -77,12 +80,15 @@ const AccountsPage = () => {
     loadSettings();
   }, []);
 
-  // Load zakat & corpus from latest account
+  // Load values from latest account
   useEffect(() => {
     if (accounts.length > 0) {
       const latest = accounts[0];
       if (latest.zakat_amount !== undefined) setZakatAmount(Number(latest.zakat_amount));
       if (latest.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(latest.waqf_corpus_manual));
+      if (latest.waqf_corpus_previous !== undefined) setWaqfCorpusPrevious(Number(latest.waqf_corpus_previous));
+      if (latest.vat_amount !== undefined) setManualVat(Number(latest.vat_amount));
+      if (latest.distributions_amount !== undefined) setManualDistributions(Number(latest.distributions_amount));
     }
   }, [accounts]);
 
@@ -120,25 +126,22 @@ const AccountsPage = () => {
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
   
-  // Separate VAT from regular expenses
+  // Separate VAT from regular expenses for reference
   const vatExpenses = expenses.filter(e => e.description?.includes('ضريبة القيمة المضافة'));
-  const vatAmount = vatExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const regularExpenses = totalExpenses - vatAmount;
-  
-  // --- Auto-calculate commercial VAT ---
+  const vatAmountFromExpenses = vatExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const regularExpenses = totalExpenses - vatAmountFromExpenses;
+
+  // Auto-calculate commercial VAT for reference only
   const vatPercentage = Number(appSettings.data?.['vat_percentage'] || '15');
   const residentialVatExempt = (appSettings.data?.['residential_vat_exempt'] || 'true') === 'true';
 
-  // Determine commercial rent from contracts
   const isCommercialContract = (contract: typeof contracts[0]) => {
-    if (!residentialVatExempt) return true; // all taxable if exemption disabled
-    // Check unit type
+    if (!residentialVatExempt) return true;
     if (contract.unit_id) {
       const unit = allUnits.find(u => u.id === contract.unit_id);
       if (unit?.unit_type === 'محل') return true;
       if (unit?.unit_type === 'شقة') return false;
     }
-    // No unit: check property type
     const property = properties.find(p => p.id === contract.property_id);
     if (property?.property_type === 'تجاري') return true;
     return false;
@@ -147,24 +150,19 @@ const AccountsPage = () => {
   const commercialRent = contracts
     .filter(c => isCommercialContract(c))
     .reduce((sum, c) => sum + Number(c.rent_amount), 0);
-  const residentialRent = contracts
-    .filter(c => !isCommercialContract(c))
-    .reduce((sum, c) => sum + Number(c.rent_amount), 0);
   const calculatedVat = commercialRent * (vatPercentage / 100);
 
-  // Use the larger of: expense-tracked VAT or auto-calculated VAT
-  const effectiveVat = Math.max(vatAmount, calculatedVat);
-  
-  const netAfterExpenses = totalIncome - regularExpenses;
-  const netAfterVat = netAfterExpenses - effectiveVat;
-  
-  // --- Sequential (step-down) calculation ---
+  // === NEW FINANCIAL SEQUENCE ===
+  const grandTotal = totalIncome + waqfCorpusPrevious;
+  const netAfterExpenses = grandTotal - regularExpenses;
+  const netAfterVat = netAfterExpenses - manualVat;
   const netAfterZakat = netAfterVat - zakatAmount;
   const adminShare = netAfterZakat * (adminPercent / 100);
   const afterAdmin = netAfterZakat - adminShare;
   const waqifShare = afterAdmin * (waqifPercent / 100);
   const waqfRevenue = afterAdmin - waqifShare;
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
+  const availableAmount = waqfRevenue - waqfCorpusManual;
+  const remainingBalance = availableAmount - manualDistributions;
 
   // Group income by source
   const incomeBySource = income.reduce((acc, item) => {
@@ -183,7 +181,6 @@ const AccountsPage = () => {
   // rent_amount هو الإيجار السنوي
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
-  // حساب الدفعة الشهرية/الفترية الحقيقية لكل عقد
   const getPaymentPerPeriod = (contract: typeof contracts[0]) => {
     const rent = Number(contract.rent_amount);
     if (contract.payment_amount) return Number(contract.payment_amount);
@@ -194,16 +191,15 @@ const AccountsPage = () => {
   const getExpectedPayments = (contract: typeof contracts[0]) => {
     if (contract.payment_type === 'monthly') return 12;
     if (contract.payment_type === 'multi') return contract.payment_count || 1;
-    return 1; // annual
+    return 1;
   };
 
   const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
 
-  // Payment data from DB
   const paymentMap = tenantPayments.reduce((acc, p) => {
     acc[p.contract_id] = p;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, typeof tenantPayments[0]>);
 
   // Editing state for collection table
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -216,7 +212,13 @@ const AccountsPage = () => {
 
   // Contract edit dialog
   const [contractEditOpen, setContractEditOpen] = useState(false);
-  const [editingContractData, setEditingContractData] = useState<any>(null);
+  const [editingContractData, setEditingContractData] = useState<{
+    id: string;
+    tenant_name: string;
+    rent_amount: number;
+    status: string;
+    contract_number: string;
+  } | null>(null);
 
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string; name: string } | null>(null);
@@ -256,13 +258,14 @@ const AccountsPage = () => {
       admin_share: adminShare,
       waqif_share: waqifShare,
       waqf_revenue: waqfRevenue,
-      vat_amount: effectiveVat,
-      distributions_amount: distributableAmount * (totalBeneficiaryPercentage / 100),
+      vat_amount: manualVat,
+      distributions_amount: manualDistributions,
       waqf_capital: waqfCorpusManual,
       net_after_expenses: netAfterExpenses,
       net_after_vat: netAfterVat,
       zakat_amount: zakatAmount,
       waqf_corpus_manual: waqfCorpusManual,
+      waqf_corpus_previous: waqfCorpusPrevious,
     });
   };
 
@@ -296,7 +299,6 @@ const AccountsPage = () => {
     const contract = contracts[index];
 
     try {
-      // نحدث payment_amount (قيمة الدفعة) وليس rent_amount (السنوي)
       const expectedPmts = getExpectedPayments(contract);
       const newAnnual = editData.monthlyRent * expectedPmts;
       await updateContract.mutateAsync({
@@ -319,7 +321,6 @@ const AccountsPage = () => {
     }
   };
 
-  // Contract edit in contracts table
   const handleOpenContractEdit = (contract: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string }) => {
     setEditingContractData({
       id: contract.id,
@@ -386,11 +387,15 @@ const AccountsPage = () => {
               waqifShare,
               waqfRevenue,
               beneficiaries,
-              vatAmount: effectiveVat,
-              distributionsAmount: distributableAmount * (totalBeneficiaryPercentage / 100),
+              vatAmount: manualVat,
+              distributionsAmount: manualDistributions,
               waqfCapital: waqfCorpusManual,
               zakatAmount,
               netAfterZakat,
+              waqfCorpusPrevious,
+              grandTotal,
+              availableAmount,
+              remainingBalance,
             }, pdfWaqfInfo)} className="gap-2">
               <FileDown className="w-4 h-4" />
               <span className="hidden sm:inline">تصدير PDF</span>
@@ -443,6 +448,26 @@ const AccountsPage = () => {
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t">
               <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">رقبة وقف مرحلة من عام سابق (ر.س):</Label>
+                <Input
+                  type="number"
+                  value={waqfCorpusPrevious}
+                  onChange={(e) => setWaqfCorpusPrevious(Number(e.target.value))}
+                  className="h-8 w-28"
+                  min={0}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">ضريبة القيمة المضافة (ر.س):</Label>
+                <Input
+                  type="number"
+                  value={manualVat}
+                  onChange={(e) => setManualVat(Number(e.target.value))}
+                  className="h-8 w-28"
+                  min={0}
+                />
+              </div>
+              <div className="flex items-center gap-2">
                 <Label className="text-sm whitespace-nowrap">مبلغ الزكاة (ر.س):</Label>
                 <Input
                   type="number"
@@ -453,7 +478,7 @@ const AccountsPage = () => {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Label className="text-sm whitespace-nowrap">رقبة الوقف (ر.س):</Label>
+                <Label className="text-sm whitespace-nowrap">رقبة الوقف للعام الحالي (ر.س):</Label>
                 <Input
                   type="number"
                   value={waqfCorpusManual}
@@ -462,9 +487,19 @@ const AccountsPage = () => {
                   min={0}
                 />
               </div>
-              <div className="text-xs text-muted-foreground">
-                ضريبة تجارية محسوبة: {calculatedVat.toLocaleString()} ر.س (من إيجارات {commercialRent.toLocaleString()} تجاري × {vatPercentage}%)
+              <div className="flex items-center gap-2">
+                <Label className="text-sm whitespace-nowrap">مبلغ التوزيعات (ر.س):</Label>
+                <Input
+                  type="number"
+                  value={manualDistributions}
+                  onChange={(e) => setManualDistributions(Number(e.target.value))}
+                  className="h-8 w-28"
+                  min={0}
+                />
               </div>
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              ضريبة تجارية محسوبة (استرشادي): {calculatedVat.toLocaleString()} ر.س (من إيجارات {commercialRent.toLocaleString()} تجاري × {vatPercentage}%)
             </div>
           </CardContent>
         </Card>
@@ -479,12 +514,24 @@ const AccountsPage = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {waqfCorpusPrevious > 0 && (
+                <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
+                  <p className="text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
+                  <p className="text-xl font-bold">{waqfCorpusPrevious.toLocaleString()}</p>
+                </div>
+              )}
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">إجمالي الدخل</p>
                 <p className="text-xl font-bold">{totalIncome.toLocaleString()}</p>
               </div>
+              {waqfCorpusPrevious > 0 && (
+                <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
+                  <p className="text-sm text-primary-foreground/90">الإجمالي الشامل</p>
+                  <p className="text-xl font-bold">{grandTotal.toLocaleString()}</p>
+                </div>
+              )}
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">المصروفات (بدون الضريبة)</p>
+                <p className="text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
                 <p className="text-xl font-bold">{regularExpenses.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
@@ -493,10 +540,10 @@ const AccountsPage = () => {
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
-                <p className="text-xl font-bold">{effectiveVat.toLocaleString()}</p>
+                <p className="text-xl font-bold">{manualVat.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">الصافي بعد خصم الضريبة</p>
+                <p className="text-sm text-primary-foreground/90">الصافي بعد الضريبة</p>
                 <p className="text-xl font-bold">{netAfterVat.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
@@ -516,12 +563,16 @@ const AccountsPage = () => {
                 <p className="text-xl font-bold">{waqfRevenue.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">رقبة الوقف</p>
+                <p className="text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
                 <p className="text-xl font-bold">{waqfCorpusManual.toLocaleString()}</p>
               </div>
               <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-sm text-primary-foreground/90">للتوزيع</p>
-                <p className="text-xl font-bold">{distributableAmount.toLocaleString()}</p>
+                <p className="text-sm text-primary-foreground/90">التوزيعات</p>
+                <p className="text-xl font-bold">{manualDistributions.toLocaleString()}</p>
+              </div>
+              <div className="text-center p-4 bg-primary-foreground/10 rounded-lg">
+                <p className="text-sm text-primary-foreground/90">الرصيد المتبقي</p>
+                <p className="text-xl font-bold">{remainingBalance.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -801,7 +852,7 @@ const AccountsPage = () => {
           </CardContent>
         </Card>
 
-        {/* 5. Distribution & Shares */}
+        {/* 5. Distribution & Shares - NEW SEQUENCE */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -819,13 +870,27 @@ const AccountsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {waqfCorpusPrevious > 0 && (
+                  <TableRow>
+                    <TableCell className="font-medium">رقبة الوقف المرحلة من العام السابق</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="font-bold text-success">{waqfCorpusPrevious.toLocaleString()}</TableCell>
+                  </TableRow>
+                )}
                 <TableRow className="bg-success/10">
                   <TableCell className="font-medium">إجمالي الدخل</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell className="font-bold text-success">{totalIncome.toLocaleString()}</TableCell>
                 </TableRow>
+                {waqfCorpusPrevious > 0 && (
+                  <TableRow className="bg-success/20 font-semibold">
+                    <TableCell className="font-bold">الإجمالي الشامل</TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell className="font-bold text-success">{grandTotal.toLocaleString()}</TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
-                  <TableCell className="font-medium">(-) إجمالي المصروفات (بدون الضريبة)</TableCell>
+                  <TableCell className="font-medium">(-) المصروفات التشغيلية</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell className="text-destructive">{regularExpenses.toLocaleString()}</TableCell>
                 </TableRow>
@@ -835,12 +900,12 @@ const AccountsPage = () => {
                   <TableCell className="font-bold">{netAfterExpenses.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">(-) ضريبة القيمة المضافة ({vatPercentage}% تجاري)</TableCell>
+                  <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell className="text-destructive">{effectiveVat.toLocaleString()}</TableCell>
+                  <TableCell className="text-destructive">{manualVat.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-muted/30 font-semibold">
-                  <TableCell className="font-bold">الصافي بعد خصم الضريبة</TableCell>
+                  <TableCell className="font-bold">الصافي بعد الضريبة</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell className="font-bold">{netAfterVat.toLocaleString()}</TableCell>
                 </TableRow>
@@ -870,19 +935,29 @@ const AccountsPage = () => {
                   <TableCell>{waqifShare.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-primary/10 font-bold">
-                  <TableCell className="font-bold">ريع الوقف</TableCell>
+                  <TableCell className="font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">(-) رقبة الوقف</TableCell>
+                  <TableCell className="font-medium">(-) رقبة الوقف للعام الحالي</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell>{waqfCorpusManual.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-primary/5 font-bold">
-                  <TableCell className="font-bold">المبلغ القابل للتوزيع</TableCell>
+                  <TableCell className="font-bold">المبلغ المتاح</TableCell>
                   <TableCell>-</TableCell>
-                  <TableCell className="text-primary font-bold">{distributableAmount.toLocaleString()}</TableCell>
+                  <TableCell className="text-primary font-bold">{availableAmount.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">(-) التوزيعات</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>{manualDistributions.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="bg-accent/20 font-bold">
+                  <TableCell className="font-bold text-lg">الرصيد المتبقي</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell className={`font-bold text-lg ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -916,7 +991,7 @@ const AccountsPage = () => {
                         <TableCell className="font-medium">{b.name}</TableCell>
                         <TableCell>{Number(b.share_percentage).toFixed(2)}%</TableCell>
                         <TableCell className="text-primary font-medium">
-                          {(distributableAmount * Number(b.share_percentage) / 100).toLocaleString()}
+                          {(manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage).toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -925,7 +1000,7 @@ const AccountsPage = () => {
                 <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
                   <span className="font-medium">إجمالي التوزيع</span>
                   <span className="font-bold text-primary">
-                    {(distributableAmount * totalBeneficiaryPercentage / 100).toLocaleString()} ريال
+                    {manualDistributions.toLocaleString()} ريال
                   </span>
                 </div>
               </>
@@ -1014,7 +1089,7 @@ const AccountsPage = () => {
                   <Label>اسم المستأجر</Label>
                   <Input
                     value={editingContractData.tenant_name}
-                    onChange={(e) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, tenant_name: e.target.value } : prev)}
+                    onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, tenant_name: e.target.value } : prev)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -1022,12 +1097,12 @@ const AccountsPage = () => {
                   <Input
                     type="number"
                     value={editingContractData.rent_amount}
-                    onChange={(e) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, rent_amount: Number(e.target.value) } : prev)}
+                    onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, rent_amount: Number(e.target.value) } : prev)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>الحالة</Label>
-                  <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev: { id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string } | null) => prev ? { ...prev, status: val } : prev)}>
+                  <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev) => prev ? { ...prev, status: val } : prev)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>

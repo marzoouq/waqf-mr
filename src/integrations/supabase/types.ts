@@ -29,6 +29,7 @@ export type Database = {
           vat_amount: number
           waqf_capital: number
           waqf_corpus_manual: number
+          waqf_corpus_previous: number
           waqf_revenue: number
           waqif_share: number
           zakat_amount: number
@@ -47,6 +48,7 @@ export type Database = {
           vat_amount?: number
           waqf_capital?: number
           waqf_corpus_manual?: number
+          waqf_corpus_previous?: number
           waqf_revenue?: number
           waqif_share?: number
           zakat_amount?: number
@@ -65,6 +67,7 @@ export type Database = {
           vat_amount?: number
           waqf_capital?: number
           waqf_corpus_manual?: number
+          waqf_corpus_previous?: number
           waqf_revenue?: number
           waqif_share?: number
           zakat_amount?: number
