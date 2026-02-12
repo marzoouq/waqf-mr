@@ -2,10 +2,6 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncomeByFiscalYear } from '@/hooks/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useAccounts } from '@/hooks/useAccounts';
 import { FileText, Download, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -16,8 +12,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
-
-const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const DisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -30,56 +25,34 @@ const DisclosurePage = () => {
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
 
-  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: income = [], isLoading: incomeLoading } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
-  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
-
-  const isPageLoading = beneficiariesLoading || incomeLoading || expensesLoading || accountsLoading;
-  const pageError = beneficiariesError || accountsError;
+  const {
+    beneficiaries,
+    totalIncome,
+    totalExpenses,
+    currentAccount,
+    vatAmount,
+    zakatAmount,
+    waqfCorpusManual,
+    netAfterExpenses,
+    netAfterVat,
+    netAfterZakat,
+    adminShare,
+    waqifShare,
+    waqfRevenue,
+    incomeBySource,
+    expensesByTypeExcludingVat,
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Find account matching the fiscal year label — NO fallback to accounts[0]
-  const currentAccount = selectedFY
-    ? accounts.find(a => a.fiscal_year === selectedFY.label) || null
-    : null;
-
-  const totalIncome = Number(currentAccount?.total_income || 0);
-  const totalExpenses = Number(currentAccount?.total_expenses || 0);
-  const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
-  const vatAmount = Number(currentAccount?.vat_amount || 0);
-  const netAfterVat = Number(currentAccount?.net_after_vat || 0);
-  const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const adminShare = Number(currentAccount?.admin_share || 0);
-  const waqifShare = Number(currentAccount?.waqif_share || 0);
-  const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
 
-  const myShare = currentBeneficiary 
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
+  const myShare = currentBeneficiary
+    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
     : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
-
-  // Group income by source
-  const incomeBySource = income.reduce((acc, item) => {
-    const source = item.source || 'أخرى';
-    acc[source] = (acc[source] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Group expenses by type - exclude VAT entries
-  const expensesByType = expenses
-    .filter(item => item.description !== VAT_DESCRIPTION)
-    .reduce((acc, item) => {
-      const type = item.expense_type || 'أخرى';
-      acc[type] = (acc[type] || 0) + Number(item.amount);
-      return acc;
-    }, {} as Record<string, number>);
 
   const handleDownloadPDF = async () => {
     try {
@@ -95,33 +68,13 @@ const DisclosurePage = () => {
         waqifShare,
         beneficiariesShare,
         incomeBySource,
-        expensesByType,
+        expensesByType: expensesByTypeExcludingVat,
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');
     }
   };
-
-  if (isPageLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
-  if (pageError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <p className="text-muted-foreground text-center">{pageError.message}</p>
-          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
@@ -216,7 +169,7 @@ const DisclosurePage = () => {
               <div>
                 <h3 className="font-bold text-lg mb-3 text-destructive">المصروفات</h3>
                 <div className="space-y-2">
-                  {Object.entries(expensesByType).map(([type, amount]) => (
+                  {Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => (
                     <div key={type} className="flex justify-between items-center py-2 border-b border-dashed">
                       <span>{type}</span>
                       <span className="text-destructive font-medium">-{amount.toLocaleString()} ر.س</span>

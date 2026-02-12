@@ -3,8 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, Percent, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -18,6 +16,7 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -28,8 +27,21 @@ const MySharePage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
+
+  const {
+    beneficiaries,
+    currentAccount,
+    totalIncome,
+    totalExpenses,
+    netAfterVat,
+    adminShare,
+    waqifShare,
+    waqfRevenue,
+    waqfCorpusManual,
+    vatAmount,
+    zakatAmount,
+    netAfterExpenses,
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
@@ -42,30 +54,18 @@ const MySharePage = () => {
         .select('*, account:accounts(*)')
         .eq('beneficiary_id', currentBeneficiary.id)
         .order('date', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
     enabled: !!currentBeneficiary?.id,
   });
 
-  const currentAccount = accounts.find(a => a.fiscal_year === selectedFY?.label) || null;
-  const totalIncome = Number(currentAccount?.total_income || 0);
-  const totalExpenses = Number(currentAccount?.total_expenses || 0);
-  const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
-  const vatAmount = Number(currentAccount?.vat_amount || 0);
-  const netAfterVat = Number(currentAccount?.net_after_vat || 0);
-  const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const netAfterZakat = netAfterVat - zakatAmount;
-  const adminShare = Number(currentAccount?.admin_share || 0);
-  const waqifShare = Number(currentAccount?.waqif_share || 0);
-  const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
   const beneficiariesShare = distributableAmount;
 
-  const myShare = currentBeneficiary 
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
+  const myShare = currentBeneficiary
+    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
     : 0;
 
   const filteredDistributions = currentAccount
@@ -106,8 +106,6 @@ const MySharePage = () => {
     }
   };
 
-  // handlePrint removed - ExportMenu handles it
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -118,33 +116,6 @@ const MySharePage = () => {
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
-
-  const isLoading = beneficiariesLoading || accountsLoading;
-  const error = beneficiariesError || accountsError;
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <p className="text-muted-foreground text-center">{error.message}</p>
-          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (!currentBeneficiary) {
     return (

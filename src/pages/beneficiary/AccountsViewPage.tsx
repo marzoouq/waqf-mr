@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useIncomeByFiscalYear } from '@/hooks/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts } from '@/hooks/useContracts';
-import { useAccounts } from '@/hooks/useAccounts';
 import { Wallet, FileText, TrendingUp, TrendingDown, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -19,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -32,50 +29,31 @@ const AccountsViewPage = () => {
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
 
-  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
-  const { data: income = [], isLoading: incomeLoading } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
-  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
-  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
+  const {
+    beneficiaries,
+    currentAccount,
+    totalIncome,
+    totalExpenses,
+    netAfterExpenses,
+    waqfCorpusPrevious,
+    vatAmount,
+    netAfterVat,
+    zakatAmount,
+    adminShare,
+    waqifShare,
+    waqfRevenue,
+    waqfCorpusManual,
+    distributionsAmount,
+    incomeBySource,
+    expensesByType,
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
-  const isPageLoading = beneficiariesLoading || incomeLoading || expensesLoading || contractsLoading || accountsLoading;
-  const pageError = beneficiariesError || accountsError;
+  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  // Find account matching the fiscal year label — NO fallback to accounts[0]
-  const currentAccount = selectedFY
-    ? accounts.find(a => a.fiscal_year === selectedFY.label) || null
-    : null;
-
-  const totalIncome = Number(currentAccount?.total_income || 0);
-  const totalExpenses = Number(currentAccount?.total_expenses || 0);
-  const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);
-  const waqfCorpusPrevious = Number(currentAccount?.waqf_corpus_previous || 0);
   const grandTotal = totalIncome + waqfCorpusPrevious;
-  const vatAmount = Number(currentAccount?.vat_amount || 0);
-  const netAfterVat = Number(currentAccount?.net_after_vat || 0);
-  const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const adminShare = Number(currentAccount?.admin_share || 0);
-  const waqifShare = Number(currentAccount?.waqif_share || 0);
-  const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
-  const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
-
-  // Group income by source
-  const incomeBySource = income.reduce((acc, item) => {
-    const source = item.source || 'غير محدد';
-    acc[source] = (acc[source] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Group expenses by type
-  const expensesByType = expenses.reduce((acc, item) => {
-    const type = item.expense_type || 'غير محدد';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
-    return acc;
-  }, {} as Record<string, number>);
 
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
@@ -91,26 +69,6 @@ const AccountsViewPage = () => {
       default: return status;
     }
   };
-
-  if (isPageLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
-  if (pageError) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <p className="text-muted-foreground text-center">{pageError.message}</p>
-          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            إعادة المحاولة
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
