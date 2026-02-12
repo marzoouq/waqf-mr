@@ -77,20 +77,15 @@ const AccountsPage = () => {
   const [manualVat, setManualVat] = useState(0);
   const [manualDistributions, setManualDistributions] = useState(0);
 
-  // Load settings from app_settings
+  // Load settings from app_settings (using existing appSettings hook)
   useEffect(() => {
-    const loadSettings = async () => {
-      const { data } = await supabase.from('app_settings').select('*');
-      if (data) {
-        data.forEach((s: { key: string; value: string }) => {
-          if (s.key === 'admin_share_percentage') setAdminPercent(Number(s.value));
-          if (s.key === 'waqif_share_percentage') setWaqifPercent(Number(s.value));
-          if (s.key === 'fiscal_year') setFiscalYear(s.value);
-        });
-      }
-    };
-    loadSettings();
-  }, []);
+    if (appSettings.data) {
+      const settings = appSettings.data;
+      if (settings['admin_share_percentage']) setAdminPercent(Number(settings['admin_share_percentage']));
+      if (settings['waqif_share_percentage']) setWaqifPercent(Number(settings['waqif_share_percentage']));
+      if (settings['fiscal_year']) setFiscalYear(settings['fiscal_year']);
+    }
+  }, [appSettings.data]);
 
   // Load values from latest account
   useEffect(() => {
@@ -104,10 +99,10 @@ const AccountsPage = () => {
     }
   }, [accounts]);
 
-  const saveSettingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const saveSetting = useCallback(async (key: string, value: string) => {
-    if (saveSettingTimeout.current) clearTimeout(saveSettingTimeout.current);
-    saveSettingTimeout.current = setTimeout(async () => {
+    if (saveSettingTimeouts.current[key]) clearTimeout(saveSettingTimeouts.current[key]);
+    saveSettingTimeouts.current[key] = setTimeout(async () => {
       try {
         const { error } = await supabase.from('app_settings').upsert({ key, value }, { onConflict: 'key' });
         if (error) throw error;

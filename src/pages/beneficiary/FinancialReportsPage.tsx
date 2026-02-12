@@ -5,7 +5,7 @@ import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useIncome } from '@/hooks/useIncome';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { BarChart3, Download, PieChart, TrendingUp, Building } from 'lucide-react';
+import { BarChart3, Download, PieChart, TrendingUp, Building, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -13,6 +13,8 @@ import { generateAnnualReportPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
+import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import { useQueryClient } from '@tanstack/react-query';
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 const VAT_DESCRIPTION = 'ضريبة القيمة المضافة المحصلة من الهيئة';
@@ -31,11 +33,12 @@ const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, f
 
 const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { data: beneficiaries = [] } = useBeneficiaries();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
-  const { data: accounts = [] } = useAccounts();
+  const { data: beneficiaries = [], isLoading: beneficiariesLoading, error: beneficiariesError } = useBeneficiaries();
+  const { data: income = [], isLoading: incomeLoading } = useIncome();
+  const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
+  const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useAccounts();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
@@ -48,13 +51,16 @@ const FinancialReportsPage = () => {
   const waqfRevenue = Number(currentAccount?.waqf_revenue || 0);
   const waqfCorpusManual = Number(currentAccount?.waqf_corpus_manual || 0);
   const zakatAmount = Number(currentAccount?.zakat_amount || 0);
-  const distributionsAmount = Number(currentAccount?.distributions_amount || 0);
-  const beneficiariesShare = distributionsAmount;
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  // توحيد حساب الحصة: نفس المعادلة المستخدمة في MySharePage و DisclosurePage
+  const distributableAmount = waqfRevenue - waqfCorpusManual;
+  const beneficiariesShare = distributableAmount;
 
-  const myShare = currentBeneficiary && totalBeneficiaryPercentage > 0
-    ? (distributionsAmount * currentBeneficiary.share_percentage) / totalBeneficiaryPercentage
+  const myShare = currentBeneficiary 
+    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
     : 0;
+
+  const isPageLoading = beneficiariesLoading || incomeLoading || expensesLoading || accountsLoading;
+  const pageError = beneficiariesError || accountsError;
 
   const incomeVsExpenses = [
     { name: 'الإيرادات', value: totalIncome, fill: '#22c55e' },
@@ -123,7 +129,7 @@ const FinancialReportsPage = () => {
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
           percentage: Number(b.share_percentage),
-          amount: totalBeneficiaryPercentage > 0 ? (distributionsAmount * Number(b.share_percentage)) / totalBeneficiaryPercentage : 0,
+          amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
         })),
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
@@ -133,6 +139,26 @@ const FinancialReportsPage = () => {
   };
 
   // handlePrint removed - ExportMenu handles it
+
+  if (isPageLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (pageError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <p className="text-muted-foreground text-center">{pageError.message}</p>
+          <Button onClick={() => { queryClient.invalidateQueries({ queryKey: ['beneficiaries'] }); queryClient.invalidateQueries({ queryKey: ['accounts'] }); }} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
