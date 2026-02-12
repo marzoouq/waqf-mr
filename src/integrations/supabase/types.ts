@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       beneficiaries: {
         Row: {
           bank_account: string | null
@@ -291,6 +324,7 @@ export type Database = {
           date: string
           description: string | null
           expense_type: string
+          fiscal_year_id: string | null
           id: string
           property_id: string | null
         }
@@ -300,6 +334,7 @@ export type Database = {
           date: string
           description?: string | null
           expense_type: string
+          fiscal_year_id?: string | null
           id?: string
           property_id?: string | null
         }
@@ -309,10 +344,18 @@ export type Database = {
           date?: string
           description?: string | null
           expense_type?: string
+          fiscal_year_id?: string | null
           id?: string
           property_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_property_id_fkey"
             columns: ["property_id"]
@@ -322,12 +365,40 @@ export type Database = {
           },
         ]
       }
+      fiscal_years: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          label: string
+          start_date: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          label: string
+          start_date: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          label?: string
+          start_date?: string
+          status?: string
+        }
+        Relationships: []
+      }
       income: {
         Row: {
           amount: number
           contract_id: string | null
           created_at: string
           date: string
+          fiscal_year_id: string | null
           id: string
           notes: string | null
           property_id: string | null
@@ -338,6 +409,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           date: string
+          fiscal_year_id?: string | null
           id?: string
           notes?: string | null
           property_id?: string | null
@@ -348,6 +420,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           date?: string
+          fiscal_year_id?: string | null
           id?: string
           notes?: string | null
           property_id?: string | null
@@ -359,6 +432,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
           {
@@ -380,6 +460,7 @@ export type Database = {
           expense_id: string | null
           file_name: string | null
           file_path: string | null
+          fiscal_year_id: string | null
           id: string
           invoice_number: string | null
           invoice_type: string
@@ -396,6 +477,7 @@ export type Database = {
           expense_id?: string | null
           file_name?: string | null
           file_path?: string | null
+          fiscal_year_id?: string | null
           id?: string
           invoice_number?: string | null
           invoice_type: string
@@ -412,6 +494,7 @@ export type Database = {
           expense_id?: string | null
           file_name?: string | null
           file_path?: string | null
+          fiscal_year_id?: string | null
           id?: string
           invoice_number?: string | null
           invoice_type?: string
@@ -432,6 +515,13 @@ export type Database = {
             columns: ["expense_id"]
             isOneToOne: false
             referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
           {

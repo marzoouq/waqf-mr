@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useCrudFactory } from './useCrudFactory';
@@ -20,6 +20,7 @@ export interface Invoice {
   file_path: string | null;
   file_name: string | null;
   status: string;
+  fiscal_year_id: string | null;
   created_at: string;
   updated_at: string;
   property?: { id: string; property_number: string; location: string } | null;
@@ -55,6 +56,25 @@ const invoicesCrud = useCrudFactory<'invoices', Invoice>({
 export const useInvoices = invoicesCrud.useList;
 export const useCreateInvoice = invoicesCrud.useCreate;
 export const useUpdateInvoice = invoicesCrud.useUpdate;
+
+/** Invoices filtered by fiscal year */
+export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
+  return useQuery({
+    queryKey: ['invoices', 'fiscal_year', fiscalYearId],
+    queryFn: async () => {
+      let query = supabase
+        .from('invoices')
+        .select('*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)')
+        .order('date', { ascending: false });
+      if (fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Invoice[];
+    },
+  });
+};
 
 // ---------------------------------------------------------------------------
 // Custom delete – cleans up storage file before deleting row

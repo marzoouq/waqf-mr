@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.auto-expire-contracts]
+verify_jwt = false

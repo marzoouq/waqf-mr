@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome } from '@/hooks/useIncome';
+import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Printer, FileDown, Search } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -21,7 +23,11 @@ import {
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: income = [], isLoading } = useIncome();
+  const { data: activeFY } = useActiveFiscalYear();
+  const [selectedFY, setSelectedFY] = useState<string>('');
+  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+
+  const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
@@ -46,8 +52,15 @@ const IncomePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const incomeData = { source: formData.source, amount: parseFloat(formData.amount), date: formData.date, property_id: formData.property_id || undefined, notes: formData.notes || undefined };
-    if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData }); } else { await createIncome.mutateAsync(incomeData); }
+    const incomeData: Record<string, unknown> = {
+      source: formData.source, amount: parseFloat(formData.amount), date: formData.date,
+      property_id: formData.property_id || undefined, notes: formData.notes || undefined,
+    };
+    // Auto-assign active fiscal year for new records
+    if (!editingIncome && activeFY) {
+      incomeData.fiscal_year_id = activeFY.id;
+    }
+    if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as any); } else { await createIncome.mutateAsync(incomeData as any); }
     setIsOpen(false);
     resetForm();
   };
@@ -101,6 +114,10 @@ const IncomePage = () => {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
         </div>
 
         <Card className="shadow-sm gradient-primary text-primary-foreground">

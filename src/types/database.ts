@@ -151,3 +151,23 @@ export interface Notification {
   link: string | null;
   created_at: string;
 }
+
+export interface FiscalYear {
+  id: string;
+  label: string;
+  start_date: string;
+  end_date: string;
+  status: 'active' | 'closed';
+  created_at: string;
+}
+
+export interface AuditLog {
+  id: string;
+  table_name: string;
+  operation: string;
+  record_id: string | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
+  user_id: string | null;
+  created_at: string;
+}
