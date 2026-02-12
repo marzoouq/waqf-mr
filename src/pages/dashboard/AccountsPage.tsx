@@ -2,21 +2,28 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
-import { useIncome } from '@/hooks/useIncome';
-import { useExpenses } from '@/hooks/useExpenses';
+import { useIncomeByFiscalYear } from '@/hooks/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
-import { Plus, Printer, FileDown } from 'lucide-react';
+import { useActiveFiscalYear, useFiscalYears } from '@/hooks/useFiscalYears';
+import { Plus, Printer, FileDown, Lock } from 'lucide-react';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
 import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
@@ -31,9 +38,8 @@ import AccountsDialogs from '@/components/accounts/AccountsDialogs';
 
 const AccountsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
-  const { data: income = [] } = useIncome();
-  const { data: expenses = [] } = useExpenses();
   const { data: contracts = [] } = useContracts();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: tenantPayments = [] } = useTenantPayments();
@@ -45,6 +51,20 @@ const AccountsPage = () => {
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
   const upsertPayment = useUpsertTenantPayment();
+
+  // Fiscal year selection
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFYId, setSelectedFYId] = useState<string>('');
+  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
+  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const isClosed = selectedFY?.status === 'closed';
+
+  const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+
+  // Year closing state
+  const [closeYearOpen, setCloseYearOpen] = useState(false);
+  const [isClosingYear, setIsClosingYear] = useState(false);
 
   // Editable settings
   const [adminPercent, setAdminPercent] = useState(10);
@@ -255,6 +275,70 @@ const AccountsPage = () => {
     }
   };
 
+  // Close fiscal year handler
+  const handleCloseYear = async () => {
+    if (!selectedFY || selectedFY.status === 'closed') return;
+    setIsClosingYear(true);
+    try {
+      // 1. Close current year
+      const { error: closeErr } = await supabase
+        .from('fiscal_years')
+        .update({ status: 'closed' })
+        .eq('id', selectedFY.id);
+      if (closeErr) throw closeErr;
+
+      // 2. Check if next year exists
+      const nextStartDate = selectedFY.end_date;
+      const nextEndYear = new Date(selectedFY.end_date);
+      nextEndYear.setFullYear(nextEndYear.getFullYear() + 1);
+      const nextEndDate = nextEndYear.toISOString().split('T')[0];
+
+      const startYear = new Date(selectedFY.end_date).getFullYear();
+      const endYear = nextEndYear.getFullYear();
+      const nextLabel = `${startYear}-${endYear}`;
+
+      const { data: existingNext } = await supabase
+        .from('fiscal_years')
+        .select('id')
+        .eq('start_date', nextStartDate)
+        .maybeSingle();
+
+      let nextFYId = existingNext?.id;
+
+      if (!nextFYId) {
+        const { data: newFY, error: createErr } = await supabase
+          .from('fiscal_years')
+          .insert({ label: nextLabel, start_date: nextStartDate, end_date: nextEndDate, status: 'active' })
+          .select('id')
+          .single();
+        if (createErr) throw createErr;
+        nextFYId = newFY.id;
+      }
+
+      // 3. Carry forward remaining balance
+      if (nextFYId) {
+        await supabase.from('accounts').upsert({
+          fiscal_year: nextLabel,
+          waqf_corpus_previous: remainingBalance,
+          total_income: 0, total_expenses: 0, admin_share: 0, waqif_share: 0,
+          waqf_revenue: 0, vat_amount: 0, distributions_amount: 0,
+          waqf_capital: 0, net_after_expenses: 0, net_after_vat: 0,
+          zakat_amount: 0, waqf_corpus_manual: 0,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      queryClient.invalidateQueries({ queryKey: ['income'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast.success(`تم إقفال السنة المالية ${selectedFY.label} وترحيل الرصيد بنجاح`);
+      setCloseYearOpen(false);
+    } catch (err) {
+      toast.error('خطأ في إقفال السنة: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+    } finally {
+      setIsClosingYear(false);
+    }
+  };
+
   const statusLabel = (status: string) => {
     switch (status) {
       case 'active': return 'نشط';
@@ -386,11 +470,27 @@ const AccountsPage = () => {
               <FileDown className="w-4 h-4" />
               <span className="hidden sm:inline">تصدير PDF</span>
             </Button>
-            <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
+            <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending || isClosed}>
               <Plus className="w-4 h-4" />
               إنشاء حساب ختامي
             </Button>
+            {selectedFY && selectedFY.status === 'active' && (
+              <Button variant="destructive" size="sm" onClick={() => setCloseYearOpen(true)} className="gap-2">
+                <Lock className="w-4 h-4" />
+                إقفال السنة
+              </Button>
+            )}
           </div>
+        </div>
+
+        {/* Fiscal Year Selector */}
+        <div className="flex flex-wrap items-center gap-4">
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
+          {isClosed && (
+            <span className="text-sm text-destructive font-medium flex items-center gap-1">
+              <Lock className="w-3 h-3" /> سنة مقفلة - لا يمكن التعديل
+            </span>
+          )}
         </div>
 
         <AccountsSettingsBar
@@ -518,6 +618,30 @@ const AccountsPage = () => {
           onSaveContractEdit={handleSaveContractEdit}
           isUpdatePending={updateContract.isPending}
         />
+
+        {/* Close Year AlertDialog */}
+        <AlertDialog open={closeYearOpen} onOpenChange={setCloseYearOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تأكيد إقفال السنة المالية</AlertDialogTitle>
+              <AlertDialogDescription>
+                سيتم إقفال السنة المالية <strong>{selectedFY?.label}</strong> نهائياً.
+                لن تتمكن من إضافة أو تعديل أو حذف أي دخل أو مصروفات لهذه السنة بعد الإقفال.
+                سيتم ترحيل الرصيد المتبقي ({remainingBalance.toLocaleString()} ر.س) إلى السنة التالية تلقائياً.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel disabled={isClosingYear}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCloseYear}
+                disabled={isClosingYear}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isClosingYear ? 'جاري الإقفال...' : 'تأكيد الإقفال'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
