@@ -1,61 +1,47 @@
 
 
-# خطة إصلاح مشكلة فتح الفواتير - تحليل جنائي
+# إصلاح مشكلة فتح الفواتير - النهج الصحيح
 
-## نتائج التحقيق الجنائي
+## تحليل السبب الجذري
 
-### الاختبار المباشر
-تم استدعاء الوظيفة مباشرة وكانت النتيجة:
-```
-HTTP 404: {"code":"NOT_FOUND","message":"Requested function was not found"}
-```
-الوظيفة **غير موجودة** من منظور البوابة (Gateway).
+الكود الحالي في `getInvoiceSignedUrl` يقوم بخطوتين:
+1. إنشاء رابط موقّع عبر SDK (يعمل بشكل صحيح)
+2. استدعاء `fetch(data.signedUrl)` مباشرة للنطاق المحظور (هنا تحدث المشكلة)
 
-### السبب الجذري
-ملف `supabase/config.toml` لا يحتوي على تسجيل لوظيفة `serve-invoice`. الوظائف المسجلة حالياً هي:
-- `admin-manage-users`
-- `lookup-national-id`
-- `ai-assistant`
-- `auto-expire-contracts`
+الخطوة الثانية تفشل لأن `fetch` يذهب مباشرة لنطاق `epopjqrwsztgxigmgurj.supabase.co` الذي حظره Chrome.
 
-بدون التسجيل، البوابة ترفض الطلب بـ 404 قبل أن يصل الكود أصلاً.
+## الحل
 
-### الدليل من السجلات
-سجلات الوظيفة تُظهر فقط أحداث إقلاع (boot) ولا يوجد أي طلب وصل فعلياً — مما يؤكد أن الحظر يحدث على مستوى البوابة.
+استبدال `createSignedUrl + fetch` بـ `supabase.storage.from('invoices').download(filePath)` الذي:
+- يعمل عبر SDK الداخلي (نفس الآلية التي تعمل بها باقي العمليات كالمصادقة وقراءة البيانات)
+- يُرجع `Blob` مباشرة بدون الحاجة لـ fetch منفصل
+- يتجاوز حظر Chrome لأنه لا يفتح النطاق مباشرة
 
-### مشكلة ثانوية
-رؤوس CORS في الوظيفة ناقصة — ينقصها رؤوس عميل Supabase المطلوبة.
+## التغيير المطلوب
 
----
+ملف واحد فقط: `src/hooks/useInvoices.ts`
 
-## خطوات الإصلاح
+تحديث دالة `getInvoiceSignedUrl` لتصبح:
 
-### الخطوة 1: تسجيل الوظيفة في config.toml
-إضافة القسم التالي:
-```toml
-[functions.serve-invoice]
-verify_jwt = false
-```
-`verify_jwt = false` ضروري لأن التحقق من الهوية يتم يدوياً داخل الكود (عبر `getUser` و `user_roles`).
+```typescript
+export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
+  const { data, error } = await supabase.storage
+    .from('invoices')
+    .download(filePath);
 
-### الخطوة 2: تحديث رؤوس CORS
-تحديث `Access-Control-Allow-Headers` لتشمل جميع الرؤوس التي يرسلها عميل المتصفح:
-```
-authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version
+  if (error || !data) throw new Error('فشل في تحميل الملف');
+
+  return URL.createObjectURL(data);
+};
 ```
 
-### الخطوة 3: إعادة نشر الوظيفة واختبارها
-نشر الوظيفة تلقائياً ثم اختبارها مباشرة للتأكد من عملها.
+## لماذا هذا الحل سيعمل
 
----
+- عمليات قاعدة البيانات والمصادقة تعمل بشكل طبيعي عبر SDK رغم حظر النطاق
+- دالة `download()` تستخدم نفس آلية SDK الداخلية
+- النتيجة blob URL محلي (`blob:https://preview-domain/...`) لا علاقة له بالنطاق المحظور
 
-## الملفات المتأثرة
-- `supabase/config.toml` — إضافة تسجيل الوظيفة
-- `supabase/functions/serve-invoice/index.ts` — تحديث رؤوس CORS فقط (سطر واحد)
+## التفاصيل التقنية
 
-## النتيجة المتوقعة
-بعد التسجيل وتحديث CORS، ستعمل الفواتير عبر المسار:
-```
-المتصفح → Edge Function (serve-invoice) → التحقق من الهوية → تحميل الملف من التخزين → إرجاع blob URL
-```
-بدون أي حظر من Chrome لأن الطلب يمر عبر نطاق التطبيق نفسه.
+- سياسة RLS على التخزين تسمح لجميع المستخدمين المصادق عليهم بعرض الفواتير (SELECT policy موجودة)
+- لا حاجة لتعديل أي ملف آخر - جميع الصفحات تستدعي `getInvoiceSignedUrl` بنفس الطريقة
