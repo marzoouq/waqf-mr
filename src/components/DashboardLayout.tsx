@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import {
   Building2,
   Home,
@@ -171,17 +172,30 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             {role === 'admin' ? 'ناظر الوقف' : role === 'beneficiary' ? 'مستفيد' : 'واقف'}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          onClick={handleSignOut}
-          className={cn(
-            'w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive',
-            !sidebarOpen && 'lg:px-0'
-          )}
-        >
-          <LogOut className="w-5 h-5" />
-          <span className={cn('mr-2', !sidebarOpen && 'lg:hidden')}>تسجيل الخروج</span>
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                'w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive',
+                !sidebarOpen && 'lg:px-0'
+              )}
+            >
+              <LogOut className="w-5 h-5" />
+              <span className={cn('mr-2', !sidebarOpen && 'lg:hidden')}>تسجيل الخروج</span>
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+              <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2">
+              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogAction onClick={handleSignOut} className="bg-destructive hover:bg-destructive/90">تسجيل الخروج</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );

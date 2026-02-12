@@ -6,42 +6,58 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
 
-// Pages
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Unauthorized from "./pages/Unauthorized";
-import NotFound from "./pages/NotFound";
+// Pages - Lazy loaded
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Admin Dashboard Pages
-import AdminDashboard from "./pages/dashboard/AdminDashboard";
-import PropertiesPage from "./pages/dashboard/PropertiesPage";
-import ContractsPage from "./pages/dashboard/ContractsPage";
-import IncomePage from "./pages/dashboard/IncomePage";
-import ExpensesPage from "./pages/dashboard/ExpensesPage";
-import BeneficiariesPage from "./pages/dashboard/BeneficiariesPage";
-import ReportsPage from "./pages/dashboard/ReportsPage";
-import AccountsPage from "./pages/dashboard/AccountsPage";
-import UserManagementPage from "./pages/dashboard/UserManagementPage";
-import SettingsPage from "./pages/dashboard/SettingsPage";
-import MessagesPage from "./pages/dashboard/MessagesPage";
-import InvoicesPage from "./pages/dashboard/InvoicesPage";
-import AuditLogPage from "./pages/dashboard/AuditLogPage";
+// Admin Dashboard Pages - Lazy loaded
+const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
+const PropertiesPage = lazy(() => import("./pages/dashboard/PropertiesPage"));
+const ContractsPage = lazy(() => import("./pages/dashboard/ContractsPage"));
+const IncomePage = lazy(() => import("./pages/dashboard/IncomePage"));
+const ExpensesPage = lazy(() => import("./pages/dashboard/ExpensesPage"));
+const BeneficiariesPage = lazy(() => import("./pages/dashboard/BeneficiariesPage"));
+const ReportsPage = lazy(() => import("./pages/dashboard/ReportsPage"));
+const AccountsPage = lazy(() => import("./pages/dashboard/AccountsPage"));
+const UserManagementPage = lazy(() => import("./pages/dashboard/UserManagementPage"));
+const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
+const MessagesPage = lazy(() => import("./pages/dashboard/MessagesPage"));
+const InvoicesPage = lazy(() => import("./pages/dashboard/InvoicesPage"));
+const AuditLogPage = lazy(() => import("./pages/dashboard/AuditLogPage"));
 
-// Beneficiary Pages
-import BeneficiaryDashboard from "./pages/beneficiary/BeneficiaryDashboard";
-import DisclosurePage from "./pages/beneficiary/DisclosurePage";
-import MySharePage from "./pages/beneficiary/MySharePage";
-import FinancialReportsPage from "./pages/beneficiary/FinancialReportsPage";
-import AccountsViewPage from "./pages/beneficiary/AccountsViewPage";
-import BeneficiaryMessagesPage from "./pages/beneficiary/BeneficiaryMessagesPage";
-import InvoicesViewPage from "./pages/beneficiary/InvoicesViewPage";
-import NotificationsPage from "./pages/beneficiary/NotificationsPage";
+// Beneficiary Pages - Lazy loaded
+const BeneficiaryDashboard = lazy(() => import("./pages/beneficiary/BeneficiaryDashboard"));
+const DisclosurePage = lazy(() => import("./pages/beneficiary/DisclosurePage"));
+const MySharePage = lazy(() => import("./pages/beneficiary/MySharePage"));
+const FinancialReportsPage = lazy(() => import("./pages/beneficiary/FinancialReportsPage"));
+const AccountsViewPage = lazy(() => import("./pages/beneficiary/AccountsViewPage"));
+const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
+const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
+const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
 
-// AI Assistant
+// AI Assistant & Security
 import AiAssistant from "./components/AiAssistant";
 import SecurityGuard from "./components/SecurityGuard";
-const queryClient = new QueryClient();
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <ErrorBoundary>
@@ -51,6 +67,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
@@ -236,6 +253,7 @@ const App = () => (
             {/* Catch-all Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
           <AiAssistant />
           <SecurityGuard />
         </BrowserRouter>

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
@@ -18,6 +18,8 @@ const Auth = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -191,6 +193,17 @@ const Auth = () => {
           className="h-11"
         />
       </div>
+      <div className="flex justify-center">
+        <Button
+          type="button"
+          variant="link"
+          className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
+          onClick={() => setResetMode(true)}
+        >
+          <KeyRound className="w-3.5 h-3.5 ml-1" />
+          نسيت كلمة المرور؟
+        </Button>
+      </div>
       <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
         {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </Button>
@@ -225,7 +238,42 @@ const Auth = () => {
             </div>
           </CardHeader>
           <CardContent className="pt-4">
-            {registrationEnabled ? (
+            {resetMode ? (
+              <div className="space-y-5">
+                <p className="text-sm text-muted-foreground text-center">أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور</p>
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    dir="ltr"
+                    className="h-11"
+                  />
+                </div>
+                <Button
+                  className="w-full h-11 gradient-primary"
+                  disabled={isLoading}
+                  onClick={async () => {
+                    if (!resetEmail) { toast.error('يرجى إدخال البريد الإلكتروني'); return; }
+                    setIsLoading(true);
+                    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                      redirectTo: `${window.location.origin}/auth`,
+                    });
+                    setIsLoading(false);
+                    if (error) { toast.error('حدث خطأ: ' + error.message); }
+                    else { toast.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'); setResetMode(false); }
+                  }}
+                >
+                  {isLoading ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
+                </Button>
+                <Button variant="ghost" className="w-full" onClick={() => setResetMode(false)}>
+                  العودة لتسجيل الدخول
+                </Button>
+              </div>
+            ) : registrationEnabled ? (
               <Tabs defaultValue="signin" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6 h-11">
                   <TabsTrigger value="signin" className="gap-2 text-sm">
@@ -277,7 +325,7 @@ const Auth = () => {
             ) : (
               renderLoginForm('-direct')
             )}
-          </CardContent>
+            </CardContent>
         </Card>
 
         {/* Footer text */}

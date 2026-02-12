@@ -36,6 +36,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let initialSessionHandled = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -49,16 +51,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setRole(null);
         }
         setLoading(false);
+        initialSessionHandled = true;
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
+      if (!initialSessionHandled) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchUserRole(session.user.id);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
