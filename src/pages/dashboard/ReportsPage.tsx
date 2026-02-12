@@ -22,6 +22,7 @@ const ReportsPage = () => {
   const { data: allUnits = [] } = useAllUnits();
   const reportRef = useRef<HTMLDivElement>(null);
 
+  // TODO: ReportsPage should eventually support fiscal year selection
   const {
     income, expenses, beneficiaries, currentAccount,
     totalIncome, totalExpenses, adminPct, waqifPct,

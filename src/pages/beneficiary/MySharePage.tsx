@@ -49,7 +49,7 @@ const MySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  const currentAccount = accounts.find(a => a.fiscal_year === selectedFY?.label) || accounts[0];
+  const currentAccount = accounts.find(a => a.fiscal_year === selectedFY?.label) || null;
   const totalIncome = Number(currentAccount?.total_income || 0);
   const totalExpenses = Number(currentAccount?.total_expenses || 0);
   const netAfterExpenses = Number(currentAccount?.net_after_expenses || 0);

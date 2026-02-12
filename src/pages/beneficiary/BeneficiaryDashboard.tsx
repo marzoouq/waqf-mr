@@ -18,7 +18,7 @@ const BeneficiaryDashboard = () => {
   const { data: notifications = [] } = useNotifications();
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const latestAccount = accounts[0];
+  const latestAccount = accounts.length > 0 ? accounts[0] : null;
 
   const totalIncome = Number(latestAccount?.total_income || 0);
   const waqfRevenue = Number(latestAccount?.waqf_revenue || 0);
