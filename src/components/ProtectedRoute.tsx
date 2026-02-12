@@ -1,3 +1,11 @@
+/**
+ * مكون حماية المسارات (ProtectedRoute)
+ * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
+ * - إذا لم يكن مسجلاً: يحول إلى صفحة تسجيل الدخول
+ * - إذا لم يملك الدور المطلوب: يحول إلى صفحة "غير مصرح"
+ * 
+ * @param allowedRoles - الأدوار المسموح لها بالوصول (admin, beneficiary, waqif)
+ */
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';

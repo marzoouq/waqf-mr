@@ -1,3 +1,9 @@
+/**
+ * هوكات إدارة المستفيدين (CRUD)
+ * يوفر: useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary
+ * الجدول: beneficiaries | الترتيب: حسب الاسم (تصاعدي)
+ * عند إضافة مستفيد: يتم إرسال إشعار للناظر
+ */
 import { useCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
 import { notifyAdmins } from '@/utils/notifications';
