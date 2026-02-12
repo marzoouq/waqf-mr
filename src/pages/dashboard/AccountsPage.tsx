@@ -128,8 +128,24 @@ const AccountsPage = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-  const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount) * 12, 0);
+  // rent_amount هو الإيجار السنوي
+  const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+
+  // حساب الدفعة الشهرية/الفترية الحقيقية لكل عقد
+  const getPaymentPerPeriod = (contract: typeof contracts[0]) => {
+    const rent = Number(contract.rent_amount);
+    if (contract.payment_amount) return Number(contract.payment_amount);
+    const count = contract.payment_count || 1;
+    return rent / count;
+  };
+
+  const getExpectedPayments = (contract: typeof contracts[0]) => {
+    if (contract.payment_type === 'monthly') return 12;
+    if (contract.payment_type === 'multi') return contract.payment_count || 1;
+    return 1; // annual
+  };
+
+  const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
 
   // Payment data from DB
   const paymentMap = tenantPayments.reduce((acc, p) => {
@@ -155,19 +171,20 @@ const AccountsPage = () => {
 
   const collectionData = contracts.map((contract, index) => {
     const paymentInfo = paymentMap[contract.id];
-    const paidMonths = paymentInfo ? paymentInfo.paid_months : 12;
-    const monthlyRent = Number(contract.rent_amount);
-    const totalCollected = monthlyRent * paidMonths;
-    const arrears = (monthlyRent * 12) - totalCollected;
+    const expectedPayments = getExpectedPayments(contract);
+    const paidMonths = paymentInfo ? paymentInfo.paid_months : expectedPayments;
+    const paymentPerPeriod = getPaymentPerPeriod(contract);
+    const totalCollected = paymentPerPeriod * paidMonths;
+    const arrears = paymentPerPeriod * expectedPayments - totalCollected;
     return {
       index: index + 1,
       tenantName: contract.tenant_name,
-      monthlyRent,
-      expectedPayments: 12,
+      paymentPerPeriod,
+      expectedPayments,
       paidMonths,
       totalCollected,
       arrears,
-      status: arrears === 0 ? 'مكتمل' : 'متأخر',
+      status: arrears <= 0 ? 'مكتمل' : 'متأخر',
       notes: paymentInfo?.notes || '',
     };
   });
@@ -210,7 +227,7 @@ const AccountsPage = () => {
     setEditingIndex(index);
     setEditData({
       tenantName: item.tenantName,
-      monthlyRent: item.monthlyRent,
+      monthlyRent: item.paymentPerPeriod,
       paidMonths: item.paidMonths,
       status: item.status,
     });
@@ -226,16 +243,20 @@ const AccountsPage = () => {
     const contract = contracts[index];
 
     try {
+      // نحدث payment_amount (قيمة الدفعة) وليس rent_amount (السنوي)
+      const expectedPmts = getExpectedPayments(contract);
+      const newAnnual = editData.monthlyRent * expectedPmts;
       await updateContract.mutateAsync({
         id: contract.id,
         tenant_name: editData.tenantName,
-        rent_amount: editData.monthlyRent,
+        rent_amount: newAnnual,
+        payment_amount: editData.monthlyRent,
       });
 
       await upsertPayment.mutateAsync({
         contract_id: contract.id,
         paid_months: editData.paidMonths,
-        notes: editData.status === 'مكتمل' ? '' : `متأخر ${12 - editData.paidMonths} أشهر`,
+        notes: editData.status === 'مكتمل' ? '' : `متأخر ${expectedPmts - editData.paidMonths} دفعات`,
       });
 
       setEditingIndex(null);
@@ -432,9 +453,9 @@ const AccountsPage = () => {
                     <TableHead className="text-right w-12">#</TableHead>
                     <TableHead className="text-right">رقم العقد</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead>
-                    <TableHead className="text-right">الإيجار الشهري</TableHead>
+                    <TableHead className="text-right">قيمة الدفعة</TableHead>
                     <TableHead className="text-right">عدد الدفعات</TableHead>
-                    <TableHead className="text-right">إجمالي العقد السنوي</TableHead>
+                    <TableHead className="text-right">الإيجار السنوي</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
                     <TableHead className="text-right w-20">إجراءات</TableHead>
                   </TableRow>
@@ -445,9 +466,9 @@ const AccountsPage = () => {
                       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
                       <TableCell>{contract.tenant_name}</TableCell>
+                      <TableCell className="font-bold text-primary">{getPaymentPerPeriod(contract).toLocaleString()} ريال</TableCell>
+                      <TableCell className="text-center">{getExpectedPayments(contract)}</TableCell>
                       <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
-                      <TableCell className="text-center">12</TableCell>
-                      <TableCell className="font-bold text-primary">{(Number(contract.rent_amount) * 12).toLocaleString()} ريال</TableCell>
                       <TableCell>{statusLabel(contract.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
@@ -467,7 +488,7 @@ const AccountsPage = () => {
                     <TableCell>الإجمالي</TableCell>
                     <TableCell></TableCell>
                     <TableCell>{contracts.length} عقد</TableCell>
-                    <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
+                    <TableCell className="text-primary font-bold">{totalPaymentPerPeriod.toLocaleString()} ريال</TableCell>
                     <TableCell></TableCell>
                     <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
                     <TableCell></TableCell>
@@ -508,10 +529,10 @@ const AccountsPage = () => {
                 <TableBody>
                   {collectionData.map((item, idx) => {
                     const isEditing = editingIndex === idx;
-                    const editRent = editData?.monthlyRent ?? item.monthlyRent;
+                    const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                     const editPaid = editData?.paidMonths ?? item.paidMonths;
                     const editTotal = editRent * editPaid;
-                    const editArrears = (editRent * 12) - editTotal;
+                    const editArrears = (editRent * item.expectedPayments) - editTotal;
 
                     return (
                       <TableRow key={item.index}>
@@ -533,7 +554,7 @@ const AccountsPage = () => {
                               onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
                               className="h-8 w-24"
                             />
-                          ) : `${item.monthlyRent.toLocaleString()} ريال`}
+                          ) : `${item.paymentPerPeriod.toLocaleString()} ريال`}
                         </TableCell>
                         <TableCell className="text-center">{item.expectedPayments}</TableCell>
                         <TableCell className="text-center">
@@ -598,7 +619,7 @@ const AccountsPage = () => {
                   <TableRow className="bg-muted/70 font-bold">
                     <TableCell>الإجمالي</TableCell>
                     <TableCell>{contracts.length} مستأجر</TableCell>
-                    <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
+                    <TableCell className="text-primary font-bold">{collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0).toLocaleString()} ريال</TableCell>
                     <TableCell className="text-center">{totalExpectedPayments}</TableCell>
                     <TableCell className="text-center">{totalPaidMonths}</TableCell>
                     <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>

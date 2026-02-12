@@ -108,14 +108,15 @@ const ContractsPage = () => {
   const stats = useMemo(() => {
     const active = contracts.filter(c => c.status === 'active');
     const expired = contracts.filter(c => c.status === 'expired');
-    const totalRent = active.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
+    const totalRent = contracts.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
+    const activeRent = active.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
     const now = new Date().getTime();
     const soon = active.filter(c => {
       const days = (new Date(c.end_date).getTime() - now) / (1000 * 3600 * 24);
       return days > 0 && days <= 90;
     });
     const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
-    return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, expiringSoon: soon.length };
+    return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, activeRent, expiringSoon: soon.length };
   }, [contracts]);
 
   return (
@@ -228,7 +229,7 @@ const ContractsPage = () => {
           <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"><DollarSign className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">إجمالي الإيجارات السنوية</p><p className="text-lg font-bold">{stats.totalRent.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p></div>
+              <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{stats.totalRent.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {stats.activeRent.toLocaleString()}</p></div>
             </CardContent>
           </Card>
           <Card className={`${stats.expiringSoon > 0 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-800' : 'border-orange-200 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-900'}`}>

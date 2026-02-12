@@ -24,7 +24,8 @@ const AdminDashboard = () => {
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
-  const activeContracts = contracts.filter(c => c.status === 'active').length;
+  const activeContractsCount = contracts.filter(c => c.status === 'active').length;
+  const contractualRevenue = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   // Use stored account values if available, fallback to dynamic calculation with settings
   const currentAccount = accounts[0];
@@ -36,8 +37,9 @@ const AdminDashboard = () => {
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
-    { title: 'العقود النشطة', value: activeContracts, icon: FileText, color: 'bg-secondary' },
-    { title: 'إجمالي الدخل', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
+    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary' },
+    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
+    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
     { title: 'حصة الناظر', value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
     { title: 'حصة الواقف', value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <Card key={index} className="shadow-sm hover:shadow-md transition-shadow animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
               <CardContent className="p-6">

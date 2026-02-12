@@ -545,7 +545,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const getTenant = (unitId: string): { name: string; status: string; start_date: string | null; end_date: string | null; rent_amount: number; contract_id: string; payment_type: string; payment_amount: number | null; payment_count: number } | null => {
     const activeContract = contracts.find(c => c.unit_id === unitId && c.status === 'active');
     if (activeContract) return { name: activeContract.tenant_name, status: 'active', start_date: activeContract.start_date, end_date: activeContract.end_date, rent_amount: activeContract.rent_amount, contract_id: activeContract.id, payment_type: activeContract.payment_type || 'annual', payment_amount: activeContract.payment_amount ?? null, payment_count: activeContract.payment_count || 1 };
-    const anyContract = contracts.find(c => c.unit_id === unitId);
+    // ترتيب العقود المنتهية زمنياً لعرض الأحدث
+    const sortedContracts = contracts.filter(c => c.unit_id === unitId).sort((a, b) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime());
+    const anyContract = sortedContracts[0];
     if (anyContract) return { name: anyContract.tenant_name, status: anyContract.status, start_date: anyContract.start_date, end_date: anyContract.end_date, rent_amount: anyContract.rent_amount, contract_id: anyContract.id, payment_type: anyContract.payment_type || 'annual', payment_amount: anyContract.payment_amount ?? null, payment_count: anyContract.payment_count || 1 };
     return null;
   };
@@ -555,8 +557,13 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     return payment ? payment.paid_months : 0;
   };
 
-  // Whole property contract (no unit_id)
-  const wholePropertyContract = contracts.find(c => c.property_id === property.id && !c.unit_id);
+  // Whole property contracts (no unit_id) - النشط أولاً ثم الأحدث
+  const wholePropertyContracts = contracts.filter(c => c.property_id === property.id && !c.unit_id).sort((a, b) => {
+    if (a.status === 'active' && b.status !== 'active') return -1;
+    if (b.status === 'active' && a.status !== 'active') return 1;
+    return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
+  });
+  const wholePropertyContract = wholePropertyContracts[0] || null;
 
   const handleWholePropertySave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -869,7 +876,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                           </TableRow>
                         );
                       })}
-                      {/* صف الإجمالي الشامل */}
+                      {/* صف الإجمالي الشامل - يشمل عقود الوحدات + عقود العقار كامل */}
                       {(() => {
                         const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
                           const rent = Number(t.rent_amount);
@@ -885,6 +892,14 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             totalAnnual += Number(t.rent_amount);
                             totalMonthly += getMonthlyForTenant(t);
                           }
+                        });
+                        // إضافة عقود "العقار كامل" (بدون unit_id)
+                        wholePropertyContracts.forEach(wc => {
+                          totalAnnual += Number(wc.rent_amount);
+                          const rent = Number(wc.rent_amount);
+                          if (wc.payment_type === 'monthly') totalMonthly += Number(wc.payment_amount) || rent / 12;
+                          else if (wc.payment_type === 'multi') totalMonthly += Number(wc.payment_amount) || rent / (wc.payment_count || 1);
+                          else totalMonthly += rent / 12;
                         });
                         return (
                           <TableRow className="bg-primary/10 font-bold border-t-2">

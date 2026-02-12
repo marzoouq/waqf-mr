@@ -33,8 +33,11 @@ const ReportsPage = () => {
 
   // Use stored account values if available
   const currentAccount = accounts[0];
-  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * 0.10;
-  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * 0.05;
+  // Read dynamic percentages - no hardcoded fallbacks
+  const adminPctFallback = 10; // سيُقرأ من app_settings لاحقاً عبر الحساب الختامي
+  const waqifPctFallback = 5;
+  const adminShare = currentAccount ? Number(currentAccount.admin_share) : netRevenue * (adminPctFallback / 100);
+  const waqifShare = currentAccount ? Number(currentAccount.waqif_share) : netRevenue * (waqifPctFallback / 100);
   const beneficiariesShare = currentAccount ? Number(currentAccount.waqf_revenue) : netRevenue - adminShare - waqifShare;
 
   // Income by source
@@ -90,7 +93,9 @@ const ReportsPage = () => {
     const propertyUnits = allUnits.filter(u => u.property_id === property.id);
     const totalUnitsCount = propertyUnits.length;
     const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
-    const activeContracts = contracts.filter(c => c.property_id === property.id && c.status === 'active');
+    // الإيرادات التعاقدية (نشطة + منتهية) - متوافق مع صفحة العقارات
+    const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
+    const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
     const hasActiveContract = activeContracts.length > 0;
 
     let occupancy: number;
@@ -102,7 +107,7 @@ const ReportsPage = () => {
       occupancy = 0;
     }
 
-    const annualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+    const annualRent = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
     const propExp = expenses.filter(e => e.property_id === property.id);
     const totalPropExpenses = propExp.reduce((sum, e) => sum + Number(e.amount), 0);
     const netIncome = annualRent - totalPropExpenses;
