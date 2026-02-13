@@ -131,7 +131,7 @@ const MySharePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
@@ -145,58 +145,58 @@ const MySharePage = () => {
         </div>
 
         {/* Share Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card className="shadow-sm gradient-primary text-primary-foreground">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-                  <Wallet className="w-6 h-6" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Wallet className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-primary-foreground/90">الحصة المستحقة</p>
-                  <p className="text-2xl font-bold">{myShare.toLocaleString()} ر.س</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-success" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">المبالغ المستلمة</p>
-                  <p className="text-2xl font-bold text-success">{totalReceived.toLocaleString()} ر.س</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-primary-foreground/90">الحصة المستحقة</p>
+                  <p className="text-base sm:text-2xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-warning/20 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-warning" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">المبالغ المعلقة</p>
-                  <p className="text-2xl font-bold text-warning">{pendingAmount.toLocaleString()} ر.س</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المستلمة</p>
+                  <p className="text-base sm:text-2xl font-bold text-success truncate">{totalReceived.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center">
-                  <Percent className="w-6 h-6 text-secondary" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">نسبة حصتي</p>
-                  <p className="text-2xl font-bold">{currentBeneficiary?.share_percentage || 0}%</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المعلقة</p>
+                  <p className="text-base sm:text-2xl font-bold text-warning truncate">{pendingAmount.toLocaleString()} ر.س</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة حصتي</p>
+                  <p className="text-base sm:text-2xl font-bold">{currentBeneficiary?.share_percentage || 0}%</p>
                 </div>
               </div>
             </CardContent>

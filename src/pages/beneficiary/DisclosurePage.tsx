@@ -78,7 +78,7 @@ const DisclosurePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
@@ -92,44 +92,44 @@ const DisclosurePage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="shadow-sm bg-success/10 border-success/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-success" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي الإيرادات</p>
-                  <p className="text-2xl font-bold text-success">+{totalIncome.toLocaleString()} ر.س</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الإيرادات</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success truncate">+{totalIncome.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm bg-destructive/10 border-destructive/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-destructive/20 rounded-xl flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-destructive" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-destructive/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي المصروفات</p>
-                  <p className="text-2xl font-bold text-destructive">-{totalExpenses.toLocaleString()} ر.س</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
+                  <p className="text-lg sm:text-2xl font-bold text-destructive truncate">-{totalExpenses.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm gradient-primary text-primary-foreground">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-                  <Wallet className="w-6 h-6" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-primary-foreground/90">حصتي المستحقة</p>
-                  <p className="text-2xl font-bold">{myShare.toLocaleString()} ر.س</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-primary-foreground/90">حصتي المستحقة</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -231,15 +231,15 @@ const DisclosurePage = () => {
               </div>
 
               {/* My Share */}
-              <div className="bg-primary/10 rounded-xl p-6 mt-4">
-                <div className="flex justify-between items-center">
+              <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mt-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
-                    <p className="text-sm text-muted-foreground">حصتي ({currentBeneficiary?.share_percentage || 0}%)</p>
-                    <p className="font-bold text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">حصتي ({currentBeneficiary?.share_percentage || 0}%)</p>
+                    <p className="font-bold text-xl sm:text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
                   </div>
-                  <div className="text-left">
-                    <p className="text-sm text-muted-foreground">الاسم</p>
-                    <p className="font-bold">{currentBeneficiary?.name || 'غير مرتبط'}</p>
+                  <div className="sm:text-left">
+                    <p className="text-xs sm:text-sm text-muted-foreground">الاسم</p>
+                    <p className="font-bold text-sm sm:text-base">{currentBeneficiary?.name || 'غير مرتبط'}</p>
                   </div>
                 </div>
               </div>
