@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 /** Skeleton for stat cards grid (AdminDashboard) */
 export const StatsGridSkeleton = ({ count = 9 }: { count?: number }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
     {Array.from({ length: count }).map((_, i) => (
       <Card key={i} className="shadow-sm">
         <CardContent className="p-6">
