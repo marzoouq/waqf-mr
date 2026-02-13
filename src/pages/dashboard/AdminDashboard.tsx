@@ -130,17 +130,17 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
             <Card key={index} className="shadow-sm hover:shadow-md transition-shadow animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold mt-1">{stat.value}</p>
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
+                    <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
                   </div>
-                  <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
-                    <stat.icon className="w-6 h-6 text-primary-foreground" />
+                  <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
+                    <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
                   </div>
                 </div>
               </CardContent>
@@ -173,11 +173,11 @@ const AdminDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                   {kpis.map((kpi, idx) => (
-                    <div key={idx} className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
-                      <p className="text-sm text-muted-foreground">{kpi.label}</p>
-                      <p className={`text-3xl font-bold ${kpi.color}`}>
+                    <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
+                      <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
+                      <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>
                         {kpi.value.toLocaleString()}{kpi.suffix}
                       </p>
                       {kpi.progressColor && (
