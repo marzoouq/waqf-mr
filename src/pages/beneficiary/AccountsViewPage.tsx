@@ -74,12 +74,13 @@ const AccountsViewPage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="animate-slide-up flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
-            <p className="text-muted-foreground mt-1">عرض تفصيلي للحسابات الختامية للوقف</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الحسابات الختامية</h1>
+            <p className="text-muted-foreground mt-1 text-sm">عرض تفصيلي للحسابات الختامية للوقف</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({
@@ -119,9 +120,6 @@ const AccountsViewPage = () => {
             }} />
           </div>
         </div>
-
-        {/* Fiscal Year Selector */}
-        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary */}
         <Card className="shadow-sm gradient-hero text-primary-foreground">

@@ -80,18 +80,16 @@ const DisclosurePage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="animate-slide-up">
-            <h1 className="text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
-            <p className="text-muted-foreground mt-1">السنة المالية: {fiscalYear}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الإفصاح السنوي</h1>
+            <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {fiscalYear}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
-
-        {/* Fiscal Year Selector */}
-        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
