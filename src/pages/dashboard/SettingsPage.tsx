@@ -273,9 +273,11 @@ const SettingsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">الإعدادات العامة</h1>
-          <p className="text-muted-foreground mt-1">إدارة جميع إعدادات النظام من مكان واحد</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">الإعدادات العامة</h1>
+            <p className="text-muted-foreground mt-1 text-sm">إدارة جميع إعدادات النظام من مكان واحد</p>
+          </div>
         </div>
         <Tabs defaultValue="waqf" dir="rtl">
           <TabsList className="w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
