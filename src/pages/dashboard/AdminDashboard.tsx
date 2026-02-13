@@ -112,19 +112,19 @@ const AdminDashboard = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between animate-slide-up flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display text-foreground">لوحة التحكم</h1>
-            <p className="text-muted-foreground mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">لوحة التحكم</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               مرحباً بك في نظام إدارة الوقف
               {selectedFY && <span className="text-primary font-medium"> — {selectedFY.label}</span>}
             </p>
           </div>
-          <div className="flex gap-2 print:hidden">
+          <div className="flex items-center gap-2 shrink-0 print:hidden">
             <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
-              طباعة
+              <span className="hidden sm:inline">طباعة</span>
             </Button>
           </div>
         </div>

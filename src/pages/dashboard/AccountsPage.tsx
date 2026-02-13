@@ -471,12 +471,18 @@ const AccountsPage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
-            <p className="text-muted-foreground mt-1">إدارة ومتابعة الحسابات السنوية</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الحسابات الختامية</h1>
+            <p className="text-muted-foreground mt-1 text-sm">إدارة ومتابعة الحسابات السنوية</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
+            {isClosed && (
+              <span className="text-xs text-destructive font-medium flex items-center gap-1">
+                <Lock className="w-3 h-3" /> سنة مقفلة
+              </span>
+            )}
             <ExportMenu onExportPdf={() => generateAccountsPDF({
               contracts,
               incomeBySource,
@@ -500,25 +506,15 @@ const AccountsPage = () => {
             }, pdfWaqfInfo)} />
             <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending || isClosed}>
               <Plus className="w-4 h-4" />
-              إنشاء حساب ختامي
+              <span className="hidden sm:inline">إنشاء حساب ختامي</span>
             </Button>
             {selectedFY && selectedFY.status === 'active' && (
               <Button variant="destructive" size="sm" onClick={() => setCloseYearOpen(true)} className="gap-2">
                 <Lock className="w-4 h-4" />
-                إقفال السنة
+                <span className="hidden sm:inline">إقفال السنة</span>
               </Button>
             )}
           </div>
-        </div>
-
-        {/* Fiscal Year Selector */}
-        <div className="flex flex-wrap items-center gap-4">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
-          {isClosed && (
-            <span className="text-sm text-destructive font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> سنة مقفلة - لا يمكن التعديل
-            </span>
-          )}
         </div>
 
         <AccountsSettingsBar
