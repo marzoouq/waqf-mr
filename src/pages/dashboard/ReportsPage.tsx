@@ -133,19 +133,17 @@ const ReportsPage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6" ref={reportRef}>
         {/* Header */}
-        <div className="flex items-center justify-between print:hidden">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير</h1>
-              <p className="text-muted-foreground mt-1">عرض التقارير والإحصائيات</p>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير</h1>
+            <p className="text-muted-foreground mt-1 text-sm">عرض التقارير والإحصائيات</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <FiscalYearSelector
               value={selectedFiscalYearId}
               onChange={setSelectedFiscalYearId}
               showAll={false}
             />
-          </div>
-          <div className="flex flex-wrap gap-2">
             <Button onClick={async () => {
               await generateAnnualDisclosurePDF({
                 fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
