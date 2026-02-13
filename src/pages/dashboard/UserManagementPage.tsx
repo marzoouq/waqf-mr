@@ -180,10 +180,10 @@ const UserManagementPage = () => {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">إدارة المستخدمين</h1>
-            <p className="text-muted-foreground mt-1">إنشاء وتعديل حسابات المستخدمين وصلاحياتهم</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستخدمين</h1>
+            <p className="text-muted-foreground mt-1 text-sm">إنشاء وتعديل حسابات المستخدمين وصلاحياتهم</p>
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
