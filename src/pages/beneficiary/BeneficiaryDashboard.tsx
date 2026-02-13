@@ -70,12 +70,12 @@ const BeneficiaryDashboard = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Welcome */}
-        <div className="flex items-center justify-between animate-slide-up">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
-            <p className="text-muted-foreground mt-1">واجهة المستفيد - عرض فقط</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
+            <p className="text-muted-foreground mt-1 text-sm">واجهة المستفيد - عرض فقط</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu hidePdf />
           </div>
