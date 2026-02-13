@@ -101,12 +101,12 @@ const ExpensesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المصروفات</h1>
-            <p className="text-muted-foreground mt-1">تسجيل ومتابعة المصروفات</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المصروفات</h1>
+            <p className="text-muted-foreground mt-1 text-sm">تسجيل ومتابعة المصروفات</p>
           </div>
-           <div className="flex flex-wrap gap-2">
+           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
