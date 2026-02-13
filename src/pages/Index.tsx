@@ -3,11 +3,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState([
+    { label: 'عقار مُدار', value: '...' },
+    { label: 'مستفيد', value: '...' },
+    { label: 'تقرير سنوي', value: '...' },
+  ]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -19,6 +26,22 @@ const Index = () => {
     }
   }, [user, role, loading, navigate]);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [{ count: propCount }, { count: benCount }, { count: fyCount }] = await Promise.all([
+        supabase.from('properties').select('*', { count: 'exact', head: true }),
+        supabase.from('beneficiaries').select('*', { count: 'exact', head: true }),
+        supabase.from('fiscal_years').select('*', { count: 'exact', head: true }),
+      ]);
+      setStats([
+        { label: 'عقار مُدار', value: String(propCount ?? 0) },
+        { label: 'مستفيد', value: String(benCount ?? 0) },
+        { label: 'تقرير سنوي', value: String(fyCount ?? 0) },
+      ]);
+    };
+    fetchStats();
+  }, []);
+
   const features = [
     { icon: Building2, title: 'إدارة العقارات', description: 'تسجيل ومتابعة جميع عقارات الوقف وتفاصيلها' },
     { icon: FileText, title: 'إدارة العقود', description: 'تنظيم عقود الإيجار ومتابعة المستأجرين والمدفوعات' },
@@ -28,11 +51,6 @@ const Index = () => {
     { icon: Shield, title: 'أمان وخصوصية', description: 'حماية متقدمة للبيانات مع إدارة دقيقة للصلاحيات' },
   ];
 
-  const stats = [
-    { label: 'عقار مُدار', value: '٥' },
-    { label: 'مستفيد', value: '١٤' },
-    { label: 'تقرير سنوي', value: '٤' },
-  ];
 
   return (
     <div className="min-h-screen bg-background">
