@@ -122,18 +122,16 @@ const FinancialReportsPage = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="animate-slide-up">
-            <h1 className="text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
-            <p className="text-muted-foreground mt-1">عرض وتحليل البيانات المالية للوقف</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير المالية</h1>
+            <p className="text-muted-foreground mt-1 text-sm">عرض وتحليل البيانات المالية للوقف</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
-
-        {/* Fiscal Year Selector */}
-        <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
