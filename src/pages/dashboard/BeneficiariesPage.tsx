@@ -116,16 +116,16 @@ const BeneficiariesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">إدارة المستفيدين</h1>
-            <p className="text-muted-foreground mt-1">عرض وإدارة المستفيدين من الوقف</p>
+       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستفيدين</h1>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض وإدارة المستفيدين من الوقف</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مستفيد</Button></DialogTrigger>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة مستفيد</span></Button></DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل بيانات مستفيد</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
@@ -167,20 +167,20 @@ const BeneficiariesPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
-                <div><p className="text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-3xl font-bold">{beneficiaries.length}</p></div>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
+                <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
               </div>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-6 h-6 text-secondary" /></div>
-                <div><p className="text-sm text-muted-foreground">مجموع النسب</p><p className="text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
+                <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
               </div>
             </CardContent>
           </Card>

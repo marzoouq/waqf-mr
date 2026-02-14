@@ -84,16 +84,16 @@ const IncomePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة الدخل</h1>
-            <p className="text-muted-foreground mt-1 text-sm">تسجيل ومتابعة مصادر الدخل</p>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">تسجيل ومتابعة مصادر الدخل</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة دخل</Button></DialogTrigger>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل دخل</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -128,10 +128,10 @@ const IncomePage = () => {
         </div>
 
         <Card className="shadow-sm gradient-primary text-primary-foreground">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center"><TrendingUp className="w-6 h-6" /></div>
-              <div><p className="text-sm text-primary-foreground/90">إجمالي الدخل</p><p className="text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p></div>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center"><TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" /></div>
+              <div><p className="text-xs sm:text-sm text-primary-foreground/90">إجمالي الدخل</p><p className="text-2xl sm:text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p></div>
             </div>
           </CardContent>
         </Card>
@@ -148,7 +148,7 @@ const IncomePage = () => {
             ) : filteredIncome.length === 0 ? (
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
-              <Table className="min-w-[650px]">
+              <div className="overflow-x-auto"><Table className="min-w-[650px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">المصدر</TableHead><TableHead className="text-right">المبلغ</TableHead>
@@ -175,7 +175,7 @@ const IncomePage = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table></div>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredIncome.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
