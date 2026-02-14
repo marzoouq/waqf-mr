@@ -13,6 +13,52 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Authentication: allow service role (cron) or admin user
+    const authHeader = req.headers.get("Authorization");
+    const isServiceRole = authHeader === `Bearer ${serviceKey}`;
+
+    if (!isServiceRole) {
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        return new Response(
+          JSON.stringify({ error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userId = claimsData.claims.sub;
+
+      // Verify admin role using service client
+      const adminClient = createClient(supabaseUrl, serviceKey);
+      const { data: roleData } = await adminClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden: admin only" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const supabase = createClient(supabaseUrl, serviceKey);
 
     // Find contracts expiring within 30 days
@@ -97,7 +143,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
