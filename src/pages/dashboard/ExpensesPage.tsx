@@ -100,7 +100,7 @@ const ExpensesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المصروفات</h1>
@@ -150,7 +150,7 @@ const ExpensesPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="shadow-sm bg-destructive/10 border-destructive/20">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -191,7 +191,8 @@ const ExpensesPage = () => {
             ) : filteredExpenses.length === 0 ? (
               <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (
-              <Table className="min-w-[700px]">
+               <div className="overflow-x-auto">
+               <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right w-8"></TableHead>
@@ -252,7 +253,8 @@ const ExpensesPage = () => {
                     );
                   })}
                 </TableBody>
-              </Table>
+               </Table>
+               </div>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredExpenses.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>

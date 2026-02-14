@@ -122,7 +122,7 @@ const ContractsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة العقود</h1>
@@ -207,35 +207,35 @@ const ContractsPage = () => {
         </div>
 
         {/* مربعات إحصائية */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"><FileText className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">إجمالي العقود</p><p className="text-xl font-bold">{stats.total}</p></div>
+             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+               <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div><p className="text-[10px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
             </CardContent>
           </Card>
           <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"><CheckCircle className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">العقود النشطة</p><p className="text-xl font-bold">{stats.active} <span className="text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
+             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+               <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
             </CardContent>
           </Card>
           <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"><XCircle className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">العقود المنتهية</p><p className="text-xl font-bold">{stats.expired}</p></div>
+             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+               <div className="p-1.5 sm:p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
             </CardContent>
           </Card>
           <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"><DollarSign className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{stats.totalRent.toLocaleString()} <span className="text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {stats.activeRent.toLocaleString()}</p></div>
+             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+               <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div><p className="text-[10px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold truncate">{stats.totalRent.toLocaleString()} <span className="text-[10px] sm:text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {stats.activeRent.toLocaleString()}</p></div>
             </CardContent>
           </Card>
           <Card className={`${stats.expiringSoon > 0 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-800' : 'border-orange-200 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-900'}`}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400' : 'bg-orange-100/50 dark:bg-orange-900/30 text-orange-400 dark:text-orange-600'}`}><AlertTriangle className="w-5 h-5" /></div>
-              <div><p className="text-xs text-muted-foreground">قريبة الانتهاء (90 يوم)</p><p className="text-xl font-bold">{stats.expiringSoon}</p></div>
+             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+               <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400' : 'bg-orange-100/50 dark:bg-orange-900/30 text-orange-400 dark:text-orange-600'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div><p className="text-[10px] sm:text-xs text-muted-foreground">قريبة الانتهاء (90 يوم)</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
             </CardContent>
           </Card>
         </div>
@@ -252,7 +252,8 @@ const ContractsPage = () => {
             ) : filteredContracts.length === 0 ? (
               <div className="py-12 text-center"><FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p></div>
             ) : (
-              <Table className="min-w-[1000px]">
+               <div className="overflow-x-auto">
+               <Table className="min-w-[1000px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
@@ -287,7 +288,8 @@ const ContractsPage = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+               </Table>
+               </div>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
