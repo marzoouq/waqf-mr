@@ -28,16 +28,15 @@ const Index = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [{ count: propCount }, { count: benCount }, { count: fyCount }] = await Promise.all([
-        supabase.from('properties').select('*', { count: 'exact', head: true }),
-        supabase.from('beneficiaries').select('*', { count: 'exact', head: true }),
-        supabase.from('fiscal_years').select('*', { count: 'exact', head: true }),
-      ]);
-      setStats([
-        { label: 'عقار مُدار', value: String(propCount ?? 0) },
-        { label: 'مستفيد', value: String(benCount ?? 0) },
-        { label: 'تقرير سنوي', value: String(fyCount ?? 0) },
-      ]);
+      const { data, error } = await supabase.rpc('get_public_stats');
+      if (!error && data) {
+        const d = data as { properties: number; beneficiaries: number; fiscal_years: number };
+        setStats([
+          { label: 'عقار مُدار', value: String(d.properties ?? 0) },
+          { label: 'مستفيد', value: String(d.beneficiaries ?? 0) },
+          { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
+        ]);
+      }
     };
     fetchStats();
   }, []);
