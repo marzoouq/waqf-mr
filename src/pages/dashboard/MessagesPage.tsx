@@ -63,18 +63,18 @@ const MessagesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 h-[calc(100vh-theme(spacing.14))] lg:h-screen flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="font-display text-2xl font-bold">المراسلات</h1>
+       <div className="p-3 sm:p-4 md:p-6 h-[calc(100vh-theme(spacing.14))] lg:h-screen flex flex-col">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h1 className="font-display text-xl sm:text-2xl font-bold">المراسلات</h1>
           {role === 'admin' && (
             <Button onClick={() => setNewConvOpen(true)} className="gap-2" size="sm">
               <Plus className="w-4 h-4" />
-              محادثة جديدة
+              <span className="hidden sm:inline">محادثة جديدة</span>
             </Button>
           )}
         </div>
 
-        <div className="flex-1 flex gap-4 min-h-0">
+        <div className="flex-1 flex gap-2 sm:gap-4 min-h-0">
           {/* Conversations List */}
           <Card className={cn('w-full md:w-80 flex-shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
             <div className="p-3 border-b border-border">

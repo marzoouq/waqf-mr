@@ -131,12 +131,12 @@ const ReportsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6" ref={reportRef}>
+       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6" ref={reportRef}>
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض التقارير والإحصائيات</p>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض التقارير والإحصائيات</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <FiscalYearSelector
@@ -182,42 +182,44 @@ const ReportsPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">إجمالي الدخل</p>
-              <p className="text-2xl font-bold text-success">{totalIncome.toLocaleString()} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي الدخل</p>
+              <p className="text-lg sm:text-2xl font-bold text-success">{totalIncome.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">إجمالي المصروفات</p>
-              <p className="text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
+              <p className="text-lg sm:text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">صافي الريع</p>
-              <p className="text-2xl font-bold text-primary">{netRevenue.toLocaleString()} ر.س</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-[10px] sm:text-sm text-muted-foreground">صافي الريع</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary">{netRevenue.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">عدد العقارات</p>
-              <p className="text-2xl font-bold">{properties.length}</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-[10px] sm:text-sm text-muted-foreground">عدد العقارات</p>
+              <p className="text-lg sm:text-2xl font-bold">{properties.length}</p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="financial" dir="rtl">
-          <TabsList className="print:hidden">
-            <TabsTrigger value="financial">
-              <FileText className="w-4 h-4 ml-2" />
-              التقارير المالية
+          <TabsList className="print:hidden w-full sm:w-auto">
+            <TabsTrigger value="financial" className="text-xs sm:text-sm">
+              <FileText className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">التقارير المالية</span>
+              <span className="sm:hidden">المالية</span>
             </TabsTrigger>
-            <TabsTrigger value="performance">
-              <TrendingUp className="w-4 h-4 ml-2" />
-              مقارنة أداء العقارات
+            <TabsTrigger value="performance" className="text-xs sm:text-sm">
+              <TrendingUp className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">مقارنة أداء العقارات</span>
+              <span className="sm:hidden">الأداء</span>
             </TabsTrigger>
           </TabsList>
 
@@ -391,7 +393,7 @@ const ReportsPage = () => {
               </CardHeader>
               <CardContent>
                 {distributionData.length > 0 ? (
-                  <Table>
+                  <div className="overflow-x-auto"><Table className="min-w-[500px]">
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="text-right">المستفيد</TableHead>
@@ -413,7 +415,7 @@ const ReportsPage = () => {
                         <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     </TableBody>
-                  </Table>
+                  </Table></div>
                 ) : (
                   <div className="py-12 text-center text-muted-foreground">لا يوجد مستفيدين مسجلين</div>
                 )}
@@ -431,7 +433,7 @@ const ReportsPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <Table>
+                  <Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="text-right">#</TableHead>
