@@ -166,11 +166,11 @@ const InvoicesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة الفواتير</h1>
-            <p className="text-muted-foreground mt-1 text-sm">رفع وإدارة جميع أنواع الفواتير</p>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">رفع وإدارة جميع أنواع الفواتير</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={async () => {
@@ -193,7 +193,7 @@ const InvoicesPage = () => {
             }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />رفع فاتورة</Button>
+                <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
               </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle><DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription></DialogHeader>
@@ -341,7 +341,7 @@ const InvoicesPage = () => {
                   <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد فواتير مرفوعة'}</p>
                 </div>
               ) : (
-                <Table className="min-w-[800px]">
+                <div className="overflow-x-auto"><Table className="min-w-[800px]">
                   <TableHeader>
                     <TableRow className="bg-muted/50">
                       <TableHead className="text-right">النوع</TableHead>
@@ -393,7 +393,7 @@ const InvoicesPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
               <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </CardContent>
