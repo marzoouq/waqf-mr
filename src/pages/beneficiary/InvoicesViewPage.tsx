@@ -68,18 +68,18 @@ const InvoicesViewPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
-            <p className="text-muted-foreground mt-1">عرض جميع فواتير الوقف</p>
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الفواتير</h1>
+            <p className="text-muted-foreground mt-1 text-sm">عرض جميع فواتير الوقف</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 justify-between">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between">
           <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
           <div className="flex gap-1 border rounded-lg p-1">
             <Button
@@ -121,42 +121,44 @@ const InvoicesViewPage = () => {
                   <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج' : 'لا توجد فواتير'}</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">النوع</TableHead>
-                      <TableHead className="text-right">رقم الفاتورة</TableHead>
-                      <TableHead className="text-right">المبلغ</TableHead>
-                      <TableHead className="text-right">التاريخ</TableHead>
-                      <TableHead className="text-right">العقار</TableHead>
-                      <TableHead className="text-right">الحالة</TableHead>
-                      <TableHead className="text-right">الملف</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
-                        <TableCell>{item.invoice_number || '-'}</TableCell>
-                        <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>{item.date}</TableCell>
-                        <TableCell>{item.property?.property_number || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant={statusBadgeVariant(item.status)}>
-                            {INVOICE_STATUS_LABELS[item.status] || item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {item.file_path ? (
-                            <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
-                              <Eye className="w-4 h-4" />عرض
-                            </Button>
-                          ) : '-'}
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table className="min-w-[700px]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-right">النوع</TableHead>
+                        <TableHead className="text-right">رقم الفاتورة</TableHead>
+                        <TableHead className="text-right">المبلغ</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">العقار</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">الملف</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
+                          <TableCell>{item.invoice_number || '-'}</TableCell>
+                          <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{item.date}</TableCell>
+                          <TableCell>{item.property?.property_number || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant={statusBadgeVariant(item.status)}>
+                              {INVOICE_STATUS_LABELS[item.status] || item.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {item.file_path ? (
+                              <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
+                                <Eye className="w-4 h-4" /><span className="hidden sm:inline">عرض</span>
+                              </Button>
+                            ) : '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
               <TablePagination currentPage={currentPage} totalItems={filteredInvoices.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
             </CardContent>

@@ -120,99 +120,99 @@ const FinancialReportsPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير المالية</h1>
             <p className="text-muted-foreground mt-1 text-sm">عرض وتحليل البيانات المالية للوقف</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-success" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي الإيرادات</p>
-                  <p className="text-xl font-bold text-success">{totalIncome.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي الإيرادات</p>
+                  <p className="text-sm sm:text-xl font-bold text-success truncate">{totalIncome.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-destructive/20 rounded-xl flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-destructive" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-destructive/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">إجمالي المصروفات</p>
-                  <p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
+                  <p className="text-sm sm:text-xl font-bold text-destructive truncate">{totalExpenses.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
-                  <Building className="w-6 h-6 text-primary" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">الصافي بعد الضريبة</p>
-                  <p className="text-xl font-bold text-primary">{netAfterVat.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">الصافي بعد الضريبة</p>
+                  <p className="text-sm sm:text-xl font-bold text-primary truncate">{netAfterVat.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm gradient-primary text-primary-foreground">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center">
-                  <PieChart className="w-6 h-6" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <PieChart className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <p className="text-sm text-primary-foreground/90">حصتي</p>
-                  <p className="text-xl font-bold">{myShare.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصتي</p>
+                  <p className="text-sm sm:text-xl font-bold truncate">{myShare.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-orange-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-orange-500/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">الزكاة</p>
-                  <p className="text-xl font-bold text-orange-600">{zakatAmount.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">الزكاة</p>
+                  <p className="text-sm sm:text-xl font-bold text-orange-600 truncate">{zakatAmount.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-violet-500/20 rounded-xl flex items-center justify-center">
-                  <Building className="w-6 h-6 text-violet-600" />
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-violet-500/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-violet-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">رقبة الوقف</p>
-                  <p className="text-xl font-bold text-violet-600">{waqfCorpusManual.toLocaleString()}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-muted-foreground">رقبة الوقف</p>
+                  <p className="text-sm sm:text-xl font-bold text-violet-600 truncate">{waqfCorpusManual.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -220,17 +220,17 @@ const FinancialReportsPage = () => {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>مقارنة الإيرادات والمصروفات</CardTitle>
+              <CardTitle className="text-sm sm:text-base">مقارنة الإيرادات والمصروفات</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="px-2 sm:px-6">
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={incomeVsExpenses}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 11 }} width={50} />
                   <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {incomeVsExpenses.map((entry, index) => (
@@ -244,99 +244,99 @@ const FinancialReportsPage = () => {
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>توزيع الريع</CardTitle>
+              <CardTitle className="text-sm sm:text-base">توزيع الريع</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               {distributionData.some(d => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
                   <Pie
                     data={distributionData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={90}
+                    outerRadius={80}
                     dataKey="value"
-                    labelLine={true}
+                    labelLine={false}
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: '11px' }}
                   >
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
               )}
             </CardContent>
           </Card>
         </div>
 
         {/* Charts Row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>الإيرادات حسب المصدر</CardTitle>
+              <CardTitle className="text-sm sm:text-base">الإيرادات حسب المصدر</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               {incomePieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
                   <Pie
                     data={incomePieData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={90}
+                    outerRadius={80}
                     dataKey="value"
-                    labelLine={true}
+                    labelLine={false}
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: '11px' }}
                   >
                     {incomePieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
               )}
             </CardContent>
           </Card>
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>المصروفات حسب النوع</CardTitle>
+              <CardTitle className="text-sm sm:text-base">المصروفات حسب النوع</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               {expensesPieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
                   <Pie
                     data={expensesPieData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={90}
+                    outerRadius={80}
                     dataKey="value"
-                    labelLine={true}
+                    labelLine={false}
                     label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: '11px' }}
                   >
                     {expensesPieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
               )}
             </CardContent>
           </Card>
@@ -345,21 +345,21 @@ const FinancialReportsPage = () => {
         {/* Monthly Trend */}
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>الإيرادات الشهرية</CardTitle>
+            <CardTitle className="text-sm sm:text-base">الإيرادات الشهرية</CardTitle>
           </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
-                  <YAxis />
+                  <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} width={50} />
                   <Tooltip formatter={(value: number) => Math.round(value).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                   <Bar dataKey="income" fill="#22c55e" name="الإيرادات" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات شهرية</div>
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات شهرية</div>
               )}
             </CardContent>
         </Card>
