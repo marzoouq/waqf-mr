@@ -51,10 +51,49 @@ const Index = () => {
   ];
 
 
+  // JSON-LD structured data for SEO
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "وقف مرزوق بن علي الدبشي",
+    description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الدبشي - إدارة العقارات والعقود والحسابات الختامية والإفصاحات السنوية",
+    url: "https://waqf-mr.lovable.app",
+    logo: "https://waqf-mr.lovable.app/favicon.ico",
+    foundingDate: "1446",
+    areaServed: { "@type": "Country", name: "SA" },
+    knowsAbout: ["إدارة الأوقاف", "العقارات", "توزيع الريع", "الحسابات الختامية"],
+  };
+
+  const webAppJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "نظام إدارة الوقف",
+    description: "منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين",
+    url: "https://waqf-mr.lovable.app",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    inLanguage: "ar",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "SAR",
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
+      {/* SEO: JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+      />
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center">
+      <header className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center" role="banner">
         {/* Islamic geometric SVG decoration */}
         <div className="absolute inset-0 opacity-[0.07]">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -130,7 +169,7 @@ const Index = () => {
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
           <ChevronDown className="w-6 h-6 text-white/40" />
         </div>
-      </section>
+      </header>
 
       {/* Features Section */}
       <section className="py-20 md:py-28 relative">
@@ -202,7 +241,7 @@ const Index = () => {
           </p>
         </div>
       </footer>
-    </div>
+    </main>
   );
 };
 
