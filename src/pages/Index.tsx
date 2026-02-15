@@ -235,7 +235,16 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="bg-primary py-8 border-t border-primary-foreground/10">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center space-y-3">
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <button onClick={() => navigate('/privacy')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
+              سياسة الخصوصية
+            </button>
+            <span className="text-primary-foreground/30">|</span>
+            <button onClick={() => navigate('/terms')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
+              شروط الاستخدام
+            </button>
+          </div>
           <p className="text-primary-foreground/60 text-sm">
             نظام إدارة الوقف © {new Date().getFullYear()} — جميع الحقوق محفوظة
           </p>
