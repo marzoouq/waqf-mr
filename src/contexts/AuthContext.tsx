@@ -11,6 +11,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import { useQuery } from '@tanstack/react-query';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 
 interface AuthContextType {
@@ -99,14 +100,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRole(null);
   };
 
+  const { data: idleMinutes } = useQuery({
+    queryKey: ['idle-timeout-setting'],
+    queryFn: async () => {
+      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').single();
+      return data?.value ? parseInt(data.value, 10) : 15;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const timeoutMs = (idleMinutes ?? 15) * 60 * 1000;
+
   const handleIdleLogout = useCallback(async () => {
     await signOut();
     window.location.href = '/auth?reason=idle';
   }, []);
 
   const { showWarning, remaining, stayActive } = useIdleTimeout({
-    timeout: 15 * 60 * 1000, // 15 دقيقة
-    warningBefore: 60 * 1000, // تحذير قبل 60 ثانية
+    timeout: timeoutMs,
+    warningBefore: 60 * 1000,
     onIdle: handleIdleLogout,
   });
 

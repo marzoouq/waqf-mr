@@ -1,0 +1,1 @@
+INSERT INTO public.app_settings (key, value) VALUES ('idle_timeout_minutes', '15') ON CONFLICT (key) DO NOTHING;
