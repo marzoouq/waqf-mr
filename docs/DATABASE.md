@@ -296,6 +296,16 @@ erDiagram
 
 ---
 
+## المشغلات (Triggers) — 22 مشغل نشط
+
+| النوع | العدد | الوصف |
+|-------|-------|-------|
+| `audit_trigger` | 10 | تسجيل التغييرات في `audit_log` للجداول المالية والتعاقدية |
+| `prevent_closed_fy` | 3 | منع تعديل بيانات السنوات المالية المقفلة (income, expenses, invoices) |
+| `update_updated_at` | 9 | تحديث حقل `updated_at` تلقائياً عند التعديل |
+
+---
+
 ## الدوال المخزنة (Functions)
 
 | الدالة | الوصف |
@@ -306,5 +316,6 @@ erDiagram
 | `audit_trigger_func()` | تسجيل التغييرات في سجل المراجعة |
 | `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة |
 | `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً |
+| `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية |
 
 </div>

@@ -102,7 +102,7 @@ await supabase.functions.invoke('admin-manage-users', {
 
 ## 2. `ai-assistant` — المساعد الذكي
 
-**الوصف**: مساعد ذكي يعمل بنموذج Gemini عبر Lovable AI.
+**الوصف**: مساعد ذكي يعمل بنموذج **Google Gemini 2.5 Pro** عبر Lovable AI. أقوى نموذج في عائلة Gemini للتحليل المالي العميق.
 
 **المصادقة**: يتطلب JWT صالح (أي مستخدم مسجل دخوله).
 

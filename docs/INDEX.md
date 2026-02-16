@@ -1,6 +1,20 @@
-# 📚 فهرس التوثيق — نظام إدارة الوقف
+<div dir="rtl">
+
+# 📚 فهرس التوثيق — نظام إدارة وقف مرزوق بن علي الثبيتي
 
 > نقطة الدخول الموحدة لكافة ملفات التوثيق في المشروع
+
+---
+
+## حالة الفحص الأخير
+
+| البند | القيمة |
+|-------|--------|
+| تاريخ الفحص | 2026-02-16 |
+| المشغلات النشطة | 22 (10 audit + 3 prevent + 9 updated_at) |
+| سياسات RLS | مفعلة على 16 جدول |
+| Edge Functions | 5 وظائف (محدّثة) |
+| نموذج AI | google/gemini-2.5-pro |
 
 ---
 
@@ -22,16 +36,62 @@
 ← [README.md](../README.md) — هيكل المجلدات، التقنيات المستخدمة، أنماط التصميم
 
 ### 🗄️ قاعدة البيانات
-← [DATABASE.md](./DATABASE.md) — 16 جدول، علاقات، سياسات أمان، دوال مخزنة
+← [DATABASE.md](./DATABASE.md) — 16 جدول، 22 مشغل، علاقات، سياسات أمان، دوال مخزنة
 
 ### 🔌 الواجهات البرمجية
-← [API.md](./API.md) — 5 Edge Functions: إدارة المستخدمين، المساعد الذكي، انتهاء العقود، الهوية الوطنية
+← [API.md](./API.md) — 5 Edge Functions: إدارة المستخدمين، المساعد الذكي (gemini-2.5-pro)، انتهاء العقود، تنبيهات العقود، البحث بالهوية
 
 ### 👥 واجهة المستفيد
-← [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) — 4 صفحات: الإفصاح السنوي، حصتي من الريع، التقارير المالية، الحسابات
+← [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) — الإفصاح السنوي، حصتي من الريع، التقارير المالية، الحسابات
 
 ### 🔧 واجهة الناظر
 ← [ADMIN-PAGES.md](./ADMIN-PAGES.md) — لوحة التحكم، الحسابات الختامية، التقارير، آلية الإقفال والأرشفة
+
+### 📄 الصفحات العامة
+- سياسة الخصوصية (`/privacy-policy`)
+- شروط الاستخدام (`/terms-of-use`)
+
+---
+
+## خريطة المسارات (27 مسار)
+
+### مسارات عامة
+| المسار | الوصف |
+|--------|-------|
+| `/` | الصفحة الرئيسية |
+| `/auth` | تسجيل الدخول |
+| `/privacy-policy` | سياسة الخصوصية |
+| `/terms-of-use` | شروط الاستخدام |
+| `/unauthorized` | صفحة عدم الصلاحية |
+
+### مسارات الناظر (`/dashboard/*`)
+| المسار | الوصف |
+|--------|-------|
+| `/dashboard` | لوحة التحكم الرئيسية |
+| `/dashboard/properties` | إدارة العقارات |
+| `/dashboard/contracts` | إدارة العقود |
+| `/dashboard/income` | إدارة الإيرادات |
+| `/dashboard/expenses` | إدارة المصروفات |
+| `/dashboard/beneficiaries` | إدارة المستفيدين |
+| `/dashboard/accounts` | الحسابات الختامية |
+| `/dashboard/reports` | التقارير |
+| `/dashboard/invoices` | الفواتير والمستندات |
+| `/dashboard/messages` | الرسائل |
+| `/dashboard/settings` | الإعدادات |
+| `/dashboard/users` | إدارة المستخدمين |
+| `/dashboard/audit-log` | سجل المراجعة |
+
+### مسارات المستفيد (`/beneficiary/*`)
+| المسار | الوصف |
+|--------|-------|
+| `/beneficiary` | لوحة المستفيد |
+| `/beneficiary/disclosure` | الإفصاح السنوي |
+| `/beneficiary/my-share` | حصتي من الريع |
+| `/beneficiary/financial-reports` | التقارير المالية |
+| `/beneficiary/accounts` | عرض الحسابات |
+| `/beneficiary/invoices` | عرض الفواتير |
+| `/beneficiary/messages` | الرسائل |
+| `/beneficiary/notifications` | الإشعارات |
 
 ---
 
@@ -48,3 +108,5 @@
 ```
 
 > 📖 التفاصيل الكاملة في [ADMIN-PAGES.md](./ADMIN-PAGES.md#2-الحسابات-الختامية-accountspage) و [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md)
+
+</div>
