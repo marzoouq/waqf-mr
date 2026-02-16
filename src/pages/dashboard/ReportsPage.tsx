@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { BarChart3, CalendarRange, Download, FileText, TrendingUp } from 'lucide-react';
+import { BarChart3, CalendarRange, Download, FileText, TrendingUp, GitCompareArrows } from 'lucide-react';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
+import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import ExportMenu from '@/components/ExportMenu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { generateAnnualReportPDF, generateAnnualDisclosurePDF } from '@/utils/pdf';
@@ -226,6 +227,11 @@ const ReportsPage = () => {
               <CalendarRange className="w-4 h-4 ml-1 sm:ml-2" />
               <span className="hidden sm:inline">الأداء الشهري</span>
               <span className="sm:hidden">شهري</span>
+            </TabsTrigger>
+            <TabsTrigger value="comparison" className="text-xs sm:text-sm">
+              <GitCompareArrows className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">مقارنة سنوية</span>
+              <span className="sm:hidden">مقارنة</span>
             </TabsTrigger>
           </TabsList>
 
@@ -500,6 +506,13 @@ const ReportsPage = () => {
               income={income}
               expenses={expenses}
               fiscalYear={currentAccount?.fiscal_year}
+            />
+          </TabsContent>
+
+          <TabsContent value="comparison" className="space-y-6">
+            <YearOverYearComparison
+              fiscalYears={fiscalYears}
+              currentFiscalYearId={selectedFiscalYearId}
             />
           </TabsContent>
         </Tabs>
