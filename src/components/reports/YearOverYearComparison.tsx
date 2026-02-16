@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -37,10 +37,18 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
 
 const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: YearOverYearComparisonProps) => {
   const [year1Id, setYear1Id] = useState(currentFiscalYearId);
-  const [year2Id, setYear2Id] = useState(() => {
-    const other = fiscalYears.find(fy => fy.id !== currentFiscalYearId);
-    return other?.id || '';
-  });
+  const [year2Id, setYear2Id] = useState('');
+
+  // Sync when fiscal years load (currentFiscalYearId starts as '')
+  useEffect(() => {
+    if (currentFiscalYearId && !year1Id) {
+      setYear1Id(currentFiscalYearId);
+    }
+    if (fiscalYears.length >= 2 && !year2Id) {
+      const other = fiscalYears.find(fy => fy.id !== currentFiscalYearId);
+      if (other) setYear2Id(other.id);
+    }
+  }, [currentFiscalYearId, fiscalYears]);
 
   const year1Label = fiscalYears.find(fy => fy.id === year1Id)?.label || '';
   const year2Label = fiscalYears.find(fy => fy.id === year2Id)?.label || '';
