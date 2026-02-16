@@ -1,9 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,7 +11,6 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Authentication: allow service role (cron) or admin user
     const authHeader = req.headers.get("Authorization");
     const isServiceRole = authHeader === `Bearer ${serviceKey}`;
 
@@ -31,23 +26,19 @@ Deno.serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
+      const { data: { user }, error: userError } = await userClient.auth.getUser();
+      if (userError || !user) {
         return new Response(
           JSON.stringify({ error: "Invalid token" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const userId = claimsData.claims.sub;
-
-      // Verify admin role using service client
       const adminClient = createClient(supabaseUrl, serviceKey);
       const { data: roleData } = await adminClient
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
 
@@ -61,7 +52,6 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Find contracts expiring within 30 days
     const today = new Date();
     const thirtyDaysLater = new Date(today);
     thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
@@ -83,7 +73,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get admin user IDs
     const { data: admins } = await supabase
       .from("user_roles")
       .select("user_id")
@@ -95,7 +84,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check existing notifications to avoid duplicates (same day)
     const { data: existing } = await supabase
       .from("notifications")
       .select("message")

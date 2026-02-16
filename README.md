@@ -1,73 +1,75 @@
-# Welcome to your Lovable project
+<div dir="rtl">
 
-## Project info
+# نظام إدارة وقف مرزوق بن علي الثبيتي
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+نظام إلكتروني شامل لإدارة الأوقاف يتضمن إدارة العقارات والعقود والإيرادات والمصروفات وتوزيع الحصص على المستفيدين، مع مساعد ذكي يعمل بالذكاء الاصطناعي.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## التقنيات المستخدمة
 
-**Use Lovable**
+| التقنية | الاستخدام |
+|---------|-----------|
+| React + TypeScript | الواجهة الأمامية |
+| Vite | أداة البناء |
+| Tailwind CSS | التنسيق |
+| shadcn/ui | مكتبة المكونات |
+| Lovable Cloud | قاعدة البيانات والمصادقة والوظائف الخلفية |
+| Lovable AI (Gemini 2.5 Pro) | المساعد الذكي |
+| jsPDF | تصدير التقارير PDF |
+| Recharts | الرسوم البيانية |
+| TanStack Query | إدارة البيانات والتخزين المؤقت |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## الأدوار
 
-**Use your preferred IDE**
+| الدور | الصلاحيات |
+|-------|-----------|
+| **ناظر الوقف** (admin) | صلاحيات كاملة — إدارة العقارات والعقود والمالية والمستفيدين |
+| **المستفيد** (beneficiary) | عرض فقط — الإفصاح، حصته، التقارير المالية |
+| **الواقف** (waqif) | عرض فقط — التقارير والحسابات |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## الميزات الرئيسية
 
-Follow these steps:
+- ✅ إدارة العقارات والوحدات العقارية
+- ✅ إدارة العقود وتتبع الإيجارات
+- ✅ تسجيل الإيرادات والمصروفات
+- ✅ الحسابات الختامية وتوزيع الحصص
+- ✅ إدارة المستفيدين وربطهم بحسابات مستخدمين
+- ✅ نظام الفواتير والمستندات
+- ✅ الإفصاح السنوي والتقارير المالية
+- ✅ نظام الإشعارات والرسائل
+- ✅ مساعد ذكي بالذكاء الاصطناعي (Gemini 2.5 Pro)
+- ✅ تصدير PDF باللغة العربية
+- ✅ سجل مراجعة جنائي (Audit Log)
+- ✅ حماية السنوات المالية المقفلة
+- ✅ تنبيهات انتهاء العقود التلقائية
+- ✅ سياسات أمان (RLS) على جميع الجداول
+
+---
+
+## التوثيق
+
+📖 راجع [فهرس التوثيق](docs/INDEX.md) للوصول لجميع ملفات التوثيق التفصيلية.
+
+---
+
+## التشغيل المحلي
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## النشر
 
-**Use GitHub Codespaces**
+يتم النشر مباشرة عبر منصة [Lovable](https://lovable.dev) → Share → Publish.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+</div>
