@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Legend, LineChart, Line,
+  Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +70,16 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       return keys.some(k => (d as any)[k] !== 0);
     });
   }, [summary1.income, summary1.expenses, summary2.income, summary2.expenses, year1Label, year2Label]);
+
+  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+
+  const expensesByType1 = useMemo(() => {
+    return Object.entries(summary1.expensesByType).map(([name, value]) => ({ name, value }));
+  }, [summary1.expensesByType]);
+
+  const expensesByType2 = useMemo(() => {
+    return Object.entries(summary2.expensesByType).map(([name, value]) => ({ name, value }));
+  }, [summary2.expensesByType]);
 
   const yearTotals = useMemo(() => ({
     year1: { income: summary1.totalIncome, expenses: summary1.totalExpenses, net: summary1.totalIncome - summary1.totalExpenses },
@@ -243,6 +253,78 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
           </div>
         </CardContent>
       </Card>
+
+      {/* Expense Distribution Pie Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <Badge variant="outline">{year1Label}</Badge>
+              توزيع المصروفات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expensesByType1.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={expensesByType1}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    outerRadius={85}
+                    dataKey="value"
+                    style={{ fontSize: '11px' }}
+                  >
+                    {expensesByType1.map((_entry, index) => (
+                      <Cell key={`cell-y1-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">لا توجد بيانات</div>
+            )}
+          </CardContent>
+        </Card>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <Badge variant="secondary">{year2Label}</Badge>
+              توزيع المصروفات
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expensesByType2.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={expensesByType2}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    outerRadius={85}
+                    dataKey="value"
+                    style={{ fontSize: '11px' }}
+                  >
+                    {expensesByType2.map((_entry, index) => (
+                      <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">لا توجد بيانات</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Comparison Table */}
       <Card className="shadow-sm">
