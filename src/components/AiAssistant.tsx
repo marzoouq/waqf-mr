@@ -126,7 +126,10 @@ const AiAssistant = () => {
           </div>
           <div>
             <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
-            <p className="text-[10px] text-sidebar-foreground/60">مدعوم بالذكاء الاصطناعي</p>
+            <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              Gemini 2.5 Pro
+            </p>
           </div>
         </div>
         <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setOpen(false)}>
