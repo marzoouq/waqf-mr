@@ -1,19 +1,23 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
-import { ArrowUpDown, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
+import { generateYearComparisonPDF } from '@/utils/pdf';
+import { PdfWaqfInfo } from '@/utils/pdf/core';
 
 interface YearOverYearComparisonProps {
   fiscalYears: FiscalYear[];
   currentFiscalYearId: string;
+  waqfInfo?: PdfWaqfInfo;
 }
 
 const MONTH_NAMES = [
@@ -31,7 +35,7 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   return map;
 }
 
-const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYearComparisonProps) => {
+const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: YearOverYearComparisonProps) => {
   const [year1Id, setYear1Id] = useState(currentFiscalYearId);
   const [year2Id, setYear2Id] = useState(() => {
     const other = fiscalYears.find(fy => fy.id !== currentFiscalYearId);
@@ -98,6 +102,32 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
+  const handleExportPDF = async () => {
+    const MONTH_LABELS = MONTH_NAMES;
+    const incomeMap1 = buildMonthlyMap(summary1.income);
+    const expenseMap1 = buildMonthlyMap(summary1.expenses);
+    const incomeMap2 = buildMonthlyMap(summary2.income);
+    const expenseMap2 = buildMonthlyMap(summary2.expenses);
+
+    const monthlyPdfData = MONTH_LABELS.map((name, idx) => ({
+      month: name,
+      income1: incomeMap1.get(idx) || 0,
+      expenses1: expenseMap1.get(idx) || 0,
+      net1: (incomeMap1.get(idx) || 0) - (expenseMap1.get(idx) || 0),
+      income2: incomeMap2.get(idx) || 0,
+      expenses2: expenseMap2.get(idx) || 0,
+      net2: (incomeMap2.get(idx) || 0) - (expenseMap2.get(idx) || 0),
+    })).filter(m => m.income1 || m.expenses1 || m.income2 || m.expenses2);
+
+    await generateYearComparisonPDF({
+      year1Label, year2Label,
+      year1: yearTotals.year1, year2: yearTotals.year2,
+      incomeChange, expenseChange, netChange,
+      expensesByType1, expensesByType2,
+      monthlyData: monthlyPdfData,
+    }, waqfInfo);
+  };
+
   if (fiscalYears.length < 2) {
     return (
       <Card className="shadow-sm">
@@ -145,6 +175,10 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 </SelectContent>
               </Select>
             </div>
+            <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={handleExportPDF}>
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">تصدير PDF</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
