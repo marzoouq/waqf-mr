@@ -6,10 +6,12 @@
  * الأدوار المدعومة: admin (ناظر), beneficiary (مستفيد), waqif (واقف)
  * يتم جلب الدور تلقائياً عند تسجيل الدخول ومسحه عند الخروج.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 
 interface AuthContextType {
   user: User | null;
@@ -97,9 +99,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRole(null);
   };
 
+  const handleIdleLogout = useCallback(async () => {
+    await signOut();
+    window.location.href = '/auth?reason=idle';
+  }, []);
+
+  const { showWarning, remaining, stayActive } = useIdleTimeout({
+    timeout: 15 * 60 * 1000, // 15 دقيقة
+    warningBefore: 60 * 1000, // تحذير قبل 60 ثانية
+    onIdle: handleIdleLogout,
+  });
+
   return (
     <AuthContext.Provider value={{ user, session, role, loading, signIn, signUp, signOut }}>
       {children}
+      {session && (
+        <IdleTimeoutWarning
+          open={showWarning}
+          remaining={remaining}
+          onStayActive={stayActive}
+        />
+      )}
     </AuthContext.Provider>
   );
 };

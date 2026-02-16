@@ -23,6 +23,15 @@ const Auth = () => {
   const { signIn, signUp, user, role, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Show idle logout message
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('reason') === 'idle') {
+      toast.info('تم تسجيل خروجك تلقائياً بسبب عدم النشاط. يرجى تسجيل الدخول مرة أخرى.');
+      window.history.replaceState({}, '', '/auth');
+    }
+  }, []);
+
   useEffect(() => {
     if (user && !loading) {
       if (role === 'beneficiary') {
