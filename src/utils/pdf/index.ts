@@ -7,3 +7,5 @@ export { generateIncomePDF, generateExpensesPDF } from './expenses';
 export { generateAccountsPDF } from './accounts';
 export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
 export { generateInvoicesViewPDF } from './invoices';
+export { generateYearComparisonPDF } from './comparison';
+export type { YearComparisonPdfData } from './comparison';
