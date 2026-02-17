@@ -399,6 +399,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const invalidIds = invoice_ids.filter((id: unknown) => typeof id !== "string" || !UUID_RE.test(id));
+    if (invalidIds.length > 0) {
+      return new Response(JSON.stringify({ error: "Invalid UUID format in invoice_ids", invalid: invalidIds }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: invoices, error: fetchError } = await supabaseAdmin
       .from("invoices")
       .select("*")
