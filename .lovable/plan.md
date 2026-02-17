@@ -1,148 +1,97 @@
 
 
-# تقييم جنائي للخطة ومقارنتها بالمعايير المحاسبية
+# إصلاح فلترة العقود في صفحة الحسابات الختامية (الناظر والمستفيد)
 
-## 1. فحص الخطة الحالية (isEarliestFY) -- ثغرة جوهرية
+## المشكلة
 
-الخطة المعتمدة تستخدم `start_date` لتحديد انتماء العقد مع استثناء `isEarliestFY`. لكن هذا المنطق **يحتوي على ثغرة**:
+صفحة الحسابات الختامية للناظر (`AccountsPage.tsx`) وللمستفيد (`AccountsViewPage.tsx`) تجلب **جميع** العقود من قاعدة البيانات بدون فلترة حسب السنة المالية المختارة. هذا يتعارض مع التعديل الذي تم تطبيقه في `AdminDashboard.tsx` حيث تم ربط العقود بالسنة المالية عبر `fiscal_year_id`.
 
-| السيناريو | السلوك المتوقع (حسب طلبك) | السلوك الفعلي مع isEarliestFY |
-|-----------|--------------------------|-------------------------------|
-| الوضع الحالي (سنتان فقط) | 20 عقد في 2024-2025 | 20 عقد في 2024-2025 -- صحيح |
-| إضافة سنة 2023-2024 | العقود تبقى في 2024-2025 | 5 عقود تنتقل لـ 2023-2024 -- **خطأ** |
-
-**السبب:** تواريخ بداية الـ 5 عقود (10/02/2024 - 19/09/2024) تقع فعلياً ضمن نطاق سنة 2023-2024 (25/10/2023 - 24/10/2024)، فمنطق `start_date` سيُصنّفها هناك تلقائياً. لا يمكن منع ذلك بمنطق تاريخي.
-
-**هذا يتعارض مع طلبك الصريح: "لا تنقل عقود فقط انقل مبلغ مرحل".**
+**مثال:** عند اختيار سنة 2025-2026 في الحسابات الختامية، ستظهر الـ 20 عقد المسجلة في 2024-2025 رغم أنها لا تنتمي لتلك السنة.
 
 ---
 
-## 2. المقارنة مع المعايير المحاسبية
+## التعديلات المطلوبة
 
-### IFRS (المعايير الدولية) -- IAS 17 / IFRS 16:
-- **مبدأ الفترة المحاسبية (Period Principle):** الإيراد يُسجل في الفترة التي يُكتسب فيها
-- **الربط الصريح بالفترة:** كل معاملة مالية تُربط بفترة محاسبية محددة عبر معرّف صريح، وليس عبر استنتاج تاريخي
-- **عدم إعادة التصنيف بأثر رجعي (No Retrospective Reclassification):** لا يجوز نقل معاملات بين الفترات إلا بقيد تعديل رسمي
+### 1. `src/pages/dashboard/AccountsPage.tsx` (صفحة الناظر)
 
-### SOCPA (هيئة المحاسبين السعودية):
-- **معيار المحاسبة عن عقود الإيجار:** يتوافق مع IFRS 16
-- **مبدأ الثبات (Consistency):** المعالجة المحاسبية المختارة تظل ثابتة
+**أ. إضافة فلترة العقود حسب السنة المالية (بعد سطر 44):**
 
-### نظام الأوقاف السعودي (GAWS):
-- **الشفافية:** يجب أن تكون التقارير واضحة ولا تتغير بأثر رجعي
-- **حفظ السجلات:** كل عقد يُثبت في الفترة التي أُبرم فيها
-
----
-
-## 3. الحل المتوافق مع المعايير: `fiscal_year_id` في جدول العقود
-
-هذا هو النهج المعتمد في `income` و `expenses` فعلاً. تطبيقه على `contracts` يوحّد المنهجية.
-
-```text
-+------------------+     +------------------+     +------------------+
-|    income         |     |    expenses       |     |    contracts      |
-|  fiscal_year_id   |     |  fiscal_year_id   |     |  fiscal_year_id   |  <-- جديد
-+------------------+     +------------------+     +------------------+
-         |                        |                        |
-         +------------------------+------------------------+
-                                  |
-                        +------------------+
-                        |   fiscal_years    |
-                        |   id, label       |
-                        +------------------+
-```
-
-### لماذا هذا هو الحل الصحيح:
-
-| المعيار | isEarliestFY (الخطة الحالية) | fiscal_year_id (الحل المقترح) |
-|---------|----------------------------|-------------------------------|
-| عدم نقل العقود | لا يضمن ذلك | يضمن ذلك 100% |
-| التوافق مع IFRS | جزئي | كامل |
-| التوافق مع SOCPA | جزئي | كامل |
-| الاتساق مع بقية النظام | مختلف عن income/expenses | موحّد |
-| سهولة التدقيق الجنائي | يحتاج حسابات | مباشر وصريح |
-| التوسع المستقبلي | هش | صلب |
-
----
-
-## 4. التعديلات المطلوبة
-
-### أ. تعديل قاعدة البيانات
-
-```sql
--- إضافة عمود fiscal_year_id لجدول العقود
-ALTER TABLE contracts
-  ADD COLUMN fiscal_year_id uuid REFERENCES fiscal_years(id);
-
--- تثبيت جميع العقود الحالية (الـ 20) في سنة 2024-2025
-UPDATE contracts
-  SET fiscal_year_id = (SELECT id FROM fiscal_years WHERE label = '2024-2025');
-```
-
-### ب. `src/pages/dashboard/AdminDashboard.tsx`
-
-**تبسيط منطق الفلترة (السطور 38-45):**
-
-من:
 ```typescript
-// منطق التداخل الزمني (خاطئ)
-const fyContracts = useMemo(() => {
-  if (!selectedFY) return contracts;
-  return contracts.filter(c =>
-    c.start_date <= selectedFY.end_date && c.end_date >= selectedFY.start_date
-  );
-}, [contracts, selectedFY]);
+// الحالي:
+const { data: contracts = [] } = useContracts();
+
+// الجديد -- إضافة فلترة:
+const { data: allContracts = [] } = useContracts();
+const contracts = useMemo(() => {
+  if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
+  return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
+}, [allContracts, fiscalYearId]);
 ```
 
-الى:
+هذا يضمن أن جميع الأماكن التي تستخدم `contracts` (جدول العقود، جدول التحصيل، حساب الضريبة التجارية، تصدير PDF) ستتأثر تلقائياً بالفلترة.
+
+**ب. إضافة `useMemo` للاستيراد (سطر 1):**
+
 ```typescript
-// انتماء صريح عبر fiscal_year_id (متوافق مع المعايير)
-const fyContracts = useMemo(() => {
-  if (!fiscalYearId || fiscalYearId === 'all') return contracts;
-  return contracts.filter(c => c.fiscal_year_id === fiscalYearId);
-}, [contracts, fiscalYearId]);
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 ```
 
-**تحديث جدول "آخر العقود" (سطر 277, 293):**
-- `contracts.slice(0, 5)` تصبح `fyContracts.slice(0, 5)`
-- `contracts.length === 0` تصبح `fyContracts.length === 0`
+### 2. `src/pages/beneficiary/AccountsViewPage.tsx` (صفحة المستفيد)
 
-### ج. `src/pages/dashboard/ContractsPage.tsx`
+**أ. إضافة فلترة العقود (بعد سطر 53):**
 
-إضافة حقل `fiscal_year_id` في نموذج إنشاء/تعديل العقد:
-- عند إنشاء عقد جديد، يُعيّن `fiscal_year_id` تلقائياً للسنة المالية النشطة
-- عند التعديل، يظل `fiscal_year_id` كما هو (لا يتغير)
+```typescript
+// الحالي:
+const { data: contracts = [], isLoading: contractsLoading } = useContracts();
 
-### د. `src/hooks/useContracts.ts`
+// الجديد:
+const { data: allContracts = [], isLoading: contractsLoading } = useContracts();
+const contracts = useMemo(() => {
+  if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
+  return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
+}, [allContracts, fiscalYearId]);
+```
 
-لا يحتاج تعديل -- الهوك يجلب كل الأعمدة تلقائياً عبر `*`.
+**ب. إضافة `useMemo` للاستيراد (سطر 1):**
 
-### هـ. `src/types/database.ts`
+```typescript
+import { useState, useMemo } from 'react';
+```
 
-إضافة `fiscal_year_id` لنوع `Contract` (سيتم تحديثه تلقائياً من قاعدة البيانات).
+### 3. `src/pages/dashboard/AccountsPage.test.tsx`
 
-### و. `src/pages/dashboard/AdminDashboard.test.tsx`
+تحديث mock العقود ليشمل `fiscal_year_id`:
 
-تحديث mocks لتشمل `fiscal_year_id` في بيانات العقود.
+```typescript
+useContracts: () => ({
+  data: [{
+    id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد محمد',
+    rent_amount: 120000, ..., fiscal_year_id: 'fy1',
+  }],
+}),
+```
 
-### ز. `docs/ADMIN-PAGES.md`
+### 4. `src/pages/beneficiary/AccountsViewPage.test.tsx`
 
-توثيق القاعدة:
-- العقد يُثبّت في السنة المالية التي أُنشئ فيها عبر `fiscal_year_id`
-- العقود لا تنتقل بين السنوات المالية أبداً
-- فقط المبلغ المرحل (`waqf_corpus_previous`) ينتقل بين السنوات
+تحديث mock العقود ليشمل `fiscal_year_id`:
+
+```typescript
+useContracts: () => ({
+  data: [
+    { id: 'c1', ..., fiscal_year_id: 'fy1' },
+    { id: 'c2', ..., fiscal_year_id: 'fy1' },
+  ],
+}),
+```
 
 ---
 
-## 5. النتيجة المتوقعة بعد التطبيق
+## النتيجة المتوقعة
 
-| السيناريو | السنة | العقود | الإيرادات التعاقدية |
-|-----------|-------|--------|-------------------|
-| الوضع الحالي | 2024-2025 | 20 عقد | 1,259,422 ر.س |
-| الوضع الحالي | 2025-2026 | 0 | 0 ر.س |
-| بعد تجديد 5 عقود | 2025-2026 | 5 عقود جديدة | حسب القيمة الجديدة |
-| بعد إضافة سنة 2023-2024 | 2024-2025 | **20 عقد (بدون تغيير)** | **1,259,422 ر.س** |
-| بعد إضافة سنة 2023-2024 | 2023-2024 | 0 عقود (فقط مبلغ مرحل) | 0 ر.س |
+| السنة المالية | العقود في صفحة الحسابات الختامية |
+|--------------|-------------------------------|
+| 2024-2025 | 20 عقد (1,259,422 ر.س) |
+| 2025-2026 | 0 عقود (لا توجد عقود مسجلة) |
 
-**هذا يضمن: الشفافية الكاملة + التوافق مع IFRS/SOCPA + عدم نقل العقود أبداً + التوسع الآمن.**
+هذا يُطابق سلوك لوحة التحكم الرئيسية ويُوحّد منهجية الفلترة في كافة الصفحات.
 
