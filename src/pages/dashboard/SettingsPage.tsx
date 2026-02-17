@@ -175,7 +175,7 @@ const AppearanceTab = () => {
   const appearance = getJsonSetting('appearance_settings', defaults);
   const [form, setForm] = useState(appearance);
 
-  useEffect(() => { setForm(appearance); }, [isLoading]);
+  useEffect(() => { setForm(appearance); }, [appearance]);
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 

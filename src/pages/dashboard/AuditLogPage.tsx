@@ -175,6 +175,11 @@ const AuditLogPage = () => {
               <SelectItem value="accounts">الحسابات</SelectItem>
               <SelectItem value="distributions">التوزيعات</SelectItem>
               <SelectItem value="invoices">الفواتير</SelectItem>
+              <SelectItem value="properties">العقارات</SelectItem>
+              <SelectItem value="contracts">العقود</SelectItem>
+              <SelectItem value="beneficiaries">المستفيدين</SelectItem>
+              <SelectItem value="units">الوحدات</SelectItem>
+              <SelectItem value="fiscal_years">السنوات المالية</SelectItem>
             </SelectContent>
           </Select>
           <Select value={opFilter} onValueChange={v => { setOpFilter(v); setCurrentPage(1); }}>

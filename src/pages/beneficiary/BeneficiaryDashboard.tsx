@@ -23,11 +23,10 @@ const BeneficiaryDashboard = () => {
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
 
-  const { waqfRevenue, waqfCorpusManual } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+  const { availableAmount } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const beneficiariesShare = distributableAmount;
+  const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary 
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 

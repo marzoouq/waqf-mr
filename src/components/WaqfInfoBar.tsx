@@ -63,6 +63,9 @@ const WaqfInfoBar = () => {
       return;
     }
     setLogoFile(file);
+    if (logoPreview && logoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(logoPreview);
+    }
     setLogoPreview(URL.createObjectURL(file));
   };
 
@@ -196,7 +199,13 @@ const WaqfInfoBar = () => {
                     <img src={logoPreview} alt="شعار الوقف" className="w-16 h-16 rounded-lg object-contain border" />
                     <button
                       type="button"
-                      onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                      onClick={() => {
+                        if (logoPreview && logoPreview.startsWith('blob:')) {
+                          URL.revokeObjectURL(logoPreview);
+                        }
+                        setLogoFile(null);
+                        setLogoPreview(null);
+                      }}
                       className="absolute -top-2 -left-2 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
                     >
                       <X className="w-3 h-3" />
