@@ -1,209 +1,181 @@
 
-# تقرير الفحص الجنائي العميق (Forensic Audit Report)
-# نظام إدارة وقف مرزوق بن علي الثبيتي
+
+# تقرير الفحص الجنائي العميق - الجزء الثاني
+# الملفات التي لم يتم فحصها بعمق سابقاً
 
 ---
 
-## ملخص تنفيذي
+## الملخص
 
-تم فحص **17 جدول قاعدة بيانات**، **5 وظائف خلفية**، **22 هوك**، **47 مكون واجهة**، **41 سياسة أمان RLS**، **27 مشغل (Trigger)**، و**46 فهرس (Index)**. النظام بشكل عام **مستقر ومحكم البنية** مع بعض النقاط التي تستحق الانتباه.
-
----
-
-## 1. قاعدة البيانات (17 جدول)
-
-### 1.1 سلامة الجداول
-| الجدول | RLS | مشغل تدقيق | مشغل updated_at | مشغل سنة مالية | الحالة |
-|--------|-----|-------------|-----------------|----------------|--------|
-| accounts | مفعّل | audit_accounts | update_accounts_updated_at | - | سليم |
-| app_settings | مفعّل | - | - | - | سليم (اعدادات) |
-| audit_log | مفعّل | - | - | - | سليم (محمي) |
-| beneficiaries | مفعّل | audit_beneficiaries | update_beneficiaries_updated_at | - | سليم |
-| contracts | مفعّل | audit_contracts | update_contracts_updated_at | - | سليم |
-| conversations | مفعّل | - | update_conversations_updated_at | - | سليم |
-| distributions | مفعّل | audit_distributions | - | - | سليم |
-| expenses | مفعّل | audit_expenses | - | prevent_closed_fy_expenses | سليم |
-| fiscal_years | مفعّل | audit_fiscal_years | - | - | سليم |
-| income | مفعّل | audit_income | - | prevent_closed_fy_income | سليم |
-| invoices | مفعّل | audit_invoices | update_invoices_updated_at | prevent_closed_fy_invoices | سليم |
-| messages | مفعّل | - | - | - | سليم |
-| notifications | مفعّل | - | - | - | سليم |
-| properties | مفعّل | audit_properties | update_properties_updated_at | - | سليم |
-| tenant_payments | مفعّل | - | update_tenant_payments_updated_at | - | سليم |
-| units | مفعّل | audit_units | update_units_updated_at | - | سليم |
-| user_roles | مفعّل | - | - | - | سليم |
-
-**النتيجة**: جميع الجداول الـ 17 لديها RLS مفعّل. 10 مشغلات تدقيق تغطي جميع الجداول المالية والتعاقدية. 3 مشغلات حماية السنة المالية المغلقة تحمي income وexpenses وinvoices.
-
-### 1.2 مشغلات التدقيق (Audit Triggers) - 10 مشغلات
-تغطي: properties, contracts, income, expenses, beneficiaries, accounts, distributions, invoices, units, fiscal_years
-
-**ملاحظة ايجابية**: جميع المشغلات مفعّلة (tgenabled = 'O') وتعمل بشكل صحيح.
-
-### 1.3 الفهارس (Indexes) - 46 فهرس
-تغطية شاملة تشمل فهارس على:
-- الحقول المالية: `idx_income_date`, `idx_expenses_date`, `idx_income_fiscal_year`, `idx_expenses_fiscal_year`
-- العقود: `idx_contracts_status`, `idx_contracts_end_date`, `idx_contracts_property_id`
-- الإشعارات: `idx_notifications_user_unread`
-- المحادثات: `idx_conversations_participants`, `idx_messages_conversation`
+تم فحص **22 ملف إضافي** بعمق شمل: جميع الهوكات المخصصة، صفحات المستفيدين، صفحة الحسابات الختامية الكاملة، أدوات PDF، مكونات التقارير، صفحة المصادقة، وجميع الوظائف الخلفية المتبقية.
 
 ---
 
-## 2. سياسات الأمان (RLS) - 41 سياسة
+## 1. المشاكل المكتشفة
 
-### 2.1 نمط الحماية المطبّق
+### 1.1 خطورة متوسطة
+
+**A. استعلامات بدون حد صفوف (limit) - 6 مواضع**
+
+الهوكات التالية لا تستخدم `.limit()` وقد تتجاوز حد 1000 صف:
+
+| الملف | الاستعلام | المخاطرة |
+|-------|-----------|----------|
+| `useExpenses.ts` سطر 39 | `useExpensesByFiscalYear` | بيانات مالية قد تنمو |
+| `useIncome.ts` سطر 39 | `useIncomeByFiscalYear` | بيانات مالية قد تنمو |
+| `useInvoices.ts` سطر 65 | `useInvoicesByFiscalYear` | فواتير قد تتراكم |
+| `useAuditLog.ts` سطر 43 | `useAuditLog` | سجل التدقيق ينمو بسرعة (اخطر موضع) |
+| `useMessaging.ts` سطر 17 | `useConversations` | محادثات بدون حد |
+| `useMessaging.ts` سطر 48 | `useMessages` | رسائل بدون حد |
+
+**التوصية**: اضافة `.limit(500)` لجميع هذه الاستعلامات، خاصة `useAuditLog` الذي ينمو بسرعة مع كل عملية CRUD.
+
+---
+
+**B. تسريب ذاكرة محتمل في `InvoiceViewer.tsx` (سطر 25-51)**
+
+عند اغلاق الـ Dialog ثم فتحه بسرعة مع ملف مختلف، يتم استدعاء `getInvoiceSignedUrl` مرتين بسبب عدم الغاء الطلب السابق. المتغير `revoked` يمنع تعيين الـ URL لكن لا يلغي طلب الشبكة نفسه.
 
 ```text
-+------------------+------------------+------------------+
-|   الناظر (admin)  |  المستفيد       |  الواقف          |
-|  ALL على كل شيء  |  SELECT فقط     |  SELECT فقط     |
-+------------------+------------------+------------------+
+المشكلة:
+فتح ملف A → بدء تحميل → اغلاق → فتح ملف B → بدء تحميل B
+                                   ↑ تحميل A يستمر في الخلفية (لا يُلغى)
 ```
 
-- **audit_log**: محمي بشكل حصين - SELECT للأدمن فقط، INSERT/UPDATE/DELETE = false (لا أحد يستطيع)
-- **notifications**: المستخدم يرى/يحدّث/يحذف إشعاراته فقط
-- **conversations**: حماية محكمة تمنع الوصول بدون participant_id
-- **messages**: INSERT يتحقق من ملكية المحادثة عبر subquery
-
-### 2.2 نتائج الفحص
-
-| التصنيف | النتيجة |
-|---------|---------|
-| جداول بدون RLS | 0 (ممتاز) |
-| سياسات مفرطة السماحية | 0 |
-| فصل الأدوار | محكم - الأدمن فقط يملك ALL |
-| حماية سجل التدقيق | حصينة (INSERT=false للجميع، المشغلات فقط تُدخل) |
+**التوصية**: استخدام `AbortController` لالغاء الطلب السابق.
 
 ---
 
-## 3. الوظائف الخلفية (Edge Functions) - 5 وظائف
+**C. `AccountsPage.tsx` - حفظ الاعدادات بدون debounce كافٍ (سطر 113-124)**
 
-### 3.1 admin-manage-users
-- **المصادقة**: getClaims + التحقق من دور admin في user_roles (سليم)
-- **التحقق من المدخلات**: validateEmail, validatePassword, validateUuid, validateRole, validateNationalId (شامل)
-- **قائمة بيضاء**: ALLOWED_ACTIONS تمنع الإجراءات غير المعروفة (سليم)
-- **ملاحظة**: `confirm_email` action لا يتحقق من UUID باستخدام `validateUuid` (ثغرة طفيفة)
-
-### 3.2 check-contract-expiry
-- **المصادقة**: مزدوجة (service_role + getClaims) (سليم)
-- **منطق**: يمنع تكرار الإشعارات عبر فحص الرسائل الموجودة اليوم (سليم)
-- **ملاحظة إيجابية**: يستخدم `maybeSingle()` بدلاً من `single()`
-
-### 3.3 auto-expire-contracts
-- **المصادقة**: مزدوجة (سليم)
-- **المنطق**: يحدّث العقود المنتهية ويُرسل إشعاراً (سليم)
-
-### 3.4 lookup-national-id
-- **حماية**: Rate limiting (3 طلبات/دقيقة) + تأخير عشوائي لمنع timing attacks (ممتاز)
-- **التحقق**: regex للهوية الوطنية (10 أرقام) (سليم)
-- **ملاحظة إيجابية**: رسالة خطأ موحدة لمنع enumeration attacks
-
-### 3.5 ai-assistant
-- **المصادقة**: getClaims (سليم)
-- **حماية**: تحديد 20 رسالة و4000 حرف لكل رسالة (سليم)
-- **النموذج**: google/gemini-2.5-pro عبر Lovable AI Gateway
-
-### 3.6 تهيئة config.toml
-جميع الوظائف الخمس مضبوطة على `verify_jwt = false` مع مصادقة يدوية داخلية - وهو النمط الصحيح والموثق.
+الدالة `saveSetting` تستخدم `setTimeout(500ms)` لكنها تُنشئ `ref` جديدة لكل مفتاح. عند تعديل نسبة الناظر ونسبة الواقف بسرعة، يمكن ان تتداخل الطلبات. هذا ليس خطيراً لان كل مفتاح له timeout مستقل، لكن لا يوجد معالجة خطأ شاملة اذا فشل الـ upsert.
 
 ---
 
-## 4. المصادقة وإدارة الجلسات
+### 1.2 خطورة منخفضة
 
-### 4.1 AuthContext
-- **التدفق**: `onAuthStateChange` -> `getSession` مع حماية ضد السباق (initialSessionHandled) (سليم)
-- **جلب الدور**: `fetchUserRole` عبر `user_roles` جدول (سليم)
-- **Idle Timeout**: قابل للتكوين عبر app_settings مع تحذير قبل 60 ثانية (سليم)
-- **ملاحظة**: `handleIdleLogout` تستخدم `useCallback` بدون dependencies لـ `signOut` - هذا آمن لأن `signOut` ثابتة
+**D. `useAuditLog.ts` - خريطة الجداول ناقصة (سطر 15-24)**
 
-### 4.2 ProtectedRoute
-- **الحماية**: يتحقق من `user` و`role` و`allowedRoles` (سليم)
-- **حالة التحميل**: يعرض loader أثناء التحقق (سليم)
-- **التوجيه**: `/auth` لغير المسجلين، `/unauthorized` لغير المصرح لهم (سليم)
+`TABLE_NAMES_AR` لا تشمل جداولl `units` و`fiscal_years` رغم ان لهما مشغلات تدقيق:
 
-### 4.3 صفحة Auth
-- **استعلامات ما قبل المصادقة**: تستخدم `.maybeSingle()` بشكل صحيح (تم إصلاحها)
-- **إعادة تعيين كلمة المرور**: تستخدم `resetPasswordForEmail` مع redirectTo (سليم)
-- **تسجيل الخروج التلقائي**: يعرض رسالة توضيحية عبر query parameter `reason=idle` (سليم)
+```text
+المفقود:
+- units → 'الوحدات'
+- fiscal_years → 'السنوات المالية'
+```
+
+**التوصية**: اضافة `units: 'الوحدات'` و `fiscal_years: 'السنوات المالية'` للخريطة.
 
 ---
 
-## 5. الطبقة الأمامية (Frontend)
+**E. `check-contract-expiry` - فلترة الاشعارات المكررة غير دقيقة (سطر 90-96)**
 
-### 5.1 بنية التطبيق
-- **Lazy Loading**: جميع الصفحات والمكونات الثقيلة تُحمّل بشكل كسول (ممتاز)
-- **ErrorBoundary**: يغلف التطبيق بالكامل (سليم)
-- **SecurityGuard**: يمنع نسخ/سحب المحتوى الحساس فقط (متوازن)
-- **QueryClient**: `staleTime: 5 دقائق`, `retry: 1`, `refetchOnWindowFocus: false` (معقول)
+الاستعلام يجلب جميع اشعارات اليوم من نوع `warning` بدون تصفية بـ `user_id`، مما يعني ان اشعار مرسل لأدمن واحد يمنع ارساله لأدمن آخر.
 
-### 5.2 مصنع CRUD (useCrudFactory)
-- **نمط موحد**: جميع الهوكات (properties, contracts, income, expenses, beneficiaries, accounts, invoices, units) تستخدم المصنع (سليم)
-- **Toast**: رسائل عربية موحدة للنجاح والخطأ (سليم)
-- **Invalidation**: يُبطل الكاش تلقائياً بعد كل عملية (سليم)
+```text
+المشكلة:
+- ادمن A يتلقى اشعار "عقد 123 ينتهي خلال 5 ايام"
+- ادمن B لن يتلقى نفس الاشعار لان الرسالة موجودة في الجدول
+```
 
-### 5.3 useFinancialSummary
-- **المنطق**: يقرأ من الحساب المخزن أولاً، ويحسب ديناميكياً كبديل (سليم - Forensic Pattern)
-- **ربط السنة المالية**: يطابق بالـ `label` مع حماية ضد الربط العشوائي (لا يستخدم `accounts[0]` كبديل) (ممتاز)
-- **أساس الحصص**: `totalIncome - totalExpenses - zakatAmount` (بدون رقبة الوقف وبدون الضريبة) (صحيح محاسبياً)
-
-### 5.4 الإشعارات
-- **Fire-and-forget**: لا تعطل العمليات الأساسية (سليم)
-- **Realtime**: الإشعارات والمحادثات تستخدم `postgres_changes` (سليم)
-- **حد**: يجلب آخر 50 إشعاراً فقط (معقول)
-
-### 5.5 إخفاء البيانات الحساسة
-- **maskData.ts**: يخفي الهوية الوطنية، الحساب البنكي، الهاتف، والبريد (سليم)
+**التوصية**: اضافة `.eq('user_id', admin.user_id)` في فحص التكرار، او الاكتفاء بالمنطق الحالي اذا كان مقبولاً (اشعار واحد يكفي لأي ادمن).
 
 ---
 
-## 6. المشاكل المكتشفة
+**F. `AuthContext.tsx` - `fetchUserRole` تستخدم `.single()` بدلاً من `.maybeSingle()` (سطر 36-47)**
 
-### 6.1 خطورة منخفضة
+اذا لم يكن للمستخدم دور (مستخدم جديد لم يُعيّن له دور بعد)، سيُلقي `.single()` خطأ في الـ console. الكود يتعامل معه عبر `if (data && !error)` لكن الخطأ يظهر في الـ console بدون داعٍ.
 
-1. **حماية كلمات المرور المسربة معطلة** (Leaked Password Protection)
-   - تحذير من Supabase Linter
-   - يُنصح بتفعيلها من إعدادات المصادقة
-
-2. **`confirm_email` في admin-manage-users لا يتحقق من UUID**
-   - السطر 144: `if (!userId) throw new Error("userId required");` بدون `validateUuid(userId)`
-   - خطورة طفيفة لأن الدالة بأكملها محمية بدور admin
-
-3. **`getInvoiceFileUrl` تستخدم مسار عام لحاوية خاصة**
-   - السطر 122-124 في `useInvoices.ts`: تبني URL عام لحاوية `invoices` وهي `is_public: false`
-   - هذا URL لن يعمل. الدالة `getInvoiceSignedUrl` هي البديل الصحيح
-   - يبدو أنها دالة قديمة غير مستخدمة (لكنها مُصدّرة)
-
-4. **`useCrudFactory` لا يحدّ عدد الصفوف**
-   - قد يتجاوز حد 1000 صف الافتراضي في Supabase للجداول الكبيرة
-   - حالياً الجداول فارغة فهذا ليس مشكلة فورية
-
-### 6.2 ملاحظات معمارية (ليست مشاكل)
-
-1. **`tenant_payments` و`conversations` بدون مشغل تدقيق** - مقبول لأنها ليست جداول مالية أساسية
-2. **`app_settings` بدون مشغل تدقيق** - مقبول لأن تغييراتها إدارية وليست مالية
-3. **`notifications` و`messages` بدون مشغل تدقيق** - مقبول (بيانات تشغيلية)
+**التوصية**: تغيير `.single()` الى `.maybeSingle()`.
 
 ---
 
-## 7. ملخص درجات التقييم
+**G. `DashboardLayout.tsx` - `allAdminLinks` و`allBeneficiaryLinks` تُنشأ في كل render (سطر 75-101)**
 
-| المحور | الدرجة | التعليق |
-|--------|--------|---------|
-| سلامة قاعدة البيانات | 9.5/10 | مشغلات شاملة، فهارس وقائية، حماية سنة مالية مغلقة |
-| سياسات الأمان (RLS) | 10/10 | 41 سياسة تغطي جميع الجداول بفصل أدوار محكم |
-| الوظائف الخلفية | 9/10 | مصادقة مزدوجة قوية، تحقق شامل، ثغرة UUID طفيفة |
-| المصادقة والجلسات | 9.5/10 | idle timeout، حماية race condition، maybeSingle |
-| المنطق المالي | 10/10 | حسابات جنائية دقيقة، قراءة من السجل المدقق |
-| بنية الكود | 9.5/10 | CRUD factory، lazy loading، error boundary |
-| حماية البيانات | 9/10 | إخفاء بيانات حساسة، منع enumeration، rate limiting |
+المصفوفتان ثابتتان لكنهما تُنشأ داخل المكون مما يعني اعادة انشائهما مع كل render. التأثير طفيف على الاداء لكنه مخالف لأفضل الممارسات.
 
-**الدرجة الإجمالية: 9.5/10**
+**التوصية**: نقلهما خارج المكون كثوابت.
 
 ---
 
-## 8. التوصيات (حسب الأولوية)
+**H. `MySharePage.tsx` - حساب `distributableAmount` مكرر (سطر 64-66)**
 
-1. تفعيل حماية كلمات المرور المسربة (Leaked Password Protection) من إعدادات المصادقة
-2. إضافة `validateUuid(userId)` في حالة `confirm_email` بدالة admin-manage-users
-3. حذف أو إهمال دالة `getInvoiceFileUrl` غير الصالحة واستخدام `getInvoiceSignedUrl` فقط
-4. إضافة `limit` في useCrudFactory كإجراء وقائي للمستقبل
+```typescript
+const distributableAmount = waqfRevenue - waqfCorpusManual;
+const beneficiariesShare = distributableAmount;
+```
+
+هذا الحساب مُعرّف ايضاً في `useFinancialSummary` كـ `availableAmount`. يجب استخدام القيمة من الهوك لضمان التطابق الجنائي.
+
+**التوصية**: استبدال الحساب المحلي بـ `availableAmount` من `useFinancialSummary`.
+
+---
+
+**I. نفس المشكلة في `DisclosurePage.tsx` سطر 48-49**
+
+نفس الحساب المكرر لـ `distributableAmount` بدلاً من استخدام `availableAmount` من الهوك.
+
+---
+
+## 2. ملاحظات ايجابية (ما تم التحقق منه وهو سليم)
+
+| الملف | النتيجة |
+|-------|---------|
+| `useCrudFactory.ts` | نمط CRUD موحد ومحكم مع limit: 500 |
+| `useFinancialSummary.ts` | منطق جنائي سليم - يقرأ من السجل المدقق اولاً |
+| `accountsCalculations.ts` | حسابات مالية صحيحة مع 36 اختبار |
+| `useNotifications.ts` | حد 50 اشعار + Realtime + CRUD كامل |
+| `useMessaging.ts` | حماية 5000 حرف + Realtime + تنظيف القنوات |
+| `useTenantPayments.ts` | upsert بـ onConflict صحيح |
+| `useIdleTimeout.ts` | تنظيف timers في cleanup + countdown دقيق |
+| `maskData.ts` | اخفاء بيانات حساسة بنمط موحد |
+| `ErrorBoundary.tsx` | يغلف التطبيق بالكامل مع واجهة عربية |
+| `SecurityGuard.tsx` | حماية متوازنة (حساس فقط) |
+| `InvoiceViewer.tsx` | يستخدم `getInvoiceSignedUrl` (الصحيحة) |
+| `Auth.tsx` | `.maybeSingle()` + idle message + reset password |
+| `lookup-national-id` | rate limit + timing attack protection |
+| `ai-assistant` | getClaims + message limits + streaming |
+| `check-contract-expiry` | مصادقة مزدوجة + منع تكرار |
+| `auto-expire-contracts` | مصادقة مزدوجة + اشعار |
+| `pdf/core.ts` | خطوط عربية + حدود زخرفية + header/footer |
+| `pdf/reports.ts` | تسلسل مالي كامل في الافصاح الشامل |
+| `pdf/accounts.ts` | تسلسل مالي هرمي مطابق |
+| `pdf/beneficiary.ts` | حصة المستفيد + سجل التوزيعات |
+| `AccountsPage.tsx` | اقفال السنة المالية + ترحيل الرصيد + حماية السنة المغلقة |
+| `MonthlyPerformanceReport.tsx` | تقارير شهرية ديناميكية مع رسوم بيانية |
+| `YearOverYearComparison.tsx` | مقارنة سنوية مع تصدير PDF |
+| `App.tsx` | lazy loading + حماية مسارات محكمة |
+
+---
+
+## 3. ملخص التوصيات (حسب الاولوية)
+
+| # | التوصية | الخطورة | الجهد |
+|---|---------|---------|-------|
+| 1 | اضافة `.limit()` لـ 6 استعلامات (خاصة audit_log) | متوسطة | منخفض |
+| 2 | استبدال حساب `distributableAmount` المكرر في MySharePage وDisclosurePage بـ `availableAmount` من الهوك | متوسطة | منخفض |
+| 3 | تغيير `.single()` الى `.maybeSingle()` في `fetchUserRole` بـ AuthContext | منخفضة | منخفض |
+| 4 | اضافة `units` و`fiscal_years` لخريطة TABLE_NAMES_AR في useAuditLog | منخفضة | منخفض |
+| 5 | نقل مصفوفات الروابط خارج مكون DashboardLayout | منخفضة | منخفض |
+| 6 | استخدام AbortController في InvoiceViewer لالغاء الطلبات المعلقة | منخفضة | متوسط |
+| 7 | تصحيح فلترة الاشعارات المكررة في check-contract-expiry | منخفضة | منخفض |
+
+---
+
+## 4. الدرجة المحدّثة بعد الفحص الشامل
+
+| المحور | الدرجة السابقة | الدرجة المحدّثة |
+|--------|---------------|----------------|
+| سلامة قاعدة البيانات | 9.5/10 | 9.5/10 |
+| سياسات الامان (RLS) | 10/10 | 10/10 |
+| الوظائف الخلفية | 9/10 | 8.5/10 (فلترة اشعارات ناقصة) |
+| المصادقة والجلسات | 9.5/10 | 9/10 (single بدل maybeSingle) |
+| المنطق المالي | 10/10 | 9/10 (حساب مكرر في صفحتين) |
+| بنية الكود | 9.5/10 | 9/10 (استعلامات بدون limit) |
+| حماية البيانات | 9/10 | 9/10 |
+| تقارير PDF | -- | 9.5/10 (شاملة ومتطابقة) |
+
+**الدرجة الاجمالية المحدّثة: 9.2/10**
+
+النظام محكم البنية بشكل عام. التوصيات السبع المذكورة هي تحسينات وقائية وليست ثغرات حرجة.
+
