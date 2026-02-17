@@ -93,7 +93,7 @@ export const useSendMessage = () => {
             .from('conversations')
             .select('participant_id, subject')
             .eq('id', conversationId)
-            .single();
+            .maybeSingle();
           if (conv?.participant_id) {
             notifyUser(
               conv.participant_id,
