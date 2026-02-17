@@ -227,3 +227,129 @@ describe('تكامل: تطابق calculateFinancials مع سجل حساب مخز
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// حسابات حصص المستفيدين الشرعية (14 مستفيد)
+// الزوجات مجتمعات: 1/8 = 12.5%، الباقي 87.5% يوزع 2:1 (ذكر:أنثى)
+// 5 أبناء + 7 بنات = 10+7 = 17 حصة → ابن = 87.5/17*2, بنت = 87.5/17
+// ---------------------------------------------------------------------------
+describe('حسابات حصص المستفيدين الشرعية', () => {
+  // النسب الشرعية الدقيقة
+  const WIVES_SHARE = 12.5; // 1/8
+  const REMAINING = 87.5;   // 7/8
+  const TOTAL_PARTS = 17;   // 5*2 + 7*1
+  const SON_PERCENT = (REMAINING / TOTAL_PARTS) * 2;   // ~10.294118%
+  const DAUGHTER_PERCENT = REMAINING / TOTAL_PARTS;      // ~5.147059%
+  const WIFE_PERCENT = WIVES_SHARE / 2;                  // 6.25% لكل زوجة
+
+  it('مجموع نسب جميع المستفيدين = 100%', () => {
+    const total = (WIFE_PERCENT * 2) + (SON_PERCENT * 5) + (DAUGHTER_PERCENT * 7);
+    expect(total).toBeCloseTo(100, 6);
+  });
+
+  it('حظ الذكر ضعف حظ الأنثى بدقة', () => {
+    expect(SON_PERCENT / DAUGHTER_PERCENT).toBeCloseTo(2, 10);
+  });
+
+  it('الزوجتان مجتمعتان = الثمن (12.5%)', () => {
+    expect(WIFE_PERCENT * 2).toBeCloseTo(12.5, 6);
+  });
+
+  it('حساب حصة مستفيد من ريع فعلي', () => {
+    // بناءً على بيانات الإقفال: ريع الوقف = 1,198,815.433
+    // المبلغ القابل للتوزيع = ريع - رقبة يدوية
+    const waqfRevenue = 1_198_815.433;
+    const waqfCorpusManual = 174_388.543;
+    const distributableAmount = waqfRevenue - waqfCorpusManual;
+
+    const sonShare = distributableAmount * (SON_PERCENT / 100);
+    const daughterShare = distributableAmount * (DAUGHTER_PERCENT / 100);
+    const wifeShare = distributableAmount * (WIFE_PERCENT / 100);
+
+    // التحقق من أن المجموع = المبلغ القابل للتوزيع
+    const totalDistributed = (wifeShare * 2) + (sonShare * 5) + (daughterShare * 7);
+    expect(totalDistributed).toBeCloseTo(distributableAmount, 2);
+
+    // التحقق من نسبة 2:1
+    expect(sonShare / daughterShare).toBeCloseTo(2, 10);
+  });
+
+  it('حصص المستفيدين مع مبلغ صفري = صفر للجميع', () => {
+    const distributableAmount = 0;
+    const sonShare = distributableAmount * (SON_PERCENT / 100);
+    expect(sonShare).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// حالات حدية وسلبية
+// ---------------------------------------------------------------------------
+describe('حالات حدية للحسابات المالية', () => {
+  it('مصروفات أكبر من الدخل تعطي أساس حصص سالب', () => {
+    const r = calculateFinancials({
+      totalIncome: 50_000,
+      totalExpenses: 80_000,
+      waqfCorpusPrevious: 0,
+      manualVat: 0,
+      zakatAmount: 0,
+      adminPercent: 10,
+      waqifPercent: 5,
+      waqfCorpusManual: 0,
+      manualDistributions: 0,
+    });
+    expect(r.shareBase).toBe(-30_000);
+    expect(r.adminShare).toBe(-3_000);
+  });
+
+  it('نسب حصص صفرية لا تُنتج NaN', () => {
+    const r = calculateFinancials({
+      totalIncome: 100_000,
+      totalExpenses: 10_000,
+      waqfCorpusPrevious: 0,
+      manualVat: 0,
+      zakatAmount: 0,
+      adminPercent: 0,
+      waqifPercent: 0,
+      waqfCorpusManual: 0,
+      manualDistributions: 0,
+    });
+    expect(r.adminShare).toBe(0);
+    expect(r.waqifShare).toBe(0);
+    expect(Number.isNaN(r.waqfRevenue)).toBe(false);
+  });
+
+  it('مبالغ كبيرة جداً تحافظ على الدقة', () => {
+    const r = calculateFinancials({
+      totalIncome: 999_999_999.99,
+      totalExpenses: 100_000_000,
+      waqfCorpusPrevious: 50_000_000,
+      manualVat: 10_000_000,
+      zakatAmount: 5_000_000,
+      adminPercent: 10,
+      waqifPercent: 5,
+      waqfCorpusManual: 20_000_000,
+      manualDistributions: 50_000_000,
+    });
+    expect(r.grandTotal).toBeCloseTo(1_049_999_999.99, 2);
+    expect(r.shareBase).toBeCloseTo(894_999_999.99, 2);
+    // Verify hierarchy integrity
+    expect(r.waqfRevenue).toBeCloseTo(
+      r.netAfterZakat - r.adminShare - r.waqifShare, 2
+    );
+  });
+
+  it('توزيعات أكبر من المتاح تعطي رصيد سالب', () => {
+    const r = calculateFinancials({
+      totalIncome: 100_000,
+      totalExpenses: 10_000,
+      waqfCorpusPrevious: 0,
+      manualVat: 0,
+      zakatAmount: 0,
+      adminPercent: 10,
+      waqifPercent: 5,
+      waqfCorpusManual: 0,
+      manualDistributions: 999_999,
+    });
+    expect(r.remainingBalance).toBeLessThan(0);
+  });
+});
