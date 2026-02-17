@@ -254,11 +254,28 @@ Deno.serve(async (req) => {
         if (!users || !Array.isArray(users) || users.length === 0) {
           throw new Error("users array is required");
         }
+        if (users.length > 50) {
+          throw new Error("Maximum 50 users at a time");
+        }
 
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const results = [];
         const errors = [];
 
         for (const u of users) {
+          if (!u.email || typeof u.email !== "string" || !EMAIL_RE.test(u.email) || u.email.length > 255) {
+            errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
+            continue;
+          }
+          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
+            errors.push({ email: u.email, error: "Password must be 8-128 characters" });
+            continue;
+          }
+          if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {
+            errors.push({ email: u.email, error: "Invalid or missing name" });
+            continue;
+          }
+
           try {
             const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
               email: u.email,
