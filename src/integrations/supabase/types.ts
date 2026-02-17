@@ -175,6 +175,7 @@ export type Database = {
           contract_number: string
           created_at: string
           end_date: string
+          fiscal_year_id: string | null
           id: string
           notes: string | null
           payment_amount: number | null
@@ -192,6 +193,7 @@ export type Database = {
           contract_number: string
           created_at?: string
           end_date: string
+          fiscal_year_id?: string | null
           id?: string
           notes?: string | null
           payment_amount?: number | null
@@ -209,6 +211,7 @@ export type Database = {
           contract_number?: string
           created_at?: string
           end_date?: string
+          fiscal_year_id?: string | null
           id?: string
           notes?: string | null
           payment_amount?: number | null
@@ -223,6 +226,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contracts_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contracts_property_id_fkey"
             columns: ["property_id"]
