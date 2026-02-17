@@ -4,40 +4,24 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Simple PDF builder for Arabic invoices (no external lib needed)
-// Uses a minimal valid PDF structure with embedded text
-
 const INVOICE_TYPE_LABELS: Record<string, string> = {
-  utilities: "خدمات (كهرباء/مياه)",
-  maintenance: "صيانة ومقاولات",
-  rent: "إيجار",
-  other: "أخرى",
+  utilities: "Utilities",
+  maintenance: "Maintenance",
+  rent: "Rent",
+  other: "Other",
 };
 
 const INVOICE_STATUS_LABELS: Record<string, string> = {
-  pending: "معلّقة",
-  paid: "مدفوعة",
-  cancelled: "ملغاة",
+  pending: "Pending",
+  paid: "Paid",
+  cancelled: "Cancelled",
 };
 
 function formatAmount(amount: number): string {
-  return amount.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return amount.toFixed(2);
 }
 
-/**
- * Build a minimal PDF with Arabic text.
- * We use HTML-to-PDF via a simple approach: generate an HTML string,
- * then convert it to a PDF-like blob. Since Deno edge functions don't have
- * full browser rendering, we'll create a simple text-based PDF.
- * 
- * For proper Arabic rendering, we generate an HTML file and store it,
- * then the client-side viewer can render it. But since the plan asks for PDF,
- * we'll use jsPDF via esm.sh.
- */
-
-// Use jsPDF from esm.sh
-import { jsPDF } from "https://esm.sh/jspdf@2.5.2";
-
+/** Build a valid PDF 1.4 file from scratch (no external libs). */
 function generateInvoicePdf(invoice: {
   invoice_number: string | null;
   invoice_type: string;
@@ -46,89 +30,166 @@ function generateInvoicePdf(invoice: {
   description: string | null;
   status: string;
 }): Uint8Array {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const num = invoice.invoice_number || "N/A";
+  const type = INVOICE_TYPE_LABELS[invoice.invoice_type] || invoice.invoice_type;
+  const amount = formatAmount(invoice.amount);
+  const date = invoice.date;
+  const desc = (invoice.description || "N/A").replace(/[^\x20-\x7E]/g, "?");
+  const status = INVOICE_STATUS_LABELS[invoice.status] || invoice.status;
+  const generated = new Date().toISOString().split("T")[0];
 
-  // Since we can't embed Arabic fonts in edge function easily,
-  // we'll create a simple structured PDF with ASCII-safe labels
-  // and Arabic text where jsPDF supports it
-
-  const pageWidth = 210;
-  const margin = 20;
-  let y = 30;
+  // Build content stream (PDF drawing commands)
+  const lines: string[] = [];
+  let y = 780;
+  const lh = 16; // line height
 
   // Header
-  doc.setFontSize(18);
-  doc.setFont("helvetica", "bold");
-  doc.text("WAQF INVOICE", pageWidth / 2, y, { align: "center" });
-  y += 10;
+  lines.push("BT");
+  lines.push("/F1 18 Tf");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(WAQF INVOICE) Tj`);
+  lines.push("ET");
+  y -= 24;
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text("Waqf Marzouq bin Ali Al-Thubayti", pageWidth / 2, y, { align: "center" });
-  y += 6;
-  doc.text("Deed No: 411209707", pageWidth / 2, y, { align: "center" });
-  y += 6;
-  doc.text("Court: Personal Status Court - Taif", pageWidth / 2, y, { align: "center" });
-  y += 6;
-  doc.text("Administrator: Abdullah bin Marzouq bin Ali Al-Thubayti", pageWidth / 2, y, { align: "center" });
-  y += 15;
+  lines.push("BT");
+  lines.push("/F1 10 Tf");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(Waqf Marzouq bin Ali Al-Thubayti) Tj`);
+  lines.push("ET");
+  y -= lh;
 
-  // Line
-  doc.setDrawColor(200);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 10;
+  lines.push("BT");
+  lines.push("/F1 10 Tf");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(Deed No: 411209707  |  Court: Personal Status Court - Taif) Tj`);
+  lines.push("ET");
+  y -= lh;
 
-  // Invoice details
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Invoice: ${invoice.invoice_number || "N/A"}`, pageWidth / 2, y, { align: "center" });
-  y += 15;
+  lines.push("BT");
+  lines.push("/F1 10 Tf");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(Administrator: Abdullah bin Marzouq bin Ali Al-Thubayti) Tj`);
+  lines.push("ET");
+  y -= 30;
 
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
+  // Horizontal line
+  lines.push(`50 ${y} m 545 ${y} l S`);
+  y -= 30;
 
-  const details = [
-    ["Invoice Number", invoice.invoice_number || "N/A"],
-    ["Type", INVOICE_TYPE_LABELS[invoice.invoice_type] || invoice.invoice_type],
-    ["Amount (SAR)", formatAmount(invoice.amount)],
-    ["Date", invoice.date],
-    ["Description", invoice.description || "N/A"],
-    ["Status", INVOICE_STATUS_LABELS[invoice.status] || invoice.status],
+  // Invoice title
+  lines.push("BT");
+  lines.push("/F1 14 Tf");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(Invoice: ${pdfEscape(num)}) Tj`);
+  lines.push("ET");
+  y -= 30;
+
+  // Details table
+  const rows = [
+    ["Invoice Number", num],
+    ["Type", type],
+    ["Amount (SAR)", amount],
+    ["Date", date],
+    ["Description", desc.substring(0, 60)],
+    ["Status", status],
   ];
 
-  // Simple table
-  const col1X = margin + 5;
-  const col2X = margin + 65;
-  const rowHeight = 10;
+  // Table header bg
+  lines.push("0.94 0.94 0.94 rg");
+  lines.push(`50 ${y - 4} 495 ${lh} re f`);
+  lines.push("0 0 0 rg");
 
-  // Table header
-  doc.setFillColor(240, 240, 240);
-  doc.rect(margin, y - 6, pageWidth - 2 * margin, rowHeight, "F");
-  doc.setFont("helvetica", "bold");
-  doc.text("Field", col1X, y);
-  doc.text("Value", col2X, y);
-  y += rowHeight;
+  lines.push("BT");
+  lines.push("/F1 10 Tf");
+  lines.push(`55 ${y} Td`);
+  lines.push(`(Field) Tj`);
+  lines.push("ET");
+  lines.push("BT");
+  lines.push("/F1 10 Tf");
+  lines.push(`250 ${y} Td`);
+  lines.push(`(Value) Tj`);
+  lines.push("ET");
+  y -= lh;
 
-  doc.setFont("helvetica", "normal");
-  for (const [label, value] of details) {
-    doc.text(label, col1X, y);
-    doc.text(String(value), col2X, y);
-    y += rowHeight;
+  for (const [label, value] of rows) {
+    lines.push("BT");
+    lines.push("/F1 10 Tf");
+    lines.push(`55 ${y} Td`);
+    lines.push(`(${pdfEscape(label)}) Tj`);
+    lines.push("ET");
+    lines.push("BT");
+    lines.push("/F1 10 Tf");
+    lines.push(`250 ${y} Td`);
+    lines.push(`(${pdfEscape(value)}) Tj`);
+    lines.push("ET");
+    y -= lh;
   }
 
-  y += 10;
-  doc.setDrawColor(200);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 15;
+  y -= 20;
+  lines.push(`50 ${y} m 545 ${y} l S`);
+  y -= 24;
 
   // Footer
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(`Generated on: ${new Date().toISOString().split("T")[0]}`, pageWidth / 2, y, { align: "center" });
+  lines.push("BT");
+  lines.push("/F1 9 Tf");
+  lines.push("0.47 0.47 0.47 rg");
+  lines.push(`105 ${y} Td`);
+  lines.push(`(Generated on: ${generated}) Tj`);
+  lines.push("ET");
 
-  // Return as Uint8Array
-  const arrayBuffer = doc.output("arraybuffer");
-  return new Uint8Array(arrayBuffer);
+  const contentStream = lines.join("\n");
+
+  // Build PDF objects
+  const objects: string[] = [];
+  // obj 1: Catalog
+  objects.push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj");
+  // obj 2: Pages
+  objects.push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj");
+  // obj 3: Page
+  objects.push(
+    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj"
+  );
+  // obj 4: Content stream
+  objects.push(
+    `4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj`
+  );
+  // obj 5: Font (Helvetica - built-in, no embedding needed)
+  objects.push(
+    "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj"
+  );
+
+  // Assemble PDF
+  const header = "%PDF-1.4\n";
+  let body = "";
+  const offsets: number[] = [];
+
+  let pos = header.length;
+  for (const obj of objects) {
+    offsets.push(pos);
+    const entry = obj + "\n";
+    body += entry;
+    pos += entry.length;
+  }
+
+  const xrefStart = pos;
+  let xref = `xref\n0 ${objects.length + 1}\n`;
+  xref += "0000000000 65535 f \n";
+  for (const off of offsets) {
+    xref += `${String(off).padStart(10, "0")} 00000 n \n`;
+  }
+
+  const trailer = `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+
+  const pdfString = header + body + xref + trailer;
+  return new TextEncoder().encode(pdfString);
+}
+
+function pdfEscape(str: string): string {
+  return str
+    .replace(/\\/g, "\\\\")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)")
+    .replace(/[^\x20-\x7E]/g, "?");
 }
 
 Deno.serve(async (req) => {
@@ -137,7 +198,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - allow service_role or admin users
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -180,7 +240,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch invoices
     const { data: invoices, error: fetchError } = await supabaseAdmin
       .from("invoices")
       .select("*")
@@ -198,7 +257,6 @@ Deno.serve(async (req) => {
 
     for (const invoice of invoices) {
       try {
-        // Skip if already has a file
         if (invoice.file_path) {
           results.push({ id: invoice.id, invoice_number: invoice.invoice_number, success: true, error: "already has file" });
           continue;
@@ -216,7 +274,6 @@ Deno.serve(async (req) => {
         const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
         const storagePath = `generated/${fileName}`;
 
-        // Upload to storage
         const { error: uploadError } = await supabaseAdmin.storage
           .from("invoices")
           .upload(storagePath, pdfBytes, {
@@ -226,13 +283,9 @@ Deno.serve(async (req) => {
 
         if (uploadError) throw uploadError;
 
-        // Update invoice record
         const { error: updateError } = await supabaseAdmin
           .from("invoices")
-          .update({
-            file_path: storagePath,
-            file_name: fileName,
-          })
+          .update({ file_path: storagePath, file_name: fileName })
           .eq("id", invoice.id);
 
         if (updateError) throw updateError;
