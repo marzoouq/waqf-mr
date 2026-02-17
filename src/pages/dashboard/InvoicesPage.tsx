@@ -174,6 +174,20 @@ const InvoicesPage = () => {
             <p className="text-muted-foreground mt-1 text-xs sm:text-sm">رفع وإدارة جميع أنواع الفواتير</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {(() => {
+              const withoutFiles = invoices.filter(inv => !inv.file_path);
+              return withoutFiles.length > 0 ? (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  disabled={generatePdf.isPending}
+                  onClick={() => generatePdf.mutate(withoutFiles.map(inv => inv.id))}
+                >
+                  <FileDown className="w-4 h-4" />
+                  {generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${withoutFiles.length})`}
+                </Button>
+              ) : null;
+            })()}
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateInvoicesViewPDF(
