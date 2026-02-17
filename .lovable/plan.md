@@ -1,77 +1,75 @@
 
 
-# إصلاح ترحيل رقبة الوقف للسنة المالية الجديدة
+# منح الناظر صلاحية تعديل بيانات السنوات المقفلة
 
-## المشكلة
+## الوضع الحالي
 
-عند إقفال السنة المالية 2024-2025، يقوم النظام بترحيل `remainingBalance` (= 0 ر.س) بدلا من `waqfCorpusManual` (= 107,913.20 ر.س) كرقبة وقف للسنة الجديدة.
+يوجد حماية على مستويين تمنع أي تعديل على بيانات السنوات المالية المقفلة:
 
-حسب الكشف المالي المرفق:
+| المستوى | الآلية | التأثير |
+|---------|--------|---------|
+| واجهة المستخدم (UI) | متغير `isClosed` يخفي أزرار التعديل والحذف | الناظر لا يرى خيارات التعديل |
+| قاعدة البيانات (Trigger) | دالة `prevent_closed_fiscal_year_modification()` | ترفض أي عملية INSERT/UPDATE/DELETE على جداول مرتبطة بسنة مقفلة |
 
-```text
-ريع الوقف القابل للتوزيع = 1,102,913.20 ر.س
-التوزيعات                 =   995,000.00 ر.س
-رقبة الوقف                =   107,913.20 ر.س  <-- المبلغ المطلوب ترحيله
-```
+## الحل المقترح
 
-**السبب:** السطر 351 في `AccountsPage.tsx` يستخدم `remainingBalance` بدلا من `waqfCorpusManual`.
+### 1. تعديل دالة قاعدة البيانات (Database Trigger)
 
----
-
-## التعديلات المطلوبة
-
-### 1. إصلاح منطق الترحيل في `AccountsPage.tsx`
-
-**الملف:** `src/pages/dashboard/AccountsPage.tsx` - سطر 351
-
-```typescript
-// الحالي (خاطئ):
-waqf_corpus_previous: remainingBalance,
-
-// الجديد (صحيح):
-waqf_corpus_previous: waqfCorpusManual,
-```
-
-**التفسير:** رقبة الوقف اليدوية (`waqfCorpusManual`) هي المبلغ الذي يحدده الناظر صراحة لترحيله كرأس مال للسنة التالية. أما `remainingBalance` فهو الفائض بعد خصم التوزيعات ورقبة الوقف معا.
-
-### 2. تحديث رسالة الإشعار (سطر 368)
-
-```typescript
-// الحالي:
-`... تم ترحيل الرصيد المتبقي (${remainingBalance.toLocaleString()} ر.س) ...`
-
-// الجديد:
-`... تم ترحيل رقبة الوقف (${waqfCorpusManual.toLocaleString()} ر.س) ...`
-```
-
-### 3. تحديث نص التأكيد (سطر 662)
-
-```typescript
-// الحالي:
-ترحيل الرصيد المتبقي ({remainingBalance.toLocaleString()} ر.س) كرقبة وقف
-
-// الجديد:
-ترحيل رقبة الوقف ({waqfCorpusManual.toLocaleString()} ر.س) للسنة الجديدة
-```
-
-### 4. إدخال سجل الحساب الختامي المفقود لسنة 2025-2026
-
-بما أن الإقفال تم سابقا ولم يتم ترحيل المبلغ الصحيح، يجب إدخال سجل أولي للسنة الجديدة:
+تحديث دالة `prevent_closed_fiscal_year_modification()` لتسمح للمستخدم ذي دور `admin` بتجاوز الحماية، مع الإبقاء على المنع لباقي الأدوار:
 
 ```sql
-INSERT INTO accounts (fiscal_year, waqf_corpus_previous, total_income, total_expenses,
-  admin_share, waqif_share, waqf_revenue, vat_amount, distributions_amount,
-  waqf_capital, net_after_expenses, net_after_vat, zakat_amount, waqf_corpus_manual)
-VALUES ('2025-2026', 107913.20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+CREATE OR REPLACE FUNCTION public.prevent_closed_fiscal_year_modification()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  fy_status text;
+  fy_id uuid;
+BEGIN
+  -- تحديد معرف السنة المالية
+  IF TG_OP = 'DELETE' THEN
+    fy_id := OLD.fiscal_year_id;
+  ELSE
+    fy_id := NEW.fiscal_year_id;
+  END IF;
+
+  IF fy_id IS NULL THEN
+    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+  END IF;
+
+  SELECT status INTO fy_status FROM public.fiscal_years WHERE id = fy_id;
+
+  -- السماح للأدمن بتعديل السنوات المقفلة
+  IF fy_status = 'closed' AND NOT public.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'لا يمكن تعديل بيانات سنة مالية مقفلة';
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END;
+$$;
 ```
 
----
+### 2. تعديل واجهة المستخدم (3 صفحات)
 
-## ملخص التأثير
+في كل من صفحات **الدخل** و**المصروفات** و**الحسابات الختامية**:
 
-| البند | قبل الإصلاح | بعد الإصلاح |
-|-------|------------|------------|
-| المبلغ المرحل لـ 2025-2026 | 0 ر.س | 107,913.20 ر.س |
-| سجل حساب 2025-2026 | غير موجود | موجود برقبة وقف مرحلة |
-| رسالة الإشعار | "الرصيد المتبقي" | "رقبة الوقف" |
+- ازالة شرط `isClosed` الذي يخفي أزرار التعديل والحذف والاضافة
+- استبداله بتنبيه تحذيري واضح يُعلم الناظر أنه يعدّل بيانات سنة مقفلة (بدلاً من المنع التام)
+- تغيير رسالة "سنة مقفلة - لا يمكن التعديل" الى "سنة مقفلة - تعديل بصلاحية الناظر"
+- اضافة لون تحذيري (برتقالي) بدلاً من اللون الاحمر للتمييز بين المنع والتحذير
+
+### 3. تسجيل العمليات في سجل المراجعة
+
+المشغلات الحالية (`audit_trigger_func`) ستستمر بتسجيل أي تعديل يقوم به الناظر على السنوات المقفلة تلقائياً، مما يوفر تتبعاً كاملاً لأي تغييرات استثنائية.
+
+## ملخص التغييرات
+
+| الملف / المكون | التغيير |
+|----------------|---------|
+| Migration SQL | تحديث دالة `prevent_closed_fiscal_year_modification` لاستثناء الادمن |
+| `IncomePage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
+| `ExpensesPage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
+| `AccountsPage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
 
