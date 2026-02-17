@@ -258,8 +258,10 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
-          <AiAssistant />
-          <SecurityGuard />
+          <Suspense fallback={null}>
+            <AiAssistant />
+            <SecurityGuard />
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

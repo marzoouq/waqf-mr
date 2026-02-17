@@ -1,6 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
+const ALLOWED_ACTIONS = [
+  "toggle_registration", "list_users", "update_email", "update_password",
+  "confirm_email", "set_role", "delete_user", "create_user", "bulk_create_users",
+];
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -8,7 +13,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -17,27 +22,32 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify the caller is admin
-    const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    // Verify the caller using getClaims (faster than getUser)
+    const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user: caller } } = await userClient.auth.getUser();
-    if (!caller) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check admin role
-    const { data: roleData } = await userClient
+    const callerId = claimsData.claims.sub as string;
+
+    // Check admin role using service role client to bypass RLS
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
-      .single();
+      .maybeSingle();
 
     if (!roleData) {
       return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), {
@@ -46,9 +56,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
     const body = await req.json();
     const { action, userId, email, password } = body;
+
+    // Validate action against whitelist
+    if (!action || !ALLOWED_ACTIONS.includes(action)) {
+      return new Response(JSON.stringify({ error: `Invalid action: ${action}` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Input validation helpers
     const validateEmail = (e: string) => {
@@ -85,7 +102,6 @@ Deno.serve(async (req) => {
         const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 100 });
         if (error) throw error;
         
-        // Get roles for all users
         const { data: roles } = await adminClient.from("user_roles").select("*");
         
         const users = data.users.map((u) => ({
@@ -139,9 +155,7 @@ Deno.serve(async (req) => {
         validateUuid(userId);
         validateRole(body.role);
         if (!userId || !body.role) throw new Error("userId and role required");
-        // Delete existing role
         await adminClient.from("user_roles").delete().eq("user_id", userId);
-        // Insert new role
         const { error } = await adminClient.from("user_roles").insert({
           user_id: userId,
           role: body.role,
@@ -154,14 +168,8 @@ Deno.serve(async (req) => {
 
       case "delete_user": {
         if (!userId) throw new Error("userId required");
-        // Delete beneficiary records linked to this user
-        await adminClient
-          .from("beneficiaries")
-          .delete()
-          .eq("user_id", userId);
-        // Delete user role
+        await adminClient.from("beneficiaries").delete().eq("user_id", userId);
         await adminClient.from("user_roles").delete().eq("user_id", userId);
-        // Delete auth user
         const { error } = await adminClient.auth.admin.deleteUser(userId);
         if (error) throw error;
         return new Response(JSON.stringify({ success: true }), {
@@ -182,7 +190,6 @@ Deno.serve(async (req) => {
         });
         if (error) throw error;
         
-        // Set role if provided
         if (body.role) {
           await adminClient.from("user_roles").insert({
             user_id: newUser.user.id,
@@ -190,7 +197,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Handle beneficiary linking/creation
         if (body.role === "beneficiary") {
           const { data: existingBeneficiary } = await adminClient
             .from("beneficiaries")
@@ -229,7 +235,6 @@ Deno.serve(async (req) => {
           }
         }
         
-        // Notify admins about new beneficiary
         if (body.role === "beneficiary") {
           await adminClient.rpc('notify_admins', {
             p_title: 'مستفيد جديد',
@@ -255,7 +260,6 @@ Deno.serve(async (req) => {
 
         for (const u of users) {
           try {
-            // Create auth user
             const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
               email: u.email,
               password: u.password,
@@ -266,13 +270,11 @@ Deno.serve(async (req) => {
               continue;
             }
 
-            // Set beneficiary role
             await adminClient.from("user_roles").insert({
               user_id: newUser.user.id,
               role: "beneficiary",
             });
 
-            // Create beneficiary record
             await adminClient.from("beneficiaries").insert({
               name: u.name,
               email: u.email,
@@ -281,7 +283,6 @@ Deno.serve(async (req) => {
               national_id: u.national_id || null,
             });
 
-            // Notify admins about new beneficiary
             await adminClient.rpc('notify_admins', {
               p_title: 'مستفيد جديد',
               p_message: `تم تسجيل مستفيد جديد: ${u.name}`,
@@ -307,7 +308,10 @@ Deno.serve(async (req) => {
       }
 
       default:
-        throw new Error(`Unknown action: ${action}`);
+        return new Response(JSON.stringify({ error: `Invalid action: ${action}` }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
     }
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
