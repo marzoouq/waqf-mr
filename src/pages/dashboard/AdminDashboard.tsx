@@ -35,8 +35,14 @@ const AdminDashboard = () => {
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
   const filteredExpenses = expenses;
-  const activeContractsCount = contracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  // Filter contracts by fiscal year overlap
+  const fyContracts = useMemo(() => {
+    if (!selectedFY) return contracts;
+    return contracts.filter(c => c.start_date <= selectedFY.end_date && c.end_date >= selectedFY.start_date);
+  }, [contracts, selectedFY]);
+
+  const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
+  const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
