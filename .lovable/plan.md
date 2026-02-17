@@ -1,73 +1,42 @@
 
 
-# إضافة فلتر السنة المالية لصفحتي العقارات والعقود
+# إصلاح تصفير البيانات المالية في صفحة العقارات
 
-## ملخص التغييرات
+## المشكلة
 
-### 1. إضافة هوك `useContractsByFiscalYear` في `src/hooks/useContracts.ts`
-- إنشاء هوك جديد بنفس نمط `useExpensesByFiscalYear` و `useIncomeByFiscalYear`
-- يفلتر العقود بحقل `fiscal_year_id` مع دعم خيار "جميع السنوات"
-- يتضمن ربط العقار والوحدة (`*, property:properties(*), unit:units(*)`)
+جميع العقود الـ 20 في قاعدة البيانات لديها `fiscal_year_id = NULL` (فارغ)، بينما فلتر السنة المالية الجديد يبحث عن عقود مرتبطة بسنة مالية محددة. النتيجة: لا تظهر أي عقود، وتصبح جميع المؤشرات المالية أصفار.
 
-### 2. تعديل صفحة العقود `src/pages/dashboard/ContractsPage.tsx`
-- استيراد `FiscalYearSelector`, `useActiveFiscalYear`, `useContractsByFiscalYear`
-- إضافة state للسنة المالية المختارة (افتراضياً: السنة النشطة)
-- استبدال `useContracts()` بـ `useContractsByFiscalYear(fiscalYearId)`
-- وضع `FiscalYearSelector` بجانب حقل البحث في شريط الأدوات
-- إضافة تحذير برتقالي عند عرض سنة مقفلة (نفس نمط صفحة الدخل)
-- تحديث الإحصائيات لتعكس السنة المختارة فقط
+| البيانات | الوضع الحالي |
+|----------|-------------|
+| العقود (20 عقد) | `fiscal_year_id = NULL` |
+| المصروفات (13 سجل) | مرتبطة بسنة 2024-2025 |
+| السنوات المالية | 2024-2025 (مقفلة) + 2025-2026 (نشطة) |
 
-### 3. تعديل صفحة العقارات `src/pages/dashboard/PropertiesPage.tsx`
-- استيراد `FiscalYearSelector`, `useActiveFiscalYear`, `useContractsByFiscalYear`, `useExpensesByFiscalYear`
-- إضافة state للسنة المالية المختارة
-- استبدال `useContracts()` بـ `useContractsByFiscalYear(fiscalYearId)` لفلترة العقود في بطاقات العقارات
-- استبدال `useExpenses()` بـ `useExpensesByFiscalYear(fiscalYearId)` لفلترة المصروفات
-- العقارات والوحدات تبقى بدون فلترة (أصول ثابتة)
-- المؤشرات المالية في كل بطاقة (الإيرادات التعاقدية، المصروفات، الصافي) تتغير حسب السنة المختارة
-- وضع `FiscalYearSelector` بجانب حقل البحث
+## الحل المقترح (خطوتان)
 
-## التفاصيل التقنية
+### 1. تحديث البيانات الموجودة (Migration)
 
-### هوك جديد (`useContracts.ts`)
+ربط العقود الـ 20 الحالية بالسنة المالية 2024-2025 (المقفلة) لأنها الفترة التي أُنشئت فيها:
 
-```typescript
-export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
-  return useQuery({
-    queryKey: ['contracts', 'fiscal_year', fiscalYearId],
-    queryFn: async () => {
-      let query = supabase
-        .from('contracts')
-        .select('*, property:properties(*), unit:units(*)')
-        .order('start_date', { ascending: false })
-        .limit(500);
-      if (fiscalYearId !== 'all') {
-        query = query.eq('fiscal_year_id', fiscalYearId);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Contract[];
-    },
-  });
-};
+```sql
+UPDATE contracts
+SET fiscal_year_id = '1fe1394b-a04c-4223-8f70-0e5fee905d23'
+WHERE fiscal_year_id IS NULL;
 ```
 
-### نمط واجهة المستخدم (مطابق لصفحة الدخل)
+### 2. تحسين الفلتر في الكود
 
-```typescript
-const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-const [selectedFY, setSelectedFY] = useState<string>('');
-const fiscalYearId = selectedFY || activeFY?.id || 'all';
-const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-const isClosed = currentFY?.status === 'closed';
+تعديل `useContractsByFiscalYear` ليتعامل مع العقود التي قد يكون `fiscal_year_id` فارغاً فيها مستقبلاً (حماية إضافية):
 
-const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
-```
+في ملف `src/hooks/useContracts.ts`:
+- عند اختيار "جميع السنوات" تُعرض جميع العقود (بدون تغيير)
+- عند اختيار سنة محددة، تُعرض العقود المرتبطة بتلك السنة فقط (بدون تغيير)
 
-### الملفات المتأثرة
+هذا يعني أن المشكلة الأساسية هي في البيانات وليس في الكود - بمجرد ربط العقود بالسنة المالية الصحيحة ستعود المؤشرات للظهور.
 
-| الملف | نوع التغيير |
-|-------|-------------|
-| `src/hooks/useContracts.ts` | إضافة `useContractsByFiscalYear` |
-| `src/pages/dashboard/ContractsPage.tsx` | إضافة فلتر السنة + تحذير السنة المقفلة |
-| `src/pages/dashboard/PropertiesPage.tsx` | إضافة فلتر السنة للبيانات المالية |
+## الملفات المتأثرة
+
+| الملف / المكون | التغيير |
+|----------------|---------|
+| Migration SQL | ربط العقود الحالية بسنة 2024-2025 |
 
