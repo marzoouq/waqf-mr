@@ -34,19 +34,22 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
       setBlobUrl(null);
     }
 
-    let revoked = false;
+    const abortController = new AbortController();
     setLoading(true);
     getInvoiceSignedUrl(filePath)
       .then((url) => {
-        if (!revoked) setBlobUrl(url);
+        if (!abortController.signal.aborted) setBlobUrl(url);
+        else URL.revokeObjectURL(url);
       })
       .catch(() => {
-        toast.error('فشل في تحميل الملف');
+        if (!abortController.signal.aborted) toast.error('فشل في تحميل الملف');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!abortController.signal.aborted) setLoading(false);
+      });
 
     return () => {
-      revoked = true;
+      abortController.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filePath]);

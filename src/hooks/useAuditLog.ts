@@ -21,6 +21,8 @@ const TABLE_NAMES_AR: Record<string, string> = {
   properties: 'العقارات',
   contracts: 'العقود',
   beneficiaries: 'المستفيدين',
+  units: 'الوحدات',
+  fiscal_years: 'السنوات المالية',
 };
 
 const OPERATION_NAMES_AR: Record<string, string> = {
@@ -42,7 +44,8 @@ export const useAuditLog = (filters?: {
       let query = supabase
         .from('audit_log')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
 
       if (filters?.tableName) {
         query = query.eq('table_name', filters.tableName);

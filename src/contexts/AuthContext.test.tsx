@@ -27,6 +27,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         select: () => ({
           eq: () => ({
             single: () => Promise.resolve({ data: { value: "15" }, error: null }),
+            maybeSingle: () => Promise.resolve({ data: { value: "15" }, error: null }),
           }),
         }),
       };
@@ -102,6 +103,7 @@ describe("AuthContext", () => {
       select: () => ({
         eq: () => ({
           single: () => Promise.resolve({ data: { role: "admin" }, error: null }),
+          maybeSingle: () => Promise.resolve({ data: { role: "admin" }, error: null }),
         }),
       }),
     });

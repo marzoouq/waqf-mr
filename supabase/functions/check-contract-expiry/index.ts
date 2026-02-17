@@ -89,11 +89,15 @@ Deno.serve(async (req) => {
 
     const { data: existing } = await supabase
       .from("notifications")
-      .select("message")
+      .select("message, user_id")
       .gte("created_at", todayStr + "T00:00:00Z")
       .eq("type", "warning");
 
-    const existingMessages = new Set((existing || []).map((n: { message: string }) => n.message));
+    const existingByUser = new Map<string, Set<string>>();
+    for (const n of existing || []) {
+      if (!existingByUser.has(n.user_id)) existingByUser.set(n.user_id, new Set());
+      existingByUser.get(n.user_id)!.add(n.message);
+    }
 
     const notifications: Array<{
       user_id: string;
@@ -109,9 +113,8 @@ Deno.serve(async (req) => {
       );
       const msg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
 
-      if (existingMessages.has(msg)) continue;
-
       for (const admin of admins) {
+        if (existingByUser.get(admin.user_id)?.has(msg)) continue;
         notifications.push({
           user_id: admin.user_id,
           title: "تنبيه: عقد قارب على الانتهاء",

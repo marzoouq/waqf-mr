@@ -41,6 +41,7 @@ const MySharePage = () => {
     vatAmount,
     zakatAmount,
     netAfterExpenses,
+    availableAmount,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
@@ -61,8 +62,7 @@ const MySharePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const beneficiariesShare = distributableAmount;
+  const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
