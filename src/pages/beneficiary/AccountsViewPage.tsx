@@ -44,6 +44,8 @@ const AccountsViewPage = () => {
     waqfRevenue,
     waqfCorpusManual,
     distributionsAmount,
+    grandTotal,
+    availableAmount,
     incomeBySource,
     expensesByType,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
@@ -52,13 +54,10 @@ const AccountsViewPage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const grandTotal = totalIncome + waqfCorpusPrevious;
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-
   const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   const myShare = currentBeneficiary
-    ? (distributableAmount * Number(currentBeneficiary.share_percentage)) / 100
+    ? (availableAmount * Number(currentBeneficiary.share_percentage)) / 100
     : 0;
 
   const statusLabel = (status: string) => {
@@ -110,8 +109,8 @@ const AccountsViewPage = () => {
                   netAfterVat,
                   waqfCapital: waqfCorpusManual,
                   distributionsAmount,
-                  availableAmount: distributableAmount,
-                  remainingBalance: distributableAmount - distributionsAmount,
+                  availableAmount,
+                  remainingBalance: availableAmount - distributionsAmount,
                 }, pdfWaqfInfo);
                 toast.success('تم تصدير الحسابات الختامية بنجاح');
               } catch {

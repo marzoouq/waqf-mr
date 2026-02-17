@@ -51,6 +51,7 @@ const FinancialReportsPage = () => {
     waqifShare,
     waqfRevenue,
     waqfCorpusManual,
+    availableAmount,
     zakatAmount,
     incomeBySource,
     expensesByTypeExcludingVat,
@@ -58,8 +59,7 @@ const FinancialReportsPage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const distributableAmount = waqfRevenue - waqfCorpusManual;
-  const beneficiariesShare = distributableAmount;
+  const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
