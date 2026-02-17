@@ -48,7 +48,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
       const other = fiscalYears.find(fy => fy.id !== currentFiscalYearId);
       if (other) setYear2Id(other.id);
     }
-  }, [currentFiscalYearId, fiscalYears]);
+  }, [currentFiscalYearId, fiscalYears, year1Id, year2Id]);
 
   const year1Label = fiscalYears.find(fy => fy.id === year1Id)?.label || '';
   const year2Label = fiscalYears.find(fy => fy.id === year2Id)?.label || '';

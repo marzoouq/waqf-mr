@@ -20,7 +20,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 const NotificationsPage = () => {
-  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, unreadCount } = useNotifications();
+  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, unreadCount } = useNotifications();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
