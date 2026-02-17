@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
       }
 
       case "confirm_email": {
-        if (!userId) throw new Error("userId required");
+        validateUuid(userId);
         const { error } = await adminClient.auth.admin.updateUserById(userId, {
           email_confirm: true,
         });

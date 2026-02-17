@@ -25,6 +25,8 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   orderBy?: string;
   /** Order direction – defaults to descending */
   ascending?: boolean;
+  /** Max rows to fetch – defaults to 500 */
+  limit?: number;
   /** Fields to omit when creating (always omits 'id' and 'created_at') */
   omitOnCreate?: string[];
   /** Arabic entity label for toast messages (e.g. 'العقار') */
@@ -48,6 +50,7 @@ export function useCrudFactory<T extends TableName, TData = Row<T>>(
     select = '*',
     orderBy = 'created_at',
     ascending = false,
+    limit = 500,
     label,
     onCreateSuccess,
     onUpdateSuccess,
@@ -61,7 +64,8 @@ export function useCrudFactory<T extends TableName, TData = Row<T>>(
         const { data, error } = await supabase
           .from(table)
           .select(select)
-          .order(orderBy, { ascending });
+          .order(orderBy, { ascending })
+          .limit(limit);
 
         if (error) throw error;
         return data as TData[];

@@ -117,10 +117,10 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   return { path, name: file.name };
 };
 
-export const getInvoiceFileUrl = (filePath: string) => {
-  // This returns a direct storage URL - use getInvoiceSignedUrl for blob-based access
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  return `${supabaseUrl}/storage/v1/object/public/invoices/${filePath}`;
+/** @deprecated Use getInvoiceSignedUrl instead – invoices bucket is private */
+export const getInvoiceFileUrl = (_filePath: string) => {
+  console.warn('getInvoiceFileUrl is deprecated. Use getInvoiceSignedUrl for private bucket access.');
+  return '';
 };
 
 export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
