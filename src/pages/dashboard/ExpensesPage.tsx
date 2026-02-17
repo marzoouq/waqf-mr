@@ -109,7 +109,7 @@ const ExpensesPage = () => {
            <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingExpense ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,8 +143,8 @@ const ExpensesPage = () => {
         <div className="flex flex-wrap items-center gap-4">
           <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
           {isClosed && (
-            <span className="text-sm text-destructive font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> سنة مقفلة - لا يمكن التعديل
+            <span className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+              <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
             </span>
           )}
         </div>
@@ -234,12 +234,10 @@ const ExpensesPage = () => {
                           </TableCell>
                           <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
                           <TableCell>
-                            {!isClosed && (
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
                               <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                             </div>
-                            )}
                           </TableCell>
                         </TableRow>
                         {isExpanded && (

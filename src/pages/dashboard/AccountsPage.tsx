@@ -484,8 +484,8 @@ const AccountsPage = () => {
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             {isClosed && (
-              <span className="text-xs text-destructive font-medium flex items-center gap-1">
-                <Lock className="w-3 h-3" /> سنة مقفلة
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+                <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
               </span>
             )}
             <ExportMenu onExportPdf={() => generateAccountsPDF({
@@ -509,7 +509,7 @@ const AccountsPage = () => {
               availableAmount,
               remainingBalance,
             }, pdfWaqfInfo)} />
-            <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending || isClosed}>
+            <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
             </Button>
