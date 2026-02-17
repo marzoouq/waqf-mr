@@ -12,8 +12,10 @@ import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound } from 'lucide-react
 import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [nationalId, setNationalId] = useState('');
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +62,7 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    let loginEmail = email;
+    let resolvedEmail = loginEmail;
 
     if (loginMethod === 'national_id') {
       if (!nationalId) {
@@ -77,22 +79,22 @@ const Auth = () => {
         setIsLoading(false);
         return;
       }
-      loginEmail = data.email;
+      resolvedEmail = data.email;
     } else {
-      if (!loginEmail) {
+      if (!resolvedEmail) {
         toast.error('يرجى إدخال البريد الإلكتروني');
         setIsLoading(false);
         return;
       }
     }
 
-    if (!password) {
+    if (!loginPassword) {
       toast.error('يرجى إدخال كلمة المرور');
       setIsLoading(false);
       return;
     }
 
-    const { error } = await signIn(loginEmail, password);
+    const { error } = await signIn(resolvedEmail, loginPassword);
     setIsLoading(false);
     if (error) {
       toast.error('خطأ في تسجيل الدخول: ' + error.message);
@@ -103,16 +105,16 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!signupEmail || !signupPassword) {
       toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
-    if (password.length < 6) {
+    if (signupPassword.length < 6) {
       toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
     }
     setIsLoading(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(signupEmail, signupPassword);
     setIsLoading(false);
     if (error) {
       if (error.message.includes('already registered')) {
@@ -168,8 +170,8 @@ const Auth = () => {
           <Input
             id={`signin-email${idSuffix}`}
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={loginEmail}
+            onChange={(e) => setLoginEmail(e.target.value)}
             placeholder="example@email.com"
             dir="ltr"
             className="h-11"
@@ -195,8 +197,8 @@ const Auth = () => {
         <Input
           id={`signin-password${idSuffix}`}
           type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={loginPassword}
+          onChange={(e) => setLoginPassword(e.target.value)}
           placeholder="••••••••"
           dir="ltr"
           className="h-11"
@@ -306,8 +308,8 @@ const Auth = () => {
                       <Input
                         id="signup-email"
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={signupEmail}
+                        onChange={(e) => setSignupEmail(e.target.value)}
                         placeholder="example@email.com"
                         dir="ltr"
                         className="h-11"
@@ -318,8 +320,8 @@ const Auth = () => {
                       <Input
                         id="signup-password"
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
                         placeholder="••••••••"
                         dir="ltr"
                         className="h-11"

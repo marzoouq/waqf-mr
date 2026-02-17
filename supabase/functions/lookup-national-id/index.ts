@@ -1,14 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-// Simple in-memory rate limiter (per IP, 5 requests per minute)
+// Simple in-memory rate limiter (per IP, 3 requests per minute)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 5;
+const RATE_LIMIT = 3;
 const RATE_WINDOW_MS = 60_000;
 
 function isRateLimited(ip: string): boolean {
@@ -21,6 +16,14 @@ function isRateLimited(ip: string): boolean {
   entry.count++;
   return entry.count > RATE_LIMIT;
 }
+
+// Cleanup old entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimitMap) {
+    if (now > val.resetAt) rateLimitMap.delete(key);
+  }
+}, 5 * 60_000);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -75,12 +78,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Return generic error for both not-found and found-without-email
+    // to prevent enumeration attacks
     if (!data || data.length === 0 || !data[0]?.email) {
+      // Add artificial delay to prevent timing attacks
+      await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
       return new Response(
         JSON.stringify({ error: "رقم الهوية غير مسجل في النظام" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Add same delay for success to prevent timing-based enumeration
+    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
 
     return new Response(
       JSON.stringify({ email: data[0].email }),

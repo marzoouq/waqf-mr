@@ -42,9 +42,9 @@ const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/Beneficia
 const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
 const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
 
-// AI Assistant & Security
-import AiAssistant from "./components/AiAssistant";
-import SecurityGuard from "./components/SecurityGuard";
+// AI Assistant & Security - Lazy loaded
+const AiAssistant = lazy(() => import("./components/AiAssistant"));
+const SecurityGuard = lazy(() => import("./components/SecurityGuard"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
