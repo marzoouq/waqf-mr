@@ -1,196 +1,355 @@
 import { corsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
+import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const INVOICE_TYPE_LABELS: Record<string, string> = {
-  utilities: "Utilities",
-  maintenance: "Maintenance",
-  rent: "Rent",
-  other: "Other",
+// ─── Arabic Labels ───────────────────────────────────────────────
+const TYPE_AR: Record<string, string> = {
+  utilities: "مرافق",
+  maintenance: "صيانة",
+  rent: "إيجار",
+  other: "أخرى",
 };
 
-const INVOICE_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending",
-  paid: "Paid",
-  cancelled: "Cancelled",
+const STATUS_AR: Record<string, string> = {
+  pending: "معلّقة",
+  paid: "مدفوعة",
+  cancelled: "ملغاة",
 };
 
-function formatAmount(amount: number): string {
-  return amount.toFixed(2);
+// ─── Arabic Reshaper ─────────────────────────────────────────────
+// Maps Unicode code-points → contextual Presentation Forms-B glyphs
+// Format: [isolated, final, initial, medial]
+const ARABIC_FORMS: Record<number, number[]> = {
+  0x0621: [0xFE80, 0xFE80, 0xFE80, 0xFE80], // ء hamza
+  0x0622: [0xFE81, 0xFE82, 0xFE81, 0xFE82], // آ
+  0x0623: [0xFE83, 0xFE84, 0xFE83, 0xFE84], // أ
+  0x0624: [0xFE85, 0xFE86, 0xFE85, 0xFE86], // ؤ
+  0x0625: [0xFE87, 0xFE88, 0xFE87, 0xFE88], // إ
+  0x0626: [0xFE89, 0xFE8A, 0xFE8B, 0xFE8C], // ئ
+  0x0627: [0xFE8D, 0xFE8E, 0xFE8D, 0xFE8E], // ا
+  0x0628: [0xFE8F, 0xFE90, 0xFE91, 0xFE92], // ب
+  0x0629: [0xFE93, 0xFE94, 0xFE93, 0xFE94], // ة
+  0x062A: [0xFE95, 0xFE96, 0xFE97, 0xFE98], // ت
+  0x062B: [0xFE99, 0xFE9A, 0xFE9B, 0xFE9C], // ث
+  0x062C: [0xFE9D, 0xFE9E, 0xFE9F, 0xFEA0], // ج
+  0x062D: [0xFEA1, 0xFEA2, 0xFEA3, 0xFEA4], // ح
+  0x062E: [0xFEA5, 0xFEA6, 0xFEA7, 0xFEA8], // خ
+  0x062F: [0xFEA9, 0xFEAA, 0xFEA9, 0xFEAA], // د
+  0x0630: [0xFEAB, 0xFEAC, 0xFEAB, 0xFEAC], // ذ
+  0x0631: [0xFEAD, 0xFEAE, 0xFEAD, 0xFEAE], // ر
+  0x0632: [0xFEAF, 0xFEB0, 0xFEAF, 0xFEB0], // ز
+  0x0633: [0xFEB1, 0xFEB2, 0xFEB3, 0xFEB4], // س
+  0x0634: [0xFEB5, 0xFEB6, 0xFEB7, 0xFEB8], // ش
+  0x0635: [0xFEB9, 0xFEBA, 0xFEBB, 0xFEBC], // ص
+  0x0636: [0xFEBD, 0xFEBE, 0xFEBF, 0xFEC0], // ض
+  0x0637: [0xFEC1, 0xFEC2, 0xFEC3, 0xFEC4], // ط
+  0x0638: [0xFEC5, 0xFEC6, 0xFEC7, 0xFEC8], // ظ
+  0x0639: [0xFEC9, 0xFECA, 0xFECB, 0xFECC], // ع
+  0x063A: [0xFECD, 0xFECE, 0xFECF, 0xFED0], // غ
+  0x0641: [0xFED1, 0xFED2, 0xFED3, 0xFED4], // ف
+  0x0642: [0xFED5, 0xFED6, 0xFED7, 0xFED8], // ق
+  0x0643: [0xFED9, 0xFEDA, 0xFEDB, 0xFEDC], // ك
+  0x0644: [0xFEDD, 0xFEDE, 0xFEDF, 0xFEE0], // ل
+  0x0645: [0xFEE1, 0xFEE2, 0xFEE3, 0xFEE4], // م
+  0x0646: [0xFEE5, 0xFEE6, 0xFEE7, 0xFEE8], // ن
+  0x0647: [0xFEE9, 0xFEEA, 0xFEEB, 0xFEEC], // ه
+  0x0648: [0xFEED, 0xFEEE, 0xFEED, 0xFEEE], // و
+  0x0649: [0xFEEF, 0xFEF0, 0xFEEF, 0xFEF0], // ى
+  0x064A: [0xFEF1, 0xFEF2, 0xFEF3, 0xFEF4], // ي
+  // Lam-Alef ligatures handled separately
+};
+
+// Characters that do NOT connect to the next letter
+const RIGHT_JOIN_ONLY = new Set([
+  0x0627, 0x0622, 0x0623, 0x0625, 0x062F, 0x0630,
+  0x0631, 0x0632, 0x0648, 0x0624, 0x0629, 0x0649,
+]);
+
+// Tashkeel / diacritics — pass through without affecting joining
+const TASHKEEL = new Set([
+  0x064B, 0x064C, 0x064D, 0x064E, 0x064F, 0x0650,
+  0x0651, 0x0652, 0x0670,
+]);
+
+function isArabicLetter(cp: number): boolean {
+  return cp >= 0x0621 && cp <= 0x064A && !TASHKEEL.has(cp);
 }
 
-/** Build a valid PDF 1.4 file from scratch (no external libs). */
-function generateInvoicePdf(invoice: {
+function reshapeArabic(text: string): string {
+  const codePoints = [...text].map((c) => c.codePointAt(0)!);
+  const result: number[] = [];
+
+  for (let i = 0; i < codePoints.length; i++) {
+    const cp = codePoints[i];
+
+    if (TASHKEEL.has(cp)) {
+      result.push(cp);
+      continue;
+    }
+
+    if (!isArabicLetter(cp) || !ARABIC_FORMS[cp]) {
+      result.push(cp);
+      continue;
+    }
+
+    // Determine joining context (skip tashkeel when looking for neighbours)
+    let prevIdx = i - 1;
+    while (prevIdx >= 0 && TASHKEEL.has(codePoints[prevIdx])) prevIdx--;
+    let nextIdx = i + 1;
+    while (nextIdx < codePoints.length && TASHKEEL.has(codePoints[nextIdx])) nextIdx++;
+
+    const prevCP = prevIdx >= 0 ? codePoints[prevIdx] : 0;
+    const nextCP = nextIdx < codePoints.length ? codePoints[nextIdx] : 0;
+
+    const prevJoins = isArabicLetter(prevCP) && ARABIC_FORMS[prevCP] && !RIGHT_JOIN_ONLY.has(prevCP);
+    const nextJoins = isArabicLetter(nextCP) && ARABIC_FORMS[nextCP] !== undefined;
+
+    // Lam-Alef ligatures
+    if (cp === 0x0644 && nextJoins) {
+      const ncp = nextCP;
+      if (ncp === 0x0627) { result.push(prevJoins ? 0xFEFC : 0xFEFB); i = nextIdx; continue; }
+      if (ncp === 0x0622) { result.push(prevJoins ? 0xFEF6 : 0xFEF5); i = nextIdx; continue; }
+      if (ncp === 0x0623) { result.push(prevJoins ? 0xFEF8 : 0xFEF7); i = nextIdx; continue; }
+      if (ncp === 0x0625) { result.push(prevJoins ? 0xFEFA : 0xFEF9); i = nextIdx; continue; }
+    }
+
+    const forms = ARABIC_FORMS[cp];
+    let form: number;
+    if (prevJoins && nextJoins) form = forms[3]; // medial
+    else if (prevJoins) form = forms[1]; // final
+    else if (nextJoins) form = forms[2]; // initial
+    else form = forms[0]; // isolated
+
+    result.push(form);
+  }
+
+  return String.fromCodePoint(...result);
+}
+
+/** Reverse only for visual RTL rendering. Numbers/Latin kept LTR within runs. */
+function visualRTL(text: string): string {
+  // Split into runs of Arabic vs non-Arabic
+  const runs: { text: string; isArabic: boolean }[] = [];
+  let current = "";
+  let currentIsArabic = false;
+
+  for (const ch of text) {
+    const cp = ch.codePointAt(0)!;
+    const arabic =
+      (cp >= 0x0600 && cp <= 0x06FF) ||
+      (cp >= 0xFB50 && cp <= 0xFDFF) ||
+      (cp >= 0xFE70 && cp <= 0xFEFF);
+
+    if (current.length === 0) {
+      currentIsArabic = arabic;
+      current = ch;
+    } else if (arabic === currentIsArabic || ch === " ") {
+      current += ch;
+    } else {
+      runs.push({ text: current, isArabic: currentIsArabic });
+      current = ch;
+      currentIsArabic = arabic;
+    }
+  }
+  if (current) runs.push({ text: current, isArabic: currentIsArabic });
+
+  // Reverse order of runs (RTL base direction), and reverse Arabic runs internally
+  runs.reverse();
+  return runs
+    .map((r) =>
+      r.isArabic ? [...r.text].reverse().join("") : r.text
+    )
+    .join("");
+}
+
+function processArabicText(text: string): string {
+  return visualRTL(reshapeArabic(text));
+}
+
+// ─── PDF Generation ──────────────────────────────────────────────
+
+const FONT_BASE_URL = "https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app/fonts";
+
+async function fetchFont(name: string): Promise<Uint8Array> {
+  const url = `${FONT_BASE_URL}/${name}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch font ${name}: ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+interface InvoiceData {
   invoice_number: string | null;
   invoice_type: string;
   amount: number;
   date: string;
   description: string | null;
   status: string;
-}): Uint8Array {
-  const num = invoice.invoice_number || "N/A";
-  const type = INVOICE_TYPE_LABELS[invoice.invoice_type] || invoice.invoice_type;
-  const amount = formatAmount(invoice.amount);
-  const date = invoice.date;
-  const desc = (invoice.description || "N/A").replace(/[^\x20-\x7E]/g, "?");
-  const status = INVOICE_STATUS_LABELS[invoice.status] || invoice.status;
-  const generated = new Date().toISOString().split("T")[0];
+}
 
-  // Build content stream (PDF drawing commands)
-  const lines: string[] = [];
-  let y = 780;
-  const lh = 16; // line height
+async function generateInvoicePdf(invoice: InvoiceData): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
 
-  // Header
-  lines.push("BT");
-  lines.push("/F1 18 Tf");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(WAQF INVOICE) Tj`);
-  lines.push("ET");
-  y -= 24;
+  // Embed Amiri fonts
+  const [amiriRegularBytes, amiriBoldBytes] = await Promise.all([
+    fetchFont("Amiri-Regular.ttf"),
+    fetchFont("Amiri-Bold.ttf"),
+  ]);
 
-  lines.push("BT");
-  lines.push("/F1 10 Tf");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(Waqf Marzouq bin Ali Al-Thubayti) Tj`);
-  lines.push("ET");
-  y -= lh;
+  const amiri = await pdfDoc.embedFont(amiriRegularBytes, { subset: true });
+  const amiriBold = await pdfDoc.embedFont(amiriBoldBytes, { subset: true });
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  lines.push("BT");
-  lines.push("/F1 10 Tf");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(Deed No: 411209707  |  Court: Personal Status Court - Taif) Tj`);
-  lines.push("ET");
-  y -= lh;
+  const page = pdfDoc.addPage([595, 842]); // A4
+  const { width, height } = page.getSize();
+  const margin = 50;
 
-  lines.push("BT");
-  lines.push("/F1 10 Tf");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(Administrator: Abdullah bin Marzouq bin Ali Al-Thubayti) Tj`);
-  lines.push("ET");
-  y -= 30;
+  // Colors
+  const darkGreen = rgb(0.05, 0.35, 0.15);
+  const gold = rgb(0.72, 0.58, 0.2);
+  const lightGray = rgb(0.95, 0.95, 0.95);
+  const medGray = rgb(0.6, 0.6, 0.6);
+  const black = rgb(0, 0, 0);
 
-  // Horizontal line
-  lines.push(`50 ${y} m 545 ${y} l S`);
-  y -= 30;
+  // ── Gold border ──
+  const bw = 2;
+  page.drawRectangle({ x: margin - 10, y: margin - 10, width: width - 2 * margin + 20, height: height - 2 * margin + 20, borderColor: gold, borderWidth: bw });
 
-  // Invoice title
-  lines.push("BT");
-  lines.push("/F1 14 Tf");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(Invoice: ${pdfEscape(num)}) Tj`);
-  lines.push("ET");
-  y -= 30;
+  // ── Green header bar ──
+  const headerH = 70;
+  const headerY = height - margin - headerH;
+  page.drawRectangle({ x: margin, y: headerY, width: width - 2 * margin, height: headerH, color: darkGreen });
 
-  // Details table
-  const rows = [
-    ["Invoice Number", num],
-    ["Type", type],
-    ["Amount (SAR)", amount],
-    ["Date", date],
-    ["Description", desc.substring(0, 60)],
-    ["Status", status],
+  // Header text (waqf name)
+  const headerText = processArabicText("وقف مرزوق بن علي الثبيتي");
+  const headerW = amiriBold.widthOfTextAtSize(headerText, 20);
+  page.drawText(headerText, {
+    x: width - margin - 15 - headerW,
+    y: headerY + 40,
+    size: 20,
+    font: amiriBold,
+    color: rgb(1, 1, 1),
+  });
+
+  const subText = processArabicText("نظام إدارة الوقف");
+  const subW = amiri.widthOfTextAtSize(subText, 12);
+  page.drawText(subText, {
+    x: width - margin - 15 - subW,
+    y: headerY + 15,
+    size: 12,
+    font: amiri,
+    color: rgb(0.9, 0.85, 0.6),
+  });
+
+  // ── Waqf details ──
+  let y = headerY - 30;
+  const detailLines = [
+    "رقم الصك: 411209707",
+    "المحكمة: محكمة الأحوال الشخصية بالطائف",
+    "الناظر: عبدالله بن مرزوق بن علي الثبيتي",
   ];
 
-  // Table header bg
-  lines.push("0.94 0.94 0.94 rg");
-  lines.push(`50 ${y - 4} 495 ${lh} re f`);
-  lines.push("0 0 0 rg");
-
-  lines.push("BT");
-  lines.push("/F1 10 Tf");
-  lines.push(`55 ${y} Td`);
-  lines.push(`(Field) Tj`);
-  lines.push("ET");
-  lines.push("BT");
-  lines.push("/F1 10 Tf");
-  lines.push(`250 ${y} Td`);
-  lines.push(`(Value) Tj`);
-  lines.push("ET");
-  y -= lh;
-
-  for (const [label, value] of rows) {
-    lines.push("BT");
-    lines.push("/F1 10 Tf");
-    lines.push(`55 ${y} Td`);
-    lines.push(`(${pdfEscape(label)}) Tj`);
-    lines.push("ET");
-    lines.push("BT");
-    lines.push("/F1 10 Tf");
-    lines.push(`250 ${y} Td`);
-    lines.push(`(${pdfEscape(value)}) Tj`);
-    lines.push("ET");
-    y -= lh;
+  for (const line of detailLines) {
+    const shaped = processArabicText(line);
+    const tw = amiri.widthOfTextAtSize(shaped, 11);
+    page.drawText(shaped, {
+      x: width - margin - 15 - tw,
+      y,
+      size: 11,
+      font: amiri,
+      color: medGray,
+    });
+    y -= 18;
   }
 
-  y -= 20;
-  lines.push(`50 ${y} m 545 ${y} l S`);
-  y -= 24;
+  // ── Separator ──
+  y -= 5;
+  page.drawLine({ start: { x: margin + 10, y }, end: { x: width - margin - 10, y }, thickness: 1, color: gold });
+  y -= 30;
 
-  // Footer
-  lines.push("BT");
-  lines.push("/F1 9 Tf");
-  lines.push("0.47 0.47 0.47 rg");
-  lines.push(`105 ${y} Td`);
-  lines.push(`(Generated on: ${generated}) Tj`);
-  lines.push("ET");
+  // ── Invoice title ──
+  const invNum = invoice.invoice_number || "N/A";
+  const titleText = processArabicText("فاتورة");
+  const titleW = amiriBold.widthOfTextAtSize(titleText, 18);
+  const numW = helvetica.widthOfTextAtSize(` ${invNum}`, 16);
+  const totalTitleW = titleW + numW;
+  const titleX = (width - totalTitleW) / 2;
 
-  const contentStream = lines.join("\n");
+  page.drawText(` ${invNum}`, { x: titleX, y, size: 16, font: helvetica, color: darkGreen });
+  page.drawText(titleText, { x: titleX + numW, y, size: 18, font: amiriBold, color: darkGreen });
+  y -= 35;
 
-  // Build PDF objects
-  const objects: string[] = [];
-  // obj 1: Catalog
-  objects.push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj");
-  // obj 2: Pages
-  objects.push("2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj");
-  // obj 3: Page
-  objects.push(
-    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj"
-  );
-  // obj 4: Content stream
-  objects.push(
-    `4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj`
-  );
-  // obj 5: Font (Helvetica - built-in, no embedding needed)
-  objects.push(
-    "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj"
-  );
+  // ── Table ──
+  const tableX = margin + 15;
+  const tableW = width - 2 * margin - 30;
+  const colValueX = tableX;
+  const colLabelX = tableX + tableW;
+  const rowH = 30;
 
-  // Assemble PDF
-  const header = "%PDF-1.4\n";
-  let body = "";
-  const offsets: number[] = [];
+  const rows: [string, string][] = [
+    ["رقم الفاتورة", invNum],
+    ["النوع", TYPE_AR[invoice.invoice_type] || invoice.invoice_type],
+    ["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })],
+    ["التاريخ", invoice.date],
+    ["الوصف", (invoice.description || "—").substring(0, 50)],
+    ["الحالة", STATUS_AR[invoice.status] || invoice.status],
+  ];
 
-  let pos = header.length;
-  for (const obj of objects) {
-    offsets.push(pos);
-    const entry = obj + "\n";
-    body += entry;
-    pos += entry.length;
+  // Table header
+  page.drawRectangle({ x: tableX, y: y - rowH + 8, width: tableW, height: rowH, color: darkGreen });
+
+  const hdrLabel = processArabicText("الحقل");
+  const hdrLabelW = amiriBold.widthOfTextAtSize(hdrLabel, 12);
+  page.drawText(hdrLabel, { x: colLabelX - 10 - hdrLabelW, y: y - 12, size: 12, font: amiriBold, color: rgb(1, 1, 1) });
+
+  const hdrValue = processArabicText("القيمة");
+  page.drawText(hdrValue, { x: colValueX + 10, y: y - 12, size: 12, font: amiriBold, color: rgb(1, 1, 1) });
+
+  y -= rowH;
+
+  // Table rows
+  for (let i = 0; i < rows.length; i++) {
+    const [label, value] = rows[i];
+    const bgColor = i % 2 === 0 ? lightGray : rgb(1, 1, 1);
+
+    page.drawRectangle({ x: tableX, y: y - rowH + 8, width: tableW, height: rowH, color: bgColor });
+
+    // Label (right-aligned)
+    const shapedLabel = processArabicText(label);
+    const labelW = amiri.widthOfTextAtSize(shapedLabel, 11);
+    page.drawText(shapedLabel, { x: colLabelX - 10 - labelW, y: y - 12, size: 11, font: amiri, color: black });
+
+    // Value
+    const isArabicValue = /[\u0600-\u06FF]/.test(value);
+    if (isArabicValue) {
+      const shapedValue = processArabicText(value);
+      page.drawText(shapedValue, { x: colValueX + 10, y: y - 12, size: 11, font: amiri, color: black });
+    } else {
+      page.drawText(value, { x: colValueX + 10, y: y - 12, size: 11, font: helvetica, color: black });
+    }
+
+    y -= rowH;
   }
 
-  const xrefStart = pos;
-  let xref = `xref\n0 ${objects.length + 1}\n`;
-  xref += "0000000000 65535 f \n";
-  for (const off of offsets) {
-    xref += `${String(off).padStart(10, "0")} 00000 n \n`;
-  }
+  // ── Bottom separator ──
+  y -= 15;
+  page.drawLine({ start: { x: margin + 10, y }, end: { x: width - margin - 10, y }, thickness: 1, color: gold });
+  y -= 25;
 
-  const trailer = `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+  // ── Footer ──
+  const generated = new Date().toISOString().split("T")[0];
+  const footerText = processArabicText(`تاريخ التوليد: ${generated}`);
+  const footerW = amiri.widthOfTextAtSize(footerText, 9);
+  page.drawText(footerText, { x: width - margin - 15 - footerW, y, size: 9, font: amiri, color: medGray });
 
-  const pdfString = header + body + xref + trailer;
-  return new TextEncoder().encode(pdfString);
+  return await pdfDoc.save();
 }
 
-function pdfEscape(str: string): string {
-  return str
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)")
-    .replace(/[^\x20-\x7E]/g, "?");
-}
+// ─── HTTP Handler ────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -262,7 +421,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const pdfBytes = generateInvoicePdf({
+        const pdfBytes = await generateInvoicePdf({
           invoice_number: invoice.invoice_number,
           invoice_type: invoice.invoice_type,
           amount: invoice.amount,
