@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (data && !error) {
       setRole(data.role as AppRole);

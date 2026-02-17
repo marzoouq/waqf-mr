@@ -65,40 +65,40 @@ const beneficiarySectionKeys: Record<string, string> = {
 
 // PrintHeader is now in its own file: components/PrintHeader.tsx
 
+const allAdminLinks = [
+  { to: '/dashboard', icon: Home, label: 'الرئيسية' },
+  { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
+  { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
+  { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
+  { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
+  { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
+  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
+  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
+  { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
+  { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
+  { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
+  { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
+  { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
+  { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
+];
+
+const allBeneficiaryLinks = [
+  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
+  { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
+  { to: '/beneficiary/share', icon: Wallet, label: 'حصتي من الريع' },
+  { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
+  { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
+  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
+  { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
+  { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
+];
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, role, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
-
-  const allAdminLinks = [
-    { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-    { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
-    { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
-    { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
-    { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
-    { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
-    { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
-    { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
-    { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
-    { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
-    { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
-    { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
-    { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
-    { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
-  ];
-
-  const allBeneficiaryLinks = [
-    { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
-    { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
-    { to: '/beneficiary/share', icon: Wallet, label: 'حصتي من الريع' },
-    { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
-    { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
-    { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
-    { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
-    { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
-  ];
 
   const sectionsVisibility = getJsonSetting('sections_visibility', { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true });
   const beneficiarySections = getJsonSetting('beneficiary_sections', { disclosure: true, share: true, accounts: true, reports: true });

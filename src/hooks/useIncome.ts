@@ -36,7 +36,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['income', 'fiscal_year', fiscalYearId],
     queryFn: async () => {
-      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false });
+      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false }).limit(500);
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
