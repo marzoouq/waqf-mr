@@ -1,35 +1,58 @@
 
-# خطة: إضافة تحقق فوري من نوع الملف في واجهة رفع الفاتورة
 
-## المشكلة
-حالياً، التحقق من نوع وحجم الملف يحدث فقط عند الضغط على زر "رفع الفاتورة" (داخل `uploadInvoiceFile`). المطلوب إظهار رسالة خطأ فورية عند اختيار ملف غير مسموح، قبل أن يضغط المستخدم على زر الرفع.
+# إضافة دعم السحب والإفلات (Drag & Drop) لمنطقة رفع الفاتورة
+
+## الوصف
+إضافة إمكانية سحب ملف وإفلاته مباشرة على منطقة رفع الفاتورة، مع تغيير مرئي عند السحب فوق المنطقة، مع الاحتفاظ بنفس منطق التحقق من نوع وحجم الملف الموجود حالياً.
 
 ## التعديلات المطلوبة
 
 ### ملف واحد: `src/pages/dashboard/InvoicesPage.tsx`
 
-1. **إضافة متغير حالة لخطأ الملف**: إضافة `fileError` state لعرض رسالة الخطأ تحت منطقة اختيار الملف.
+1. **إضافة حالة السحب**: إضافة `isDragging` state لتتبع ما إذا كان المستخدم يسحب ملفاً فوق المنطقة.
 
-2. **إضافة دالة تحقق عند اختيار الملف**: تعديل `onChange` في عنصر `input` الملفات لفحص النوع والحجم فوراً:
-   - إذا كان النوع غير مسموح (ليس PDF/JPG/PNG/WEBP): عرض رسالة خطأ ومسح الملف المختار.
-   - إذا تجاوز الحجم 10 ميجابايت: عرض رسالة خطأ ومسح الملف المختار.
-   - إذا كان صالحاً: مسح رسالة الخطأ وتعيين الملف.
+2. **إضافة أحداث السحب والإفلات** على عنصر `div` الخاص بمنطقة الرفع:
+   - `onDragOver` و `onDragEnter`: منع السلوك الافتراضي وتفعيل `isDragging`.
+   - `onDragLeave`: إلغاء `isDragging`.
+   - `onDrop`: استقبال الملف وتطبيق نفس منطق التحقق (النوع والحجم) الموجود في `onChange`.
 
-3. **عرض رسالة الخطأ**: إضافة نص أحمر تحت منطقة رفع الملف يظهر فقط عند وجود `fileError`.
+3. **استخراج دالة تحقق مشتركة**: نقل منطق التحقق من النوع والحجم إلى دالة `validateAndSetFile(file)` تُستخدم من كل من `onChange` و `onDrop` لتجنب تكرار الكود.
 
-4. **تحديث `accept` attribute**: تغيير `accept="image/*,.pdf"` إلى `accept=".pdf,.jpg,.jpeg,.png,.webp"` لتقييد أنواع الملفات المعروضة في مربع حوار الاختيار بشكل أدق.
+4. **تغيير مرئي عند السحب**: تغيير لون حدود المنطقة ولون الخلفية عند `isDragging` (مثلاً: `border-primary bg-primary/5`) لإعطاء المستخدم إشارة بصرية واضحة.
 
-5. **مسح الخطأ عند إعادة التعيين**: تحديث `resetForm` لمسح `fileError`.
+5. **تحديث نص الإرشاد**: النص الحالي يقول "اضغط لاختيار ملف أو اسحبه هنا" وهو مناسب بالفعل.
 
 ## التفاصيل التقنية
 
+### دالة التحقق المشتركة
 ```text
-onChange handler:
-  ملف مختار
-    -> فحص file.type ضد ALLOWED_MIME_TYPES
-    -> فحص file.size ضد MAX_FILE_SIZE (10MB)
-    -> صالح: setSelectedFile(file) + setFileError('')
-    -> غير صالح: setSelectedFile(null) + setFileError('رسالة الخطأ') + مسح input
+validateAndSetFile(file: File):
+  -> فحص file.type ضد ALLOWED_MIME_TYPES
+  -> فحص file.size ضد 10MB
+  -> صالح: setSelectedFile(file) + setFileError('')
+  -> غير صالح: setSelectedFile(null) + setFileError(رسالة) + مسح input
 ```
 
-هذا يضيف طبقة تحقق أولى في الواجهة (UX) بينما يبقى التحقق الثاني في `uploadInvoiceFile` كحماية إضافية على مستوى المنطق.
+### أحداث الـ Drag & Drop
+```text
+onDragOver/onDragEnter:
+  -> e.preventDefault() + e.stopPropagation()
+  -> setIsDragging(true)
+
+onDragLeave:
+  -> setIsDragging(false)
+
+onDrop:
+  -> e.preventDefault() + e.stopPropagation()
+  -> setIsDragging(false)
+  -> validateAndSetFile(e.dataTransfer.files[0])
+```
+
+### تغيير الأنماط
+```text
+className ديناميكي:
+  - عادي: border-dashed border-2
+  - أثناء السحب (isDragging): border-primary bg-primary/5 border-solid
+```
+
+التعديل بسيط ومحصور في ملف واحد فقط دون أي تأثير على بقية التطبيق.
