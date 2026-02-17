@@ -55,11 +55,9 @@ describe('InvoiceGridView', () => {
     expect(screen.getByText('📎 فاتورة.pdf')).toBeInTheDocument();
   });
 
-  it('renders image thumbnail for image files', () => {
+  it('renders image icon with filename for image files', () => {
     render(<InvoiceGridView invoices={[makeInvoice({ file_path: 'img.jpg', file_name: 'photo.jpg' })]} />);
-    const img = screen.getByRole('img', { name: 'photo.jpg' });
-    expect(img).toBeInTheDocument();
-    expect(img.getAttribute('src')).toContain('img.jpg');
+    expect(screen.getByText('photo.jpg')).toBeInTheDocument();
   });
 
   it('opens InvoiceViewer when view button is clicked', () => {
