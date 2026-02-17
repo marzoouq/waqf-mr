@@ -50,7 +50,28 @@ const InvoicesPage = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  const validateAndSetFile = (file: File) => {
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      setFileError('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setFileError('');
+    setSelectedFile(file);
+  };
   const ITEMS_PER_PAGE = 10;
 
   const [formData, setFormData] = useState({
@@ -218,12 +239,26 @@ const InvoicesPage = () => {
                 <div className="space-y-2">
                   <Label>{editingInvoice ? 'تغيير ملف الفاتورة (اختياري)' : 'ملف الفاتورة (صورة أو PDF) *'}</Label>
                   <div
-                    className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                    className={`border-2 rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                      isDragging
+                        ? 'border-primary bg-primary/5 border-solid'
+                        : 'border-dashed hover:border-primary/50'
+                    }`}
                     onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                    onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) validateAndSetFile(file);
+                    }}
                   >
-                    <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      {selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
+                    <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className={`text-sm ${isDragging ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                      {isDragging ? 'أفلت الملف هنا' : selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
                     </p>
                     <input
                       ref={fileInputRef}
@@ -233,21 +268,7 @@ const InvoicesPage = () => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) { setSelectedFile(null); return; }
-                        const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-                        if (!ALLOWED.includes(file.type)) {
-                          setFileError('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
-                          setSelectedFile(null);
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                          return;
-                        }
-                        if (file.size > 10 * 1024 * 1024) {
-                          setFileError('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
-                          setSelectedFile(null);
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                          return;
-                        }
-                        setFileError('');
-                        setSelectedFile(file);
+                        validateAndSetFile(file);
                       }}
                     />
                   </div>
