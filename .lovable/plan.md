@@ -1,13 +1,12 @@
 
-
-# تقرير الفحص الجنائي العميق - الجزء الثاني
-# الملفات التي لم يتم فحصها بعمق سابقاً
+# تقرير الفحص الجنائي العميق - الجزء الثالث
+# الملفات التي لم تُفحص سابقاً
 
 ---
 
-## الملخص
+## الملخص التنفيذي
 
-تم فحص **22 ملف إضافي** بعمق شمل: جميع الهوكات المخصصة، صفحات المستفيدين، صفحة الحسابات الختامية الكاملة، أدوات PDF، مكونات التقارير، صفحة المصادقة، وجميع الوظائف الخلفية المتبقية.
+تم فحص **34 ملف إضافي** يشمل: مكونات accounts (8 مكونات)، صفحات لوحة التحكم المتبقية (AdminDashboard، ReportsPage، AuditLogPage، SettingsPage، UserManagementPage)، صفحات المستفيد المتبقية (BeneficiaryDashboard، AccountsViewPage، FinancialReportsPage، InvoicesViewPage)، والمكونات المساعدة (AiAssistant، NotificationBell، ExportMenu، WaqfInfoBar، FiscalYearSelector، IdleTimeoutWarning، TablePagination، SkeletonLoaders، PrintHeader)، والهوكات (useWaqfInfo، useAppSettings، usePdfWaqfInfo، useFiscalYears)، وملفات البنية التحتية (types/database.ts، utils/notifications.ts).
 
 ---
 
@@ -15,150 +14,160 @@
 
 ### 1.1 خطورة متوسطة
 
-**A. استعلامات بدون حد صفوف (limit) - 6 مواضع**
+**A. حساب `distributableAmount` مكرر في 4 مواضع إضافية**
 
-الهوكات التالية لا تستخدم `.limit()` وقد تتجاوز حد 1000 صف:
+تم الكشف عن نمط الحساب المحلي مجدداً في ملفات لم تُصلح سابقاً:
 
-| الملف | الاستعلام | المخاطرة |
-|-------|-----------|----------|
-| `useExpenses.ts` سطر 39 | `useExpensesByFiscalYear` | بيانات مالية قد تنمو |
-| `useIncome.ts` سطر 39 | `useIncomeByFiscalYear` | بيانات مالية قد تنمو |
-| `useInvoices.ts` سطر 65 | `useInvoicesByFiscalYear` | فواتير قد تتراكم |
-| `useAuditLog.ts` سطر 43 | `useAuditLog` | سجل التدقيق ينمو بسرعة (اخطر موضع) |
-| `useMessaging.ts` سطر 17 | `useConversations` | محادثات بدون حد |
-| `useMessaging.ts` سطر 48 | `useMessages` | رسائل بدون حد |
+| الملف | السطر | الحساب | الملاحظة |
+|-------|-------|--------|----------|
+| `BeneficiaryDashboard.tsx` | 29-30 | `waqfRevenue - waqfCorpusManual` | لم يتم تصحيحه في الجولة السابقة |
+| `FinancialReportsPage.tsx` | 61-62 | `waqfRevenue - waqfCorpusManual` | نفس الحساب المحلي |
+| `AccountsViewPage.tsx` | 56 | `waqfRevenue - waqfCorpusManual` | نفس الحساب المحلي |
+| `AccountsViewPage.tsx` | 55 | `totalIncome + waqfCorpusPrevious` | تكرار حساب `grandTotal` |
 
-**التوصية**: اضافة `.limit(500)` لجميع هذه الاستعلامات، خاصة `useAuditLog` الذي ينمو بسرعة مع كل عملية CRUD.
+بينما `useFinancialSummary` يُرجع `availableAmount` بالفعل (وهو `waqfRevenue - waqfCorpusManual`)، و`grandTotal` أيضاً موجود في الهوك. التناقض أن MySharePage وDisclosurePage صُلّحا في الجولة السابقة لكن هذه الملفات الثلاثة لم تُصلح.
+
+**التوصية**: توحيد الحسابات في هذه الملفات الثلاثة باستخدام `availableAmount` و`grandTotal` من `useFinancialSummary`.
 
 ---
 
-**B. تسريب ذاكرة محتمل في `InvoiceViewer.tsx` (سطر 25-51)**
+**B. `UserManagementPage.tsx` - استعلام `registration_enabled` يستخدم `.single()`**
 
-عند اغلاق الـ Dialog ثم فتحه بسرعة مع ملف مختلف، يتم استدعاء `getInvoiceSignedUrl` مرتين بسبب عدم الغاء الطلب السابق. المتغير `revoked` يمنع تعيين الـ URL لكن لا يلغي طلب الشبكة نفسه.
-
-```text
-المشكلة:
-فتح ملف A → بدء تحميل → اغلاق → فتح ملف B → بدء تحميل B
-                                   ↑ تحميل A يستمر في الخلفية (لا يُلغى)
+السطر 51-60:
+```typescript
+const { data } = await supabase
+  .from('app_settings')
+  .select('value')
+  .eq('key', 'registration_enabled')
+  .single(); // ← يجب أن يكون .maybeSingle()
 ```
 
-**التوصية**: استخدام `AbortController` لالغاء الطلب السابق.
+إذا لم تكن القيمة موجودة في جدول `app_settings` (مثلاً في بيئة جديدة)، يُلقي `.single()` خطأ 406 صامتاً. يجب استخدام `.maybeSingle()` مع قيمة افتراضية.
 
 ---
 
-**C. `AccountsPage.tsx` - حفظ الاعدادات بدون debounce كافٍ (سطر 113-124)**
+**C. `AuditLogPage.tsx` - قائمة فلترة الجداول ناقصة**
 
-الدالة `saveSetting` تستخدم `setTimeout(500ms)` لكنها تُنشئ `ref` جديدة لكل مفتاح. عند تعديل نسبة الناظر ونسبة الواقف بسرعة، يمكن ان تتداخل الطلبات. هذا ليس خطيراً لان كل مفتاح له timeout مستقل، لكن لا يوجد معالجة خطأ شاملة اذا فشل الـ upsert.
+السطر 169-179: قائمة الـ Select تشمل فقط:
+```
+income, expenses, accounts, distributions, invoices
+```
+لكنها لا تشمل:
+- `properties` - لها مشغل تدقيق
+- `contracts` - لها مشغل تدقيق
+- `beneficiaries` - لها مشغل تدقيق
+- `units` - لها مشغل تدقيق
+- `fiscal_years` - لها مشغل تدقيق
+
+المستخدم لا يستطيع تصفية سجل التدقيق حسب هذه الجداول الخمسة رغم وجودها في قاعدة البيانات.
+
+**التوصية**: إضافة هذه الجداول الخمسة لقائمة الفلترة في `AuditLogPage.tsx`.
 
 ---
 
 ### 1.2 خطورة منخفضة
 
-**D. `useAuditLog.ts` - خريطة الجداول ناقصة (سطر 15-24)**
+**D. `WaqfInfoBar.tsx` - حفظ الشعار بدون تنظيف URL المؤقت**
 
-`TABLE_NAMES_AR` لا تشمل جداولl `units` و`fiscal_years` رغم ان لهما مشغلات تدقيق:
+السطر 66: `setLogoPreview(URL.createObjectURL(file))` ينشئ URL مؤقت في الذاكرة.
+عند إغلاق الـ Dialog أو الإلغاء، لا يتم تنفيذ `URL.revokeObjectURL(logoPreview)`.
 
-```text
-المفقود:
-- units → 'الوحدات'
-- fiscal_years → 'السنوات المالية'
-```
+التأثير طفيف جداً (استهلاك ذاكرة بسيط) لكنه مخالف للممارسات الجيدة.
 
-**التوصية**: اضافة `units: 'الوحدات'` و `fiscal_years: 'السنوات المالية'` للخريطة.
+**التوصية**: استدعاء `URL.revokeObjectURL` في cleanup أو عند إعادة تعيين `logoPreview`.
 
 ---
 
-**E. `check-contract-expiry` - فلترة الاشعارات المكررة غير دقيقة (سطر 90-96)**
+**E. `useFiscalYears.ts` - `useActiveFiscalYear` تُرجع `fiscalYears[0]` كبديل**
 
-الاستعلام يجلب جميع اشعارات اليوم من نوع `warning` بدون تصفية بـ `user_id`، مما يعني ان اشعار مرسل لأدمن واحد يمنع ارساله لأدمن آخر.
-
-```text
-المشكلة:
-- ادمن A يتلقى اشعار "عقد 123 ينتهي خلال 5 ايام"
-- ادمن B لن يتلقى نفس الاشعار لان الرسالة موجودة في الجدول
-```
-
-**التوصية**: اضافة `.eq('user_id', admin.user_id)` في فحص التكرار، او الاكتفاء بالمنطق الحالي اذا كان مقبولاً (اشعار واحد يكفي لأي ادمن).
-
----
-
-**F. `AuthContext.tsx` - `fetchUserRole` تستخدم `.single()` بدلاً من `.maybeSingle()` (سطر 36-47)**
-
-اذا لم يكن للمستخدم دور (مستخدم جديد لم يُعيّن له دور بعد)، سيُلقي `.single()` خطأ في الـ console. الكود يتعامل معه عبر `if (data && !error)` لكن الخطأ يظهر في الـ console بدون داعٍ.
-
-**التوصية**: تغيير `.single()` الى `.maybeSingle()`.
-
----
-
-**G. `DashboardLayout.tsx` - `allAdminLinks` و`allBeneficiaryLinks` تُنشأ في كل render (سطر 75-101)**
-
-المصفوفتان ثابتتان لكنهما تُنشأ داخل المكون مما يعني اعادة انشائهما مع كل render. التأثير طفيف على الاداء لكنه مخالف لأفضل الممارسات.
-
-**التوصية**: نقلهما خارج المكون كثوابت.
-
----
-
-**H. `MySharePage.tsx` - حساب `distributableAmount` مكرر (سطر 64-66)**
-
+السطر 29:
 ```typescript
-const distributableAmount = waqfRevenue - waqfCorpusManual;
-const beneficiariesShare = distributableAmount;
+const active = fiscalYears.find((fy) => fy.status === 'active') || fiscalYears[0] || null;
+```
+إذا لم تكن هناك سنة مالية "active"، تُرجع الدالة أول سنة مالية بدون اعتبار لحالتها. قد تكون مغلقة.
+
+هذا سلوك متعمد (fallback) لكنه قد يسبب إظهار بيانات سنة مغلقة كأنها السنة الحالية في لوحات التحكم.
+
+**التوصية**: إضافة تحذير أو تمييز بصري في حالة لم تكن هناك سنة مالية نشطة.
+
+---
+
+**F. `AiAssistant.tsx` - سجل المحادثة يُحمَّل بالكامل في الذاكرة بدون حد**
+
+السطر 19: `const [messages, setMessages] = useState<Msg[]>([])` بدون حد أقصى.
+
+رغم أن الوظيفة الخلفية تحدد 20 رسالة، الواجهة لا تُزيل الرسائل القديمة من الحالة، مما يعني أنه في جلسة طويلة يمكن تجمع رسائل كثيرة في الذاكرة. هذا وضع نظري إذ الـ backend يوقف عند 20 رسالة.
+
+---
+
+**G. `SettingsPage.tsx` - `useEffect` في `AppearanceTab` يعتمد على `isLoading` لا على `appearance`**
+
+السطر 178:
+```typescript
+useEffect(() => { setForm(appearance); }, [isLoading]);
+```
+يجب أن يكون `[appearance]` بدلاً من `[isLoading]`. إذا تغيرت البيانات بعد التحميل (مثلاً بعد حفظ من مكان آخر)، لن يتم تحديث الـ form.
+
+---
+
+**H. `AccountsBeneficiariesTable.tsx` - قسمة على صفر محتملة**
+
+السطر 47:
+```typescript
+(manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage)
 ```
 
-هذا الحساب مُعرّف ايضاً في `useFinancialSummary` كـ `availableAmount`. يجب استخدام القيمة من الهوك لضمان التطابق الجنائي.
-
-**التوصية**: استبدال الحساب المحلي بـ `availableAmount` من `useFinancialSummary`.
+إذا كان `totalBeneficiaryPercentage === 0` (لا يوجد مستفيدون)، ستظهر قيمة `NaN` أو `Infinity`. الدالة الوالدة تمنع ظهور الجدول إذا `beneficiaries.length === 0` لكن `totalBeneficiaryPercentage` قد يكون 0 مع وجود مستفيدين بنسبة 0%.
 
 ---
 
-**I. نفس المشكلة في `DisclosurePage.tsx` سطر 48-49**
-
-نفس الحساب المكرر لـ `distributableAmount` بدلاً من استخدام `availableAmount` من الهوك.
-
----
-
-## 2. ملاحظات ايجابية (ما تم التحقق منه وهو سليم)
+## 2. ملاحظات إيجابية - ما تم التحقق منه وهو سليم
 
 | الملف | النتيجة |
 |-------|---------|
-| `useCrudFactory.ts` | نمط CRUD موحد ومحكم مع limit: 500 |
-| `useFinancialSummary.ts` | منطق جنائي سليم - يقرأ من السجل المدقق اولاً |
-| `accountsCalculations.ts` | حسابات مالية صحيحة مع 36 اختبار |
-| `useNotifications.ts` | حد 50 اشعار + Realtime + CRUD كامل |
-| `useMessaging.ts` | حماية 5000 حرف + Realtime + تنظيف القنوات |
-| `useTenantPayments.ts` | upsert بـ onConflict صحيح |
-| `useIdleTimeout.ts` | تنظيف timers في cleanup + countdown دقيق |
-| `maskData.ts` | اخفاء بيانات حساسة بنمط موحد |
-| `ErrorBoundary.tsx` | يغلف التطبيق بالكامل مع واجهة عربية |
-| `SecurityGuard.tsx` | حماية متوازنة (حساس فقط) |
-| `InvoiceViewer.tsx` | يستخدم `getInvoiceSignedUrl` (الصحيحة) |
-| `Auth.tsx` | `.maybeSingle()` + idle message + reset password |
-| `lookup-national-id` | rate limit + timing attack protection |
-| `ai-assistant` | getClaims + message limits + streaming |
-| `check-contract-expiry` | مصادقة مزدوجة + منع تكرار |
-| `auto-expire-contracts` | مصادقة مزدوجة + اشعار |
-| `pdf/core.ts` | خطوط عربية + حدود زخرفية + header/footer |
-| `pdf/reports.ts` | تسلسل مالي كامل في الافصاح الشامل |
-| `pdf/accounts.ts` | تسلسل مالي هرمي مطابق |
-| `pdf/beneficiary.ts` | حصة المستفيد + سجل التوزيعات |
-| `AccountsPage.tsx` | اقفال السنة المالية + ترحيل الرصيد + حماية السنة المغلقة |
-| `MonthlyPerformanceReport.tsx` | تقارير شهرية ديناميكية مع رسوم بيانية |
-| `YearOverYearComparison.tsx` | مقارنة سنوية مع تصدير PDF |
-| `App.tsx` | lazy loading + حماية مسارات محكمة |
+| `AiAssistant.tsx` | تحقق JWT صحيح + معالجة streaming سليمة + حماية `!user` |
+| `NotificationBell.tsx` | `markAsRead` + `markAllAsRead` + عرض نسبي للوقت |
+| `ExportMenu.tsx` | منطق بسيط ومتسق + دعم print/PDF |
+| `WaqfInfoBar.tsx` | تحقق من نوع الملف + حد 2MB للشعار + 500 حرف للحقول |
+| `FiscalYearSelector.tsx` | بسيط ومتسق، يستخدم `useFiscalYears` بشكل صحيح |
+| `IdleTimeoutWarning.tsx` | مكون نقي، AlertDialog مدار من الخارج |
+| `TablePagination.tsx` | منطق ترقيم ذكي مع ellipsis، `totalPages <= 1` يُخفي المكون |
+| `SkeletonLoaders.tsx` | هياكل skeleton جاهزة لجميع الصفحات (DashboardSkeleton شاملة) |
+| `PrintHeader.tsx` | يجمع بيانات الوقف + الشعار + التاريخ الهجري والميلادي |
+| `useWaqfInfo.ts` | staleTime=10 دقائق مناسب، تُرجع كائن موحد |
+| `useAppSettings.ts` | يدعم JSON settings + invalidation مزدوج |
+| `usePdfWaqfInfo.ts` | وسيط بسيط ومتسق |
+| `useFiscalYears.ts` | ترتيب تنازلي بالتاريخ صحيح |
+| `types/database.ts` | أنواع شاملة ومتوافقة مع schema قاعدة البيانات |
+| `utils/notifications.ts` | fire-and-forget بنمط موحد، 3 وظائف واضحة |
+| `AccountsDistributionTable.tsx` | التسلسل المالي الكامل (17 صف) دقيق |
+| `AccountsBeneficiariesTable.tsx` | يعرض 6 خانات عشرية للنسبة (دقة حسابية) |
+| `AccountsCollectionTable.tsx` | تعديل inline مع حساب فوري، حماية من disabled عند pending |
+| `AccountsContractsTable.tsx` | TableFooter مجمّع + حماية إجراءات المستخدم |
+| `AuditLogPage.tsx` | مقارنة old/new data، ترقيم 15 عنصر، بحث ذكي |
+| `AdminDashboard.tsx` | KPIs ديناميكية + رسوم بيانية حقيقية + lazy loading |
+| `BeneficiaryDashboard.tsx` | عرض حصة فورية + وصول سريع + آخر 3 إشعارات |
+| `ReportsPage.tsx` | إفصاح كامل + 4 تبويبات + PDF للإفصاح والتقرير |
+| `AccountsViewPage.tsx` | عرض شامل + تصدير PDF + ربط بصفحة الإفصاح |
+| `FinancialReportsPage.tsx` | 6 رسوم بيانية + منطق الحصص |
+| `InvoicesViewPage.tsx` | عرض جدولي/شبكي + فلترة + PDF |
+| `UserManagementPage.tsx` | كامل + ربط مع edge function + تفعيل/إلغاء/حذف |
+| `SettingsPage.tsx` | 6 تبويبات إعدادات شاملة |
 
 ---
 
-## 3. ملخص التوصيات (حسب الاولوية)
+## 3. قائمة التعديلات المقترحة (حسب الأولوية)
 
-| # | التوصية | الخطورة | الجهد |
-|---|---------|---------|-------|
-| 1 | اضافة `.limit()` لـ 6 استعلامات (خاصة audit_log) | متوسطة | منخفض |
-| 2 | استبدال حساب `distributableAmount` المكرر في MySharePage وDisclosurePage بـ `availableAmount` من الهوك | متوسطة | منخفض |
-| 3 | تغيير `.single()` الى `.maybeSingle()` في `fetchUserRole` بـ AuthContext | منخفضة | منخفض |
-| 4 | اضافة `units` و`fiscal_years` لخريطة TABLE_NAMES_AR في useAuditLog | منخفضة | منخفض |
-| 5 | نقل مصفوفات الروابط خارج مكون DashboardLayout | منخفضة | منخفض |
-| 6 | استخدام AbortController في InvoiceViewer لالغاء الطلبات المعلقة | منخفضة | متوسط |
-| 7 | تصحيح فلترة الاشعارات المكررة في check-contract-expiry | منخفضة | منخفض |
+| # | الملف | التعديل | الأثر |
+|---|-------|---------|-------|
+| 1 | `BeneficiaryDashboard.tsx` | استخدام `availableAmount` بدل `waqfRevenue - waqfCorpusManual` | توحيد مالي |
+| 2 | `FinancialReportsPage.tsx` | نفس التعديل أعلاه | توحيد مالي |
+| 3 | `AccountsViewPage.tsx` | نفس التعديل + استخدام `grandTotal` من الهوك | توحيد مالي |
+| 4 | `UserManagementPage.tsx` سطر 57 | تغيير `.single()` إلى `.maybeSingle()` | منع خطأ 406 |
+| 5 | `AuditLogPage.tsx` سطور 171-178 | إضافة properties, contracts, beneficiaries, units, fiscal_years في Select | اكتمال فلترة |
+| 6 | `SettingsPage.tsx` سطر 178 | تغيير `[isLoading]` إلى `[appearance]` في useEffect | صحة React |
+| 7 | `AccountsBeneficiariesTable.tsx` سطر 47 | إضافة حماية `totalBeneficiaryPercentage > 0` | منع NaN |
+| 8 | `WaqfInfoBar.tsx` سطر 66 | استدعاء `URL.revokeObjectURL` عند الإلغاء | تنظيف ذاكرة |
 
 ---
 
@@ -167,15 +176,26 @@ const beneficiariesShare = distributableAmount;
 | المحور | الدرجة السابقة | الدرجة المحدّثة |
 |--------|---------------|----------------|
 | سلامة قاعدة البيانات | 9.5/10 | 9.5/10 |
-| سياسات الامان (RLS) | 10/10 | 10/10 |
-| الوظائف الخلفية | 9/10 | 8.5/10 (فلترة اشعارات ناقصة) |
-| المصادقة والجلسات | 9.5/10 | 9/10 (single بدل maybeSingle) |
-| المنطق المالي | 10/10 | 9/10 (حساب مكرر في صفحتين) |
-| بنية الكود | 9.5/10 | 9/10 (استعلامات بدون limit) |
+| سياسات الأمان (RLS) | 10/10 | 10/10 |
+| الوظائف الخلفية | 8.5/10 | 8.5/10 |
+| المصادقة والجلسات | 9/10 | 9/10 |
+| المنطق المالي | 9/10 | 8.5/10 (حسابات محلية في 3 ملفات إضافية) |
+| بنية الكود | 9/10 | 8.5/10 (single بدل maybeSingle + useEffect dependency) |
 | حماية البيانات | 9/10 | 9/10 |
-| تقارير PDF | -- | 9.5/10 (شاملة ومتطابقة) |
+| تقارير PDF | 9.5/10 | 9.5/10 |
+| واجهة المستخدم | - | 9.5/10 (Skeletons + Pagination + مكونات متسقة) |
 
-**الدرجة الاجمالية المحدّثة: 9.2/10**
+**الدرجة الإجمالية المحدّثة: 9.1/10**
 
-النظام محكم البنية بشكل عام. التوصيات السبع المذكورة هي تحسينات وقائية وليست ثغرات حرجة.
+---
 
+## 5. ملخص جميع جولات الفحص الثلاث
+
+| الجولة | الملفات المفحوصة | المشاكل المكتشفة | تم التصحيح |
+|--------|-----------------|-----------------|------------|
+| الجولة الأولى | 17 جدول + Edge Functions + RLS | 4 مشاكل | 3 منها |
+| الجولة الثانية | 22 ملف هوك/صفحة/PDF | 9 مشاكل | 7 منها |
+| هذه الجولة | 34 ملف مكونات/صفحات | 8 مشاكل | 0 (للتطبيق) |
+
+**إجمالي المشاكل المكتشفة في النظام: 21 مشكلة**
+**تم تصحيحها: 10 | متبقية للتطبيق: 8 (جميعها منخفضة إلى متوسطة الخطورة)**
