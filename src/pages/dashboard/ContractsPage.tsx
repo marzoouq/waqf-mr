@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useContracts, useCreateContract, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
+import { useContracts, useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock } from 'lucide-react';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -24,7 +26,13 @@ import {
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: contracts = [], isLoading } = useContracts();
+  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const [selectedFY, setSelectedFY] = useState<string>('');
+  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const isClosed = currentFY?.status === 'closed';
+
+  const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
@@ -245,10 +253,20 @@ const ContractsPage = () => {
           </Card>
         </div>
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+          </div>
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
         </div>
+
+        {isClosed && (
+          <div className="flex items-center gap-2 p-3 rounded-lg border border-amber-300 bg-amber-50/80 dark:bg-amber-950/30 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm">
+            <Lock className="w-4 h-4 shrink-0" />
+            <span>سنة مقفلة - تعديل بصلاحية الناظر</span>
+          </div>
+        )}
 
         <Card className="shadow-sm">
           <CardContent className="p-0">
