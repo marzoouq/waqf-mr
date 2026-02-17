@@ -1,0 +1,75 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
+}));
+
+vi.mock('@/hooks/useFiscalYears', () => ({
+  useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
+  useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
+}));
+
+vi.mock('@/hooks/useFinancialSummary', () => ({
+  useFinancialSummary: vi.fn(() => ({
+    beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 }],
+    currentAccount: null,
+    totalIncome: 200000, totalExpenses: 50000, netAfterVat: 180000,
+    adminShare: 18000, waqifShare: 9000, waqfRevenue: 153000,
+    waqfCorpusManual: 0, vatAmount: 20000, zakatAmount: 0,
+    netAfterExpenses: 150000, availableAmount: 100000,
+  })),
+}));
+
+vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
+vi.mock('@/utils/pdf', () => ({ generateMySharePDF: vi.fn() }));
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }) }) },
+}));
+
+import MySharePage from './MySharePage';
+
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><MySharePage /></MemoryRouter>
+    </QueryClientProvider>
+  );
+};
+
+describe('MySharePage', () => {
+  it('renders page title', () => {
+    renderPage();
+    expect(screen.getByText('حصتي من الريع')).toBeInTheDocument();
+  });
+
+  it('shows share percentage', () => {
+    renderPage();
+    expect(screen.getByText('10%')).toBeInTheDocument();
+  });
+
+  it('calculates entitled share (10% of 100000)', () => {
+    renderPage();
+    expect(screen.getByText(/10,000/)).toBeInTheDocument();
+  });
+
+  it('shows distributions history section', () => {
+    renderPage();
+    expect(screen.getByText('سجل التوزيعات')).toBeInTheDocument();
+  });
+
+  it('shows empty distributions message', () => {
+    renderPage();
+    expect(screen.getByText('لا توجد توزيعات مسجلة بعد')).toBeInTheDocument();
+  });
+
+  it('shows link to disclosure page', () => {
+    renderPage();
+    expect(screen.getByText('صفحة الإفصاح السنوي')).toBeInTheDocument();
+  });
+});
