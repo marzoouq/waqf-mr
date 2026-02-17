@@ -13,8 +13,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, useAllUnits, UnitRow, UnitInsert } from '@/hooks/useUnits';
 import { useExpenses } from '@/hooks/useExpenses';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts, useCreateContract, useUpdateContract } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
+import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
@@ -49,9 +53,13 @@ const statusColor = (status: string) => {
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
-  const { data: contracts = [] } = useContracts();
+  const { data: activeFY } = useActiveFiscalYear();
+  const [selectedFY, setSelectedFY] = useState<string>('');
+  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [] } = useAllUnits();
-  const { data: expenses = [] } = useExpenses();
+  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
@@ -183,15 +191,17 @@ const PropertiesPage = () => {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="بحث في العقارات..."
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-            className="pr-10"
-          />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث في العقارات..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="pr-10"
+            />
+          </div>
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
         </div>
 
         {isLoading ? (
