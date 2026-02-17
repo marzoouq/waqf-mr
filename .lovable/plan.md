@@ -1,97 +1,77 @@
 
 
-# إصلاح فلترة العقود في صفحة الحسابات الختامية (الناظر والمستفيد)
+# إصلاح ترحيل رقبة الوقف للسنة المالية الجديدة
 
 ## المشكلة
 
-صفحة الحسابات الختامية للناظر (`AccountsPage.tsx`) وللمستفيد (`AccountsViewPage.tsx`) تجلب **جميع** العقود من قاعدة البيانات بدون فلترة حسب السنة المالية المختارة. هذا يتعارض مع التعديل الذي تم تطبيقه في `AdminDashboard.tsx` حيث تم ربط العقود بالسنة المالية عبر `fiscal_year_id`.
+عند إقفال السنة المالية 2024-2025، يقوم النظام بترحيل `remainingBalance` (= 0 ر.س) بدلا من `waqfCorpusManual` (= 107,913.20 ر.س) كرقبة وقف للسنة الجديدة.
 
-**مثال:** عند اختيار سنة 2025-2026 في الحسابات الختامية، ستظهر الـ 20 عقد المسجلة في 2024-2025 رغم أنها لا تنتمي لتلك السنة.
+حسب الكشف المالي المرفق:
+
+```text
+ريع الوقف القابل للتوزيع = 1,102,913.20 ر.س
+التوزيعات                 =   995,000.00 ر.س
+رقبة الوقف                =   107,913.20 ر.س  <-- المبلغ المطلوب ترحيله
+```
+
+**السبب:** السطر 351 في `AccountsPage.tsx` يستخدم `remainingBalance` بدلا من `waqfCorpusManual`.
 
 ---
 
 ## التعديلات المطلوبة
 
-### 1. `src/pages/dashboard/AccountsPage.tsx` (صفحة الناظر)
+### 1. إصلاح منطق الترحيل في `AccountsPage.tsx`
 
-**أ. إضافة فلترة العقود حسب السنة المالية (بعد سطر 44):**
+**الملف:** `src/pages/dashboard/AccountsPage.tsx` - سطر 351
+
+```typescript
+// الحالي (خاطئ):
+waqf_corpus_previous: remainingBalance,
+
+// الجديد (صحيح):
+waqf_corpus_previous: waqfCorpusManual,
+```
+
+**التفسير:** رقبة الوقف اليدوية (`waqfCorpusManual`) هي المبلغ الذي يحدده الناظر صراحة لترحيله كرأس مال للسنة التالية. أما `remainingBalance` فهو الفائض بعد خصم التوزيعات ورقبة الوقف معا.
+
+### 2. تحديث رسالة الإشعار (سطر 368)
 
 ```typescript
 // الحالي:
-const { data: contracts = [] } = useContracts();
-
-// الجديد -- إضافة فلترة:
-const { data: allContracts = [] } = useContracts();
-const contracts = useMemo(() => {
-  if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
-  return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
-}, [allContracts, fiscalYearId]);
-```
-
-هذا يضمن أن جميع الأماكن التي تستخدم `contracts` (جدول العقود، جدول التحصيل، حساب الضريبة التجارية، تصدير PDF) ستتأثر تلقائياً بالفلترة.
-
-**ب. إضافة `useMemo` للاستيراد (سطر 1):**
-
-```typescript
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-```
-
-### 2. `src/pages/beneficiary/AccountsViewPage.tsx` (صفحة المستفيد)
-
-**أ. إضافة فلترة العقود (بعد سطر 53):**
-
-```typescript
-// الحالي:
-const { data: contracts = [], isLoading: contractsLoading } = useContracts();
+`... تم ترحيل الرصيد المتبقي (${remainingBalance.toLocaleString()} ر.س) ...`
 
 // الجديد:
-const { data: allContracts = [], isLoading: contractsLoading } = useContracts();
-const contracts = useMemo(() => {
-  if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
-  return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
-}, [allContracts, fiscalYearId]);
+`... تم ترحيل رقبة الوقف (${waqfCorpusManual.toLocaleString()} ر.س) ...`
 ```
 
-**ب. إضافة `useMemo` للاستيراد (سطر 1):**
+### 3. تحديث نص التأكيد (سطر 662)
 
 ```typescript
-import { useState, useMemo } from 'react';
+// الحالي:
+ترحيل الرصيد المتبقي ({remainingBalance.toLocaleString()} ر.س) كرقبة وقف
+
+// الجديد:
+ترحيل رقبة الوقف ({waqfCorpusManual.toLocaleString()} ر.س) للسنة الجديدة
 ```
 
-### 3. `src/pages/dashboard/AccountsPage.test.tsx`
+### 4. إدخال سجل الحساب الختامي المفقود لسنة 2025-2026
 
-تحديث mock العقود ليشمل `fiscal_year_id`:
+بما أن الإقفال تم سابقا ولم يتم ترحيل المبلغ الصحيح، يجب إدخال سجل أولي للسنة الجديدة:
 
-```typescript
-useContracts: () => ({
-  data: [{
-    id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد محمد',
-    rent_amount: 120000, ..., fiscal_year_id: 'fy1',
-  }],
-}),
-```
-
-### 4. `src/pages/beneficiary/AccountsViewPage.test.tsx`
-
-تحديث mock العقود ليشمل `fiscal_year_id`:
-
-```typescript
-useContracts: () => ({
-  data: [
-    { id: 'c1', ..., fiscal_year_id: 'fy1' },
-    { id: 'c2', ..., fiscal_year_id: 'fy1' },
-  ],
-}),
+```sql
+INSERT INTO accounts (fiscal_year, waqf_corpus_previous, total_income, total_expenses,
+  admin_share, waqif_share, waqf_revenue, vat_amount, distributions_amount,
+  waqf_capital, net_after_expenses, net_after_vat, zakat_amount, waqf_corpus_manual)
+VALUES ('2025-2026', 107913.20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 ```
 
 ---
 
-## النتيجة المتوقعة
+## ملخص التأثير
 
-| السنة المالية | العقود في صفحة الحسابات الختامية |
-|--------------|-------------------------------|
-| 2024-2025 | 20 عقد (1,259,422 ر.س) |
-| 2025-2026 | 0 عقود (لا توجد عقود مسجلة) |
-
-هذا يُطابق سلوك لوحة التحكم الرئيسية ويُوحّد منهجية الفلترة في كافة الصفحات.
+| البند | قبل الإصلاح | بعد الإصلاح |
+|-------|------------|------------|
+| المبلغ المرحل لـ 2025-2026 | 0 ر.س | 107,913.20 ر.س |
+| سجل حساب 2025-2026 | غير موجود | موجود برقبة وقف مرحلة |
+| رسالة الإشعار | "الرصيد المتبقي" | "رقبة الوقف" |
 
