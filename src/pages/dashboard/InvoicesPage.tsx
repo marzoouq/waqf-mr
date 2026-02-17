@@ -49,6 +49,7 @@ const InvoicesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ITEMS_PER_PAGE = 10;
 
@@ -66,6 +67,7 @@ const InvoicesPage = () => {
   const resetForm = () => {
     setFormData({ invoice_number: '', invoice_type: '', amount: '', date: '', property_id: '', contract_id: '', description: '', status: 'pending' });
     setSelectedFile(null);
+    setFileError('');
     setEditingInvoice(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -226,11 +228,30 @@ const InvoicesPage = () => {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*,.pdf"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
                       className="hidden"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) { setSelectedFile(null); return; }
+                        const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+                        if (!ALLOWED.includes(file.type)) {
+                          setFileError('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
+                          setSelectedFile(null);
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                          return;
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                          setFileError('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
+                          setSelectedFile(null);
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                          return;
+                        }
+                        setFileError('');
+                        setSelectedFile(file);
+                      }}
                     />
                   </div>
+                  {fileError && <p className="text-sm text-destructive mt-1">{fileError}</p>}
                 </div>
 
                 <div className="space-y-2">
