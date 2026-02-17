@@ -12,7 +12,7 @@ import { useUnits } from '@/hooks/useUnits';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info } from 'lucide-react';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -273,7 +273,26 @@ const ContractsPage = () => {
             {isLoading ? (
               <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
             ) : filteredContracts.length === 0 ? (
-              <div className="py-12 text-center"><FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p></div>
+              <div className="py-12 text-center">
+                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p>
+                {!searchQuery && contracts.length === 0 && fiscalYearId !== 'all' && fiscalYears.length > 1 && (
+                  <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/80 dark:bg-blue-950/30 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm">
+                    <Info className="w-4 h-4 shrink-0" />
+                    <span>
+                      لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
+                      <button
+                        type="button"
+                        className="underline font-semibold hover:text-blue-900 dark:hover:text-blue-100"
+                        onClick={() => setSelectedFY('all')}
+                      >
+                        جميع السنوات
+                      </button>
+                      {' '}أو اختر سنة مالية أخرى من القائمة أعلاه.
+                    </span>
+                  </div>
+                )}
+              </div>
             ) : (
                <div className="overflow-x-auto">
                <Table className="min-w-[1000px]">
