@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
@@ -41,7 +41,7 @@ const AccountsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
-  const { data: contracts = [] } = useContracts();
+  const { data: allContracts = [] } = useContracts();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: tenantPayments = [] } = useTenantPayments();
   const { data: allUnits = [] } = useAllUnits();
@@ -59,6 +59,11 @@ const AccountsPage = () => {
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
   const isClosed = selectedFY?.status === 'closed';
+
+  const contracts = useMemo(() => {
+    if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
+    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
+  }, [allContracts, fiscalYearId]);
 
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);

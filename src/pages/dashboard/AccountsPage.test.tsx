@@ -41,6 +41,7 @@ vi.mock('@/hooks/useContracts', () => ({
         rent_amount: 120000, start_date: '2024-01-01', end_date: '2025-01-01',
         status: 'active', property_id: 'p1', payment_type: 'annual', payment_count: 1,
         payment_amount: null, unit_id: null, notes: null, created_at: '', updated_at: '',
+        fiscal_year_id: 'fy1',
       },
     ],
   }),

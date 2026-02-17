@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContracts } from '@/hooks/useContracts';
@@ -50,7 +50,11 @@ const AccountsViewPage = () => {
     expensesByType,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
-  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
+  const { data: allContracts = [], isLoading: contractsLoading } = useContracts();
+  const contracts = useMemo(() => {
+    if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
+    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
+  }, [allContracts, fiscalYearId]);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 

@@ -46,8 +46,8 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
 vi.mock('@/hooks/useContracts', () => ({
   useContracts: vi.fn(() => ({
     data: [
-      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 50000, status: 'active' },
-      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 30000, status: 'expired' },
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 50000, status: 'active', fiscal_year_id: 'fy1' },
+      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 30000, status: 'expired', fiscal_year_id: 'fy1' },
     ],
     isLoading: false,
   })),
