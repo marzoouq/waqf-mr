@@ -133,3 +133,33 @@ export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => 
 
   return URL.createObjectURL(data);
 };
+
+// ---------------------------------------------------------------------------
+// Generate PDF for invoices without attachments
+// ---------------------------------------------------------------------------
+
+export const useGenerateInvoicePdf = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invoiceIds: string[]) => {
+      const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
+        body: { invoice_ids: invoiceIds },
+      });
+      if (error) throw error;
+      return data as { results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      const successCount = data.results.filter((r) => r.success && r.error !== 'already has file').length;
+      if (successCount > 0) {
+        toast.success(`تم توليد ${successCount} ملف PDF بنجاح`);
+      } else {
+        toast.info('جميع الفواتير تحتوي على مرفقات بالفعل');
+      }
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء توليد ملفات PDF');
+    },
+  });
+};

@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -39,6 +39,7 @@ const InvoicesPage = () => {
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
+  const generatePdf = useGenerateInvoicePdf();
 
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
@@ -373,7 +374,18 @@ const InvoicesPage = () => {
                               <Eye className="w-4 h-4" />
                               <span className="text-xs truncate max-w-[80px]">{item.file_name}</span>
                             </Button>
-                          ) : '-'}
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1 text-amber-600"
+                              disabled={generatePdf.isPending}
+                              onClick={() => generatePdf.mutate([item.id])}
+                            >
+                              <FileDown className="w-4 h-4" />
+                              <span className="text-xs">توليد PDF</span>
+                            </Button>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
