@@ -106,7 +106,22 @@ export const useDeleteInvoice = () => {
 // Storage utilities
 // ---------------------------------------------------------------------------
 
+const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 export const uploadInvoiceFile = async (file: File): Promise<{ path: string; name: string }> => {
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    throw new Error('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
+  }
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
+  }
+
   const ext = file.name.split('.').pop();
   const path = `${crypto.randomUUID()}.${ext}`;
 
