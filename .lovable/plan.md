@@ -1,75 +1,73 @@
 
 
-# منح الناظر صلاحية تعديل بيانات السنوات المقفلة
-
-## الوضع الحالي
-
-يوجد حماية على مستويين تمنع أي تعديل على بيانات السنوات المالية المقفلة:
-
-| المستوى | الآلية | التأثير |
-|---------|--------|---------|
-| واجهة المستخدم (UI) | متغير `isClosed` يخفي أزرار التعديل والحذف | الناظر لا يرى خيارات التعديل |
-| قاعدة البيانات (Trigger) | دالة `prevent_closed_fiscal_year_modification()` | ترفض أي عملية INSERT/UPDATE/DELETE على جداول مرتبطة بسنة مقفلة |
-
-## الحل المقترح
-
-### 1. تعديل دالة قاعدة البيانات (Database Trigger)
-
-تحديث دالة `prevent_closed_fiscal_year_modification()` لتسمح للمستخدم ذي دور `admin` بتجاوز الحماية، مع الإبقاء على المنع لباقي الأدوار:
-
-```sql
-CREATE OR REPLACE FUNCTION public.prevent_closed_fiscal_year_modification()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-DECLARE
-  fy_status text;
-  fy_id uuid;
-BEGIN
-  -- تحديد معرف السنة المالية
-  IF TG_OP = 'DELETE' THEN
-    fy_id := OLD.fiscal_year_id;
-  ELSE
-    fy_id := NEW.fiscal_year_id;
-  END IF;
-
-  IF fy_id IS NULL THEN
-    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
-  END IF;
-
-  SELECT status INTO fy_status FROM public.fiscal_years WHERE id = fy_id;
-
-  -- السماح للأدمن بتعديل السنوات المقفلة
-  IF fy_status = 'closed' AND NOT public.has_role(auth.uid(), 'admin') THEN
-    RAISE EXCEPTION 'لا يمكن تعديل بيانات سنة مالية مقفلة';
-  END IF;
-
-  IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
-END;
-$$;
-```
-
-### 2. تعديل واجهة المستخدم (3 صفحات)
-
-في كل من صفحات **الدخل** و**المصروفات** و**الحسابات الختامية**:
-
-- ازالة شرط `isClosed` الذي يخفي أزرار التعديل والحذف والاضافة
-- استبداله بتنبيه تحذيري واضح يُعلم الناظر أنه يعدّل بيانات سنة مقفلة (بدلاً من المنع التام)
-- تغيير رسالة "سنة مقفلة - لا يمكن التعديل" الى "سنة مقفلة - تعديل بصلاحية الناظر"
-- اضافة لون تحذيري (برتقالي) بدلاً من اللون الاحمر للتمييز بين المنع والتحذير
-
-### 3. تسجيل العمليات في سجل المراجعة
-
-المشغلات الحالية (`audit_trigger_func`) ستستمر بتسجيل أي تعديل يقوم به الناظر على السنوات المقفلة تلقائياً، مما يوفر تتبعاً كاملاً لأي تغييرات استثنائية.
+# إضافة فلتر السنة المالية لصفحتي العقارات والعقود
 
 ## ملخص التغييرات
 
-| الملف / المكون | التغيير |
-|----------------|---------|
-| Migration SQL | تحديث دالة `prevent_closed_fiscal_year_modification` لاستثناء الادمن |
-| `IncomePage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
-| `ExpensesPage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
-| `AccountsPage.tsx` | ابقاء ازرار التعديل مع تحذير بصري |
+### 1. إضافة هوك `useContractsByFiscalYear` في `src/hooks/useContracts.ts`
+- إنشاء هوك جديد بنفس نمط `useExpensesByFiscalYear` و `useIncomeByFiscalYear`
+- يفلتر العقود بحقل `fiscal_year_id` مع دعم خيار "جميع السنوات"
+- يتضمن ربط العقار والوحدة (`*, property:properties(*), unit:units(*)`)
+
+### 2. تعديل صفحة العقود `src/pages/dashboard/ContractsPage.tsx`
+- استيراد `FiscalYearSelector`, `useActiveFiscalYear`, `useContractsByFiscalYear`
+- إضافة state للسنة المالية المختارة (افتراضياً: السنة النشطة)
+- استبدال `useContracts()` بـ `useContractsByFiscalYear(fiscalYearId)`
+- وضع `FiscalYearSelector` بجانب حقل البحث في شريط الأدوات
+- إضافة تحذير برتقالي عند عرض سنة مقفلة (نفس نمط صفحة الدخل)
+- تحديث الإحصائيات لتعكس السنة المختارة فقط
+
+### 3. تعديل صفحة العقارات `src/pages/dashboard/PropertiesPage.tsx`
+- استيراد `FiscalYearSelector`, `useActiveFiscalYear`, `useContractsByFiscalYear`, `useExpensesByFiscalYear`
+- إضافة state للسنة المالية المختارة
+- استبدال `useContracts()` بـ `useContractsByFiscalYear(fiscalYearId)` لفلترة العقود في بطاقات العقارات
+- استبدال `useExpenses()` بـ `useExpensesByFiscalYear(fiscalYearId)` لفلترة المصروفات
+- العقارات والوحدات تبقى بدون فلترة (أصول ثابتة)
+- المؤشرات المالية في كل بطاقة (الإيرادات التعاقدية، المصروفات، الصافي) تتغير حسب السنة المختارة
+- وضع `FiscalYearSelector` بجانب حقل البحث
+
+## التفاصيل التقنية
+
+### هوك جديد (`useContracts.ts`)
+
+```typescript
+export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
+  return useQuery({
+    queryKey: ['contracts', 'fiscal_year', fiscalYearId],
+    queryFn: async () => {
+      let query = supabase
+        .from('contracts')
+        .select('*, property:properties(*), unit:units(*)')
+        .order('start_date', { ascending: false })
+        .limit(500);
+      if (fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Contract[];
+    },
+  });
+};
+```
+
+### نمط واجهة المستخدم (مطابق لصفحة الدخل)
+
+```typescript
+const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+const [selectedFY, setSelectedFY] = useState<string>('');
+const fiscalYearId = selectedFY || activeFY?.id || 'all';
+const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+const isClosed = currentFY?.status === 'closed';
+
+const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
+```
+
+### الملفات المتأثرة
+
+| الملف | نوع التغيير |
+|-------|-------------|
+| `src/hooks/useContracts.ts` | إضافة `useContractsByFiscalYear` |
+| `src/pages/dashboard/ContractsPage.tsx` | إضافة فلتر السنة + تحذير السنة المقفلة |
+| `src/pages/dashboard/PropertiesPage.tsx` | إضافة فلتر السنة للبيانات المالية |
 
