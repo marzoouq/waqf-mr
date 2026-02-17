@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { data: idleMinutes } = useQuery({
     queryKey: ['idle-timeout-setting'],
     queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').single();
+      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').maybeSingle();
       return data?.value ? parseInt(data.value, 10) : 15;
     },
     staleTime: 1000 * 60 * 5,

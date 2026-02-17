@@ -50,7 +50,7 @@ const Auth = () => {
         .from('app_settings')
         .select('value')
         .eq('key', 'registration_enabled')
-        .single();
+        .maybeSingle();
       if (data) {
         setRegistrationEnabled(data.value === 'true');
       }
