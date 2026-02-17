@@ -35,11 +35,11 @@ const AdminDashboard = () => {
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
   const filteredExpenses = expenses;
-  // Filter contracts by fiscal year overlap
+  // Filter contracts by explicit fiscal_year_id (IFRS/SOCPA compliant - no migration)
   const fyContracts = useMemo(() => {
-    if (!selectedFY) return contracts;
-    return contracts.filter(c => c.start_date <= selectedFY.end_date && c.end_date >= selectedFY.start_date);
-  }, [contracts, selectedFY]);
+    if (!fiscalYearId || fiscalYearId === 'all') return contracts;
+    return contracts.filter(c => c.fiscal_year_id === fiscalYearId);
+  }, [contracts, fiscalYearId]);
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
@@ -274,7 +274,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.slice(0, 5).map((contract) => (
+                {fyContracts.slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
@@ -290,7 +290,7 @@ const AdminDashboard = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {contracts.length === 0 && (
+                {fyContracts.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                       لا توجد عقود حالياً

@@ -37,6 +37,7 @@ export interface Contract {
   payment_type?: string;
   payment_count?: number;
   payment_amount?: number;
+  fiscal_year_id?: string;
   notes?: string;
   created_at: string;
   updated_at: string;

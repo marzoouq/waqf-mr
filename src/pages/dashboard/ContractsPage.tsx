@@ -68,16 +68,21 @@ const ContractsPage = () => {
     const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
     const rentAmount = parseFloat(formData.rent_amount);
     const paymentAmount = rentAmount / paymentCount;
-    const contractData = {
+    const contractData: Record<string, unknown> = {
       contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
       start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
       status: formData.status, notes: formData.notes || undefined,
       payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
     };
     if (editingContract) {
-      await updateContract.mutateAsync({ id: editingContract.id, ...contractData });
+      // fiscal_year_id لا يتغير عند التعديل (العقد يبقى في سنته الأصلية)
+      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as any);
     } else {
-      await createContract.mutateAsync(contractData);
+      // العقد الجديد يُربط بالسنة المالية النشطة تلقائياً
+      const { data: activeFY } = await (await import('@/integrations/supabase/client')).supabase
+        .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
+      await createContract.mutateAsync(contractData as any);
     }
     setIsOpen(false);
     resetForm();
