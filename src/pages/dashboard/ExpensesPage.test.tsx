@@ -1,0 +1,84 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+
+const mockExpenses = [
+  { id: 'e1', expense_type: 'كهرباء', amount: 1500, date: '2024-06-01', property_id: 'p1', property: { property_number: 'W-001' }, description: 'فاتورة يونيو', fiscal_year_id: 'fy1', created_at: '' },
+  { id: 'e2', expense_type: 'صيانة', amount: 3000, date: '2024-07-10', property_id: null, property: null, description: '', fiscal_year_id: 'fy1', created_at: '' },
+];
+
+const mockMutate = { mutateAsync: vi.fn(), isPending: false };
+
+vi.mock('@/hooks/useExpenses', () => ({
+  useExpenses: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
+  useExpensesByFiscalYear: vi.fn(() => ({ data: mockExpenses, isLoading: false })),
+  useCreateExpense: vi.fn(() => mockMutate),
+  useUpdateExpense: vi.fn(() => mockMutate),
+  useDeleteExpense: vi.fn(() => mockMutate),
+}));
+
+vi.mock('@/hooks/useInvoices', () => ({
+  useInvoices: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
+}));
+
+vi.mock('@/hooks/useProperties', () => ({
+  useProperties: vi.fn(() => ({ data: [{ id: 'p1', property_number: 'W-001', location: 'حي النزهة' }] })),
+}));
+
+vi.mock('@/hooks/useFiscalYears', () => ({
+  useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
+  useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
+}));
+
+vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/utils/pdf', () => ({ generateExpensesPDF: vi.fn() }));
+vi.mock('@/components/expenses/ExpenseAttachments', () => ({ default: () => <div>مرفقات</div> }));
+
+import ExpensesPage from './ExpensesPage';
+
+describe('ExpensesPage', () => {
+  it('renders page title', () => {
+    render(<ExpensesPage />);
+    expect(screen.getByText('إدارة المصروفات')).toBeInTheDocument();
+  });
+
+  it('shows total expenses', () => {
+    render(<ExpensesPage />);
+    expect(screen.getByText(/4,500/)).toBeInTheDocument();
+  });
+
+  it('shows documentation rate', () => {
+    render(<ExpensesPage />);
+    // 1 out of 2 documented = 50%
+    expect(screen.getByText('50%')).toBeInTheDocument();
+  });
+
+  it('renders expense table rows', () => {
+    render(<ExpensesPage />);
+    expect(screen.getByText('كهرباء')).toBeInTheDocument();
+    expect(screen.getByText('صيانة')).toBeInTheDocument();
+  });
+
+  it('filters expenses by search', () => {
+    render(<ExpensesPage />);
+    fireEvent.change(screen.getByPlaceholderText('بحث في المصروفات...'), { target: { value: 'كهرباء' } });
+    expect(screen.getByText('كهرباء')).toBeInTheDocument();
+    expect(screen.queryByText('صيانة')).not.toBeInTheDocument();
+  });
+
+  it('shows empty state for no search results', () => {
+    render(<ExpensesPage />);
+    fireEvent.change(screen.getByPlaceholderText('بحث في المصروفات...'), { target: { value: 'غير موجود' } });
+    expect(screen.getByText('لا توجد نتائج للبحث')).toBeInTheDocument();
+  });
+
+  it('shows add expense button', () => {
+    render(<ExpensesPage />);
+    expect(screen.getByText('إضافة مصروف')).toBeInTheDocument();
+  });
+
+  it('shows documented/total count', () => {
+    render(<ExpensesPage />);
+    expect(screen.getByText('1/2')).toBeInTheDocument();
+  });
+});
