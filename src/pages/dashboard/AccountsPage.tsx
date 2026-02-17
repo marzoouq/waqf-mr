@@ -348,7 +348,7 @@ const AccountsPage = () => {
       if (nextFYId) {
         await supabase.from('accounts').insert({
           fiscal_year: nextLabel,
-          waqf_corpus_previous: remainingBalance,
+          waqf_corpus_previous: waqfCorpusManual,
           total_income: 0, total_expenses: 0, admin_share: 0, waqif_share: 0,
           waqf_revenue: 0, vat_amount: 0, distributions_amount: 0,
           waqf_capital: 0, net_after_expenses: 0, net_after_vat: 0,
@@ -365,7 +365,7 @@ const AccountsPage = () => {
       // Step F: Notify beneficiaries
       notifyAllBeneficiaries(
         'إقفال السنة المالية',
-        `تم إقفال السنة المالية ${selectedFY.label} وأرشفة جميع البيانات. تم ترحيل الرصيد المتبقي (${remainingBalance.toLocaleString()} ر.س) كرقبة وقف للسنة الجديدة.`,
+        `تم إقفال السنة المالية ${selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${waqfCorpusManual.toLocaleString()} ر.س) للسنة الجديدة.`,
         'info',
         '/beneficiary/accounts',
       );
@@ -659,7 +659,7 @@ const AccountsPage = () => {
                   <ul className="list-disc list-inside space-y-1 mr-2">
                     <li>حفظ الحساب الختامي النهائي وأرشفة جميع البيانات للسنة <strong className="text-foreground">{selectedFY?.label}</strong></li>
                     <li>إقفال السنة المالية نهائياً (لن يمكن التعديل بعد الإقفال)</li>
-                    <li>ترحيل الرصيد المتبقي <strong className="text-foreground">({remainingBalance.toLocaleString()} ر.س)</strong> كرقبة وقف للسنة الجديدة</li>
+                    <li>ترحيل رقبة الوقف <strong className="text-foreground">({waqfCorpusManual.toLocaleString()} ر.س)</strong> للسنة الجديدة</li>
                     <li>إشعار جميع المستفيدين بإقفال السنة</li>
                   </ul>
                   <p className="text-xs mt-2">جميع البيانات المؤرشفة ستبقى متاحة للاطلاع عليها.</p>
