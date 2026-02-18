@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -51,7 +51,13 @@ const InvoicesPage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup preview blob URL on unmount or change
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  }, [previewUrl]);
 
   const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
   const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -71,6 +77,13 @@ const InvoicesPage = () => {
     }
     setFileError('');
     setSelectedFile(file);
+    // Generate image preview
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
   };
   const ITEMS_PER_PAGE = 10;
 
@@ -90,6 +103,7 @@ const InvoicesPage = () => {
     setSelectedFile(null);
     setFileError('');
     setEditingInvoice(null);
+    setPreviewUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -273,11 +287,32 @@ const InvoicesPage = () => {
                       const file = e.dataTransfer.files?.[0];
                       if (file) validateAndSetFile(file);
                     }}
-                  >
-                    <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <p className={`text-sm ${isDragging ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      {isDragging ? 'أفلت الملف هنا' : selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
-                    </p>
+                    >
+                    {previewUrl && selectedFile ? (
+                      <div className="relative inline-block">
+                        <img src={previewUrl} alt="معاينة" className="max-h-32 rounded-md mx-auto object-contain" />
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFile(null);
+                            setPreviewUrl(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <p className="text-xs text-muted-foreground mt-1">{selectedFile.name}</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <p className={`text-sm ${isDragging ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                          {isDragging ? 'أفلت الملف هنا' : selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
+                        </p>
+                      </>
+                    )}
                     <input
                       ref={fileInputRef}
                       type="file"
