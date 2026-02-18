@@ -1,65 +1,88 @@
 
-# خطة إنشاء Edge Function للتحقق من التسجيل على مستوى الخادم
+# خطة توحيد اختيار السنة المالية على مستوى النظام بالكامل
 
 ## المشكلة الحالية
-التحقق من إعداد `registration_enabled` يتم فقط على مستوى العميل (إخفاء واجهة التسجيل). مستخدم ذكي يمكنه استدعاء `supabase.auth.signUp()` مباشرة من وحدة التحكم وتجاوز هذا القيد.
+كل صفحة تدير حالة السنة المالية المختارة بشكل مستقل عبر `useState` محلي. عند الانتقال من صفحة لأخرى، يُفقد الاختيار ويعود للسنة النشطة. هذا يجبر المستخدم على إعادة اختيار السنة في كل صفحة.
 
-## الحل
-إنشاء Edge Function وسيطة (`guard-signup`) تتحقق من الإعداد على الخادم قبل إنشاء الحساب، ثم تعديل `AuthContext` لاستدعائها بدلاً من `supabase.auth.signUp()` مباشرة.
+## الحل المقترح
+إنشاء Context عام (`FiscalYearContext`) يحفظ السنة المختارة ويُوفرها لجميع الصفحات، مع نقل المُنتقي (`FiscalYearSelector`) إلى شريط `DashboardLayout` ليكون ظاهراً دائماً.
 
-## التغييرات المطلوبة
+## الصفحات المتأثرة (10 صفحات)
 
-### 1. إنشاء Edge Function: `supabase/functions/guard-signup/index.ts`
-- تستقبل `email` و `password` من الطلب
-- تستعلم من `app_settings` عن قيمة `registration_enabled`
-- إذا كان التسجيل معطلاً: ترجع خطأ 403
-- إذا كان مفعلاً: تنشئ الحساب عبر Supabase Admin API وترجع النتيجة
-- تتضمن CORS headers ومعالجة OPTIONS
-- تتحقق من صحة المدخلات (بريد صالح، كلمة مرور 6-128 حرف)
+### صفحات الناظر:
+1. `AdminDashboard.tsx`
+2. `IncomePage.tsx`
+3. `ExpensesPage.tsx`
+4. `ContractsPage.tsx`
+5. `PropertiesPage.tsx`
+6. `ReportsPage.tsx`
+7. `AccountsPage.tsx`
+8. `InvoicesPage.tsx`
 
-### 2. تسجيل الوظيفة في `supabase/config.toml`
-```toml
-[functions.guard-signup]
-verify_jwt = false
-```
+### صفحات المستفيد:
+9. `MySharePage.tsx`
+10. `FinancialReportsPage.tsx`
+11. `DisclosurePage.tsx`
+12. `AccountsViewPage.tsx`
 
-### 3. تعديل `src/contexts/AuthContext.tsx`
-تغيير دالة `signUp` لتستدعي `guard-signup` بدلاً من `supabase.auth.signUp()`:
+## التفاصيل التقنية
+
+### 1. إنشاء `src/contexts/FiscalYearContext.tsx`
+
 ```typescript
-const signUp = async (email: string, password: string) => {
-  const { data, error } = await supabase.functions.invoke('guard-signup', {
-    body: { email, password }
-  });
-  if (error || data?.error) {
-    return { error: new Error(data?.error || error?.message || 'خطأ في التسجيل') };
-  }
-  return { error: null };
-};
+// يوفر:
+// - fiscalYearId: معرف السنة المختارة
+// - fiscalYear: كائن السنة المختارة (label, status, etc.)
+// - setFiscalYearId: دالة تغيير السنة
+// - isClosed: هل السنة مقفلة
+// - fiscalYears: قائمة كل السنوات
 ```
 
-## تفاصيل تقنية للوظيفة
+- يُهيئ القيمة الافتراضية من `useActiveFiscalYear` (السنة النشطة)
+- يحفظ الاختيار في `localStorage` لاستمراره بين الجلسات
+- يوفر خاصية `isClosed` جاهزة لعرض تحذير السنة المقفلة
 
+### 2. تعديل `DashboardLayout.tsx`
+- إضافة `FiscalYearSelector` في شريط المعلومات العلوي (بجانب جرس الإشعارات)
+- يظهر في كل الصفحات دون الحاجة لإضافته يدوياً
+- يعرض تنبيه "سنة مقفلة" تلقائياً عند اختيار سنة مقفلة
+
+### 3. تعديل `App.tsx`
+- لف المسارات بـ `FiscalYearProvider`
+
+### 4. تنظيف الصفحات (10 صفحات)
+من كل صفحة سيُزال:
+- `useState` للسنة المالية
+- استيراد `useActiveFiscalYear`
+- استيراد `FiscalYearSelector`
+- مكون `FiscalYearSelector` من JSX
+- منطق `isClosed` المحلي
+
+ويُستبدل بـ:
+```typescript
+const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
 ```
-الطلب ──▶ guard-signup
-              │
-              ├─ التحقق من المدخلات (email, password)
-              │
-              ├─ استعلام app_settings.registration_enabled
-              │    ├─ false ──▶ 403 "التسجيل معطل حالياً"
-              │    └─ true ──▶ متابعة
-              │
-              └─ إنشاء المستخدم عبر supabase.auth.admin.createUser()
-                   └─ إرجاع النتيجة
-```
 
-## الملفات المتأثرة
-| الملف | التغيير |
-|-------|---------|
-| `supabase/functions/guard-signup/index.ts` | ملف جديد |
-| `supabase/config.toml` | إضافة تسجيل الوظيفة (تلقائي) |
-| `src/contexts/AuthContext.tsx` | تعديل دالة `signUp` |
+### 5. تحديث `useFinancialSummary`
+- يقبل السنة من Context مباشرة (اختياري) أو يستمر بقبولها كمعامل
 
-## الأمان
-- لا يمكن تجاوز القيد من المتصفح لأن التحقق يتم على الخادم
-- المدخلات تُتحقق قبل المعالجة
-- تُستخدم `service_role` key داخلياً فقط لإنشاء الحساب
+### 6. تحديث الاختبارات
+- إضافة mock لـ `FiscalYearContext` في ملفات الاختبار المتأثرة
+
+## سلوك المُنتقي حسب الصفحة
+
+| نوع الصفحة | خيار "جميع السنوات" | السلوك |
+|------------|---------------------|--------|
+| الرئيسية (Dashboard) | لا | السنة النشطة افتراضياً |
+| الدخل / المصروفات | نعم | يُظهر كل البيانات |
+| العقود | نعم | يُظهر كل العقود |
+| الحسابات الختامية | لا | السنة النشطة فقط |
+| التقارير | لا | السنة النشطة فقط |
+
+ملاحظة: بعض الصفحات (مثل الحسابات الختامية والتقارير) تحتاج `showAll=false`. سيتم التعامل مع هذا عبر خاصية في Context تتيح لكل صفحة تحديد ما إذا كانت تقبل "جميع السنوات" أم لا، أو ببساطة كل صفحة تستخدم `fiscalYearId` مباشرة وتتجاهل خيار "الكل" إذا لم تحتاجه.
+
+## النتيجة
+- اختيار السنة مرة واحدة يُطبق على كل الصفحات فوراً
+- الاختيار يبقى محفوظاً عند التنقل بين الصفحات
+- المُنتقي في مكان واحد ثابت (شريط علوي) بدلاً من تكراره في 10 صفحات
+- تبسيط كود الصفحات بإزالة المنطق المكرر
