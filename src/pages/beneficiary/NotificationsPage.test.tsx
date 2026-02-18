@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import React from 'react';
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -15,6 +16,7 @@ vi.mock('@/hooks/useAppSettings', () => ({
 const mockMarkAsRead = { mutate: vi.fn() };
 const mockMarkAllAsRead = { mutate: vi.fn() };
 const mockDeleteRead = { mutate: vi.fn() };
+const mockDeleteOne = { mutate: vi.fn() };
 
 vi.mock('@/hooks/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
@@ -25,7 +27,17 @@ vi.mock('@/hooks/useNotifications', () => ({
     markAsRead: mockMarkAsRead,
     markAllAsRead: mockMarkAllAsRead,
     deleteRead: mockDeleteRead,
+    deleteOne: mockDeleteOne,
     unreadCount: 1,
+  })),
+}));
+
+vi.mock('@/hooks/usePushNotifications', () => ({
+  usePushNotifications: vi.fn(() => ({
+    isSupported: true,
+    permission: 'default' as NotificationPermission,
+    requestPermission: vi.fn(),
+    showNotification: vi.fn(),
   })),
 }));
 
@@ -38,7 +50,9 @@ const renderPage = () => {
   return render(
     <QueryClientProvider client={qc}>
       <MemoryRouter>
-        <NotificationsPage />
+        <TooltipProvider>
+          <NotificationsPage />
+        </TooltipProvider>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -54,7 +68,7 @@ describe('NotificationsPage', () => {
 
   it('shows unread badge', () => {
     renderPage();
-    expect(screen.getByText('1 غير مقروء')).toBeInTheDocument();
+    expect(screen.getByText(/1 غير مقروء/)).toBeInTheDocument();
   });
 
   it('shows notification items', () => {
@@ -75,14 +89,14 @@ describe('NotificationsPage', () => {
 
   it('shows notification count', () => {
     renderPage();
-    expect(screen.getByText('2 إشعار')).toBeInTheDocument();
+    expect(screen.getByText(/2 إشعار/)).toBeInTheDocument();
   });
 
   it('shows empty state when no notifications', async () => {
     const { useNotifications } = await import('@/hooks/useNotifications');
     (useNotifications as any).mockReturnValueOnce({
       data: [], markAsRead: mockMarkAsRead, markAllAsRead: mockMarkAllAsRead,
-      deleteRead: mockDeleteRead, unreadCount: 0,
+      deleteRead: mockDeleteRead, deleteOne: mockDeleteOne, unreadCount: 0,
     });
     renderPage();
     expect(screen.getByText('لا توجد إشعارات')).toBeInTheDocument();

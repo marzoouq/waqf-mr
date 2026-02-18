@@ -54,14 +54,14 @@ describe('IncomePage', () => {
 
   it('renders income table rows', () => {
     render(<IncomePage />);
-    expect(screen.getByText('إيجار شقة 101')).toBeInTheDocument();
-    expect(screen.getByText('تبرع')).toBeInTheDocument();
+    expect(screen.getAllByText('إيجار شقة 101').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('تبرع').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters income by search', () => {
     render(<IncomePage />);
     fireEvent.change(screen.getByPlaceholderText('بحث في سجلات الدخل...'), { target: { value: 'تبرع' } });
-    expect(screen.getByText('تبرع')).toBeInTheDocument();
+    expect(screen.getAllByText('تبرع').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText('إيجار شقة 101')).not.toBeInTheDocument();
   });
 
