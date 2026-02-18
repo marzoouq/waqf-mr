@@ -147,6 +147,9 @@ const InvoicesPage = () => {
         invoiceData.file_name = name;
       }
 
+      const filePath = invoiceData.file_path as string | undefined;
+      const fileName = invoiceData.file_name as string | undefined;
+
       if (editingInvoice) {
         await updateInvoice.mutateAsync({ id: editingInvoice.id, ...invoiceData });
       } else {
@@ -155,6 +158,21 @@ const InvoicesPage = () => {
 
       setIsOpen(false);
       resetForm();
+
+      // Show success toast with view action if file exists
+      const viewablePath = filePath || editingInvoice?.file_path;
+      const viewableName = fileName || editingInvoice?.file_name;
+      if (viewablePath) {
+        toast.success(
+          editingInvoice ? 'تم تحديث الفاتورة بنجاح' : 'تم رفع الفاتورة بنجاح',
+          {
+            action: {
+              label: 'عرض',
+              onClick: () => setViewerFile({ path: viewablePath, name: viewableName || null }),
+            },
+          },
+        );
+      }
     } catch {
       toast.error('حدث خطأ أثناء حفظ الفاتورة');
     } finally {
