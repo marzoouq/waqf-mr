@@ -109,7 +109,7 @@ const AiAssistant = () => {
     return (
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90"
+        className="fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 animate-scale-in"
         size="icon"
       >
         <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
@@ -118,7 +118,7 @@ const AiAssistant = () => {
   }
 
   return (
-    <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:left-4 z-50 sm:w-[400px] sm:h-[500px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:left-4 z-50 sm:w-[400px] sm:h-[500px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden animate-enter origin-bottom-left">
       {/* Header */}
       <div className="gradient-hero p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
