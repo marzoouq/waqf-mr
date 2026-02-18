@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
 
@@ -134,9 +135,23 @@ const AiAssistant = () => {
         </div>
         <div className="flex items-center gap-1">
           {messages.length > 0 && (
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setMessages([])}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>مسح المحادثة</AlertDialogTitle>
+                  <AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-row-reverse gap-2">
+                  <AlertDialogAction onClick={() => setMessages([])}>مسح</AlertDialogAction>
+                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
           <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setOpen(false)}>
             <X className="w-4 h-4" />
