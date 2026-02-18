@@ -86,13 +86,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: redirectUrl }
+    const { data, error } = await supabase.functions.invoke('guard-signup', {
+      body: { email, password }
     });
-    return { error };
+    if (error || data?.error) {
+      return { error: new Error(data?.error || error?.message || 'خطأ في التسجيل') };
+    }
+    return { error: null };
   };
 
   const signOut = async () => {
