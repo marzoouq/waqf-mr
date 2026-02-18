@@ -288,7 +288,39 @@ const ContractsPage = () => {
                 )}
               </div>
             ) : (
-               <div className="overflow-x-auto">
+              <>
+               {/* Mobile Cards */}
+               <div className="space-y-3 md:hidden px-3 py-2">
+                 {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
+                   <Card key={contract.id} className="shadow-sm">
+                     <CardContent className="p-4 space-y-3">
+                       <div className="flex items-start justify-between gap-2">
+                         <div className="min-w-0 flex-1">
+                           <div className="flex items-center gap-2 flex-wrap">
+                             <span className="font-bold text-sm">{contract.contract_number}</span>
+                             {getStatusBadge(contract.status)}
+                           </div>
+                           <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
+                         </div>
+                         <div className="flex gap-1 shrink-0">
+                           <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
+                           <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
+                         </div>
+                       </div>
+                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                         <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{contract.property?.property_number || '-'}</p></div>
+                         <div><p className="text-[10px] text-muted-foreground">الوحدة</p><p className="text-sm font-medium">{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'كامل'}</p></div>
+                         <div><p className="text-[10px] text-muted-foreground">البداية</p><p className="text-sm font-medium">{contract.start_date}</p></div>
+                         <div><p className="text-[10px] text-muted-foreground">النهاية</p><p className="text-sm font-medium">{contract.end_date}</p></div>
+                         <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
+                         <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 ))}
+               </div>
+               {/* Desktop Table */}
+               <div className="overflow-x-auto hidden md:block">
                <Table className="min-w-[1000px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -326,6 +358,7 @@ const ContractsPage = () => {
                 </TableBody>
                </Table>
                </div>
+              </>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>

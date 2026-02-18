@@ -142,7 +142,33 @@ const IncomePage = () => {
             ) : filteredIncome.length === 0 ? (
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
-              <div className="overflow-x-auto"><Table className="min-w-[650px]">
+              <>
+              {/* Mobile Cards */}
+              <div className="space-y-3 md:hidden px-3 py-2">
+                {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
+                  <Card key={item.id} className="shadow-sm">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="font-bold text-sm">{item.source}</span>
+                          <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })}><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{Number(item.amount).toLocaleString()} ر.س</p></div>
+                        <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
+                        {item.notes && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">ملاحظات</p><p className="text-sm text-muted-foreground">{item.notes}</p></div>}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block"><Table className="min-w-[650px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">المصدر</TableHead><TableHead className="text-right">المبلغ</TableHead>
@@ -168,6 +194,7 @@ const IncomePage = () => {
                   ))}
                 </TableBody>
               </Table></div>
+              </>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredIncome.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
