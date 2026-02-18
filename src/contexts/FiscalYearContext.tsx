@@ -33,7 +33,7 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const fiscalYearId = selectedId || activeFY?.id || '';
   const fiscalYear = useMemo(
-    () => fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null,
+    () => fiscalYearId === 'all' ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';

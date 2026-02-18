@@ -96,10 +96,20 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
 ];
 
+// Routes that support "All Years" filter
+const SHOW_ALL_ROUTES = [
+  '/dashboard/income',
+  '/dashboard/expenses',
+  '/dashboard/contracts',
+  '/dashboard/properties',
+  '/dashboard/invoices',
+];
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
+  const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
@@ -269,7 +279,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="hidden lg:flex items-center justify-between">
           <WaqfInfoBar />
           <div className="flex items-center gap-3 px-4 py-2">
-            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={false} />
+            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
               <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800 print:hidden">
                 <Lock className="w-3 h-3" /> مقفلة
@@ -281,7 +291,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="lg:hidden">
           <WaqfInfoBar />
           <div className="flex items-center gap-2 px-3 py-1.5 print:hidden">
-            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={false} />
+            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
               <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800">
                 <Lock className="w-3 h-3" /> مقفلة
