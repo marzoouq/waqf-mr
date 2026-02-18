@@ -51,14 +51,28 @@ const WaqfInfoBar = () => {
     setEditOpen(true);
   };
 
+  const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+  const VALID_LOGO_EXT: Record<string, string[]> = {
+    'image/jpeg': ['jpg', 'jpeg'],
+    'image/png': ['png'],
+    'image/webp': ['webp'],
+    'image/svg+xml': ['svg'],
+  };
+  const MAX_LOGO_SIZE = 2 * 1024 * 1024;
+
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة');
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+      toast.error('نوع الملف غير مسموح. الأنواع المسموحة: JPG, PNG, WEBP, SVG');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !VALID_LOGO_EXT[file.type]?.includes(ext)) {
+      toast.error('امتداد الملف لا يتطابق مع نوعه');
+      return;
+    }
+    if (file.size > MAX_LOGO_SIZE) {
       toast.error('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
       return;
     }
@@ -75,7 +89,7 @@ const WaqfInfoBar = () => {
       // Upload logo if changed
       let logoUrl = waqfInfo?.waqf_logo_url || '';
       if (logoFile) {
-        const ext = logoFile.name.split('.').pop();
+        const ext = logoFile.name.split('.').pop()?.toLowerCase() || 'png';
         const path = `logo.${ext}`;
         const { error: uploadErr } = await supabase.storage
           .from('waqf-assets')

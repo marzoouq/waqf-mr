@@ -114,6 +114,13 @@ const ALLOWED_MIME_TYPES = [
 ];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
+const VALID_EXTENSIONS: Record<string, string[]> = {
+  'application/pdf': ['pdf'],
+  'image/jpeg': ['jpg', 'jpeg'],
+  'image/png': ['png'],
+  'image/webp': ['webp'],
+};
+
 export const uploadInvoiceFile = async (file: File): Promise<{ path: string; name: string }> => {
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
     throw new Error('نوع الملف غير مسموح. الأنواع المسموحة: PDF, JPG, PNG, WEBP');
@@ -122,7 +129,11 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
     throw new Error('حجم الملف يتجاوز الحد الأقصى (10 ميجابايت)');
   }
 
-  const ext = file.name.split('.').pop();
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (!ext || !VALID_EXTENSIONS[file.type]?.includes(ext)) {
+    throw new Error('امتداد الملف لا يتطابق مع نوعه');
+  }
+
   const path = `${crypto.randomUUID()}.${ext}`;
 
   const { error } = await supabase.storage.from('invoices').upload(path, file, {
