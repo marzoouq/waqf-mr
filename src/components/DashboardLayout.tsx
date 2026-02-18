@@ -103,6 +103,11 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/contracts',
   '/dashboard/properties',
   '/dashboard/invoices',
+  '/beneficiary/reports',
+  '/beneficiary/accounts',
+  '/beneficiary/invoices',
+  '/beneficiary/disclosure',
+  '/beneficiary/share',
 ];
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
