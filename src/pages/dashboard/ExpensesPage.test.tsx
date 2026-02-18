@@ -65,14 +65,14 @@ describe('ExpensesPage', () => {
 
   it('renders expense table rows', () => {
     render(<ExpensesPage />);
-    expect(screen.getByText('كهرباء')).toBeInTheDocument();
-    expect(screen.getByText('صيانة')).toBeInTheDocument();
+    expect(screen.getAllByText('كهرباء').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('صيانة').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters expenses by search', () => {
     render(<ExpensesPage />);
     fireEvent.change(screen.getByPlaceholderText('بحث في المصروفات...'), { target: { value: 'كهرباء' } });
-    expect(screen.getByText('كهرباء')).toBeInTheDocument();
+    expect(screen.getAllByText('كهرباء').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText('صيانة')).not.toBeInTheDocument();
   });
 

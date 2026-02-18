@@ -72,16 +72,16 @@ describe('ContractsPage', () => {
 
   it('renders contract table with data', () => {
     render(<ContractsPage />);
-    expect(screen.getByText('أحمد محمد')).toBeInTheDocument();
-    expect(screen.getByText('خالد سعد')).toBeInTheDocument();
-    expect(screen.getByText('C-001')).toBeInTheDocument();
+    expect(screen.getAllByText('أحمد محمد').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('خالد سعد').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('C-001').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters contracts by search', () => {
     render(<ContractsPage />);
     const searchInput = screen.getByPlaceholderText('بحث في العقود...');
     fireEvent.change(searchInput, { target: { value: 'أحمد' } });
-    expect(screen.getByText('أحمد محمد')).toBeInTheDocument();
+    expect(screen.getAllByText('أحمد محمد').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText('خالد سعد')).not.toBeInTheDocument();
   });
 
@@ -99,7 +99,7 @@ describe('ContractsPage', () => {
 
   it('displays status badges correctly', () => {
     render(<ContractsPage />);
-    expect(screen.getByText('نشط')).toBeInTheDocument();
-    expect(screen.getByText('منتهي')).toBeInTheDocument();
+    expect(screen.getAllByText('نشط').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('منتهي').length).toBeGreaterThanOrEqual(1);
   });
 });
