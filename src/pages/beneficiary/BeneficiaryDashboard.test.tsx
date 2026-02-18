@@ -7,7 +7,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 }));
 
 vi.mock('@/hooks/useBeneficiaries', () => ({
-  useBeneficiaries: vi.fn(() => ({ data: [
+  useBeneficiariesSafe: vi.fn(() => ({ data: [
     { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10, phone: '', email: '' },
   ] })),
 }));

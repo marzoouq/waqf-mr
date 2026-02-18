@@ -3,7 +3,12 @@
  * يوفر: useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary
  * الجدول: beneficiaries | الترتيب: حسب الاسم (تصاعدي)
  * عند إضافة مستفيد: يتم إرسال إشعار للناظر
+ *
+ * useBeneficiariesSafe: هوك للقراءة فقط من العرض الآمن beneficiaries_safe
+ * يُستخدم في واجهات المستفيدين لإخفاء البيانات الحساسة على مستوى الخادم
  */
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
 import { notifyAdmins } from '@/utils/notifications';
@@ -28,3 +33,19 @@ export const useBeneficiaries = beneficiariesCrud.useList;
 export const useCreateBeneficiary = beneficiariesCrud.useCreate;
 export const useUpdateBeneficiary = beneficiariesCrud.useUpdate;
 export const useDeleteBeneficiary = beneficiariesCrud.useDelete;
+
+/** هوك للقراءة فقط من العرض الآمن — يُخفي البيانات الحساسة على مستوى الخادم */
+export const useBeneficiariesSafe = () => {
+  return useQuery({
+    queryKey: ['beneficiaries-safe'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('beneficiaries_safe')
+        .select('*')
+        .order('name', { ascending: true })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+  });
+};
