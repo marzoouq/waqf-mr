@@ -105,112 +105,120 @@ const AiAssistant = () => {
 
   if (!user) return null;
 
-  if (!open) {
-    return (
+  return (
+    <>
+      {/* FAB button – visible when panel is closed */}
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 animate-scale-in"
+        className={cn(
+          'fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 transition-all duration-300 origin-bottom-left',
+          open ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
+        )}
         size="icon"
       >
         <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
       </Button>
-    );
-  }
 
-  return (
-    <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:left-4 z-50 sm:w-[400px] sm:h-[500px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden animate-enter origin-bottom-left">
-      {/* Header */}
-      <div className="gradient-hero p-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex items-center justify-center">
-            <Bot className="w-4 h-4 text-sidebar-foreground" />
+      {/* Chat panel – always mounted, animated via CSS */}
+      <div
+        className={cn(
+          'fixed inset-0 sm:inset-auto sm:bottom-4 sm:left-4 z-50 sm:w-[400px] sm:h-[500px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden transition-all duration-300 origin-bottom-left',
+          open ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
+        )}
+      >
+        {/* Header */}
+        <div className="gradient-hero p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex items-center justify-center">
+              <Bot className="w-4 h-4 text-sidebar-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
+              <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                Gemini 2.5 Pro
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
-            <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Gemini 2.5 Pro
-            </p>
+          <div className="flex items-center gap-1">
+            {messages.length > 0 && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>مسح المحادثة</AlertDialogTitle>
+                    <AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="flex-row-reverse gap-2">
+                    <AlertDialogAction onClick={() => setMessages([])}>مسح</AlertDialogAction>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setOpen(false)}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          {messages.length > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>مسح المحادثة</AlertDialogTitle>
-                  <AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-row-reverse gap-2">
-                  <AlertDialogAction onClick={() => setMessages([])}>مسح</AlertDialogAction>
-                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+
+        {/* Messages */}
+        <ScrollArea className="flex-1 p-3">
+          {messages.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <Bot className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">مرحباً! أنا المساعد الذكي لإدارة الوقف.</p>
+              <p className="text-xs mt-1">اسألني عن أي شيء يتعلق بالوقف</p>
+            </div>
           )}
-          <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setOpen(false)}>
-            <X className="w-4 h-4" />
+          <div className="space-y-3">
+            {messages.map((msg, i) => (
+              <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
+                <div className={cn(
+                  'max-w-[85%] rounded-xl px-3 py-2 text-sm',
+                  msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                )}>
+                  {msg.role === 'assistant' ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p>{msg.content}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
+              <div className="flex justify-end">
+                <div className="bg-muted rounded-xl px-4 py-2 text-sm">
+                  <span className="animate-pulse">يفكر...</span>
+                </div>
+              </div>
+            )}
+            <div ref={endRef} />
+          </div>
+        </ScrollArea>
+
+        {/* Input */}
+        <div className="p-3 border-t border-border flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="اسأل المساعد الذكي..."
+            maxLength={2000}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+            disabled={isLoading}
+          />
+          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon">
+            <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>
-
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-3">
-        {messages.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Bot className="w-10 h-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">مرحباً! أنا المساعد الذكي لإدارة الوقف.</p>
-            <p className="text-xs mt-1">اسألني عن أي شيء يتعلق بالوقف</p>
-          </div>
-        )}
-        <div className="space-y-3">
-          {messages.map((msg, i) => (
-            <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
-              <div className={cn(
-                'max-w-[85%] rounded-xl px-3 py-2 text-sm',
-                msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-              )}>
-                {msg.role === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <p>{msg.content}</p>
-                )}
-              </div>
-            </div>
-          ))}
-          {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-            <div className="flex justify-end">
-              <div className="bg-muted rounded-xl px-4 py-2 text-sm">
-                <span className="animate-pulse">يفكر...</span>
-              </div>
-            </div>
-          )}
-          <div ref={endRef} />
-        </div>
-      </ScrollArea>
-
-      {/* Input */}
-      <div className="p-3 border-t border-border flex gap-2">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="اسأل المساعد الذكي..."
-          maxLength={2000}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-          disabled={isLoading}
-        />
-        <Button onClick={send} disabled={!input.trim() || isLoading} size="icon">
-          <Send className="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
+    </>
   );
 };
 
