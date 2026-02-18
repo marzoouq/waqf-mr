@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useAccounts } from '@/hooks/useAccounts';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
+import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import {
   computeTotals,
@@ -21,7 +21,7 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
   const { data: income = [] } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [] } = useExpensesByFiscalYear(fyFilter);
   const { data: accounts = [] } = useAccounts();
-  const { data: beneficiaries = [] } = useBeneficiaries();
+  const { data: beneficiaries = [] } = useBeneficiariesSafe();
   const { data: settings } = useAppSettings();
 
   const { totalIncome, totalExpenses } = useMemo(

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
+import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: beneficiaries = [] } = useBeneficiaries();
+  const { data: beneficiaries = [] } = useBeneficiariesSafe();
   const { data: notifications = [] } = useNotifications();
   const { data: activeFY, fiscalYears } = useActiveFiscalYear();
   const [selectedFYId, setSelectedFYId] = useState<string>('');
