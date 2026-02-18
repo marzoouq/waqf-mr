@@ -186,7 +186,49 @@ const ExpensesPage = () => {
             ) : filteredExpenses.length === 0 ? (
               <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (
-               <div className="overflow-x-auto">
+              <>
+              {/* Mobile Cards */}
+              <div className="space-y-3 md:hidden px-3 py-2">
+                {filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => {
+                  const attachCount = expenseInvoiceMap.get(item.id) || 0;
+                  return (
+                    <Card key={item.id} className="shadow-sm">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm">{item.expense_type}</span>
+                              {attachCount > 0 && (
+                                <Badge variant="secondary" className="gap-1 text-xs">
+                                  <Paperclip className="w-3 h-3" />{attachCount}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })}><Trash2 className="w-4 h-4" /></Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{Number(item.amount).toLocaleString()} ر.س</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
+                          {item.description && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
+                        </div>
+                        {expandedRow === item.id && <ExpenseAttachments expenseId={item.id} />}
+                        {attachCount > 0 && (
+                          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => setExpandedRow(expandedRow === item.id ? null : item.id)}>
+                            {expandedRow === item.id ? 'إخفاء المرفقات' : 'عرض المرفقات'}
+                          </Button>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+              {/* Desktop Table */}
+               <div className="overflow-x-auto hidden md:block">
                <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -248,6 +290,7 @@ const ExpensesPage = () => {
                 </TableBody>
                </Table>
                </div>
+              </>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredExpenses.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
