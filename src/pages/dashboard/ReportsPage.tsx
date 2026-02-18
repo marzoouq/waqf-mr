@@ -17,8 +17,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFoo
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -27,16 +26,9 @@ const ReportsPage = () => {
   const { data: allUnits = [] } = useAllUnits();
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFiscalYearId, setSelectedFiscalYearId] = useState<string>('');
+  const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
 
-  useEffect(() => {
-    if (activeFY && !selectedFiscalYearId) {
-      setSelectedFiscalYearId(activeFY.id);
-    }
-  }, [activeFY]);
-
-  const selectedFiscalYearLabel = fiscalYears.find(fy => fy.id === selectedFiscalYearId)?.label;
+  const selectedFiscalYearLabel = fiscalYear?.label;
 
   const {
     income, expenses, beneficiaries, currentAccount,
@@ -46,7 +38,7 @@ const ReportsPage = () => {
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
     incomeBySource, expensesByType,
-  } = useFinancialSummary(selectedFiscalYearId || undefined, selectedFiscalYearLabel);
+  } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel);
 
   const beneficiariesShare = availableAmount;
   const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
@@ -142,11 +134,6 @@ const ReportsPage = () => {
             <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض التقارير والإحصائيات</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <FiscalYearSelector
-              value={selectedFiscalYearId}
-              onChange={setSelectedFiscalYearId}
-              showAll={false}
-            />
             <Button onClick={async () => {
               await generateAnnualDisclosurePDF({
                 fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
@@ -543,7 +530,7 @@ const ReportsPage = () => {
           <TabsContent value="comparison" className="space-y-6">
             <YearOverYearComparison
               fiscalYears={fiscalYears}
-              currentFiscalYearId={selectedFiscalYearId}
+              currentFiscalYearId={fiscalYearId}
               waqfInfo={pdfWaqfInfo}
             />
           </TabsContent>

@@ -11,6 +11,7 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useActiveFiscalYear, useFiscalYears } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Lock } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateAccountsPDF } from '@/utils/pdf';
@@ -19,7 +20,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -53,12 +53,8 @@ const AccountsPage = () => {
   const deleteContract = useDeleteContract();
   const upsertPayment = useUpsertTenantPayment();
 
-  // Fiscal year selection
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const isClosed = selectedFY?.status === 'closed';
+  // Fiscal year selection - use global context
+  const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
 
   const contracts = useMemo(() => {
     if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
@@ -482,7 +478,6 @@ const AccountsPage = () => {
             <p className="text-muted-foreground mt-1 text-sm">إدارة ومتابعة الحسابات السنوية</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             {isClosed && (
               <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
                 <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر

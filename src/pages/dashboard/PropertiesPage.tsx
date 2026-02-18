@@ -17,8 +17,7 @@ import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts, useCreateContract, useUpdateContract } from '@/hooks/useContracts';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
@@ -53,9 +52,7 @@ const statusColor = (status: string) => {
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
-  const { data: activeFY } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const { fiscalYearId } = useFiscalYear();
 
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [] } = useAllUnits();
@@ -201,7 +198,6 @@ const PropertiesPage = () => {
               className="pr-10"
             />
           </div>
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
         </div>
 
         {isLoading ? (

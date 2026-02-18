@@ -8,12 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Search, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -24,11 +23,8 @@ import {
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
-  const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const isClosed = currentFY?.status === 'closed';
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
@@ -59,9 +55,8 @@ const IncomePage = () => {
       source: formData.source, amount: parseFloat(formData.amount), date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
-    // Auto-assign active fiscal year for new records
-    if (!editingIncome && activeFY) {
-      incomeData.fiscal_year_id = activeFY.id;
+    if (!editingIncome && activeFYId) {
+      incomeData.fiscal_year_id = activeFYId;
     }
     if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as any); } else { await createIncome.mutateAsync(incomeData as any); }
     setIsOpen(false);
@@ -118,14 +113,13 @@ const IncomePage = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
-          {isClosed && (
+        {isClosed && (
+          <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
               <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         <Card className="shadow-sm gradient-primary text-primary-foreground">
           <CardContent className="p-4 sm:p-6">
