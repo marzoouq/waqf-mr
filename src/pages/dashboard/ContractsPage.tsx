@@ -9,8 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info } from 'lucide-react';
 import { useMemo } from 'react';
@@ -26,11 +25,7 @@ import {
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
-  const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const isClosed = currentFY?.status === 'closed';
+  const { fiscalYearId, fiscalYear, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
 
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
@@ -258,7 +253,6 @@ const ContractsPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
         </div>
 
         {isClosed && (
@@ -284,7 +278,7 @@ const ContractsPage = () => {
                       <button
                         type="button"
                         className="underline font-semibold hover:text-blue-900 dark:hover:text-blue-100"
-                        onClick={() => setSelectedFY('all')}
+                        onClick={() => setFiscalYearId('all')}
                       >
                         جميع السنوات
                       </button>

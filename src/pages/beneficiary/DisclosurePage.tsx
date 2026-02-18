@@ -10,8 +10,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const DisclosurePage = () => {
@@ -19,11 +18,7 @@ const DisclosurePage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Fiscal year selection
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -86,7 +81,6 @@ const DisclosurePage = () => {
             <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {fiscalYear}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>

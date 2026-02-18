@@ -13,8 +13,7 @@ import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableC
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const AccountsViewPage = () => {
@@ -23,11 +22,7 @@ const AccountsViewPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Fiscal year selection
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -83,7 +78,6 @@ const AccountsViewPage = () => {
             <p className="text-muted-foreground mt-1 text-sm">عرض تفصيلي للحسابات الختامية للوقف</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({

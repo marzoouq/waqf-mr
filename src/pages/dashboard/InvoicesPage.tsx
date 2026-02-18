@@ -11,12 +11,11 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uplo
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -28,9 +27,8 @@ import {
 
 const InvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
@@ -147,9 +145,8 @@ const InvoicesPage = () => {
         status: formData.status,
       };
 
-      // Auto-assign active fiscal year for new records
-      if (!editingInvoice && activeFY) {
-        invoiceData.fiscal_year_id = activeFY.id;
+      if (!editingInvoice && activeFYId) {
+        invoiceData.fiscal_year_id = activeFYId;
       }
 
       if (selectedFile) {
@@ -410,7 +407,7 @@ const InvoicesPage = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 justify-between">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
+          <div></div>
           <div className="flex gap-1 border rounded-lg p-1">
             <Button
               variant={viewMode === 'table' ? 'default' : 'ghost'}

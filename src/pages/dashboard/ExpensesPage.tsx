@@ -9,12 +9,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
 import { Plus, Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -29,11 +28,8 @@ const EXPENSE_TYPES = ['كهرباء', 'مياه', 'صيانة', 'عمالة', '
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
-  const currentFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const isClosed = currentFY?.status === 'closed';
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoices();
@@ -66,8 +62,8 @@ const ExpensesPage = () => {
       expense_type: formData.expense_type, amount: parseFloat(formData.amount), date: formData.date,
       property_id: formData.property_id || undefined, description: formData.description || undefined,
     };
-    if (!editingExpense && activeFY) {
-      expenseData.fiscal_year_id = activeFY.id;
+    if (!editingExpense && activeFYId) {
+      expenseData.fiscal_year_id = activeFYId;
     }
     if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as any); } else { await createExpense.mutateAsync(expenseData as any); }
     setIsOpen(false);
@@ -140,14 +136,13 @@ const ExpensesPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
-          {isClosed && (
+        {isClosed && (
+          <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
               <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">

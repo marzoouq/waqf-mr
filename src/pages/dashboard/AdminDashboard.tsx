@@ -8,17 +8,13 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 
 const AdminDashboard = () => {
-  const { data: activeFiscalYear, fiscalYears, isLoading: fyLoading } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFiscalYear?.id || 'all';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContracts();
@@ -28,9 +24,9 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+  } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
 
-  const isLoading = fyLoading || propsLoading || contractsLoading || unitsLoading;
+  const isLoading = propsLoading || contractsLoading || unitsLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
@@ -123,11 +119,10 @@ const AdminDashboard = () => {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">لوحة التحكم</h1>
             <p className="text-muted-foreground mt-1 text-sm">
               مرحباً بك في نظام إدارة الوقف
-              {selectedFY && <span className="text-primary font-medium"> — {selectedFY.label}</span>}
+              {fiscalYear && <span className="text-primary font-medium"> — {fiscalYear.label}</span>}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0 print:hidden">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">طباعة</span>

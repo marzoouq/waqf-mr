@@ -14,17 +14,13 @@ import { generateMySharePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFY?.id || '';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY;
-  const queryClient = useQueryClient();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const selectedFY = fiscalYear;
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -139,7 +135,6 @@ const MySharePage = () => {
             <p className="text-muted-foreground mt-1 text-sm">تفاصيل حصتك من ريع الوقف</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
