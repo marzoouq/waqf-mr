@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -202,6 +202,7 @@ const WaqfInfoBar = () => {
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="font-display text-lg">تعديل بيانات الوقف</DialogTitle>
+            <DialogDescription className="sr-only">نموذج تعديل بيانات الوقف</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             {/* Logo Upload */}
