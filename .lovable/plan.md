@@ -1,60 +1,65 @@
 
+# خطة إنشاء Edge Function للتحقق من التسجيل على مستوى الخادم
 
-# خطة استبدال استعلامات المستفيدين بـ beneficiaries_safe
+## المشكلة الحالية
+التحقق من إعداد `registration_enabled` يتم فقط على مستوى العميل (إخفاء واجهة التسجيل). مستخدم ذكي يمكنه استدعاء `supabase.auth.signUp()` مباشرة من وحدة التحكم وتجاوز هذا القيد.
 
-## الهدف
-ضمان أن واجهات المستفيدين تستعلم من العرض الآمن `beneficiaries_safe` بدلاً من جدول `beneficiaries` مباشرة، لتطبيق إخفاء البيانات الحساسية (رقم الهوية، الحساب البنكي، البريد، الهاتف) على مستوى الخادم.
+## الحل
+إنشاء Edge Function وسيطة (`guard-signup`) تتحقق من الإعداد على الخادم قبل إنشاء الحساب، ثم تعديل `AuthContext` لاستدعائها بدلاً من `supabase.auth.signUp()` مباشرة.
 
-## نطاق التغيير
+## التغييرات المطلوبة
 
-### الملفات المتأثرة (واجهات المستفيدين فقط)
-- `src/hooks/useBeneficiaries.ts` — إضافة هوك `useBeneficiariesSafe` جديد
-- `src/hooks/useFinancialSummary.ts` — استبدال `useBeneficiaries` بـ `useBeneficiariesSafe`
-- `src/pages/beneficiary/BeneficiaryDashboard.tsx` — استبدال الاستيراد المباشر
+### 1. إنشاء Edge Function: `supabase/functions/guard-signup/index.ts`
+- تستقبل `email` و `password` من الطلب
+- تستعلم من `app_settings` عن قيمة `registration_enabled`
+- إذا كان التسجيل معطلاً: ترجع خطأ 403
+- إذا كان مفعلاً: تنشئ الحساب عبر Supabase Admin API وترجع النتيجة
+- تتضمن CORS headers ومعالجة OPTIONS
+- تتحقق من صحة المدخلات (بريد صالح، كلمة مرور 6-128 حرف)
 
-### الملفات التي لن تتأثر (واجهات الناظر)
-صفحات الأدمن (`AccountsPage`, `BeneficiariesPage`, `MessagesPage`) ستبقى تستعلم من `beneficiaries` مباشرة لأن الناظر يحتاج البيانات الكاملة.
+### 2. تسجيل الوظيفة في `supabase/config.toml`
+```toml
+[functions.guard-signup]
+verify_jwt = false
+```
 
-## التفاصيل التقنية
-
-### 1. إنشاء هوك `useBeneficiariesSafe`
-إضافة هوك جديد في `src/hooks/useBeneficiaries.ts` يستعلم من `beneficiaries_safe` مباشرة باستخدام Supabase client (بدون `useCrudFactory` لأن العرض للقراءة فقط):
-
+### 3. تعديل `src/contexts/AuthContext.tsx`
+تغيير دالة `signUp` لتستدعي `guard-signup` بدلاً من `supabase.auth.signUp()`:
 ```typescript
-export const useBeneficiariesSafe = () => {
-  return useQuery({
-    queryKey: ['beneficiaries-safe'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('beneficiaries_safe')
-        .select('*')
-        .order('name', { ascending: true })
-        .limit(500);
-      if (error) throw error;
-      return data;
-    },
+const signUp = async (email: string, password: string) => {
+  const { data, error } = await supabase.functions.invoke('guard-signup', {
+    body: { email, password }
   });
+  if (error || data?.error) {
+    return { error: new Error(data?.error || error?.message || 'خطأ في التسجيل') };
+  }
+  return { error: null };
 };
 ```
 
-### 2. تحديث `useFinancialSummary`
-استبدال `useBeneficiaries()` بـ `useBeneficiariesSafe()` — هذا يغطي تلقائياً:
-- `MySharePage`
-- `DisclosurePage`
-- `FinancialReportsPage`
-- `AccountsViewPage`
+## تفاصيل تقنية للوظيفة
 
-### 3. تحديث `BeneficiaryDashboard`
-استبدال `useBeneficiaries` بـ `useBeneficiariesSafe` في الاستيراد والاستخدام المباشر.
+```
+الطلب ──▶ guard-signup
+              │
+              ├─ التحقق من المدخلات (email, password)
+              │
+              ├─ استعلام app_settings.registration_enabled
+              │    ├─ false ──▶ 403 "التسجيل معطل حالياً"
+              │    └─ true ──▶ متابعة
+              │
+              └─ إنشاء المستخدم عبر supabase.auth.admin.createUser()
+                   └─ إرجاع النتيجة
+```
 
-### 4. تحديث الاختبارات
-تحديث ملفات الاختبار المرتبطة لتتوافق مع الهوك الجديد:
-- `src/pages/beneficiary/BeneficiaryDashboard.test.tsx`
-- `src/pages/beneficiary/MySharePage.test.tsx`
-- `src/pages/beneficiary/DisclosurePage.test.tsx`
+## الملفات المتأثرة
+| الملف | التغيير |
+|-------|---------|
+| `supabase/functions/guard-signup/index.ts` | ملف جديد |
+| `supabase/config.toml` | إضافة تسجيل الوظيفة (تلقائي) |
+| `src/contexts/AuthContext.tsx` | تعديل دالة `signUp` |
 
-## النتيجة
-- المستفيد يرى بياناته فقط عبر العرض الآمن (البيانات الحساسة مخفية تلقائياً من الخادم)
-- الناظر يستمر في الوصول الكامل عبر جدول `beneficiaries` الأصلي
-- لا تأثير على عمليات CRUD الخاصة بالناظر
-
+## الأمان
+- لا يمكن تجاوز القيد من المتصفح لأن التحقق يتم على الخادم
+- المدخلات تُتحقق قبل المعالجة
+- تُستخدم `service_role` key داخلياً فقط لإنشاء الحساب
