@@ -83,7 +83,7 @@ export const useNotifications = () => {
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { channel.unsubscribe().then(() => supabase.removeChannel(channel)); };
   }, [user, queryClient]);
 
   return { ...query, unreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
