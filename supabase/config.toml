@@ -1,17 +1,1 @@
-project_id = "epopjqrwsztgxigmgurj"
-
-[functions.admin-manage-users]
-verify_jwt = false
-
-[functions.lookup-national-id]
-verify_jwt = false
-
-[functions.ai-assistant]
-verify_jwt = false
-
-[functions.auto-expire-contracts]
-verify_jwt = false
-
-[functions.generate-invoice-pdf]
-verify_jwt = false
-
+project_id = "nuzdeamtujezrsxbvpfi"
