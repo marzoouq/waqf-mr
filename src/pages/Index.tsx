@@ -55,8 +55,8 @@ const Index = () => {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "وقف مرزوق بن علي الدبشي",
-    description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الدبشي - إدارة العقارات والعقود والحسابات الختامية والإفصاحات السنوية",
+    name: "وقف مرزوق بن علي الثبيتي",
+    description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الثبيتي - إدارة العقارات والعقود والحسابات الختامية والإفصاحات السنوية",
     url: "https://waqf-mr.lovable.app",
     logo: "https://waqf-mr.lovable.app/favicon.ico",
     foundingDate: "1446",
