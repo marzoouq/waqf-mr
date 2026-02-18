@@ -103,6 +103,7 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/contracts',
   '/dashboard/properties',
   '/dashboard/invoices',
+  '/dashboard/audit-log',
   '/beneficiary/reports',
   '/beneficiary/accounts',
   '/beneficiary/invoices',
