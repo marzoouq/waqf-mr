@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -202,8 +202,8 @@ const ExpensesPage = () => {
                     const attachCount = expenseInvoiceMap.get(item.id) || 0;
                     const isExpanded = expandedRow === item.id;
                     return (
-                      <>
-                        <TableRow key={item.id} className={isExpanded ? 'border-b-0' : ''}>
+                      <React.Fragment key={item.id}>
+                        <TableRow className={isExpanded ? 'border-b-0' : ''}>
                           <TableCell className="p-1">
                             <Button
                               variant="ghost"
@@ -242,7 +242,7 @@ const ExpensesPage = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
