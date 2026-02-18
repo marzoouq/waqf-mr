@@ -325,6 +325,13 @@ export type Database = {
             referencedRelation: "beneficiaries"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "distributions_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       expenses: {
@@ -749,7 +756,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      beneficiaries_safe: {
+        Row: {
+          bank_account: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          name: string | null
+          national_id: string | null
+          notes: string | null
+          phone: string | null
+          share_percentage: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bank_account?: never
+          created_at?: string | null
+          email?: never
+          id?: string | null
+          name?: string | null
+          national_id?: never
+          notes?: string | null
+          phone?: never
+          share_percentage?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bank_account?: never
+          created_at?: string | null
+          email?: never
+          id?: string | null
+          name?: string | null
+          national_id?: never
+          notes?: string | null
+          phone?: never
+          share_percentage?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_public_stats: { Args: never; Returns: Json }
