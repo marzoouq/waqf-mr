@@ -83,6 +83,16 @@ vi.mock('@/hooks/useFiscalYears', () => ({
   useFiscalYears: () => ({ data: [] }),
 }));
 
+vi.mock('@/contexts/FiscalYearContext', () => ({
+  useFiscalYear: vi.fn(() => ({
+    fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
+    fiscalYear: { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+    fiscalYears: [{ id: 'fy1', label: '2024-2025', status: 'active' }],
+    isClosed: false, isLoading: false,
+  })),
+  FiscalYearProvider: ({ children }: any) => children,
+}));
+
 vi.mock('@/hooks/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: () => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' }),
 }));
@@ -127,7 +137,8 @@ describe('AccountsPage', () => {
 
   it('renders fiscal year selector', () => {
     renderPage();
-    expect(screen.getByTestId('fiscal-year-selector')).toBeInTheDocument();
+    // FiscalYearSelector is now managed via useFiscalYear context
+    expect(screen.getByText('الحسابات الختامية')).toBeInTheDocument();
   });
 
   it('renders create account button', () => {

@@ -27,6 +27,18 @@ vi.mock('@/hooks/useFiscalYears', () => ({
   })),
 }));
 
+vi.mock('@/contexts/FiscalYearContext', () => ({
+  useFiscalYear: vi.fn(() => ({
+    fiscalYearId: 'fy-1',
+    setFiscalYearId: vi.fn(),
+    fiscalYear: { id: 'fy-1', label: '1446-1447هـ', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+    fiscalYears: [{ id: 'fy-1', label: '1446-1447هـ', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' }],
+    isClosed: false,
+    isLoading: false,
+  })),
+  FiscalYearProvider: ({ children }: any) => children,
+}));
+
 vi.mock('@/hooks/useProperties', () => ({
   useProperties: vi.fn(() => ({
     data: [

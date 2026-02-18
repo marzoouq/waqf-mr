@@ -8,6 +8,16 @@ vi.mock('@/components/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
+vi.mock('@/contexts/FiscalYearContext', () => ({
+  useFiscalYear: vi.fn(() => ({
+    fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
+    fiscalYear: { id: 'fy1', label: '1446-1447', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+    fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
+    isClosed: false, isLoading: false,
+  })),
+  FiscalYearProvider: ({ children }: any) => children,
+}));
+
 const mockBeneficiaries = [
   { id: 'b1', name: 'أحمد علي', share_percentage: 25, phone: '0501234567', email: 'ahmed@test.com', bank_account: 'SA123456', national_id: '1234567890', user_id: 'u1', notes: '', created_at: '', updated_at: '' },
   { id: 'b2', name: 'خالد سعد', share_percentage: 15, phone: '', email: '', bank_account: '', national_id: '', user_id: null, notes: '', created_at: '', updated_at: '' },
