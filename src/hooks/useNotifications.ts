@@ -1,14 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
-import { Notification } from '@/types/database';
+import { useEffect, useRef } from 'react';
+import type { Notification } from '@/types/database';
 
 export type { Notification };
 
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const lastNotifIdRef = useRef<string | null>(null);
 
   const query = useQuery({
     queryKey: ['notifications', user?.id],
@@ -74,13 +75,32 @@ export const useNotifications = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
-  // Realtime subscription
+  // Realtime subscription with browser push notifications
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel('notifications-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        
+        // Show browser push notification
+        const newNotif = payload.new as Notification;
+        if (newNotif.user_id === user.id && 'Notification' in window && Notification.permission === 'granted') {
+          if (lastNotifIdRef.current !== newNotif.id) {
+            lastNotifIdRef.current = newNotif.id;
+            try {
+              new Notification(newNotif.title, {
+                body: newNotif.message,
+                icon: '/favicon.ico',
+                dir: 'rtl',
+                lang: 'ar',
+                tag: newNotif.id,
+              });
+            } catch {
+              // Silent fail
+            }
+          }
+        }
       })
       .subscribe();
     return () => { channel.unsubscribe().then(() => supabase.removeChannel(channel)); };
