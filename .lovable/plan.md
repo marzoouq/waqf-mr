@@ -1,58 +1,60 @@
 
 
-# إضافة دعم السحب والإفلات (Drag & Drop) لمنطقة رفع الفاتورة
+# خطة استبدال استعلامات المستفيدين بـ beneficiaries_safe
 
-## الوصف
-إضافة إمكانية سحب ملف وإفلاته مباشرة على منطقة رفع الفاتورة، مع تغيير مرئي عند السحب فوق المنطقة، مع الاحتفاظ بنفس منطق التحقق من نوع وحجم الملف الموجود حالياً.
+## الهدف
+ضمان أن واجهات المستفيدين تستعلم من العرض الآمن `beneficiaries_safe` بدلاً من جدول `beneficiaries` مباشرة، لتطبيق إخفاء البيانات الحساسية (رقم الهوية، الحساب البنكي، البريد، الهاتف) على مستوى الخادم.
 
-## التعديلات المطلوبة
+## نطاق التغيير
 
-### ملف واحد: `src/pages/dashboard/InvoicesPage.tsx`
+### الملفات المتأثرة (واجهات المستفيدين فقط)
+- `src/hooks/useBeneficiaries.ts` — إضافة هوك `useBeneficiariesSafe` جديد
+- `src/hooks/useFinancialSummary.ts` — استبدال `useBeneficiaries` بـ `useBeneficiariesSafe`
+- `src/pages/beneficiary/BeneficiaryDashboard.tsx` — استبدال الاستيراد المباشر
 
-1. **إضافة حالة السحب**: إضافة `isDragging` state لتتبع ما إذا كان المستخدم يسحب ملفاً فوق المنطقة.
-
-2. **إضافة أحداث السحب والإفلات** على عنصر `div` الخاص بمنطقة الرفع:
-   - `onDragOver` و `onDragEnter`: منع السلوك الافتراضي وتفعيل `isDragging`.
-   - `onDragLeave`: إلغاء `isDragging`.
-   - `onDrop`: استقبال الملف وتطبيق نفس منطق التحقق (النوع والحجم) الموجود في `onChange`.
-
-3. **استخراج دالة تحقق مشتركة**: نقل منطق التحقق من النوع والحجم إلى دالة `validateAndSetFile(file)` تُستخدم من كل من `onChange` و `onDrop` لتجنب تكرار الكود.
-
-4. **تغيير مرئي عند السحب**: تغيير لون حدود المنطقة ولون الخلفية عند `isDragging` (مثلاً: `border-primary bg-primary/5`) لإعطاء المستخدم إشارة بصرية واضحة.
-
-5. **تحديث نص الإرشاد**: النص الحالي يقول "اضغط لاختيار ملف أو اسحبه هنا" وهو مناسب بالفعل.
+### الملفات التي لن تتأثر (واجهات الناظر)
+صفحات الأدمن (`AccountsPage`, `BeneficiariesPage`, `MessagesPage`) ستبقى تستعلم من `beneficiaries` مباشرة لأن الناظر يحتاج البيانات الكاملة.
 
 ## التفاصيل التقنية
 
-### دالة التحقق المشتركة
-```text
-validateAndSetFile(file: File):
-  -> فحص file.type ضد ALLOWED_MIME_TYPES
-  -> فحص file.size ضد 10MB
-  -> صالح: setSelectedFile(file) + setFileError('')
-  -> غير صالح: setSelectedFile(null) + setFileError(رسالة) + مسح input
+### 1. إنشاء هوك `useBeneficiariesSafe`
+إضافة هوك جديد في `src/hooks/useBeneficiaries.ts` يستعلم من `beneficiaries_safe` مباشرة باستخدام Supabase client (بدون `useCrudFactory` لأن العرض للقراءة فقط):
+
+```typescript
+export const useBeneficiariesSafe = () => {
+  return useQuery({
+    queryKey: ['beneficiaries-safe'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('beneficiaries_safe')
+        .select('*')
+        .order('name', { ascending: true })
+        .limit(500);
+      if (error) throw error;
+      return data;
+    },
+  });
+};
 ```
 
-### أحداث الـ Drag & Drop
-```text
-onDragOver/onDragEnter:
-  -> e.preventDefault() + e.stopPropagation()
-  -> setIsDragging(true)
+### 2. تحديث `useFinancialSummary`
+استبدال `useBeneficiaries()` بـ `useBeneficiariesSafe()` — هذا يغطي تلقائياً:
+- `MySharePage`
+- `DisclosurePage`
+- `FinancialReportsPage`
+- `AccountsViewPage`
 
-onDragLeave:
-  -> setIsDragging(false)
+### 3. تحديث `BeneficiaryDashboard`
+استبدال `useBeneficiaries` بـ `useBeneficiariesSafe` في الاستيراد والاستخدام المباشر.
 
-onDrop:
-  -> e.preventDefault() + e.stopPropagation()
-  -> setIsDragging(false)
-  -> validateAndSetFile(e.dataTransfer.files[0])
-```
+### 4. تحديث الاختبارات
+تحديث ملفات الاختبار المرتبطة لتتوافق مع الهوك الجديد:
+- `src/pages/beneficiary/BeneficiaryDashboard.test.tsx`
+- `src/pages/beneficiary/MySharePage.test.tsx`
+- `src/pages/beneficiary/DisclosurePage.test.tsx`
 
-### تغيير الأنماط
-```text
-className ديناميكي:
-  - عادي: border-dashed border-2
-  - أثناء السحب (isDragging): border-primary bg-primary/5 border-solid
-```
+## النتيجة
+- المستفيد يرى بياناته فقط عبر العرض الآمن (البيانات الحساسة مخفية تلقائياً من الخادم)
+- الناظر يستمر في الوصول الكامل عبر جدول `beneficiaries` الأصلي
+- لا تأثير على عمليات CRUD الخاصة بالناظر
 
-التعديل بسيط ومحصور في ملف واحد فقط دون أي تأثير على بقية التطبيق.
