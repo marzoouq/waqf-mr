@@ -1,9 +1,11 @@
+import { useMemo, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws } from '@/hooks/useBylaws';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen, Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
@@ -12,9 +14,20 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 const BylawsViewPage = () => {
   const { data: bylaws, isLoading } = useBylaws();
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const [search, setSearch] = useState('');
 
-  // Only show visible items for beneficiaries
-  const visibleBylaws = (bylaws || []).filter((b) => b.is_visible);
+  const allVisible = (bylaws || []).filter((b) => b.is_visible);
+
+  const visibleBylaws = useMemo(() => {
+    if (!search.trim()) return allVisible;
+    const q = search.trim().toLowerCase();
+    return allVisible.filter(
+      (b) =>
+        b.part_title.toLowerCase().includes(q) ||
+        (b.chapter_title && b.chapter_title.toLowerCase().includes(q)) ||
+        b.content.toLowerCase().includes(q),
+    );
+  }, [allVisible, search]);
 
   if (isLoading) {
     return (
@@ -44,6 +57,23 @@ const BylawsViewPage = () => {
             onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
           />
         </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="ابحث في بنود اللائحة..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pr-9 pl-9"
+            dir="rtl"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         {/* Table of Contents */}
         <Card>
           <CardHeader>
