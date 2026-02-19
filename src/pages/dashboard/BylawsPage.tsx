@@ -166,14 +166,30 @@ const BylawsPage = () => {
     [allBylaws, reorderBylaws],
   );
 
+  const [editPartNumber, setEditPartNumber] = useState(0);
+  const [editPartTitle, setEditPartTitle] = useState('');
+  const [editChapterTitle, setEditChapterTitle] = useState('');
+
   const openEdit = (item: BylawEntry) => {
     setEditItem(item);
     setEditContent(item.content);
+    setEditPartNumber(item.part_number);
+    setEditPartTitle(item.part_title);
+    setEditChapterTitle(item.chapter_title || '');
   };
 
   const handleSave = () => {
-    if (!editItem) return;
-    updateBylaw.mutate({ id: editItem.id, content: editContent }, { onSuccess: () => setEditItem(null) });
+    if (!editItem || !editPartTitle.trim()) return;
+    updateBylaw.mutate(
+      {
+        id: editItem.id,
+        content: editContent,
+        part_number: editPartNumber,
+        part_title: editPartTitle.trim(),
+        chapter_title: editChapterTitle.trim() || null,
+      },
+      { onSuccess: () => setEditItem(null) },
+    );
   };
 
   const toggleVisibility = (item: BylawEntry) => {
@@ -357,12 +373,41 @@ const BylawsPage = () => {
               يمكنك تعديل المحتوى باستخدام تنسيق Markdown. سيتم تسجيل التعديل في سجل المراجعة.
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="min-h-[300px] font-mono text-sm"
-            dir="rtl"
-          />
+          <div className="space-y-4" dir="rtl">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">رقم الجزء</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editPartNumber}
+                  onChange={(e) => setEditPartNumber(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">عنوان الجزء *</label>
+                <Input
+                  value={editPartTitle}
+                  onChange={(e) => setEditPartTitle(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+              <Input
+                value={editChapterTitle}
+                onChange={(e) => setEditChapterTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[250px] font-mono text-sm"
+              />
+            </div>
+          </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setEditItem(null)}>إلغاء</Button>
             <Button onClick={handleSave} disabled={updateBylaw.isPending}>
