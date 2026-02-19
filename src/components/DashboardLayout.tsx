@@ -246,7 +246,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <Menu className="w-6 h-6" />
         </Button>
         <span className="font-display font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
-        <NotificationBell />
+        <div className="flex items-center gap-1">
+          <Link to={role === 'admin' ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
+              <BookOpen className="w-5 h-5" />
+            </Button>
+          </Link>
+          <NotificationBell />
+        </div>
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -294,6 +301,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}
+            <Link to={role === 'admin' ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
+                <BookOpen className="w-5 h-5" />
+              </Button>
+            </Link>
             <NotificationBell />
           </div>
         </div>
