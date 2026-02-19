@@ -31,6 +31,7 @@ import {
   MessageSquare,
   Bell,
   ShieldCheck,
+  BookOpen,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { cn } from '@/lib/utils';
@@ -82,6 +83,7 @@ const allAdminLinks = [
   { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
+  { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -94,6 +96,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
   { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
+  { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
 ];
 
 // Routes that support "All Years" filter

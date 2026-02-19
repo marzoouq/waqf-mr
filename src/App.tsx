@@ -32,6 +32,7 @@ const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const MessagesPage = lazy(() => import("./pages/dashboard/MessagesPage"));
 const InvoicesPage = lazy(() => import("./pages/dashboard/InvoicesPage"));
 const AuditLogPage = lazy(() => import("./pages/dashboard/AuditLogPage"));
+const BylawsPage = lazy(() => import("./pages/dashboard/BylawsPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazy(() => import("./pages/beneficiary/BeneficiaryDashboard"));
@@ -42,6 +43,7 @@ const AccountsViewPage = lazy(() => import("./pages/beneficiary/AccountsViewPage
 const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
 const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
 const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
+const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
@@ -191,6 +193,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/dashboard/bylaws"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <BylawsPage />
+                </ProtectedRoute>
+              }
+            />
             {/* Beneficiary Routes (admin can also access) */}
             <Route
               path="/beneficiary"
@@ -253,6 +263,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/bylaws"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <BylawsViewPage />
                 </ProtectedRoute>
               }
             />

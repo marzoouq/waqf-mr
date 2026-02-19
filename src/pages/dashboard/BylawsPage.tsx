@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import DashboardLayout from '@/components/DashboardLayout';
+import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff, Printer } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+
+const BylawsPage = () => {
+  const { data: bylaws, isLoading, updateBylaw } = useBylaws();
+  const [editItem, setEditItem] = useState<BylawEntry | null>(null);
+  const [editContent, setEditContent] = useState('');
+
+  const visibleBylaws = bylaws || [];
+
+  const openEdit = (item: BylawEntry) => {
+    setEditItem(item);
+    setEditContent(item.content);
+  };
+
+  const handleSave = () => {
+    if (!editItem) return;
+    updateBylaw.mutate({ id: editItem.id, content: editContent }, { onSuccess: () => setEditItem(null) });
+  };
+
+  const toggleVisibility = (item: BylawEntry) => {
+    updateBylaw.mutate({ id: item.id, is_visible: !item.is_visible });
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
+              <BookOpen className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
+              <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة</p>
+            </div>
+          </div>
+          <Button variant="outline" onClick={() => window.print()} className="print:hidden gap-2">
+            <Printer className="w-4 h-4" />
+            طباعة
+          </Button>
+        </div>
+
+        {/* Bylaws Accordion */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              بنود اللائحة ({visibleBylaws.length} بند)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="multiple" className="space-y-2">
+              {visibleBylaws.map((item) => (
+                <AccordionItem key={item.id} value={item.id} className="border rounded-lg px-4">
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-3 flex-1 text-right">
+                      <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0">
+                        {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
+                      </Badge>
+                      <span className="font-semibold text-sm">
+                        {item.chapter_title || item.part_title}
+                      </span>
+                      {!item.is_visible && (
+                        <Badge variant="outline" className="text-muted-foreground shrink-0">
+                          <EyeOff className="w-3 h-3 ml-1" /> مخفي
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="pt-2 pb-4 space-y-4">
+                      {/* Markdown Content */}
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed" dir="rtl">
+                        <ReactMarkdown>{item.content}</ReactMarkdown>
+                      </div>
+
+                      {/* Admin Controls */}
+                      <div className="flex items-center justify-between pt-3 border-t print:hidden">
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={item.is_visible}
+                            onCheckedChange={() => toggleVisibility(item)}
+                          />
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            {item.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                            {item.is_visible ? 'ظاهر للمستفيدين' : 'مخفي عن المستفيدين'}
+                          </span>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
+                          <Pencil className="w-4 h-4" />
+                          تعديل
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              تعديل: {editItem?.chapter_title || editItem?.part_title}
+            </DialogTitle>
+            <DialogDescription>
+              يمكنك تعديل المحتوى باستخدام تنسيق Markdown. سيتم تسجيل التعديل في سجل المراجعة.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="min-h-[300px] font-mono text-sm"
+            dir="rtl"
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditItem(null)}>إلغاء</Button>
+            <Button onClick={handleSave} disabled={updateBylaw.isPending}>
+              {updateBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              حفظ التعديلات
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
+  );
+};
+
+export default BylawsPage;
