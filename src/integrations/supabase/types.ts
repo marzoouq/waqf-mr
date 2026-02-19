@@ -754,6 +754,45 @@ export type Database = {
         }
         Relationships: []
       }
+      waqf_bylaws: {
+        Row: {
+          chapter_number: number | null
+          chapter_title: string | null
+          content: string
+          created_at: string
+          id: string
+          is_visible: boolean
+          part_number: number
+          part_title: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          chapter_number?: number | null
+          chapter_title?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          part_number: number
+          part_title: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          chapter_number?: number | null
+          chapter_title?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          part_number?: number
+          part_title?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       beneficiaries_safe: {
