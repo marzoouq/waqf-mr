@@ -32,13 +32,14 @@ export const useBylaws = () => {
   });
 
   const updateBylaw = useMutation({
-    mutationFn: async ({ id, content, is_visible, part_number, part_title, chapter_title }: { id: string; content?: string; is_visible?: boolean; part_number?: number; part_title?: string; chapter_title?: string | null }) => {
+    mutationFn: async ({ id, content, is_visible, part_number, part_title, chapter_title, chapter_number }: { id: string; content?: string; is_visible?: boolean; part_number?: number; part_title?: string; chapter_title?: string | null; chapter_number?: number | null }) => {
       const updates: Record<string, unknown> = {};
       if (content !== undefined) updates.content = content;
       if (is_visible !== undefined) updates.is_visible = is_visible;
       if (part_number !== undefined) updates.part_number = part_number;
       if (part_title !== undefined) updates.part_title = part_title;
       if (chapter_title !== undefined) updates.chapter_title = chapter_title;
+      if (chapter_number !== undefined) updates.chapter_number = chapter_number;
       const { error } = await supabase.from('waqf_bylaws').update(updates).eq('id', id);
       if (error) throw error;
     },

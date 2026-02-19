@@ -169,6 +169,7 @@ const BylawsPage = () => {
   const [editPartNumber, setEditPartNumber] = useState(0);
   const [editPartTitle, setEditPartTitle] = useState('');
   const [editChapterTitle, setEditChapterTitle] = useState('');
+  const [editChapterNumber, setEditChapterNumber] = useState<number | null>(null);
 
   const openEdit = (item: BylawEntry) => {
     setEditItem(item);
@@ -176,6 +177,7 @@ const BylawsPage = () => {
     setEditPartNumber(item.part_number);
     setEditPartTitle(item.part_title);
     setEditChapterTitle(item.chapter_title || '');
+    setEditChapterNumber(item.chapter_number);
   };
 
   const handleSave = () => {
@@ -187,6 +189,7 @@ const BylawsPage = () => {
         part_number: editPartNumber,
         part_title: editPartTitle.trim(),
         chapter_title: editChapterTitle.trim() || null,
+        chapter_number: editChapterNumber,
       },
       { onSuccess: () => setEditItem(null) },
     );
@@ -392,12 +395,24 @@ const BylawsPage = () => {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
-              <Input
-                value={editChapterTitle}
-                onChange={(e) => setEditChapterTitle(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">رقم الفصل (اختياري)</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editChapterNumber ?? ''}
+                  onChange={(e) => setEditChapterNumber(e.target.value ? parseInt(e.target.value) : null)}
+                  placeholder="—"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+                <Input
+                  value={editChapterTitle}
+                  onChange={(e) => setEditChapterTitle(e.target.value)}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
