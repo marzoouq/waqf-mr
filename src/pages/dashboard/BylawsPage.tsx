@@ -8,11 +8,14 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff, Printer } from 'lucide-react';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-
+import ExportMenu from '@/components/ExportMenu';
+import { generateBylawsPDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 const BylawsPage = () => {
   const { data: bylaws, isLoading, updateBylaw } = useBylaws();
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
 
@@ -56,10 +59,9 @@ const BylawsPage = () => {
               <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => window.print()} className="print:hidden gap-2">
-            <Printer className="w-4 h-4" />
-            طباعة
-          </Button>
+          <ExportMenu
+            onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+          />
         </div>
 
         {/* Bylaws Accordion */}
