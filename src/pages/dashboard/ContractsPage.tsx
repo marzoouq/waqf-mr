@@ -11,7 +11,8 @@ import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info } from 'lucide-react';
+import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -49,6 +50,27 @@ const ContractsPage = () => {
   const resetForm = () => {
     setFormData({ contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '', payment_type: 'annual', payment_count: '1' });
     setEditingContract(null);
+  };
+
+  const handleRenew = (contract: Contract) => {
+    const num = contract.contract_number;
+    const match = num.match(/-R(\d+)$/);
+    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+    setFormData({
+      contract_number: newNumber,
+      property_id: contract.property_id,
+      unit_id: contract.unit_id || '',
+      tenant_name: contract.tenant_name,
+      start_date: '',
+      end_date: '',
+      rent_amount: contract.rent_amount.toString(),
+      status: 'active',
+      notes: `تجديد للعقد ${contract.contract_number}`,
+      payment_type: contract.payment_type || 'annual',
+      payment_count: (contract.payment_count || 1).toString(),
+    });
+    setEditingContract(null);
+    setIsOpen(true);
   };
 
   const handleEdit = (contract: Contract) => {
@@ -302,10 +324,11 @@ const ContractsPage = () => {
                            </div>
                            <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
                          </div>
-                         <div className="flex gap-1 shrink-0">
-                           <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
-                           <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
-                         </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-green-600 hover:text-green-700" onClick={() => handleRenew(contract)} title="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
+                          </div>
                        </div>
                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                          <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{contract.property?.property_number || '-'}</p></div>
@@ -349,6 +372,9 @@ const ContractsPage = () => {
                       <TableCell>{getStatusBadge(contract.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-700" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
+                          </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                         </div>
