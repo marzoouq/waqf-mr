@@ -48,5 +48,23 @@ export const useBylaws = () => {
     },
   });
 
-  return { ...query, updateBylaw };
+  const reorderBylaws = useMutation({
+    mutationFn: async (items: { id: string; sort_order: number }[]) => {
+      const promises = items.map((item) =>
+        supabase.from('waqf_bylaws').update({ sort_order: item.sort_order }).eq('id', item.id)
+      );
+      const results = await Promise.all(promises);
+      const err = results.find((r) => r.error);
+      if (err?.error) throw err.error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
+      toast.success('تم حفظ الترتيب الجديد');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء حفظ الترتيب');
+    },
+  });
+
+  return { ...query, updateBylaw, reorderBylaws };
 };

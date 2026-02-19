@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +9,111 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X } from 'lucide-react';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+interface SortableBylawItemProps {
+  item: BylawEntry;
+  openEdit: (item: BylawEntry) => void;
+  toggleVisibility: (item: BylawEntry) => void;
+  isDragDisabled: boolean;
+}
+
+const SortableBylawItem = ({ item, openEdit, toggleVisibility, isDragDisabled }: SortableBylawItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id, disabled: isDragDisabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <AccordionItem value={item.id} className="border rounded-lg px-4">
+        <AccordionTrigger className="hover:no-underline">
+          <div className="flex items-center gap-3 flex-1 text-right">
+            {!isDragDisabled && (
+              <button
+                className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted text-muted-foreground"
+                {...attributes}
+                {...listeners}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="w-4 h-4" />
+              </button>
+            )}
+            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0">
+              {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
+            </Badge>
+            <span className="font-semibold text-sm">
+              {item.chapter_title || item.part_title}
+            </span>
+            {!item.is_visible && (
+              <Badge variant="outline" className="text-muted-foreground shrink-0">
+                <EyeOff className="w-3 h-3 ml-1" /> مخفي
+              </Badge>
+            )}
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="pt-2 pb-4 space-y-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed" dir="rtl">
+              <ReactMarkdown>{item.content}</ReactMarkdown>
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t print:hidden">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={item.is_visible}
+                  onCheckedChange={() => toggleVisibility(item)}
+                />
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  {item.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  {item.is_visible ? 'ظاهر للمستفيدين' : 'مخفي عن المستفيدين'}
+                </span>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
+                <Pencil className="w-4 h-4" />
+                تعديل
+              </Button>
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </div>
+  );
+};
 
 const BylawsPage = () => {
-  const { data: bylaws, isLoading, updateBylaw } = useBylaws();
+  const { data: bylaws, isLoading, updateBylaw, reorderBylaws } = useBylaws();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -34,6 +131,29 @@ const BylawsPage = () => {
         b.content.toLowerCase().includes(q),
     );
   }, [allBylaws, search]);
+
+  const isSearching = search.trim().length > 0;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = allBylaws.findIndex((b) => b.id === active.id);
+      const newIndex = allBylaws.findIndex((b) => b.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(allBylaws, oldIndex, newIndex);
+      const updates = reordered.map((item, idx) => ({ id: item.id, sort_order: idx }));
+      reorderBylaws.mutate(updates);
+    },
+    [allBylaws, reorderBylaws],
+  );
 
   const openEdit = (item: BylawEntry) => {
     setEditItem(item);
@@ -70,7 +190,7 @@ const BylawsPage = () => {
             </div>
             <div>
               <h1 className="text-2xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-              <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة</p>
+              <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة — اسحب البنود لإعادة ترتيبها</p>
             </div>
           </div>
           <ExportMenu
@@ -95,63 +215,36 @@ const BylawsPage = () => {
           )}
         </div>
 
-        {/* Bylaws Accordion */}
+        {/* Bylaws with DnD */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               بنود اللائحة ({visibleBylaws.length} بند)
-              {search && <Badge variant="secondary" className="text-xs">نتائج البحث</Badge>}
+              {isSearching && <Badge variant="secondary" className="text-xs">نتائج البحث</Badge>}
+              {reorderBylaws.isPending && (
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> جاري حفظ الترتيب...
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Accordion type="multiple" className="space-y-2">
-              {visibleBylaws.map((item) => (
-                <AccordionItem key={item.id} value={item.id} className="border rounded-lg px-4">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3 flex-1 text-right">
-                      <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0">
-                        {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
-                      </Badge>
-                      <span className="font-semibold text-sm">
-                        {item.chapter_title || item.part_title}
-                      </span>
-                      {!item.is_visible && (
-                        <Badge variant="outline" className="text-muted-foreground shrink-0">
-                          <EyeOff className="w-3 h-3 ml-1" /> مخفي
-                        </Badge>
-                      )}
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pt-2 pb-4 space-y-4">
-                      {/* Markdown Content */}
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed" dir="rtl">
-                        <ReactMarkdown>{item.content}</ReactMarkdown>
-                      </div>
-
-                      {/* Admin Controls */}
-                      <div className="flex items-center justify-between pt-3 border-t print:hidden">
-                        <div className="flex items-center gap-3">
-                          <Switch
-                            checked={item.is_visible}
-                            onCheckedChange={() => toggleVisibility(item)}
-                          />
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            {item.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                            {item.is_visible ? 'ظاهر للمستفيدين' : 'مخفي عن المستفيدين'}
-                          </span>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
-                          <Pencil className="w-4 h-4" />
-                          تعديل
-                        </Button>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={visibleBylaws.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+                <Accordion type="multiple" className="space-y-2">
+                  {visibleBylaws.map((item) => (
+                    <SortableBylawItem
+                      key={item.id}
+                      item={item}
+                      openEdit={openEdit}
+                      toggleVisibility={toggleVisibility}
+                      isDragDisabled={isSearching}
+                    />
+                  ))}
+                </Accordion>
+              </SortableContext>
+            </DndContext>
           </CardContent>
         </Card>
       </div>
