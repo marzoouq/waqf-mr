@@ -11,3 +11,5 @@ export { generateYearComparisonPDF } from './comparison';
 export type { YearComparisonPdfData } from './comparison';
 export { generateForensicAuditPDF } from './forensicAudit';
 export type { ForensicAuditData } from './forensicAudit';
+export { generateBylawsPDF } from './bylaws';
+export type { BylawPdfEntry } from './bylaws';

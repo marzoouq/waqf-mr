@@ -1,14 +1,17 @@
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws } from '@/hooks/useBylaws';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen, Printer } from 'lucide-react';
+import { Loader2, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import ExportMenu from '@/components/ExportMenu';
+import { generateBylawsPDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 const BylawsViewPage = () => {
   const { data: bylaws, isLoading } = useBylaws();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   // Only show visible items for beneficiaries
   const visibleBylaws = (bylaws || []).filter((b) => b.is_visible);
@@ -37,12 +40,10 @@ const BylawsViewPage = () => {
               <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => window.print()} className="print:hidden gap-2">
-            <Printer className="w-4 h-4" />
-            طباعة
-          </Button>
+          <ExportMenu
+            onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+          />
         </div>
-
         {/* Table of Contents */}
         <Card>
           <CardHeader>
