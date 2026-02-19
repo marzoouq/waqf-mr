@@ -66,5 +66,33 @@ export const useBylaws = () => {
     },
   });
 
-  return { ...query, updateBylaw, reorderBylaws };
+  const createBylaw = useMutation({
+    mutationFn: async (entry: { part_number: number; part_title: string; chapter_title?: string; content: string; sort_order: number }) => {
+      const { error } = await supabase.from('waqf_bylaws').insert(entry);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
+      toast.success('تم إضافة البند بنجاح');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء إضافة البند');
+    },
+  });
+
+  const deleteBylaw = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('waqf_bylaws').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });
+      toast.success('تم حذف البند بنجاح');
+    },
+    onError: () => {
+      toast.error('حدث خطأ أثناء حذف البند');
+    },
+  });
+
+  return { ...query, updateBylaw, reorderBylaws, createBylaw, deleteBylaw };
 };
