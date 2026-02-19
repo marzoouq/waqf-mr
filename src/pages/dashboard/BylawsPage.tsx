@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical } from 'lucide-react';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
@@ -36,10 +37,11 @@ interface SortableBylawItemProps {
   item: BylawEntry;
   openEdit: (item: BylawEntry) => void;
   toggleVisibility: (item: BylawEntry) => void;
+  onDelete: (item: BylawEntry) => void;
   isDragDisabled: boolean;
 }
 
-const SortableBylawItem = ({ item, openEdit, toggleVisibility, isDragDisabled }: SortableBylawItemProps) => {
+const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragDisabled }: SortableBylawItemProps) => {
   const {
     attributes,
     listeners,
@@ -100,10 +102,16 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, isDragDisabled }:
                   {item.is_visible ? 'ظاهر للمستفيدين' : 'مخفي عن المستفيدين'}
                 </span>
               </div>
-              <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
-                <Pencil className="w-4 h-4" />
-                تعديل
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => onDelete(item)} className="gap-2 text-destructive hover:text-destructive">
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">حذف</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
+                  <Pencil className="w-4 h-4" />
+                  <span className="hidden sm:inline">تعديل</span>
+                </Button>
+              </div>
             </div>
           </div>
         </AccordionContent>
@@ -113,11 +121,14 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, isDragDisabled }:
 };
 
 const BylawsPage = () => {
-  const { data: bylaws, isLoading, updateBylaw, reorderBylaws } = useBylaws();
+  const { data: bylaws, isLoading, updateBylaw, reorderBylaws, createBylaw, deleteBylaw } = useBylaws();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
   const [search, setSearch] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<BylawEntry | null>(null);
+  const [newBylaw, setNewBylaw] = useState({ part_title: '', chapter_title: '', content: '', part_number: 0 });
 
   const allBylaws = bylaws || [];
 
@@ -169,6 +180,30 @@ const BylawsPage = () => {
     updateBylaw.mutate({ id: item.id, is_visible: !item.is_visible });
   };
 
+  const handleAdd = () => {
+    if (!newBylaw.part_title.trim()) return;
+    createBylaw.mutate(
+      {
+        part_number: newBylaw.part_number,
+        part_title: newBylaw.part_title.trim(),
+        chapter_title: newBylaw.chapter_title.trim() || undefined,
+        content: newBylaw.content.trim(),
+        sort_order: allBylaws.length,
+      },
+      {
+        onSuccess: () => {
+          setShowAddDialog(false);
+          setNewBylaw({ part_title: '', chapter_title: '', content: '', part_number: 0 });
+        },
+      },
+    );
+  };
+
+  const handleDelete = () => {
+    if (!deleteItem) return;
+    deleteBylaw.mutate(deleteItem.id, { onSuccess: () => setDeleteItem(null) });
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -183,19 +218,25 @@ const BylawsPage = () => {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-2xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-              <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة — اسحب البنود لإعادة ترتيبها</p>
+              <p className="text-sm text-muted-foreground">اسحب البنود لإعادة ترتيبها</p>
             </div>
           </div>
-          <ExportMenu
-            onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
-          />
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">إضافة بند</span>
+            </Button>
+            <ExportMenu
+              onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+            />
+          </div>
         </div>
 
         {/* Search */}
@@ -239,6 +280,7 @@ const BylawsPage = () => {
                       item={item}
                       openEdit={openEdit}
                       toggleVisibility={toggleVisibility}
+                      onDelete={setDeleteItem}
                       isDragDisabled={isSearching}
                     />
                   ))}
@@ -248,6 +290,61 @@ const BylawsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>إضافة بند جديد</DialogTitle>
+            <DialogDescription>أضف بنداً جديداً إلى اللائحة التنظيمية. يدعم المحتوى تنسيق Markdown.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4" dir="rtl">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">رقم الجزء</label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={newBylaw.part_number}
+                  onChange={(e) => setNewBylaw((p) => ({ ...p, part_number: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">عنوان الجزء *</label>
+                <Input
+                  value={newBylaw.part_title}
+                  onChange={(e) => setNewBylaw((p) => ({ ...p, part_title: e.target.value }))}
+                  placeholder="مثال: أحكام عامة"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+              <Input
+                value={newBylaw.chapter_title}
+                onChange={(e) => setNewBylaw((p) => ({ ...p, chapter_title: e.target.value }))}
+                placeholder="مثال: الفصل الأول - التعريفات"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
+              <Textarea
+                value={newBylaw.content}
+                onChange={(e) => setNewBylaw((p) => ({ ...p, content: e.target.value }))}
+                className="min-h-[200px] font-mono text-sm"
+                placeholder="اكتب محتوى البند هنا..."
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>إلغاء</Button>
+            <Button onClick={handleAdd} disabled={createBylaw.isPending || !newBylaw.part_title.trim()}>
+              {createBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              إضافة البند
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
@@ -275,6 +372,25 @@ const BylawsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف البند</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف بند "{deleteItem?.chapter_title || deleteItem?.part_title}"؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleteBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
