@@ -1,25 +1,39 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+
 const BylawsPage = () => {
   const { data: bylaws, isLoading, updateBylaw } = useBylaws();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [search, setSearch] = useState('');
 
-  const visibleBylaws = bylaws || [];
+  const allBylaws = bylaws || [];
+
+  const visibleBylaws = useMemo(() => {
+    if (!search.trim()) return allBylaws;
+    const q = search.trim().toLowerCase();
+    return allBylaws.filter(
+      (b) =>
+        b.part_title.toLowerCase().includes(q) ||
+        (b.chapter_title && b.chapter_title.toLowerCase().includes(q)) ||
+        b.content.toLowerCase().includes(q),
+    );
+  }, [allBylaws, search]);
 
   const openEdit = (item: BylawEntry) => {
     setEditItem(item);
@@ -64,12 +78,30 @@ const BylawsPage = () => {
           />
         </div>
 
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="ابحث في بنود اللائحة..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pr-9 pl-9"
+            dir="rtl"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         {/* Bylaws Accordion */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               بنود اللائحة ({visibleBylaws.length} بند)
+              {search && <Badge variant="secondary" className="text-xs">نتائج البحث</Badge>}
             </CardTitle>
           </CardHeader>
           <CardContent>
