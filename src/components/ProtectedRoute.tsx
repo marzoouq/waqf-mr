@@ -22,7 +22,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const location = useLocation();
   const loggedRef = useRef(false);
 
-  const isUnauthorized = !loading && !!user && !!allowedRoles && (!role || !allowedRoles.includes(role));
+  // إذا المستخدم موجود لكن الدور لم يصل بعد = لا تزال حالة تحميل
+  const isRoleLoading = !loading && !!user && !!allowedRoles && !role;
+  const isUnauthorized = !loading && !!user && !!allowedRoles && !!role && !allowedRoles.includes(role);
 
   useEffect(() => {
     if (isUnauthorized && !loggedRef.current) {
@@ -36,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
   }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
 
-  if (loading) {
+  if (loading || isRoleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
