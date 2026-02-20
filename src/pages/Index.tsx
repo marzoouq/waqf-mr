@@ -95,8 +95,8 @@ const Index = () => {
       {/* Hero Section */}
       <header className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center" role="banner">
         {/* Islamic geometric SVG decoration */}
-        <div className="absolute inset-0 opacity-[0.07]">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
             <defs>
               <pattern id="islamicPattern" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
                 <path d="M60 0L120 60L60 120L0 60Z" fill="none" stroke="#d4af37" strokeWidth="0.8"/>
@@ -112,8 +112,8 @@ const Index = () => {
           </svg>
         </div>
         {/* Decorative glows */}
-        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" />
         
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
@@ -166,7 +166,7 @@ const Index = () => {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
           <ChevronDown className="w-6 h-6 text-white/40" />
         </div>
       </header>
@@ -213,8 +213,8 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 gradient-primary pattern-islamic relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" />
+      <section className="py-16 gradient-primary pattern-islamic relative overflow-hidden" aria-label="دعوة للبدء">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
         <div className="container mx-auto px-4 text-center relative z-10">
           <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             ابدأ بإدارة وقفك بكفاءة اليوم
@@ -234,7 +234,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary py-8 border-t border-primary-foreground/10">
+      <footer className="bg-primary py-8 border-t border-primary-foreground/10" role="contentinfo">
         <div className="container mx-auto px-4 text-center space-y-3">
           <div className="flex items-center justify-center gap-4 text-sm">
             <button onClick={() => navigate('/privacy')} className="text-primary-foreground/70 hover:text-secondary transition-colors">

@@ -64,36 +64,43 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { data, error } = await supabase
-      .from("beneficiaries")
-      .select("email")
-      .eq("national_id", national_id)
-      .limit(1);
+    // Fixed delay to prevent timing-based enumeration
+    const fixedDelay = 300;
+    const startTime = Date.now();
 
-    if (error) {
-      console.error("DB query error:", JSON.stringify(error));
-      return new Response(
-        JSON.stringify({ error: "خطأ في البحث" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    let email: string | null = null;
+
+    try {
+      const { data, error } = await supabase
+        .from("beneficiaries")
+        .select("email")
+        .eq("national_id", national_id)
+        .limit(1);
+
+      if (!error && data && data.length > 0 && data[0]?.email) {
+        email = data[0].email;
+      }
+    } catch {
+      // Swallow DB errors - will return generic "not found" response
     }
 
-    // Return generic error for both not-found and found-without-email
-    // to prevent enumeration attacks
-    if (!data || data.length === 0 || !data[0]?.email) {
-      // Add artificial delay to prevent timing attacks
-      await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
-      return new Response(
-        JSON.stringify({ error: "رقم الهوية غير مسجل في النظام" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Ensure consistent response time regardless of result
+    const elapsed = Date.now() - startTime;
+    if (elapsed < fixedDelay) {
+      await new Promise(r => setTimeout(r, fixedDelay - elapsed));
     }
 
-    // Add same delay for success to prevent timing-based enumeration
-    await new Promise(r => setTimeout(r, 200 + Math.random() * 300));
+    // Identical response structure for both found and not-found
+    // Same status code (200) to prevent enumeration via status codes
+    if (!email) {
+      return new Response(
+        JSON.stringify({ email: null, found: false }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
-      JSON.stringify({ email: data[0].email }),
+      JSON.stringify({ email, found: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
