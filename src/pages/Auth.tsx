@@ -63,7 +63,7 @@ const Auth = () => {
   // توجيه المستخدم بعد تسجيل الدخول
   useEffect(() => {
     if (user && !loading) {
-      console.log('[Auth] Redirect check: user=', user.id, 'role=', role, 'loading=', loading);
+      
       if (role === 'beneficiary') {
         navigate('/beneficiary');
       } else if (role) {
