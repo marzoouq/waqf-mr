@@ -28,6 +28,11 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" /></noscript>
     <link rel="preload" href="/fonts/Amiri-Regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Amiri-Bold.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="theme-color" content="#1a365d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="إدارة الوقف" />
+    <link rel="apple-touch-icon" href="/pwa-512x512.png" />
     <link rel="dns-prefetch" href="https://epopjqrwsztgxigmgurj.supabase.co" />
     <link rel="preconnect" href="https://epopjqrwsztgxigmgurj.supabase.co" crossorigin />
     <meta property="og:title" content="نظام إدارة الوقف | وقف مرزوق بن علي الثبيتي">
@@ -46,7 +51,15 @@
       #root{min-height:100vh;background:#faf8f5}
       body{margin:0;font-family:'Tajawal',sans-serif;direction:rtl}
     </style>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Splash screen -->
+      <div id="splash" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#faf8f5">
+        <img src="/pwa-512x512.png" alt="" width="80" height="80" style="border-radius:16px" />
+        <div style="font-family:Tajawal,sans-serif;font-size:18px;font-weight:700;color:#1a365d">نظام إدارة الوقف</div>
+        <div style="width:40px;height:4px;border-radius:4px;background:linear-gradient(90deg,#1a365d,#c9a96e);animation:pulse 1.5s ease-in-out infinite"></div>
+      </div>
+      <style>#splash{transition:opacity .3s}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}</style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

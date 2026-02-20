@@ -75,13 +75,34 @@ const BeneficiaryDashboard = () => {
     return { percent, daysLeft };
   })();
 
-  /* ── Recent distributions ── */
+  /* ── Recent distributions (with Realtime) ── */
   const [distributions, setDistributions] = useState<any[]>([]);
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
-    supabase.from('distributions').select('*').eq('beneficiary_id', currentBeneficiary.id)
-      .order('date', { ascending: false }).limit(3)
-      .then(({ data }) => { if (data) setDistributions(data); });
+    const fetchDistributions = () => {
+      supabase.from('distributions').select('*').eq('beneficiary_id', currentBeneficiary.id)
+        .order('date', { ascending: false }).limit(3)
+        .then(({ data }) => { if (data) setDistributions(data); });
+    };
+    fetchDistributions();
+
+    // Realtime subscription for new distributions
+    const channel = supabase
+      .channel('beneficiary-distributions')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'distributions',
+        filter: `beneficiary_id=eq.${currentBeneficiary.id}`,
+      }, () => {
+        fetchDistributions();
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [currentBeneficiary?.id]);
 
   const recentNotifications = notifications.slice(0, 3);

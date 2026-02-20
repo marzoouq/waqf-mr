@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import UpdatePrompt from "@/components/UpdatePrompt";
 
 // Pages - Lazy loaded
 const Index = lazy(() => import("./pages/Index"));
@@ -17,6 +18,7 @@ const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
+const InstallApp = lazy(() => import("./pages/InstallApp"));
 
 // Admin Dashboard Pages - Lazy loaded
 const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
@@ -81,6 +83,7 @@ const App = () => (
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="/install" element={<InstallApp />} />
 
             {/* Admin Routes */}
             <Route
@@ -282,6 +285,7 @@ const App = () => (
             <AiAssistant />
             <SecurityGuard />
           </Suspense>
+          <UpdatePrompt />
         </BrowserRouter>
       </TooltipProvider>
       </FiscalYearProvider>
