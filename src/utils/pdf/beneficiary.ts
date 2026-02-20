@@ -36,7 +36,7 @@ export const generateMySharePDF = async (data: {
     startY: startY + 24,
     head: [['البيان', 'القيمة']],
     body: [
-      ['نسبة الحصة', `${data.sharePercentage}%`],
+      ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
       ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
       ['(-) حصة الناظر (10%)', `${data.adminShare.toLocaleString()} ر.س`],
       ['(-) حصة الواقف (5%)', `${data.waqifShare.toLocaleString()} ر.س`],
@@ -143,7 +143,7 @@ export const generateDisclosurePDF = async (data: {
       ['حصة الناظر (10%)', `-${data.adminShare.toLocaleString()}`],
       ['حصة الواقف (5%)', `-${data.waqifShare.toLocaleString()}`],
       ['صافي ريع المستفيدين', data.beneficiariesShare.toLocaleString()],
-      [{ content: `حصتي (${data.sharePercentage}%)`, styles: { fontStyle: 'bold' } }, { content: `${data.myShare.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' } }],
+      [{ content: 'حصتي المستحقة', styles: { fontStyle: 'bold' } }, { content: `${data.myShare.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' } }],
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),

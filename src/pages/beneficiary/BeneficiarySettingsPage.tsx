@@ -155,17 +155,21 @@ const BeneficiarySettingsPage = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">الاسم</Label>
-                    <Input value={currentBeneficiary?.name || '—'} readOnly className="bg-muted/50" />
+                    <Label className="text-muted-foreground text-xs flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> الاسم
+                    </Label>
+                    <Input value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
-                    <Input value={user?.email || '—'} readOnly className="bg-muted/50" />
+                    <Input value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">رقم الهوية</Label>
+                    <Label className="text-muted-foreground text-xs flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> رقم الهوية
+                    </Label>
                     <div className="flex items-center gap-2">
-                      <Input value={maskedId} readOnly className="bg-muted/50" />
+                      <Input value={maskedId} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                       <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
                     </div>
                   </div>
