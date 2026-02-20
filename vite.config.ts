@@ -76,8 +76,6 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-charts': ['recharts'],
-          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
           'vendor-radix': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-dropdown-menu',

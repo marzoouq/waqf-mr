@@ -10,7 +10,6 @@ import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceRep
 import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import ExportMenu from '@/components/ExportMenu';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { generateAnnualReportPDF, generateAnnualDisclosurePDF, generateForensicAuditPDF } from '@/utils/pdf';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
@@ -60,6 +59,7 @@ const ReportsPage = () => {
   // handlePrint removed - ExportMenu handles it
 
   const handleExportPDF = async () => {
+    const { generateAnnualReportPDF } = await import('@/utils/pdf');
     await generateAnnualReportPDF({
       fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
       totalIncome,
@@ -124,6 +124,78 @@ const ReportsPage = () => {
     { totalUnits: 0, annualRent: 0, totalExpenses: 0, netIncome: 0 }
   );
 
+  const auditChecks = [
+    { key: 'account', ok: !!currentAccount },
+    { key: 'incomeData', ok: income.length > 0 },
+    { key: 'expenseData', ok: expenses.length > 0 },
+    { key: 'contractsData', ok: contracts.length > 0 },
+    { key: 'distributionConsistency', ok: availableAmount >= distributionsAmount },
+    { key: 'shareConsistency', ok: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 },
+  ];
+
+  const issuesFound = auditChecks.filter(c => !c.ok).length;
+  const issuesFixed = 0;
+  const overallScore = Math.round(((auditChecks.length - issuesFound) / Math.max(1, auditChecks.length)) * 100) / 10;
+
+  const forensicAuditData: ForensicAuditData = {
+    auditDate: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+    auditorName: pdfWaqfInfo.waqfName || 'ناظر الوقف',
+    overallScore,
+    totalFiles: properties.length + contracts.length + income.length + expenses.length + beneficiaries.length,
+    issuesFound,
+    issuesFixed,
+    categories: [
+      {
+        category: 'الحساب الختامي للسنة',
+        status: currentAccount ? 'سليم' : 'ملاحظة',
+        details: currentAccount ? 'تم العثور على حساب ختامي مرتبط بالسنة المالية المحددة.' : 'لا يوجد حساب ختامي مخزن للسنة المالية؛ يتم الاعتماد على الحساب الديناميكي.',
+        score: currentAccount ? '10/10' : '6/10',
+      },
+      {
+        category: 'تكامل بيانات التقارير',
+        status: income.length > 0 && expenses.length > 0 ? 'سليم' : 'ملاحظة',
+        details: `الإيرادات: ${income.length} سجل، المصروفات: ${expenses.length} سجل، العقود: ${contracts.length} سجل.`,
+        score: income.length > 0 && expenses.length > 0 ? '10/10' : '7/10',
+      },
+      {
+        category: 'اتساق التسلسل المالي',
+        status: availableAmount >= distributionsAmount ? 'سليم' : 'ملاحظة',
+        details: `المتاح للتوزيع ${availableAmount.toLocaleString()} مقابل الموزع ${distributionsAmount.toLocaleString()}.`,
+        score: availableAmount >= distributionsAmount ? '10/10' : '5/10',
+      },
+      {
+        category: 'اتساق معادلة الحصص',
+        status: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 ? 'سليم' : 'ملاحظة',
+        details: 'تمت مقارنة مجموع الحصص مع صافي ما بعد الزكاة للتحقق من سلامة الحساب.',
+        score: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 ? '10/10' : '5/10',
+      },
+    ],
+    securityFindings: [
+      {
+        finding: 'توفر قيود سنة مالية قابلة للتدقيق',
+        severity: 'تحذير',
+        status: currentAccount ? 'مُعالج' : 'معلق',
+        notes: currentAccount ? 'السنة المالية الحالية مرتبطة بسجل حساب ختامي واضح.' : 'يُنصح بإغلاق السنة عبر الحسابات الختامية لتثبيت نتائج التقارير.',
+      },
+      {
+        finding: 'سلامة الرصيد المتاح مقابل التوزيعات',
+        severity: availableAmount >= distributionsAmount ? 'معلومة' : 'خطأ',
+        status: availableAmount >= distributionsAmount ? 'مُعالج' : 'معلق',
+        notes: availableAmount >= distributionsAmount
+          ? 'لا يوجد تجاوز للتوزيعات على المبلغ المتاح في بيانات هذه السنة.'
+          : 'تم رصد تجاوز توزيع على المتاح ويستلزم مراجعة فورية.',
+      },
+      {
+        finding: 'اكتمال بيانات مصادر الإيراد والمصروف',
+        severity: incomeSourceData.length > 0 && expenseTypeData.length > 0 ? 'معلومة' : 'تحذير',
+        status: incomeSourceData.length > 0 && expenseTypeData.length > 0 ? 'مُعالج' : 'معلق',
+        notes: incomeSourceData.length > 0 && expenseTypeData.length > 0
+          ? 'التصنيفات المالية متاحة للتقارير البيانية والتدقيق.'
+          : 'توجد فجوة في بيانات التصنيف تؤثر على دقة القراءة التحليلية.',
+      },
+    ],
+  };
+
   return (
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6" ref={reportRef}>
@@ -135,6 +207,7 @@ const ReportsPage = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button onClick={async () => {
+              const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
               await generateAnnualDisclosurePDF({
                 fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
                 totalIncome,
@@ -168,31 +241,8 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
             </Button>
             <Button onClick={async () => {
-              const auditData: ForensicAuditData = {
-                auditDate: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
-                auditorName: pdfWaqfInfo.waqfName || 'ناظر الوقف',
-                overallScore: 9.8,
-                totalFiles: 113,
-                issuesFound: 9,
-                issuesFixed: 9,
-                categories: [
-                  { category: 'Edge Functions', status: 'سليم', details: 'التحقق من الهوية، تحديد المعدل، حماية CORS', score: '10/10' },
-                  { category: 'المنطق المالي', status: 'سليم', details: 'تسلسل التوزيع صحيح: دخل ← مصروفات ← ضريبة ← زكاة ← حصص', score: '10/10' },
-                  { category: 'سياسات RLS', status: 'سليم', details: 'جميع الجداول محمية بسياسات صف مناسبة', score: '10/10' },
-                  { category: 'إخفاء البيانات', status: 'سليم', details: 'أرقام الهوية والحسابات البنكية والهواتف مخفية', score: '10/10' },
-                  { category: 'إدارة الجلسات', status: 'سليم', details: 'مهلة خمول + تنظيف موارد + إلغاء اشتراكات', score: '10/10' },
-                  { category: 'سجل التدقيق', status: 'سليم', details: 'مشغلات SECURITY DEFINER مع منع INSERT عبر API', score: '10/10' },
-                  { category: 'تصدير PDF', status: 'سليم', details: 'خط Amiri مع ترميز Identity-H ودعم RTL كامل', score: '10/10' },
-                  { category: 'إدارة الذاكرة', status: 'سليم', details: 'AbortController + revokeObjectURL + تنظيف القنوات', score: '10/10' },
-                ],
-                securityFindings: [
-                  { finding: 'بيانات المستفيدين الشخصية', severity: 'خطأ', status: 'مُعالج', notes: 'محمي بـ RLS + إخفاء بيانات في الواجهة' },
-                  { finding: 'أسماء المستأجرين في العقود', severity: 'خطأ', status: 'مُتجاهل', notes: 'متطلب شفافية مالية — مقصود بالتصميم' },
-                  { finding: 'سجل التدقيق — خطر الإدخال', severity: 'تحذير', status: 'مُعالج', notes: 'INSERT=false عبر API + مشغلات SECURITY DEFINER' },
-                  { finding: 'حماية كلمات المرور المسربة', severity: 'تحذير', status: 'معلق', notes: 'يتطلب تفعيلاً يدوياً من إعدادات المصادقة' },
-                ],
-              };
-              await generateForensicAuditPDF(auditData, pdfWaqfInfo);
+              const { generateForensicAuditPDF } = await import('@/utils/pdf');
+              await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
             }} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
               <span className="hidden sm:inline">الفحص الجنائي PDF</span>

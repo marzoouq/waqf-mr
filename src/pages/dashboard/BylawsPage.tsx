@@ -140,7 +140,7 @@ const BylawsPage = () => {
 
   const isPublished = settings?.bylaws_published !== 'false';
 
-  const allBylaws = bylaws || [];
+  const allBylaws = useMemo(() => bylaws ?? [], [bylaws]);
 
   const visibleBylaws = useMemo(() => {
     if (!search.trim()) return allBylaws;

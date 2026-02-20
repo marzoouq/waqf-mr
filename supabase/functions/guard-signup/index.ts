@@ -3,6 +3,28 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const signupRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const SIGNUP_RATE_LIMIT = 5;
+const SIGNUP_RATE_WINDOW_MS = 60_000;
+
+function isSignupRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = signupRateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    signupRateLimitMap.set(ip, { count: 1, resetAt: now + SIGNUP_RATE_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > SIGNUP_RATE_LIMIT;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of signupRateLimitMap) {
+    if (now > val.resetAt) signupRateLimitMap.delete(key);
+  }
+}, 5 * 60_000);
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -17,6 +39,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isSignupRateLimited(clientIp)) {
+      return new Response(JSON.stringify({ error: "تم تجاوز حد المحاولات، يرجى المحاولة لاحقاً" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { email, password } = await req.json();
 
     // Input validation
@@ -61,7 +91,8 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
+      console.error("guard-signup createUser error", createError);
+      return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

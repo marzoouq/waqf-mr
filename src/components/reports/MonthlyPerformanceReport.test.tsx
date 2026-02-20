@@ -4,17 +4,17 @@ import MonthlyPerformanceReport from './MonthlyPerformanceReport';
 
 // Mock recharts to avoid canvas errors in jsdom
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="chart">{children}</div>,
-  BarChart: ({ children }: any) => <div>{children}</div>,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="chart">{children}</div>,
+  BarChart: ({ children }: { children: React.ReactNode }) => <svg>{children}</svg>,
   Bar: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
   Tooltip: () => null,
   Legend: () => null,
-  LineChart: ({ children }: any) => <div>{children}</div>,
+  LineChart: ({ children }: { children: React.ReactNode }) => <svg>{children}</svg>,
   Line: () => null,
-  AreaChart: ({ children }: any) => <div>{children}</div>,
+  AreaChart: ({ children }: { children: React.ReactNode }) => <svg>{children}</svg>,
   Area: () => null,
 }));
 

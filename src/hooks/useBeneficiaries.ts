@@ -44,7 +44,12 @@ export const useBeneficiariesSafe = () => {
         .select('*')
         .order('name', { ascending: true })
         .limit(500);
-      if (error) throw error;
+      if (error) {
+        if (error.code === '42501') {
+          return [];
+        }
+        throw error;
+      }
       return data;
     },
   });

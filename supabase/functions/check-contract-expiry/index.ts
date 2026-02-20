@@ -1,8 +1,11 @@
+import "../_shared/deno-types.d.ts";
+// @ts-expect-error Deno remote URL import is valid at runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -90,8 +93,8 @@ Deno.serve(async (req) => {
       .not("user_id", "is", null);
 
     const allRecipients = [
-      ...(admins || []).map(a => ({ user_id: a.user_id, role: 'admin' as const })),
-      ...(beneficiaries || []).map(b => ({ user_id: b.user_id!, role: 'beneficiary' as const })),
+      ...(admins || []).map((a: { user_id: string }) => ({ user_id: a.user_id, role: 'admin' as const })),
+      ...(beneficiaries || []).map((b: { user_id: string | null }) => ({ user_id: b.user_id!, role: 'beneficiary' as const })),
     ];
 
     if (allRecipients.length === 0) {

@@ -75,7 +75,7 @@ describe('WaqfInfoBar URL cleanup logic', () => {
   });
 
   it('handles null logoPreview safely', () => {
-    let logoPreview: string | null = null;
+    const logoPreview: string | null = null;
 
     // Should not throw
     if (logoPreview && logoPreview.startsWith('blob:')) {

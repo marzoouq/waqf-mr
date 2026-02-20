@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BarChart3, PieChart, TrendingUp, Building, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateAnnualReportPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
@@ -89,6 +88,7 @@ const FinancialReportsPage = () => {
 
   const handleDownloadPDF = async () => {
     try {
+      const { generateAnnualReportPDF } = await import('@/utils/pdf');
       await generateAnnualReportPDF({
         fiscalYear,
         totalIncome,

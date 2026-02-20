@@ -14,7 +14,6 @@ import { useActiveFiscalYear, useFiscalYears } from '@/hooks/useFiscalYears';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Lock } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -468,6 +467,31 @@ const AccountsPage = () => {
     setDeleteTarget(null);
   };
 
+  const handleExportPdf = async () => {
+    const { generateAccountsPDF } = await import('@/utils/pdf');
+    await generateAccountsPDF({
+      contracts,
+      incomeBySource,
+      expensesByType,
+      totalIncome,
+      totalExpenses,
+      netRevenue: netAfterVat,
+      adminShare,
+      waqifShare,
+      waqfRevenue,
+      beneficiaries,
+      vatAmount: manualVat,
+      distributionsAmount: manualDistributions,
+      waqfCapital: waqfCorpusManual,
+      zakatAmount,
+      netAfterZakat,
+      waqfCorpusPrevious,
+      grandTotal,
+      availableAmount,
+      remainingBalance,
+    }, pdfWaqfInfo);
+  };
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
@@ -483,27 +507,7 @@ const AccountsPage = () => {
                 <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
               </span>
             )}
-            <ExportMenu onExportPdf={() => generateAccountsPDF({
-              contracts,
-              incomeBySource,
-              expensesByType,
-              totalIncome,
-              totalExpenses,
-              netRevenue: netAfterVat,
-              adminShare,
-              waqifShare,
-              waqfRevenue,
-              beneficiaries,
-              vatAmount: manualVat,
-              distributionsAmount: manualDistributions,
-              waqfCapital: waqfCorpusManual,
-              zakatAmount,
-              netAfterZakat,
-              waqfCorpusPrevious,
-              grandTotal,
-              availableAmount,
-              remainingBalance,
-            }, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={handleExportPdf} />
             <Button onClick={handleCreateAccount} className="gradient-primary gap-2" disabled={createAccount.isPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>

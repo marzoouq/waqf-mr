@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NotificationBell from './NotificationBell';
 
@@ -47,7 +47,7 @@ describe('NotificationBell', () => {
   it('shows empty message when popover opened with no notifications', async () => {
     mockedUseNotifications.mockReturnValue({ data: [], unreadCount: 0, ...baseMock } as any);
     renderBell();
-    screen.getByRole('button').click();
+    fireEvent.click(screen.getByRole('button'));
     expect(await screen.findByText('لا توجد إشعارات')).toBeInTheDocument();
   });
 });

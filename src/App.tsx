@@ -84,7 +84,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="/terms-of-use" element={<TermsOfUse />} />
             <Route path="/install" element={<InstallApp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -211,7 +213,7 @@ const App = () => (
             <Route
               path="/beneficiary"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
                   <BeneficiaryDashboard />
                 </ProtectedRoute>
               }
@@ -219,7 +221,7 @@ const App = () => (
             <Route
               path="/beneficiary/disclosure"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
                   <DisclosurePage />
                 </ProtectedRoute>
               }
@@ -227,13 +229,29 @@ const App = () => (
             <Route
               path="/beneficiary/share"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
+                  <MySharePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/my-share"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
                   <MySharePage />
                 </ProtectedRoute>
               }
             />
             <Route
               path="/beneficiary/reports"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <FinancialReportsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/financial-reports"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
                   <FinancialReportsPage />
