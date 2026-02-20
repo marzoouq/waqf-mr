@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 
@@ -25,6 +25,19 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading } = useAuth();
   const navigate = useNavigate();
+
+  // PWA install prompt
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   // Show idle logout message
   useEffect(() => {
@@ -352,8 +365,30 @@ const Auth = () => {
             </CardContent>
         </Card>
 
+        {/* Install app button */}
+        {!isAppInstalled && (
+          <Button
+            variant="outline"
+            className="w-full mt-4 gap-2 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-accent"
+            onClick={() => {
+              if (installPrompt) {
+                installPrompt.prompt();
+                installPrompt.userChoice.then((r: any) => {
+                  if (r.outcome === 'accepted') setIsAppInstalled(true);
+                  setInstallPrompt(null);
+                });
+              } else {
+                navigate('/install');
+              }
+            }}
+          >
+            <Download className="w-4 h-4" />
+            تثبيت التطبيق على جوالك
+          </Button>
+        )}
+
         {/* Footer text */}
-        <p className="text-center text-primary-foreground/40 text-xs mt-6 font-display">
+        <p className="text-center text-primary-foreground/40 text-xs mt-4 font-display">
           ❖ بركة الوقف ❖
         </p>
       </div>
