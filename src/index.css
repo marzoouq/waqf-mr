@@ -147,7 +147,7 @@
 
 @layer utilities {
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(158 64% 25%) 0%, hsl(158 55% 35%) 50%, hsl(158 64% 28%) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--primary) / 0.9) 100%);
   }
 
   .gradient-gold {
@@ -155,14 +155,14 @@
   }
 
   .gradient-hero {
-    background: linear-gradient(160deg, hsl(158 64% 18%) 0%, hsl(158 55% 25%) 40%, hsl(158 50% 30%) 70%, hsl(43 74% 35% / 0.15) 100%);
+    background: linear-gradient(160deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary)) 40%, hsl(var(--primary) / 0.85) 70%, hsl(var(--secondary) / 0.15) 100%);
   }
 
   .gradient-auth {
     background:
-      radial-gradient(ellipse at 20% 50%, hsl(43 74% 49% / 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, hsl(158 64% 35% / 0.1) 0%, transparent 40%),
-      linear-gradient(160deg, hsl(158 64% 14%) 0%, hsl(158 55% 20%) 40%, hsl(158 50% 26%) 70%, hsl(43 74% 35% / 0.12) 100%);
+      radial-gradient(ellipse at 20% 50%, hsl(var(--secondary) / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(var(--primary) / 0.1) 0%, transparent 40%),
+      linear-gradient(160deg, hsl(var(--primary) / 0.85) 0%, hsl(var(--primary)) 40%, hsl(var(--primary) / 0.9) 70%, hsl(var(--secondary) / 0.12) 100%);
   }
 
   .text-gradient {
@@ -187,15 +187,15 @@
 
   .glass-dark {
     backdrop-filter: blur(16px) saturate(180%);
-    background: hsl(158 64% 20% / 0.6);
-    border: 1px solid hsl(158 64% 35% / 0.2);
+    background: hsl(var(--primary) / 0.25);
+    border: 1px solid hsl(var(--primary) / 0.15);
   }
 
   .shadow-elegant {
     box-shadow:
-      0 4px 6px -1px hsl(158 64% 15% / 0.1),
-      0 10px 40px -10px hsl(158 64% 25% / 0.25),
-      0 0 0 1px hsl(158 64% 25% / 0.05);
+      0 4px 6px -1px hsl(var(--primary) / 0.1),
+      0 10px 40px -10px hsl(var(--primary) / 0.25),
+      0 0 0 1px hsl(var(--primary) / 0.05);
   }
 
   .shadow-gold {
@@ -206,8 +206,8 @@
 
   .shadow-card-hover {
     box-shadow:
-      0 8px 30px -8px hsl(158 64% 25% / 0.2),
-      0 0 0 1px hsl(158 64% 25% / 0.08);
+      0 8px 30px -8px hsl(var(--primary) / 0.2),
+      0 0 0 1px hsl(var(--primary) / 0.08);
   }
 
   .animate-fade-in {
@@ -245,8 +245,8 @@
   }
 
   @keyframes glow {
-    from { box-shadow: 0 0 20px hsl(43 74% 49% / 0.15); }
-    to { box-shadow: 0 0 40px hsl(43 74% 49% / 0.3); }
+    from { box-shadow: 0 0 20px hsl(var(--secondary) / 0.15); }
+    to { box-shadow: 0 0 40px hsl(var(--secondary) / 0.3); }
   }
 
   /* زخارف إسلامية هندسية محسّنة */

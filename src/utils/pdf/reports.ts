@@ -66,10 +66,9 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
 
   autoTable(doc, {
     startY: finalY + 22,
-    head: [['اسم المستفيد', 'النسبة %', 'المبلغ (ر.س)']],
+    head: [['اسم المستفيد', 'المبلغ المستحق (ر.س)']],
     body: data.beneficiaries.map(b => [
       b.name,
-      `${b.percentage}%`,
       b.amount.toLocaleString(),
     ]),
     theme: 'striped',

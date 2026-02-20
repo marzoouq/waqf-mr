@@ -162,7 +162,7 @@ const AccountsViewPage = () => {
             <CardContent className="p-4 sm:p-6">
               <div className="flex justify-between items-center">
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة ({currentBeneficiary.share_percentage}%)</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة</p>
                   <p className="text-xl sm:text-3xl font-bold text-primary truncate">{myShare.toLocaleString()} ر.س</p>
                 </div>
                 <Wallet className="w-8 h-8 sm:w-10 sm:h-10 text-primary/30 shrink-0" />
