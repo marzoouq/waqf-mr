@@ -43,6 +43,7 @@ const DisclosurePage = lazy(() => import("./pages/beneficiary/DisclosurePage"));
 const MySharePage = lazy(() => import("./pages/beneficiary/MySharePage"));
 const FinancialReportsPage = lazy(() => import("./pages/beneficiary/FinancialReportsPage"));
 const AccountsViewPage = lazy(() => import("./pages/beneficiary/AccountsViewPage"));
+const BeneficiarySettingsPage = lazy(() => import("./pages/beneficiary/BeneficiarySettingsPage"));
 const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
 const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
 const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
@@ -243,7 +244,15 @@ const App = () => (
               path="/beneficiary/accounts"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
-                  <AccountsViewPage />
+                  <DisclosurePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/settings"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <BeneficiarySettingsPage />
                 </ProtectedRoute>
               }
             />

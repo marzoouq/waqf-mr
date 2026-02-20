@@ -5,7 +5,7 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Wallet, FileText, BarChart3, PieChart, Calculator, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,8 +115,8 @@ const BeneficiaryDashboard = () => {
   const quickLinks = [
     { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
     { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/share', color: 'bg-emerald-500/10 text-emerald-600' },
-    { title: 'الحسابات الختامية', description: 'العقود والإيرادات والمصروفات', icon: Calculator, path: '/beneficiary/accounts', color: 'bg-secondary/10 text-secondary' },
     { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/reports', color: 'bg-amber-500/10 text-amber-600' },
+    { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
 
   return (

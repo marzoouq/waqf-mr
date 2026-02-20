@@ -12,6 +12,10 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const DisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -38,6 +42,8 @@ const DisclosurePage = () => {
     expensesByTypeExcludingVat,
     availableAmount,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+
+  const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
@@ -129,6 +135,60 @@ const DisclosurePage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Contracts Table */}
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              العقود
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {contractsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            ) : contracts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6 text-sm">لا توجد عقود مسجلة</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table className="min-w-[600px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">رقم العقد</TableHead>
+                      <TableHead className="text-right">المستأجر</TableHead>
+                      <TableHead className="text-right">الإيجار السنوي</TableHead>
+                      <TableHead className="text-right">الإيجار الشهري</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contracts.map(c => (
+                      <TableRow key={c.id}>
+                        <TableCell className="font-medium">{c.contract_number}</TableCell>
+                        <TableCell>{c.tenant_name}</TableCell>
+                        <TableCell>{Number(c.rent_amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell>{Math.round(Number(c.rent_amount) / 12).toLocaleString()} ر.س</TableCell>
+                        <TableCell>
+                          <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
+                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/30 font-bold">
+                      <TableCell colSpan={2}>الإجمالي</TableCell>
+                      <TableCell>{contracts.reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{Math.round(contracts.reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString()} ر.س</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Detailed Financial Statement */}
         <Card className="shadow-sm">

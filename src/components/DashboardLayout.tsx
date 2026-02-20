@@ -64,7 +64,6 @@ const adminSectionKeys: Record<string, string> = {
 const beneficiarySectionKeys: Record<string, string> = {
   '/beneficiary/disclosure': 'disclosure',
   '/beneficiary/share': 'share',
-  '/beneficiary/accounts': 'accounts',
   '/beneficiary/reports': 'reports',
 };
 
@@ -111,12 +110,12 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
   { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/share', icon: Wallet, label: 'حصتي من الريع' },
-  { to: '/beneficiary/accounts', icon: Receipt, label: 'الحسابات الختامية' },
   { to: '/beneficiary/reports', icon: BarChart3, label: 'التقارير المالية' },
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
   { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
+  { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
 // Routes that support "All Years" filter
@@ -128,7 +127,6 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/invoices',
   '/dashboard/audit-log',
   '/beneficiary/reports',
-  '/beneficiary/accounts',
   '/beneficiary/invoices',
   '/beneficiary/disclosure',
   '/beneficiary/share',
