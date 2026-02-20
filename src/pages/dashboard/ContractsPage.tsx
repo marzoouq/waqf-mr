@@ -101,13 +101,13 @@ const ContractsPage = () => {
     };
     if (editingContract) {
       // fiscal_year_id لا يتغير عند التعديل (العقد يبقى في سنته الأصلية)
-      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as any);
+      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
     } else {
       // العقد الجديد يُربط بالسنة المالية النشطة تلقائياً
       const { data: activeFY } = await (await import('@/integrations/supabase/client')).supabase
         .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
-      await createContract.mutateAsync(contractData as any);
+      await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
     }
     setIsOpen(false);
     resetForm();

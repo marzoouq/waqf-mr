@@ -40,10 +40,10 @@ const BeneficiariesPage = () => {
         body: { action: 'list_users' },
       });
       if (error) throw error;
-      const allUsers: AuthUser[] = (data?.users || []).map((u: any) => ({ id: u.id, email: u.email || u.id }));
+      const allUsers: AuthUser[] = (data?.users || []).map((u: { id: string; email?: string }) => ({ id: u.id, email: u.email || u.id }));
       // Filter to only beneficiary-role users
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'beneficiary');
-      const beneficiaryIds = new Set((roles || []).map((r: any) => r.user_id));
+      const beneficiaryIds = new Set((roles || []).map((r: { user_id: string }) => r.user_id));
       return allUsers.filter(u => beneficiaryIds.has(u.id));
     },
   });

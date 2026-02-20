@@ -65,7 +65,7 @@ const ExpensesPage = () => {
     if (!editingExpense && activeFYId) {
       expenseData.fiscal_year_id = activeFYId;
     }
-    if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as any); } else { await createExpense.mutateAsync(expenseData as any); }
+    if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
     setIsOpen(false);
     resetForm();
   };

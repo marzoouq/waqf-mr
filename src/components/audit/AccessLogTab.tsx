@@ -38,7 +38,7 @@ const AccessLogTab = () => {
     queryKey: ['access_log', eventFilter],
     queryFn: async () => {
       let query = supabase
-        .from('access_log' as any)
+        .from('access_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);

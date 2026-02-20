@@ -54,7 +54,7 @@ const BeneficiaryDashboard = () => {
     let id: ReturnType<typeof setInterval> | undefined;
     const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
     const stop = () => { if (id) { clearInterval(id); id = undefined; } };
-    const onVisibility = () => { document.hidden ? stop() : (setNow(new Date()), start()); };
+    const onVisibility = () => { if (document.hidden) { stop(); } else { setNow(new Date()); start(); } };
     start();
     document.addEventListener('visibilitychange', onVisibility);
     return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
