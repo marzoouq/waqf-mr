@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 
 const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -112,7 +113,7 @@ const Auth = () => {
     const { error } = await signIn(resolvedEmail, loginPassword);
     setIsLoading(false);
     if (error) {
-      toast.error('خطأ في تسجيل الدخول: ' + error.message);
+      toast.error(getSafeErrorMessage(error));
       logAccessEvent({
         event_type: 'login_failed',
         email: resolvedEmail,
@@ -143,11 +144,7 @@ const Auth = () => {
     const { error } = await signUp(signupEmail, signupPassword);
     setIsLoading(false);
     if (error) {
-      if (error.message.includes('already registered')) {
-        toast.error('هذا البريد الإلكتروني مسجل بالفعل');
-      } else {
-        toast.error('خطأ في التسجيل: ' + error.message);
-      }
+      toast.error(getSafeErrorMessage(error));
     } else {
       toast.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني');
     }
@@ -300,7 +297,7 @@ const Auth = () => {
                       redirectTo: `${window.location.origin}/auth`,
                     });
                     setIsLoading(false);
-                    if (error) { toast.error('حدث خطأ: ' + error.message); }
+                    if (error) { toast.error(getSafeErrorMessage(error)); }
                     else { toast.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'); setResetMode(false); }
                   }}
                 >
