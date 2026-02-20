@@ -8,9 +8,13 @@ export const logAccessEvent = async (event: {
   metadata?: Record<string, unknown>;
 }) => {
   try {
-    await supabase.from('access_log' as any).insert({
-      ...event,
-      ip_info: navigator.userAgent,
+    await supabase.rpc('log_access_event', {
+      p_event_type: event.event_type,
+      p_email: event.email ?? null,
+      p_user_id: event.user_id ?? null,
+      p_target_path: event.target_path ?? null,
+      p_ip_info: navigator.userAgent?.substring(0, 500) ?? null,
+      p_metadata: (event.metadata ?? {}) as unknown as Record<string, never>,
     });
   } catch {
     // Silent fail - don't block user flow for logging
