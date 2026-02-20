@@ -62,34 +62,41 @@ const Auth = () => {
 
   // توجيه المستخدم بعد تسجيل الدخول
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && role) {
       if (role === 'beneficiary') {
         navigate('/beneficiary');
       } else if (role === 'admin' || role === 'waqif') {
         navigate('/dashboard');
       }
-      // إذا role = null، الـ fallback بعد 3 ثوانٍ سيتكفل بالتوجيه
     }
   }, [user, role, loading, navigate]);
 
-  // آلية حماية: إذا تم تسجيل الدخول لكن لم يتم التوجيه بعد 3 ثوانٍ
+  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 5 ثوانٍ
   useEffect(() => {
-    if (!user || loading) return;
-    if (role) return;
+    if (!user || loading || role) return;
     const timer = setTimeout(async () => {
-      // إعادة جلب الدور مرة أخيرة قبل التوجيه الاحتياطي
-      console.warn('[Auth] Role not resolved after 3s, attempting final fetch...');
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      if (data?.role === 'admin') {
-        navigate('/dashboard');
-      } else {
-        navigate('/beneficiary');
+      console.warn('[Auth] Role not resolved after 5s, attempting direct fetch...');
+      try {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (data?.role === 'admin' || data?.role === 'waqif') {
+          navigate('/dashboard');
+        } else if (data?.role === 'beneficiary') {
+          navigate('/beneficiary');
+        } else {
+          console.error('[Auth] No role found for user after direct fetch');
+          toast.error('لم يتم العثور على صلاحيات لحسابك. تواصل مع الناظر.');
+          await supabase.auth.signOut();
+        }
+      } catch (err) {
+        console.error('[Auth] Direct role fetch failed:', err);
+        toast.error('حدث خطأ في التحقق من الصلاحيات. حاول مرة أخرى.');
+        await supabase.auth.signOut();
       }
-    }, 3000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [user, role, loading, navigate]);
 

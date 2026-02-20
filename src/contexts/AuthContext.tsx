@@ -1,12 +1,10 @@
 /**
  * سياق المصادقة (AuthContext)
  * يدير حالة تسجيل الدخول والخروج وجلب دور المستخدم من جدول user_roles.
- * يوفر: user, session, role, loading, signIn, signUp, signOut
  * 
- * الأدوار المدعومة: admin (ناظر), beneficiary (مستفيد), waqif (واقف)
- * يتم جلب الدور تلقائياً عند تسجيل الدخول ومسحه عند الخروج.
+ * إصلاح معماري: فصل جلب الدور عن onAuthStateChange لتجنب race condition
  */
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
@@ -31,74 +29,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const roleFetchIdRef = useRef(0);
 
-  const fetchUserRole = async (userId: string, retries = 2): Promise<void> => {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (data && !error) {
-        setRole(data.role as AppRole);
-        return;
-      }
-
-      if (attempt < retries) {
-        // انتظر قبل إعادة المحاولة (500ms ثم 1000ms)
-        await new Promise(r => setTimeout(r, (attempt + 1) * 500));
-      } else {
-        console.error('[Auth] fetchUserRole failed after retries:', error?.message);
-        setRole(null);
-      }
-    }
-  };
-
+  // === الخطوة 1: onAuthStateChange يحدّث user/session فقط (بدون await) ===
   useEffect(() => {
     let initialSessionHandled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (event, currentSession) => {
+        console.warn('[Auth] onAuthStateChange:', event);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
 
-        if (session?.user) {
-          try {
-            await fetchUserRole(session.user.id);
-          } catch (err) {
-            console.error('[Auth] fetchUserRole failed in onAuthStateChange:', err);
-            setRole(null);
-          }
-        } else {
+        if (!currentSession?.user) {
           setRole(null);
+          setLoading(false);
         }
-        setLoading(false);
+        setAuthReady(true);
         initialSessionHandled = true;
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Fallback: getSession for initial load
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!initialSessionHandled) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          try {
-            await fetchUserRole(session.user.id);
-          } catch (err) {
-            console.error('[Auth] fetchUserRole failed in getSession:', err);
-            setRole(null);
-          }
+        console.warn('[Auth] getSession fallback used');
+        setSession(s);
+        setUser(s?.user ?? null);
+        if (!s?.user) {
+          setLoading(false);
         }
-        setLoading(false);
+        setAuthReady(true);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // === الخطوة 2: useEffect منفصل لجلب الدور عند تغيّر user ===
+  useEffect(() => {
+    if (!authReady) return;
+
+    if (!user) {
+      setRole(null);
+      setLoading(false);
+      return;
+    }
+
+    const fetchId = ++roleFetchIdRef.current;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const fetchRole = async () => {
+      console.warn('[Auth] fetchRole started for user:', user.id);
+      
+      // Safety timeout: 5 seconds max
+      timeoutId = setTimeout(() => {
+        if (roleFetchIdRef.current === fetchId) {
+          console.warn('[Auth] fetchRole timeout after 5s, forcing loading=false');
+          setLoading(false);
+        }
+      }, 5000);
+
+      for (let attempt = 0; attempt <= 2; attempt++) {
+        // Check if this fetch is still relevant
+        if (roleFetchIdRef.current !== fetchId) {
+          console.warn('[Auth] fetchRole aborted (stale)');
+          return;
+        }
+
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (roleFetchIdRef.current !== fetchId) return;
+
+          if (data && !error) {
+            console.warn('[Auth] fetchRole success:', data.role);
+            setRole(data.role as AppRole);
+            setLoading(false);
+            clearTimeout(timeoutId);
+            return;
+          }
+
+          if (attempt < 2) {
+            await new Promise(r => setTimeout(r, (attempt + 1) * 500));
+          }
+        } catch (err) {
+          console.error('[Auth] fetchRole attempt', attempt, 'error:', err);
+        }
+      }
+
+      // All retries exhausted
+      if (roleFetchIdRef.current === fetchId) {
+        console.warn('[Auth] fetchRole failed after all retries');
+        setRole(null);
+        setLoading(false);
+        clearTimeout(timeoutId);
+      }
+    };
+
+    fetchRole();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [user, authReady]);
+
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setLoading(false);
+    }
+    // On success, onAuthStateChange fires → user changes → useEffect fetches role
     return { error };
   };
 
