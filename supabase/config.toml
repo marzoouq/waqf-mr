@@ -1,1 +1,4 @@
 project_id = "nuzdeamtujezrsxbvpfi"
+
+[functions.check-contract-expiry]
+verify_jwt = false

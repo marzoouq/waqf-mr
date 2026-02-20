@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
+const KNOWN_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51emRlYW10dWplenJzeGJ2cGZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzODgyMDAsImV4cCI6MjA4Njk2NDIwMH0.tWIFrdhxyBlZBUm5WFqrSrEhuoYcexBqGdX6Ic6qAY4";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -9,39 +11,38 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    const authHeader = req.headers.get("Authorization");
-    const isServiceRole = authHeader === `Bearer ${serviceKey}`;
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace("Bearer ", "").trim();
+    const isServiceRole = token === serviceKey;
+    const isAnonKey = token === KNOWN_ANON_KEY;
 
-    if (!isServiceRole) {
-      if (!authHeader?.startsWith("Bearer ")) {
+    // Allow service_role, anon key (for cron), or admin users
+    if (!isServiceRole && !isAnonKey) {
+      if (!authHeader.startsWith("Bearer ") || !token) {
         return new Response(
           JSON.stringify({ error: "Unauthorized" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const userClient = createClient(supabaseUrl, anonKey, {
+      const userClient = createClient(supabaseUrl, KNOWN_ANON_KEY, {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
+      const { data: { user }, error: userError } = await userClient.auth.getUser(token);
+      if (userError || !user) {
         return new Response(
           JSON.stringify({ error: "Invalid token" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const userId = claimsData.claims.sub as string;
-
       const adminClient = createClient(supabaseUrl, serviceKey);
       const { data: roleData } = await adminClient
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
 
@@ -76,17 +77,30 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch admins
     const { data: admins } = await supabase
       .from("user_roles")
       .select("user_id")
       .eq("role", "admin");
 
-    if (!admins || admins.length === 0) {
-      return new Response(JSON.stringify({ message: "No admins found" }), {
+    // Fetch beneficiaries with user accounts
+    const { data: beneficiaries } = await supabase
+      .from("beneficiaries")
+      .select("user_id")
+      .not("user_id", "is", null);
+
+    const allRecipients = [
+      ...(admins || []).map(a => ({ user_id: a.user_id, role: 'admin' as const })),
+      ...(beneficiaries || []).map(b => ({ user_id: b.user_id!, role: 'beneficiary' as const })),
+    ];
+
+    if (allRecipients.length === 0) {
+      return new Response(JSON.stringify({ message: "No recipients found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Deduplicate — avoid sending duplicate notifications today
     const { data: existing } = await supabase
       .from("notifications")
       .select("message, user_id")
@@ -113,14 +127,14 @@ Deno.serve(async (req) => {
       );
       const msg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
 
-      for (const admin of admins) {
-        if (existingByUser.get(admin.user_id)?.has(msg)) continue;
+      for (const recipient of allRecipients) {
+        if (existingByUser.get(recipient.user_id)?.has(msg)) continue;
         notifications.push({
-          user_id: admin.user_id,
+          user_id: recipient.user_id,
           title: "تنبيه: عقد قارب على الانتهاء",
           message: msg,
           type: "warning",
-          link: "/dashboard/contracts",
+          link: recipient.role === 'admin' ? "/dashboard/contracts" : "/beneficiary/notifications",
         });
       }
     }
