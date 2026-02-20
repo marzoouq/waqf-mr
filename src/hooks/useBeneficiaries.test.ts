@@ -4,7 +4,7 @@ vi.mock('./useCrudFactory', () => {
   const mockHook = vi.fn(() => ({ data: [], isLoading: false }));
   const mockMutation = vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false }));
   return {
-    useCrudFactory: vi.fn((config: any) => {
+    createCrudFactory: vi.fn((config: any) => {
       expect(config.table).toBe('beneficiaries');
       expect(config.label).toBe('المستفيد');
       expect(config.orderBy).toBe('name');
