@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import UpdatePrompt from "@/components/UpdatePrompt";
+import BetaBanner from "@/components/BetaBanner";
 
 // Pages - Lazy loaded
 const Index = lazy(() => import("./pages/Index"));
@@ -70,6 +71,7 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <ErrorBoundary>
+  <BetaBanner />
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <FiscalYearProvider>
