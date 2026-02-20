@@ -1,80 +1,70 @@
 
-# إصلاح مشكلة تسجيل الدخول في الإنتاج -- تحليل جنائي
+# إصلاح صفحة المستخدمين الفارغة (0 مستخدمين)
 
-## السبب الجذري المؤكد (من سجلات الإنتاج)
+## السبب الجذري
 
-سجل `access_log` في قاعدة بيانات الإنتاج يكشف النمط التالي:
+وظيفة `admin-manage-users` مفقودة من ملف `supabase/config.toml`. بدون تعيين `verify_jwt = false`، نظام التحقق التلقائي من Supabase (signing-keys) يتدخل ويمنع وصول header المصادقة (`Authorization`) إلى كود الوظيفة.
 
+**الدليل من سجلات الإنتاج:**
+- كل طلبات POST ترجع `401`
+- الوظيفة ترد بـ `"No authorization header"` (من كود الوظيفة نفسه، سطر 18)
+- هذا يعني أن header المصادقة تم تجريده أو رفضه قبل وصوله للكود
+
+**ملف config.toml الحالي:**
 ```text
-02:51:13 - alkayala15 → login_success
-02:52:55 - alkayala15 → login_success  (محاولة ثانية!)
-02:53:39 - unauthorized_access → current_role: null
-03:01:37 - unauthorized_access → current_role: null
-03:07:34 - unauthorized_access → current_role: null
-03:23:37 - idle_logout
+project_id = "nuzdeamtujezrsxbvpfi"
+
+[functions.check-contract-expiry]
+verify_jwt = false
 ```
 
-**التسلسل**: تسجيل دخول ناجح (الخادم يرد 200) ← لكن الدور (`role`) يبقى `null` ← التوجيه يفشل ← المستخدم يعلق.
+`admin-manage-users` غير موجودة -- وكذلك باقي الوظائف.
 
-## الأسباب التقنية الثلاثة
+## الإصلاح المطلوب
 
-### السبب 1: عمل غير متزامن داخل `onAuthStateChange` (خطأ معماري)
-`AuthContext.tsx` ينفّذ `await fetchUserRole()` داخل callback الـ `onAuthStateChange`. مكتبة Supabase لا تنتظر (`await`) هذا الـ callback. إذا أطلقت أحداث متعددة بسرعة (مثل `SIGNED_IN` ثم `TOKEN_REFRESHED`)، تتداخل الاستدعاءات وتسبب سباق حالة (race condition) يجعل الدور يبقى `null`.
+### الخطوة الوحيدة: تحديث `supabase/config.toml`
 
-### السبب 2: `ProtectedRoute` يعلّق للأبد عندما الدور `null`
-عندما `role = null`، المتغير `isRoleLoading` يكون `true` → يعرض spinner للأبد بدون timeout. المستخدم يرى شاشة تحميل لا تنتهي.
+إضافة جميع وظائف Edge Functions بإعداد `verify_jwt = false` (لأن التحقق يتم يدوياً داخل كود كل وظيفة):
 
-### السبب 3: الـ fallback في Auth.tsx بعد 3 ثوانٍ يوجّه بدون التحقق من الدور في Context
-الـ fallback يوجّه المستخدم إلى `/beneficiary` أو `/dashboard`، لكن `ProtectedRoute` هناك يجد `role = null` فيعلّقه مرة أخرى.
+```toml
+project_id = "nuzdeamtujezrsxbvpfi"
 
-## خطة الإصلاح
+[functions.admin-manage-users]
+verify_jwt = false
 
-### الخطوة 1: إعادة هيكلة `AuthContext.tsx` -- فصل جلب الدور عن `onAuthStateChange`
+[functions.check-contract-expiry]
+verify_jwt = false
 
-المنطق الجديد:
-- `onAuthStateChange` يقوم **فقط** بتحديث `user` و `session` (متزامن، بدون await)
-- جلب الدور يتم في `useEffect` منفصل يراقب تغيّر `user`
-- إضافة timeout احتياطي (5 ثوانٍ) يضمن أن `loading` يصبح `false` دائماً
+[functions.ai-assistant]
+verify_jwt = false
 
-```text
-onAuthStateChange:
-  → setUser, setSession (فوري)
-  → setLoading(false) فقط إذا لا يوجد مستخدم
+[functions.auto-expire-contracts]
+verify_jwt = false
 
-useEffect([user]):
-  → إذا يوجد مستخدم → fetchUserRole مع try/catch
-  → بعد الانتهاء (نجاح أو فشل) → setLoading(false)
-  → timeout 5 ثوانٍ كشبكة أمان
+[functions.generate-invoice-pdf]
+verify_jwt = false
+
+[functions.guard-signup]
+verify_jwt = false
+
+[functions.lookup-national-id]
+verify_jwt = false
 ```
 
-### الخطوة 2: إضافة timeout في `ProtectedRoute`
+### لماذا هذا آمن؟
 
-عندما `isRoleLoading = true`، بدلاً من spinner للأبد:
-- عرض spinner لمدة 5 ثوانٍ كحد أقصى
-- بعدها محاولة أخيرة لجلب الدور مباشرة
-- إذا فشل → توجيه إلى `/auth` مع رسالة خطأ
+كل وظيفة تتحقق يدوياً من المصادقة في كودها عبر:
+1. فحص وجود header المصادقة
+2. التحقق من هوية المستخدم عبر `getUser()`
+3. التحقق من دور المستخدم (admin) من جدول `user_roles`
 
-### الخطوة 3: تحسين منطق التوجيه في `Auth.tsx`
-
-- إذا `user` موجود و `role` موجود → توجيه فوري
-- إذا `user` موجود و `role = null` بعد 3 ثوانٍ → محاولة أخيرة بـ try/catch ثم توجيه بناءً على النتيجة
-- إذا فشل كل شيء → إظهار رسالة خطأ واضحة بدلاً من الانتظار الصامت
-
-### الخطوة 4: إضافة سجلات تشخيصية مؤقتة
-
-إضافة `console.warn` في النقاط الحرجة لتتبع المشكلة في الإنتاج:
-- عند إطلاق `onAuthStateChange` (نوع الحدث)
-- عند بدء وانتهاء `fetchUserRole` (نجاح/فشل)
-- عند تفعيل أي fallback أو timeout
+تعطيل `verify_jwt` التلقائي ضروري لأن نظام signing-keys الجديد لا يتوافق مع الطريقة القديمة.
 
 ## الملفات المتأثرة
 
-1. `src/contexts/AuthContext.tsx` -- إعادة هيكلة جلب الدور
-2. `src/components/ProtectedRoute.tsx` -- إضافة timeout لحالة `isRoleLoading`
-3. `src/pages/Auth.tsx` -- تحسين fallback مع error handling
+1. `supabase/config.toml` -- إضافة جميع الوظائف بـ `verify_jwt = false`
 
 ## النتيجة المتوقعة
 
-- تسجيل الدخول يعمل خلال 1-2 ثانية (الحالة الطبيعية)
-- في حالة فشل جلب الدور: timeout واضح مع رسالة خطأ بدلاً من تعليق صامت
-- لا يوجد سيناريو يعلق فيه المستخدم للأبد
+- صفحة إدارة المستخدمين تعرض الـ 14 مستفيد + باقي المستخدمين
+- جميع وظائف Edge Functions الأخرى تعمل بشكل صحيح
