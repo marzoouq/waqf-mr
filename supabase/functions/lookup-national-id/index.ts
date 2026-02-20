@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 // Simple in-memory rate limiter (per IP, 3 requests per minute)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -26,6 +26,8 @@ setInterval(() => {
 }, 5 * 60_000);
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
