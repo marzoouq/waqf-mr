@@ -74,8 +74,8 @@ const Auth = () => {
         body: { national_id: nationalId }
       });
 
-      if (lookupError || !data?.email) {
-        toast.error(data?.error || 'رقم الهوية غير مسجل في النظام');
+      if (lookupError || !data?.found || !data?.email) {
+        toast.error('رقم الهوية غير مسجل في النظام');
         setIsLoading(false);
         return;
       }
