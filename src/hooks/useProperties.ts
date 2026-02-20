@@ -3,10 +3,10 @@
  * يوفر: useProperties (جلب), useCreateProperty, useUpdateProperty, useDeleteProperty
  * الجدول: properties | الترتيب: حسب تاريخ الإنشاء (تنازلي)
  */
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { Property } from '@/types/database';
 
-const propertiesCrud = useCrudFactory<'properties', Property>({
+const propertiesCrud = createCrudFactory<'properties', Property>({
   table: 'properties',
   queryKey: 'properties',
   label: 'العقار',

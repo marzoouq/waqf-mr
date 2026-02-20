@@ -41,7 +41,7 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
 // Factory
 // ---------------------------------------------------------------------------
 
-export function useCrudFactory<T extends TableName, TData = Row<T>>(
+export function createCrudFactory<T extends TableName, TData = Row<T>>(
   config: CrudFactoryConfig<T, TData>,
 ) {
   const {

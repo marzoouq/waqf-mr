@@ -9,11 +9,11 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
 import { notifyAdmins } from '@/utils/notifications';
 
-const beneficiariesCrud = useCrudFactory<'beneficiaries', Beneficiary>({
+const beneficiariesCrud = createCrudFactory<'beneficiaries', Beneficiary>({
   table: 'beneficiaries',
   queryKey: 'beneficiaries',
   orderBy: 'name',

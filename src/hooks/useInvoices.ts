@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 
 // ---------------------------------------------------------------------------
 // Types & constants
@@ -44,7 +44,7 @@ export const INVOICE_STATUS_LABELS: Record<string, string> = {
 // Factory-based CRUD
 // ---------------------------------------------------------------------------
 
-const invoicesCrud = useCrudFactory<'invoices', Invoice>({
+const invoicesCrud = createCrudFactory<'invoices', Invoice>({
   table: 'invoices',
   queryKey: 'invoices',
   select: '*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)',

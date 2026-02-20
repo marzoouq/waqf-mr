@@ -4,13 +4,13 @@
  * الجدول: expenses | الربط: properties | الترتيب: حسب التاريخ
  * عند إضافة مصروف جديد: يتم إرسال إشعار تلقائي لجميع المستفيدين
  */
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { Expense } from '@/types/database';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const expensesCrud = useCrudFactory<'expenses', Expense>({
+const expensesCrud = createCrudFactory<'expenses', Expense>({
   table: 'expenses',
   queryKey: 'expenses',
   select: '*, property:properties(*)',

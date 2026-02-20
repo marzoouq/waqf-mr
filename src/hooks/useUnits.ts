@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { Unit } from '@/types/database';
 
 // Re-export types for backward compatibility
@@ -20,7 +20,7 @@ export type UnitInsert = {
 // Factory-based CRUD (all units, no filter)
 // ---------------------------------------------------------------------------
 
-const unitsCrud = useCrudFactory<'units', Unit>({
+const unitsCrud = createCrudFactory<'units', Unit>({
   table: 'units',
   queryKey: 'all-units',
   orderBy: 'unit_number',

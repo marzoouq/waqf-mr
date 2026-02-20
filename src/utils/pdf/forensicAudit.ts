@@ -134,7 +134,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 10;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 40)) + 10;
 
   // ─── Security Findings Table ───
   if (y > 220) {
@@ -177,7 +177,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 12;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 40)) + 12;
 
   // ─── Digital Signature Section ───
   if (y > 230) {

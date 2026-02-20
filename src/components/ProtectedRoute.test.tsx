@@ -83,7 +83,7 @@ describe("ProtectedRoute", () => {
     expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/unauthorized");
   });
 
-  it("redirects to /unauthorized when user has no role but roles are required", () => {
+  it("shows loading spinner when user has no role yet but roles are required", () => {
     mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: false });
     render(
       <MemoryRouter>
@@ -92,7 +92,8 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/unauthorized");
+    // role=null with allowedRoles means isRoleLoading=true → spinner
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
   it("admin can access admin-only routes", () => {

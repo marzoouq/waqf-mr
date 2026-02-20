@@ -81,7 +81,7 @@ const BeneficiaryDashboard = () => {
   })();
 
   /* ── Recent distributions (with Realtime) ── */
-  const [distributions, setDistributions] = useState<any[]>([]);
+  const [distributions, setDistributions] = useState<Array<{ id: string; amount: number; date: string; status: string }>>([]);
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
     const fetchDistributions = () => {

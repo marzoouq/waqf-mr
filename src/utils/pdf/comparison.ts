@@ -53,7 +53,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     ...baseTableStyles(f),
   });
 
-  let y = (doc as any).lastAutoTable?.finalY + 12 || 100;
+  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 88) + 12;
 
   // 2. Monthly comparison table
   doc.setFont(f, 'bold');
@@ -93,7 +93,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     columnStyles: { 0: { cellWidth: 22 } },
   });
 
-  y = (doc as any).lastAutoTable?.finalY + 12 || 200;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 188) + 12;
 
   // 3. Expenses by type - Year 1
   doc.setFont(f, 'bold');
@@ -116,7 +116,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       ...footStyles(TABLE_HEAD_RED, f),
       ...baseTableStyles(f),
     });
-    y = (doc as any).lastAutoTable?.finalY + 12 || y + 50;
+    y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 38)) + 12;
   }
 
   // 4. Expenses by type - Year 2
