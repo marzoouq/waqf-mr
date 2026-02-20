@@ -150,7 +150,7 @@ const { data } = await supabase.functions.invoke('auto-expire-contracts', {
 
 **الوصف**: يبحث عن العقود التي ستنتهي خلال 30 يوماً ويرسل إشعارات تحذيرية.
 
-**المصادقة**: لا يتطلب مصادقة (مصمم للجدولة).
+**المصادقة**: يتطلب service_role key (للجدولة) أو JWT admin.
 
 ```typescript
 const { data } = await supabase.functions.invoke('check-contract-expiry', {
@@ -169,7 +169,7 @@ const { data } = await supabase.functions.invoke('check-contract-expiry', {
 
 **المصادقة**: لا يتطلب مصادقة (عام).
 
-**حماية**: Rate limiting — 5 طلبات في الدقيقة لكل IP.
+**حماية**: Rate limiting — 3 طلبات في الدقيقة لكل IP.
 
 ```typescript
 const { data } = await supabase.functions.invoke('lookup-national-id', {

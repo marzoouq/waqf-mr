@@ -1,8 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
-const KNOWN_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51emRlYW10dWplenJzeGJ2cGZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzODgyMDAsImV4cCI6MjA4Njk2NDIwMH0.tWIFrdhxyBlZBUm5WFqrSrEhuoYcexBqGdX6Ic6qAY4";
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -15,10 +13,9 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "").trim();
     const isServiceRole = token === serviceKey;
-    const isAnonKey = token === KNOWN_ANON_KEY;
 
-    // Allow service_role, anon key (for cron), or admin users
-    if (!isServiceRole && !isAnonKey) {
+    // Only allow service_role (for cron) or verified admin users
+    if (!isServiceRole) {
       if (!authHeader.startsWith("Bearer ") || !token) {
         return new Response(
           JSON.stringify({ error: "Unauthorized" }),
@@ -26,23 +23,25 @@ Deno.serve(async (req) => {
         );
       }
 
-      const userClient = createClient(supabaseUrl, KNOWN_ANON_KEY, {
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const userClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const { data: { user }, error: userError } = await userClient.auth.getUser(token);
-      if (userError || !user) {
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
         return new Response(
           JSON.stringify({ error: "Invalid token" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
+      const userId = claimsData.claims.sub as string;
       const adminClient = createClient(supabaseUrl, serviceKey);
       const { data: roleData } = await adminClient
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("role", "admin")
         .maybeSingle();
 
