@@ -296,13 +296,14 @@ erDiagram
 
 ---
 
-## المشغلات (Triggers) — 22 مشغل نشط
+## المشغلات (Triggers) — 29 مشغل نشط
 
 | النوع | العدد | الوصف |
 |-------|-------|-------|
-| `audit_trigger` | 10 | تسجيل التغييرات في `audit_log` للجداول المالية والتعاقدية |
-| `prevent_closed_fy` | 3 | منع تعديل بيانات السنوات المالية المقفلة (income, expenses, invoices) |
+| `audit_trigger` | 10 | تسجيل التغييرات في `audit_log` للجداول المالية والتعاقدية (accounts, income, expenses, contracts, beneficiaries, distributions, properties, units, fiscal_years, waqf_bylaws) |
+| `prevent_closed_fy` | 4 | منع تعديل بيانات السنوات المالية المقفلة (income, expenses, invoices, contracts) |
 | `update_updated_at` | 9 | تحديث حقل `updated_at` تلقائياً عند التعديل |
+| `storage/realtime/cron` | 6 | مشغلات النظام الداخلية (حماية الحذف، تحديث الملفات، تنظيف الاشتراكات) |
 
 ---
 
@@ -311,10 +312,11 @@ erDiagram
 | الدالة | الوصف |
 |--------|-------|
 | `has_role(user_id, role)` | التحقق من دور المستخدم (SECURITY DEFINER) |
-| `notify_admins(title, message)` | إرسال إشعار لجميع المسؤولين |
-| `notify_all_beneficiaries(title, message)` | إرسال إشعار لجميع المستفيدين |
+| `notify_admins(title, message)` | إرسال إشعار لجميع المسؤولين (authenticated فقط) |
+| `notify_all_beneficiaries(title, message)` | إرسال إشعار لجميع المستفيدين (authenticated فقط) |
 | `audit_trigger_func()` | تسجيل التغييرات في سجل المراجعة |
-| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة |
+| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة (4 جداول) |
+| `log_access_event(...)` | تسجيل أحداث الوصول بأمان (SECURITY DEFINER) |
 | `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً |
 | `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية |
 
