@@ -5,34 +5,11 @@ import { Switch } from "@/components/ui/switch";
 import { useAppSettings } from "@/hooks/useAppSettings";
 import { useState, useEffect } from "react";
 import { FlaskConical } from "lucide-react";
-
-interface BannerSettings {
-  enabled: boolean;
-  text: string;
-  color: string;
-  position: string;
-  dismissible: boolean;
-}
-
-const defaults: BannerSettings = {
-  enabled: true,
-  text: "إصدار تجريبي — نعمل على تطويره من أجلكم ونرحب بملاحظاتكم",
-  color: "amber",
-  position: "top",
-  dismissible: true,
-};
-
-const colors = [
-  { value: "amber", label: "ذهبي", className: "bg-amber-500" },
-  { value: "blue", label: "أزرق", className: "bg-blue-500" },
-  { value: "green", label: "أخضر", className: "bg-green-600" },
-  { value: "red", label: "أحمر", className: "bg-red-500" },
-  { value: "purple", label: "بنفسجي", className: "bg-purple-500" },
-];
+import { BANNER_COLORS, DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
 
 const BannerSettingsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", defaults);
+  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
   const [form, setForm] = useState<BannerSettings>(settings);
 
   useEffect(() => {
@@ -83,7 +60,7 @@ const BannerSettingsTab = () => {
           <div className="space-y-2">
             <Label>اللون</Label>
             <div className="flex flex-wrap gap-3">
-              {colors.map((c) => (
+              {BANNER_COLORS.map((c) => (
                 <button
                   key={c.value}
                   onClick={() => save({ color: c.value })}
@@ -138,7 +115,7 @@ const BannerSettingsTab = () => {
               <Label>معاينة</Label>
               <div
                 className={`flex items-center justify-center gap-2 ${
-                  colors.find((c) => c.value === form.color)?.className || "bg-amber-500"
+                  BANNER_COLORS.find((c) => c.value === form.color)?.className || "bg-amber-500"
                 } px-4 py-1.5 text-white text-sm font-medium rounded-lg shadow-md`}
               >
                 <FlaskConical className="h-4 w-4 shrink-0" />

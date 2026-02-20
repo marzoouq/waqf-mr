@@ -1,40 +1,17 @@
 import { useState } from "react";
 import { FlaskConical, X } from "lucide-react";
 import { useAppSettings } from "@/hooks/useAppSettings";
-
-interface BannerSettings {
-  enabled: boolean;
-  text: string;
-  color: string;
-  position: string;
-  dismissible: boolean;
-}
-
-const defaultSettings: BannerSettings = {
-  enabled: true,
-  text: "إصدار تجريبي — نعمل على تطويره من أجلكم ونرحب بملاحظاتكم",
-  color: "amber",
-  position: "top",
-  dismissible: true,
-};
-
-const colorClasses: Record<string, string> = {
-  amber: "bg-amber-500 hover:bg-amber-600",
-  blue: "bg-blue-500 hover:bg-blue-600",
-  green: "bg-green-600 hover:bg-green-700",
-  red: "bg-red-500 hover:bg-red-600",
-  purple: "bg-purple-500 hover:bg-purple-600",
-};
+import { DEFAULT_BANNER_SETTINGS, BANNER_COLOR_CLASSES, type BannerSettings } from "@/constants";
 
 const BetaBanner = () => {
   const [dismissed, setDismissed] = useState(false);
   const { getJsonSetting, isLoading } = useAppSettings();
 
-  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", defaultSettings);
+  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
 
   if (isLoading || dismissed || !settings.enabled) return null;
 
-  const bg = colorClasses[settings.color] || colorClasses.amber;
+  const bg = BANNER_COLOR_CLASSES[settings.color] || BANNER_COLOR_CLASSES.amber;
   const isBottom = settings.position === "bottom";
 
   return (

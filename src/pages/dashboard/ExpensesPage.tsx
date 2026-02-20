@@ -23,8 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const EXPENSE_TYPES = ['كهرباء', 'مياه', 'صيانة', 'عمالة', 'منصة إيجار', 'كتابة عقود', 'تأمين', 'ضرائب', 'أخرى'];
+import { EXPENSE_TYPES } from '@/constants';
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
