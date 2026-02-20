@@ -181,6 +181,39 @@ const { data } = await supabase.functions.invoke('lookup-national-id', {
 
 ---
 
+## 6. `guard-signup` — حماية التسجيل
+
+**الوصف**: يتحقق من إعداد `registration_enabled` قبل السماح بإنشاء حساب جديد. يُستخدم بدلاً من التسجيل المباشر عبر Supabase Auth.
+
+**المصادقة**: لا يتطلب مصادقة (عام — مطلوب قبل إنشاء الحساب).
+
+```typescript
+const { data } = await supabase.functions.invoke('guard-signup', {
+  body: { email: 'user@example.com', password: 'كلمة_المرور' }
+});
+// نجاح: { user: { id, email, ... } }
+// فشل: { error: 'التسجيل معطل حالياً' }
+```
+
+> يتحقق من: صيغة البريد، طول كلمة المرور (6-128)، وإعداد `registration_enabled` في `app_settings`.
+
+---
+
+## 7. `generate-invoice-pdf` — توليد فاتورة PDF
+
+**الوصف**: يولّد ملف PDF لفاتورة محددة بناءً على بياناتها المخزنة.
+
+**المصادقة**: يتطلب JWT صالح.
+
+```typescript
+const { data } = await supabase.functions.invoke('generate-invoice-pdf', {
+  body: { invoiceId: 'uuid' }
+});
+// الاستجابة: ملف PDF (binary)
+```
+
+---
+
 ## التحقق من المدخلات
 
 جميع الوظائف تتحقق من:
