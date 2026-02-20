@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useInvoices, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { FileText, Search, Eye, Download, LayoutGrid, List } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +18,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 const InvoicesViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: activeFY } = useActiveFiscalYear();
-  const [selectedFY, setSelectedFY] = useState<string>('');
-  const fiscalYearId = selectedFY || activeFY?.id || 'all';
+  const { fiscalYearId } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
@@ -79,8 +76,7 @@ const InvoicesViewPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-between">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFY} />
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-end">
           <div className="flex gap-1 border rounded-lg p-1">
             <Button
               variant={viewMode === 'table' ? 'default' : 'ghost'}

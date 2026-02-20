@@ -241,7 +241,7 @@ const MySharePage = () => {
                 <TableBody>
                   {filteredDistributions.map((dist) => (
                     <TableRow key={dist.id}>
-                      <TableCell>{dist.date}</TableCell>
+                      <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
                       <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
                       <TableCell className="font-bold">{Number(dist.amount).toLocaleString()} ر.س</TableCell>
                       <TableCell>{getStatusBadge(dist.status)}</TableCell>
