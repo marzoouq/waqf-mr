@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface FiscalYear {
   id: string;
@@ -11,8 +12,9 @@ export interface FiscalYear {
 }
 
 export const useFiscalYears = () => {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['fiscal_years'],
+    queryKey: ['fiscal_years', user?.id ?? 'anon'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fiscal_years')
@@ -21,6 +23,7 @@ export const useFiscalYears = () => {
       if (error) throw error;
       return data as FiscalYear[];
     },
+    enabled: !!user,
   });
 };
 
