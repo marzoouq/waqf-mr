@@ -19,6 +19,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const InstallApp = lazy(() => import("./pages/InstallApp"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Admin Dashboard Pages - Lazy loaded
 const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
             <Route path="/install" element={<InstallApp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Admin Routes */}
             <Route

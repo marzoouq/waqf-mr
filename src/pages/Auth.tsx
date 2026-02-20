@@ -342,7 +342,7 @@ const Auth = () => {
                     if (!resetEmail) { toast.error('يرجى إدخال البريد الإلكتروني'); return; }
                     setIsLoading(true);
                     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-                      redirectTo: `${window.location.origin}/auth`,
+                      redirectTo: `${window.location.origin}/reset-password`,
                     });
                     setIsLoading(false);
                     if (error) { toast.error(getSafeErrorMessage(error)); }
