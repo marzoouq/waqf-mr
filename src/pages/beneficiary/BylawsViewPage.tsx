@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws } from '@/hooks/useBylaws';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen, Search, X } from 'lucide-react';
+import { Loader2, BookOpen, Search, X, Lock, ScrollText, Scale } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
@@ -13,8 +14,11 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 const BylawsViewPage = () => {
   const { data: bylaws, isLoading } = useBylaws();
+  const { data: settings, isLoading: settingsLoading } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [search, setSearch] = useState('');
+
+  const isPublished = settings?.bylaws_published !== 'false';
 
   const allVisible = (bylaws || []).filter((b) => b.is_visible);
 
@@ -29,7 +33,7 @@ const BylawsViewPage = () => {
     );
   }, [allVisible, search]);
 
-  if (isLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -39,24 +43,57 @@ const BylawsViewPage = () => {
     );
   }
 
+  if (!isPublished) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 md:p-6">
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+              <Lock className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-display font-bold text-foreground">اللائحة غير متاحة حالياً</h2>
+            <p className="text-muted-foreground max-w-md">
+              اللائحة التنظيمية غير منشورة حالياً. سيتم إشعارك عند نشرها من قبل ناظر الوقف.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Group bylaws by part for professional display
+  const groupedByPart = visibleBylaws.reduce((acc, item) => {
+    const key = item.part_number;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {} as Record<number, typeof visibleBylaws>);
+
+  const partNumbers = Object.keys(groupedByPart).map(Number).sort((a, b) => a - b);
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+        {/* Professional Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 md:p-8">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
+                <Scale className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
+                <p className="text-sm text-muted-foreground mt-1">لائحة تنظيم أعمال الوقف والنظارة • {visibleBylaws.length} بند</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-              <p className="text-sm text-muted-foreground">لائحة تنظيم أعمال الوقف والنظارة</p>
-            </div>
+            <ExportMenu
+              onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+            />
           </div>
-          <ExportMenu
-            onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
-          />
         </div>
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -75,54 +112,79 @@ const BylawsViewPage = () => {
         </div>
 
         {/* Table of Contents */}
-        <Card>
-          <CardHeader>
-            <CardTitle>فهرس اللائحة</CardTitle>
+        <Card className="border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <ScrollText className="w-5 h-5 text-primary" />
+              فهرس اللائحة
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {visibleBylaws.map((item) => (
                 <a
                   key={item.id}
                   href={`#bylaw-${item.id}`}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors text-sm"
+                  className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-primary/5 transition-colors text-sm group"
                 >
-                  <Badge variant="outline" className="shrink-0">
-                    {item.part_number === 0 ? 'مقدمة' : `${item.part_number}`}
+                  <Badge variant="outline" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors min-w-[2.5rem] justify-center">
+                    {item.part_number === 0 ? '٠' : item.part_number}
                   </Badge>
-                  <span className="truncate">{item.chapter_title || item.part_title}</span>
+                  <span className="truncate text-foreground/80 group-hover:text-foreground transition-colors">
+                    {item.chapter_title || item.part_title}
+                  </span>
                 </a>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Bylaws Content */}
-        <Card>
-          <CardContent className="pt-6">
-            <Accordion type="multiple" defaultValue={visibleBylaws.map((b) => b.id)} className="space-y-2">
-              {visibleBylaws.map((item) => (
-                <AccordionItem key={item.id} value={item.id} id={`bylaw-${item.id}`} className="border rounded-lg px-4">
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3 text-right">
-                      <Badge variant="default" className="shrink-0">
-                        {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
-                      </Badge>
-                      <span className="font-semibold text-sm">
-                        {item.chapter_title || item.part_title}
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed py-2" dir="rtl">
-                      <ReactMarkdown>{item.content}</ReactMarkdown>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
+        {/* Bylaws Content - Grouped by Part */}
+        {partNumbers.map((partNum) => {
+          const items = groupedByPart[partNum];
+          const partTitle = partNum === 0 ? 'المقدمة' : items[0]?.part_title || `الجزء ${partNum}`;
+
+          return (
+            <div key={partNum} className="space-y-3">
+              {/* Part Header */}
+              <div className="flex items-center gap-3 px-1">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <span className="text-sm font-bold text-primary">{partNum === 0 ? '٠' : partNum}</span>
+                </div>
+                <h2 className="text-lg font-display font-bold text-foreground">{partTitle}</h2>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              <Card>
+                <CardContent className="pt-4 pb-2">
+                  <Accordion type="multiple" defaultValue={items.map((b) => b.id)} className="space-y-1">
+                    {items.map((item) => (
+                      <AccordionItem key={item.id} value={item.id} id={`bylaw-${item.id}`} className="border rounded-lg px-4">
+                        <AccordionTrigger className="hover:no-underline py-3">
+                          <div className="flex items-center gap-3 text-right">
+                            {item.chapter_title && item.chapter_title !== item.part_title && (
+                              <Badge variant="secondary" className="shrink-0 text-xs">
+                                فصل {item.chapter_number || ''}
+                              </Badge>
+                            )}
+                            <span className="font-semibold text-sm">
+                              {item.chapter_title || item.part_title}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed py-3 prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
+                            <ReactMarkdown>{item.content}</ReactMarkdown>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })}
       </div>
     </DashboardLayout>
   );

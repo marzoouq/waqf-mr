@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,11 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { toast } from 'sonner';
 import {
   DndContext,
   closestCenter,
@@ -60,8 +62,8 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
 
   return (
     <div ref={setNodeRef} style={style}>
-      <AccordionItem value={item.id} className="border rounded-lg px-4">
-        <AccordionTrigger className="hover:no-underline">
+      <AccordionItem value={item.id} className="border rounded-lg px-4 hover:border-primary/30 transition-colors">
+        <AccordionTrigger className="hover:no-underline py-3">
           <div className="flex items-center gap-3 flex-1 text-right">
             {!isDragDisabled && (
               <button
@@ -73,14 +75,19 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
                 <GripVertical className="w-4 h-4" />
               </button>
             )}
-            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0">
+            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-[3.5rem] justify-center">
               {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
             </Badge>
-            <span className="font-semibold text-sm">
+            {item.chapter_number && (
+              <Badge variant="outline" className="shrink-0 text-xs">
+                فصل {item.chapter_number}
+              </Badge>
+            )}
+            <span className="font-semibold text-sm flex-1">
               {item.chapter_title || item.part_title}
             </span>
             {!item.is_visible && (
-              <Badge variant="outline" className="text-muted-foreground shrink-0">
+              <Badge variant="outline" className="text-muted-foreground shrink-0 text-xs">
                 <EyeOff className="w-3 h-3 ml-1" /> مخفي
               </Badge>
             )}
@@ -88,7 +95,7 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
         </AccordionTrigger>
         <AccordionContent>
           <div className="pt-2 pb-4 space-y-4">
-            <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed" dir="rtl">
+            <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
               <ReactMarkdown>{item.content}</ReactMarkdown>
             </div>
             <div className="flex items-center justify-between pt-3 border-t print:hidden">
@@ -103,12 +110,12 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onDelete(item)} className="gap-2 text-destructive hover:text-destructive">
-                  <Trash2 className="w-4 h-4" />
+                <Button variant="outline" size="sm" onClick={() => onDelete(item)} className="gap-1.5 text-destructive hover:text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">حذف</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-2">
-                  <Pencil className="w-4 h-4" />
+                <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-1.5">
+                  <Pencil className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">تعديل</span>
                 </Button>
               </div>
@@ -122,6 +129,7 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
 
 const BylawsPage = () => {
   const { data: bylaws, isLoading, updateBylaw, reorderBylaws, createBylaw, deleteBylaw } = useBylaws();
+  const { data: settings, updateSetting } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -129,6 +137,8 @@ const BylawsPage = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteItem, setDeleteItem] = useState<BylawEntry | null>(null);
   const [newBylaw, setNewBylaw] = useState({ part_title: '', chapter_title: '', content: '', part_number: 0 });
+
+  const isPublished = settings?.bylaws_published !== 'false';
 
   const allBylaws = bylaws || [];
 
@@ -144,6 +154,13 @@ const BylawsPage = () => {
   }, [allBylaws, search]);
 
   const isSearching = search.trim().length > 0;
+
+  const stats = useMemo(() => {
+    const total = allBylaws.length;
+    const visible = allBylaws.filter((b) => b.is_visible).length;
+    const hidden = total - visible;
+    return { total, visible, hidden };
+  }, [allBylaws]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -199,6 +216,16 @@ const BylawsPage = () => {
     updateBylaw.mutate({ id: item.id, is_visible: !item.is_visible });
   };
 
+  const togglePublish = async () => {
+    const newValue = isPublished ? 'false' : 'true';
+    try {
+      await updateSetting.mutateAsync({ key: 'bylaws_published', value: newValue });
+      toast.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
+    } catch {
+      toast.error('حدث خطأ أثناء تحديث حالة النشر');
+    }
+  };
+
   const handleAdd = () => {
     if (!newBylaw.part_title.trim()) return;
     createBylaw.mutate(
@@ -236,26 +263,81 @@ const BylawsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
+        {/* Professional Header */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 md:p-8">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
+                <Scale className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
+                <p className="text-sm text-muted-foreground mt-1">إدارة وتنظيم لائحة أعمال الوقف والنظارة</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-              <p className="text-sm text-muted-foreground">اسحب البنود لإعادة ترتيبها</p>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setShowAddDialog(true)} variant="outline" className="gap-2">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">إضافة بند</span>
+              </Button>
+              <ExportMenu
+                onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
+              />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setShowAddDialog(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">إضافة بند</span>
-            </Button>
-            <ExportMenu
-              onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
-            />
-          </div>
+        </div>
+
+        {/* Stats & Publish Control */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">إجمالي البنود</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+                <Eye className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stats.visible}</p>
+                <p className="text-xs text-muted-foreground">بنود ظاهرة</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <EyeOff className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stats.hidden}</p>
+                <p className="text-xs text-muted-foreground">بنود مخفية</p>
+              </div>
+            </div>
+          </Card>
+          {/* Publish Toggle */}
+          <Card className={`p-4 border-2 transition-colors ${isPublished ? 'border-primary/30 bg-accent' : 'border-destructive/30 bg-destructive/5'}`}>
+            <div className="flex items-center justify-between h-full">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPublished ? 'bg-primary/10' : 'bg-destructive/10'}`}>
+                  {isPublished ? <Globe className="w-5 h-5 text-primary" /> : <Lock className="w-5 h-5 text-destructive" />}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">{isPublished ? 'منشورة' : 'محجوبة'}</p>
+                  <p className="text-xs text-muted-foreground">{isPublished ? 'متاحة للمستفيدين' : 'مخفية عن المستفيدين'}</p>
+                </div>
+              </div>
+              <Switch checked={isPublished} onCheckedChange={togglePublish} />
+            </div>
+          </Card>
         </div>
 
         {/* Search */}
@@ -277,11 +359,12 @@ const BylawsPage = () => {
 
         {/* Bylaws with DnD */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
+              <BookOpen className="w-5 h-5 text-primary" />
               بنود اللائحة ({visibleBylaws.length} بند)
               {isSearching && <Badge variant="secondary" className="text-xs">نتائج البحث</Badge>}
+              {!isSearching && <Badge variant="outline" className="text-xs text-muted-foreground">اسحب لإعادة الترتيب</Badge>}
               {reorderBylaws.isPending && (
                 <Badge variant="outline" className="text-xs gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" /> جاري حفظ الترتيب...
@@ -376,7 +459,7 @@ const BylawsPage = () => {
               يمكنك تعديل المحتوى باستخدام تنسيق Markdown. سيتم تسجيل التعديل في سجل المراجعة.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4" dir="rtl">
+          <div className="space-y-4 overflow-y-auto max-h-[50vh]" dir="rtl">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">رقم الجزء</label>
