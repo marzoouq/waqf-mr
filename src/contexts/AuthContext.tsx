@@ -50,14 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let initialSessionHandled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
-          }, 0);
+          await fetchUserRole(session.user.id);
         } else {
           setRole(null);
         }
@@ -66,12 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!initialSessionHandled) {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          fetchUserRole(session.user.id);
+          await fetchUserRole(session.user.id);
         }
         setLoading(false);
       }
