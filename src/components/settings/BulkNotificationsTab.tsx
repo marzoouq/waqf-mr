@@ -130,7 +130,7 @@ const BulkNotificationsTab = () => {
 
           <div className="space-y-1.5">
             <Label>رابط (اختياري)</Label>
-            <Input value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/share" maxLength={200} />
+            <Input value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/my-share" maxLength={200} />
           </div>
 
           <div className="space-y-3 border-t pt-4">

@@ -228,26 +228,10 @@ const App = () => (
               }
             />
             <Route
-              path="/beneficiary/share"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
-                  <MySharePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/beneficiary/my-share"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
                   <MySharePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/beneficiary/reports"
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
-                  <FinancialReportsPage />
                 </ProtectedRoute>
               }
             />
@@ -263,7 +247,7 @@ const App = () => (
               path="/beneficiary/accounts"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
-                  <DisclosurePage />
+                  <AccountsViewPage />
                 </ProtectedRoute>
               }
             />
