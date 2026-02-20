@@ -37,6 +37,11 @@
 </head>
 
   <body>
+    <style>
+      /* Critical inline CSS for faster FCP */
+      #root{min-height:100vh;background:#faf8f5}
+      body{margin:0;font-family:'Tajawal',sans-serif;direction:rtl}
+    </style>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
