@@ -6,10 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays } from 'lucide-react';
+import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert } from 'lucide-react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
 import TablePagination from '@/components/TablePagination';
+import AccessLogTab from '@/components/audit/AccessLogTab';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -144,129 +146,150 @@ const AuditLogPage = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{todayCount}</p></CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="w-4 h-4" />آخر عملية</CardTitle></CardHeader>
-            <CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].created_at).toLocaleString('ar-SA') : '—'}</p></CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="operations" dir="rtl">
+          <TabsList className="mb-4">
+            <TabsTrigger value="operations" className="gap-2">
+              <Activity className="w-4 h-4" />
+              سجل العمليات
+            </TabsTrigger>
+            <TabsTrigger value="access" className="gap-2">
+              <ShieldAlert className="w-4 h-4" />
+              محاولات الوصول
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="بحث..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
-          </div>
-          <Select value={tableFilter} onValueChange={v => { setTableFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="الجدول" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع الجداول</SelectItem>
-              <SelectItem value="income">الدخل</SelectItem>
-              <SelectItem value="expenses">المصروفات</SelectItem>
-              <SelectItem value="accounts">الحسابات</SelectItem>
-              <SelectItem value="distributions">التوزيعات</SelectItem>
-              <SelectItem value="invoices">الفواتير</SelectItem>
-              <SelectItem value="properties">العقارات</SelectItem>
-              <SelectItem value="contracts">العقود</SelectItem>
-              <SelectItem value="beneficiaries">المستفيدين</SelectItem>
-              <SelectItem value="units">الوحدات</SelectItem>
-              <SelectItem value="fiscal_years">السنوات المالية</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={opFilter} onValueChange={v => { setOpFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="العملية" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع العمليات</SelectItem>
-              <SelectItem value="INSERT">إضافة</SelectItem>
-              <SelectItem value="UPDATE">تعديل</SelectItem>
-              <SelectItem value="DELETE">حذف</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <TabsContent value="operations">
+            {/* Stats */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader>
+                  <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader>
+                  <CardContent><p className="text-2xl font-bold">{todayCount}</p></CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="w-4 h-4" />آخر عملية</CardTitle></CardHeader>
+                  <CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].created_at).toLocaleString('ar-SA') : '—'}</p></CardContent>
+                </Card>
+              </div>
 
-        {/* Table */}
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
-            ) : filtered.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
-            ) : (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right w-10"></TableHead>
-                      <TableHead className="text-right">التاريخ والوقت</TableHead>
-                      <TableHead className="text-right">الجدول</TableHead>
-                      <TableHead className="text-right">العملية</TableHead>
-                      <TableHead className="text-right">ملخص</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginated.map(log => {
-                      const isExpanded = expandedRows.has(log.id);
-                      const summary = log.operation === 'INSERT'
-                        ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
-                        : log.operation === 'DELETE'
-                          ? `حذف سجل من ${getTableNameAr(log.table_name)}`
-                          : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
-                      return (
-                        <Collapsible key={log.id} open={isExpanded} onOpenChange={() => toggleRow(log.id)} asChild>
-                          <>
-                            <CollapsibleTrigger asChild>
-                              <TableRow className="cursor-pointer hover:bg-muted/50">
-                                <TableCell>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                  </Button>
-                                </TableCell>
-                                <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
-                                <TableCell>{getTableNameAr(log.table_name)}</TableCell>
-                                <TableCell>
-                                  <Badge className={operationColor(log.operation)} variant="outline">
-                                    {getOperationNameAr(log.operation)}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">{summary}</TableCell>
-                              </TableRow>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent asChild>
-                              <tr>
-                                <td colSpan={5} className="bg-muted/30 p-4 border-b">
-                                  <DataDiff
-                                    oldData={log.old_data as Record<string, unknown> | null}
-                                    newData={log.new_data as Record<string, unknown> | null}
-                                    operation={log.operation}
-                                  />
-                                </td>
-                              </tr>
-                            </CollapsibleContent>
-                          </>
-                        </Collapsible>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                <TablePagination
-                  currentPage={currentPage}
-                  totalItems={filtered.length}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+              {/* Filters */}
+              <div className="flex flex-wrap gap-3">
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="بحث..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
+                </div>
+                <Select value={tableFilter} onValueChange={v => { setTableFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="الجدول" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع الجداول</SelectItem>
+                    <SelectItem value="income">الدخل</SelectItem>
+                    <SelectItem value="expenses">المصروفات</SelectItem>
+                    <SelectItem value="accounts">الحسابات</SelectItem>
+                    <SelectItem value="distributions">التوزيعات</SelectItem>
+                    <SelectItem value="invoices">الفواتير</SelectItem>
+                    <SelectItem value="properties">العقارات</SelectItem>
+                    <SelectItem value="contracts">العقود</SelectItem>
+                    <SelectItem value="beneficiaries">المستفيدين</SelectItem>
+                    <SelectItem value="units">الوحدات</SelectItem>
+                    <SelectItem value="fiscal_years">السنوات المالية</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={opFilter} onValueChange={v => { setOpFilter(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="العملية" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">جميع العمليات</SelectItem>
+                    <SelectItem value="INSERT">إضافة</SelectItem>
+                    <SelectItem value="UPDATE">تعديل</SelectItem>
+                    <SelectItem value="DELETE">حذف</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Table */}
+              <Card>
+                <CardContent className="p-0">
+                  {isLoading ? (
+                    <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+                  ) : filtered.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
+                  ) : (
+                    <>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right w-10"></TableHead>
+                            <TableHead className="text-right">التاريخ والوقت</TableHead>
+                            <TableHead className="text-right">الجدول</TableHead>
+                            <TableHead className="text-right">العملية</TableHead>
+                            <TableHead className="text-right">ملخص</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {paginated.map(log => {
+                            const isExpanded = expandedRows.has(log.id);
+                            const summary = log.operation === 'INSERT'
+                              ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
+                              : log.operation === 'DELETE'
+                                ? `حذف سجل من ${getTableNameAr(log.table_name)}`
+                                : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
+                            return (
+                              <Collapsible key={log.id} open={isExpanded} onOpenChange={() => toggleRow(log.id)} asChild>
+                                <>
+                                  <CollapsibleTrigger asChild>
+                                    <TableRow className="cursor-pointer hover:bg-muted/50">
+                                      <TableCell>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                        </Button>
+                                      </TableCell>
+                                      <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
+                                      <TableCell>{getTableNameAr(log.table_name)}</TableCell>
+                                      <TableCell>
+                                        <Badge className={operationColor(log.operation)} variant="outline">
+                                          {getOperationNameAr(log.operation)}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-sm text-muted-foreground">{summary}</TableCell>
+                                    </TableRow>
+                                  </CollapsibleTrigger>
+                                  <CollapsibleContent asChild>
+                                    <tr>
+                                      <td colSpan={5} className="bg-muted/30 p-4 border-b">
+                                        <DataDiff
+                                          oldData={log.old_data as Record<string, unknown> | null}
+                                          newData={log.new_data as Record<string, unknown> | null}
+                                          operation={log.operation}
+                                        />
+                                      </td>
+                                    </tr>
+                                  </CollapsibleContent>
+                                </>
+                              </Collapsible>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                      <TablePagination
+                        currentPage={currentPage}
+                        totalItems={filtered.length}
+                        itemsPerPage={ITEMS_PER_PAGE}
+                        onPageChange={setCurrentPage}
+                      />
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="access">
+            <AccessLogTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

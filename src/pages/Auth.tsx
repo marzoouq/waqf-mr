@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { logAccessEvent } from '@/hooks/useAccessLog';
 
 const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -30,6 +31,7 @@ const Auth = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('reason') === 'idle') {
       toast.info('تم تسجيل خروجك تلقائياً بسبب عدم النشاط. يرجى تسجيل الدخول مرة أخرى.');
+      logAccessEvent({ event_type: 'idle_logout', target_path: '/auth?reason=idle' });
       window.history.replaceState({}, '', '/auth');
     }
   }, []);
@@ -98,8 +100,19 @@ const Auth = () => {
     setIsLoading(false);
     if (error) {
       toast.error('خطأ في تسجيل الدخول: ' + error.message);
+      logAccessEvent({
+        event_type: 'login_failed',
+        email: resolvedEmail,
+        metadata: { error_message: error.message, login_method: loginMethod },
+      });
     } else {
       toast.success('تم تسجيل الدخول بنجاح');
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      logAccessEvent({
+        event_type: 'login_success',
+        email: resolvedEmail,
+        user_id: currentUser?.id,
+      });
     }
   };
 

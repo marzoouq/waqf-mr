@@ -9,6 +9,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { logAccessEvent } from '@/hooks/useAccessLog';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,6 +20,21 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, role, loading } = useAuth();
   const location = useLocation();
+  const loggedRef = useRef(false);
+
+  const isUnauthorized = !loading && !!user && !!allowedRoles && (!role || !allowedRoles.includes(role));
+
+  useEffect(() => {
+    if (isUnauthorized && !loggedRef.current) {
+      loggedRef.current = true;
+      logAccessEvent({
+        event_type: 'unauthorized_access',
+        user_id: user!.id,
+        target_path: location.pathname,
+        metadata: { current_role: role, required_roles: allowedRoles },
+      });
+    }
+  }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
 
   if (loading) {
     return (
@@ -31,7 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+  if (isUnauthorized) {
     return <Navigate to="/unauthorized" replace />;
   }
 

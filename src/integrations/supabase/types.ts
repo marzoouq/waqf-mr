@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_log: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_type: string
+          id: string
+          ip_info: string | null
+          metadata: Json | null
+          target_path: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_type: string
+          id?: string
+          ip_info?: string | null
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          ip_info?: string | null
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           admin_share: number
