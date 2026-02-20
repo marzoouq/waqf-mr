@@ -1,66 +1,117 @@
 
+# تدقيق شامل للوحة المستفيد + خطة التحسينات
 
-# تشخيص وإصلاح مشكلة صفحة المستخدمين الفارغة
+## نتائج التدقيق
 
-## التحليل
+### 1. التكرار المؤكد
+- صفحة "الحسابات الختامية" (`AccountsViewPage.tsx`) تكرر 4 أقسام كاملة من "الإفصاح السنوي" (`DisclosurePage.tsx`): الإيرادات، المصروفات، الملخص، حصة المستفيد
+- المحتوى الفريد الوحيد: **جدول العقود** (6 أعمدة مع إجمالي)
 
-بعد فحص الكود والسجلات، المشكلة تتمحور حول نقطتين:
+### 2. القسم المفقود
+- **لا توجد صفحة إعدادات** للمستفيد (لا رابط في القائمة، لا مسار في App.tsx، لا ملف)
 
-### المشكلة 1: تعارض محتمل في إرسال header المصادقة
-في ملف `UserManagementPage.tsx` (سطر 28-37)، الكود يرسل header المصادقة يدوياً:
-```text
-headers: { Authorization: `Bearer ${session?.access_token}` }
-```
-لكن مكتبة `supabase.functions.invoke` ترسل هذا الـ header **تلقائياً** من الجلسة الحالية. التعيين اليدوي قد يتعارض مع الآلية التلقائية في بعض إصدارات المكتبة.
+### 3. مشاكل التوافق والوظائف المكتشفة
 
-### المشكلة 2: عدم وجود سجلات تشخيصية في الوظيفة
-سجلات الوظيفة تُظهر فقط `booted` و `shutdown` بدون أي معلومات عن الطلبات الفعلية، مما يجعل التشخيص مستحيلاً.
+| المشكلة | الصفحة | التفاصيل |
+|---------|--------|----------|
+| FiscalYearSelector مكرر | InvoicesViewPage | الصفحة تستخدم FiscalYearSelector خاصاً بها بينما DashboardLayout يعرض واحداً بالفعل في الشريط العلوي - يظهر اثنان |
+| ExportMenu مكرر | BeneficiaryDashboard | يعرض `hidePdf` لكن زر التصدير يظهر بلا وظيفة واضحة بجانب FiscalYearSelector الثاني |
+| جدول التوزيعات بلا تاريخ هجري | MySharePage | التاريخ يُعرض بصيغة ميلادية خام `dist.date` بدون تنسيق |
+| غياب حالة التحميل | DisclosurePage | لا يوجد مؤشر تحميل (skeleton/spinner) أثناء جلب البيانات، بعكس الصفحات الأخرى التي تستورد DashboardSkeleton لكن لا تستخدمه |
+| غياب حالة الخطأ | جميع الصفحات | لا يوجد عرض لحالة الخطأ عند فشل جلب البيانات |
+| زر "رجوع" غير موجود | الصفحات الداخلية | على الجوال لا يوجد طريقة سريعة للرجوع إلا عبر القائمة الجانبية |
+| الرسوم البيانية على الجوال | FinancialReportsPage | 6 بطاقات إحصائية بشبكة `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6` - مزدحمة على الشاشات الصغيرة جداً |
 
-## خطة الإصلاح
+### 4. الوظائف التي تعمل بشكل سليم
+- Welcome Card مع ساعة حية وتقويم مزدوج - يعمل
+- CircularProgress (SVG) لنسبة الحصة - يعمل
+- Realtime للتوزيعات في الرئيسية - يعمل
+- المراسلات مع الدعم الفني - يعمل مع تصميم متجاوب (responsive)
+- الإشعارات مع التجميع بالتاريخ والفلترة - يعمل
+- اللائحة التنظيمية مع البحث والأكورديون - يعمل
+- الفواتير مع عرض جدول/شبكي + بحث + ترقيم - يعمل
+- تصدير PDF متاح في معظم الصفحات - يعمل
+- القائمة الجانبية mobile/desktop مع طي - يعمل
 
-### الخطوة 1: إضافة سجلات تشخيصية للوظيفة
+---
 
-تعديل `supabase/functions/admin-manage-users/index.ts`:
-- إضافة `console.log` عند استقبال كل طلب لعرض:
-  - نوع الطلب (method)
-  - هل يوجد Authorization header أم لا
-  - طول الـ header (بدون كشف محتواه)
-- إضافة `console.log` عند نجاح/فشل التحقق من المستخدم
-- هذا سيظهر في سجلات الوظيفة ويساعد في التشخيص الفوري
+## خطة التنفيذ
 
-### الخطوة 2: إزالة التعيين اليدوي لـ header المصادقة
+### المرحلة 1: إضافة صفحة الإعدادات الشخصية
 
-تعديل `src/pages/dashboard/UserManagementPage.tsx`:
-- إزالة `headers: { Authorization: ... }` من `callAdminApi`
-- الاعتماد على الإرسال التلقائي من `supabase.functions.invoke`
-- إضافة تحقق من وجود الجلسة قبل الاستدعاء مع رسالة خطأ واضحة
+**ملف جديد: `src/pages/beneficiary/BeneficiarySettingsPage.tsx`**
 
-```text
-قبل:
-  const res = await supabase.functions.invoke('admin-manage-users', {
-    body,
-    headers: { Authorization: `Bearer ${session?.access_token}` },
-  });
+3 أقسام في صفحة واحدة باستخدام Tabs:
 
-بعد:
-  if (!session?.access_token) throw new Error("يجب تسجيل الدخول أولاً");
-  const res = await supabase.functions.invoke('admin-manage-users', { body });
-```
+**تبويب "معلومات الحساب":**
+- عرض الاسم (من جدول المستفيدين - قراءة فقط)
+- عرض البريد الإلكتروني (قراءة فقط)
+- عرض نسبة الحصة (قراءة فقط)
+- عرض رقم الهوية مع إخفاء جزئي (قراءة فقط)
 
-### الخطوة 3: إعادة نشر الوظيفة واختبارها
+**تبويب "تغيير كلمة المرور":**
+- حقل كلمة المرور الجديدة (8 أحرف كحد أدنى مع zod validation)
+- حقل تأكيد كلمة المرور
+- زر حفظ يستدعي `supabase.auth.updateUser({ password })`
+- إظهار/إخفاء كلمة المرور (Eye toggle)
 
-- نشر الوظيفة المحدثة
-- استدعاء الوظيفة مباشرة للتحقق من عملها
-- فحص السجلات التشخيصية الجديدة
+**تبويب "تفضيلات الإشعارات":**
+- مفتاح تبديل: إشعارات التوزيعات المالية
+- مفتاح تبديل: إشعارات العقود
+- مفتاح تبديل: إشعارات الرسائل
+- تُحفظ في localStorage (لا حاجة لجدول جديد)
 
-## الملفات المتأثرة
+### المرحلة 2: دمج "الحسابات الختامية" في "الإفصاح السنوي"
 
-1. `supabase/functions/admin-manage-users/index.ts` -- إضافة سجلات تشخيصية
-2. `src/pages/dashboard/UserManagementPage.tsx` -- إزالة التعيين اليدوي للـ header
+**تعديل: `src/pages/beneficiary/DisclosurePage.tsx`**
+- إضافة قسم "العقود" فوق البيان المالي التفصيلي
+- جدول يعرض: رقم العقد، المستأجر، الإيجار السنوي، الإيجار الشهري، الحالة
+- صف إجمالي في أسفل الجدول
+- استخدام `useContracts` مع فلترة بالسنة المالية
 
-## النتيجة المتوقعة
+### المرحلة 3: تحديث القائمة والتوجيه
 
-- سجلات واضحة تكشف بالضبط ما يحدث مع كل طلب
-- إصلاح التعارض المحتمل في إرسال header المصادقة
-- صفحة المستخدمين تعرض القائمة بشكل صحيح
+**تعديل: `src/components/DashboardLayout.tsx`**
+- إزالة رابط `/beneficiary/accounts` من `allBeneficiaryLinks`
+- إضافة رابط `/beneficiary/settings` مع أيقونة Settings وعنوان "الإعدادات"
+- إزالة `/beneficiary/accounts` من `beneficiarySectionKeys` و `SHOW_ALL_ROUTES`
 
+**تعديل: `src/App.tsx`**
+- إضافة import وroute لـ `BeneficiarySettingsPage`
+- تحويل مسار `/beneficiary/accounts` إلى redirect نحو `/beneficiary/disclosure`
+
+**تعديل: `src/pages/beneficiary/BeneficiaryDashboard.tsx`**
+- استبدال رابط "الحسابات الختامية" في quickLinks بـ "الإعدادات" أو "اللائحة التنظيمية"
+
+### المرحلة 4: إصلاح المشاكل المكتشفة
+
+**إصلاح FiscalYearSelector المكرر في InvoicesViewPage:**
+- إزالة FiscalYearSelector المحلي واستخدام القيمة من `useFiscalYear()` context بدلاً من state محلي
+
+**إضافة مؤشر تحميل لـ DisclosurePage:**
+- إضافة skeleton/spinner أثناء جلب البيانات المالية
+
+**تنسيق التواريخ في MySharePage:**
+- تحويل `dist.date` إلى تنسيق عربي مقروء: `toLocaleDateString('ar-SA')`
+
+---
+
+## القائمة النهائية للمستفيد (9 عناصر):
+1. الرئيسية
+2. الإفصاح السنوي (مع العقود)
+3. حصتي من الريع
+4. التقارير المالية
+5. المراسلات
+6. سجل الإشعارات
+7. الفواتير
+8. اللائحة التنظيمية
+9. الإعدادات (جديد)
+
+## الملفات المتأثرة:
+1. `src/pages/beneficiary/BeneficiarySettingsPage.tsx` -- **جديد**
+2. `src/pages/beneficiary/DisclosurePage.tsx` -- إضافة جدول العقود + مؤشر تحميل
+3. `src/components/DashboardLayout.tsx` -- تحديث القائمة
+4. `src/App.tsx` -- إضافة مسار الإعدادات + redirect
+5. `src/pages/beneficiary/BeneficiaryDashboard.tsx` -- تحديث quickLinks
+6. `src/pages/beneficiary/InvoicesViewPage.tsx` -- إصلاح FiscalYearSelector المكرر
+7. `src/pages/beneficiary/MySharePage.tsx` -- تنسيق التواريخ
