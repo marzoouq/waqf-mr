@@ -1,116 +1,83 @@
 
-# خطة تنفيذ الإصلاحات المتبقية (5 مشاكل)
 
-## الوضع الحالي
+# خطة إصلاح المشاكل المتبقية (~25 مخالفة ESLint)
 
-من اصل 8 مشاكل تم اكتشافها جنائياً، 3 تم اصلاحها فعلياً. المتبقي 5 مشاكل لم تُنفذ بعد.
+## المحور 1: إزالة `any` من صفحات CRUD (10 ملفات، ~20 مخالفة)
+
+### ملف `BeneficiariesPage.tsx` (سطر 43, 46)
+- استبدال `(u: any)` بنوع `{ id: string; email?: string }` من استجابة auth.admin
+- استبدال `(r: any)` بنوع `{ user_id: string }`
+
+### ملف `InvoicesPage.tsx` (سطر 137, 167)
+- استبدال `Record<string, any>` بـ `Partial<Invoice>` او interface مخصص
+- ازالة `as any` من mutateAsync باستخدام type assertion دقيق
+
+### ملف `ExpensesPage.tsx` (سطر 68)
+- ازالة `as any` من mutateAsync عبر بناء الكائن بالنوع الصحيح `Insert<'expenses'>`
+
+### ملف `ContractsPage.tsx` (سطر 104, 110)
+- نفس النمط: استبدال `as any` بـ `Insert<'contracts'>` و `Update<'contracts'>`
+
+### ملف `IncomePage.tsx` (سطر 61)
+- نفس النمط: استبدال `as any` بـ `Insert<'income'>` و `Update<'income'>`
+
+### ملف `Auth.tsx` (سطر 30, 376)
+- `useState<any>(null)` -> `useState<BeforeInstallPromptEvent | null>(null)` مع interface مخصص لـ PWA
+- `(r: any)` -> `(r: { outcome: string })`
+
+### ملف `AccessLogTab.tsx` (سطر 41)
+- `'access_log' as any` -> التحقق من وجود الجدول في types.ts، واذا لم يكن موجوداً يُترك مع تعليق توثيقي
+
+### ملف `YearOverYearComparison.tsx` (سطر 82)
+- `(d as any)[k]` -> استخدام Record type مناسب للبيانات الديناميكية
+
+### ملف `FiscalYearManagementTab.tsx` (سطر 43, 72)
+- `catch (err: any)` -> `catch (err: unknown)` مع type guard `err instanceof Error`
 
 ---
 
-## المشكلة 4: انتهاك قواعد React Hooks (8 اخطاء ESLint)
+## المحور 2: اصلاح `no-unused-expressions` (ملفان، مخالفتان)
 
-### السبب الجذري
-دالة `useCrudFactory` تبدا بـ `use` فيعتبرها ESLint Hook، لكنها تُستدعى خارج المكونات على مستوى الملف (module scope).
-
-### الاصلاح
-اعادة تسمية الدالة المُصدّرة من `useCrudFactory` الى `createCrudFactory` في:
-
-| الملف | التغيير |
-|-------|---------|
-| `src/hooks/useCrudFactory.ts` سطر 44 | `export function useCrudFactory` -> `export function createCrudFactory` |
-| `src/hooks/useCrudFactory.test.ts` | تحديث الاستدعاء |
-| `src/hooks/useAccounts.ts` سطر 9 | `useCrudFactory` -> `createCrudFactory` |
-| `src/hooks/useBeneficiaries.ts` سطر 20 | نفس التغيير |
-| `src/hooks/useContracts.ts` سطر 11 | نفس التغيير |
-| `src/hooks/useExpenses.ts` سطر 13 | نفس التغيير |
-| `src/hooks/useIncome.ts` سطر 12 | نفس التغيير |
-| `src/hooks/useInvoices.ts` | نفس التغيير |
-| `src/hooks/useProperties.ts` سطر 9 | نفس التغيير |
-| `src/hooks/useUnits.ts` | نفس التغيير |
-
-**النتيجة**: ازالة 8 اخطاء ESLint دفعة واحدة بدون تغيير اي منطق.
-
----
-
-## المشكلة 5: اختبار ProtectedRoute الفاشل (سطر 86-96)
-
-### السبب الجذري
-الاختبار كُتب قبل اصلاح Race Condition. يتوقع تحويل لـ `/unauthorized` عند `role=null`، لكن الكود الجديد (سطر 26 في ProtectedRoute.tsx) يعامل هذه الحالة كـ `isRoleLoading` ويعرض Loader.
-
-### الاصلاح
-تعديل الاختبار في `src/components/ProtectedRoute.test.tsx` سطور 86-96:
-
+### ملف `BeneficiaryDashboard.tsx` سطر 57
 ```text
-قبل:
-  it("redirects to /unauthorized when user has no role but roles are required")
-  يتوقع: navigate data-to="/unauthorized"
+قبل: document.hidden ? stop() : (setNow(new Date()), start());
+بعد: if (document.hidden) { stop(); } else { setNow(new Date()); start(); }
+```
 
-بعد:
-  it("shows loading spinner when user has no role yet but roles are required")
-  يتوقع: document.querySelector(".animate-spin") موجود
+### ملف `AuditLogPage.tsx` سطر 134
+```text
+قبل: next.has(id) ? next.delete(id) : next.add(id);
+بعد: if (next.has(id)) { next.delete(id); } else { next.add(id); }
 ```
 
 ---
 
-## المشكلة 6: اختبارات BeneficiaryDashboard الفاشلة (اختباران)
+## المحور 3: اصلاح `no-empty-object-type` (ملفان، مخالفتان)
 
-### السبب الجذري - الاختبار 1 (سطر 49)
-الاختبار يبحث عن `'مرحباً محمد أحمد'` كنص واحد. لكن الواجهة الفعلية (سطر 136-138) تعرض:
-- `<p>صباح الخير</p>` (او مساء الخير حسب الوقت)
-- `<h1>محمد أحمد</h1>`
+### ملف `command.tsx` سطر 24
+- استبدال `{}` كنوع بـ `Record<string, never>` او `object`
 
-هما عنصران منفصلان ولا يوجد نص "مرحباً" في الواجهة اصلاً.
-
-### الاصلاح - الاختبار 1
-```text
-قبل: expect(screen.getByText('مرحباً محمد أحمد'))
-بعد: expect(screen.getByText('محمد أحمد'))
-```
-
-### السبب الجذري - الاختبار 2 (سطر 54)
-`getByText('10%')` يفشل لان النسبة تظهر داخل SVG `<text>` (سطر 28-29 في CircularProgress) وقد تظهر في عناصر اخرى ايضاً. `getByText` لا يجد نصوص SVG بشكل موثوق.
-
-### الاصلاح - الاختبار 2
-```text
-قبل: expect(screen.getByText('10%'))
-بعد: expect(screen.getByText(/10%/))
-```
-او استخدام `getAllByText` والتحقق من وجود عنصر واحد على الاقل.
+### ملف `textarea.tsx` سطر 5
+- نفس النمط
 
 ---
 
-## المشكلة 7: اختبار SettingsPage الفاشل (سطر 73)
+## المحور 4: اصلاح `no-require-imports` (ملف واحد)
 
-### السبب الجذري
-الاختبار كُتب عندما كانت الصفحة تحتوي 6 tabs. الان تحتوي 11 tab (تمت اضافة: الواجهة الرئيسية، القائمة، واجهة المستفيد، السنوات المالية، اشعارات جماعية، تصدير البيانات).
-
-### الاصلاح
-تعديل `src/pages/dashboard/SettingsPage.test.tsx` سطر 73:
-
-```text
-قبل: expect(tabs.length).toBe(6)
-بعد: expect(tabs.length).toBe(11)
-```
+### ملف `tailwind.config.ts` سطر 109
+- استبدال `require()` بـ `import` ديناميكي او اضافة استثناء ESLint اذا كان مطلوباً لتوافق Tailwind
 
 ---
 
-## المشكلة 8: نوع `any` في كود الانتاج (34 مخالفة)
+## ملخص
 
-### الاصلاح
-استبدال `any` بانواع صريحة في الملفات الاكثر اهمية. سيتم التركيز على ملفات الانتاج فقط (وليس الاختبارات):
-- ملفات PDF: `accounts.ts`, `reports.ts`, `beneficiary.ts`, `comparison.ts`
-- مكونات الواجهة: `BeneficiaryDashboard.tsx`, `AuditLogPage.tsx`
+| المحور | الملفات | المخالفات المُزالة |
+|--------|---------|-------------------|
+| ازالة any من Pages | 9 ملفات | ~20 |
+| no-unused-expressions | 2 ملف | 2 |
+| no-empty-object-type | 2 ملف | 2 |
+| no-require-imports | 1 ملف | 1 |
+| **المجموع** | **14 ملف** | **~25 مخالفة** |
 
----
+بعد التنفيذ: من 147 مشكلة اصلية الى **صفر اخطاء ESLint في كود الانتاج** (ستبقى فقط مخالفات `any` في ملفات الاختبارات وهي مقبولة).
 
-## ملخص التنفيذ
-
-| المشكلة | الملفات المتاثرة | النتيجة |
-|---------|-----------------|---------|
-| 4. تسمية useCrudFactory | 10 ملفات | -8 اخطاء ESLint |
-| 5. اختبار ProtectedRoute | 1 ملف | -1 اختبار فاشل |
-| 6. اختبارات BeneficiaryDashboard | 1 ملف | -2 اختبار فاشل |
-| 7. اختبار SettingsPage | 1 ملف | -1 اختبار فاشل |
-| 8. ازالة any | ~10 ملفات | -34 تحذير ESLint |
-
-**النتيجة النهائية**: 0 اختبارات فاشلة + انخفاض كبير في اخطاء ESLint.
