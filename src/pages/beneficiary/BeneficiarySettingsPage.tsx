@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,10 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
-import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield } from 'lucide-react';
+import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
 import { z } from 'zod';
+import ThemeColorPicker from '@/components/ThemeColorPicker';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
@@ -31,7 +33,7 @@ const defaultPrefs = {
 
 const BeneficiarySettingsPage = () => {
   const { user } = useAuth();
-  const { data: beneficiaries = [] } = useBeneficiariesSafe();
+  const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
   // Password state
@@ -89,6 +91,30 @@ const BeneficiarySettingsPage = () => {
     ? '****' + (currentBeneficiary.national_id as string).slice(-4)
     : '—';
 
+  if (benError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (benLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6">
+          <TableSkeleton rows={4} cols={2} />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
@@ -98,10 +124,10 @@ const BeneficiarySettingsPage = () => {
         </div>
 
         <Tabs defaultValue="account" dir="rtl" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
             <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm py-2">
               <User className="w-4 h-4 hidden sm:block" />
-              معلومات الحساب
+              الحساب
             </TabsTrigger>
             <TabsTrigger value="password" className="gap-1.5 text-xs sm:text-sm py-2">
               <Lock className="w-4 h-4 hidden sm:block" />
@@ -111,9 +137,13 @@ const BeneficiarySettingsPage = () => {
               <Bell className="w-4 h-4 hidden sm:block" />
               الإشعارات
             </TabsTrigger>
+            <TabsTrigger value="theme" className="gap-1.5 text-xs sm:text-sm py-2">
+              <Palette className="w-4 h-4 hidden sm:block" />
+              المظهر
+            </TabsTrigger>
           </TabsList>
 
-          {/* Account Info Tab */}
+          {/* Account Info Tab - removed share percentage */}
           <TabsContent value="account">
             <Card className="shadow-sm">
               <CardHeader>
@@ -131,10 +161,6 @@ const BeneficiarySettingsPage = () => {
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
                     <Input value={user?.email || '—'} readOnly className="bg-muted/50" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground text-xs">نسبة الحصة</Label>
-                    <Input value={`${currentBeneficiary?.share_percentage ?? 0}%`} readOnly className="bg-muted/50" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">رقم الهوية</Label>
@@ -172,13 +198,7 @@ const BeneficiarySettingsPage = () => {
                       placeholder="8 أحرف على الأقل"
                       className="pl-10"
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
+                    <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
@@ -196,13 +216,7 @@ const BeneficiarySettingsPage = () => {
                       placeholder="أعد كتابة كلمة المرور"
                       className="pl-10"
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                    >
+                    <Button type="button" variant="ghost" size="icon" className="absolute left-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setShowConfirm(!showConfirm)}>
                       {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
@@ -252,6 +266,11 @@ const BeneficiarySettingsPage = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Theme Tab */}
+          <TabsContent value="theme">
+            <ThemeColorPicker />
           </TabsContent>
         </Tabs>
       </div>

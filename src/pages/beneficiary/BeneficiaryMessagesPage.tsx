@@ -6,17 +6,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send, Plus, ArrowLeft, Headphones } from 'lucide-react';
+import { MessageSquare, Send, Plus, ArrowLeft, Headphones, AlertCircle, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const BeneficiaryMessagesPage = () => {
   const { user } = useAuth();
-  const { data: chatConversations = [] } = useConversations('chat');
-  const { data: supportConversations = [] } = useConversations('support');
+  const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
+  const { data: supportConversations = [], isLoading: supportLoading } = useConversations('support');
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
 
@@ -25,10 +26,13 @@ const BeneficiaryMessagesPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const [supportSubject, setSupportSubject] = useState('');
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
+  const [chatSubject, setChatSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const conversations = activeTab === 'chat' ? chatConversations : supportConversations;
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
+  const isLoading = chatLoading || supportLoading;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,15 +57,58 @@ const BeneficiaryMessagesPage = () => {
     setSupportSubject('');
   };
 
+  const handleNewChat = async () => {
+    if (!user) return;
+    const conv = await createConversation.mutateAsync({
+      type: 'chat',
+      subject: chatSubject || 'محادثة مع الناظر',
+      createdBy: user.id,
+    });
+    setSelectedConv(conv);
+    setActiveTab('chat');
+    setChatDialogOpen(false);
+    setChatSubject('');
+  };
+
+  if (chatError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل المراسلات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 md:p-6">
+          <TableSkeleton rows={5} cols={2} />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 h-[calc(100vh-theme(spacing.14))] lg:h-screen flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-display text-2xl font-bold">المراسلات</h1>
-          <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-            <Headphones className="w-4 h-4" />
-            دعم فني
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setChatDialogOpen(true)} variant="default" size="sm" className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              محادثة الناظر
+            </Button>
+            <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
+              <Headphones className="w-4 h-4" />
+              دعم فني
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -81,7 +128,12 @@ const BeneficiaryMessagesPage = () => {
               {conversations.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground text-sm">
                   <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  {activeTab === 'chat' ? 'لا توجد محادثات' : 'لا توجد تذاكر دعم'}
+                  {activeTab === 'chat' ? (
+                    <>
+                      <p>لا توجد محادثات بعد</p>
+                      <p className="text-xs mt-1">اضغط "محادثة الناظر" لبدء محادثة جديدة</p>
+                    </>
+                  ) : 'لا توجد تذاكر دعم'}
                 </div>
               ) : (
                 conversations.map((conv) => (
@@ -149,9 +201,13 @@ const BeneficiaryMessagesPage = () => {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
+                <div className="text-center space-y-3">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm">اختر محادثة أو أنشئ تذكرة دعم</p>
+                  <p className="text-sm">اختر محادثة أو ابدأ محادثة جديدة مع الناظر</p>
+                  <Button onClick={() => setChatDialogOpen(true)} variant="outline" size="sm" className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    محادثة جديدة
+                  </Button>
                 </div>
               </div>
             )}
@@ -159,19 +215,40 @@ const BeneficiaryMessagesPage = () => {
         </div>
       </div>
 
+      {/* Chat Dialog */}
+      <Dialog open={chatDialogOpen} onOpenChange={setChatDialogOpen}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="font-display">محادثة الناظر</DialogTitle>
+            <DialogDescription>ابدأ محادثة جديدة مع ناظر الوقف</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>الموضوع</Label>
+              <Input value={chatSubject} onChange={(e) => setChatSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
+            </div>
+            <Button onClick={handleNewChat} className="w-full" disabled={createConversation.isPending}>
+              {createConversation.isPending ? 'جاري الإنشاء...' : 'بدء المحادثة'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Support Dialog */}
       <Dialog open={supportDialogOpen} onOpenChange={setSupportDialogOpen}>
         <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle className="font-display">طلب دعم فني</DialogTitle>
-            <DialogDescription className="sr-only">إرسال طلب دعم فني جديد</DialogDescription>
+            <DialogDescription>إرسال طلب دعم فني جديد</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>الموضوع</Label>
               <Input value={supportSubject} onChange={(e) => setSupportSubject(e.target.value)} placeholder="صف مشكلتك باختصار" maxLength={200} />
             </div>
-            <Button onClick={handleNewSupport} className="w-full">إرسال طلب الدعم</Button>
+            <Button onClick={handleNewSupport} className="w-full" disabled={createConversation.isPending}>
+              {createConversation.isPending ? 'جاري الإرسال...' : 'إرسال طلب الدعم'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

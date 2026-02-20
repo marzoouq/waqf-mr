@@ -1,14 +1,13 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Wallet, Percent, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMySharePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -38,11 +37,13 @@ const MySharePage = () => {
     zakatAmount,
     netAfterExpenses,
     availableAmount,
+    isLoading: finLoading,
+    isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-  const { data: distributions = [] } = useQuery({
+  const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id],
     queryFn: async () => {
       if (!currentBeneficiary?.id) return [];
@@ -113,7 +114,21 @@ const MySharePage = () => {
     }
   };
 
-  if (!currentBeneficiary) {
+  if (finError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!currentBeneficiary && !finLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
@@ -123,6 +138,10 @@ const MySharePage = () => {
         </div>
       </DashboardLayout>
     );
+  }
+
+  if (finLoading || distLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
   return (
@@ -139,8 +158,8 @@ const MySharePage = () => {
           </div>
         </div>
 
-        {/* Share Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        {/* Share Summary - 3 cards (removed percentage card) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <Card className="shadow-sm gradient-primary text-primary-foreground">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -178,20 +197,6 @@ const MySharePage = () => {
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المعلقة</p>
                   <p className="text-base sm:text-2xl font-bold text-warning truncate">{pendingAmount.toLocaleString()} ر.س</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة حصتي</p>
-                  <p className="text-base sm:text-2xl font-bold">{currentBeneficiary?.share_percentage || 0}%</p>
                 </div>
               </div>
             </CardContent>

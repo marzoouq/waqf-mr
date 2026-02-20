@@ -18,11 +18,14 @@ import {
  */
 export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string) => {
   const fyFilter = fiscalYearId || 'all';
-  const { data: income = [] } = useIncomeByFiscalYear(fyFilter);
-  const { data: expenses = [] } = useExpensesByFiscalYear(fyFilter);
-  const { data: accounts = [] } = useAccounts();
-  const { data: beneficiaries = [] } = useBeneficiariesSafe();
+  const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
+  const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
+  const { data: accounts = [], isLoading: accLoading } = useAccounts();
+  const { data: beneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
   const { data: settings } = useAppSettings();
+
+  const isLoading = incLoading || expLoading || accLoading || benLoading;
+  const isError = incError || expError;
 
   const { totalIncome, totalExpenses } = useMemo(
     () => computeTotals(income, expenses),
@@ -98,6 +101,9 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
   }, [expenses]);
 
   return {
+    // Loading/Error states
+    isLoading,
+    isError,
     // Raw data
     income,
     expenses,
