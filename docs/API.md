@@ -1,6 +1,6 @@
 <div dir="rtl">
 
-# توثيق الوظائف الخلفية (Edge Functions)
+# توثيق الوظائف الخلفية (Edge Functions) — 8 وظائف
 
 جميع الوظائف تعمل على Lovable Cloud وتُستدعى عبر:
 ```typescript
@@ -148,9 +148,13 @@ const { data } = await supabase.functions.invoke('auto-expire-contracts', {
 
 ## 4. `check-contract-expiry` — تنبيهات انتهاء العقود
 
-**الوصف**: يبحث عن العقود التي ستنتهي خلال 30 يوماً ويرسل إشعارات تحذيرية.
+**الوصف**: يبحث عن العقود التي ستنتهي خلال 30 يوماً ويرسل إشعارات تحذيرية للناظر والمستفيدين.
 
-**المصادقة**: يتطلب service_role key (للجدولة) أو JWT admin.
+**المصادقة**: مصادقة مزدوجة — يقبل أحد الخيارين:
+1. **service_role key**: للمهام المجدولة (Cron Jobs) — يُقارن التوكن مباشرة بمتغير البيئة `SUPABASE_SERVICE_ROLE_KEY`
+2. **JWT admin**: للاستدعاء اليدوي — يتحقق عبر `getClaims()` ثم يفحص دور `admin` في جدول `user_roles`
+
+> ⚠️ ملاحظة: `verify_jwt = false` في `config.toml` — قرار واعٍ لتسهيل استدعاء Cron مع التحقق اليدوي في الكود.
 
 ```typescript
 const { data } = await supabase.functions.invoke('check-contract-expiry', {
@@ -183,7 +187,7 @@ const { data } = await supabase.functions.invoke('lookup-national-id', {
 
 ## 6. `guard-signup` — حماية التسجيل
 
-**الوصف**: يتحقق من إعداد `registration_enabled` قبل السماح بإنشاء حساب جديد. يُستخدم بدلاً من التسجيل المباشر عبر Supabase Auth.
+**الوصف**: يتحقق من إعداد `registration_enabled` قبل السماح بإنشاء حساب جديد. يُستخدم بدلاً من التسجيل المباشر عبر نظام المصادقة.
 
 **المصادقة**: لا يتطلب مصادقة (عام — مطلوب قبل إنشاء الحساب).
 

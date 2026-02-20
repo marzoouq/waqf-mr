@@ -172,9 +172,31 @@ erDiagram
         uuid user_id
     }
 
+    access_log {
+        uuid id PK
+        text event_type
+        text email "nullable"
+        uuid user_id "nullable"
+        text target_path "nullable"
+        text ip_info "nullable"
+        jsonb metadata
+        timestamptz created_at
+    }
+
     app_settings {
         text key PK
         text value
+    }
+
+    waqf_bylaws {
+        uuid id PK
+        integer part_number
+        text part_title
+        integer chapter_number "nullable"
+        text chapter_title "nullable"
+        text content
+        boolean is_visible
+        integer sort_order
     }
 
     properties ||--o{ units : "تحتوي"
@@ -198,7 +220,7 @@ erDiagram
 
 ---
 
-## الجداول والأعمدة
+## الجداول والأعمدة (19 جدول/عرض)
 
 ### 1. `user_roles` — أدوار المستخدمين
 | العمود | النوع | وصف |
@@ -275,9 +297,116 @@ erDiagram
 | `national_id` | text | رقم الهوية الوطنية |
 | `bank_account` | text | رقم الحساب البنكي |
 
+### 9. `distributions` — التوزيعات
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `account_id` | UUID | الحساب الختامي |
+| `beneficiary_id` | UUID | المستفيد |
+| `amount` | numeric | المبلغ |
+| `date` | date | تاريخ التوزيع |
+| `status` | text | الحالة: pending / paid |
+
+### 10. `fiscal_years` — السنوات المالية
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `label` | text | التسمية (مثل: 1446-1447هـ) |
+| `start_date` | date | تاريخ البداية |
+| `end_date` | date | تاريخ النهاية |
+| `status` | text | الحالة: active / closed |
+
+### 11. `invoices` — الفواتير
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `invoice_type` | text | نوع الفاتورة |
+| `invoice_number` | text | رقم الفاتورة |
+| `amount` | numeric | المبلغ |
+| `date` | date | التاريخ |
+| `status` | text | الحالة |
+| `file_path` | text | مسار الملف في التخزين |
+
+### 12. `tenant_payments` — دفعات المستأجرين
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `contract_id` | UUID | العقد المرتبط |
+| `paid_months` | integer | عدد الأشهر المدفوعة |
+| `notes` | text | ملاحظات |
+
+### 13. `conversations` — المحادثات
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `created_by` | UUID | منشئ المحادثة |
+| `participant_id` | UUID | المشارك (اختياري) |
+| `subject` | text | الموضوع |
+| `type` | text | النوع: chat |
+| `status` | text | الحالة: open / closed |
+
+### 14. `messages` — الرسائل
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `conversation_id` | UUID | المحادثة |
+| `sender_id` | UUID | المرسل |
+| `content` | text | المحتوى |
+| `is_read` | boolean | حالة القراءة |
+
+### 15. `notifications` — الإشعارات
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `user_id` | UUID | المستخدم المستهدف |
+| `title` | text | العنوان |
+| `message` | text | نص الإشعار |
+| `type` | text | النوع: info / warning / error / success |
+| `link` | text | رابط مرتبط (اختياري) |
+
+### 16. `audit_log` — سجل المراجعة
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `table_name` | text | اسم الجدول |
+| `operation` | text | العملية: INSERT / UPDATE / DELETE |
+| `record_id` | UUID | معرف السجل |
+| `old_data` | jsonb | البيانات القديمة |
+| `new_data` | jsonb | البيانات الجديدة |
+| `user_id` | UUID | المستخدم المنفذ |
+
+> ⚠️ لا يمكن الإدخال أو التعديل أو الحذف مباشرة — فقط عبر مشغلات `audit_trigger_func()`.
+
+### 17. `access_log` — سجل الوصول الأمني
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `event_type` | text | نوع الحدث: `login_success` / `login_failed` / `logout` / `idle_logout` / `unauthorized_access` / `signup_attempt` |
+| `email` | text | البريد الإلكتروني (اختياري) |
+| `user_id` | UUID | معرف المستخدم (اختياري) |
+| `target_path` | text | المسار المستهدف (اختياري) |
+| `ip_info` | text | معلومات IP (اختياري) |
+| `metadata` | jsonb | بيانات إضافية |
+
+> ⚠️ الإدخال يتم حصرياً عبر دالة `log_access_event()` — لا إدخال مباشر مسموح.
+> ⚠️ لا يُسمح بالتعديل أو الحذف لضمان نزاهة السجل الأمني.
+
+### 18. `waqf_bylaws` — لائحة الوقف
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `part_number` | integer | رقم الباب |
+| `part_title` | text | عنوان الباب |
+| `chapter_number` | integer | رقم الفصل (اختياري) |
+| `chapter_title` | text | عنوان الفصل (اختياري) |
+| `content` | text | المحتوى |
+| `is_visible` | boolean | مرئي للمستفيدين |
+| `sort_order` | integer | ترتيب العرض |
+
+### 19. `app_settings` — إعدادات التطبيق
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `key` | text | مفتاح الإعداد (PK) |
+| `value` | text | القيمة |
+
+> ⚠️ القراءة العامة مقتصرة على مفتاح `registration_enabled` فقط.
+
+### عرض `beneficiaries_safe` — عرض آمن للمستفيدين
+> عرض (View) يُخفي البيانات الحساسة (الهوية، البنك، الهاتف، البريد) ويستخدم `security_invoker=on` لوراثة سياسات RLS من جدول `beneficiaries`.
+
 ---
 
-## سياسات الأمان (RLS)
+## سياسات الأمان (RLS) — 19 جدول/عرض محمي
 
 كل جدول محمي بسياسات:
 
@@ -285,14 +414,23 @@ erDiagram
 |--------|---------|---------|
 | `user_roles` | المستخدم يرى دوره فقط | الناظر فقط |
 | `properties` | جميع الأدوار | الناظر فقط |
+| `units` | جميع الأدوار | الناظر فقط |
 | `contracts` | جميع الأدوار | الناظر فقط |
 | `income` | جميع الأدوار | الناظر فقط |
 | `expenses` | جميع الأدوار | الناظر فقط |
 | `accounts` | جميع الأدوار | الناظر فقط |
 | `beneficiaries` | المستفيد يرى بياناته + الناظر | الناظر فقط |
 | `distributions` | المستفيد يرى توزيعاته + الناظر والواقف | الناظر فقط |
+| `invoices` | جميع الأدوار | الناظر فقط |
+| `fiscal_years` | جميع الأدوار | الناظر فقط |
+| `tenant_payments` | جميع الأدوار | الناظر فقط |
 | `notifications` | المستخدم يرى إشعاراته | الناظر لكل الإشعارات |
+| `conversations` | المشاركون + الناظر | المشاركون + الناظر |
+| `messages` | المشاركون في المحادثة | المرسل فقط (في محادثته) |
 | `audit_log` | الناظر فقط | لا أحد (triggers فقط) |
+| `access_log` | الناظر فقط | لا أحد (دالة SECURITY DEFINER فقط) |
+| `waqf_bylaws` | جميع الأدوار | الناظر فقط |
+| `app_settings` | جميع الأدوار + `registration_enabled` للعامة | الناظر فقط |
 
 ---
 
@@ -307,17 +445,26 @@ erDiagram
 
 ---
 
-## الدوال المخزنة (Functions)
+## الدوال المخزنة (Functions) — 8 دوال
 
-| الدالة | الوصف |
-|--------|-------|
-| `has_role(user_id, role)` | التحقق من دور المستخدم (SECURITY DEFINER) |
-| `notify_admins(title, message)` | إرسال إشعار لجميع المسؤولين (authenticated فقط) |
-| `notify_all_beneficiaries(title, message)` | إرسال إشعار لجميع المستفيدين (authenticated فقط) |
-| `audit_trigger_func()` | تسجيل التغييرات في سجل المراجعة |
-| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة (4 جداول) |
-| `log_access_event(...)` | تسجيل أحداث الوصول بأمان (SECURITY DEFINER) |
-| `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً |
-| `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية |
+| الدالة | الوصف | الصلاحية |
+|--------|-------|----------|
+| `has_role(user_id, role)` | التحقق من دور المستخدم | SECURITY DEFINER |
+| `notify_admins(title, message, type?, link?)` | إرسال إشعار لجميع المسؤولين | SECURITY DEFINER — `authenticated` فقط |
+| `notify_all_beneficiaries(title, message, type?, link?)` | إرسال إشعار لجميع المستفيدين | SECURITY DEFINER — `authenticated` فقط |
+| `audit_trigger_func()` | تسجيل التغييرات في سجل المراجعة | SECURITY DEFINER |
+| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة (يسمح للأدمن) | SECURITY DEFINER |
+| `log_access_event(event_type, email?, user_id?, ...)` | تسجيل أحداث الوصول بأمان | SECURITY DEFINER |
+| `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً | عادية |
+| `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية | SECURITY DEFINER |
+
+### قيود `log_access_event` الأمنية:
+- المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
+- المستخدم المجهول لا يمكنه تمرير `user_id` (يتم تجاهله لمنع انتحال الهوية)
+- أنواع الأحداث المسموحة: `login_success`, `login_failed`, `logout`, `idle_logout`, `unauthorized_access`, `signup_attempt`
+
+### صلاحيات التنفيذ:
+- `notify_admins` و `notify_all_beneficiaries`: تم سحب صلاحيات التنفيذ من `PUBLIC` و `anon`، مقتصرة على `authenticated` فقط
+- `log_access_event`: مسموحة لـ `anon` و `authenticated` (مع قيود على أنواع الأحداث كما أعلاه)
 
 </div>
