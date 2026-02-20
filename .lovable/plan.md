@@ -1,98 +1,116 @@
 
-# خطة إصلاح مشكلة "غير مصرح" وتحسين سرعة المساعد الذكي
+# خطة تنفيذ الإصلاحات المتبقية (5 مشاكل)
 
-## المشكلة الاولى: "غير مصرح" عند تحديث التطبيق
+## الوضع الحالي
 
-### السبب الجذري (مؤكد بالفحص)
-
-في `AuthContext.tsx` سطر 58-64، يوجد **Race Condition**:
-
-```text
-onAuthStateChange يُطلق:
-  1. setUser(session.user)        -- فوري
-  2. setTimeout(fetchUserRole)    -- مؤجل (ينتظر دوره)
-  3. setLoading(false)            -- فوري (قبل جلب الدور!)
-
-النتيجة: user موجود + role = null + loading = false
-ProtectedRoute يرى: مستخدم بدون دور = "غير مصرح" --> يحول لـ /unauthorized
-```
-
-هذا يحدث عند:
-- تحديث الصفحة
-- تفعيل Service Worker جديد (بعد تفعيل skipWaiting + clientsClaim)
-- انتهاء صلاحية الـ Refresh Token
-
-### الاصلاح
-
-**ملف 1: `src/contexts/AuthContext.tsx`**
-
-ازالة `setTimeout` وتاخير `setLoading(false)` حتى يكتمل جلب الدور:
-
-```text
-المنطق الحالي (معيب):
-  setTimeout(fetchUserRole) --> setLoading(false)
-
-المنطق الجديد (صحيح):
-  await fetchUserRole() --> setLoading(false)
-```
-
-التغييرات:
-- تعديل `fetchUserRole` ليُرجع Promise (هو بالفعل async)
-- في `onAuthStateChange`: ازالة `setTimeout`، وتشغيل `fetchUserRole` ثم `setLoading(false)` بعد اكتمالها
-- في `getSession`: نفس التعديل
-- اضافة `roleLoading` state منفصل كحماية اضافية
-
-**ملف 2: `src/components/ProtectedRoute.tsx`**
-
-اضافة حماية ثانية: اذا `user` موجود و `role === null` (لم يُجلب بعد)، اعتبره حالة تحميل:
-
-```text
-قبل:
-  isUnauthorized = !loading && !!user && !!allowedRoles && (!role || ...)
-
-بعد:
-  // اذا المستخدم موجود لكن الدور لم يصل بعد = لا تزال التحميل
-  if (!loading && user && !role && allowedRoles) return <Loader />
-```
+من اصل 8 مشاكل تم اكتشافها جنائياً، 3 تم اصلاحها فعلياً. المتبقي 5 مشاكل لم تُنفذ بعد.
 
 ---
 
-## المشكلة الثانية: بطء المساعد الذكي
+## المشكلة 4: انتهاك قواعد React Hooks (8 اخطاء ESLint)
 
-### السبب (مؤكد بالفحص)
-
-في `supabase/functions/ai-assistant/index.ts` سطر 78:
-```text
-model: "google/gemini-2.5-pro"  -- يُستخدم لكل الطلبات
-```
-
-`gemini-2.5-pro` هو الاثقل والابطا. للمحادثات العادية والتقارير لا حاجة له.
+### السبب الجذري
+دالة `useCrudFactory` تبدا بـ `use` فيعتبرها ESLint Hook، لكنها تُستدعى خارج المكونات على مستوى الملف (module scope).
 
 ### الاصلاح
-
-**ملف 3: `supabase/functions/ai-assistant/index.ts`**
-
-تغيير النموذج حسب الوضع:
-- وضع `analysis` (تحليل مالي): يبقى `google/gemini-2.5-pro`
-- وضع `chat` و `report`: يتحول الى `google/gemini-2.5-flash` (اسرع 3-5 مرات)
-
-```text
-const model = mode === "analysis"
-  ? "google/gemini-2.5-pro"
-  : "google/gemini-2.5-flash";
-```
-
----
-
-## ملخص الملفات المتاثرة
+اعادة تسمية الدالة المُصدّرة من `useCrudFactory` الى `createCrudFactory` في:
 
 | الملف | التغيير |
 |-------|---------|
-| `src/contexts/AuthContext.tsx` | ازالة setTimeout، تاخير setLoading حتى اكتمال جلب الدور |
-| `src/components/ProtectedRoute.tsx` | اضافة حالة "انتظار الدور" كحماية اضافية |
-| `supabase/functions/ai-assistant/index.ts` | تغيير النموذج الى flash للمحادثات العادية |
+| `src/hooks/useCrudFactory.ts` سطر 44 | `export function useCrudFactory` -> `export function createCrudFactory` |
+| `src/hooks/useCrudFactory.test.ts` | تحديث الاستدعاء |
+| `src/hooks/useAccounts.ts` سطر 9 | `useCrudFactory` -> `createCrudFactory` |
+| `src/hooks/useBeneficiaries.ts` سطر 20 | نفس التغيير |
+| `src/hooks/useContracts.ts` سطر 11 | نفس التغيير |
+| `src/hooks/useExpenses.ts` سطر 13 | نفس التغيير |
+| `src/hooks/useIncome.ts` سطر 12 | نفس التغيير |
+| `src/hooks/useInvoices.ts` | نفس التغيير |
+| `src/hooks/useProperties.ts` سطر 9 | نفس التغيير |
+| `src/hooks/useUnits.ts` | نفس التغيير |
 
-## النتائج المتوقعة
-- لن تظهر صفحة "غير مصرح" عند تحديث التطبيق او تجديد الجلسة
-- المساعد الذكي سيستجيب اسرع 3-5 مرات للمحادثات العادية
-- التحليل المالي يبقى بنفس الدقة (يستخدم النموذج الثقيل)
+**النتيجة**: ازالة 8 اخطاء ESLint دفعة واحدة بدون تغيير اي منطق.
+
+---
+
+## المشكلة 5: اختبار ProtectedRoute الفاشل (سطر 86-96)
+
+### السبب الجذري
+الاختبار كُتب قبل اصلاح Race Condition. يتوقع تحويل لـ `/unauthorized` عند `role=null`، لكن الكود الجديد (سطر 26 في ProtectedRoute.tsx) يعامل هذه الحالة كـ `isRoleLoading` ويعرض Loader.
+
+### الاصلاح
+تعديل الاختبار في `src/components/ProtectedRoute.test.tsx` سطور 86-96:
+
+```text
+قبل:
+  it("redirects to /unauthorized when user has no role but roles are required")
+  يتوقع: navigate data-to="/unauthorized"
+
+بعد:
+  it("shows loading spinner when user has no role yet but roles are required")
+  يتوقع: document.querySelector(".animate-spin") موجود
+```
+
+---
+
+## المشكلة 6: اختبارات BeneficiaryDashboard الفاشلة (اختباران)
+
+### السبب الجذري - الاختبار 1 (سطر 49)
+الاختبار يبحث عن `'مرحباً محمد أحمد'` كنص واحد. لكن الواجهة الفعلية (سطر 136-138) تعرض:
+- `<p>صباح الخير</p>` (او مساء الخير حسب الوقت)
+- `<h1>محمد أحمد</h1>`
+
+هما عنصران منفصلان ولا يوجد نص "مرحباً" في الواجهة اصلاً.
+
+### الاصلاح - الاختبار 1
+```text
+قبل: expect(screen.getByText('مرحباً محمد أحمد'))
+بعد: expect(screen.getByText('محمد أحمد'))
+```
+
+### السبب الجذري - الاختبار 2 (سطر 54)
+`getByText('10%')` يفشل لان النسبة تظهر داخل SVG `<text>` (سطر 28-29 في CircularProgress) وقد تظهر في عناصر اخرى ايضاً. `getByText` لا يجد نصوص SVG بشكل موثوق.
+
+### الاصلاح - الاختبار 2
+```text
+قبل: expect(screen.getByText('10%'))
+بعد: expect(screen.getByText(/10%/))
+```
+او استخدام `getAllByText` والتحقق من وجود عنصر واحد على الاقل.
+
+---
+
+## المشكلة 7: اختبار SettingsPage الفاشل (سطر 73)
+
+### السبب الجذري
+الاختبار كُتب عندما كانت الصفحة تحتوي 6 tabs. الان تحتوي 11 tab (تمت اضافة: الواجهة الرئيسية، القائمة، واجهة المستفيد، السنوات المالية، اشعارات جماعية، تصدير البيانات).
+
+### الاصلاح
+تعديل `src/pages/dashboard/SettingsPage.test.tsx` سطر 73:
+
+```text
+قبل: expect(tabs.length).toBe(6)
+بعد: expect(tabs.length).toBe(11)
+```
+
+---
+
+## المشكلة 8: نوع `any` في كود الانتاج (34 مخالفة)
+
+### الاصلاح
+استبدال `any` بانواع صريحة في الملفات الاكثر اهمية. سيتم التركيز على ملفات الانتاج فقط (وليس الاختبارات):
+- ملفات PDF: `accounts.ts`, `reports.ts`, `beneficiary.ts`, `comparison.ts`
+- مكونات الواجهة: `BeneficiaryDashboard.tsx`, `AuditLogPage.tsx`
+
+---
+
+## ملخص التنفيذ
+
+| المشكلة | الملفات المتاثرة | النتيجة |
+|---------|-----------------|---------|
+| 4. تسمية useCrudFactory | 10 ملفات | -8 اخطاء ESLint |
+| 5. اختبار ProtectedRoute | 1 ملف | -1 اختبار فاشل |
+| 6. اختبارات BeneficiaryDashboard | 1 ملف | -2 اختبار فاشل |
+| 7. اختبار SettingsPage | 1 ملف | -1 اختبار فاشل |
+| 8. ازالة any | ~10 ملفات | -34 تحذير ESLint |
+
+**النتيجة النهائية**: 0 اختبارات فاشلة + انخفاض كبير في اخطاء ESLint.
