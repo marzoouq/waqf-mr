@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
 
@@ -16,6 +16,7 @@ const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
 const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalYearManagementTab'));
 const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
+const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -540,6 +541,10 @@ const SettingsPage = () => {
               <Download className="w-4 h-4" />
               تصدير البيانات
             </TabsTrigger>
+            <TabsTrigger value="banner" className="gap-1.5 text-xs md:text-sm">
+              <FlaskConical className="w-4 h-4" />
+              شريط التنبيه
+            </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
               الأمان
@@ -555,6 +560,7 @@ const SettingsPage = () => {
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
           <TabsContent value="bulk-notify"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BulkNotificationsTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><DataExportTab /></Suspense></TabsContent>
+          <TabsContent value="banner"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BannerSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>

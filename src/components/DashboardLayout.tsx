@@ -40,6 +40,7 @@ import NotificationBell from '@/components/NotificationBell';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
+import BetaBanner from '@/components/BetaBanner';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Lock } from 'lucide-react';
@@ -344,6 +345,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             )}
           </div>
         </div>
+        <BetaBanner />
         {children}
         {/* Print-only Footer */}
         <PrintFooter />
