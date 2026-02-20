@@ -3,15 +3,13 @@
  * يدير حالة تسجيل الدخول والخروج وجلب دور المستخدم من جدول user_roles.
  * 
  * إصلاح معماري: فصل جلب الدور عن onAuthStateChange لتجنب race condition
+ * إصلاح ثاني: نقل IdleTimeoutWarning إلى DashboardLayout لفصل المسؤوليات
  */
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
-import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import { useQuery } from '@tanstack/react-query';
-import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 
 interface AuthContextType {
   user: User | null;
@@ -96,7 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       for (let attempt = 0; attempt <= 2; attempt++) {
         attempts = attempt + 1;
-        // Check if this fetch is still relevant
         if (roleFetchIdRef.current !== fetchId) {
           console.warn('[Auth] fetchRole aborted (stale)');
           return;
@@ -117,7 +114,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setRole(data.role as AppRole);
             setLoading(false);
             clearTimeout(timeoutId);
-            // Log diagnostics to access_log
             logAccessEvent({
               event_type: 'role_fetch',
               user_id: user.id,
@@ -162,7 +158,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) {
       setLoading(false);
     }
-    // On success, onAuthStateChange fires → user changes → useEffect fetches role
     return { error };
   };
 
@@ -181,38 +176,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setRole(null);
   };
 
-  const { data: idleMinutes } = useQuery({
-    queryKey: ['idle-timeout-setting'],
-    queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').maybeSingle();
-      return data?.value ? parseInt(data.value, 10) : 15;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const timeoutMs = (idleMinutes ?? 15) * 60 * 1000;
-
-  const handleIdleLogout = useCallback(async () => {
-    await signOut();
-    window.location.href = '/auth?reason=idle';
-  }, []);
-
-  const { showWarning, remaining, stayActive } = useIdleTimeout({
-    timeout: timeoutMs,
-    warningBefore: 60 * 1000,
-    onIdle: handleIdleLogout,
-  });
-
   return (
     <AuthContext.Provider value={{ user, session, role, loading, signIn, signUp, signOut }}>
       {children}
-      {session && (
-        <IdleTimeoutWarning
-          open={showWarning}
-          remaining={remaining}
-          onStayActive={stayActive}
-        />
-      )}
     </AuthContext.Provider>
   );
 };
