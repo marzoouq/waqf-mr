@@ -1,17 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Wallet, FileText, BarChart3, PieChart, Calculator, Bell, ArrowLeft } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, Calculator, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+
+/* ── Circular progress (SVG) ── */
+const CircularProgress = ({ percentage, size = 90, stroke = 8 }: { percentage: number; size?: number; stroke?: number }) => {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth={stroke}
+        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-700" />
+      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-foreground font-bold"
+        fontSize={size * 0.22} transform={`rotate(90 ${size / 2} ${size / 2})`}>
+        {percentage}%
+      </text>
+    </svg>
+  );
+};
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
@@ -22,127 +41,169 @@ const BeneficiaryDashboard = () => {
   const [selectedFYId, setSelectedFYId] = useState<string>('');
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-
   const { availableAmount } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
+  const myShare = currentBeneficiary ? (beneficiariesShare * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
+  const sharePercentage = currentBeneficiary?.share_percentage ?? 0;
 
-  const myShare = currentBeneficiary 
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100 
-    : 0;
+  /* ── Live clock ── */
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
+  const GreetingIcon = hour < 12 ? Sun : Moon;
+
+  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+  /* ── Fiscal year progress ── */
+  const fyProgress = (() => {
+    if (!selectedFY) return { percent: 0, daysLeft: 0 };
+    const start = new Date(selectedFY.start_date).getTime();
+    const end = new Date(selectedFY.end_date).getTime();
+    const total = end - start;
+    const elapsed = Date.now() - start;
+    const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+    const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
+    return { percent, daysLeft };
+  })();
+
+  /* ── Recent distributions ── */
+  const [distributions, setDistributions] = useState<any[]>([]);
+  useEffect(() => {
+    if (!currentBeneficiary?.id) return;
+    supabase.from('distributions').select('*').eq('beneficiary_id', currentBeneficiary.id)
+      .order('date', { ascending: false }).limit(3)
+      .then(({ data }) => { if (data) setDistributions(data); });
+  }, [currentBeneficiary?.id]);
 
   const recentNotifications = notifications.slice(0, 3);
 
   const quickLinks = [
-    {
-      title: 'الإفصاح السنوي',
-      description: 'البيان المالي التفصيلي الكامل',
-      icon: FileText,
-      path: '/beneficiary/disclosure',
-      color: 'bg-primary/10 text-primary',
-    },
-    {
-      title: 'حصتي من الريع',
-      description: 'تفاصيل حصتك وسجل التوزيعات',
-      icon: PieChart,
-      path: '/beneficiary/share',
-      color: 'bg-success/10 text-success',
-    },
-    {
-      title: 'الحسابات الختامية',
-      description: 'العقود والإيرادات والمصروفات',
-      icon: Calculator,
-      path: '/beneficiary/accounts',
-      color: 'bg-secondary/10 text-secondary',
-    },
-    {
-      title: 'التقارير المالية',
-      description: 'الرسوم البيانية والإحصائيات',
-      icon: BarChart3,
-      path: '/beneficiary/reports',
-      color: 'bg-warning/10 text-warning',
-    },
+    { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
+    { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/share', color: 'bg-emerald-500/10 text-emerald-600' },
+    { title: 'الحسابات الختامية', description: 'العقود والإيرادات والمصروفات', icon: Calculator, path: '/beneficiary/accounts', color: 'bg-secondary/10 text-secondary' },
+    { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/reports', color: 'bg-amber-500/10 text-amber-600' },
   ];
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Welcome */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">مرحباً {currentBeneficiary?.name || 'بك'}</h1>
-            <p className="text-muted-foreground mt-1 text-sm">واجهة المستفيد - عرض فقط</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
-            <ExportMenu hidePdf />
-          </div>
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+
+        {/* ═══ Welcome Card ═══ */}
+        <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
+          <CardContent className="p-4 sm:p-6 md:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* Right: greeting + name */}
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
+                  <GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
+                    {currentBeneficiary?.name || 'مستفيد'}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
+                </div>
+              </div>
+
+              {/* Left: date & time */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-primary-foreground/85 shrink-0">
+                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{hijriDate}</span>
+                <span className="hidden sm:inline text-primary-foreground/40">|</span>
+                <span>{gregorianDate}</span>
+                <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{timeStr}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ═══ Fiscal Year selector row ═══ */}
+        <div className="flex items-center justify-end gap-2">
+          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
+          <ExportMenu hidePdf />
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <Card className="shadow-sm gradient-primary text-primary-foreground">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
+        {/* ═══ Stats row ═══ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* My share amount */}
+          <Card className="shadow-sm">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Wallet className="w-5 h-5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-primary-foreground/90">حصتي من الريع</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                  <p className="text-xs text-muted-foreground">حصتي من الريع</p>
+                  <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Share percentage (circular) */}
           <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+              <CircularProgress percentage={sharePercentage} size={70} stroke={7} />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">نسبة حصتي</p>
+                <p className="text-lg font-bold">{sharePercentage}%</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total waqf revenue */}
+          <Card className="shadow-sm">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة حصتي</p>
-                  <p className="text-lg sm:text-2xl font-bold">{currentBeneficiary?.share_percentage || 0}%</p>
+                  <p className="text-xs text-muted-foreground">إجمالي ريع الوقف</p>
+                  <p className="text-lg sm:text-xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Fiscal year progress */}
           <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground">إجمالي ريع الوقف</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
-                </div>
+            <CardContent className="p-4 sm:p-5 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">السنة المالية</p>
+                <Badge variant="outline" className="text-[10px]">{selectedFY?.label || '—'}</Badge>
               </div>
+              <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${fyProgress.percent}%` }} />
+              </div>
+              <p className="text-[11px] text-muted-foreground text-center">متبقي {fyProgress.daysLeft} يوم</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Links */}
+        {/* ═══ Quick Links ═══ */}
         <div>
-          <h2 className="text-lg font-bold mb-3">الوصول السريع</h2>
+          <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {quickLinks.map((link) => (
-              <Card
-                key={link.path}
-                className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
-                onClick={() => navigate(link.path)}
-              >
-                <CardContent className="p-3 sm:p-5">
+              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${link.color}`}>
                       <link.icon className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm">{link.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{link.description}</p>
                     </div>
                     <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
                   </div>
@@ -152,42 +213,68 @@ const BeneficiaryDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Notifications */}
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Bell className="w-5 h-5" />
-              آخر الإشعارات
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>
-              عرض الكل
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {recentNotifications.length === 0 ? (
-              <p className="text-center text-muted-foreground py-6">لا توجد إشعارات جديدة</p>
-            ) : (
-              <div className="space-y-3">
-                {recentNotifications.map((n) => (
-                  <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm">{n.title}</p>
-                        {!n.is_read && (
-                          <Badge variant="default" className="text-[10px] px-1.5 py-0">جديد</Badge>
-                        )}
+        {/* ═══ Bottom grid: Distributions + Notifications ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Recent distributions */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Wallet className="w-5 h-5" />
+                آخر التوزيعات
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {distributions.length === 0 ? (
+                <p className="text-center text-muted-foreground py-6 text-sm">لا توجد توزيعات مسجلة</p>
+              ) : (
+                <div className="space-y-3">
+                  {distributions.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm">{Number(d.amount).toLocaleString()} ر.س</p>
+                        <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
+                      <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[10px]">
+                        {d.status === 'paid' ? 'مدفوع' : 'معلق'}
+                      </Badge>
                     </div>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {new Date(n.created_at).toLocaleDateString('ar-SA')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Notifications */}
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <Bell className="w-5 h-5" />
+                آخر الإشعارات
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
+            </CardHeader>
+            <CardContent>
+              {recentNotifications.length === 0 ? (
+                <p className="text-center text-muted-foreground py-6 text-sm">لا توجد إشعارات جديدة</p>
+              ) : (
+                <div className="space-y-3">
+                  {recentNotifications.map((n) => (
+                    <div key={n.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{n.title}</p>
+                          {!n.is_read && <Badge variant="default" className="text-[10px] px-1.5 py-0">جديد</Badge>}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('ar-SA')}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );
