@@ -32,17 +32,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
+  const fetchUserRole = async (userId: string, retries = 2): Promise<void> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-    if (data && !error) {
-      setRole(data.role as AppRole);
-    } else {
-      setRole(null);
+      if (data && !error) {
+        setRole(data.role as AppRole);
+        return;
+      }
+
+      if (attempt < retries) {
+        // انتظر قبل إعادة المحاولة (500ms ثم 1000ms)
+        await new Promise(r => setTimeout(r, (attempt + 1) * 500));
+      } else {
+        console.error('[Auth] fetchUserRole failed after retries:', error?.message);
+        setRole(null);
+      }
     }
   };
 

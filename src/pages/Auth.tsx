@@ -57,7 +57,23 @@ const Auth = () => {
       } else if (role) {
         navigate('/dashboard');
       }
+      // إذا user موجود و loading=false لكن role=null: fetchUserRole فشل
+      // ننتظر 3 ثوانٍ ثم نعيد المحاولة مرة أخيرة
     }
+  }, [user, role, loading, navigate]);
+
+  // آلية حماية: إذا تم تسجيل الدخول لكن لم يتم التوجيه بعد 4 ثوانٍ
+  useEffect(() => {
+    if (!user || loading) return;
+    if (role) return; // التوجيه تم بالفعل عبر useEffect أعلاه
+    const timer = setTimeout(() => {
+      // تحقق مرة أخرى بعد الانتظار
+      if (user && !role) {
+        console.warn('[Auth] Role not resolved after timeout, redirecting to beneficiary as fallback');
+        navigate('/beneficiary');
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [user, role, loading, navigate]);
 
   useEffect(() => {
@@ -78,55 +94,58 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    let resolvedEmail = loginEmail;
+    try {
+      let resolvedEmail = loginEmail;
 
-    if (loginMethod === 'national_id') {
-      if (!nationalId) {
-        toast.error('يرجى إدخال رقم الهوية الوطنية');
-        setIsLoading(false);
+      if (loginMethod === 'national_id') {
+        if (!nationalId) {
+          toast.error('يرجى إدخال رقم الهوية الوطنية');
+          return;
+        }
+        const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
+          body: { national_id: nationalId }
+        });
+
+        if (lookupError || !data?.found || !data?.email) {
+          toast.error('رقم الهوية غير مسجل في النظام');
+          return;
+        }
+        resolvedEmail = data.email;
+      } else {
+        if (!resolvedEmail) {
+          toast.error('يرجى إدخال البريد الإلكتروني');
+          return;
+        }
+      }
+
+      if (!loginPassword) {
+        toast.error('يرجى إدخال كلمة المرور');
         return;
       }
-      const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-        body: { national_id: nationalId }
-      });
 
-      if (lookupError || !data?.found || !data?.email) {
-        toast.error('رقم الهوية غير مسجل في النظام');
-        setIsLoading(false);
-        return;
+      const { error } = await signIn(resolvedEmail, loginPassword);
+      if (error) {
+        toast.error(getSafeErrorMessage(error));
+        logAccessEvent({
+          event_type: 'login_failed',
+          email: resolvedEmail,
+          metadata: { error_message: error.message, login_method: loginMethod },
+        });
+      } else {
+        toast.success('تم تسجيل الدخول بنجاح');
+        supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
+          logAccessEvent({
+            event_type: 'login_success',
+            email: resolvedEmail,
+            user_id: currentUser?.id,
+          });
+        }).catch(() => { /* silent */ });
       }
-      resolvedEmail = data.email;
-    } else {
-      if (!resolvedEmail) {
-        toast.error('يرجى إدخال البريد الإلكتروني');
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (!loginPassword) {
-      toast.error('يرجى إدخال كلمة المرور');
+    } catch (err) {
+      console.error('[Auth] handleSignIn error:', err);
+      toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    } finally {
       setIsLoading(false);
-      return;
-    }
-
-    const { error } = await signIn(resolvedEmail, loginPassword);
-    setIsLoading(false);
-    if (error) {
-      toast.error(getSafeErrorMessage(error));
-      logAccessEvent({
-        event_type: 'login_failed',
-        email: resolvedEmail,
-        metadata: { error_message: error.message, login_method: loginMethod },
-      });
-    } else {
-      toast.success('تم تسجيل الدخول بنجاح');
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      logAccessEvent({
-        event_type: 'login_success',
-        email: resolvedEmail,
-        user_id: currentUser?.id,
-      });
     }
   };
 
