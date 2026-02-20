@@ -64,7 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await fetchUserRole(session.user.id);
+          try {
+            await fetchUserRole(session.user.id);
+          } catch (err) {
+            console.error('[Auth] fetchUserRole failed in onAuthStateChange:', err);
+            setRole(null);
+          }
         } else {
           setRole(null);
         }
@@ -78,7 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchUserRole(session.user.id);
+          try {
+            await fetchUserRole(session.user.id);
+          } catch (err) {
+            console.error('[Auth] fetchUserRole failed in getSession:', err);
+            setRole(null);
+          }
         }
         setLoading(false);
       }

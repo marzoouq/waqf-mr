@@ -63,12 +63,12 @@ const Auth = () => {
   // توجيه المستخدم بعد تسجيل الدخول
   useEffect(() => {
     if (user && !loading) {
-      
       if (role === 'beneficiary') {
         navigate('/beneficiary');
-      } else if (role) {
+      } else if (role === 'admin' || role === 'waqif') {
         navigate('/dashboard');
       }
+      // إذا role = null، الـ fallback بعد 3 ثوانٍ سيتكفل بالتوجيه
     }
   }, [user, role, loading, navigate]);
 
