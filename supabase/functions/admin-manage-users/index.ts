@@ -318,7 +318,7 @@ Deno.serve(async (req) => {
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch (err) {
-            errors.push({ email: u.email, error: err.message });
+            errors.push({ email: u.email, error: (err as Error).message });
           }
         }
 
@@ -340,7 +340,7 @@ Deno.serve(async (req) => {
         });
     }
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

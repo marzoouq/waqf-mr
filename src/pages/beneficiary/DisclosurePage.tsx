@@ -59,7 +59,7 @@ const DisclosurePage = () => {
       await generateDisclosurePDF({
         fiscalYear,
         beneficiaryName: currentBeneficiary?.name || '',
-        sharePercentage: currentBeneficiary?.share_percentage || 0,
+        sharePercentage: 0,
         myShare,
         totalIncome,
         totalExpenses,
