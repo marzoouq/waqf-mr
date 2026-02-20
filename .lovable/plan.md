@@ -1,83 +1,92 @@
 
 
-# خطة إصلاح المشاكل المتبقية (~25 مخالفة ESLint)
+# تقرير تدقيق التوثيق والإصلاحات المعلّقة
 
-## المحور 1: إزالة `any` من صفحات CRUD (10 ملفات، ~20 مخالفة)
+## الجزء الأول: انحرافات التوثيق عن الواقع
 
-### ملف `BeneficiariesPage.tsx` (سطر 43, 46)
-- استبدال `(u: any)` بنوع `{ id: string; email?: string }` من استجابة auth.admin
-- استبدال `(r: any)` بنوع `{ user_id: string }`
+### 1. INDEX.md -- أرقام قديمة
 
-### ملف `InvoicesPage.tsx` (سطر 137, 167)
-- استبدال `Record<string, any>` بـ `Partial<Invoice>` او interface مخصص
-- ازالة `as any` من mutateAsync باستخدام type assertion دقيق
+| البند | القيمة في التوثيق | الواقع الفعلي | الحالة |
+|-------|-------------------|---------------|--------|
+| عدد الجداول | 17 | 19 (يشمل `access_log` + `beneficiaries_safe` view) | يحتاج تحديث |
+| عدد Edge Functions | 7 | 8 (ينقص `guard-signup`) | يحتاج تحديث |
+| عدد المشغلات | 29 | يحتاج تحقق من قاعدة البيانات (التوثيق يذكر 29 لكن API ترجع "no triggers") | يحتاج مراجعة |
 
-### ملف `ExpensesPage.tsx` (سطر 68)
-- ازالة `as any` من mutateAsync عبر بناء الكائن بالنوع الصحيح `Insert<'expenses'>`
+### 2. DATABASE.md -- جداول ناقصة
 
-### ملف `ContractsPage.tsx` (سطر 104, 110)
-- نفس النمط: استبدال `as any` بـ `Insert<'contracts'>` و `Update<'contracts'>`
+- **جدول `access_log`** غير موجود في مخطط ERD ولا في قسم "الجداول والأعمدة"
+- **عرض `beneficiaries_safe`** غير موثق في ERD (موجود فعلياً في قاعدة البيانات)
+- **جدول `waqf_bylaws`** غير موثق في قسم الجداول (موجود في ERD فقط كمشغل audit)
+- قسم RLS يذكر "17 جدول" والصواب 19
+- دالة `log_access_event` موثقة لكن بدون ذكر القيود الجديدة (تقييد anon لأحداث محددة فقط)
 
-### ملف `IncomePage.tsx` (سطر 61)
-- نفس النمط: استبدال `as any` بـ `Insert<'income'>` و `Update<'income'>`
+### 3. API.md -- وظيفة ناقصة في العدّ
 
-### ملف `Auth.tsx` (سطر 30, 376)
-- `useState<any>(null)` -> `useState<BeforeInstallPromptEvent | null>(null)` مع interface مخصص لـ PWA
-- `(r: any)` -> `(r: { outcome: string })`
+- العنوان يقول "7 وظائف" لكنها 8 فعلياً (guard-signup مذكورة كرقم 6 لكن العدّ في INDEX يقول 7)
+- وصف `check-contract-expiry` لا يذكر آلية المصادقة المزدوجة الجديدة (service_role + admin JWT) المنفذة فعلياً في الكود
 
-### ملف `AccessLogTab.tsx` (سطر 41)
-- `'access_log' as any` -> التحقق من وجود الجدول في types.ts، واذا لم يكن موجوداً يُترك مع تعليق توثيقي
-
-### ملف `YearOverYearComparison.tsx` (سطر 82)
-- `(d as any)[k]` -> استخدام Record type مناسب للبيانات الديناميكية
-
-### ملف `FiscalYearManagementTab.tsx` (سطر 43, 72)
-- `catch (err: any)` -> `catch (err: unknown)` مع type guard `err instanceof Error`
+### 4. README.md -- مطابق للواقع (لا مشاكل)
 
 ---
 
-## المحور 2: اصلاح `no-unused-expressions` (ملفان، مخالفتان)
+## الجزء الثاني: الإصلاحات المنفذة والمعلّقة
 
-### ملف `BeneficiaryDashboard.tsx` سطر 57
-```text
-قبل: document.hidden ? stop() : (setNow(new Date()), start());
-بعد: if (document.hidden) { stop(); } else { setNow(new Date()); start(); }
-```
+### إصلاحات تم تنفيذها بنجاح
 
-### ملف `AuditLogPage.tsx` سطر 134
-```text
-قبل: next.has(id) ? next.delete(id) : next.add(id);
-بعد: if (next.has(id)) { next.delete(id); } else { next.add(id); }
-```
+| الإصلاح | الدليل |
+|---------|--------|
+| تشديد `log_access_event` (تقييد anon) | Migration 20260220043209 |
+| REVOKE EXECUTE من anon/PUBLIC للدوال الحساسة | Migration 20260220043232 |
+| إزالة `unsafe-eval` من CSP | index.html سطر 6 |
+| إنشاء `safeErrorMessage.ts` لمنع كشف أخطاء تقنية | src/utils/safeErrorMessage.ts |
+| تحديث Auth.tsx و UserManagementPage.tsx لاستخدام رسائل آمنة | تم |
+| `check-contract-expiry` يستخدم `Deno.env.get` (لا مفتاح مضمّن) | index.ts سطر 11, 26 |
 
----
+### إصلاحات لا تزال معلّقة
 
-## المحور 3: اصلاح `no-empty-object-type` (ملفان، مخالفتان)
-
-### ملف `command.tsx` سطر 24
-- استبدال `{}` كنوع بـ `Record<string, never>` او `object`
-
-### ملف `textarea.tsx` سطر 5
-- نفس النمط
-
----
-
-## المحور 4: اصلاح `no-require-imports` (ملف واحد)
-
-### ملف `tailwind.config.ts` سطر 109
-- استبدال `require()` بـ `import` ديناميكي او اضافة استثناء ESLint اذا كان مطلوباً لتوافق Tailwind
+| # | المشكلة | الخطورة | التفاصيل |
+|---|---------|---------|----------|
+| 1 | **.env غير مستثنى من Git** | P1 | `.gitignore` لا يحتوي على `.env` -- لكن ملاحظة: في بيئة Lovable Cloud، ملف `.env` يُولّد تلقائياً ويحتوي فقط على VITE_ متغيرات عامة (ليست أسرار)، لذا الخطر منخفض عملياً |
+| 2 | **CORS مفتوح (`*`)** | P1 | `_shared/cors.ts` يسمح لجميع الأصول -- يحتاج تقييد بـ allowlist |
+| 3 | **`verify_jwt = false`** في config.toml لـ check-contract-expiry | P1 | معطّل لتسهيل cron لكن الكود يتحقق يدوياً -- مقبول تشغيلياً لكن يُفضّل توثيقه كقرار واعٍ |
+| 4 | **ثغرة vite-plugin-pwa** | P2 | ثغرة supply chain في سلسلة workbox -- خارج التحكم المباشر |
+| 5 | **HIBP غير مفعّل** | P2 | يحتاج تفعيل يدوي من لوحة تحكم Lovable Cloud |
+| 6 | **~25 مخالفة ESLint** (خطة موجودة في plan.md) | P2 | لم تُنفذ بعد -- موثقة في `.lovable/plan.md` |
+| 7 | **صفر اختبارات لوظائف Edge** | P2 | 8 وظائف إنتاجية بدون اختبارات Deno |
+| 8 | **العقود الـ 20 منتهية** | تشغيلي | تحتاج إنشاء عقود جديدة لـ 2025-2026 |
 
 ---
 
-## ملخص
+## الجزء الثالث: خطة التحديث المقترحة
 
-| المحور | الملفات | المخالفات المُزالة |
-|--------|---------|-------------------|
-| ازالة any من Pages | 9 ملفات | ~20 |
-| no-unused-expressions | 2 ملف | 2 |
-| no-empty-object-type | 2 ملف | 2 |
-| no-require-imports | 1 ملف | 1 |
-| **المجموع** | **14 ملف** | **~25 مخالفة** |
+### المرحلة 1: تحديث التوثيق (5 ملفات)
 
-بعد التنفيذ: من 147 مشكلة اصلية الى **صفر اخطاء ESLint في كود الانتاج** (ستبقى فقط مخالفات `any` في ملفات الاختبارات وهي مقبولة).
+1. **INDEX.md**: تحديث الأرقام (19 جدول، 8 وظائف، عدد المشغلات الفعلي)
+2. **DATABASE.md**: إضافة جدولي `access_log` و `waqf_bylaws` وعرض `beneficiaries_safe` في ERD وقسم الجداول والـ RLS
+3. **DATABASE.md**: تحديث وصف `log_access_event` بالقيود الجديدة (allowed_anon_events)
+4. **API.md**: تحديث العدد إلى 8، وتحديث وصف مصادقة `check-contract-expiry`
+5. **DATABASE.md**: تحديث عدد سياسات RLS إلى 19 جدول
+
+### المرحلة 2: إصلاح CORS (ملف واحد)
+
+- تعديل `_shared/cors.ts` لاستخدام allowlist من متغير بيئة `ALLOWED_ORIGINS` مع fallback للنطاقات المعروفة (`waqf-mr.lovable.app` + preview URL)
+
+### المرحلة 3: إضافة `.env` إلى `.gitignore`
+
+- إضافة سطر `.env` في نهاية `.gitignore` (حتى لو كان الخطر منخفض في Lovable Cloud)
+
+### المرحلة 4: تنفيذ خطة ESLint (~25 مخالفة)
+
+- تنفيذ الخطة الموثقة في `.lovable/plan.md` عبر 4 محاور (إزالة any، unused-expressions، empty-object-type، require-imports)
+
+---
+
+## ملخص التقييم
+
+| المحور | النتيجة |
+|--------|---------|
+| تطابق التوثيق مع الواقع | 85% -- انحرافات في الأعداد وجداول ناقصة |
+| تنفيذ الإصلاحات الأمنية P0 | 100% -- جميع إصلاحات P0 مطبقة |
+| تنفيذ الإصلاحات P1 | 60% -- CORS والتوثيق لا يزالان معلّقين |
+| تنفيذ الإصلاحات P2 | 0% -- ESLint والاختبارات لم تبدأ |
 
