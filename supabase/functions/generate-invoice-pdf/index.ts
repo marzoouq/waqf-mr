@@ -172,7 +172,7 @@ function processArabicText(text: string): string {
 
 // ─── PDF Generation ──────────────────────────────────────────────
 
-const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!.replace('.supabase.co', '.supabase.co').replace(/\/$/, '')}/storage/v1/object/public/waqf-assets/fonts`;
+const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
 async function fetchFont(name: string): Promise<Uint8Array> {
   const url = `${FONT_BASE_URL}/${name}`;
