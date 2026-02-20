@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
@@ -50,29 +50,46 @@ const Auth = () => {
     }
   }, []);
 
+  // مؤقت أمان صارم: يمنع الزر من البقاء معلقاً أكثر من 10 ثوانٍ
+  useEffect(() => {
+    if (!isLoading) return;
+    const safety = setTimeout(() => {
+      setIsLoading(false);
+      console.warn('[Auth] Force-reset isLoading after 10s safety timeout');
+    }, 10000);
+    return () => clearTimeout(safety);
+  }, [isLoading]);
+
+  // توجيه المستخدم بعد تسجيل الدخول
   useEffect(() => {
     if (user && !loading) {
+      console.log('[Auth] Redirect check: user=', user.id, 'role=', role, 'loading=', loading);
       if (role === 'beneficiary') {
         navigate('/beneficiary');
       } else if (role) {
         navigate('/dashboard');
       }
-      // إذا user موجود و loading=false لكن role=null: fetchUserRole فشل
-      // ننتظر 3 ثوانٍ ثم نعيد المحاولة مرة أخيرة
     }
   }, [user, role, loading, navigate]);
 
-  // آلية حماية: إذا تم تسجيل الدخول لكن لم يتم التوجيه بعد 4 ثوانٍ
+  // آلية حماية: إذا تم تسجيل الدخول لكن لم يتم التوجيه بعد 3 ثوانٍ
   useEffect(() => {
     if (!user || loading) return;
-    if (role) return; // التوجيه تم بالفعل عبر useEffect أعلاه
-    const timer = setTimeout(() => {
-      // تحقق مرة أخرى بعد الانتظار
-      if (user && !role) {
-        console.warn('[Auth] Role not resolved after timeout, redirecting to beneficiary as fallback');
+    if (role) return;
+    const timer = setTimeout(async () => {
+      // إعادة جلب الدور مرة أخيرة قبل التوجيه الاحتياطي
+      console.warn('[Auth] Role not resolved after 3s, attempting final fetch...');
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data?.role === 'admin') {
+        navigate('/dashboard');
+      } else {
         navigate('/beneficiary');
       }
-    }, 4000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [user, role, loading, navigate]);
 
@@ -262,6 +279,18 @@ const Auth = () => {
       </Button>
     </form>
   );
+
+  // إذا المستخدم مسجّل دخوله وينتظر التوجيه، عرض شاشة انتقالية
+  if (user && !loading) {
+    return (
+      <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <span className="text-lg font-medium text-foreground">جاري التحقق من الصلاحيات...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4 relative overflow-hidden">
