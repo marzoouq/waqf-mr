@@ -7,11 +7,13 @@ const ALLOWED_ACTIONS = [
 ];
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get("origin") || "NO_ORIGIN";
+  console.log(`[admin-manage-users] ${req.method} from origin: ${origin}`);
   const corsHeaders = getCorsHeaders(req);
-  console.log(`[admin-manage-users] ${req.method} request received`);
+  console.log(`[admin-manage-users] CORS Allow-Origin: ${corsHeaders["Access-Control-Allow-Origin"]}`);
   
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {

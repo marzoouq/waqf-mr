@@ -6,10 +6,11 @@ const ALLOWED_ORIGINS = [
 function getAllowedOrigin(req?: Request): string {
   if (!req) return ALLOWED_ORIGINS[0];
   const origin = req.headers.get("origin") || "";
-  // Allow any *.lovable.app subdomain (preview URLs change)
+  // Allow any *.lovable.app or *.lovableproject.com subdomain
   if (
     ALLOWED_ORIGINS.includes(origin) ||
-    /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin)
+    /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin) ||
+    /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(origin)
   ) {
     return origin;
   }
