@@ -880,6 +880,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_access_event: {
+        Args: {
+          p_email?: string
+          p_event_type: string
+          p_ip_info?: string
+          p_metadata?: Json
+          p_target_path?: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       notify_admins: {
         Args: {
           p_link?: string
