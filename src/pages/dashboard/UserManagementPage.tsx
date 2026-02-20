@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -66,7 +67,7 @@ const UserManagementPage = () => {
       setRegistrationEnabled(enabled);
       toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     } catch (e: unknown) {
-      toast.error('خطأ: ' + (e instanceof Error ? e.message : 'حدث خطأ غير متوقع'));
+      toast.error(getSafeErrorMessage(e));
     }
   };
 
@@ -87,7 +88,7 @@ const UserManagementPage = () => {
       setIsCreateOpen(false);
       setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const confirmEmail = useMutation({
@@ -96,7 +97,7 @@ const UserManagementPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم تفعيل البريد الإلكتروني');
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const updateEmail = useMutation({
@@ -107,7 +108,7 @@ const UserManagementPage = () => {
       toast.success('تم تحديث البريد الإلكتروني');
       setEditingUser(null);
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const updatePassword = useMutation({
@@ -118,7 +119,7 @@ const UserManagementPage = () => {
       setPasswordDialog(null);
       setNewPassword('');
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const setRole = useMutation({
@@ -129,7 +130,7 @@ const UserManagementPage = () => {
       toast.success('تم تحديث الدور');
       setEditingUser(null);
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const deleteUser = useMutation({
@@ -138,7 +139,7 @@ const UserManagementPage = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم حذف المستخدم');
     },
-    onError: (e: Error) => toast.error('خطأ: ' + e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
   const getRoleBadge = (role: string | null) => {
