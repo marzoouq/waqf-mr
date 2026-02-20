@@ -1,61 +1,127 @@
 
-# خطة إصلاح نظام الإشعارات وإضافة أيقونة اللائحة
 
-## المشاكل المكتشفة
+# خطة إضافة تسجيل تدقيق لمحاولات الوصول غير المصرح بها
 
-### 1. لا توجد أيقونة اللائحة بجانب جرس الإشعارات
-الرأس العلوي يعرض فقط جرس الإشعارات بدون اختصار لصفحة اللائحة التنظيمية.
-
-### 2. لا يمكن تمرير الإشعارات (Scroll)
-مكون `ScrollArea` يستخدم `max-h-80` كـ className ولكن بدون ارتفاع ثابت (`h-80`)، مما يمنع التمرير عند وجود إشعارات كثيرة.
-
-### 3. لا يمكن حذف/إزالة الإشعارات من القائمة المنبثقة
-المكون `NotificationBell` يدعم فقط "تعليم كمقروء" ولا يوفر زر حذف فردي رغم وجود `deleteOne` في الـ hook.
-
-### 4. لا يتم التنقل عند الضغط على إشعار له رابط
-الإشعارات التي تحتوي على `link` لا تنقل المستخدم للصفحة المطلوبة عند الضغط عليها.
+## الهدف
+تتبع وتسجيل جميع محاولات الوصول غير المصرح بها في النظام، بما في ذلك: محاولات تسجيل الدخول الفاشلة، ومحاولات الوصول لصفحات بدون صلاحيات كافية، لتمكين الناظر من مراقبة أي نشاط مشبوه أو محاولات اختراق.
 
 ---
 
-## التغييرات المطلوبة
+## البنود المطلوبة
 
-### ملف 1: `src/components/DashboardLayout.tsx`
-- اضافة ايقونة BookOpen (اللائحة التنظيمية) بجانب جرس الإشعارات في الرأس العلوي (Desktop + Mobile)
-- الايقونة تكون رابط مباشر لصفحة اللائحة حسب دور المستخدم (ناظر: `/dashboard/bylaws`، مستفيد: `/beneficiary/bylaws`)
+### 1. جدول جديد في قاعدة البيانات: `access_log`
 
-### ملف 2: `src/components/NotificationBell.tsx`
-- اصلاح مشكلة التمرير: تغيير `max-h-80` الى `h-80` على ScrollArea
-- اضافة زر حذف (X) لكل اشعار مع `e.stopPropagation()`
-- اضافة زر "حذف المقروءة" في رأس القائمة المنبثقة
-- اضافة التنقل عند الضغط على اشعار يحتوي على رابط (`notification.link`)
-- استيراد `deleteOne` و `deleteRead` من `useNotifications`
-- استيراد `useNavigate` من React Router
+سيتم إنشاء جدول مخصص لتسجيل محاولات الوصول (منفصل عن `audit_log` الخاص بالعمليات على البيانات):
+
+| العمود | النوع | الوصف |
+|--------|-------|-------|
+| id | uuid | المعرف |
+| event_type | text | نوع الحدث: `login_failed`, `login_success`, `unauthorized_access`, `idle_logout` |
+| email | text | البريد المستخدم (إن وُجد) |
+| user_id | uuid | معرف المستخدم (إن كان مسجلاً) |
+| ip_info | text | معلومات إضافية (المتصفح / user-agent) |
+| target_path | text | المسار المستهدف (للوصول غير المصرح) |
+| metadata | jsonb | بيانات إضافية (سبب الفشل، الدور المطلوب، إلخ) |
+| created_at | timestamptz | وقت الحدث |
+
+**سياسات الأمان (RLS):**
+- SELECT: للأدمن فقط
+- INSERT: مسموح لجميع المستخدمين المسجلين (لتسجيل أحداثهم)
+- INSERT: مسموح للمستخدمين غير المسجلين (anon) لتسجيل محاولات الدخول الفاشلة
+- UPDATE/DELETE: ممنوع تماماً
+
+---
+
+### 2. تعديل صفحة تسجيل الدخول (`Auth.tsx`)
+
+- عند فشل تسجيل الدخول: تسجيل حدث `login_failed` مع البريد الإلكتروني ورسالة الخطأ
+- عند نجاح تسجيل الدخول: تسجيل حدث `login_success`
+- عند تسجيل الخروج بسبب الخمول: تسجيل حدث `idle_logout`
+
+---
+
+### 3. تعديل مكون ProtectedRoute
+
+- عند رفض الوصول (دور غير مصرح): تسجيل حدث `unauthorized_access` مع المسار المستهدف والدور الحالي والأدوار المطلوبة
+
+---
+
+### 4. إنشاء hook مساعد: `useAccessLog`
+
+دالة مساعدة لتسجيل الأحداث في جدول `access_log` بشكل موحد من أي مكان في التطبيق.
+
+---
+
+### 5. تبويب جديد في صفحة سجل المراجعة
+
+إضافة تبويب "محاولات الوصول" في صفحة `AuditLogPage` يعرض:
+- جدول بجميع الأحداث مع تلوين حسب النوع (أحمر للفاشل، أخضر للناجح، برتقالي لغير المصرح)
+- بطاقات إحصائية: إجمالي المحاولات الفاشلة اليوم، عدد الحسابات المحظورة المحتملة
+- فلترة حسب نوع الحدث والتاريخ
+- عرض تفاصيل كل محاولة (المتصفح، المسار، البيانات الإضافية)
 
 ---
 
 ## التفاصيل التقنية
 
-### ايقونة اللائحة (DashboardLayout)
-```text
-الموقع: بجانب NotificationBell في كلا العرضين (Desktop + Mobile)
-الايقونة: BookOpen من lucide-react (نفس الايقونة المستخدمة في القائمة الجانبية)
-السلوك: رابط مباشر (Link) يتغير حسب الدور
-التصميم: زر ghost بنفس تنسيق جرس الإشعارات
+### Migration SQL:
+```sql
+CREATE TABLE public.access_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type text NOT NULL,
+  email text,
+  user_id uuid,
+  ip_info text,
+  target_path text,
+  metadata jsonb DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.access_log ENABLE ROW LEVEL SECURITY;
+
+-- الأدمن فقط يمكنه القراءة
+CREATE POLICY "Admins can view access_log"
+  ON public.access_log FOR SELECT
+  USING (has_role(auth.uid(), 'admin'));
+
+-- السماح بالإدراج من المستخدمين المسجلين وغير المسجلين
+CREATE POLICY "Anyone can insert access_log"
+  ON public.access_log FOR INSERT
+  WITH CHECK (true);
+
+-- منع التعديل والحذف
+CREATE POLICY "No updates on access_log"
+  ON public.access_log FOR UPDATE USING (false);
+
+CREATE POLICY "No deletes on access_log"
+  ON public.access_log FOR DELETE USING (false);
 ```
 
-### اصلاحات NotificationBell
-```text
-1. ScrollArea: className="h-80" بدل "max-h-80"
-2. زر حذف فردي: ايقونة X تظهر عند hover على كل اشعار
-3. زر حذف المقروءة: في الهيدر بجانب "قراءة الكل"
-4. التنقل: عند الضغط على اشعار يحتوي link -> navigate(link) + اغلاق Popover
-5. استيراد: deleteOne, deleteRead, useNavigate, X, Trash2
+### useAccessLog hook:
+```typescript
+// src/hooks/useAccessLog.ts
+export const logAccessEvent = async (event: {
+  event_type: string;
+  email?: string;
+  user_id?: string;
+  target_path?: string;
+  metadata?: Record<string, unknown>;
+}) => {
+  await supabase.from('access_log').insert({
+    ...event,
+    ip_info: navigator.userAgent,
+  });
+};
 ```
 
-### الملفات المتأثرة
-| الملف | نوع التغيير |
-|:---|:---|
-| `src/components/DashboardLayout.tsx` | اضافة ايقونة اللائحة بجانب الجرس |
-| `src/components/NotificationBell.tsx` | اصلاح التمرير + الحذف + التنقل |
+### تعديلات Auth.tsx:
+- بعد `signIn` الفاشل: استدعاء `logAccessEvent({ event_type: 'login_failed', email })`
+- بعد `signIn` الناجح: استدعاء `logAccessEvent({ event_type: 'login_success', email, user_id })`
 
-لا حاجة لتعديل قاعدة البيانات او الـ hooks - كل الوظائف موجودة بالفعل في `useNotifications`.
+### تعديلات ProtectedRoute.tsx:
+- عند التوجيه لصفحة `/unauthorized`: استدعاء `logAccessEvent({ event_type: 'unauthorized_access', target_path, user_id, metadata: { role, allowedRoles } })`
+
+### تعديلات AuditLogPage.tsx:
+- إضافة تبويبين: "سجل العمليات" (الحالي) و"محاولات الوصول" (الجديد)
+- التبويب الجديد يعرض بيانات `access_log` مع فلاتر وإحصائيات
+
