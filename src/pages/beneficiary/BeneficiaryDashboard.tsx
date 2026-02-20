@@ -51,8 +51,13 @@ const BeneficiaryDashboard = () => {
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
+    let id: ReturnType<typeof setInterval> | undefined;
+    const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
+    const stop = () => { if (id) { clearInterval(id); id = undefined; } };
+    const onVisibility = () => { document.hidden ? stop() : (setNow(new Date()), start()); };
+    start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
   const hour = now.getHours();
