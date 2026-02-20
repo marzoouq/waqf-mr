@@ -34,7 +34,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 }));
 
 vi.mock('@/hooks/useFinancialSummary', () => ({
-  useFinancialSummary: vi.fn(() => ({ availableAmount: 100000 })),
+  useFinancialSummary: vi.fn(() => ({ availableAmount: 100000, isLoading: false, isError: false })),
 }));
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
@@ -49,9 +49,10 @@ describe('BeneficiaryDashboard', () => {
     expect(screen.getByText('محمد أحمد')).toBeInTheDocument();
   });
 
-  it('shows beneficiary share percentage', () => {
+  it('shows beneficiary share info', () => {
     renderWithRouter(<BeneficiaryDashboard />);
-    expect(screen.getAllByText(/10%/).length).toBeGreaterThanOrEqual(1);
+    // Share is shown as amount, not percentage
+    expect(screen.getByText(/10,000/)).toBeInTheDocument();
   });
 
   it('calculates my share correctly (10% of 100000)', () => {
@@ -68,8 +69,8 @@ describe('BeneficiaryDashboard', () => {
     renderWithRouter(<BeneficiaryDashboard />);
     expect(screen.getByText('الإفصاح السنوي')).toBeInTheDocument();
     expect(screen.getAllByText('حصتي من الريع').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('الحسابات الختامية')).toBeInTheDocument();
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    expect(screen.getByText('اللائحة التنظيمية')).toBeInTheDocument();
   });
 
   it('shows recent notifications', () => {

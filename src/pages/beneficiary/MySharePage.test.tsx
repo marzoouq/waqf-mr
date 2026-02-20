@@ -30,6 +30,7 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     adminShare: 18000, waqifShare: 9000, waqfRevenue: 153000,
     waqfCorpusManual: 0, vatAmount: 20000, zakatAmount: 0,
     netAfterExpenses: 150000, availableAmount: 100000,
+    isLoading: false, isError: false,
   })),
 }));
 
@@ -38,7 +39,7 @@ vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) =>
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/utils/pdf', () => ({ generateMySharePDF: vi.fn() }));
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }) }) },
+  supabase: { from: () => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }) }) }) }) },
 }));
 
 import MySharePage from './MySharePage';
@@ -53,33 +54,33 @@ const renderPage = () => {
 };
 
 describe('MySharePage', () => {
-  it('renders page title', () => {
+  it('renders page title', async () => {
     renderPage();
-    expect(screen.getByText('حصتي من الريع')).toBeInTheDocument();
+    expect(await screen.findByText('حصتي من الريع')).toBeInTheDocument();
   });
 
-  it('shows share percentage', () => {
+  it('shows share info', async () => {
     renderPage();
-    expect(screen.getByText('10%')).toBeInTheDocument();
+    expect(await screen.findByText(/10,000/)).toBeInTheDocument();
   });
 
-  it('calculates entitled share (10% of 100000)', () => {
+  it('calculates entitled share (10% of 100000)', async () => {
     renderPage();
-    expect(screen.getByText(/10,000/)).toBeInTheDocument();
+    expect(await screen.findByText(/10,000/)).toBeInTheDocument();
   });
 
-  it('shows distributions history section', () => {
+  it('shows distributions history section', async () => {
     renderPage();
-    expect(screen.getByText('سجل التوزيعات')).toBeInTheDocument();
+    expect(await screen.findByText('سجل التوزيعات')).toBeInTheDocument();
   });
 
-  it('shows empty distributions message', () => {
+  it('shows empty distributions message', async () => {
     renderPage();
-    expect(screen.getByText('لا توجد توزيعات مسجلة بعد')).toBeInTheDocument();
+    expect(await screen.findByText('لا توجد توزيعات مسجلة بعد')).toBeInTheDocument();
   });
 
-  it('shows link to disclosure page', () => {
+  it('shows link to disclosure page', async () => {
     renderPage();
-    expect(screen.getByText('صفحة الإفصاح السنوي')).toBeInTheDocument();
+    expect(await screen.findByText('صفحة الإفصاح السنوي')).toBeInTheDocument();
   });
 });
