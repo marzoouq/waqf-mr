@@ -40,8 +40,8 @@ const FiscalYearManagementTab = () => {
       toast.success('تم إنشاء السنة المالية بنجاح');
       setNewFY({ label: '', start_date: '', end_date: '' });
       setCreating(false);
-    } catch (err: any) {
-      toast.error(err?.message || 'حدث خطأ أثناء الإنشاء');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
     } finally {
       setActionLoading(null);
     }
@@ -69,8 +69,8 @@ const FiscalYearManagementTab = () => {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success(`تم حذف السنة: ${fy.label}`);
-    } catch (err: any) {
-      toast.error(err?.message?.includes('violates foreign key') ? 'لا يمكن حذف سنة مرتبطة ببيانات' : 'حدث خطأ أثناء الحذف');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error && err.message?.includes('violates foreign key') ? 'لا يمكن حذف سنة مرتبطة ببيانات' : 'حدث خطأ أثناء الحذف');
     } finally {
       setActionLoading(null);
     }

@@ -79,7 +79,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
     }).filter(d => {
       // Only show months that have data in at least one year
       const keys = Object.keys(d).filter(k => k !== 'month');
-      return keys.some(k => (d as any)[k] !== 0);
+      return keys.some(k => (d as Record<string, unknown>)[k] !== 0);
     });
   }, [summary1.income, summary1.expenses, summary2.income, summary2.expenses, year1Label, year2Label]);
 

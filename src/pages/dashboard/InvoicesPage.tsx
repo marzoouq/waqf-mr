@@ -134,7 +134,7 @@ const InvoicesPage = () => {
     try {
       setUploading(true);
 
-      const invoiceData: Record<string, any> = {
+      const invoiceData: Record<string, unknown> = {
         invoice_number: formData.invoice_number || null,
         invoice_type: formData.invoice_type,
         amount: parseFloat(formData.amount) || 0,
@@ -162,9 +162,9 @@ const InvoicesPage = () => {
       const fileName = invoiceData.file_name as string | undefined;
 
       if (editingInvoice) {
-        await updateInvoice.mutateAsync({ id: editingInvoice.id, ...invoiceData });
+        await updateInvoice.mutateAsync({ id: editingInvoice.id, ...invoiceData } as unknown as Parameters<typeof updateInvoice.mutateAsync>[0]);
       } else {
-        await createInvoice.mutateAsync(invoiceData as any);
+        await createInvoice.mutateAsync(invoiceData as unknown as Parameters<typeof createInvoice.mutateAsync>[0]);
       }
 
       setIsOpen(false);

@@ -27,14 +27,14 @@ const Auth = () => {
   const navigate = useNavigate();
 
   // PWA install prompt
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installPrompt, setInstallPrompt] = useState<(Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }) | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsAppInstalled(true);
     }
-    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }); };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -373,7 +373,7 @@ const Auth = () => {
             onClick={() => {
               if (installPrompt) {
                 installPrompt.prompt();
-                installPrompt.userChoice.then((r: any) => {
+                installPrompt.userChoice.then((r: { outcome: string }) => {
                   if (r.outcome === 'accepted') setIsAppInstalled(true);
                   setInstallPrompt(null);
                 });
