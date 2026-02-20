@@ -55,6 +55,6 @@ describe('BeneficiaryMessagesPage', () => {
 
   it('shows empty state prompt when no conversation selected', () => {
     renderPage();
-    expect(screen.getByText('اختر محادثة أو أنشئ تذكرة دعم')).toBeInTheDocument();
+    expect(screen.getByText('اختر محادثة أو ابدأ محادثة جديدة مع الناظر')).toBeInTheDocument();
   });
 });

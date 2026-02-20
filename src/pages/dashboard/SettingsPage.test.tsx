@@ -70,7 +70,7 @@ describe('SettingsPage', () => {
     renderPage();
     // Tab triggers use role="tab"
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.length).toBe(11);
+    expect(tabs.length).toBe(12);
     expect(screen.getByText('الأقسام')).toBeInTheDocument();
     expect(screen.getByText('المظهر')).toBeInTheDocument();
     expect(screen.getByText('الأمان')).toBeInTheDocument();
