@@ -1,5 +1,3 @@
-import "../_shared/deno-types.d.ts";
-// @ts-expect-error Deno remote URL import is valid at runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 

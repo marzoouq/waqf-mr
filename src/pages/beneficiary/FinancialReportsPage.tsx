@@ -101,7 +101,7 @@ const FinancialReportsPage = () => {
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
-          percentage: Number(b.share_percentage),
+          percentage: 0,
           amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
         })),
       }, pdfWaqfInfo);
