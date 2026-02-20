@@ -6,14 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen, Search, X, Lock, ScrollText, Scale } from 'lucide-react';
+import { BookOpen, Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { Button } from '@/components/ui/button';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const BylawsViewPage = () => {
-  const { data: bylaws, isLoading } = useBylaws();
+  const { data: bylaws, isLoading, isError } = useBylaws();
   const { data: settings, isLoading: settingsLoading } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [search, setSearch] = useState('');
@@ -33,11 +35,25 @@ const BylawsViewPage = () => {
     );
   }, [allVisible, search]);
 
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل اللائحة</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (isLoading || settingsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="p-4 md:p-6 space-y-6">
+          <TableSkeleton rows={6} cols={2} />
         </div>
       </DashboardLayout>
     );
@@ -61,7 +77,7 @@ const BylawsViewPage = () => {
     );
   }
 
-  // Group bylaws by part for professional display
+  // Group bylaws by part
   const groupedByPart = visibleBylaws.reduce((acc, item) => {
     const key = item.part_number;
     if (!acc[key]) acc[key] = [];
@@ -88,22 +104,14 @@ const BylawsViewPage = () => {
                 <p className="text-sm text-muted-foreground mt-1">لائحة تنظيم أعمال الوقف والنظارة • {visibleBylaws.length} بند</p>
               </div>
             </div>
-            <ExportMenu
-              onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
-            />
+            <ExportMenu onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)} />
           </div>
         </div>
 
         {/* Search */}
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="ابحث في بنود اللائحة..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pr-9 pl-9"
-            dir="rtl"
-          />
+          <Input placeholder="ابحث في بنود اللائحة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 pl-9" dir="rtl" />
           {search && (
             <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-4 h-4" />
@@ -122,11 +130,7 @@ const BylawsViewPage = () => {
           <CardContent>
             <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {visibleBylaws.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#bylaw-${item.id}`}
-                  className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-primary/5 transition-colors text-sm group"
-                >
+                <a key={item.id} href={`#bylaw-${item.id}`} className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-primary/5 transition-colors text-sm group">
                   <Badge variant="outline" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors min-w-[2.5rem] justify-center">
                     {item.part_number === 0 ? '٠' : item.part_number}
                   </Badge>
@@ -139,14 +143,13 @@ const BylawsViewPage = () => {
           </CardContent>
         </Card>
 
-        {/* Bylaws Content - Grouped by Part */}
+        {/* Bylaws Content */}
         {partNumbers.map((partNum) => {
           const items = groupedByPart[partNum];
           const partTitle = partNum === 0 ? 'المقدمة' : items[0]?.part_title || `الجزء ${partNum}`;
 
           return (
             <div key={partNum} className="space-y-3">
-              {/* Part Header */}
               <div className="flex items-center gap-3 px-1">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <span className="text-sm font-bold text-primary">{partNum === 0 ? '٠' : partNum}</span>

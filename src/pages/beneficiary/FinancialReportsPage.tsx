@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,6 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 
@@ -30,7 +29,6 @@ const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, f
 
 const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
@@ -50,12 +48,12 @@ const FinancialReportsPage = () => {
     zakatAmount,
     incomeBySource,
     expensesByTypeExcludingVat,
+    isLoading,
+    isError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-
   const beneficiariesShare = availableAmount;
-
   const myShare = currentBeneficiary
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
     : 0;
@@ -113,6 +111,24 @@ const FinancialReportsPage = () => {
     }
   };
 
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
@@ -127,7 +143,7 @@ const FinancialReportsPage = () => {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - improved mobile grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
@@ -244,16 +260,7 @@ const FinancialReportsPage = () => {
               {distributionData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie
-                    data={distributionData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    labelLine={false}
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '11px' }}
-                  >
+                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -279,17 +286,8 @@ const FinancialReportsPage = () => {
               {incomePieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie
-                    data={incomePieData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    labelLine={false}
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '11px' }}
-                  >
-                    {incomePieData.map((entry, index) => (
+                  <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                    {incomePieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -311,17 +309,8 @@ const FinancialReportsPage = () => {
               {expensesPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie
-                    data={expensesPieData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    labelLine={false}
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    style={{ fontSize: '11px' }}
-                  >
-                    {expensesPieData.map((entry, index) => (
+                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                    {expensesPieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>

@@ -1,26 +1,25 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, Download, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { useQueryClient } from '@tanstack/react-query';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DisclosurePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
@@ -41,14 +40,14 @@ const DisclosurePage = () => {
     incomeBySource,
     expensesByTypeExcludingVat,
     availableAmount,
+    isLoading: finLoading,
+    isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-
   const beneficiariesShare = availableAmount;
-
   const myShare = currentBeneficiary
     ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
     : 0;
@@ -76,6 +75,24 @@ const DisclosurePage = () => {
       toast.error('حدث خطأ أثناء تصدير PDF');
     }
   };
+
+  if (finError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (finLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
 
   return (
     <DashboardLayout>
@@ -136,7 +153,7 @@ const DisclosurePage = () => {
           </Card>
         </div>
 
-        {/* Contracts Table */}
+        {/* Contracts */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -151,7 +168,31 @@ const DisclosurePage = () => {
               </div>
             ) : contracts.length === 0 ? (
               <p className="text-center text-muted-foreground py-6 text-sm">لا توجد عقود مسجلة</p>
+            ) : isMobile ? (
+              /* Mobile: Card-based grid */
+              <div className="grid grid-cols-1 gap-3">
+                {contracts.map(c => (
+                  <div key={c.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm">{c.contract_number}</span>
+                      <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
+                        {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
+                    <div className="flex justify-between text-xs">
+                      <span>سنوي: {Number(c.rent_amount).toLocaleString()} ر.س</span>
+                      <span>شهري: {Math.round(Number(c.rent_amount) / 12).toLocaleString()} ر.س</span>
+                    </div>
+                  </div>
+                ))}
+                <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
+                  <span>الإجمالي</span>
+                  <span>{contracts.reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</span>
+                </div>
+              </div>
             ) : (
+              /* Desktop: Table */
               <div className="overflow-x-auto">
                 <Table className="min-w-[600px]">
                   <TableHeader>
@@ -217,7 +258,7 @@ const DisclosurePage = () => {
                 </div>
               </div>
 
-              {/* Expenses Breakdown - without VAT */}
+              {/* Expenses Breakdown */}
               <div>
                 <h3 className="font-bold text-lg mb-3 text-destructive">المصروفات</h3>
                 <div className="space-y-2">
@@ -284,11 +325,11 @@ const DisclosurePage = () => {
                 </div>
               </div>
 
-              {/* My Share */}
+              {/* My Share - without percentage */}
               <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mt-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">حصتي ({currentBeneficiary?.share_percentage || 0}%)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة</p>
                     <p className="font-bold text-xl sm:text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
                   </div>
                   <div className="sm:text-left">

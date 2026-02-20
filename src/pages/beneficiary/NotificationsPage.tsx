@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Bell, BellRing, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter, Trash2, BellOff, X } from 'lucide-react';
+import { Bell, BellRing, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter, Trash2, BellOff, X, AlertCircle, RefreshCw } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,6 +14,7 @@ import { ar } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
   info: { label: 'معلومات', icon: Info, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500/10' },
@@ -23,7 +24,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 const NotificationsPage = () => {
-  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, unreadCount } = useNotifications();
+  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
@@ -74,6 +75,30 @@ const NotificationsPage = () => {
     return groups;
   }, {} as Record<string, typeof notifications>);
 
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل الإشعارات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-5">
+          <TableSkeleton rows={6} cols={3} />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-5">
@@ -91,7 +116,6 @@ const NotificationsPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Push Notifications Toggle */}
             {isSupported && permission !== 'granted' && (
               <Button variant="outline" size="sm" onClick={handleEnablePush} className="gap-1.5">
                 <BellRing className="w-4 h-4" />
@@ -190,7 +214,7 @@ const NotificationsPage = () => {
           </div>
         </div>
 
-        {/* Notifications List - Grouped by Date */}
+        {/* Notifications List */}
         {filtered.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
@@ -223,12 +247,9 @@ const NotificationsPage = () => {
                           )}
                           onClick={() => handleClick(n)}
                         >
-                          {/* Type Icon */}
                           <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5', config.bg)}>
                             <Icon className={cn('w-5 h-5', config.color)} />
                           </div>
-                          
-                          {/* Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className={cn('text-sm', !n.is_read ? 'font-bold' : 'font-medium')}>
@@ -248,8 +269,6 @@ const NotificationsPage = () => {
                               </Badge>
                             </div>
                           </div>
-
-                          {/* Delete button */}
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button

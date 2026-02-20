@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useInvoices, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
-import { FileText, Search, Eye, Download, LayoutGrid, List } from 'lucide-react';
+import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -15,13 +15,14 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const InvoicesViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
+  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -63,6 +64,20 @@ const InvoicesViewPage = () => {
     }
   };
 
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل الفواتير</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
@@ -78,21 +93,11 @@ const InvoicesViewPage = () => {
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-end">
           <div className="flex gap-1 border rounded-lg p-1">
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-              className="gap-1"
-            >
+            <Button variant={viewMode === 'table' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('table')} className="gap-1">
               <List className="w-4 h-4" />
               <span className="hidden sm:inline">جدول</span>
             </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="gap-1"
-            >
+            <Button variant={viewMode === 'grid' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('grid')} className="gap-1">
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">شبكي</span>
             </Button>
@@ -105,12 +110,12 @@ const InvoicesViewPage = () => {
         </div>
 
         {viewMode === 'grid' ? (
-          <InvoiceGridView invoices={filteredInvoices} readOnly />
+          isLoading ? <TableSkeleton rows={4} cols={3} /> : <InvoiceGridView invoices={filteredInvoices} readOnly />
         ) : (
           <Card className="shadow-sm">
             <CardContent className="p-0">
               {isLoading ? (
-                <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+                <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>
               ) : filteredInvoices.length === 0 ? (
                 <div className="py-12 text-center">
                   <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />

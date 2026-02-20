@@ -5,7 +5,7 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,40 +13,24 @@ import DashboardLayout from '@/components/DashboardLayout';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-
-/* ── Circular progress (SVG) ── */
-const CircularProgress = ({ percentage, size = 90, stroke = 8 }: { percentage: number; size?: number; stroke?: number }) => {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
-  return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
-      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="hsl(var(--primary))" strokeWidth={stroke}
-        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-700" />
-      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-foreground font-bold"
-        fontSize={size * 0.22} transform={`rotate(90 ${size / 2} ${size / 2})`}>
-        {percentage}%
-      </text>
-    </svg>
-  );
-};
+import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: beneficiaries = [] } = useBeneficiariesSafe();
-  const { data: notifications = [] } = useNotifications();
-  const { data: activeFY, fiscalYears } = useActiveFiscalYear();
+  const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
+  const { data: notifications = [], isLoading: notifLoading } = useNotifications();
+  const { data: activeFY, fiscalYears, isLoading: fyLoading } = useActiveFiscalYear();
   const [selectedFYId, setSelectedFYId] = useState<string>('');
   const fiscalYearId = selectedFYId || activeFY?.id || 'all';
   const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const { availableAmount } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+  const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
   const myShare = currentBeneficiary ? (beneficiariesShare * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
-  const sharePercentage = currentBeneficiary?.share_percentage ?? 0;
+
+  const isLoading = benLoading || fyLoading || finLoading;
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -91,7 +75,6 @@ const BeneficiaryDashboard = () => {
     };
     fetchDistributions();
 
-    // Realtime subscription for new distributions
     const channel = supabase
       .channel('beneficiary-distributions')
       .on('postgres_changes', {
@@ -110,6 +93,7 @@ const BeneficiaryDashboard = () => {
     };
   }, [currentBeneficiary?.id]);
 
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
 
   const quickLinks = [
@@ -119,6 +103,24 @@ const BeneficiaryDashboard = () => {
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
 
+  if (benError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
   return (
     <DashboardLayout>
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -127,7 +129,6 @@ const BeneficiaryDashboard = () => {
         <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground animate-slide-up">
           <CardContent className="p-4 sm:p-6 md:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              {/* Right: greeting + name */}
               <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
                   <GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -140,8 +141,6 @@ const BeneficiaryDashboard = () => {
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
                 </div>
               </div>
-
-              {/* Left: date & time */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-primary-foreground/85 shrink-0">
                 <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" />{hijriDate}</span>
                 <span className="hidden sm:inline text-primary-foreground/40">|</span>
@@ -159,7 +158,7 @@ const BeneficiaryDashboard = () => {
         </div>
 
         {/* ═══ Stats row ═══ */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* My share amount */}
           <Card className="shadow-sm">
             <CardContent className="p-4 sm:p-5">
@@ -171,17 +170,6 @@ const BeneficiaryDashboard = () => {
                   <p className="text-xs text-muted-foreground">حصتي من الريع</p>
                   <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Share percentage (circular) */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
-              <CircularProgress percentage={sharePercentage} size={70} stroke={7} />
-              <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">نسبة حصتي</p>
-                <p className="text-lg font-bold">{sharePercentage}%</p>
               </div>
             </CardContent>
           </Card>
@@ -276,6 +264,9 @@ const BeneficiaryDashboard = () => {
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Bell className="w-5 h-5" />
                 آخر الإشعارات
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="text-[10px] px-1.5">{unreadCount}</Badge>
+                )}
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
             </CardHeader>
