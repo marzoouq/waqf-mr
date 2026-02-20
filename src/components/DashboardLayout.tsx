@@ -43,6 +43,7 @@ import PrintFooter from '@/components/PrintFooter';
 import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Lock } from 'lucide-react';
+import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -65,6 +66,25 @@ const beneficiarySectionKeys: Record<string, string> = {
   '/beneficiary/share': 'share',
   '/beneficiary/accounts': 'accounts',
   '/beneficiary/reports': 'reports',
+};
+
+// Map link keys to menu_labels keys
+const linkLabelKeys: Record<string, keyof MenuLabels> = {
+  '/dashboard': 'home',
+  '/dashboard/properties': 'properties',
+  '/dashboard/contracts': 'contracts',
+  '/dashboard/income': 'income',
+  '/dashboard/expenses': 'expenses',
+  '/dashboard/beneficiaries': 'beneficiaries',
+  '/dashboard/reports': 'reports',
+  '/dashboard/accounts': 'accounts',
+  '/dashboard/users': 'users',
+  '/dashboard/settings': 'settings',
+  '/dashboard/messages': 'messages',
+  '/dashboard/invoices': 'invoices',
+  '/dashboard/audit-log': 'audit_log',
+  '/dashboard/bylaws': 'bylaws',
+  '/beneficiary': 'beneficiary_view',
 };
 
 // PrintHeader is now in its own file: components/PrintHeader.tsx
@@ -125,19 +145,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const sectionsVisibility = getJsonSetting('sections_visibility', { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true });
   const beneficiarySections = getJsonSetting('beneficiary_sections', { disclosure: true, share: true, accounts: true, reports: true });
+  const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
 
   const links = useMemo(() => {
     if (role === 'admin') {
-      return allAdminLinks.filter((link) => {
-        const key = adminSectionKeys[link.to];
-        return !key || sectionsVisibility[key] !== false;
-      });
+      return allAdminLinks
+        .filter((link) => {
+          const key = adminSectionKeys[link.to];
+          return !key || sectionsVisibility[key] !== false;
+        })
+        .map(link => {
+          const labelKey = linkLabelKeys[link.to];
+          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
+        });
     }
     return allBeneficiaryLinks.filter((link) => {
       const key = beneficiarySectionKeys[link.to];
       return !key || beneficiarySections[key] !== false;
     });
-  }, [role, sectionsVisibility, beneficiarySections]);
+  }, [role, sectionsVisibility, beneficiarySections, menuLabels]);
 
   const handleSignOut = async () => {
     await signOut();

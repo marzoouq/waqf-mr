@@ -6,8 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Upload, Trash2, ImageIcon } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { lazy, Suspense } from 'react';
+
+const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
+const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
+const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalYearManagementTab'));
+const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
+const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 import { useWaqfInfo } from '@/hooks/useWaqfInfo';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -505,9 +512,17 @@ const SettingsPage = () => {
               <Building2 className="w-4 h-4" />
               بيانات الوقف
             </TabsTrigger>
+            <TabsTrigger value="landing" className="gap-1.5 text-xs md:text-sm">
+              <Globe className="w-4 h-4" />
+              الواجهة الرئيسية
+            </TabsTrigger>
             <TabsTrigger value="sections" className="gap-1.5 text-xs md:text-sm">
               <LayoutGrid className="w-4 h-4" />
               الأقسام
+            </TabsTrigger>
+            <TabsTrigger value="menu" className="gap-1.5 text-xs md:text-sm">
+              <LayoutList className="w-4 h-4" />
+              القائمة
             </TabsTrigger>
             <TabsTrigger value="beneficiary" className="gap-1.5 text-xs md:text-sm">
               <Users className="w-4 h-4" />
@@ -517,9 +532,21 @@ const SettingsPage = () => {
               <Palette className="w-4 h-4" />
               المظهر
             </TabsTrigger>
+            <TabsTrigger value="fiscal" className="gap-1.5 text-xs md:text-sm">
+              <Calendar className="w-4 h-4" />
+              السنوات المالية
+            </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1.5 text-xs md:text-sm">
               <Bell className="w-4 h-4" />
               الإشعارات
+            </TabsTrigger>
+            <TabsTrigger value="bulk-notify" className="gap-1.5 text-xs md:text-sm">
+              <Megaphone className="w-4 h-4" />
+              إشعارات جماعية
+            </TabsTrigger>
+            <TabsTrigger value="export" className="gap-1.5 text-xs md:text-sm">
+              <Download className="w-4 h-4" />
+              تصدير البيانات
             </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
@@ -527,10 +554,15 @@ const SettingsPage = () => {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
+          <TabsContent value="landing"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><LandingPageTab /></Suspense></TabsContent>
           <TabsContent value="sections"><SectionsTab /></TabsContent>
+          <TabsContent value="menu"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><MenuCustomizationTab /></Suspense></TabsContent>
           <TabsContent value="beneficiary"><BeneficiaryTab /></TabsContent>
           <TabsContent value="appearance"><AppearanceTab /></TabsContent>
+          <TabsContent value="fiscal"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><FiscalYearManagementTab /></Suspense></TabsContent>
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
+          <TabsContent value="bulk-notify"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BulkNotificationsTab /></Suspense></TabsContent>
+          <TabsContent value="export"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><DataExportTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>
