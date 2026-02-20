@@ -1,16 +1,15 @@
 /**
  * مكون حماية المسارات (ProtectedRoute)
  * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
- * - إذا لم يكن مسجلاً: يحول إلى صفحة تسجيل الدخول
- * - إذا لم يملك الدور المطلوب: يحول إلى صفحة "غير مصرح"
  * 
- * @param allowedRoles - الأدوار المسموح لها بالوصول (admin, beneficiary, waqif)
+ * إصلاح: إضافة timeout لحالة isRoleLoading لمنع التعليق اللانهائي
  */
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { logAccessEvent } from '@/hooks/useAccessLog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,10 +20,42 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const { user, role, loading } = useAuth();
   const location = useLocation();
   const loggedRef = useRef(false);
+  const [roleTimeout, setRoleTimeout] = useState(false);
+  const [lastChanceRole, setLastChanceRole] = useState<string | null>(null);
 
-  // إذا المستخدم موجود لكن الدور لم يصل بعد = لا تزال حالة تحميل
-  const isRoleLoading = !loading && !!user && !!allowedRoles && !role;
-  const isUnauthorized = !loading && !!user && !!allowedRoles && !!role && !allowedRoles.includes(role);
+  const effectiveRole = lastChanceRole || role;
+  const isRoleLoading = !loading && !!user && !!allowedRoles && !effectiveRole;
+  const isUnauthorized = !loading && !!user && !!allowedRoles && !!effectiveRole && !allowedRoles.includes(effectiveRole as any);
+
+  // Timeout: 5s max waiting for role, then try one last direct fetch
+  useEffect(() => {
+    if (!isRoleLoading) {
+      setRoleTimeout(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      console.warn('[ProtectedRoute] Role loading timeout after 5s, attempting direct fetch...');
+      try {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user!.id)
+          .maybeSingle();
+
+        if (data?.role) {
+          console.warn('[ProtectedRoute] Last-chance fetch succeeded:', data.role);
+          setLastChanceRole(data.role);
+          return;
+        }
+      } catch (err) {
+        console.error('[ProtectedRoute] Last-chance fetch failed:', err);
+      }
+      setRoleTimeout(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [isRoleLoading, user]);
 
   useEffect(() => {
     if (isUnauthorized && !loggedRef.current) {
@@ -33,12 +64,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
         event_type: 'unauthorized_access',
         user_id: user!.id,
         target_path: location.pathname,
-        metadata: { current_role: role, required_roles: allowedRoles },
+        metadata: { current_role: effectiveRole, required_roles: allowedRoles },
       });
     }
-  }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
+  }, [isUnauthorized, user, effectiveRole, allowedRoles, location.pathname]);
 
-  if (loading || isRoleLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -48,6 +79,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Role still loading (within 5s window)
+  if (isRoleLoading && !roleTimeout) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Timeout expired and no role found → redirect to auth
+  if (roleTimeout && !effectiveRole) {
+    console.warn('[ProtectedRoute] Redirecting to /auth due to role timeout');
+    return <Navigate to="/auth" replace />;
   }
 
   if (isUnauthorized) {
