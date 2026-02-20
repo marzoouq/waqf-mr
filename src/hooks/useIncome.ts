@@ -4,13 +4,13 @@
  * الجدول: income | الربط: properties | الترتيب: حسب التاريخ
  * عند إضافة دخل جديد: يتم إرسال إشعار تلقائي لجميع المستفيدين
  */
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { Income } from '@/types/database';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const incomeCrud = useCrudFactory<'income', Income>({
+const incomeCrud = createCrudFactory<'income', Income>({
   table: 'income',
   queryKey: 'income',
   select: '*, property:properties(*)',

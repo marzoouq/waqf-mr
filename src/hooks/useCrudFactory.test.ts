@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-import { useCrudFactory } from './useCrudFactory';
+import { createCrudFactory } from './useCrudFactory';
 import { toast } from 'sonner';
 
 // ---- helpers ----
@@ -57,8 +57,8 @@ beforeEach(() => {
   mockDelete.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 });
 
-describe('useCrudFactory', () => {
-  const factory = useCrudFactory({ table: 'properties', queryKey: 'test-props', label: 'العقار' });
+describe('createCrudFactory', () => {
+  const factory = createCrudFactory({ table: 'properties', queryKey: 'test-props', label: 'العقار' });
 
   describe('useList', () => {
     it('returns data on success', async () => {
@@ -106,7 +106,7 @@ describe('useCrudFactory', () => {
     });
 
     it('respects custom config', async () => {
-      const custom = useCrudFactory({ table: 'units', queryKey: 'test-units', label: 'الوحدة', orderBy: 'unit_number', ascending: true, limit: 100 });
+      const custom = createCrudFactory({ table: 'units', queryKey: 'test-units', label: 'الوحدة', orderBy: 'unit_number', ascending: true, limit: 100 });
       const { result } = renderHook(() => custom.useList(), { wrapper: wrapper() });
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(mockOrder).toHaveBeenCalledWith('unit_number', { ascending: true });
@@ -117,7 +117,7 @@ describe('useCrudFactory', () => {
   describe('callbacks', () => {
     it('calls onCreateSuccess callback', async () => {
       const onCreateSuccess = vi.fn();
-      const withCb = useCrudFactory({ table: 'properties', queryKey: 'cb-test', label: 'العقار', onCreateSuccess });
+      const withCb = createCrudFactory({ table: 'properties', queryKey: 'cb-test', label: 'العقار', onCreateSuccess });
       const { result } = renderHook(() => withCb.useCreate(), { wrapper: wrapper() });
       await result.current.mutateAsync({} as any);
       expect(onCreateSuccess).toHaveBeenCalledWith(sampleRows[0]);

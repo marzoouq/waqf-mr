@@ -56,7 +56,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = (doc as any).lastAutoTable?.finalY + 10 || 100;
+  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90) + 10;
 
   // Income
   doc.setFont(fontFamily, 'bold');
@@ -73,7 +73,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = (doc as any).lastAutoTable?.finalY + 10 || 150;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 140) + 10;
 
   // Expenses
   doc.setFont(fontFamily, 'bold');
@@ -89,7 +89,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = (doc as any).lastAutoTable?.finalY + 10 || 200;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 190) + 10;
 
   // Distribution - Full hierarchical sequence
   const corpusPrev = data.waqfCorpusPrevious || 0;
@@ -140,7 +140,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = (doc as any).lastAutoTable?.finalY + 10 || 250;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 240) + 10;
 
   // Beneficiaries
   const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);

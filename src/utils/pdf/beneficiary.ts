@@ -51,7 +51,7 @@ export const generateMySharePDF = async (data: {
   });
 
   if (data.distributions.length > 0) {
-    const finalY = (doc as any).lastAutoTable?.finalY + 15 || 120;
+    const finalY = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 105) + 15;
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(14);
     doc.text('سجل التوزيعات', 105, finalY, { align: 'center' });
@@ -117,7 +117,7 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = (doc as any).lastAutoTable?.finalY + 10 || 100;
+  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90) + 10;
 
   // Expenses
   autoTable(doc, {
@@ -132,7 +132,7 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = (doc as any).lastAutoTable?.finalY + 10 || 160;
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 150) + 10;
 
   // Distribution
   autoTable(doc, {
