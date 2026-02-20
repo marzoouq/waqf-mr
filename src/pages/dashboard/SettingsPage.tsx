@@ -1,4 +1,5 @@
 import DashboardLayout from '@/components/DashboardLayout';
+import ThemeColorPicker from '@/components/ThemeColorPicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -343,7 +344,7 @@ const BeneficiaryTab = () => {
 // === Appearance Tab ===
 const AppearanceTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const defaults = { system_name: 'إدارة الوقف', primary_color: '158 64% 25%', secondary_color: '43 74% 49%' };
+  const defaults = { system_name: 'إدارة الوقف' };
   const appearance = getJsonSetting('appearance_settings', defaults);
   const [form, setForm] = useState(appearance);
 
@@ -352,34 +353,25 @@ const AppearanceTab = () => {
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-display text-lg">المظهر والألوان</CardTitle>
-        <CardDescription>تخصيص مظهر النظام</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-1.5">
-          <Label>اسم النظام</Label>
-          <Input value={form.system_name} onChange={(e) => setForm((p: typeof form) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg">المظهر والألوان</CardTitle>
+          <CardDescription>تخصيص مظهر النظام</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>اللون الأساسي (HSL)</Label>
-            <Input value={form.primary_color} onChange={(e) => setForm((p: typeof form) => ({ ...p, primary_color: e.target.value }))} placeholder="158 64% 25%" />
-            <div className="w-full h-8 rounded-md border" style={{ backgroundColor: `hsl(${form.primary_color})` }} />
+            <Label>اسم النظام</Label>
+            <Input value={form.system_name} onChange={(e) => setForm((p: typeof form) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
           </div>
-          <div className="space-y-1.5">
-            <Label>اللون الثانوي (HSL)</Label>
-            <Input value={form.secondary_color} onChange={(e) => setForm((p: typeof form) => ({ ...p, secondary_color: e.target.value }))} placeholder="43 74% 49%" />
-            <div className="w-full h-8 rounded-md border" style={{ backgroundColor: `hsl(${form.secondary_color})` }} />
-          </div>
-        </div>
-        <Button onClick={() => updateJsonSetting('appearance_settings', form)} className="gap-2">
-          <Save className="w-4 h-4" />
-          حفظ المظهر
-        </Button>
-      </CardContent>
-    </Card>
+          <Button onClick={() => updateJsonSetting('appearance_settings', form)} className="gap-2">
+            <Save className="w-4 h-4" />
+            حفظ الاسم
+          </Button>
+        </CardContent>
+      </Card>
+      <ThemeColorPicker />
+    </div>
   );
 };
 
