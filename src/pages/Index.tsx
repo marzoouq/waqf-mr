@@ -5,10 +5,26 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import type { LandingPageContent } from '@/components/settings/LandingPageTab';
+
+const defaultLanding: LandingPageContent = {
+  hero_title: 'نظام إدارة الوقف',
+  hero_subtitle: 'منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين',
+  hero_tagline: 'حفظ الأمانة · إدارة الممتلكات · توزيع عادل',
+  cta_text: 'دخول النظام',
+  features_title: 'مميزات النظام',
+  features_subtitle: 'أدوات شاملة لإدارة الوقف بكفاءة وشفافية تامة',
+  cta_section_title: 'ابدأ بإدارة وقفك بكفاءة اليوم',
+  cta_section_subtitle: 'سجّل دخولك للوصول إلى لوحة التحكم وإدارة جميع جوانب الوقف',
+  footer_text: 'نظام إدارة الوقف © {year} — جميع الحقوق محفوظة',
+};
 
 const Index = () => {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const { getJsonSetting } = useAppSettings();
+  const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
 
   const [stats, setStats] = useState([
     { label: 'عقار مُدار', value: '...' },
@@ -131,13 +147,13 @@ const Index = () => {
               </div>
 
               <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
-                نظام إدارة الوقف
+                {content.hero_title}
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
-                منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين
+                {content.hero_subtitle}
               </p>
               <p className="text-sm md:text-base text-secondary mb-10 font-arabic font-medium">
-                حفظ الأمانة · إدارة الممتلكات · توزيع عادل
+                {content.hero_tagline}
               </p>
             </div>
 
@@ -149,7 +165,7 @@ const Index = () => {
                 className="gradient-gold text-primary-foreground gap-3 shadow-gold hover:scale-105 transition-all duration-300 text-lg px-10 py-6 rounded-2xl font-bold"
               >
                 <ArrowLeft className="w-5 h-5" />
-                دخول النظام
+                {content.cta_text}
               </Button>
             </div>
 
@@ -180,10 +196,10 @@ const Index = () => {
               <span className="bg-background px-6 text-secondary font-display text-lg">✦</span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              مميزات النظام
+              {content.features_title}
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto text-base">
-              أدوات شاملة لإدارة الوقف بكفاءة وشفافية تامة
+              {content.features_subtitle}
             </p>
           </div>
 
@@ -217,10 +233,10 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
         <div className="container mx-auto px-4 text-center relative z-10">
           <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-            ابدأ بإدارة وقفك بكفاءة اليوم
+            {content.cta_section_title}
           </h3>
           <p className="text-primary-foreground/80 mb-8 max-w-md mx-auto">
-            سجّل دخولك للوصول إلى لوحة التحكم وإدارة جميع جوانب الوقف
+            {content.cta_section_subtitle}
           </p>
           <Button
             onClick={() => navigate('/auth')}
@@ -228,7 +244,7 @@ const Index = () => {
             className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-all duration-300 rounded-xl font-bold px-8"
           >
             <ArrowLeft className="w-5 h-5" />
-            دخول النظام
+                {content.cta_text}
           </Button>
         </div>
       </section>
@@ -246,7 +262,7 @@ const Index = () => {
             </button>
           </div>
           <p className="text-primary-foreground/60 text-sm">
-            نظام إدارة الوقف © {new Date().getFullYear()} — جميع الحقوق محفوظة
+            {content.footer_text.replace('{year}', String(new Date().getFullYear()))}
           </p>
         </div>
       </footer>
