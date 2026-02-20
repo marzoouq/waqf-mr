@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export const logAccessEvent = async (event: {
-  event_type: 'login_failed' | 'login_success' | 'unauthorized_access' | 'idle_logout';
+  event_type: 'login_failed' | 'login_success' | 'unauthorized_access' | 'idle_logout' | 'role_fetch';
   email?: string;
   user_id?: string;
   target_path?: string;

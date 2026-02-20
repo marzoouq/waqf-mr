@@ -6,6 +6,7 @@
  */
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
@@ -81,6 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const fetchRole = async () => {
+      const startTime = Date.now();
+      let attempts = 0;
       console.warn('[Auth] fetchRole started for user:', user.id);
       
       // Safety timeout: 5 seconds max
@@ -92,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }, 5000);
 
       for (let attempt = 0; attempt <= 2; attempt++) {
+        attempts = attempt + 1;
         // Check if this fetch is still relevant
         if (roleFetchIdRef.current !== fetchId) {
           console.warn('[Auth] fetchRole aborted (stale)');
@@ -108,10 +112,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (roleFetchIdRef.current !== fetchId) return;
 
           if (data && !error) {
-            console.warn('[Auth] fetchRole success:', data.role);
+            const duration = Date.now() - startTime;
+            console.warn('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
             setRole(data.role as AppRole);
             setLoading(false);
             clearTimeout(timeoutId);
+            // Log diagnostics to access_log
+            logAccessEvent({
+              event_type: 'role_fetch',
+              user_id: user.id,
+              metadata: { role: data.role, duration_ms: duration, attempts, status: 'success' },
+            });
             return;
           }
 
@@ -125,10 +136,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // All retries exhausted
       if (roleFetchIdRef.current === fetchId) {
-        console.warn('[Auth] fetchRole failed after all retries');
+        const duration = Date.now() - startTime;
+        console.warn('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
         setRole(null);
         setLoading(false);
         clearTimeout(timeoutId);
+        logAccessEvent({
+          event_type: 'role_fetch',
+          user_id: user.id,
+          metadata: { duration_ms: duration, attempts, status: 'failed' },
+        });
       }
     };
 
