@@ -1,21 +1,28 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const UpdatePrompt = () => {
   const [dismissed, setDismissed] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl, r) {
-      // Check for updates every hour
+    onRegisteredSW(_swUrl, r) {
       if (r) {
-        setInterval(() => r.update(), 60 * 60 * 1000);
+        intervalRef.current = setInterval(() => r.update(), 60 * 60 * 1000);
       }
     },
   });
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   if (!needRefresh || dismissed) return null;
 
