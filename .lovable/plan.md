@@ -1,91 +1,98 @@
 
-# خطة تدقيق وتحسين الأداء والأمان
+# خطة إصلاح مشكلة "غير مصرح" وتحسين سرعة المساعد الذكي
 
-## المشاكل المكتشفة
+## المشكلة الاولى: "غير مصرح" عند تحديث التطبيق
 
-### 1. مراجع Supabase خاطئة في index.html (خطير)
-الملف `index.html` يحتوي على روابط لمشروع Supabase قديم (`epopjqrwsztgxigmgurj`) بدلا من المشروع الحالي (`nuzdeamtujezrsxbvpfi`). يشمل ذلك:
-- `dns-prefetch` و `preconnect` (سطر 36-37)
-- صور OG للمشاركة الاجتماعية (سطر 42, 45)
+### السبب الجذري (مؤكد بالفحص)
 
-هذا قد يسبب عرض بيانات قديمة وصور مشاركة معطلة.
+في `AuthContext.tsx` سطر 58-64، يوجد **Race Condition**:
 
-### 2. وسم apple-mobile-web-app-capable مهمل
-المتصفحات الحديثة تعرض تحذير لأن `apple-mobile-web-app-capable` تم استبداله بـ `mobile-web-app-capable`.
+```text
+onAuthStateChange يُطلق:
+  1. setUser(session.user)        -- فوري
+  2. setTimeout(fetchUserRole)    -- مؤجل (ينتظر دوره)
+  3. setLoading(false)            -- فوري (قبل جلب الدور!)
 
-### 3. تسرب ذاكرة في UpdatePrompt
-استخدام `setInterval` بدون تنظيف (cleanup) عند إلغاء تسجيل المكون. يجب إرجاع دالة تنظيف من `onRegisteredSW`.
+النتيجة: user موجود + role = null + loading = false
+ProtectedRoute يرى: مستخدم بدون دور = "غير مصرح" --> يحول لـ /unauthorized
+```
 
-### 4. تسرب ذاكرة في BeneficiaryDashboard
-الساعة المباشرة (`setInterval` للوقت) تعمل باستمرار حتى لو الصفحة في الخلفية.
+هذا يحدث عند:
+- تحديث الصفحة
+- تفعيل Service Worker جديد (بعد تفعيل skipWaiting + clientsClaim)
+- انتهاء صلاحية الـ Refresh Token
 
-### 5. عدم وجود آلية لتنظيف الكاش القديم
-Service Worker لا يحتوي على `cleanupOutdatedCaches: true` مما يسبب تراكم كاش قديم.
+### الاصلاح
 
-### 6. CSP تشير للمشروع القديم
-سياسة Content-Security-Policy في index.html تسمح فقط بالاتصال بـ `*.supabase.co` (عام) وهذا مقبول، لكن الروابط المباشرة خاطئة.
+**ملف 1: `src/contexts/AuthContext.tsx`**
+
+ازالة `setTimeout` وتاخير `setLoading(false)` حتى يكتمل جلب الدور:
+
+```text
+المنطق الحالي (معيب):
+  setTimeout(fetchUserRole) --> setLoading(false)
+
+المنطق الجديد (صحيح):
+  await fetchUserRole() --> setLoading(false)
+```
+
+التغييرات:
+- تعديل `fetchUserRole` ليُرجع Promise (هو بالفعل async)
+- في `onAuthStateChange`: ازالة `setTimeout`، وتشغيل `fetchUserRole` ثم `setLoading(false)` بعد اكتمالها
+- في `getSession`: نفس التعديل
+- اضافة `roleLoading` state منفصل كحماية اضافية
+
+**ملف 2: `src/components/ProtectedRoute.tsx`**
+
+اضافة حماية ثانية: اذا `user` موجود و `role === null` (لم يُجلب بعد)، اعتبره حالة تحميل:
+
+```text
+قبل:
+  isUnauthorized = !loading && !!user && !!allowedRoles && (!role || ...)
+
+بعد:
+  // اذا المستخدم موجود لكن الدور لم يصل بعد = لا تزال التحميل
+  if (!loading && user && !role && allowedRoles) return <Loader />
+```
 
 ---
 
-## خطة الإصلاح
+## المشكلة الثانية: بطء المساعد الذكي
 
-### المرحلة 1: إصلاح المراجع الخاطئة في index.html
-- تحديث `dns-prefetch` و `preconnect` للمشروع الصحيح `nuzdeamtujezrsxbvpfi.supabase.co`
-- تحديث روابط صور OG للمشروع الصحيح
-- استبدال `apple-mobile-web-app-capable` بـ `mobile-web-app-capable`
+### السبب (مؤكد بالفحص)
 
-### المرحلة 2: تحسين إدارة الكاش في PWA
-- إضافة `cleanupOutdatedCaches: true` في إعدادات Workbox بـ `vite.config.ts`
-- إضافة `skipWaiting: true` لفرض تفعيل Service Worker الجديد فوراً
-- إضافة `clientsClaim: true` للسيطرة على العملاء فوراً
+في `supabase/functions/ai-assistant/index.ts` سطر 78:
+```text
+model: "google/gemini-2.5-pro"  -- يُستخدم لكل الطلبات
+```
 
-### المرحلة 3: إصلاح تسربات الذاكرة
-- **UpdatePrompt.tsx**: تخزين مرجع `setInterval` في متغير وتنظيفه (لا يمكن تنظيفه مباشرة من `onRegisteredSW` لكن يمكن استخدام `useEffect` مع ref)
-- **BeneficiaryDashboard.tsx**: استخدام `requestAnimationFrame` أو `document.visibilitychange` لإيقاف الساعة عندما تكون الصفحة غير مرئية
+`gemini-2.5-pro` هو الاثقل والابطا. للمحادثات العادية والتقارير لا حاجة له.
 
-### المرحلة 4: تحسينات الأداء
-- لا توجد مشاكل أداء كبيرة حالياً (الأداء جيد):
-  - FCP: 1.1 ثانية (جيد في بيئة المعاينة)
-  - CLS: 0.0002 (ممتاز)
-  - DOM: 263 عنصر فقط (خفيف)
-  - الذاكرة: 12MB (منخفضة)
-- تحسين بسيط: إضافة `loading="lazy"` للصور غير المرئية فوراً
+### الاصلاح
+
+**ملف 3: `supabase/functions/ai-assistant/index.ts`**
+
+تغيير النموذج حسب الوضع:
+- وضع `analysis` (تحليل مالي): يبقى `google/gemini-2.5-pro`
+- وضع `chat` و `report`: يتحول الى `google/gemini-2.5-flash` (اسرع 3-5 مرات)
+
+```text
+const model = mode === "analysis"
+  ? "google/gemini-2.5-pro"
+  : "google/gemini-2.5-flash";
+```
 
 ---
 
-## التفاصيل التقنية
+## ملخص الملفات المتاثرة
 
-### الملفات المتأثرة:
-1. **index.html** - إصلاح المراجع + تحديث meta tag
-2. **vite.config.ts** - تحسين إعدادات Workbox
-3. **src/components/UpdatePrompt.tsx** - إصلاح تسرب الذاكرة
-4. **src/pages/beneficiary/BeneficiaryDashboard.tsx** - تحسين الساعة المباشرة
+| الملف | التغيير |
+|-------|---------|
+| `src/contexts/AuthContext.tsx` | ازالة setTimeout، تاخير setLoading حتى اكتمال جلب الدور |
+| `src/components/ProtectedRoute.tsx` | اضافة حالة "انتظار الدور" كحماية اضافية |
+| `supabase/functions/ai-assistant/index.ts` | تغيير النموذج الى flash للمحادثات العادية |
 
-### تغييرات vite.config.ts:
-```typescript
-workbox: {
-  cleanupOutdatedCaches: true,  // حذف الكاش القديم تلقائياً
-  skipWaiting: true,            // تفعيل SW الجديد فوراً
-  clientsClaim: true,           // السيطرة على العملاء
-  navigateFallbackDenylist: [/^\/~oauth/],
-  // ... باقي الإعدادات
-}
-```
-
-### تغييرات index.html:
-```html
-<!-- قبل (خاطئ) -->
-<link rel="dns-prefetch" href="https://epopjqrwsztgxigmgurj.supabase.co" />
-<!-- بعد (صحيح) -->
-<link rel="dns-prefetch" href="https://nuzdeamtujezrsxbvpfi.supabase.co" />
-
-<!-- تحديث الوسم المهمل -->
-<meta name="mobile-web-app-capable" content="yes" />
-```
-
-### ملخص النتائج:
-- 1 مشكلة خطيرة (مراجع Supabase خاطئة)
-- 2 تسرب ذاكرة (UpdatePrompt + BeneficiaryDashboard)
-- 1 تحذير (وسم مهمل)
-- 1 تحسين كاش (cleanupOutdatedCaches)
-- الأداء العام: جيد، لا توجد مشاكل أداء كبيرة
+## النتائج المتوقعة
+- لن تظهر صفحة "غير مصرح" عند تحديث التطبيق او تجديد الجلسة
+- المساعد الذكي سيستجيب اسرع 3-5 مرات للمحادثات العادية
+- التحليل المالي يبقى بنفس الدقة (يستخدم النموذج الثقيل)
