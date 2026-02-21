@@ -113,6 +113,11 @@
     --sidebar-accent-foreground: 40 30% 98%;
     --sidebar-border: 150 20% 15%;
     --sidebar-ring: 43 74% 55%;
+
+    /* ألوان إضافية - الوضع الداكن */
+    --success: 158 55% 50%;
+    --warning: 43 85% 60%;
+    --info: 200 75% 55%;
   }
 }
 
