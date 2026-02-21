@@ -39,12 +39,15 @@ export const useComputedFinancials = ({
     return null;
   }, [accounts, fiscalYearLabel]);
 
-  const adminPct = settings?.admin_share_percentage
+  const adminPctRaw = settings?.admin_share_percentage
     ? parseFloat(settings.admin_share_percentage)
-    : 10;
-  const waqifPct = settings?.waqif_share_percentage
+    : NaN;
+  const adminPct = Number.isFinite(adminPctRaw) ? adminPctRaw : 10;
+
+  const waqifPctRaw = settings?.waqif_share_percentage
     ? parseFloat(settings.waqif_share_percentage)
-    : 5;
+    : NaN;
+  const waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
 
   const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
   const vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;

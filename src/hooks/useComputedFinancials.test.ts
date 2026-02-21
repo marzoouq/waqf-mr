@@ -295,13 +295,29 @@ describe('useComputedFinancials', () => {
       expect(r.waqfRevenue).toBe(r.netAfterZakat);
     });
 
-    it('handles invalid/missing settings gracefully (defaults)', () => {
+    it('falls back to default 10% admin when setting is invalid text', () => {
       const settings = { admin_share_percentage: 'abc', waqif_share_percentage: '' };
       const r = render({ income: [mkIncome({ amount: 100000 })], expenses: [], accounts: [], settings });
 
-      // NaN from parseFloat('abc') — should use default? Let's verify actual behavior
-      // parseFloat('abc') = NaN, so adminPct = NaN
-      expect(r.adminPct).toBeNaN();
+      expect(r.adminPct).toBe(10); // fallback default
+      expect(r.waqifPct).toBe(5);  // fallback default
+      expect(r.adminShare).toBe(10000); // 10% of 100000
+    });
+
+    it('falls back to default when setting is Infinity', () => {
+      const settings = { admin_share_percentage: 'Infinity', waqif_share_percentage: '-Infinity' };
+      const r = render({ income: [mkIncome({ amount: 100000 })], expenses: [], accounts: [], settings });
+
+      expect(r.adminPct).toBe(10);
+      expect(r.waqifPct).toBe(5);
+    });
+
+    it('accepts valid numeric string settings', () => {
+      const settings = { admin_share_percentage: '15', waqif_share_percentage: '7.5' };
+      const r = render({ income: [mkIncome({ amount: 100000 })], expenses: [], accounts: [], settings });
+
+      expect(r.adminPct).toBe(15);
+      expect(r.waqifPct).toBe(7.5);
     });
 
     it('handles income with missing source (defaults to غير محدد)', () => {
