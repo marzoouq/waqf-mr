@@ -53,6 +53,7 @@ const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
 const SecurityGuard = lazy(() => import("./components/SecurityGuard"));
+const PwaUpdateNotifier = lazy(() => import("./components/PwaUpdateNotifier"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -298,6 +299,7 @@ const App = () => (
           <Suspense fallback={null}>
             <AiAssistant />
             <SecurityGuard />
+            <PwaUpdateNotifier />
           </Suspense>
         </BrowserRouter>
       </TooltipProvider>
