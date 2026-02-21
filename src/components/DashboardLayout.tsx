@@ -91,6 +91,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
   { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
+  { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات الختامية' },
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
   { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
