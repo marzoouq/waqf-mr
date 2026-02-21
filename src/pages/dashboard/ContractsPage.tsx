@@ -238,33 +238,33 @@ const ContractsPage = () => {
 
         {/* مربعات إحصائية */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
+          <Card className="border-info/30 bg-info/5">
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div className="p-1.5 sm:p-2 rounded-lg bg-info/15 text-info"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                <div><p className="text-[10px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
             </CardContent>
           </Card>
-          <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
+          <Card className="border-success/30 bg-success/5">
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div className="p-1.5 sm:p-2 rounded-lg bg-success/15 text-success"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
+          <Card className="border-destructive/30 bg-destructive/5">
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
             </CardContent>
           </Card>
-          <Card className="border-purple-200 bg-purple-50/50 dark:bg-purple-950/20 dark:border-purple-800">
+          <Card className="border-accent/30 bg-accent/5">
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div className="p-1.5 sm:p-2 rounded-lg bg-accent/15 text-accent-foreground"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                <div><p className="text-[10px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold truncate">{stats.totalRent.toLocaleString()} <span className="text-[10px] sm:text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {stats.activeRent.toLocaleString()}</p></div>
             </CardContent>
           </Card>
-          <Card className={`${stats.expiringSoon > 0 ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-800' : 'border-orange-200 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-900'}`}>
+          <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400' : 'bg-orange-100/50 dark:bg-orange-900/30 text-orange-400 dark:text-orange-600'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+               <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                <div><p className="text-[10px] sm:text-xs text-muted-foreground">قريبة الانتهاء (90 يوم)</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
             </CardContent>
           </Card>
@@ -278,7 +278,7 @@ const ContractsPage = () => {
         </div>
 
         {isClosed && (
-          <div className="flex items-center gap-2 p-3 rounded-lg border border-amber-300 bg-amber-50/80 dark:bg-amber-950/30 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm">
+          <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
             <Lock className="w-4 h-4 shrink-0" />
             <span>سنة مقفلة - تعديل بصلاحية الناظر</span>
           </div>
@@ -293,13 +293,13 @@ const ContractsPage = () => {
                 <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p>
                 {!searchQuery && contracts.length === 0 && fiscalYearId !== 'all' && fiscalYears.length > 1 && (
-                  <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/80 dark:bg-blue-950/30 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm">
+                  <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-info/30 bg-info/10 text-info text-sm">
                     <Info className="w-4 h-4 shrink-0" />
                     <span>
                       لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
                       <button
                         type="button"
-                        className="underline font-semibold hover:text-blue-900 dark:hover:text-blue-100"
+                        className="underline font-semibold hover:opacity-80"
                         onClick={() => setFiscalYearId('all')}
                       >
                         جميع السنوات
@@ -325,7 +325,7 @@ const ContractsPage = () => {
                            <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
                          </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-green-600 hover:text-green-700" onClick={() => handleRenew(contract)} title="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-success hover:text-success/80" onClick={() => handleRenew(contract)} title="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
                           </div>
@@ -373,7 +373,7 @@ const ContractsPage = () => {
                       <TableCell>
                         <div className="flex gap-1">
                           <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-700" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
                           </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>

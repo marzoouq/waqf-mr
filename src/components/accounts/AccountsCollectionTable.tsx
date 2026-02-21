@@ -119,7 +119,7 @@ const AccountsCollectionTable = ({
                     <TableCell className="font-bold text-primary">
                       {isEditing ? `${editTotal.toLocaleString()} ريال` : `${item.totalCollected.toLocaleString()} ريال`}
                     </TableCell>
-                    <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                    <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
                       {(isEditing ? editArrears : item.arrears).toLocaleString()} ريال
                     </TableCell>
                     <TableCell>
@@ -137,7 +137,7 @@ const AccountsCollectionTable = ({
                           </SelectContent>
                         </Select>
                       ) : (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
                           {item.status}
                         </span>
                       )}
@@ -145,7 +145,7 @@ const AccountsCollectionTable = ({
                     <TableCell>
                       {isEditing ? (
                         <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => onSaveEdit(idx)} disabled={isUpdatePending || isUpsertPending}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => onSaveEdit(idx)} disabled={isUpdatePending || isUpsertPending}>
                             <Check className="w-4 h-4" />
                           </Button>
                           <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit}>

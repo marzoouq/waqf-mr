@@ -17,9 +17,9 @@ const ITEMS_PER_PAGE = 15;
 
 const operationColor = (op: string) => {
   switch (op) {
-    case 'INSERT': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case 'UPDATE': return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'DELETE': return 'bg-red-100 text-red-800 border-red-200';
+    case 'INSERT': return 'bg-success/15 text-success border-success/30';
+    case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
+    case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
     default: return '';
   }
 };
@@ -54,7 +54,7 @@ const DataDiff = ({ oldData, newData, operation }: {
         {Object.entries(newData).filter(([k]) => !['id', 'created_at', 'updated_at'].includes(k)).map(([key, val]) => (
           <div key={key} className="flex gap-2">
             <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-emerald-700">{formatValue(val)}</span>
+            <span className="text-success">{formatValue(val)}</span>
           </div>
         ))}
       </div>
@@ -67,7 +67,7 @@ const DataDiff = ({ oldData, newData, operation }: {
         {Object.entries(oldData).filter(([k]) => !['id', 'created_at', 'updated_at'].includes(k)).map(([key, val]) => (
           <div key={key} className="flex gap-2">
             <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-red-700 line-through">{formatValue(val)}</span>
+            <span className="text-destructive line-through">{formatValue(val)}</span>
           </div>
         ))}
       </div>
@@ -84,9 +84,9 @@ const DataDiff = ({ oldData, newData, operation }: {
         {changedKeys.map(key => (
           <div key={key} className="flex flex-wrap gap-2 items-center">
             <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-red-600 line-through">{formatValue(oldData[key])}</span>
+            <span className="text-destructive line-through">{formatValue(oldData[key])}</span>
             <span>←</span>
-            <span className="text-emerald-700">{formatValue(newData[key])}</span>
+            <span className="text-success">{formatValue(newData[key])}</span>
           </div>
         ))}
       </div>

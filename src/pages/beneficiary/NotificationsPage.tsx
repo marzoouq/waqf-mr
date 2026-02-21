@@ -17,10 +17,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  info: { label: 'معلومات', icon: Info, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-500/10' },
-  payment: { label: 'مالي', icon: Wallet, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10' },
-  message: { label: 'رسالة', icon: Mail, color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-500/10' },
-  warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10' },
+  info: { label: 'معلومات', icon: Info, color: 'text-info', bg: 'bg-info/10' },
+  payment: { label: 'مالي', icon: Wallet, color: 'text-success', bg: 'bg-success/10' },
+  message: { label: 'رسالة', icon: Mail, color: 'text-accent-foreground', bg: 'bg-accent/10' },
+  warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10' },
 };
 
 const NotificationsPage = () => {
@@ -124,7 +124,7 @@ const NotificationsPage = () => {
               </Button>
             )}
             {isSupported && permission === 'granted' && (
-              <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-500/10 dark:border-emerald-800">
+              <Badge variant="outline" className="gap-1 text-xs text-success border-success/30 bg-success/10">
                 <BellRing className="w-3 h-3" />
                 الإشعارات المنبثقة مفعّلة
               </Badge>
@@ -148,7 +148,7 @@ const NotificationsPage = () => {
           </Card>
           <Card className="border-none shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold text-emerald-600">{readCount}</p>
+              <p className="text-2xl font-bold text-success">{readCount}</p>
               <p className="text-xs text-muted-foreground">مقروء</p>
             </CardContent>
           </Card>

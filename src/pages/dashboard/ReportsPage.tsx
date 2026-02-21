@@ -323,64 +323,64 @@ const ReportsPage = () => {
                     </thead>
                     <tbody>
                       {waqfCorpusPrevious > 0 && (
-                        <tr className="border-b bg-violet-50 dark:bg-violet-950/20">
+                        <tr className="border-b bg-accent/10">
                           <td className="py-3 px-4 font-medium">رقبة الوقف المرحلة من العام السابق</td>
-                          <td className="py-3 px-4 font-bold text-violet-600 dark:text-violet-400">+{waqfCorpusPrevious.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-bold text-accent-foreground">+{waqfCorpusPrevious.toLocaleString()}</td>
                         </tr>
                       )}
-                      <tr className="bg-green-50 dark:bg-green-950/30">
-                        <td colSpan={2} className="py-2 px-4 font-bold text-green-700 dark:text-green-400 text-center">-- الإيرادات --</td>
+                      <tr className="bg-success/10">
+                        <td colSpan={2} className="py-2 px-4 font-bold text-success text-center">-- الإيرادات --</td>
                       </tr>
                       {incomeSourceData.map((item, index) => (
                         <tr key={`income-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-green-600 dark:text-green-400">+{item.value.toLocaleString()}</td>
+                          <td className="py-2 px-4 font-medium text-success">+{item.value.toLocaleString()}</td>
                         </tr>
                       ))}
-                      <tr className="border-b-2 border-green-500 bg-green-50 dark:bg-green-950/20">
+                      <tr className="border-b-2 border-success bg-success/10">
                         <td className="py-3 px-4 font-bold">إجمالي الإيرادات</td>
-                        <td className="py-3 px-4 font-bold text-green-700 dark:text-green-400">+{totalIncome.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-success">+{totalIncome.toLocaleString()}</td>
                       </tr>
                       {waqfCorpusPrevious > 0 && (
-                        <tr className="border-b-2 border-green-500 bg-green-100 dark:bg-green-950/30">
+                        <tr className="border-b-2 border-success bg-success/15">
                           <td className="py-3 px-4 font-bold">الإجمالي الشامل</td>
-                          <td className="py-3 px-4 font-bold text-green-700 dark:text-green-400">{grandTotal.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-bold text-success">{grandTotal.toLocaleString()}</td>
                         </tr>
                       )}
-                      <tr className="bg-red-50 dark:bg-red-950/30">
-                        <td colSpan={2} className="py-2 px-4 font-bold text-red-700 dark:text-red-400 text-center">-- المصروفات --</td>
+                      <tr className="bg-destructive/10">
+                        <td colSpan={2} className="py-2 px-4 font-bold text-destructive text-center">-- المصروفات --</td>
                       </tr>
                       {expenseTypeData.map((item, index) => (
                         <tr key={`expense-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-red-600 dark:text-red-400">-{item.value.toLocaleString()}</td>
+                          <td className="py-2 px-4 font-medium text-destructive">-{item.value.toLocaleString()}</td>
                         </tr>
                       ))}
-                      <tr className="border-b-2 border-red-500 bg-red-50 dark:bg-red-950/20">
+                      <tr className="border-b-2 border-destructive bg-destructive/10">
                         <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
-                        <td className="py-3 px-4 font-bold text-red-700 dark:text-red-400">-{totalExpenses.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-destructive">-{totalExpenses.toLocaleString()}</td>
                       </tr>
-                      <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                      <tr className="border-b-2 border-info bg-info/10">
                         <td className="py-3 px-4 font-bold">الصافي بعد المصاريف</td>
-                        <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterExpenses.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-info">{netAfterExpenses.toLocaleString()}</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4 text-muted-foreground">(-) ضريبة القيمة المضافة</td>
-                        <td className="py-3 px-4 text-red-600 dark:text-red-400">-{vatAmount.toLocaleString()}</td>
+                        <td className="py-3 px-4 text-destructive">-{vatAmount.toLocaleString()}</td>
                       </tr>
-                      <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                      <tr className="border-b-2 border-info bg-info/10">
                         <td className="py-3 px-4 font-bold">الصافي بعد الضريبة</td>
-                        <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterVat.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-info">{netAfterVat.toLocaleString()}</td>
                       </tr>
                       {zakatAmount > 0 && (
                         <>
                           <tr className="border-b">
                             <td className="py-3 px-4 text-muted-foreground">(-) الزكاة</td>
-                            <td className="py-3 px-4 text-red-600 dark:text-red-400">-{zakatAmount.toLocaleString()}</td>
+                            <td className="py-3 px-4 text-destructive">-{zakatAmount.toLocaleString()}</td>
                           </tr>
-                          <tr className="border-b-2 border-blue-500 bg-blue-50 dark:bg-blue-950/20">
+                          <tr className="border-b-2 border-info bg-info/10">
                             <td className="py-3 px-4 font-bold">الصافي بعد الزكاة</td>
-                            <td className="py-3 px-4 font-bold text-blue-700 dark:text-blue-400">{netAfterZakat.toLocaleString()}</td>
+                            <td className="py-3 px-4 font-bold text-info">{netAfterZakat.toLocaleString()}</td>
                           </tr>
                         </>
                       )}
@@ -399,7 +399,7 @@ const ReportsPage = () => {
                       {waqfCorpusManual > 0 && (
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">(-) رقبة الوقف للعام الحالي</td>
-                          <td className="py-3 px-4 text-red-600 dark:text-red-400">-{waqfCorpusManual.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-destructive">-{waqfCorpusManual.toLocaleString()}</td>
                         </tr>
                       )}
                       <tr className="border-b bg-primary/5">
