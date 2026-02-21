@@ -215,6 +215,17 @@ const WaqfSettingsTab = () => {
     if (settings) setFormData({ ...settings });
   }, [settings]);
 
+  const validatePercentage = (key: string, label: string, value: string): boolean => {
+    if (!key.endsWith('_percentage')) return true;
+    if (key === 'fiscal_year') return true;
+    const num = parseFloat(value);
+    if (!Number.isFinite(num) || num < 0 || num > 100) {
+      toast.error(`${label}: يجب إدخال رقم صحيح بين 0 و 100`);
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -222,6 +233,7 @@ const WaqfSettingsTab = () => {
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
+        if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
         await supabase.from('app_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', field.key);
       }
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
@@ -255,12 +267,23 @@ const WaqfSettingsTab = () => {
           <CardDescription>نسب الناظر والواقف والسنة المالية</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          {financialFields.map((f) => (
-            <div key={f.key} className="space-y-1.5">
-              <Label>{f.label}</Label>
-              <Input value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={100} />
-            </div>
-          ))}
+          {financialFields.map((f) => {
+            const isPercentField = f.key.endsWith('_percentage');
+            return (
+              <div key={f.key} className="space-y-1.5">
+                <Label>{f.label}</Label>
+                <Input
+                  type={isPercentField ? 'number' : 'text'}
+                  min={isPercentField ? 0 : undefined}
+                  max={isPercentField ? 100 : undefined}
+                  step={isPercentField ? '0.1' : undefined}
+                  value={formData[f.key] || ''}
+                  onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))}
+                  maxLength={100}
+                />
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
       <Button onClick={handleSave} disabled={saving} className="gap-2">
