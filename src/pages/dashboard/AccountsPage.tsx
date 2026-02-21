@@ -124,12 +124,22 @@ const AccountsPage = () => {
   }, []);
 
   const handleAdminPercentChange = (val: string) => {
-    setAdminPercent(Number(val));
+    const num = parseFloat(val);
+    if (!Number.isFinite(num) || num < 0 || num > 100) {
+      toast.error('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
+      return;
+    }
+    setAdminPercent(num);
     saveSetting('admin_share_percentage', val);
   };
 
   const handleWaqifPercentChange = (val: string) => {
-    setWaqifPercent(Number(val));
+    const num = parseFloat(val);
+    if (!Number.isFinite(num) || num < 0 || num > 100) {
+      toast.error('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
+      return;
+    }
+    setWaqifPercent(num);
     saveSetting('waqif_share_percentage', val);
   };
 
