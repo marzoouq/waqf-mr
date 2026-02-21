@@ -247,7 +247,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="flex items-center gap-3 px-4 py-2">
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800 print:hidden">
+              <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}
@@ -264,7 +264,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div className="flex items-center gap-2 px-3 py-1.5 print:hidden">
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+               <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30">
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}

@@ -98,8 +98,8 @@ const BeneficiaryDashboard = () => {
 
   const quickLinks = [
     { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
-    { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/my-share', color: 'bg-emerald-500/10 text-emerald-600' },
-    { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-amber-500/10 text-amber-600' },
+    { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/my-share', color: 'bg-accent/10 text-accent-foreground' },
+    { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
 
@@ -178,8 +178,8 @@ const BeneficiaryDashboard = () => {
           <Card className="shadow-sm">
             <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
+                <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 text-accent-foreground" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">إجمالي ريع الوقف</p>
