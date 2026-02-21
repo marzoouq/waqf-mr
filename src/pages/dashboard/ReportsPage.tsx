@@ -255,25 +255,25 @@ const ReportsPage = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
-              <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي الدخل</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الدخل</p>
               <p className="text-lg sm:text-2xl font-bold text-success">{totalIncome.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
-              <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
               <p className="text-lg sm:text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
-              <p className="text-[10px] sm:text-sm text-muted-foreground">صافي الريع</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">صافي الريع</p>
               <p className="text-lg sm:text-2xl font-bold text-primary">{netRevenue.toLocaleString()} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
-              <p className="text-[10px] sm:text-sm text-muted-foreground">عدد العقارات</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">عدد العقارات</p>
               <p className="text-lg sm:text-2xl font-bold">{properties.length}</p>
             </CardContent>
           </Card>
