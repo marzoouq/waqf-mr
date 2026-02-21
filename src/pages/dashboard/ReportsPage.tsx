@@ -528,8 +528,8 @@ const ReportsPage = () => {
                     </TableHeader>
                     <TableBody>
                       {propertyPerformance.map((p, index) => {
-                        const occupancyColor = p.occupancy >= 80 ? 'text-green-600' : p.occupancy >= 50 ? 'text-yellow-600' : 'text-red-600';
-                        const progressColor = p.occupancy >= 80 ? '[&>div]:bg-green-500' : p.occupancy >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500';
+                        const occupancyColor = p.occupancy >= 80 ? 'text-success' : p.occupancy >= 50 ? 'text-warning' : 'text-destructive';
+                        const progressColor = p.occupancy >= 80 ? '[&>div]:bg-success' : p.occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
                         return (
                           <TableRow key={p.id} className={index % 2 === 0 ? '' : 'bg-muted/30'}>
                             <TableCell className="font-medium">{index + 1}</TableCell>
@@ -544,7 +544,7 @@ const ReportsPage = () => {
                             </TableCell>
                             <TableCell className="font-medium">{p.annualRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
                             <TableCell className="text-destructive">{p.totalExpenses.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
-                            <TableCell className={`font-bold ${p.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <TableCell className={`font-bold ${p.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
                               {p.netIncome.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س
                             </TableCell>
                           </TableRow>
@@ -558,7 +558,7 @@ const ReportsPage = () => {
                         <TableCell></TableCell>
                         <TableCell className="font-bold">{perfTotals.annualRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
                         <TableCell className="text-destructive font-bold">{perfTotals.totalExpenses.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
-                        <TableCell className={`font-bold ${perfTotals.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <TableCell className={`font-bold ${perfTotals.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
                           {perfTotals.netIncome.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س
                         </TableCell>
                       </TableRow>

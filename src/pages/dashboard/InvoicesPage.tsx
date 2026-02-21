@@ -484,7 +484,7 @@ const InvoicesPage = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="gap-1 text-amber-600"
+                              className="gap-1 text-warning"
                               disabled={generatePdf.isPending}
                               onClick={() => generatePdf.mutate([item.id])}
                             >
