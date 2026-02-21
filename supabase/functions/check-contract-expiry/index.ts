@@ -64,6 +64,7 @@ Deno.serve(async (req: Request) => {
     const todayStr = today.toISOString().split("T")[0];
     const futureStr = thirtyDaysLater.toISOString().split("T")[0];
 
+    // === 1) العقود النشطة القريبة من الانتهاء (30 يوم) ===
     const { data: contracts, error: contractsError } = await supabase
       .from("contracts")
       .select("id, contract_number, tenant_name, end_date, rent_amount")
@@ -72,8 +73,25 @@ Deno.serve(async (req: Request) => {
       .lte("end_date", futureStr);
 
     if (contractsError) throw contractsError;
-    if (!contracts || contracts.length === 0) {
-      return new Response(JSON.stringify({ message: "No expiring contracts" }), {
+
+    // === 2) العقود المنتهية فعلياً التي لم تُجدد (تنبيه أسبوعي - كل أحد) ===
+    const dayOfWeek = today.getDay(); // 0 = Sunday
+    let expiredContracts: typeof contracts = [];
+    if (dayOfWeek === 0) {
+      const { data: expired, error: expiredError } = await supabase
+        .from("contracts")
+        .select("id, contract_number, tenant_name, end_date, rent_amount")
+        .eq("status", "expired")
+        .limit(500);
+      if (expiredError) throw expiredError;
+      expiredContracts = expired || [];
+    }
+
+    const hasExpiring = contracts && contracts.length > 0;
+    const hasExpired = expiredContracts.length > 0;
+
+    if (!hasExpiring && !hasExpired) {
+      return new Response(JSON.stringify({ message: "No expiring or expired contracts" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -122,7 +140,8 @@ Deno.serve(async (req: Request) => {
       link: string;
     }> = [];
 
-    for (const contract of contracts) {
+    // تنبيهات العقود القريبة من الانتهاء
+    for (const contract of (contracts || [])) {
       const daysLeft = Math.ceil(
         (new Date(contract.end_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
@@ -140,6 +159,22 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // تنبيه أسبوعي بالعقود المنتهية (للناظر فقط)
+    if (hasExpired) {
+      const expiredMsg = `يوجد ${expiredContracts.length} عقد منتهي لم يتم تجديده. يرجى مراجعة صفحة العقود للتجديد الجماعي.`;
+      const adminRecipients = allRecipients.filter(r => r.role === 'admin');
+      for (const admin of adminRecipients) {
+        if (existingByUser.get(admin.user_id)?.has(expiredMsg)) continue;
+        notifications.push({
+          user_id: admin.user_id,
+          title: "تذكير: عقود منتهية تحتاج تجديد",
+          message: expiredMsg,
+          type: "warning",
+          link: "/dashboard/contracts",
+        });
+      }
+    }
+
     if (notifications.length > 0) {
       const { error: insertError } = await supabase
         .from("notifications")
@@ -148,7 +183,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ sent: notifications.length, contracts: contracts.length }),
+      JSON.stringify({ sent: notifications.length, expiring: (contracts || []).length, expired: expiredContracts.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

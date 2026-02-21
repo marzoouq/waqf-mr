@@ -20,6 +20,8 @@ import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -39,6 +41,8 @@ const ContractsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
+  const [bulkRenewing, setBulkRenewing] = useState(false);
   const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
@@ -117,6 +121,69 @@ const ContractsPage = () => {
     if (!deleteTarget) return;
     await deleteContract.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
+  };
+
+  const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);
+
+  const handleBulkRenew = async () => {
+    setBulkRenewing(true);
+    try {
+      // Get active fiscal year
+      const { data: activeFY } = await supabase
+        .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+
+      const today = new Date();
+      const startDate = today.toISOString().split('T')[0];
+      const endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+
+      let created = 0;
+      for (const contract of expiredContracts) {
+        const num = contract.contract_number;
+        const match = num.match(/-R(\d+)$/);
+        const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+        const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+        const paymentAmount = Number(contract.rent_amount) / paymentCount;
+
+        const newContract: Record<string, unknown> = {
+          contract_number: newNumber,
+          property_id: contract.property_id,
+          unit_id: contract.unit_id || null,
+          tenant_name: contract.tenant_name,
+          start_date: startDate,
+          end_date: endDate,
+          rent_amount: contract.rent_amount,
+          status: 'active',
+          notes: `تجديد جماعي للعقد ${contract.contract_number}`,
+          payment_type: contract.payment_type || 'annual',
+          payment_count: paymentCount,
+          payment_amount: paymentAmount,
+          fiscal_year_id: activeFY?.id || null,
+        };
+        await createContract.mutateAsync(newContract as unknown as Parameters<typeof createContract.mutateAsync>[0]);
+        created++;
+      }
+
+      // Send notifications
+      await supabase.rpc('notify_admins', {
+        p_title: 'تجديد جماعي للعقود',
+        p_message: `تم تجديد ${created} عقد منتهي بنجاح`,
+        p_type: 'success',
+        p_link: '/dashboard/contracts',
+      });
+      await supabase.rpc('notify_all_beneficiaries', {
+        p_title: 'تجديد عقود الإيجار',
+        p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`,
+        p_type: 'info',
+        p_link: '/beneficiary/notifications',
+      });
+
+      toast.success(`تم تجديد ${created} عقد بنجاح`);
+    } catch (err) {
+      toast.error('حدث خطأ أثناء التجديد الجماعي');
+    } finally {
+      setBulkRenewing(false);
+      setBulkRenewOpen(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -270,6 +337,22 @@ const ContractsPage = () => {
           </Card>
         </div>
 
+        {/* شريط تنبيه العقود المنتهية */}
+        {expiredContracts.length > 0 && (
+          <Alert className="border-destructive/40 bg-destructive/10">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-destructive font-medium">
+                يوجد {expiredContracts.length} عقد منتهي لم يتم تجديده
+              </span>
+              <Button size="sm" variant="destructive" className="gap-2 shrink-0" onClick={() => setBulkRenewOpen(true)}>
+                <RefreshCw className="w-4 h-4" />
+                تجديد جماعي
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative max-w-md flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -389,6 +472,24 @@ const ContractsPage = () => {
             <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
+
+        {/* حوار التجديد الجماعي */}
+        <AlertDialog open={bulkRenewOpen} onOpenChange={setBulkRenewOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>تجديد جماعي للعقود المنتهية</AlertDialogTitle>
+              <AlertDialogDescription>
+                سيتم إنشاء {expiredContracts.length} عقد جديد بنفس بيانات العقود المنتهية مع تواريخ جديدة (من اليوم لمدة سنة). هل تريد المتابعة؟
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel disabled={bulkRenewing}>إلغاء</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkRenew} disabled={bulkRenewing} className="bg-success text-success-foreground hover:bg-success/90 gap-2">
+                {bulkRenewing ? 'جاري التجديد...' : <><RefreshCw className="w-4 h-4" />تأكيد التجديد</>}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>
