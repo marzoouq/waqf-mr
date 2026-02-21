@@ -203,12 +203,12 @@ const FinancialReportsPage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-orange-500/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] sm:text-sm text-muted-foreground">الزكاة</p>
-                  <p className="text-sm sm:text-xl font-bold text-orange-600 truncate">{zakatAmount.toLocaleString()}</p>
+                  <p className="text-sm sm:text-xl font-bold text-warning truncate">{zakatAmount.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -217,12 +217,12 @@ const FinancialReportsPage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
               <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-violet-500/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-violet-600" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] sm:text-sm text-muted-foreground">رقبة الوقف</p>
-                  <p className="text-sm sm:text-xl font-bold text-violet-600 truncate">{waqfCorpusManual.toLocaleString()}</p>
+                  <p className="text-sm sm:text-xl font-bold text-accent-foreground truncate">{waqfCorpusManual.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>

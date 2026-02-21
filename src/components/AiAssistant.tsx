@@ -135,7 +135,7 @@ const AiAssistant = () => {
             <div>
               <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
               <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 Gemini 2.5 Pro
               </p>
             </div>

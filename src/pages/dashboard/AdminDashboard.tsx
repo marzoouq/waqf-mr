@@ -159,10 +159,10 @@ const AdminDashboard = () => {
           const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
           const kpis = [
-            { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-green-600' : collectionRate >= 50 ? 'text-yellow-600' : 'text-red-600', progressColor: collectionRate >= 80 ? '[&>div]:bg-green-500' : collectionRate >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
-            { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-green-600' : occupancyRate >= 50 ? 'text-yellow-600' : 'text-red-600', progressColor: occupancyRate >= 80 ? '[&>div]:bg-green-500' : occupancyRate >= 50 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
+            { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+            { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
             { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-            { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-green-600' : expenseRatio <= 40 ? 'text-yellow-600' : 'text-red-600', progressColor: expenseRatio <= 20 ? '[&>div]:bg-green-500' : expenseRatio <= 40 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-red-500' },
+            { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
           ];
 
           return (

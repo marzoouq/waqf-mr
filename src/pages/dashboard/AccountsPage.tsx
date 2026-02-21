@@ -503,7 +503,7 @@ const AccountsPage = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             {isClosed && (
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 px-3 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+              <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
                 <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
               </span>
             )}

@@ -60,7 +60,7 @@ const InstallApp = () => {
           <CardContent className="space-y-4">
             {isInstalled ? (
               <div className="text-center py-6 space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
+                <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
                 <p className="font-bold text-lg">التطبيق مثبّت بالفعل!</p>
                 <p className="text-sm text-muted-foreground">يمكنك فتحه من الشاشة الرئيسية لجوالك</p>
               </div>
@@ -106,7 +106,7 @@ const InstallApp = () => {
               <p className="text-xs font-bold text-muted-foreground">مميزات التطبيق المثبّت:</p>
               {['وصول سريع من الشاشة الرئيسية', 'يعمل بدون إنترنت', 'إشعارات فورية بالتحديثات', 'تجربة كتطبيق أصلي'].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
                   <span>{f}</span>
                 </div>
               ))}

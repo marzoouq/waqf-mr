@@ -23,10 +23,10 @@ interface AccessLogEntry {
 }
 
 const eventConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
-  login_success: { label: 'تسجيل دخول ناجح', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', icon: CheckCircle },
-  unauthorized_access: { label: 'وصول غير مصرح', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: AlertTriangle },
-  idle_logout: { label: 'خروج تلقائي', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: LogOut },
+  login_failed: { label: 'فشل تسجيل الدخول', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: XCircle },
+  login_success: { label: 'تسجيل دخول ناجح', color: 'bg-success/15 text-success border-success/30', icon: CheckCircle },
+  unauthorized_access: { label: 'وصول غير مصرح', color: 'bg-warning/15 text-warning border-warning/30', icon: AlertTriangle },
+  idle_logout: { label: 'خروج تلقائي', color: 'bg-info/15 text-info border-info/30', icon: LogOut },
 };
 
 const AccessLogTab = () => {
@@ -90,21 +90,21 @@ const AccessLogTab = () => {
           </CardHeader>
           <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
         </Card>
-        <Card className="border-red-200">
+        <Card className="border-destructive/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-red-600 flex items-center gap-2">
+            <CardTitle className="text-sm text-destructive flex items-center gap-2">
               <XCircle className="w-4 h-4" />محاولات دخول فاشلة اليوم
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-red-600">{failedToday}</p></CardContent>
+          <CardContent><p className="text-2xl font-bold text-destructive">{failedToday}</p></CardContent>
         </Card>
-        <Card className="border-amber-200">
+        <Card className="border-warning/30">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-amber-600 flex items-center gap-2">
+            <CardTitle className="text-sm text-warning flex items-center gap-2">
               <ShieldAlert className="w-4 h-4" />وصول غير مصرح اليوم
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-amber-600">{unauthorizedToday}</p></CardContent>
+          <CardContent><p className="text-2xl font-bold text-warning">{unauthorizedToday}</p></CardContent>
         </Card>
       </div>
 
