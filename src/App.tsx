@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import UpdatePrompt from "@/components/UpdatePrompt";
+
 
 
 // Pages - Lazy loaded
@@ -299,7 +299,6 @@ const App = () => (
             <AiAssistant />
             <SecurityGuard />
           </Suspense>
-          <UpdatePrompt />
         </BrowserRouter>
       </TooltipProvider>
       </FiscalYearProvider>
