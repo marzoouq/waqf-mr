@@ -35,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
 
     const timer = setTimeout(async () => {
-      console.warn('[ProtectedRoute] Role loading timeout after 5s, attempting direct fetch...');
+      console.warn('[ProtectedRoute] Role loading timeout after 3s, attempting direct fetch...');
       try {
         const { data } = await supabase
           .from('user_roles')
@@ -52,7 +52,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
         console.error('[ProtectedRoute] Last-chance fetch failed:', err);
       }
       setRoleTimeout(true);
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [isRoleLoading, user]);

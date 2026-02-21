@@ -71,34 +71,19 @@ const Auth = () => {
     }
   }, [user, role, loading, navigate]);
 
-  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 5 ثوانٍ
+  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 2 ثانية (يعتمد على AuthContext)
+  const [roleWaitTimeout, setRoleWaitTimeout] = useState(false);
   useEffect(() => {
-    if (!user || loading || role) return;
-    const timer = setTimeout(async () => {
-      console.warn('[Auth] Role not resolved after 5s, attempting direct fetch...');
-      try {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        if (data?.role === 'admin' || data?.role === 'waqif') {
-          navigate('/dashboard');
-        } else if (data?.role === 'beneficiary') {
-          navigate('/beneficiary');
-        } else {
-          console.error('[Auth] No role found for user after direct fetch');
-          toast.error('لم يتم العثور على صلاحيات لحسابك. تواصل مع الناظر.');
-          await supabase.auth.signOut();
-        }
-      } catch (err) {
-        console.error('[Auth] Direct role fetch failed:', err);
-        toast.error('حدث خطأ في التحقق من الصلاحيات. حاول مرة أخرى.');
-        await supabase.auth.signOut();
-      }
-    }, 5000);
+    if (!user || loading || role) {
+      setRoleWaitTimeout(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      console.warn('[Auth] Role not resolved after 2s from AuthContext');
+      setRoleWaitTimeout(true);
+    }, 2000);
     return () => clearTimeout(timer);
-  }, [user, role, loading, navigate]);
+  }, [user, role, loading]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -288,12 +273,24 @@ const Auth = () => {
   );
 
   // إذا المستخدم مسجّل دخوله وينتظر التوجيه، عرض شاشة انتقالية
-  if (user && !loading) {
+  if (user && !loading && !role) {
     return (
       <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-          <span className="text-lg font-medium text-foreground">جاري التحقق من الصلاحيات...</span>
+          {roleWaitTimeout ? (
+            <>
+              <span className="text-lg font-medium text-destructive">لم يتم التعرف على صلاحياتك</span>
+              <span className="text-sm text-muted-foreground">تواصل مع الناظر أو حاول مرة أخرى</span>
+              <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
+                تسجيل الخروج
+              </Button>
+            </>
+          ) : (
+            <>
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <span className="text-lg font-medium text-foreground">جاري التحقق من الصلاحيات...</span>
+            </>
+          )}
         </div>
       </div>
     );
