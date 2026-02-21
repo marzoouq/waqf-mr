@@ -1,0 +1,111 @@
+import { useMemo } from 'react';
+import type { Income, Expense } from '@/types/database';
+import type { Tables } from '@/integrations/supabase/types';
+import {
+  computeTotals,
+  calculateFinancials,
+  groupIncomeBySource,
+  groupExpensesByType,
+} from '@/utils/accountsCalculations';
+
+interface ComputedParams {
+  income: Income[];
+  expenses: Expense[];
+  accounts: Tables<'accounts'>[];
+  settings: Record<string, string> | null | undefined;
+  fiscalYearLabel?: string;
+}
+
+/**
+ * Pure computation hook — derives all financial metrics from raw data.
+ */
+export const useComputedFinancials = ({
+  income,
+  expenses,
+  accounts,
+  settings,
+  fiscalYearLabel,
+}: ComputedParams) => {
+  const { totalIncome, totalExpenses } = useMemo(
+    () => computeTotals(income, expenses),
+    [income, expenses],
+  );
+
+  const currentAccount = useMemo(() => {
+    if (fiscalYearLabel) {
+      return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
+    }
+    if (accounts.length === 1) return accounts[0];
+    return null;
+  }, [accounts, fiscalYearLabel]);
+
+  const adminPct = settings?.admin_share_percentage
+    ? parseFloat(settings.admin_share_percentage)
+    : 10;
+  const waqifPct = settings?.waqif_share_percentage
+    ? parseFloat(settings.waqif_share_percentage)
+    : 5;
+
+  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
+  const vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
+  const waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
+  const waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
+  const distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+
+  const financials = useMemo(() => {
+    if (currentAccount) {
+      const grandTotal = totalIncome + waqfCorpusPrevious;
+      return {
+        grandTotal,
+        netAfterExpenses: Number(currentAccount.net_after_expenses),
+        netAfterVat: Number(currentAccount.net_after_vat),
+        netAfterZakat: Number(currentAccount.net_after_vat) - zakatAmount,
+        shareBase: totalIncome - totalExpenses - zakatAmount,
+        adminShare: Number(currentAccount.admin_share),
+        waqifShare: Number(currentAccount.waqif_share),
+        waqfRevenue: Number(currentAccount.waqf_revenue),
+        availableAmount: Number(currentAccount.waqf_revenue) - waqfCorpusManual,
+        remainingBalance:
+          Number(currentAccount.waqf_revenue) - waqfCorpusManual - distributionsAmount,
+      };
+    }
+    return calculateFinancials({
+      totalIncome,
+      totalExpenses,
+      waqfCorpusPrevious,
+      manualVat: vatAmount,
+      zakatAmount,
+      adminPercent: adminPct,
+      waqifPercent: waqifPct,
+      waqfCorpusManual,
+      manualDistributions: distributionsAmount,
+    });
+  }, [
+    currentAccount, totalIncome, totalExpenses, waqfCorpusPrevious,
+    vatAmount, zakatAmount, adminPct, waqifPct, waqfCorpusManual, distributionsAmount,
+  ]);
+
+  const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
+  const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
+  const expensesByTypeExcludingVat = useMemo(() => {
+    const filtered = expenses.filter(e => e.description !== 'ضريبة القيمة المضافة المحصلة من الهيئة');
+    return groupExpensesByType(filtered);
+  }, [expenses]);
+
+  return {
+    currentAccount,
+    adminPct,
+    waqifPct,
+    totalIncome,
+    totalExpenses,
+    zakatAmount,
+    vatAmount,
+    waqfCorpusPrevious,
+    waqfCorpusManual,
+    distributionsAmount,
+    ...financials,
+    incomeBySource,
+    expensesByType,
+    expensesByTypeExcludingVat,
+  };
+};
