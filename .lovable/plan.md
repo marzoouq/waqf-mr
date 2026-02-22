@@ -1,41 +1,33 @@
 
+# تطبيق إصلاح تمرير التوكن على باقي استدعاءات الوظائف الخلفية
 
-# اصلاح صفحة ادارة المستخدمين في بيئة الانتاج
+## الملفات المطلوب تعديلها
 
-## المشكلة
-صفحة ادارة المستخدمين فارغة في الانتاج لان توكن المصادقة لا يُرسل مع طلبات الوظيفة الخلفية.
+### 1. `src/pages/dashboard/BeneficiariesPage.tsx` (سطر 39)
+اضافة جلب الجلسة وتمرير التوكن صراحة:
 
-## الدليل من سجلات الانتاج
-سجلات الوظيفة الخلفية تظهر بوضوح:
-- `Auth header present: false, length: 0`
-- `REJECTED: No valid authorization header`
-
-بينما الطلبات من بيئة التطوير تعمل بشكل صحيح (`Auth header present: true, length: 937`).
-
-## السبب الجذري
-دالة `callAdminApi` في سطر 31 تستدعي `supabase.functions.invoke` بدون تمرير التوكن صراحة في الـ headers. الـ SDK في بعض الحالات (خصوصا في الانتاج) لا يرفق التوكن تلقائيا.
-
-## الحل
-تعديل واحد في ملف `src/pages/dashboard/UserManagementPage.tsx`:
-
-تغيير السطر 31 من:
 ```typescript
-const res = await supabase.functions.invoke('admin-manage-users', { body });
+queryFn: async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+    body: { action: 'list_users' },
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
+  // باقي الكود كما هو
 ```
 
-الى:
+### 2. `src/hooks/useInvoices.ts` (سطر 172)
+اضافة جلب الجلسة وتمرير التوكن صراحة:
+
 ```typescript
-const res = await supabase.functions.invoke('admin-manage-users', {
-  body,
-  headers: { Authorization: `Bearer ${session.access_token}` },
-});
+mutationFn: async (invoiceIds: string[]) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
+    body: { invoice_ids: invoiceIds },
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
+  // باقي الكود كما هو
 ```
 
-## لماذا هذا كافي؟
-- CORS: سليم ومُعد بشكل صحيح (يقبل `waqf-mr.lovable.app`)
-- الوظيفة الخلفية: تعمل بشكل صحيح (تصادق وتجلب البيانات عند وصول التوكن)
-- البيانات: موجودة (15 مستخدم و14 مستفيد في الانتاج)
-- التوكن متاح في `session.access_token` (السطر 30 يتحقق منه اصلا)
-
-الحل يضمن ارسال التوكن بشكل صريح مع كل طلب بغض النظر عن سلوك SDK.
-
+## ملخص
+تعديلان بسيطان بنفس النمط الذي طُبق على `UserManagementPage.tsx`. باقي الاستدعاءات (`Auth.tsx` و `AuthContext.tsx`) لا تحتاج تعديل لانها تعمل قبل تسجيل الدخول حسب التصميم.
