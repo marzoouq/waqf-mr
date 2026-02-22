@@ -1,6 +1,8 @@
 const ALLOWED_ORIGINS = [
   "https://waqf-mr.lovable.app",
   "https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app",
+  "https://waqf-wise.net",
+  "https://www.waqf-wise.net",
 ];
 
 function getAllowedOrigin(req?: Request): string {
