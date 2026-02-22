@@ -1,22 +1,29 @@
 /**
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
+ * تعرض نفس المؤشرات المالية والتشغيلية الموجودة لدى الناظر مع فلترة حسب السنة المالية
  */
 import { useProperties } from '@/hooks/useProperties';
 import { useAllUnits } from '@/hooks/useUnits';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
+  const { fiscalYearId } = useFiscalYear();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -97,117 +104,153 @@ const PropertiesViewPage = () => {
           <div className="space-y-3">
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
           </div>
-        ) : isMobile ? (
-          /* Mobile Card View */
-          <div className="space-y-3">
-            {properties?.map(prop => {
-              const propUnits = getUnitsForProperty(prop.id);
-              const isExpanded = expandedId === prop.id;
+        ) : !properties?.length ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">لا توجد عقارات مسجلة</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {properties.map((property) => {
+              const propertyUnits = getUnitsForProperty(property.id);
+              const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
+              const vacant = propertyUnits.filter(u => u.status === 'شاغرة').length;
+              const maintenance = propertyUnits.filter(u => u.status === 'صيانة').length;
+              const total = propertyUnits.length;
+              const occupancy = total > 0 ? Math.round((rented / total) * 100) : 0;
+
+              // الإيرادات التعاقدية (جميع العقود المرتبطة)
+              const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
+              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+
+              // الدخل النشط (العقود النشطة فقط)
+              const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
+              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+
+              // الشهري محسوب حسب نوع الدفع
+              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
+                const rent = Number(c.rent_amount);
+                if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
+                if (c.payment_type === 'multi') return sum + (Number(c.payment_amount) || rent / (c.payment_count || 1));
+                return sum + rent / 12;
+              }, 0);
+
+              const propExpenses = expenses.filter(e => e.property_id === property.id);
+              const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+              const netIncome = contractualRevenue - totalExpenses;
+
+              const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
+              const progressColor = occupancy >= 80 ? '[&>div]:bg-success' : occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+
+              const isExpanded = expandedId === property.id;
+
               return (
-                <Card key={prop.id} className="cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : prop.id)}>
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-bold text-foreground">{prop.property_number}</p>
-                        <p className="text-sm text-muted-foreground">{prop.property_type}</p>
+                <Card
+                  key={property.id}
+                  className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setExpandedId(isExpanded ? null : property.id)}
+                >
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
+                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
+                      <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" />{property.area} م²</span>
+                    </div>
+
+                    {/* المؤشرات التشغيلية */}
+                    <div className="border-t pt-3 space-y-2">
+                      {total > 0 ? (
+                        <>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex gap-3 flex-wrap">
+                              <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-success" />مؤجرة: <strong>{rented}</strong></span>
+                              <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
+                              {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                            <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                          </div>
+                        </>
+                      ) : activeContracts.length > 0 ? (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Home className="w-3.5 h-3.5 text-success" />
+                            <span className="font-medium text-success">مؤجر بالكامل</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
+                            <span className="text-xs font-semibold text-success">100%</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
+                      )}
+                    </div>
+
+                    {/* المؤشرات المالية */}
+                    <div className="border-t pt-3 space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">الإيرادات التعاقدية:</span>
+                        <span className="font-semibold">{contractualRevenue.toLocaleString('ar-SA')} ريال</span>
                       </div>
-                      <Badge variant="outline">{propUnits.length} وحدة</Badge>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">الدخل النشط:</span>
+                        <span className="font-medium text-success">{activeAnnualRent.toLocaleString('ar-SA')} ريال</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">الشهري:</span>
+                        <span className="font-medium">{monthlyRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">المصروفات:</span>
+                        <span className="font-medium">{totalExpenses.toLocaleString('ar-SA')} ريال</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-1 mt-1">
+                        <span className="text-muted-foreground">الصافي:</span>
+                        <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
+                          {netIncome.toLocaleString('ar-SA')} ريال
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="w-3 h-3" /> {prop.location}
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Maximize2 className="w-3 h-3" /> {prop.area} م²
-                    </div>
-                    {isExpanded && propUnits.length > 0 && (
-                      <div className="mt-3 border-t pt-3 space-y-2">
-                        <p className="text-sm font-semibold text-foreground">الوحدات:</p>
-                        {propUnits.map(unit => (
+
+                    {/* الوحدات عند التوسيع */}
+                    {isExpanded && propertyUnits.length > 0 && (
+                      <div className="border-t pt-3 space-y-2">
+                        <p className="text-sm font-semibold text-foreground flex items-center gap-1">
+                          <DoorOpen className="w-3.5 h-3.5" /> الوحدات ({propertyUnits.length})
+                        </p>
+                        {propertyUnits.map(unit => (
                           <div key={unit.id} className="flex justify-between items-center text-sm bg-muted/50 rounded p-2">
-                            <span>{unit.unit_number} - {unit.unit_type}</span>
-                            <Badge variant={unit.status === 'مؤجرة' ? 'default' : 'secondary'}>
+                            <div>
+                              <span className="font-medium">{unit.unit_number}</span>
+                              <span className="text-muted-foreground mr-2">- {unit.unit_type}</span>
+                              {unit.floor && <span className="text-muted-foreground mr-2">| {unit.floor}</span>}
+                              {unit.area && <span className="text-muted-foreground mr-2">| {unit.area} م²</span>}
+                            </div>
+                            <Badge variant={unit.status === 'مؤجرة' ? 'default' : unit.status === 'صيانة' ? 'destructive' : 'secondary'}>
                               {unit.status}
                             </Badge>
                           </div>
                         ))}
                       </div>
                     )}
+
+                    <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
+                      <DoorOpen className="w-3.5 h-3.5" />
+                      <span>اضغط لعرض الوحدات ({propertyUnits.length})</span>
+                    </div>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
-        ) : (
-          /* Desktop Table View */
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">رقم العقار</TableHead>
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">الموقع</TableHead>
-                    <TableHead className="text-right">المساحة (م²)</TableHead>
-                    <TableHead className="text-right">الوحدات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {properties?.map(prop => {
-                    const propUnits = getUnitsForProperty(prop.id);
-                    const isExpanded = expandedId === prop.id;
-                    return (
-                      <React.Fragment key={prop.id}>
-                        <TableRow
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setExpandedId(isExpanded ? null : prop.id)}
-                        >
-                          <TableCell className="font-medium">{prop.property_number}</TableCell>
-                          <TableCell>{prop.property_type}</TableCell>
-                          <TableCell>{prop.location}</TableCell>
-                          <TableCell>{prop.area}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{propUnits.length} وحدة</Badge>
-                          </TableCell>
-                        </TableRow>
-                        {isExpanded && propUnits.length > 0 && (
-                          <TableRow key={`${prop.id}-units`}>
-                            <TableCell colSpan={5} className="bg-muted/30 p-4">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="text-right">رقم الوحدة</TableHead>
-                                    <TableHead className="text-right">النوع</TableHead>
-                                    <TableHead className="text-right">الدور</TableHead>
-                                    <TableHead className="text-right">المساحة</TableHead>
-                                    <TableHead className="text-right">الحالة</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {propUnits.map(unit => (
-                                    <TableRow key={unit.id}>
-                                      <TableCell>{unit.unit_number}</TableCell>
-                                      <TableCell>{unit.unit_type}</TableCell>
-                                      <TableCell>{unit.floor || '-'}</TableCell>
-                                      <TableCell>{unit.area || '-'}</TableCell>
-                                      <TableCell>
-                                        <Badge variant={unit.status === 'مؤجرة' ? 'default' : 'secondary'}>
-                                          {unit.status}
-                                        </Badge>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         )}
       </div>
     </DashboardLayout>
