@@ -49,6 +49,8 @@ const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/Beneficia
 const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
 const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
 const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
+const PropertiesViewPage = lazy(() => import("./pages/beneficiary/PropertiesViewPage"));
+const ContractsViewPage = lazy(() => import("./pages/beneficiary/ContractsViewPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
@@ -217,6 +219,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['admin', 'beneficiary']}>
                   <BeneficiaryDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/properties"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <PropertiesViewPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/beneficiary/contracts"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}>
+                  <ContractsViewPage />
                 </ProtectedRoute>
               }
             />
