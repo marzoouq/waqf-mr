@@ -12,7 +12,8 @@ import { useUnits } from '@/hooks/useUnits';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { Plus, Minus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw, CheckSquare, Square } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMemo } from 'react';
@@ -70,6 +71,7 @@ const ContractsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
   const [bulkRenewing, setBulkRenewing] = useState(false);
+  const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
   const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
@@ -150,7 +152,18 @@ const ContractsPage = () => {
     setDeleteTarget(null);
   };
 
+  // Move expiredContracts before state that references it (selectAllExpired)
   const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);
+
+  const toggleSelection = (id: string) => {
+    setSelectedForRenewal(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const selectAllExpired = () => setSelectedForRenewal(new Set(expiredContracts.map(c => c.id)));
+  const deselectAll = () => setSelectedForRenewal(new Set());
 
   const handleBulkRenew = async () => {
     setBulkRenewing(true);
@@ -163,8 +176,9 @@ const ContractsPage = () => {
       const startDate = today.toISOString().split('T')[0];
       const endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString().split('T')[0];
 
+      const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
       let created = 0;
-      for (const contract of expiredContracts) {
+      for (const contract of contractsToRenew) {
         const num = contract.contract_number;
         const match = num.match(/-R(\d+)$/);
         const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
@@ -206,10 +220,11 @@ const ContractsPage = () => {
 
       toast.success(`تم تجديد ${created} عقد بنجاح`);
     } catch (err) {
-      toast.error('حدث خطأ أثناء التجديد الجماعي');
+      toast.error('حدث خطأ أثناء التجديد');
     } finally {
       setBulkRenewing(false);
       setBulkRenewOpen(false);
+      setSelectedForRenewal(new Set());
     }
   };
 
@@ -364,18 +379,34 @@ const ContractsPage = () => {
           </Card>
         </div>
 
-        {/* شريط تنبيه العقود المنتهية */}
+        {/* شريط تنبيه العقود المنتهية مع اختيار انتقائي */}
         {expiredContracts.length > 0 && (
           <Alert className="border-destructive/40 bg-destructive/10">
             <AlertTriangle className="w-4 h-4 text-destructive" />
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-destructive font-medium">
-                يوجد {expiredContracts.length} عقد منتهي لم يتم تجديده
+                يوجد {expiredContracts.length} عقد منتهي
+                {selectedForRenewal.size > 0 && (
+                  <span className="text-foreground mr-1">— تم اختيار {selectedForRenewal.size}</span>
+                )}
               </span>
-              <Button size="sm" variant="destructive" className="gap-2 shrink-0" onClick={() => setBulkRenewOpen(true)}>
-                <RefreshCw className="w-4 h-4" />
-                تجديد جماعي
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 shrink-0"
+                  onClick={selectedForRenewal.size === expiredContracts.length ? deselectAll : selectAllExpired}
+                >
+                  {selectedForRenewal.size === expiredContracts.length ? <Square className="w-3.5 h-3.5" /> : <CheckSquare className="w-3.5 h-3.5" />}
+                  {selectedForRenewal.size === expiredContracts.length ? 'إلغاء التحديد' : 'تحديد الكل'}
+                </Button>
+                {selectedForRenewal.size > 0 && (
+                  <Button size="sm" variant="destructive" className="gap-2 shrink-0" onClick={() => setBulkRenewOpen(true)}>
+                    <RefreshCw className="w-4 h-4" />
+                    تجديد المختارة ({selectedForRenewal.size})
+                  </Button>
+                )}
+              </div>
             </AlertDescription>
           </Alert>
         )}
@@ -425,10 +456,19 @@ const ContractsPage = () => {
                <div className="space-y-3 md:hidden px-3 py-2">
                  {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
                    <Card key={contract.id} className="shadow-sm">
-                     <CardContent className="p-4 space-y-3">
-                       <div className="flex items-start justify-between gap-2">
-                         <div className="min-w-0 flex-1">
-                           <div className="flex items-center gap-2 flex-wrap">
+                      <CardContent className="p-4 space-y-3">
+                        {contract.status === 'expired' && (
+                          <div className="flex items-center gap-2 pb-2 border-b border-destructive/20">
+                            <Checkbox
+                              checked={selectedForRenewal.has(contract.id)}
+                              onCheckedChange={() => toggleSelection(contract.id)}
+                            />
+                            <span className="text-xs text-destructive">اختر للتجديد</span>
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
                              <span className="font-bold text-sm">{contract.contract_number}</span>
                              {getStatusBadge(contract.status)}
                            </div>
@@ -474,8 +514,9 @@ const ContractsPage = () => {
                <div className="overflow-x-auto hidden md:block">
                <Table className="min-w-[1000px]">
                 <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
+                   <TableRow className="bg-muted/50">
+                     {expiredContracts.length > 0 && <TableHead className="text-center w-10"></TableHead>}
+                     <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
                     <TableHead className="text-right">الوحدة</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
                     <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
@@ -486,8 +527,18 @@ const ContractsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
-                    <TableRow key={contract.id}>
-                      <TableCell className="font-medium">{contract.contract_number}</TableCell>
+                     <TableRow key={contract.id}>
+                       {expiredContracts.length > 0 && (
+                         <TableCell className="text-center">
+                           {contract.status === 'expired' ? (
+                             <Checkbox
+                               checked={selectedForRenewal.has(contract.id)}
+                               onCheckedChange={() => toggleSelection(contract.id)}
+                             />
+                           ) : null}
+                         </TableCell>
+                       )}
+                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
                       <TableCell>{contract.property?.property_number || '-'}</TableCell>
                       <TableCell>{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'العقار كامل'}</TableCell>
                       <TableCell>{contract.tenant_name}</TableCell>
@@ -535,19 +586,30 @@ const ContractsPage = () => {
           </CardContent>
         </Card>
 
-        {/* حوار التجديد الجماعي */}
+        {/* حوار تأكيد تجديد العقود المختارة */}
         <AlertDialog open={bulkRenewOpen} onOpenChange={setBulkRenewOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>تجديد جماعي للعقود المنتهية</AlertDialogTitle>
-              <AlertDialogDescription>
-                سيتم إنشاء {expiredContracts.length} عقد جديد بنفس بيانات العقود المنتهية مع تواريخ جديدة (من اليوم لمدة سنة). هل تريد المتابعة؟
+              <AlertDialogTitle>تجديد العقود المختارة ({selectedForRenewal.size})</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3">
+                  <p>سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ جديدة (من اليوم لمدة سنة) للعقود التالية:</p>
+                  <ul className="max-h-40 overflow-y-auto space-y-1 text-sm pr-2">
+                    {expiredContracts.filter(c => selectedForRenewal.has(c.id)).map(c => (
+                      <li key={c.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-0">
+                        <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" />
+                        <span className="font-medium">{c.contract_number}</span>
+                        <span className="text-muted-foreground">— {c.tenant_name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-row-reverse gap-2">
               <AlertDialogCancel disabled={bulkRenewing}>إلغاء</AlertDialogCancel>
               <AlertDialogAction onClick={handleBulkRenew} disabled={bulkRenewing} className="bg-success text-success-foreground hover:bg-success/90 gap-2">
-                {bulkRenewing ? 'جاري التجديد...' : <><RefreshCw className="w-4 h-4" />تأكيد التجديد</>}
+                {bulkRenewing ? 'جاري التجديد...' : <><RefreshCw className="w-4 h-4" />تأكيد التجديد ({selectedForRenewal.size})</>}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
