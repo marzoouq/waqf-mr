@@ -385,6 +385,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
   const upsertPayment = useUpsertTenantPayment();
+  const { fiscalYearId } = useFiscalYear();
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const deleteUnit = useDeleteUnit();
@@ -856,7 +857,22 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                     </Button>
                                     <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
                                     <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending}
-                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid + 1 })}>
+                                      onClick={() => {
+                                        const rent = Number(tenant.rent_amount);
+                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (Number(tenant.payment_amount) || rent / 12)
+                                          : tenant.payment_type === 'multi' ? (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1))
+                                          : rent / 12;
+                                        upsertPayment.mutate({
+                                          contract_id: tenant.contract_id,
+                                          paid_months: paid + 1,
+                                          auto_income: {
+                                            payment_amount: monthlyAmount,
+                                            property_id: property.id,
+                                            fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
+                                            tenant_name: tenant.name,
+                                          },
+                                        });
+                                      }}>
                                       <Plus className="w-3 h-3" />
                                     </Button>
                                   </div>
