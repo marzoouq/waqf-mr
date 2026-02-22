@@ -1,13 +1,15 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMemo } from 'react';
 
@@ -18,7 +20,8 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 };
 
 const ContractsViewPage = () => {
-  const { data: contracts, isLoading } = useContracts();
+  const { fiscalYearId } = useFiscalYear();
+  const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
 
   const stats = useMemo(() => {
@@ -37,6 +40,21 @@ const ContractsViewPage = () => {
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => n.toLocaleString('ar-SA') + ' ر.س';
+
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold text-foreground">حدث خطأ في تحميل العقود</h2>
+          <p className="text-muted-foreground">يرجى المحاولة مرة أخرى</p>
+          <Button onClick={() => refetch()} variant="outline" className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -96,9 +114,16 @@ const ContractsViewPage = () => {
           <div className="space-y-3">
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
           </div>
+        ) : !contracts || contracts.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 flex flex-col items-center justify-center gap-3">
+              <FileText className="w-12 h-12 text-muted-foreground/50" />
+              <p className="text-muted-foreground font-medium">لا توجد عقود مسجلة في هذه السنة المالية</p>
+            </CardContent>
+          </Card>
         ) : isMobile ? (
           <div className="space-y-3">
-            {contracts?.map(contract => {
+            {contracts.map(contract => {
               const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
               const property = (contract as any).property;
               return (
@@ -147,7 +172,7 @@ const ContractsViewPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {contracts?.map(contract => {
+                  {contracts.map(contract => {
                     const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
                     const property = (contract as any).property;
                     return (

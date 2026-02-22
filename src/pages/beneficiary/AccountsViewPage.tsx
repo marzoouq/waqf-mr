@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { Wallet, FileText, TrendingUp, TrendingDown, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -45,11 +45,7 @@ const AccountsViewPage = () => {
     expensesByType,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
-  const { data: allContracts = [], isLoading: contractsLoading } = useContracts();
-  const contracts = useMemo(() => {
-    if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
-    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
-  }, [allContracts, fiscalYearId]);
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
