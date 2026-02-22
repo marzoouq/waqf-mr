@@ -90,11 +90,7 @@ Deno.serve(async (req: Request) => {
     const hasExpiring = contracts && contracts.length > 0;
     const hasExpired = expiredContracts.length > 0;
 
-    if (!hasExpiring && !hasExpired) {
-      return new Response(JSON.stringify({ message: "No expiring or expired contracts" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // لا نعود مبكراً — نحتاج فحص التأخر في الدفع أيضاً
 
     // Fetch admins
     const { data: admins } = await supabase
@@ -175,6 +171,75 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // === 3) تنبيه تأخر المستأجرين عن الدفع (أكثر من دفعتين) ===
+    let overdueCount = 0;
+    {
+      const { data: activeContracts, error: acErr } = await supabase
+        .from("contracts")
+        .select("id, contract_number, tenant_name, start_date, payment_type, payment_count")
+        .eq("status", "active")
+        .limit(500);
+      if (acErr) throw acErr;
+
+      if (activeContracts && activeContracts.length > 0) {
+        const contractIds = activeContracts.map((c: { id: string }) => c.id);
+        const { data: payments } = await supabase
+          .from("tenant_payments")
+          .select("contract_id, paid_months")
+          .in("contract_id", contractIds);
+
+        const paymentsMap = new Map<string, number>();
+        for (const p of payments || []) {
+          paymentsMap.set(p.contract_id, p.paid_months);
+        }
+
+        const monthsDiff = (start: string, end: Date): number => {
+          const s = new Date(start);
+          return (end.getFullYear() - s.getFullYear()) * 12 + (end.getMonth() - s.getMonth());
+        };
+
+        const adminRecipients = allRecipients.filter(r => r.role === 'admin');
+
+        for (const c of activeContracts) {
+          const totalMonths = monthsDiff(c.start_date, today);
+          // تحويل حسب نوع الدفع
+          let expectedPayments: number;
+          const pt = c.payment_type;
+          if (pt === 'monthly') {
+            expectedPayments = totalMonths;
+          } else if (pt === 'quarterly') {
+            expectedPayments = Math.floor(totalMonths / 3);
+          } else if (pt === 'semi-annual' || pt === 'semi_annual') {
+            expectedPayments = Math.floor(totalMonths / 6);
+          } else {
+            // annual or other
+            expectedPayments = Math.floor(totalMonths / 12);
+          }
+
+          // تجاهل العقود الحديثة (أقل من 3 أشهر)
+          if (totalMonths < 3) continue;
+
+          const paidMonths = paymentsMap.get(c.id) ?? 0;
+          const overdue = expectedPayments - paidMonths;
+
+          if (overdue > 2) {
+            const overdueMsg = `المستأجر ${c.tenant_name} (عقد رقم ${c.contract_number}) متأخر عن سداد ${overdue} دفعة`;
+            for (const admin of adminRecipients) {
+              if (existingByUser.get(admin.user_id)?.has(overdueMsg)) continue;
+              notifications.push({
+                user_id: admin.user_id,
+                title: "تنبيه: تأخر في سداد الإيجار",
+                message: overdueMsg,
+                type: "warning",
+                link: "/dashboard/properties",
+              });
+              overdueCount++;
+            }
+          }
+        }
+      }
+    }
+
     if (notifications.length > 0) {
       const { error: insertError } = await supabase
         .from("notifications")
@@ -183,7 +248,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ sent: notifications.length, expiring: (contracts || []).length, expired: expiredContracts.length }),
+      JSON.stringify({ sent: notifications.length, expiring: (contracts || []).length, expired: expiredContracts.length, overdue: overdueCount }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
