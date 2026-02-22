@@ -39,6 +39,11 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">حدث خطأ غير متوقع</h1>
+            {this.state.error && (
+              <p className="text-xs text-destructive bg-destructive/10 rounded-md p-3 font-mono break-all" dir="ltr">
+                [{this.state.error.name}: {this.state.error.message}]
+              </p>
+            )}
             <p className="text-muted-foreground">
               نعتذر عن هذا الخطأ. يرجى المحاولة مرة أخرى أو العودة للصفحة الرئيسية.
             </p>

@@ -22,8 +22,9 @@ const BeneficiaryDashboard = () => {
   const { fiscalYear, fiscalYearId, isLoading: fyLoading } = useFiscalYear();
   const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const beneficiariesShare = availableAmount;
-  const myShare = currentBeneficiary ? (beneficiariesShare * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
+  const safeAvailable = Number(availableAmount) || 0;
+  const beneficiariesShare = safeAvailable;
+  const myShare = currentBeneficiary ? (safeAvailable * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
 
   const isLoading = benLoading || fyLoading || finLoading;
 
