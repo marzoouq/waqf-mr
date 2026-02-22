@@ -49,7 +49,17 @@ const PropertiesViewPage = () => {
     units?.filter(u => u.property_id === propertyId) ?? [];
 
   const totalUnits = units?.length ?? 0;
-  const occupiedUnits = units?.filter(u => u.status === 'مؤجرة').length ?? 0;
+
+  // حساب الإشغال من العقود المفلترة بالسنة المالية (بدلاً من حالة الوحدة الثابتة)
+  const rentedUnitIds = new Set(
+    contracts.filter(c => c.unit_id).map(c => c.unit_id)
+  );
+  const wholePropertyIds = new Set(
+    contracts.filter(c => c.property_id && !c.unit_id).map(c => c.property_id)
+  );
+  const occupiedUnits = units?.filter(u =>
+    rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
+  ).length ?? 0;
 
   return (
     <DashboardLayout>
