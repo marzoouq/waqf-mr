@@ -31,7 +31,7 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isLoading, fiscalYears, selectedId]);
 
-  const fiscalYearId = selectedId || activeFY?.id || '';
+  const fiscalYearId = selectedId || activeFY?.id || 'all';
   const fiscalYear = useMemo(
     () => fiscalYearId === 'all' ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
     [fiscalYears, fiscalYearId, activeFY]
