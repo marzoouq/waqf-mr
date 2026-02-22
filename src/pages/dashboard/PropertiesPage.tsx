@@ -559,6 +559,23 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
     return payment ? payment.paid_months : 0;
   };
 
+  // حساب حالة التحصيل
+  const getPaymentStatus = (tenant: NonNullable<ReturnType<typeof getTenant>>, paidMonths: number): { status: 'ontime' | 'late'; overdueCount: number } => {
+    if (tenant.status !== 'active' || !tenant.start_date) return { status: 'ontime', overdueCount: 0 };
+    const start = new Date(tenant.start_date);
+    const today = new Date();
+    const totalMonths = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+    if (totalMonths < 0) return { status: 'ontime', overdueCount: 0 };
+    let expectedPayments: number;
+    const pt = tenant.payment_type;
+    if (pt === 'monthly') expectedPayments = totalMonths;
+    else if (pt === 'multi') expectedPayments = Math.floor(totalMonths / (12 / (tenant.payment_count || 1)));
+    else expectedPayments = Math.floor(totalMonths / 12); // annual
+    const overdue = expectedPayments - paidMonths;
+    if (overdue > 0) return { status: 'late', overdueCount: overdue };
+    return { status: 'ontime', overdueCount: 0 };
+  };
+
   // Whole property contracts (no unit_id) - النشط أولاً ثم الأحدث
   const wholePropertyContracts = contracts.filter(c => c.property_id === property.id && !c.unit_id).sort((a, b) => {
     if (a.status === 'active' && b.status !== 'active') return -1;
@@ -804,6 +821,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         <TableHead className="text-right">الإيجار الشهري</TableHead>
                         <TableHead className="text-right">الإيجار السنوي</TableHead>
                         <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
+                        <TableHead className="text-right">حالة التحصيل</TableHead>
                         <TableHead className="text-right">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -881,6 +899,16 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               )}
                             </TableCell>
                             <TableCell>
+                              {!tenant || tenant.status !== 'active' ? (
+                                <span className="text-muted-foreground">-</span>
+                              ) : (() => {
+                                const ps = getPaymentStatus(tenant, paid);
+                                return ps.status === 'ontime'
+                                  ? <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">منتظم</Badge>
+                                  : <Badge className="bg-red-500/15 text-red-600 border-red-500/30 hover:bg-red-500/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
+                              })()}
+                            </TableCell>
+                            <TableCell>
                               <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}><Edit className="w-3 h-3" /></Button>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)}><Trash2 className="w-3 h-3" /></Button>
@@ -922,7 +950,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             <TableCell colSpan={3}></TableCell>
                             <TableCell>{totalMonthly.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</TableCell>
                             <TableCell>{totalAnnual.toLocaleString('ar-SA')} ريال</TableCell>
-                            <TableCell colSpan={2}></TableCell>
+                            <TableCell colSpan={3}></TableCell>
                           </TableRow>
                         );
                       })()}
