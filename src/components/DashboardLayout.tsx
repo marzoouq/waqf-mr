@@ -88,6 +88,8 @@ const allAdminLinks = [
 
 const allBeneficiaryLinks = [
   { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
+  { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
+  { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
   { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
   { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
