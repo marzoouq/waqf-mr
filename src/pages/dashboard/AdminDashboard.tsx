@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContracts } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -12,6 +12,9 @@ import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import { useTenantPayments } from '@/hooks/useTenantPayments';
+import { Badge } from '@/components/ui/badge';
+import { differenceInMonths } from 'date-fns';
 
 const AdminDashboard = () => {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
@@ -19,6 +22,7 @@ const AdminDashboard = () => {
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContracts();
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
+  const { data: tenantPayments = [], isLoading: paymentsLoading } = useTenantPayments();
 
   const {
     income, expenses, beneficiaries,
@@ -26,7 +30,7 @@ const AdminDashboard = () => {
     adminShare, waqifShare, waqfRevenue,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
 
-  const isLoading = propsLoading || contractsLoading || unitsLoading;
+  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
@@ -39,6 +43,44 @@ const AdminDashboard = () => {
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+
+  // Collection summary: compute on-time vs late for active contracts
+  const collectionSummary = useMemo(() => {
+    const activeContracts = fyContracts.filter(c => c.status === 'active');
+    let onTime = 0;
+    let late = 0;
+
+    activeContracts.forEach(contract => {
+      const startDate = new Date(contract.start_date);
+      const now = new Date();
+      const paymentType = contract.payment_type || 'annual';
+
+      let expectedPayments = 0;
+      if (paymentType === 'monthly') {
+        expectedPayments = Math.max(0, differenceInMonths(now, startDate));
+      } else if (paymentType === 'quarterly') {
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 3));
+      } else if (paymentType === 'semi_annual') {
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 6));
+      } else {
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 12));
+      }
+
+      const payment = tenantPayments.find(p => p.contract_id === contract.id);
+      const paidMonths = payment?.paid_months ?? 0;
+
+      if (paidMonths >= expectedPayments) {
+        onTime++;
+      } else {
+        late++;
+      }
+    });
+
+    const total = onTime + late;
+    const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
+
+    return { onTime, late, total, percentage };
+  }, [fyContracts, tenantPayments]);
 
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
@@ -191,6 +233,78 @@ const AdminDashboard = () => {
             </Card>
           );
         })()}
+
+        {/* Collection Summary Card */}
+        {collectionSummary.total > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gauge className="w-5 h-5" />
+                ملخص التحصيل
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                {/* Mini Pie Chart */}
+                <div className="w-[180px] h-[180px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'منتظم', value: collectionSummary.onTime },
+                          { name: 'متأخر', value: collectionSummary.late },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={70}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        <Cell fill="hsl(142, 71%, 35%)" />
+                        <Cell fill="hsl(0, 72%, 51%)" />
+                      </Pie>
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Summary Stats */}
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-success" />
+                      <span className="text-sm text-muted-foreground">منتظم</span>
+                    </div>
+                    <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
+                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">عقد</Badge>
+                  </div>
+
+                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                      <span className="text-sm text-muted-foreground">متأخر</span>
+                    </div>
+                    <p className="text-3xl font-bold text-destructive">{collectionSummary.late}</p>
+                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">عقد</Badge>
+                  </div>
+
+                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+                    <span className="text-sm text-muted-foreground">نسبة الانتظام</span>
+                    <p className={`text-3xl font-bold ${collectionSummary.percentage >= 80 ? 'text-success' : collectionSummary.percentage >= 50 ? 'text-warning' : 'text-destructive'}`}>
+                      {collectionSummary.percentage}%
+                    </p>
+                    <Progress
+                      value={collectionSummary.percentage}
+                      className={`h-2 ${collectionSummary.percentage >= 80 ? '[&>div]:bg-success' : collectionSummary.percentage >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
