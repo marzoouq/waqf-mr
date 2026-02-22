@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useContracts, useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { useUnits } from '@/hooks/useUnits';
+import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { Plus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw } from 'lucide-react';
+import { Plus, Minus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
@@ -35,6 +36,31 @@ const ContractsPage = () => {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
+  const { data: tenantPayments = [] } = useTenantPayments();
+  const upsertPayment = useUpsertTenantPayment();
+
+  const paymentsMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of tenantPayments) map.set(p.contract_id, p.paid_months);
+    return map;
+  }, [tenantPayments]);
+
+  const handlePayment = (contract: Contract, delta: number) => {
+    const current = paymentsMap.get(contract.id) ?? 0;
+    const next = Math.max(0, current + delta);
+    const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+    const paymentAmount = Number(contract.rent_amount) / paymentCount;
+    upsertPayment.mutate({
+      contract_id: contract.id,
+      paid_months: next,
+      auto_income: delta > 0 ? {
+        payment_amount: paymentAmount,
+        property_id: contract.property_id,
+        fiscal_year_id: contract.fiscal_year_id || (fiscalYearId === 'all' ? null : fiscalYearId),
+        tenant_name: contract.tenant_name,
+      } : undefined,
+    });
+  };
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -419,9 +445,24 @@ const ContractsPage = () => {
                          <div><p className="text-[10px] text-muted-foreground">البداية</p><p className="text-sm font-medium">{contract.start_date}</p></div>
                          <div><p className="text-[10px] text-muted-foreground">النهاية</p><p className="text-sm font-medium">{contract.end_date}</p></div>
                          <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
-                         <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
-                       </div>
-                     </CardContent>
+                          <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
+                        </div>
+                        {/* التحصيل */}
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-xs text-muted-foreground">التحصيل</span>
+                          {(() => {
+                            const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                            const paid = paymentsMap.get(contract.id) ?? 0;
+                            return (
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
+                                <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
+                                <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </CardContent>
                    </Card>
                  ))}
                </div>
@@ -434,8 +475,9 @@ const ContractsPage = () => {
                     <TableHead className="text-right">الوحدة</TableHead>
                     <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
                     <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
-                    <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
+                     <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
+                     <TableHead className="text-right">التحصيل</TableHead>
+                     <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -452,6 +494,19 @@ const ContractsPage = () => {
                         {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
                       </TableCell>
                       <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                          const paid = paymentsMap.get(contract.id) ?? 0;
+                          return (
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
+                              <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
+                              <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
                       <TableCell>{getStatusBadge(contract.status)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
