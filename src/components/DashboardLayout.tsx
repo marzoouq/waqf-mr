@@ -113,6 +113,8 @@ const SHOW_ALL_ROUTES = [
   '/beneficiary/invoices',
   '/beneficiary/disclosure',
   '/beneficiary/my-share',
+  '/beneficiary/contracts',
+  '/beneficiary/properties',
 ];
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

@@ -7,19 +7,36 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Building2, MapPin, Maximize2, Layers } from 'lucide-react';
+import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const PropertiesViewPage = () => {
-  const { data: properties, isLoading: propsLoading } = useProperties();
-  const { data: units, isLoading: unitsLoading } = useAllUnits();
+  const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
+  const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   const isLoading = propsLoading || unitsLoading;
+  const isError = propsError || unitsError;
+
+  if (isError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold text-foreground">حدث خطأ في تحميل العقارات</h2>
+          <p className="text-muted-foreground">يرجى المحاولة مرة أخرى</p>
+          <Button onClick={() => { refetchProps(); refetchUnits(); }} variant="outline" className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const getUnitsForProperty = (propertyId: string) =>
     units?.filter(u => u.property_id === propertyId) ?? [];
@@ -139,9 +156,8 @@ const PropertiesViewPage = () => {
                     const propUnits = getUnitsForProperty(prop.id);
                     const isExpanded = expandedId === prop.id;
                     return (
-                      <>
+                      <React.Fragment key={prop.id}>
                         <TableRow
-                          key={prop.id}
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => setExpandedId(isExpanded ? null : prop.id)}
                         >
@@ -185,7 +201,7 @@ const PropertiesViewPage = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
