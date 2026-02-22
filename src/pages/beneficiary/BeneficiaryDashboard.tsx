@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useActiveFiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
-import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -20,12 +19,8 @@ const BeneficiaryDashboard = () => {
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
-  const { data: activeFY, fiscalYears, isLoading: fyLoading } = useActiveFiscalYear();
-  const [selectedFYId, setSelectedFYId] = useState<string>('');
-  const fiscalYearId = selectedFYId || activeFY?.id || 'all';
-  const selectedFY = fiscalYears.find(fy => fy.id === fiscalYearId);
-  const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, selectedFY?.label);
-
+  const { fiscalYear, fiscalYearId, isLoading: fyLoading } = useFiscalYear();
+  const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
   const myShare = currentBeneficiary ? (beneficiariesShare * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
@@ -54,9 +49,9 @@ const BeneficiaryDashboard = () => {
 
   /* ── Fiscal year progress ── */
   const fyProgress = (() => {
-    if (!selectedFY) return { percent: 0, daysLeft: 0 };
-    const start = new Date(selectedFY.start_date).getTime();
-    const end = new Date(selectedFY.end_date).getTime();
+    if (!fiscalYear) return { percent: 0, daysLeft: 0 };
+    const start = new Date(fiscalYear.start_date).getTime();
+    const end = new Date(fiscalYear.end_date).getTime();
     const total = end - start;
     const elapsed = Date.now() - start;
     const percent = Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
@@ -151,9 +146,8 @@ const BeneficiaryDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* ═══ Fiscal Year selector row ═══ */}
+        {/* ExportMenu only — fiscal year selector is in DashboardLayout top bar */}
         <div className="flex items-center justify-end gap-2">
-          <FiscalYearSelector value={fiscalYearId} onChange={setSelectedFYId} showAll={false} />
           <ExportMenu hidePdf />
         </div>
 
@@ -194,7 +188,7 @@ const BeneficiaryDashboard = () => {
             <CardContent className="p-4 sm:p-5 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">السنة المالية</p>
-                <Badge variant="outline" className="text-[10px]">{selectedFY?.label || '—'}</Badge>
+                <Badge variant="outline" className="text-[10px]">{fiscalYear?.label || '—'}</Badge>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${fyProgress.percent}%` }} />
