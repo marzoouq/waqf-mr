@@ -427,6 +427,12 @@ const AccountsPage = () => {
         contract_id: contract.id,
         paid_months: editData.paidMonths,
         notes: editData.status === 'مكتمل' ? '' : `متأخر ${expectedPmts - editData.paidMonths} دفعات`,
+        auto_income: editData.paidMonths > (tenantPayments.find(p => p.contract_id === contract.id)?.paid_months ?? 0) ? {
+          payment_amount: editData.monthlyRent,
+          property_id: contract.property_id,
+          fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
+          tenant_name: editData.tenantName,
+        } : undefined,
       });
 
       setEditingIndex(null);
