@@ -1,33 +1,83 @@
 
-# تطبيق إصلاح تمرير التوكن على باقي استدعاءات الوظائف الخلفية
 
-## الملفات المطلوب تعديلها
+# مراجعة شاملة لبيئة الإنتاج - النتائج والإصلاحات المطلوبة
 
-### 1. `src/pages/dashboard/BeneficiariesPage.tsx` (سطر 39)
-اضافة جلب الجلسة وتمرير التوكن صراحة:
+## ملخص الحالة الحالية
+
+### ما يعمل بشكل صحيح
+- قاعدة البيانات سليمة: 5 عقارات، 21 عقد، 14 مستفيد، 15 دخل، 13 مصروف، 16 فاتورة
+- حصص المستفيدين تبلغ 100% بالضبط (سليمة)
+- جميع المستفيدين الـ14 لديهم حسابات مربوطة (user_id)
+- سجلات RLS سليمة بلا أخطاء في قاعدة البيانات
+- لا توجد أخطاء Postgres في سجلات الإنتاج
+- تحذير واحد فقط من Linter (إضافة في schema عامة - غير حرج)
+
+### إصلاحات تم تطبيقها (تنتظر النشر)
+- تمرير التوكن في `UserManagementPage.tsx`
+- تمرير التوكن في `BeneficiariesPage.tsx`
+- تمرير التوكن في `useInvoices.ts`
+
+---
+
+## المشاكل المكتشفة والمطلوب إصلاحها
+
+### 1. مشكلة CORS مع النطاق المخصص `waqf-wise.net` (حرجة)
+
+سجلات الإنتاج تُظهر طلبات من `https://waqf-wise.net` تُرفض لأن هذا النطاق غير مضاف في قائمة CORS المسموحة. الدالة `getAllowedOrigin` تتحقق فقط من نطاقات `*.lovable.app` و `*.lovableproject.com`.
+
+**الإصلاح:** إضافة `https://waqf-wise.net` إلى مصفوفة `ALLOWED_ORIGINS` في ملف `supabase/functions/_shared/cors.ts`:
 
 ```typescript
-queryFn: async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-    body: { action: 'list_users' },
-    headers: { Authorization: `Bearer ${session?.access_token}` },
-  });
-  // باقي الكود كما هو
+const ALLOWED_ORIGINS = [
+  "https://waqf-mr.lovable.app",
+  "https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app",
+  "https://waqf-wise.net",
+  "https://www.waqf-wise.net",
+];
 ```
 
-### 2. `src/hooks/useInvoices.ts` (سطر 172)
-اضافة جلب الجلسة وتمرير التوكن صراحة:
+### 2. فواتير بدون مرفقات في الإنتاج (6 فواتير)
+
+يوجد 6 فواتير مدفوعة بدون ملفات مرفقة (INV-2025-008 إلى INV-2025-013). هذا ليس خطأ تقني لكنه يؤثر على نسبة التوثيق. يمكن حلها بعد النشر باستخدام ميزة توليد PDF الآلي التي تم إصلاح التوكن فيها.
+
+### 3. شعار الوقف غير مُعد في الإنتاج (تنبيه)
+
+إعداد `waqf_logo_url` فارغ في الإنتاج. هذا يعني أن التقارير والـ PDF لن تظهر فيها شعار الوقف. يحتاج رفع الشعار يدويا عبر الإعدادات.
+
+---
+
+## الخطوات التقنية للتنفيذ
+
+### الملف الوحيد المطلوب تعديله: `supabase/functions/_shared/cors.ts`
+
+إضافة نطاق `waqf-wise.net` (ومع www) إلى قائمة الأصول المسموحة، وكذلك تحديث الثابت الساكن `corsHeaders` لاستخدام wildcard بدلا من قيمة ثابتة واحدة.
 
 ```typescript
-mutationFn: async (invoiceIds: string[]) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
-    body: { invoice_ids: invoiceIds },
-    headers: { Authorization: `Bearer ${session?.access_token}` },
-  });
-  // باقي الكود كما هو
+const ALLOWED_ORIGINS = [
+  "https://waqf-mr.lovable.app",
+  "https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app",
+  "https://waqf-wise.net",
+  "https://www.waqf-wise.net",
+];
 ```
 
-## ملخص
-تعديلان بسيطان بنفس النمط الذي طُبق على `UserManagementPage.tsx`. باقي الاستدعاءات (`Auth.tsx` و `AuthContext.tsx`) لا تحتاج تعديل لانها تعمل قبل تسجيل الدخول حسب التصميم.
+### ملاحظة: إعادة نشر الوظائف الخلفية
+
+بعد تعديل ملف CORS المشترك، يجب إعادة نشر جميع الوظائف الخلفية السبع لتطبيق التغيير.
+
+---
+
+## ملخص النتائج
+
+| البند | الحالة | ملاحظة |
+|---|---|---|
+| تمرير التوكن (3 ملفات) | مُصلح - ينتظر النشر | UserManagement, Beneficiaries, Invoices |
+| CORS لـ waqf-wise.net | يحتاج إصلاح | نطاق مخصص محظور حاليا |
+| قاعدة البيانات | سليمة | لا أخطاء |
+| RLS Policies | سليمة | تحذير واحد غير حرج |
+| حصص المستفيدين | 100% | صحيحة |
+| حسابات المستفيدين | 14/14 مربوطة | جميعهم لديهم حسابات |
+| العقود | 20 منتهي + 1 نشط | طبيعي |
+| الفواتير بدون مرفقات | 6 فواتير | يمكن توليدها آليا بعد النشر |
+| شعار الوقف | غير مُعد | يحتاج رفع يدوي |
+
