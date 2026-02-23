@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler } from 'lucide-react';
+import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
@@ -71,49 +71,92 @@ const PropertiesViewPage = () => {
       <div className="p-4 md:p-6 space-y-6">
         <h1 className="text-2xl font-bold text-foreground">العقارات</h1>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Building2 className="w-8 h-8 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">إجمالي العقارات</p>
-                <p className="text-xl font-bold">{properties?.length ?? 0}</p>
+        {/* بطاقات الملخص الإجمالية */}
+        {(() => {
+          const totalProperties = properties?.length ?? 0;
+          const totalVacant = totalUnits - occupiedUnits;
+
+          // المؤشرات المالية
+          const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+          const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+          const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
+          const netIncome = contractualRevenue - totalExpensesAll;
+
+          const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+          const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
+          const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+
+          return (
+            <div className="space-y-4 animate-slide-up">
+              {/* الصف الأول - المؤشرات التشغيلية */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div>
+                    <div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div>
+                    <div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnits}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div>
+                    <div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{occupiedUnits}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div>
+                    <div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <Layers className="w-8 h-8 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">إجمالي الوحدات</p>
-                <p className="text-xl font-bold">{totalUnits}</p>
+
+              {/* الصف الثاني - المؤشرات المالية */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div>
+                    <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{contractualRevenue.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
+                    <div><p className="text-xs text-muted-foreground">الدخل النشط</p><p className="text-lg font-bold text-success">{activeIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div>
+                    <div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{totalExpensesAll.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div>
+                    <div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{netIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <span className="text-green-600 dark:text-green-400 text-sm font-bold">{occupiedUnits}</span>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">مؤجرة</p>
-                <p className="text-xl font-bold">{occupiedUnits}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                <span className="text-orange-600 dark:text-orange-400 text-sm font-bold">{totalUnits - occupiedUnits}</span>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">شاغرة</p>
-                <p className="text-xl font-bold">{totalUnits - occupiedUnits}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+              {/* نسبة الإشغال الإجمالية */}
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
+                    <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
+                  </div>
+                  <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
 
         {isLoading ? (
           <div className="space-y-3">
