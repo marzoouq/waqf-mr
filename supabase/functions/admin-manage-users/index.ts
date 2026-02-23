@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
       if (!id || typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("معرف غير صالح");
     };
     const validateRole = (r: string) => {
-      if (!["admin", "beneficiary", "waqif"].includes(r)) throw new Error("دور غير صالح");
+      if (!["admin", "beneficiary", "waqif", "accountant"].includes(r)) throw new Error("دور غير صالح");
     };
     const validateNationalId = (nid: string | undefined) => {
       if (nid && (typeof nid !== "string" || !/^\d{10}$/.test(nid))) throw new Error("رقم الهوية يجب أن يكون 10 أرقام");
