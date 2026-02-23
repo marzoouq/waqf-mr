@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear, useContracts } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -20,9 +22,13 @@ const AdminDashboard = () => {
   const { fiscalYearId, fiscalYear } = useFiscalYear();
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
-  const { data: contracts = [], isLoading: contractsLoading } = useContracts();
+  const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
+  const { data: allContracts = [] } = useContracts();
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: tenantPayments = [], isLoading: paymentsLoading } = useTenantPayments();
+
+  // Detect orphaned contracts (no fiscal year assigned)
+  const orphanedContracts = useMemo(() => allContracts.filter(c => !c.fiscal_year_id), [allContracts]);
 
   const {
     income, expenses, beneficiaries,
@@ -35,11 +41,8 @@ const AdminDashboard = () => {
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
   const filteredExpenses = expenses;
-  // Filter contracts by explicit fiscal_year_id (IFRS/SOCPA compliant - no migration)
-  const fyContracts = useMemo(() => {
-    if (!fiscalYearId || fiscalYearId === 'all') return contracts;
-    return contracts.filter(c => c.fiscal_year_id === fiscalYearId);
-  }, [contracts, fiscalYearId]);
+  // Contracts are already filtered server-side by useContractsByFiscalYear
+  const fyContracts = contracts;
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
@@ -171,6 +174,23 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Orphaned Contracts Warning */}
+        {orphanedContracts.length > 0 && (
+          <Alert variant="destructive" className="animate-fade-in">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>عقود بدون سنة مالية</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span>يوجد {orphanedContracts.length} عقد غير مربوط بسنة مالية ({orphanedContracts.map(c => c.contract_number).join('، ')}). لن تظهر في التقارير المالية.</span>
+              <Link to="/dashboard/contracts">
+                <Button variant="outline" size="sm" className="gap-1 shrink-0">
+                  <LinkIcon className="w-3 h-3" />
+                  إدارة العقود
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
