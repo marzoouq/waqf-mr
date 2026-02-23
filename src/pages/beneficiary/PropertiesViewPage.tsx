@@ -8,6 +8,7 @@ import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -29,6 +30,10 @@ const PropertiesViewPage = () => {
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
+
+  if (noPublishedYears) {
+    return <DashboardLayout><div className="p-4 md:p-6"><NoPublishedYearsNotice /></div></DashboardLayout>;
+  }
 
   if (isError) {
     return (
