@@ -1,118 +1,118 @@
-# إضافة صلاحية حجب/نشر السنة المالية للمستفيدين
+
+
+# إضافة واجهة تخصيص صلاحيات الأدوار ديناميكياً
 
 ## الفكرة
+إضافة تبويب جديد "صلاحيات الأدوار" في إعدادات الناظر يتيح تحديد الأقسام التي يراها كل دور (محاسب، مستفيد، واقف) بشكل مستقل عبر مصفوفة صلاحيات تفاعلية.
 
-إعطاء الناظر تحكماً كاملاً في ظهور كل سنة مالية للمستفيدين، عبر زر "نشر/حجب" لكل سنة مالية في لوحة التحكم. السنة المحجوبة لن تظهر للمستفيدين في أي مكان (القائمة المنسدلة، التقارير، الحسابات).
+---
+
+## التصميم المرئي
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│  صلاحيات الأدوار                                             │
+│  تخصيص الأقسام الظاهرة لكل دور في النظام                     │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  القسم              │ المحاسب  │ المستفيد │ الواقف           │
+│  ─────────────────────────────────────────────────           │
+│  العقارات            │  [x]     │  [x]     │  [x]            │
+│  العقود              │  [x]     │  [x]     │  [x]            │
+│  الدخل              │  [x]     │  [ ]     │  [ ]            │
+│  المصروفات           │  [x]     │  [ ]     │  [ ]            │
+│  المستفيدين          │  [x]     │  [ ]     │  [ ]            │
+│  التقارير            │  [x]     │  [x]     │  [x]            │
+│  الحسابات           │  [x]     │  [x]     │  [x]            │
+│  الفواتير            │  [x]     │  [x]     │  [ ]            │
+│  اللائحة التنظيمية   │  [x]     │  [x]     │  [x]            │
+│  الإفصاح السنوي     │  ─       │  [x]     │  [x]            │
+│  حصتي من الريع      │  ─       │  [x]     │  [ ]            │
+│  المراسلات           │  [x]     │  [x]     │  [ ]            │
+│  سجل المراجعة       │  [x]     │  ─       │  ─              │
+│                                                              │
+│  [حفظ الصلاحيات]  [استعادة الافتراضي]                        │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- الناظر (admin) يرى كل شيء دائماً ولا يظهر في المصفوفة
+- الشرطة (─) تعني أن القسم غير متاح أصلاً لهذا الدور
 
 ---
 
 ## التغييرات المطلوبة
 
-### الجزء 1: قاعدة البيانات
+### 1. إضافة إعداد جديد في قاعدة البيانات
 
-إضافة عمود `published` لجدول `fiscal_years`:
+إدراج مفتاح `role_permissions` في جدول `app_settings` بقيمة JSON:
 
-```sql
-ALTER TABLE public.fiscal_years
-  ADD COLUMN published boolean NOT NULL DEFAULT false;
+```json
+{
+  "accountant": {
+    "properties": true, "contracts": true, "income": true,
+    "expenses": true, "beneficiaries": true, "reports": true,
+    "accounts": true, "invoices": true, "bylaws": true,
+    "messages": true, "audit_log": true
+  },
+  "beneficiary": {
+    "properties": true, "contracts": true, "disclosure": true,
+    "share": true, "reports": true, "accounts": true,
+    "invoices": true, "bylaws": true, "messages": true
+  },
+  "waqif": {
+    "properties": true, "contracts": true, "disclosure": true,
+    "reports": true, "accounts": true, "bylaws": true
+  }
+}
 ```
 
-- القيمة الافتراضية `false` (محجوبة) حتى يقرر الناظر نشرها
-- الناظر والمحاسب يرون جميع السنوات دائماً بغض النظر عن حالة النشر
+### 2. إنشاء مكون `RolePermissionsTab.tsx`
 
-### الجزء 2: تحديث سياسة RLS
+ملف جديد: `src/components/settings/RolePermissionsTab.tsx`
 
-تعديل سياسة عرض السنوات المالية للمستفيدين والواقف لتقتصر على السنوات المنشورة فقط:
+- مصفوفة تفاعلية بالأعمدة (المحاسب، المستفيد، الواقف)
+- Checkbox لكل خلية
+- خلايا معطلة (─) للأقسام غير المتاحة أصلاً لدور معين
+- زر حفظ وزر استعادة الافتراضي
+- يستخدم `useAppSettings().updateJsonSetting('role_permissions', ...)` للحفظ
 
-- حذف السياسة الحالية "Authorized roles can view fiscal_years"
-- إنشاء سياستين بديلتين:
-  1. **الناظر والمحاسب**: يرون جميع السنوات (منشورة وغير منشورة)
-  2. **المستفيد والواقف**: يرون فقط السنوات التي `published = true`
+### 3. إضافة التبويب في `SettingsPage.tsx`
 
-### الجزء 3: واجهة الناظر (FiscalYearManagementTab)
+- إضافة تبويب جديد "صلاحيات الأدوار" بأيقونة Shield
+- تحميل المكون بشكل كسول (lazy loading)
 
-إضافة زر "نشر/حجب" لكل سنة مالية بجانب أزرار الإقفال والحذف:
+### 4. تعديل `DashboardLayout.tsx` لتطبيق الصلاحيات
 
-- زر بأيقونة عين (Eye/EyeOff) مع نص "نشر للمستفيدين" / "حجب عن المستفيدين"
-- شارة (Badge) توضح حالة النشر: "منشورة" باللون الأخضر أو "محجوبة" باللون البرتقالي
-- رسالة تأكيد عند النشر/الحجب
-- تفعيل جميع الوظائف المطلوبه بلوحة الناظر 
-- التحقق من الخطه بعمق شامل ومنهجي 
-- تحقق من ان بيئة التطوير والإنتاج  تظهر جميع التعديلات 
+تعديل منطق فلترة الروابط لقراءة `role_permissions` من الإعدادات وتطبيقها:
 
-### الجزء 4: تحديث الكود الأمامي
+- **المحاسب**: فلترة روابط الأدمن حسب صلاحياته في `role_permissions.accountant`
+- **المستفيد**: فلترة روابط المستفيد حسب `role_permissions.beneficiary`
+- **الواقف**: فلترة روابط المستفيد حسب `role_permissions.waqif`
+- **الناظر**: يبقى كما هو (كل شيء مرئي)
 
-1. `**src/hooks/useFiscalYears.ts**`: إضافة حقل `published` لنوع `FiscalYear`
-2. `**src/components/FiscalYearSelector.tsx**`: لا يحتاج تعديل لأن الفلترة تتم من قاعدة البيانات عبر RLS - المستفيد لن يرى السنوات المحجوبة أصلاً
-3. `**src/contexts/FiscalYearContext.tsx**`: لا يحتاج تعديل - يعمل تلقائياً مع البيانات المفلترة
+هذا يستبدل المنطق الحالي لـ `sections_visibility` و `beneficiary_sections` بنظام موحد أكثر مرونة.
 
 ---
 
-## كيف يعمل النظام
+## الملفات المتأثرة
 
-```text
-┌─────────────────────────────────────────┐
-│         لوحة تحكم الناظر                │
-│                                          │
-│  سنة 1446-1447هـ  [نشطة] [منشورة] [إقفال]│
-│  سنة 1445-1446هـ  [مقفلة] [محجوبة] [نشر] │
-│  سنة 1444-1445هـ  [مقفلة] [منشورة] [حجب] │
-└─────────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────┐
-│         لوحة المستفيد                    │
-│                                          │
-│  منتقي السنة: [1446-1447هـ ▼]           │
-│               [1444-1445هـ   ]           │
-│  (سنة 1445-1446 لا تظهر - محجوبة)       │
-└─────────────────────────────────────────┘
-```
-
----
-
-## التفاصيل التقنية
-
-### Migration SQL:
-
-```sql
--- 1. Add published column
-ALTER TABLE public.fiscal_years
-  ADD COLUMN published boolean NOT NULL DEFAULT false;
-
--- 2. Drop old SELECT policy
-DROP POLICY IF EXISTS "Authorized roles can view fiscal_years" ON public.fiscal_years;
-
--- 3. Admin + Accountant see all
-CREATE POLICY "Admins and accountants can view all fiscal_years"
-  ON public.fiscal_years FOR SELECT
-  USING (
-    has_role(auth.uid(), 'admin') OR
-    has_role(auth.uid(), 'accountant')
-  );
-
--- 4. Beneficiary + Waqif see only published
-CREATE POLICY "Beneficiaries and waqif can view published fiscal_years"
-  ON public.fiscal_years FOR SELECT
-  USING (
-    published = true AND (
-      has_role(auth.uid(), 'beneficiary') OR
-      has_role(auth.uid(), 'waqif')
-    )
-  );
-```
-
-### ملفات سيتم تعديلها:
-
-
-| الملف                                                 | التعديل                          |
-| ----------------------------------------------------- | -------------------------------- |
-| `src/hooks/useFiscalYears.ts`                         | إضافة `published: boolean` للنوع |
-| `src/components/settings/FiscalYearManagementTab.tsx` | إضافة زر نشر/حجب وشارة الحالة    |
-
+| الملف | التعديل |
+|---|---|
+| `src/components/settings/RolePermissionsTab.tsx` | ملف جديد - مكون مصفوفة الصلاحيات |
+| `src/pages/dashboard/SettingsPage.tsx` | إضافة تبويب "صلاحيات الأدوار" |
+| `src/components/DashboardLayout.tsx` | تعديل فلترة الروابط لاستخدام role_permissions |
 
 ### ملفات لا تحتاج تعديل:
+- `useAppSettings.ts` - يدعم JSON settings بالفعل
+- `app_settings` table - يدعم أي مفتاح/قيمة بالفعل
+- لا حاجة لترحيل قاعدة بيانات (migration) - المفتاح الجديد يُنشأ تلقائياً عند أول حفظ
 
-- `FiscalYearSelector.tsx` - الفلترة تتم تلقائياً عبر RLS
-- `FiscalYearContext.tsx` - يعمل مع البيانات المفلترة تلقائياً
-- صفحات المستفيدين - لن ترى السنوات المحجوبة أصلاً
+---
+
+## ملاحظات أمنية
+
+- الصلاحيات المرئية فقط (أي أقسام يراها كل دور في القائمة) - لا تؤثر على RLS في قاعدة البيانات
+- حماية البيانات الفعلية تبقى عبر سياسات RLS الموجودة
+- هذه صلاحيات عرض (UI-level) وليست صلاحيات بيانات (data-level)
+- الناظر فقط يمكنه تعديل هذه الإعدادات (محمي بـ RLS على `app_settings`)
+
