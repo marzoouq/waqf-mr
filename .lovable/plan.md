@@ -1,39 +1,56 @@
-# إضافة رسالة "لا توجد سنوات منشورة" للصفحتين المتبقيتين
+# إصلاح تناقض حساب الإشغال وتحسين صفحة العقارات
 
-## الوضع الحالي
+## المشاكل المكتشفة
 
-6 صفحات من صفحات المستفيد تعرض رسالة `NoPublishedYearsNotice` بشكل صحيح عند عدم وجود سنوات منشورة. لكن صفحتين لا تزالان بدون هذا التحقق:
+### 1. تناقض في الارقام
 
-1. **لوحة المستفيد الرئيسية** (`BeneficiaryDashboard.tsx`) - تعرض بيانات مالية (حصة المستفيد، المبلغ المتاح) بدون تحقق
-2. **صفحة العقارات** (`PropertiesViewPage.tsx`) - العقارات نفسها أصول ثابتة لكن المؤشرات المالية (إيرادات، مصروفات) تعتمد على بيانات محمية بـ RLS
-3. ملاحظة 
-  لا ينشر الا ما يراه الناظر نشرة 
-4. الافصاح  السنوي ينشر من لوحة الناظر بعد الموافقة على نشره 
-  حسابات مالية عقارات ايجارات استحقاق 
+البطاقات الاجمالية في الاعلى تحسب الاشغال من العقود المفلترة بالسنة المالية، لكن بطاقات العقارات الفردية تستخدم `unit.status` الثابت مباشرة. ينتج عن هذا ارقام مختلفة بين المستويين.
+
+### 2. شارات حالة الوحدة
+
+شارة الحالة في قسم الوحدات الموسع تعرض `unit.status` الثابت بدلا من الحالة المحسوبة من العقود.
 
 ## التعديلات المطلوبة
 
-### 1. لوحة المستفيد الرئيسية (`BeneficiaryDashboard.tsx`)
+### ملف: `src/pages/beneficiary/PropertiesViewPage.tsx`
 
-- استيراد `noPublishedYears` من `useFiscalYear`
-- اضافة تحقق مبكر يعرض `NoPublishedYearsNotice` مع ترحيب مختصر بدلا من البيانات المالية
+**التعديل الرئيسي:** توحيد حساب الاشغال في بطاقات العقارات الفردية ليعتمد على العقود المفلترة بدلا من `unit.status`:
 
-### 2. صفحة العقارات (`PropertiesViewPage.tsx`)
+```text
+بدلا من:
+  const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
+  const vacant = propertyUnits.filter(u => u.status === 'شاغرة').length;
 
-- استيراد `noPublishedYears` من `useFiscalYear`
-- اضافة تحقق مبكر يعرض `NoPublishedYearsNotice`
-- ملاحظة: العقارات كاصول ثابتة يمكن ابقاء عرضها، لكن المؤشرات المالية ستكون فارغة بسبب RLS. الخيار الانسب هو عرض الرسالة التنبيهية للاتساق مع باقي الصفحات
+يصبح:
+  const propertyContracts = contracts.filter(c => c.property_id === property.id);
+  const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
+  const isWholePropertyRented = propertyContracts.some(c => !c.unit_id);
+  
+  const rented = isWholePropertyRented ? total : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+  const vacant = total - rented;
+```
 
-## التفاصيل التقنية
+**تعديل شارة الوحدة:** في قسم التوسيع، حساب حالة الوحدة من العقود:
 
-التعديل بسيط ومطابق للنمط المستخدم في الصفحات الست الاخرى:
+```text
+بدلا من:
+  unit.status === 'مؤجرة'
 
-- استيراد `NoPublishedYearsNotice`
-- استخراج `noPublishedYears` من `useFiscalYear()`
-- اضافة `if (noPublishedYears)` قبل `return` الرئيسي
+يصبح:
+  rentedUnitIdsForProp.has(unit.id) || isWholePropertyRented ? 'مؤجرة' : unit.status
+```
 
 
-| الملف                                            | التعديل                                   |
-| ------------------------------------------------ | ----------------------------------------- |
-| `src/pages/beneficiary/BeneficiaryDashboard.tsx` | اضافة تحقق noPublishedYears + عرض الرسالة |
-| `src/pages/beneficiary/PropertiesViewPage.tsx`   | اضافة تحقق noPublishedYears + عرض الرسالة |
+| الملف                                          | التعديل                                            |
+| ---------------------------------------------- | -------------------------------------------------- |
+| `src/pages/beneficiary/PropertiesViewPage.tsx` | توحيد حساب الاشغال من العقود + تحديث شارات الوحدات |
+
+
+## ملاحظات
+
+- لا تعديل على قاعدة البيانات
+- العقارات والوحدات تبقى مرئية كاصول ثابتة (لا تملك fiscal_year_id)
+- المؤشرات المالية (ايرادات، مصروفات، صافي) مقيدة فعلا بالعقود والمصروفات المفلترة
+- الناظر يرى كل شيء عند دخوله واجهة المستفيد وهذا مقصود لغرض المعاينة
+- البطاقات يجب إظهار الموجر الفعلي بالعقود 
+- تظهر السنه الفعليه بالبطاقات فقط 
