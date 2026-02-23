@@ -11,6 +11,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
@@ -30,7 +31,7 @@ const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
 
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
   const {
     income,
@@ -127,6 +128,17 @@ const FinancialReportsPage = () => {
 
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (

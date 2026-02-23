@@ -8,6 +8,7 @@ import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const InvoicesViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
@@ -73,6 +74,17 @@ const InvoicesViewPage = () => {
           <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
+          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );

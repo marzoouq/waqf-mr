@@ -83,7 +83,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
-// Routes that support "All Years" filter
+// Routes that support "All Years" filter (beneficiary routes excluded to enforce published-year restriction)
 const SHOW_ALL_ROUTES = [
   '/dashboard/income',
   '/dashboard/expenses',
@@ -91,12 +91,6 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/properties',
   '/dashboard/invoices',
   '/dashboard/audit-log',
-  '/beneficiary/financial-reports',
-  '/beneficiary/invoices',
-  '/beneficiary/disclosure',
-  '/beneficiary/my-share',
-  '/beneficiary/contracts',
-  '/beneficiary/properties',
 ];
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {

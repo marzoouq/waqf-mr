@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,7 @@ const DisclosurePage = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -92,6 +93,17 @@ const DisclosurePage = () => {
 
   if (finLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (

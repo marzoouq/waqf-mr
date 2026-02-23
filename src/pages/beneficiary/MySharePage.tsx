@@ -15,10 +15,11 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -142,6 +143,17 @@ const MySharePage = () => {
 
   if (finLoading || distLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
