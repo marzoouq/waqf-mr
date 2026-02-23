@@ -24,6 +24,7 @@ export const useDeleteContract = contractsCrud.useDelete;
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['contracts', 'fiscal_year', fiscalYearId],
+    enabled: fiscalYearId !== '__none__',
     queryFn: async () => {
       let query = supabase
         .from('contracts')

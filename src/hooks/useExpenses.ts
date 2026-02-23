@@ -35,6 +35,7 @@ export const useDeleteExpense = expensesCrud.useDelete;
 export const useExpensesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['expenses', 'fiscal_year', fiscalYearId],
+    enabled: fiscalYearId !== '__none__',
     queryFn: async () => {
       let query = supabase.from('expenses').select('*, property:properties(*)').order('date', { ascending: false }).limit(500);
       if (fiscalYearId !== 'all') {
