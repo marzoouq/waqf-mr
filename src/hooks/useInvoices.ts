@@ -61,6 +61,7 @@ export const useUpdateInvoice = invoicesCrud.useUpdate;
 export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['invoices', 'fiscal_year', fiscalYearId],
+    enabled: fiscalYearId !== '__none__',
     queryFn: async () => {
       let query = supabase
         .from('invoices')
