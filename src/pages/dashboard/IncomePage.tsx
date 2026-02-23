@@ -10,7 +10,7 @@ import { useIncome, useCreateIncome, useUpdateIncome, useDeleteIncome, useIncome
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generateIncomePDF } from '@/utils/pdf';
@@ -121,14 +121,46 @@ const IncomePage = () => {
           </div>
         )}
 
-        <Card className="shadow-sm gradient-primary text-primary-foreground">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-xl flex items-center justify-center"><TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" /></div>
-              <div><p className="text-xs sm:text-sm text-primary-foreground/90">إجمالي الدخل</p><p className="text-2xl sm:text-3xl font-bold">{totalIncome.toLocaleString()} ر.س</p></div>
+        {/* Summary Cards */}
+        {(() => {
+          const count = income.length;
+          const avg = count > 0 ? Math.round(totalIncome / count) : 0;
+          // أعلى مصدر دخل
+          const sourceMap = new Map<string, number>();
+          income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + Number(i.amount)));
+          let topSource = '-';
+          let topSourceAmount = 0;
+          sourceMap.forEach((amount, source) => { if (amount > topSourceAmount) { topSourceAmount = amount; topSource = source; } });
+
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-success/10"><TrendingUp className="w-5 h-5 text-success" /></div>
+                  <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{totalIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10"><Hash className="w-5 h-5 text-primary" /></div>
+                  <div><p className="text-xs text-muted-foreground">عدد السجلات</p><p className="text-xl font-bold">{count}</p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
+                  <div><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-xl font-bold">{avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
+                  <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{topSource}</p><p className="text-xs text-muted-foreground">{topSourceAmount.toLocaleString('ar-SA')} ريال</p></div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          );
+        })()}
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

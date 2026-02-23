@@ -11,7 +11,7 @@ import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Plus, Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, Hash, Calculator, Star } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
@@ -144,34 +144,45 @@ const ExpensesPage = () => {
         )}
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-          <Card className="shadow-sm bg-destructive/10 border-destructive/20">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-destructive/20 rounded-xl flex items-center justify-center"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-                <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p></div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center"><Paperclip className="w-5 h-5 text-primary" /></div>
-                <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-2xl font-bold">{documentationRate}%</p></div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center">
-                  <Badge variant="outline" className="text-xs">{documentedCount}/{expenses.length}</Badge>
-                </div>
-                <div><p className="text-xs text-muted-foreground">موثق / إجمالي</p><p className="text-sm text-muted-foreground">{expenses.length - documentedCount} مصروف بدون فاتورة</p></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {(() => {
+          const count = expenses.length;
+          const avg = count > 0 ? Math.round(totalExpenses / count) : 0;
+          // أعلى نوع مصروف
+          const typeMap = new Map<string, number>();
+          expenses.forEach(e => typeMap.set(e.expense_type, (typeMap.get(e.expense_type) || 0) + Number(e.amount)));
+          let topType = '-';
+          let topTypeAmount = 0;
+          typeMap.forEach((amount, type) => { if (amount > topTypeAmount) { topTypeAmount = amount; topType = type; } });
+
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
+                  <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10"><Paperclip className="w-5 h-5 text-primary" /></div>
+                  <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-xl font-bold">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{count}</p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
+                  <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
+                  <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{topType}</p><p className="text-xs text-muted-foreground">{topTypeAmount.toLocaleString('ar-SA')} ريال</p></div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
