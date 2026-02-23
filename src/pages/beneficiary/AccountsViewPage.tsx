@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -22,7 +23,7 @@ const AccountsViewPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -63,6 +64,17 @@ const AccountsViewPage = () => {
       default: return status;
     }
   };
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

@@ -883,6 +883,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_fiscal_year_accessible: {
+        Args: { p_fiscal_year_id: string }
+        Returns: boolean
+      }
       log_access_event: {
         Args: {
           p_email?: string

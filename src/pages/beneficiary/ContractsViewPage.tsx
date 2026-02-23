@@ -4,6 +4,7 @@
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 };
 
 const ContractsViewPage = () => {
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
 
@@ -51,6 +52,17 @@ const ContractsViewPage = () => {
           <Button onClick={() => refetch()} variant="outline" className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 md:p-6 space-y-6">
+          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );

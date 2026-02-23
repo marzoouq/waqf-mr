@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/useFiscalYears';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -8,6 +9,7 @@ interface FiscalYearContextType {
   fiscalYears: FiscalYear[];
   isClosed: boolean;
   isLoading: boolean;
+  noPublishedYears: boolean;
 }
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
@@ -16,9 +18,12 @@ const STORAGE_KEY = 'waqf_selected_fiscal_year';
 
 export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
+  const { role } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY) || '';
   });
+
+  const isNonAdmin = role === 'beneficiary' || role === 'waqif';
 
   // Once fiscal years load, validate stored selection
   useEffect(() => {
@@ -31,9 +36,16 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [isLoading, fiscalYears, selectedId]);
 
-  const fiscalYearId = selectedId || activeFY?.id || 'all';
+  // For beneficiary/waqif: RLS already filters to published-only fiscal years.
+  // If no fiscal years are available (all unpublished), don't fallback to 'all'.
+  const noPublishedYears = !isLoading && isNonAdmin && fiscalYears.length === 0;
+
+  const fiscalYearId = noPublishedYears
+    ? '__none__'
+    : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || '__none__') : 'all'));
+
   const fiscalYear = useMemo(
-    () => fiscalYearId === 'all' ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
+    () => (fiscalYearId === 'all' || fiscalYearId === '__none__') ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';
@@ -55,6 +67,7 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       fiscalYears,
       isClosed,
       isLoading,
+      noPublishedYears,
     }}>
       {children}
     </FiscalYearContext.Provider>
