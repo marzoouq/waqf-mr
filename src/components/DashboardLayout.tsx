@@ -31,24 +31,6 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-// Map route segments to settings keys
-const adminSectionKeys: Record<string, string> = {
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/users': 'users',
-};
-
-const beneficiarySectionKeys: Record<string, string> = {
-  '/beneficiary/disclosure': 'disclosure',
-  '/beneficiary/my-share': 'share',
-  '/beneficiary/financial-reports': 'reports',
-};
-
 // Map link keys to menu_labels keys
 const linkLabelKeys: Record<string, keyof MenuLabels> = {
   '/dashboard': 'home',
@@ -126,42 +108,88 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
 
-  const sectionsVisibility = getJsonSetting('sections_visibility', { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true });
-  const beneficiarySections = getJsonSetting('beneficiary_sections', { disclosure: true, share: true, accounts: true, reports: true });
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
 
-  // روابط المحاسب: مثل الناظر بدون إدارة المستخدمين والإعدادات
+  // Default role permissions
+  const defaultRolePerms: Record<string, Record<string, boolean>> = {
+    accountant: {
+      properties: true, contracts: true, income: true, expenses: true,
+      beneficiaries: true, reports: true, accounts: true, invoices: true,
+      bylaws: true, messages: true, audit_log: true,
+    },
+    beneficiary: {
+      properties: true, contracts: true, disclosure: true, share: true,
+      reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
+    },
+    waqif: {
+      properties: true, contracts: true, disclosure: true,
+      reports: true, accounts: true, bylaws: true,
+    },
+  };
+
+  const rolePermissions = getJsonSetting('role_permissions', defaultRolePerms);
+
+  // Map admin routes to permission keys
+  const adminRoutePermKeys: Record<string, string> = {
+    '/dashboard/properties': 'properties',
+    '/dashboard/contracts': 'contracts',
+    '/dashboard/income': 'income',
+    '/dashboard/expenses': 'expenses',
+    '/dashboard/beneficiaries': 'beneficiaries',
+    '/dashboard/reports': 'reports',
+    '/dashboard/accounts': 'accounts',
+    '/dashboard/invoices': 'invoices',
+    '/dashboard/bylaws': 'bylaws',
+    '/dashboard/messages': 'messages',
+    '/dashboard/audit-log': 'audit_log',
+  };
+
+  // Map beneficiary routes to permission keys
+  const beneficiaryRoutePermKeys: Record<string, string> = {
+    '/beneficiary/properties': 'properties',
+    '/beneficiary/contracts': 'contracts',
+    '/beneficiary/disclosure': 'disclosure',
+    '/beneficiary/my-share': 'share',
+    '/beneficiary/financial-reports': 'reports',
+    '/beneficiary/accounts': 'accounts',
+    '/beneficiary/invoices': 'invoices',
+    '/beneficiary/bylaws': 'bylaws',
+    '/beneficiary/messages': 'messages',
+  };
+
+  // Routes accountant can never access
   const accountantExcludedRoutes = ['/dashboard/users', '/dashboard/settings'];
 
   const links = useMemo(() => {
     if (role === 'admin') {
-      return allAdminLinks
-        .filter((link) => {
-          const key = adminSectionKeys[link.to];
-          return !key || sectionsVisibility[key] !== false;
-        })
-        .map(link => {
-          const labelKey = linkLabelKeys[link.to];
-          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
-        });
+      return allAdminLinks.map(link => {
+        const labelKey = linkLabelKeys[link.to];
+        return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
+      });
     }
+
     if (role === 'accountant') {
+      const perms = rolePermissions.accountant || defaultRolePerms.accountant;
       return allAdminLinks
-        .filter((link) => !accountantExcludedRoutes.includes(link.to))
-        .filter((link) => {
-          const key = adminSectionKeys[link.to];
-          return !key || sectionsVisibility[key] !== false;
+        .filter(link => !accountantExcludedRoutes.includes(link.to))
+        .filter(link => {
+          const key = adminRoutePermKeys[link.to];
+          return !key || perms[key] !== false;
         })
         .map(link => {
           const labelKey = linkLabelKeys[link.to];
           return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
         });
     }
-    return allBeneficiaryLinks.filter((link) => {
-      const key = beneficiarySectionKeys[link.to];
-      return !key || beneficiarySections[key] !== false;
+
+    // beneficiary or waqif
+    const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
+    const perms = rolePermissions[roleKey] || defaultRolePerms[roleKey] || {};
+    return allBeneficiaryLinks.filter(link => {
+      const key = beneficiaryRoutePermKeys[link.to];
+      return !key || perms[key] !== false;
     });
-  }, [role, sectionsVisibility, beneficiarySections, menuLabels]);
+  }, [role, rolePermissions, menuLabels]);
 
   const handleSignOut = async () => {
     await signOut();
