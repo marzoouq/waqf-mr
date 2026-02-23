@@ -1,4 +1,4 @@
-export type AppRole = 'admin' | 'beneficiary' | 'waqif';
+export type AppRole = 'admin' | 'beneficiary' | 'waqif' | 'accountant';
 
 export interface Property {
   id: string;

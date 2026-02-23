@@ -93,4 +93,5 @@ export const ROLE_LABELS: Record<string, string> = {
   admin: 'ناظر الوقف',
   beneficiary: 'مستفيد',
   waqif: 'واقف',
+  accountant: 'محاسب',
 };

@@ -151,6 +151,8 @@ const UserManagementPage = () => {
         return <Badge className="bg-secondary/20 text-secondary">مستفيد</Badge>;
       case 'waqif':
         return <Badge className="bg-accent/20 text-accent-foreground">واقف</Badge>;
+      case 'accountant':
+        return <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">محاسب</Badge>;
       default:
         return <Badge variant="outline">بدون دور</Badge>;
     }
@@ -258,6 +260,7 @@ const UserManagementPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">ناظر (Admin)</SelectItem>
+                      <SelectItem value="accountant">محاسب</SelectItem>
                       <SelectItem value="beneficiary">مستفيد</SelectItem>
                       <SelectItem value="waqif">واقف</SelectItem>
                     </SelectContent>
@@ -404,6 +407,7 @@ const UserManagementPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">ناظر (Admin)</SelectItem>
+                    <SelectItem value="accountant">محاسب</SelectItem>
                     <SelectItem value="beneficiary">مستفيد</SelectItem>
                     <SelectItem value="waqif">واقف</SelectItem>
                   </SelectContent>

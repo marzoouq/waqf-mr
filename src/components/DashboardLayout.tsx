@@ -130,9 +130,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const beneficiarySections = getJsonSetting('beneficiary_sections', { disclosure: true, share: true, accounts: true, reports: true });
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
 
+  // روابط المحاسب: مثل الناظر بدون إدارة المستخدمين والإعدادات
+  const accountantExcludedRoutes = ['/dashboard/users', '/dashboard/settings'];
+
   const links = useMemo(() => {
     if (role === 'admin') {
       return allAdminLinks
+        .filter((link) => {
+          const key = adminSectionKeys[link.to];
+          return !key || sectionsVisibility[key] !== false;
+        })
+        .map(link => {
+          const labelKey = linkLabelKeys[link.to];
+          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
+        });
+    }
+    if (role === 'accountant') {
+      return allAdminLinks
+        .filter((link) => !accountantExcludedRoutes.includes(link.to))
         .filter((link) => {
           const key = adminSectionKeys[link.to];
           return !key || sectionsVisibility[key] !== false;
