@@ -28,7 +28,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
     fiscalYear: { id: 'fy1', label: '1446-1447', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
-    isClosed: false, isLoading: false,
+    isClosed: false, isLoading: false, noPublishedYears: false,
   })),
   FiscalYearProvider: ({ children }: any) => children,
 }));

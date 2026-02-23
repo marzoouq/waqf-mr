@@ -13,13 +13,14 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
-  const { fiscalYear, fiscalYearId, isLoading: fyLoading } = useFiscalYear();
+  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const safeAvailable = Number(availableAmount) || 0;
@@ -115,6 +116,29 @@ const BeneficiaryDashboard = () => {
 
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-3 sm:p-6 space-y-4">
+          <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center">
+                  <GreetingIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-primary-foreground/80">{greeting}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || 'مستفيد'}</h1>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
