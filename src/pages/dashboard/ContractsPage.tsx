@@ -172,13 +172,18 @@ const ContractsPage = () => {
       const { data: activeFY } = await supabase
         .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
 
-      const today = new Date();
-      const startDate = today.toISOString().split('T')[0];
-      const endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString().split('T')[0];
-
       const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
       let created = 0;
       for (const contract of contractsToRenew) {
+        // حساب التواريخ: البداية = تاريخ انتهاء العقد القديم، المدة = نفس مدة العقد الأصلي
+        const oldStart = new Date(contract.start_date);
+        const oldEnd = new Date(contract.end_date);
+        const durationMs = oldEnd.getTime() - oldStart.getTime();
+        const newStart = new Date(oldEnd);
+        const newEnd = new Date(newStart.getTime() + durationMs);
+        const startDate = newStart.toISOString().split('T')[0];
+        const endDate = newEnd.toISOString().split('T')[0];
+
         const num = contract.contract_number;
         const match = num.match(/-R(\d+)$/);
         const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
