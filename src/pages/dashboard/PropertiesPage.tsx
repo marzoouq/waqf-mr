@@ -19,7 +19,7 @@ import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, X, Minus as MinusIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, X, Minus as MinusIcon, Layers, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF, generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
@@ -200,6 +200,112 @@ const PropertiesPage = () => {
           </div>
         </div>
 
+        {/* بطاقات الملخص الإجمالية */}
+        {(() => {
+          const totalProperties = properties.length;
+          const totalUnitsCount = allUnits.length;
+
+          // حساب الإشغال من العقود المفلترة بالسنة المالية
+          const rentedUnitIds = new Set(contracts.filter(c => c.unit_id).map(c => c.unit_id));
+          const wholePropertyIds = new Set(contracts.filter(c => !c.unit_id).map(c => c.property_id));
+          
+          let totalRented = 0;
+          let totalVacant = 0;
+          properties.forEach(p => {
+            const pUnits = allUnits.filter(u => u.property_id === p.id);
+            if (pUnits.length > 0) {
+              const r = pUnits.filter(u => rentedUnitIds.has(u.id)).length;
+              totalRented += wholePropertyIds.has(p.id) ? pUnits.length : r;
+              totalVacant += wholePropertyIds.has(p.id) ? 0 : pUnits.length - r;
+            } else if (wholePropertyIds.has(p.id)) {
+              totalRented += 1;
+            }
+          });
+
+          const occupancyBase = totalUnitsCount || (wholePropertyIds.size > 0 ? totalRented : 0);
+          const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
+
+          // المؤشرات المالية
+          const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+          const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+          const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
+          const netIncome = contractualRevenue - totalExpensesAll;
+
+          const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
+          const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+
+          return (
+            <div className="space-y-4 animate-slide-up">
+              {/* الصف الأول - المؤشرات التشغيلية */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div>
+                    <div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{totalProperties}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div>
+                    <div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{totalUnitsCount}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div>
+                    <div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{totalRented}</p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div>
+                    <div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{totalVacant}</p></div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* الصف الثاني - المؤشرات المالية */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div>
+                    <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{contractualRevenue.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
+                    <div><p className="text-xs text-muted-foreground">الدخل النشط</p><p className="text-lg font-bold text-success">{activeIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div>
+                    <div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{totalExpensesAll.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div>
+                    <div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{netIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* نسبة الإشغال الإجمالية */}
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
+                    <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
+                  </div>
+                  <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
+
         {isLoading ? (
           <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
         ) : filteredProperties.length === 0 ? (
@@ -214,10 +320,13 @@ const PropertiesPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
               const propertyUnits = allUnits.filter(u => u.property_id === property.id);
-              const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
-              const vacant = propertyUnits.filter(u => u.status === 'شاغرة').length;
-              const maintenance = propertyUnits.filter(u => u.status === 'صيانة').length;
+              const propContracts = contracts.filter(c => c.property_id === property.id);
+              const rentedUnitIdsForProp = new Set(propContracts.filter(c => c.unit_id).map(c => c.unit_id));
+              const isWholePropertyRented = propContracts.some(c => !c.unit_id);
               const totalUnits = propertyUnits.length;
+              const rented = isWholePropertyRented ? totalUnits : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              const vacant = totalUnits - rented;
+              const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
               const occupancy = totalUnits > 0 ? Math.round((rented / totalUnits) * 100) : 0;
 
               // جميع العقود المرتبطة بالعقار (نشطة + منتهية) - الإيرادات التعاقدية
