@@ -8,6 +8,7 @@ export interface FiscalYear {
   start_date: string;
   end_date: string;
   status: 'active' | 'closed';
+  published: boolean;
   created_at: string;
 }
 

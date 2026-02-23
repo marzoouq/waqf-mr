@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Calendar, Plus, Lock, Unlock, Loader2, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useFiscalYears, type FiscalYear } from '@/hooks/useFiscalYears';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
@@ -57,6 +57,21 @@ const FiscalYearManagementTab = () => {
       toast.success(newStatus === 'closed' ? `تم إقفال السنة: ${fy.label}` : `تم إعادة فتح السنة: ${fy.label}`);
     } catch {
       toast.error('حدث خطأ أثناء تحديث الحالة');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const togglePublished = async (fy: FiscalYear) => {
+    const newVal = !fy.published;
+    setActionLoading(`pub-${fy.id}`);
+    try {
+      const { error } = await supabase.from('fiscal_years').update({ published: newVal } as any).eq('id', fy.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
+    } catch {
+      toast.error('حدث خطأ أثناء تحديث حالة النشر');
     } finally {
       setActionLoading(null);
     }
@@ -129,17 +144,54 @@ const FiscalYearManagementTab = () => {
             <div className="space-y-2">
               {fiscalYears.map(fy => (
                 <div key={fy.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <Badge variant={fy.status === 'active' ? 'default' : 'secondary'} className="gap-1">
                       {fy.status === 'active' ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                       {fy.status === 'active' ? 'نشطة' : 'مقفلة'}
+                    </Badge>
+                    <Badge
+                      className={`gap-1 ${fy.published ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700' : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700'}`}
+                      variant="outline"
+                    >
+                      {fy.published ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      {fy.published ? 'منشورة' : 'محجوبة'}
                     </Badge>
                     <div>
                       <p className="font-medium text-sm">{fy.label}</p>
                       <p className="text-xs text-muted-foreground">{fy.start_date} → {fy.end_date}</p>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-wrap">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className={`gap-1 text-xs ${fy.published ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                          disabled={actionLoading === `pub-${fy.id}`}
+                        >
+                          {actionLoading === `pub-${fy.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : fy.published ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                          {fy.published ? 'حجب' : 'نشر'}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{fy.published ? 'حجب السنة المالية' : 'نشر السنة المالية'}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {fy.published
+                              ? `هل أنت متأكد من حجب السنة "${fy.label}" عن المستفيدين؟ لن تظهر لهم في التقارير والحسابات.`
+                              : `هل أنت متأكد من نشر السنة "${fy.label}" للمستفيدين؟ ستظهر لهم في التقارير والحسابات.`
+                            }
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="gap-2">
+                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => togglePublished(fy)}>
+                            {fy.published ? 'حجب' : 'نشر'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                     <Button
                       size="sm"
                       variant="ghost"

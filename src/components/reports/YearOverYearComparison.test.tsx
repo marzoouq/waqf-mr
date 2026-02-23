@@ -39,7 +39,7 @@ describe('YearOverYearComparison', () => {
   it('shows empty state when less than 2 fiscal years', () => {
     render(
       <YearOverYearComparison
-        fiscalYears={[{ id: '1', label: '1446', start_date: '', end_date: '', status: 'active', created_at: '' }]}
+        fiscalYears={[{ id: '1', label: '1446', start_date: '', end_date: '', status: 'active', published: false, created_at: '' }]}
         currentFiscalYearId="1"
       />,
       { wrapper }
@@ -51,8 +51,8 @@ describe('YearOverYearComparison', () => {
     render(
       <YearOverYearComparison
         fiscalYears={[
-          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', created_at: '' },
-          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', created_at: '' },
+          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', published: false, created_at: '' },
+          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', published: false, created_at: '' },
         ]}
         currentFiscalYearId="1"
       />,
@@ -66,8 +66,8 @@ describe('YearOverYearComparison', () => {
     render(
       <YearOverYearComparison
         fiscalYears={[
-          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', created_at: '' },
-          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', created_at: '' },
+          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', published: false, created_at: '' },
+          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', published: false, created_at: '' },
         ]}
         currentFiscalYearId="1"
       />,
@@ -82,8 +82,8 @@ describe('YearOverYearComparison', () => {
     render(
       <YearOverYearComparison
         fiscalYears={[
-          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', created_at: '' },
-          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', created_at: '' },
+          { id: '1', label: '1446', start_date: '', end_date: '', status: 'active', published: false, created_at: '' },
+          { id: '2', label: '1447', start_date: '', end_date: '', status: 'closed', published: false, created_at: '' },
         ]}
         currentFiscalYearId="1"
       />,
