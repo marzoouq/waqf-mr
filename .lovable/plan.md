@@ -1,87 +1,67 @@
 
 
-# خطة الإصلاح الشاملة - المشاكل المتبقية
+# خطة إصلاح المشاكل المتبقية الفعلية (3 تعديلات)
 
-## الحالة الحالية (ما تم إصلاحه بالفعل)
+## ملخص الحالة الحقيقية
 
-| الملف | الحالة |
-|---|---|
-| `src/lib/logger.ts` | مُنفَّذ |
-| `src/components/ErrorBoundary.tsx` | مُنفَّذ (يستخدم `logger` + يخفي الخطأ في Production) |
-| `src/utils/pdf/core.ts` | مُنفَّذ (يستورد `logger`، catch صامت) |
-| `src/main.tsx` | مُنفَّذ (لا يوجد `console.*` مكشوف) |
-| `src/contexts/AuthContext.tsx` | مُنفَّذ (stale closure مُعالج بـ `roleRef`) |
-| `src/components/ProtectedRoute.tsx` | مُنفَّذ (مبسّط) |
-| `src/utils/safeErrorMessage.ts` | مُنفَّذ (يستخدم `logger.error`) |
+بعد الفحص الجنائي للكود الفعلي، تبيّن أن 4 من 7 مشاكل المذكورة في التقرير قد أُصلحت بالفعل في التعديلات السابقة. المتبقي 3 مشاكل منخفضة الخطورة فقط.
 
----
+## التغييرات المطلوبة
 
-## المطلوب تنفيذه (6 تغييرات)
+### 1. `src/utils/safeErrorMessage.ts` -- إزالة شرط DEV المكرر
 
-### 1. تحديث اختبار `safeErrorMessage.test.ts` (متوسط)
+**المشكلة:** السطر 36 يتحقق من `import.meta.env.DEV` قبل استدعاء `logger.error`، لكن `logger` نفسه يتحقق من DEV داخلياً. هذا شرط مزدوج غير ضروري (double-gate) ويمنع logger من العمل في بيئة الاختبار إذا لم تكن DEV=true.
 
-**المشكلة:** الاختبار يراقب `console.error` لكن الكود يستخدم `logger.error` الآن. في بيئة الاختبار (DEV=true)، `logger.error` يستدعي `console.error` فعلياً، لذا الاختبار ينجح حالياً. لكن هذا هش ويعتمد على تفاصيل التنفيذ.
+**الإصلاح:** إزالة الشرط واستدعاء `logger.error` مباشرة:
 
-**الإصلاح:** تحديث الاختبار ليراقب `logger.error` مباشرة بدلاً من `console.error`.
-
-### 2. تحديث اختبار `ErrorBoundary.test.tsx` (متوسط)
-
-**المشكلة:** نفس المشكلة -- الاختبار يتحقق من `console.error` بينما `ErrorBoundary` يستخدم `logger.error`.
-
-**الإصلاح:** تحديث `beforeEach` والاختبار الأخير للتحقق من `logger` بدلاً من `console.error` مباشرة.
-
-### 3. إصلاح `useRawFinancialData.ts` -- `isError` ناقص (تحسين)
-
-**المشكلة:** `isError` يتجاهل أخطاء `accounts` و `beneficiaries`:
 ```text
-const isError = incError || expError;  // ينقصه accError و benError
+// قبل:
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  logger.error('[App Error]', error);
+}
+
+// بعد:
+logger.error('[App Error]', error);
 ```
 
-**الإصلاح:** إضافة `isError` من `useAccounts` و `useBeneficiariesSafe` وتضمينها في الحساب.
+### 2. `supabase/functions/guard-signup/index.ts` -- تقليص تفاصيل الخطأ المسجلة
 
-### 4. إصلاح `issuesFixed` في `ReportsPage.tsx` (تحسين)
+**المشكلة:** السطران 94 و 107 يسجلان كائن الخطأ الكامل (`createError`, `roleError`) مما قد يكشف تفاصيل قاعدة البيانات الداخلية في سجلات الخادم.
 
-**المشكلة:** `issuesFixed = 0` قيمة ثابتة لا تعكس الواقع.
+**الإصلاح:** تسجيل `error.message` فقط بدلاً من الكائن الكامل:
 
-**الإصلاح:** حسابها ديناميكياً بناءً على عدد الفحوصات الناجحة مقارنة بالإجمالي، أو ربطها بمتغير يعكس الإصلاحات الفعلية.
-
-### 5. تحديث `README.md` -- placeholder URLs (تحسين)
-
-**المشكلة:** السطران 66-67 يحتويان على `<YOUR_GIT_URL>` و `<YOUR_PROJECT_NAME>`.
-
-**الإصلاح:** استبدالهما بالقيم الفعلية:
 ```text
-git clone https://github.com/marzoouq/waqf-mr.git
-cd waqf-mr
+// قبل:
+console.error("guard-signup createUser error", createError);
+console.error("guard-signup role assignment error", roleError);
+
+// بعد:
+console.error("guard-signup createUser error:", createError?.message);
+console.error("guard-signup role assignment error:", roleError?.message);
 ```
 
-### 6. تحسين logging في `ai-assistant` Edge Function (منخفض)
+### 3. `src/pages/PublicPages.test.tsx` -- توثيق سبب كتم console.error
 
-**المشكلة:** `console.error` في السطرين 98 و 108 قد تكشف تفاصيل API الداخلية في سجلات الخادم.
+**المشكلة:** السطر 106 يكتم `console.error` دون توثيق السبب. هذا يخفي أخطاء React الداخلية الناتجة عن عدم مطابقة المسار.
 
-**الإصلاح:** تقليل المعلومات المسجلة لتشمل فقط `response.status` بدون محتوى الاستجابة الكامل `t`، وعدم تسريب `e.message` الكامل في الاستجابة للمستخدم.
+**الإصلاح:** إضافة تعليق توضيحي:
 
----
+```text
+// قبل:
+const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-## ملاحظات لن يتم التعديل عليها
+// بعد:
+// React Router emits console.error for unmatched routes in test env — safe to mute
+const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+```
 
-| الملاحظة | السبب |
-|---|---|
-| `package.json` (name/version/devDeps) | ملف محمي لا يمكن تعديله |
-| `supabase/functions/guard-signup` console.error | Edge Functions تعمل على الخادم وليس المتصفح -- مقبول |
-| `src/test/setup.ts` console.warn | مخصص لبيئة الاختبار فقط -- مقبول |
-| PWA 192x192 icon | تم إنشاؤه في تعديل سابق |
+## الملفات المتأثرة
 
----
+1. `src/utils/safeErrorMessage.ts` -- سطران (إزالة الشرط)
+2. `supabase/functions/guard-signup/index.ts` -- سطران (تقليص التفاصيل)
+3. `src/pages/PublicPages.test.tsx` -- سطر واحد (إضافة تعليق)
 
-## التفاصيل التقنية
+## ملاحظة شفافية
 
-### الملفات المتأثرة
-
-1. `src/utils/safeErrorMessage.test.ts` -- تحديث spy من `console.error` الى `logger`
-2. `src/components/ErrorBoundary.test.tsx` -- تحديث spy من `console.error` الى `logger`
-3. `src/hooks/useRawFinancialData.ts` -- إضافة `isError` من accounts و beneficiaries
-4. `src/pages/dashboard/ReportsPage.tsx` -- حساب `issuesFixed` ديناميكياً
-5. `README.md` -- تحديث placeholder URLs
-6. `supabase/functions/ai-assistant/index.ts` -- تقليل المعلومات في console.error وتأمين رسالة الخطأ
+شارات `codecov` و `Tests` في README.md تعتمد على إعدادات خارجية (GitHub Actions + Codecov integration). إذا لم تكن مفعلة، ستظهر كـ "unknown". هذا ليس خطأ في الكود -- بل إعداد بنية تحتية خارجية.
 
