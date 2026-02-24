@@ -373,7 +373,18 @@ Deno.serve(async (req) => {
         });
     }
   } catch (error) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    const msg = (error as Error).message;
+    console.error("admin-manage-users error:", msg);
+    // تعقيم رسالة الخطأ — لا نكشف تفاصيل DB الداخلية للمتصفح
+    const safeMessages: Record<string, string> = {
+      "email and password required": "البريد وكلمة المرور مطلوبان",
+      "userId and role required": "معرف المستخدم والدور مطلوبان",
+      "users array is required": "قائمة المستخدمين مطلوبة",
+      "Maximum 50 users at a time": "الحد الأقصى 50 مستخدماً في المرة",
+    };
+    const safeMsg = safeMessages[msg]
+      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") ? msg : "حدث خطأ في العملية");
+    return new Response(JSON.stringify({ error: safeMsg }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

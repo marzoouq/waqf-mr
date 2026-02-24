@@ -143,7 +143,7 @@ const Auth = () => {
         logAccessEvent({
           event_type: 'login_failed',
           email: loginMethod === 'national_id' ? null : resolvedEmail,
-          metadata: { error_message: error.message, login_method: loginMethod },
+          metadata: { error_message: 'login_error', login_method: loginMethod },
         });
       } else {
         toast.success('تم تسجيل الدخول بنجاح');
