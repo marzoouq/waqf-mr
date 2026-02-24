@@ -9,16 +9,17 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  error: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(_error: Error): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -26,7 +27,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false });
+    this.setState({ hasError: false, error: null });
     window.location.href = '/';
   };
 
@@ -39,6 +40,12 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">حدث خطأ غير متوقع</h1>
+            {/* عرض الخطأ التقني فقط في وضع التطوير */}
+            {import.meta.env.DEV && this.state.error && (
+              <p className="text-xs text-destructive bg-destructive/10 rounded-md p-3 font-mono break-all" dir="ltr">
+                [{this.state.error.name}: {this.state.error.message}]
+              </p>
+            )}
             <p className="text-muted-foreground">
               نعتذر عن هذا الخطأ. يرجى المحاولة مرة أخرى أو العودة للصفحة الرئيسية.
             </p>
