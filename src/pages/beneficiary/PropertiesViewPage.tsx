@@ -22,7 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears, isClosed } = useFiscalYear();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -57,10 +57,10 @@ const PropertiesViewPage = () => {
 
   // حساب الإشغال من العقود المفلترة بالسنة المالية (بدلاً من حالة الوحدة الثابتة)
   const rentedUnitIds = new Set(
-    contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
+    contracts.filter(c => (isClosed || c.status === 'active') && c.unit_id).map(c => c.unit_id)
   );
   const wholePropertyIds = new Set(
-    contracts.filter(c => c.status === 'active' && c.property_id && !c.unit_id).map(c => c.property_id)
+    contracts.filter(c => (isClosed || c.status === 'active') && c.property_id && !c.unit_id).map(c => c.property_id)
   );
   const occupiedUnits = units?.filter(u =>
     rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
