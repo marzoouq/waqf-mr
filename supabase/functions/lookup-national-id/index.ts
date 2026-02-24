@@ -102,7 +102,9 @@ Deno.serve(async (req) => {
     }
 
     // حجب البريد الإلكتروني لمنع تسريب PII — يُعرض للمستخدم فقط كتلميح
-    const maskedEmail = email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
+    const [localPart, domain] = email.split('@');
+    const maskedLocal = localPart.length <= 2 ? '*'.repeat(localPart.length) : localPart.slice(0, 2) + '***';
+    const maskedEmail = `${maskedLocal}@${domain}`;
 
     return new Response(
       JSON.stringify({ email: maskedEmail, found: true }),
