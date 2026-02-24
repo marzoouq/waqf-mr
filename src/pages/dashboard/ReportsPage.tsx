@@ -18,6 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatPercentage } from '@/lib/utils';
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -500,13 +501,13 @@ const ReportsPage = () => {
                       {distributionData.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{item.percentage}%</TableCell>
+                          <TableCell>{formatPercentage(item.percentage)}</TableCell>
                           <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
                         <TableCell>الإجمالي</TableCell>
-                        <TableCell>{beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0)}%</TableCell>
+                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0))}</TableCell>
                         <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     </TableBody>

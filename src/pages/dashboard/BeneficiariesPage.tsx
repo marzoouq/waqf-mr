@@ -10,6 +10,7 @@ import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDelete
 import { Beneficiary } from '@/types/database';
 import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Search } from 'lucide-react';
 import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/maskData';
+import { formatPercentage } from '@/lib/utils';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
@@ -239,7 +240,7 @@ const BeneficiariesPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{beneficiary.share_percentage}%</span></div>
+                    <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{formatPercentage(beneficiary.share_percentage)}</span></div>
                     {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Phone className="w-4 h-4" /><span dir="ltr">{maskPhone(beneficiary.phone)}</span></div>)}
                     {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Mail className="w-4 h-4" /><span dir="ltr">{maskEmail(beneficiary.email)}</span></div>)}
                     {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><CreditCard className="w-4 h-4" /><span dir="ltr">{maskBankAccount(beneficiary.bank_account)}</span></div>)}
