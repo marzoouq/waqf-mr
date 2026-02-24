@@ -51,8 +51,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // 3. مسجّل لكن الدور لم يُجلب بعد (AuthContext يتكفل بالـ timeout)
+  // 3. مسجّل لكن الدور لم يُجلب بعد
+  // إذا انتهى التحميل ولا يوجد دور → إعادة توجيه لتسجيل الدخول بدل حلقة تحميل لا نهائية
   if (allowedRoles && !role) {
+    if (!loading) {
+      return <Navigate to="/auth" state={{ from: location }} replace />;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl">
         <div className="flex flex-col items-center gap-4">
