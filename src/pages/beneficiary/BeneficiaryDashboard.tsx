@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import type { AppRole } from '@/types/database';
@@ -64,13 +64,22 @@ const BeneficiaryDashboard = () => {
 
   /* ── Recent distributions (with Realtime) ── */
   const [distributions, setDistributions] = useState<Array<{ id: string; amount: number; date: string; status: string }>>([]);
+  const beneficiaryIdRef = useRef(currentBeneficiary?.id);
+
+  useEffect(() => {
+    beneficiaryIdRef.current = currentBeneficiary?.id;
+  }, [currentBeneficiary?.id]);
+
+  const fetchDistributions = useCallback(() => {
+    const id = beneficiaryIdRef.current;
+    if (!id) return;
+    supabase.from('distributions').select('*').eq('beneficiary_id', id)
+      .order('date', { ascending: false }).limit(3)
+      .then(({ data }) => { if (data) setDistributions(data); });
+  }, []);
+
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
-    const fetchDistributions = () => {
-      supabase.from('distributions').select('*').eq('beneficiary_id', currentBeneficiary.id)
-        .order('date', { ascending: false }).limit(3)
-        .then(({ data }) => { if (data) setDistributions(data); });
-    };
     fetchDistributions();
 
     const channel = supabase
@@ -88,7 +97,7 @@ const BeneficiaryDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentBeneficiary?.id]);
+  }, [currentBeneficiary?.id, fetchDistributions]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
