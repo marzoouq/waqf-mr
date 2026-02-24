@@ -34,7 +34,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'beneficiary' || role === 'waqif') {
         navigate('/beneficiary');
