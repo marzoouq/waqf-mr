@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -169,6 +170,21 @@ const BeneficiariesPage = () => {
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
+                  <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-7 w-16" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
@@ -187,6 +203,7 @@ const BeneficiariesPage = () => {
             </CardContent>
           </Card>
         </div>
+        )}
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
