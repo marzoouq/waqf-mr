@@ -1,78 +1,63 @@
 
 
-# اصلاح عدم تطابق عدد الشقق الشاغرة
+# إصلاح بطاقات العقارات للسنوات المغلقة
 
-## المشكلة المكتشفة
+## المشكلة
 
-هناك **3 مشاكل متداخلة** تسبب عدم تطابق عدد الشقق الشاغرة:
+التعديل السابق فلتر العقود بـ `status === 'active'` فقط، مما يجعل السنوات المغلقة تظهر **صفر وحدات مؤجرة** لأن كل عقودها بحالة `expired`. السنة المغلقة يجب أن تعرض جميع عقودها (بما فيها المنتهية) لأنها تمثل الحالة الفعلية عند الإقفال.
 
-### 1. عدم تصفية العقود حسب الحالة (الخطأ الرئيسي)
-البطاقات الإجمالية تحسب **جميع العقود** في السنة المالية بما فيها العقود المنتهية والملغاة. يجب أن تحسب فقط العقود **النشطة** (`status = 'active'`).
+## القاعدة المطلوبة
 
-**مثال**: إذا كان هناك عقد منتهي على وحدة، تظهر الوحدة كـ "مؤجرة" بينما هي فعلياً شاغرة.
+| نوع السنة | المنطق |
+|-----------|--------|
+| سنة نشطة | عرض العقود **النشطة فقط** (`active`) |
+| سنة مغلقة | عرض **جميع العقود** (تمثل الحالة التاريخية) |
+| جميع السنوات | عرض العقود **النشطة فقط** |
 
-### 2. عدم احتساب وحدات الصيانة بشكل صحيح في الملخص
-بطاقة الملخص الإجمالية تحسب وحدات الصيانة ضمن "الشاغرة"، بينما بطاقات العقارات الفردية تعرض الصيانة بشكل منفصل. هذا يسبب تناقضاً بصرياً.
+## الحل
 
-### 3. تناقض بين واجهة الناظر وواجهة المستفيد
-واجهة المستفيد (`PropertiesViewPage`) تستخدم منطقاً مختلفاً قليلاً عن واجهة الناظر (`PropertiesPage`).
+### التغييرات في `src/pages/dashboard/PropertiesPage.tsx`
 
----
-
-## الحل المقترح
-
-### الملف الأول: `src/pages/dashboard/PropertiesPage.tsx`
-
-**تعديل حساب الملخص (سطر 69-86)**:
-- تصفية العقود لتشمل فقط `status === 'active'` عند بناء مجموعات `rentedUnitIds` و `wholePropertyIds`
-- نفس التصفية في بطاقات العقارات الفردية (سطر 317-318)
+1. استخدام `isClosed` من `useFiscalYear()` لتحديد ما إذا كانت السنة مغلقة
+2. تعديل فلتر العقود في 4 أماكن ليكون:
+   - إذا كانت السنة مغلقة: لا يُصفّى بالحالة (كل العقود تُحسب)
+   - إذا كانت السنة نشطة أو "جميع السنوات": يُصفّى بـ `active` فقط
 
 ```text
-قبل:
-  contracts.filter(c => c.unit_id)        // كل العقود
-  contracts.filter(c => !c.unit_id)       // كل العقود
+// المنطق الجديد:
+const isContractCounted = (c) => isClosed || c.status === 'active';
 
-بعد:
-  contracts.filter(c => c.status === 'active' && c.unit_id)    // النشطة فقط
-  contracts.filter(c => c.status === 'active' && !c.unit_id)   // النشطة فقط
+// بدلاً من:
+contracts.filter(c => c.status === 'active' && c.unit_id)
+// يصبح:
+contracts.filter(c => isContractCounted(c) && c.unit_id)
 ```
 
-### الملف الثاني: `src/pages/beneficiary/PropertiesViewPage.tsx`
+### التغييرات في `src/pages/beneficiary/PropertiesViewPage.tsx`
 
-**نفس التصفية (سطر 59-63)**:
-- اضافة `c.status === 'active'` لضمان تطابق المنطق مع واجهة الناظر
-
----
+نفس المنطق باستخدام `isClosed` من `useFiscalYear()`.
 
 ## التفاصيل التقنية
 
-### التغييرات في `PropertiesPage.tsx`:
+### `src/pages/dashboard/PropertiesPage.tsx`:
 
-1. **سطر 69**: تغيير من
-   `contracts.filter(c => c.unit_id)` الى
-   `contracts.filter(c => c.status === 'active' && c.unit_id)`
+1. إضافة `isClosed` من `useFiscalYear()` (سطر 37)
+2. تعديل سطر 69: `contracts.filter(c => (isClosed || c.status === 'active') && c.unit_id)`
+3. تعديل سطر 70: `contracts.filter(c => (isClosed || c.status === 'active') && !c.unit_id)`
+4. تعديل سطر 318: نفس المنطق لبطاقات العقارات الفردية
+5. تعديل سطر 319: نفس المنطق
 
-2. **سطر 70**: تغيير من
-   `contracts.filter(c => !c.unit_id)` الى
-   `contracts.filter(c => c.status === 'active' && !c.unit_id)`
+### `src/pages/beneficiary/PropertiesViewPage.tsx`:
 
-3. **سطر 318**: تغيير من
-   `contracts.filter(c => c.property_id === property.id)` -- ثم فلترة unit_id
-   الى تضمين `c.status === 'active'` في الفلتر
-
-4. **سطر 319**: نفس التعديل للعقود الكاملة
-
-### التغييرات في `PropertiesViewPage.tsx`:
-
-1. **سطر 59-60**: اضافة `c.status === 'active'` لفلتر `rentedUnitIds`
-2. **سطر 62-63**: اضافة `c.status === 'active'` لفلتر `wholePropertyIds`
+1. إضافة `isClosed` من `useFiscalYear()` 
+2. تعديل سطر 59-60: `contracts.filter(c => (isClosed || c.status === 'active') && c.unit_id)`
+3. تعديل سطر 62-63: `contracts.filter(c => (isClosed || c.status === 'active') && !c.unit_id)`
 
 ### الملفات المتأثرة:
-- `src/pages/dashboard/PropertiesPage.tsx` (4 تعديلات)
-- `src/pages/beneficiary/PropertiesViewPage.tsx` (2 تعديلات)
+- `src/pages/dashboard/PropertiesPage.tsx` (5 تعديلات)
+- `src/pages/beneficiary/PropertiesViewPage.tsx` (3 تعديلات)
 
 ### لا حاجة لتعديل:
 - قاعدة البيانات
-- الاختبارات (المنطق يصبح اصح)
-- اي ملفات اخرى
+- ملفات أخرى
 
