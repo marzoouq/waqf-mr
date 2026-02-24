@@ -112,7 +112,7 @@ const App = () => (
                   <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
 
                   {/* Beneficiary Routes (admin can also access) */}
-                  <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
+                  <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiaryDashboard /></ProtectedRoute>} />
                   <Route path="/beneficiary/properties" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><PropertiesViewPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/contracts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><ContractsViewPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/disclosure" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><DisclosurePage /></ProtectedRoute>} />
