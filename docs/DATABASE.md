@@ -227,7 +227,7 @@ erDiagram
 |--------|-------|------|
 | `id` | UUID | المعرف الفريد |
 | `user_id` | UUID | معرف المستخدم (من نظام المصادقة) |
-| `role` | app_role | الدور: `admin` / `beneficiary` / `waqif` |
+| `role` | app_role | الدور: `admin` / `beneficiary` / `waqif` / `accountant` |
 
 ### 2. `properties` — العقارات
 | العمود | النوع | وصف |
