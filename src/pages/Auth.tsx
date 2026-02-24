@@ -150,7 +150,7 @@ const Auth = () => {
         supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
           logAccessEvent({
             event_type: 'login_success',
-            email: resolvedEmail,
+            email: loginMethod === 'national_id' ? null : resolvedEmail,
             user_id: currentUser?.id,
           });
         }).catch(() => { /* silent */ });
