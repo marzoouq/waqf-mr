@@ -1,108 +1,86 @@
 
 
-# خطة إصلاح الملاحظات المتبقية الفعلية (3 إصلاحات)
+# خطة إصلاح المشاكل المتبقية (5 إصلاحات في 6 ملفات)
 
-بعد الفحص الجنائي العميق لـ 15 ملاحظة، تبيّن أن 9 منها مُصلحة أو مقصودة تصميمياً. المتبقي 6 ملاحظات، منها 3 تستحق الإصلاح فعلياً.
-
----
-
-## ملخص الفحص الجنائي (مع الأدلة)
-
-### ملاحظات ثبت أنها لا تحتاج إصلاح:
-
-| الملاحظة | الحكم | الدليل |
-|----------|-------|--------|
-| `.env` مكشوف | تصميم Lovable Cloud | الملف يُدار تلقائياً ويحتوي مفاتيح عامة فقط (anon key) |
-| `client.ts` بدون fallback | ملف محظور التعديل | يُولَّد تلقائياً من المنصة |
-| `useRawFinancialData` isError | مُصلح مسبقاً | السطر 20: `incError \|\| expError \|\| accError \|\| benError` |
-| `safeErrorMessage` شرط DEV | مُصلح في آخر تعديل | السطر 36: `logger.error(...)` مباشرة بدون شرط |
-| `Auth.tsx` يتجاوز guard-signup | خاطئ | السطر 185: `supabase.functions.invoke('guard-signup')` |
-| `verify_jwt = false` | تصميم موثّق | كل وظيفة تتحقق يدوياً من JWT/service_role |
-| `corsHeaders` ثابت | لا يُستخدم | جميع الـ 7 وظائف تستخدم `getCorsHeaders(req)` الديناميكية |
-| `ai-assistant` كشف الخطأ | مُصلح | السطر 107: `e.message` فقط |
-| Rate limit في الذاكرة | قيد بيئة معروف | Edge Functions تُعيد التشغيل — لا حل بدون Redis/DB خارجي |
-
-### ملاحظات لا تحتاج إصلاح (تصميم مقصود):
-
-| الملاحظة | السبب |
-|----------|-------|
-| `pdf/entities.ts` يعرض national_id | يُستدعى حصرياً من لوحة الناظر (admin) الذي يملك صلاحية الاطلاع |
-| `hmr.overlay: false` | تفضيل تطويري لتجنب تراكب الأخطاء أثناء التطوير — Lovable's default |
-| `app_role` enum بدون accountant في migration الأول | migration لاحق يضيفها — تسلسل صحيح |
+بعد الفحص الجنائي المباشر للكود الحالي (بعد آخر تعديلات)، إليك الوضع الحقيقي:
 
 ---
 
-## التغييرات المطلوبة (3 إصلاحات)
+## ما تم إصلاحه بالفعل (لا يحتاج تدخل)
 
-### 1. `src/components/ProtectedRoute.tsx` -- إصلاح التناقض المعماري
-
-**المشكلة:** التعليق في السطر 7 يقول "لا تستورد supabase مباشرة" لكن السطر 14 يستوردها. وتُستخدم فقط في زر تسجيل الخروج الطارئ (السطر 72). هذا يفتّت مسؤولية `signOut` بين `AuthContext` و `ProtectedRoute`.
-
-**الإصلاح:** استخدام `signOut` من `AuthContext` بدلاً من استيراد `supabase` مباشرة، وتحديث التعليق ليعكس الواقع:
-
-```text
-// قبل (سطر 14):
-import { supabase } from '@/integrations/supabase/client';
-
-// بعد: إزالة هذا السطر
-
-// قبل (سطر 72):
-onClick={async () => {
-  await supabase.auth.signOut();
-  window.location.href = '/auth';
-}}
-
-// بعد:
-onClick={async () => {
-  await signOut();
-  window.location.href = '/auth';
-}}
-```
-
-يتطلب أيضاً استخراج `signOut` من `useAuth()` في المكوّن.
-
-### 2. `src/hooks/useIdleTimeout.ts` -- إصلاح مشكلة الأداء
-
-**المشكلة:** `onIdle` في dependency array الخاص بـ `useCallback` (السطر 56) يتسبب في إعادة تسجيل جميع event listeners في كل render إذا مُرر `onIdle` كـ arrow function inline.
-
-**الإصلاح:** استخدام `useRef` لتخزين `onIdle` لمنع إعادة إنشاء `resetTimer` عند كل render:
-
-```text
-// إضافة:
-const onIdleRef = useRef(onIdle);
-useEffect(() => { onIdleRef.current = onIdle; }, [onIdle]);
-
-// تغيير في resetTimer و timerRef callback:
-// استبدال onIdle() بـ onIdleRef.current()
-// إزالة onIdle من dependency array
-```
-
-### 3. `src/contexts/FiscalYearContext.tsx` -- إضافة حماية دفاعية لـ localStorage
-
-**المشكلة:** السطر 23 يستدعي `localStorage.getItem` بدون `try/catch`. في بيئات معينة (Private browsing في بعض المتصفحات القديمة، أو Storage quota ممتلئ)، قد يرمي استثناء.
-
-**الإصلاح:** لف الاستدعاء بـ `try/catch`:
-
-```text
-// قبل:
-const [selectedId, setSelectedId] = useState<string>(() => {
-  return localStorage.getItem(STORAGE_KEY) || '';
-});
-
-// بعد:
-const [selectedId, setSelectedId] = useState<string>(() => {
-  try { return localStorage.getItem(STORAGE_KEY) || ''; }
-  catch { return ''; }
-});
-```
-
-ونفس الشيء لـ `localStorage.setItem` و `localStorage.removeItem` في `handleSetFiscalYearId`.
+| الملاحظة | الحالة |
+|----------|--------|
+| `ProtectedRoute.tsx` يستورد supabase مباشرة | مُصلح -- يستخدم `signOut()` من AuthContext |
+| `useIdleTimeout` يعيد تسجيل listeners | مُصلح -- `onIdleRef` مستخدم |
+| `FiscalYearContext` initializer و handleSet بدون try/catch | مُصلح جزئياً (تبقى سطر واحد) |
 
 ---
 
-## الملفات المتأثرة
+## المشاكل المتبقية الحقيقية
 
-1. `src/components/ProtectedRoute.tsx` -- إزالة import supabase واستخدام signOut من AuthContext
-2. `src/hooks/useIdleTimeout.ts` -- useRef لـ onIdle
-3. `src/contexts/FiscalYearContext.tsx` -- try/catch لـ localStorage
+### 1. نوع الإشعار `'payment'` غير صالح -- الإشعارات تفشل صامتاً (4 مواقع)
+
+**الخطورة: عالية -- وظيفي معطّل**
+
+دالة `notify_all_beneficiaries` في قاعدة البيانات تقبل فقط: `info | warning | error | success`. القيمة `'payment'` تتسبب في `RAISE EXCEPTION` مما يعني أن الإشعار لا يُرسل أبداً.
+
+**المواقع المتأثرة:**
+- `src/hooks/useIncome.ts` السطر 23: `'payment'`
+- `src/hooks/useExpenses.ts` السطر 23: `'payment'`
+- `src/pages/dashboard/AccountsPage.tsx` السطر 282: `'payment'`
+- `src/pages/dashboard/AccountsPage.tsx` السطر 289: `'payment'`
+
+**اكتشاف إضافي:** `src/hooks/useMessaging.ts` السطر 102 يستخدم `'message'` كنوع -- هذا لا يفشل لأن `notifyUser` يكتب مباشرة في الجدول (بدون RPC validation)، لكنه غير متسق مع الأنواع المعرّفة.
+
+**الإصلاح:** تغيير `'payment'` إلى `'info'` في المواقع الأربعة، و`'message'` إلى `'info'` في useMessaging.
+
+### 2. `Auth.tsx` السطر 287 -- `supabase.auth.signOut()` مباشرة
+
+**الخطورة: متوسطة -- معماري**
+
+زر تسجيل الخروج عند فشل جلب الدور (roleWaitTimeout) يستدعي `supabase.auth.signOut()` مباشرة بدلاً من `signOut()` من `useAuth()`. هذا يترك حالة `role` في AuthContext غير متزامنة.
+
+**الإصلاح:** استبدال `await supabase.auth.signOut()` بـ `await signOut()` (المستورد بالفعل في السطر 27).
+
+### 3. `useMessaging.ts` السطر 29 -- قناة Realtime ثابتة
+
+**الخطورة: منخفضة -- أداء**
+
+كل المستخدمين يشتركون في نفس القناة `'conversations-realtime'` بدون فلترة. كل تغيير في أي محادثة يُرسل لكل المستخدمين المتصلين ويتسبب في invalidation غير ضروري.
+
+**الإصلاح:** تغيير اسم القناة إلى `` `conversations-${user.id}` ``.
+
+### 4. `FiscalYearContext.tsx` السطر 35 -- `localStorage.removeItem` بدون try/catch
+
+**الخطورة: منخفضة -- دفاعي**
+
+الاستدعاء داخل `useEffect` (التحقق من صحة القيمة المخزنة) لا يزال بدون حماية رغم أن `handleSetFiscalYearId` تم لفّه.
+
+**الإصلاح:** لف السطر 35 بـ try/catch.
+
+### 5. `admin-manage-users` -- `delete_user` بدون `validateUuid`
+
+**الخطورة: منخفضة -- أمني**
+
+جميع العمليات الأخرى (`update_email`, `update_password`, `confirm_email`, `set_role`) تتحقق من UUID باستخدام `validateUuid(userId)`. `delete_user` تتحقق فقط من `!userId` بدون التحقق من صحة الصيغة.
+
+**الإصلاح:** إضافة `validateUuid(userId)` في حالة `delete_user`.
+
+---
+
+## ملخص التغييرات
+
+| # | الملف | التغيير |
+|---|-------|---------|
+| 1 | `src/hooks/useIncome.ts` | `'payment'` -> `'info'` (سطر 23) |
+| 2 | `src/hooks/useExpenses.ts` | `'payment'` -> `'info'` (سطر 23) |
+| 3 | `src/pages/dashboard/AccountsPage.tsx` | `'payment'` -> `'info'` (سطران: 282 و 289) |
+| 4 | `src/hooks/useMessaging.ts` | `'message'` -> `'info'` (سطر 102) + قناة Realtime فريدة (سطر 29) |
+| 5 | `src/pages/Auth.tsx` | `supabase.auth.signOut()` -> `signOut()` (سطر 287) |
+| 6 | `src/contexts/FiscalYearContext.tsx` | try/catch لـ `localStorage.removeItem` (سطر 35) |
+| 7 | `supabase/functions/admin-manage-users/index.ts` | إضافة `validateUuid(userId)` في `delete_user` (سطر 179) |
+
+## تحديث الاختبارات
+
+- `src/hooks/useNotifications.test.ts` يستخدم `'payment'` و `'message'` كأنواع -- يجب تحديثها إلى `'info'` و `'success'` لتتوافق مع الأنواع الصالحة.
 
