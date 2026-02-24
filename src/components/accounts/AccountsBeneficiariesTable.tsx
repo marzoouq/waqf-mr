@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Users } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
 
 interface Beneficiary {
   id: string;
@@ -42,7 +43,7 @@ const AccountsBeneficiariesTable = ({
                 {beneficiaries.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
+                    <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
                     <TableCell className="text-primary font-medium">
                       {(totalBeneficiaryPercentage > 0
                         ? manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage
