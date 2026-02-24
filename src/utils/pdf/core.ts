@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { logger } from '@/lib/logger';
 
 /* PDF Core - Shared types, font loading, header/footer, table styles */
 

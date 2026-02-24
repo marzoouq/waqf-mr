@@ -57,7 +57,7 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         icons: [
           {
-            src: 'pwa-512x512.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
           },
