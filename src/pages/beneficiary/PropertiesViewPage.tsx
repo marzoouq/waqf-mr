@@ -57,10 +57,10 @@ const PropertiesViewPage = () => {
 
   // حساب الإشغال من العقود المفلترة بالسنة المالية (بدلاً من حالة الوحدة الثابتة)
   const rentedUnitIds = new Set(
-    contracts.filter(c => c.unit_id).map(c => c.unit_id)
+    contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
   );
   const wholePropertyIds = new Set(
-    contracts.filter(c => c.property_id && !c.unit_id).map(c => c.property_id)
+    contracts.filter(c => c.status === 'active' && c.property_id && !c.unit_id).map(c => c.property_id)
   );
   const occupiedUnits = units?.filter(u =>
     rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
