@@ -1,21 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpensesByFiscalYear } from '@/hooks/useExpenses';
+import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/useExpenses';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
-import { Plus, Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, Calculator, Star } from 'lucide-react';
+import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
+import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
+import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -24,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { EXPENSE_TYPES } from '@/constants';
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -78,7 +75,6 @@ const ExpensesPage = () => {
 
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
-  // Count documented vs undocumented expenses
   const expenseInvoiceMap = new Map<string, number>();
   allInvoices.forEach((inv) => {
     if (inv.expense_id) {
@@ -87,17 +83,6 @@ const ExpensesPage = () => {
   });
   const documentedCount = expenses.filter((e) => expenseInvoiceMap.has(e.id)).length;
   const documentationRate = expenses.length > 0 ? Math.round((documentedCount / expenses.length) * 100) : 0;
-
-  const summaryCards = useMemo(() => {
-    const count = expenses.length;
-    const avg = count > 0 ? Math.round(totalExpenses / count) : 0;
-    const typeMap = new Map<string, number>();
-    expenses.forEach(e => typeMap.set(e.expense_type, (typeMap.get(e.expense_type) || 0) + Number(e.amount)));
-    let topType = '-';
-    let topTypeAmount = 0;
-    typeMap.forEach((amount, type) => { if (amount > topTypeAmount) { topTypeAmount = amount; topType = type; } });
-    return { avg, topType, topTypeAmount };
-  }, [expenses, totalExpenses]);
 
   const filteredExpenses = expenses.filter((item) => {
     if (!searchQuery) return true;
@@ -113,37 +98,13 @@ const ExpensesPage = () => {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المصروفات</h1>
             <p className="text-muted-foreground mt-1 text-sm">تسجيل ومتابعة المصروفات</p>
           </div>
-           <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
-            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{editingExpense ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>نوع المصروف *</Label>
-                    <Select value={formData.expense_type} onValueChange={(value) => setFormData({ ...formData, expense_type: value })}>
-                      <SelectTrigger><SelectValue placeholder="اختر نوع المصروف" /></SelectTrigger>
-                      <SelectContent>{EXPENSE_TYPES.map((type) => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
-                  <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
-                  <div className="space-y-2">
-                    <Label>العقار (اختياري)</Label>
-                    <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
-                      <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
-                      <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2"><Label>الوصف</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createExpense.isPending || updateExpense.isPending}>{editingExpense ? 'تحديث' : 'إضافة'}</Button>
-                    <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <ExpenseFormDialog
+              isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
+              isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
+              properties={properties} onSubmit={handleSubmit} onReset={resetForm}
+            />
           </div>
         </div>
 
@@ -155,49 +116,7 @@ const ExpensesPage = () => {
           </div>
         )}
 
-        {/* Summary Cards */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Skeleton className="w-9 h-9 rounded-lg" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-6 w-24" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="shadow-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-                <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10"><Paperclip className="w-5 h-5 text-primary" /></div>
-                <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-xl font-bold">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{expenses.length}</p></div>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-                <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{summaryCards.avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-                <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topType}</p><p className="text-xs text-muted-foreground">{summaryCards.topTypeAmount.toLocaleString('ar-SA')} ريال</p></div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <ExpenseSummaryCards expenses={expenses} totalExpenses={totalExpenses} documentedCount={documentedCount} documentationRate={documentationRate} isLoading={isLoading} />
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -272,12 +191,7 @@ const ExpensesPage = () => {
                       <React.Fragment key={item.id}>
                         <TableRow className={isExpanded ? 'border-b-0' : ''}>
                           <TableCell className="p-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-6 h-6"
-                              onClick={() => setExpandedRow(isExpanded ? null : item.id)}
-                            >
+                            <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)}>
                               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </Button>
                           </TableCell>
@@ -287,9 +201,7 @@ const ExpensesPage = () => {
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>
                             {attachCount > 0 ? (
-                              <Badge variant="secondary" className="gap-1">
-                                <Paperclip className="w-3 h-3" />{attachCount}
-                              </Badge>
+                              <Badge variant="secondary" className="gap-1"><Paperclip className="w-3 h-3" />{attachCount}</Badge>
                             ) : (
                               <span className="text-xs text-muted-foreground">—</span>
                             )}
