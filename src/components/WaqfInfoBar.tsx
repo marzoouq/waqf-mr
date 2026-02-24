@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
