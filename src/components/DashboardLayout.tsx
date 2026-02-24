@@ -24,7 +24,6 @@ import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCu
 import SidebarContent from '@/components/Sidebar';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardLayoutProps {
@@ -189,17 +188,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     await signOut();
   };
 
-  // ─── Idle Timeout (moved from AuthContext) ───
-  const { data: idleMinutes } = useQuery({
-    queryKey: ['idle-timeout-setting'],
-    queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').maybeSingle();
-      return data?.value ? parseInt(data.value, 10) : 15;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const timeoutMs = (idleMinutes ?? 15) * 60 * 1000;
+  // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
+  const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
+  const timeoutMs = (idleMinutesRaw ?? 15) * 60 * 1000;
 
   const handleIdleLogout = useCallback(async () => {
     await signOut();

@@ -178,7 +178,31 @@ Deno.serve(async (req) => {
             status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        await adminClient.from("beneficiaries").delete().eq("user_id", userId);
+
+        // حماية البيانات المالية: فحص وجود توزيعات تاريخية مرتبطة بالمستفيد
+        const { data: beneficiary } = await adminClient
+          .from("beneficiaries")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (beneficiary) {
+          const { count } = await adminClient
+            .from("distributions")
+            .select("id", { count: "exact", head: true })
+            .eq("beneficiary_id", beneficiary.id);
+
+          if (count && count > 0) {
+            // فصل المستفيد عن حساب المستخدم بدلاً من حذفه (soft-delete)
+            await adminClient
+              .from("beneficiaries")
+              .update({ user_id: null })
+              .eq("id", beneficiary.id);
+          } else {
+            await adminClient.from("beneficiaries").delete().eq("user_id", userId);
+          }
+        }
+
         await adminClient.from("user_roles").delete().eq("user_id", userId);
         const { error } = await adminClient.auth.admin.deleteUser(userId);
         if (error) throw error;
