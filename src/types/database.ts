@@ -149,7 +149,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: string;
+  type: 'info' | 'success' | 'warning' | 'error';
   is_read: boolean;
   link: string | null;
   created_at: string;
@@ -161,6 +161,7 @@ export interface FiscalYear {
   start_date: string;
   end_date: string;
   status: 'active' | 'closed';
+  published?: boolean;
   created_at: string;
 }
 

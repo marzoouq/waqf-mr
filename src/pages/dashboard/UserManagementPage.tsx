@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ManagedUser {
   id: string;
@@ -39,6 +41,7 @@ const callAdminApi = async (body: Record<string, unknown>) => {
 
 const UserManagementPage = () => {
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
@@ -46,26 +49,26 @@ const UserManagementPage = () => {
   const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
-  const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
 
-  // Fetch registration setting
-  useEffect(() => {
-    const fetchSetting = async () => {
+  // BUG-11 fix: استخدام useQuery بدلاً من useEffect + setState
+  const { data: registrationEnabled = false } = useQuery({
+    queryKey: ['registration-enabled'],
+    queryFn: async () => {
       const { data } = await supabase
         .from('app_settings')
         .select('value')
         .eq('key', 'registration_enabled')
         .maybeSingle();
-      if (data) setRegistrationEnabled(data.value === 'true');
-    };
-    fetchSetting();
-  }, []);
+      return data?.value === 'true';
+    },
+  });
 
   const toggleRegistration = async (enabled: boolean) => {
     try {
       await callAdminApi({ action: 'toggle_registration', enabled });
-      setRegistrationEnabled(enabled);
+      queryClient.invalidateQueries({ queryKey: ['registration-enabled'] });
       toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     } catch (e: unknown) {
       toast.error(getSafeErrorMessage(e));
@@ -92,13 +95,21 @@ const UserManagementPage = () => {
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
+  // BUG-4 fix: تتبع الـ userId قيد التنفيذ بشكل منفصل
   const confirmEmail = useMutation({
-    mutationFn: (userId: string) => callAdminApi({ action: 'confirm_email', userId }),
+    mutationFn: async (userId: string) => {
+      setPendingConfirmId(userId);
+      return callAdminApi({ action: 'confirm_email', userId });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم تفعيل البريد الإلكتروني');
+      setPendingConfirmId(null);
     },
-    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
+    onError: (e: Error) => {
+      toast.error(getSafeErrorMessage(e));
+      setPendingConfirmId(null);
+    },
   });
 
   const updateEmail = useMutation({
@@ -134,11 +145,13 @@ const UserManagementPage = () => {
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
 
+  // BUG-3 fix: إغلاق الـ Dialog بعد نجاح الحذف
   const deleteUser = useMutation({
     mutationFn: (userId: string) => callAdminApi({ action: 'delete_user', userId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم حذف المستخدم');
+      setDeleteUserId(null);
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
@@ -157,6 +170,8 @@ const UserManagementPage = () => {
         return <Badge variant="outline">بدون دور</Badge>;
     }
   };
+
+  const isSelf = (userId: string) => userId === currentUser?.id;
 
   return (
     <DashboardLayout>
@@ -299,7 +314,10 @@ const UserManagementPage = () => {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell dir="ltr">{user.email}</TableCell>
+                      <TableCell dir="ltr">
+                        {user.email}
+                        {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                      </TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>
                         {user.email_confirmed_at ? (
@@ -321,16 +339,17 @@ const UserManagementPage = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
+                          {/* BUG-4 fix: تعطيل فقط الزر الخاص بالمستخدم قيد التنفيذ */}
                           {!user.email_confirmed_at && (
                             <Button
                               size="sm"
                               variant="outline"
                               className="gap-1 text-xs"
                               onClick={() => confirmEmail.mutate(user.id)}
-                              disabled={confirmEmail.isPending}
+                              disabled={pendingConfirmId === user.id}
                             >
                               <CheckCircle className="w-3 h-3" />
-                              تفعيل
+                              {pendingConfirmId === user.id ? 'جاري التفعيل...' : 'تفعيل'}
                             </Button>
                           )}
                           <Button
@@ -355,14 +374,17 @@ const UserManagementPage = () => {
                             <Key className="w-3 h-3" />
                             كلمة المرور
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-1 text-xs text-destructive hover:text-destructive"
-                            onClick={() => setDeleteUserId(user.id)}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
+                          {/* BUG-5 fix: إخفاء زر الحذف للناظر نفسه */}
+                          {!isSelf(user.id) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs text-destructive hover:text-destructive"
+                              onClick={() => setDeleteUserId(user.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -412,11 +434,20 @@ const UserManagementPage = () => {
                     <SelectItem value="waqif">واقف</SelectItem>
                   </SelectContent>
                 </Select>
+                {/* BUG-6 fix: تحذير ومنع الناظر من تغيير دوره */}
+                {editingUser && isSelf(editingUser.id) && (
+                  <Alert variant="destructive" className="mt-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      لا يمكنك تغيير دورك الخاص لتجنب فقدان صلاحيات الإدارة.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <Button
                   size="sm"
                   className="gap-1"
                   onClick={() => editingUser && editRole && setRole.mutate({ userId: editingUser.id, role: editRole })}
-                  disabled={setRole.isPending}
+                  disabled={setRole.isPending || (editingUser ? isSelf(editingUser.id) : false)}
                 >
                   <Shield className="w-3 h-3" />
                   تحديث الدور
@@ -472,7 +503,6 @@ const UserManagementPage = () => {
                 onClick={() => {
                   if (deleteUserId) {
                     deleteUser.mutate(deleteUserId);
-                    setDeleteUserId(null);
                   }
                 }}
               >

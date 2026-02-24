@@ -4,6 +4,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ user: { id: 'u1' }, role: 'admin', loading: false }),
+}));
 
 const mockUsers = [
   { id: 'u1', email: 'admin@test.com', email_confirmed_at: '2024-01-01', created_at: '2024-01-01', last_sign_in_at: '2024-06-01', role: 'admin' },
