@@ -1,63 +1,90 @@
 
 
-# اصلاح ارقام الإشغال عند اختيار "جميع السنوات"
+# اصلاح ارقام مقارنة أداء العقارات في صفحة التقارير
 
 ## المشكلة
 
-عند اختيار "جميع السنوات"، يتم جلب جميع العقود من كل السنوات المالية ثم فلترتها بحيث تظهر العقود النشطة (`active`) فقط. هذا يسبب مشاكل في الارقام:
+تقرير "مقارنة أداء العقارات" في صفحة التقارير يحتوي على مشكلتين رئيسيتين تؤدي لأرقام خاطئة:
 
-| العقار | المتوقع (حالي) | المعروض حالياً | السبب |
-|--------|----------------|----------------|-------|
-| 001 | عرض الوحدات المؤجرة فعلياً | 100% (مؤجر بالكامل) | وجود عقد كامل يتيم (C-001-WHOLE) بدون سنة مالية يتجاوز حساب الوحدات |
-| 101 | 4 من 8 (50%) | 4 من 8 (50%) | فقط 4 عقود مجددة نشطة من أصل 6 |
-| 102 | 5 من 9 (56%) | 5 من 9 (56%) | فقط 5 عقود مجددة نشطة من أصل 7 |
+### المشكلة الأولى: حساب الإشغال خاطئ
+التقرير يستخدم حقل `status` الثابت على جدول الوحدات (`u.status === 'مؤجرة'`) بدلاً من العقود النشطة كما في صفحة العقارات.
 
-**السبب الجذري:** عقار 001 لديه عقد "كامل" (بدون unit_id) بحالة `active` وبدون سنة مالية، مما يجعل المنطق يعتبره "مؤجر بالكامل" ويتجاهل الوحدات الفردية. كما ان المنطق الحالي لا يتعامل مع تعارض وجود عقود وحدات وعقود كاملة في نفس الوقت.
+| العقار | التقرير (خاطئ) | صفحة العقارات (صحيح) | السبب |
+|--------|---------------|---------------------|-------|
+| 001 | 83% (5/6 بالحالة) | 100% (عقد كامل) | التقرير يتجاهل العقد الكامل |
+| 101 | 50% (4/8) | 50% (4/8) | متطابق بالصدفة |
+| 102 | 67% (6/9 بالحالة) | 56% (5/9 بالعقود) | 6 وحدات "مؤجرة" بالحالة لكن فقط 5 عقود نشطة |
+
+### المشكلة الثانية: العقود غير مفلترة بالسنة المالية
+- **العقود**: تستخدم `useContracts()` الذي يجلب كل العقود من كل السنوات
+- **المصروفات**: تأتي من `useFinancialSummary` وهي مفلترة بالسنة المالية
+- **النتيجة**: الإيرادات التعاقدية تشمل كل السنوات بينما المصروفات لسنة واحدة فقط = صافي دخل مضلل
 
 ## الحل
 
-### 1. تحسين منطق الإشغال (الاولوية للوحدات)
+### 1. استبدال `useContracts()` بـ `useContractsByFiscalYear()`
+استخدام نفس hook الفلترة المستخدم في صفحة العقارات لضمان تطابق البيانات.
 
-عندما يكون للعقار وحدات مسجلة، يجب ان تكون الاولوية دائماً لعقود الوحدات وليس للعقود الكاملة. التعديل:
-
-- اذا كان للعقار وحدات (`totalUnits > 0`)، يتم حساب الإشغال من عقود الوحدات فقط (**تجاهل العقود الكاملة**)
-- اذا لم يكن للعقار وحدات (`totalUnits === 0`)، يتم اعتبار العقد الكامل
-
-### 2. تطبيق التعديل في ملفين
-
-| الملف | الموقع |
-|-------|--------|
-| `src/pages/dashboard/PropertiesPage.tsx` | سطر 320-323 (منطق الإشغال في بطاقات العقارات) |
-| `src/pages/beneficiary/PropertiesViewPage.tsx` | سطر 197-200 (نفس المنطق في واجهة المستفيد) |
+### 2. توحيد منطق الإشغال مع صفحة العقارات
+نقل حساب الإشغال ليعتمد على العقود النشطة بدلاً من حالة الوحدة الثابتة، مع مراعاة:
+- العقود الكاملة (بدون unit_id)
+- أولوية عقود الوحدات عند وجود وحدات مسجلة
+- نفس المنطق المُصحح سابقاً في PropertiesPage
 
 ## التفاصيل التقنية
 
-### التغيير في منطق حساب الإشغال
+### الملف: `src/pages/dashboard/ReportsPage.tsx`
 
-**قبل:**
-```javascript
-const isWholePropertyRented = propContracts.some(c => 
-  (isSpecificYear || c.status === 'active') && !c.unit_id
-);
-const rented = isWholePropertyRented ? totalUnits : 
-  propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+**التغيير 1** - استبدال import (سطر 6):
+```typescript
+// قبل
+import { useContracts } from '@/hooks/useContracts';
+// بعد
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 ```
 
-**بعد:**
-```javascript
-const hasWholePropertyContract = propContracts.some(c => 
-  (isSpecificYear || c.status === 'active') && !c.unit_id
-);
-// الاولوية للوحدات: اذا كان للعقار وحدات، نحسب من عقود الوحدات فقط
-const isWholePropertyRented = totalUnits === 0 && hasWholePropertyContract;
-const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
-const rented = (totalUnits > 0 && hasWholePropertyContract && unitBasedRented === 0) 
-  ? totalUnits  // عقد كامل مع وحدات لكن بدون عقود وحدات = كلها مؤجرة
-  : (isWholePropertyRented ? totalUnits : unitBasedRented);
+**التغيير 2** - استبدال hook (سطر 26):
+```typescript
+// قبل
+const { data: contracts = [] } = useContracts();
+// بعد
+const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
 ```
 
-هذا يضمن:
-- عقار 001 (6 وحدات + عقد كامل بدون عقود وحدات نشطة): يعرض على انه مؤجر بالكامل عبر العقد الكامل
-- عقار 001 (عند اختيار سنة محددة مع عقود وحدات): يعرض العدد الفعلي للوحدات المؤجرة
-- عقارات 002/003 (بدون وحدات): تعمل كالسابق عبر العقود الكاملة
+**التغيير 3** - اصلاح منطق الإشغال (سطور 85-101):
+```typescript
+const propertyPerformance = properties.map((property) => {
+    const propertyUnits = allUnits.filter(u => u.property_id === property.id);
+    const totalUnitsCount = propertyUnits.length;
+    const isSpecificYear = fiscalYearId !== 'all';
+    
+    const propContracts = contracts.filter(c => c.property_id === property.id);
+    const rentedUnitIds = new Set(
+      propContracts
+        .filter(c => (isSpecificYear || c.status === 'active') && c.unit_id)
+        .map(c => c.unit_id)
+    );
+    const hasWholePropertyContract = propContracts.some(
+      c => (isSpecificYear || c.status === 'active') && !c.unit_id
+    );
+    
+    const isWholePropertyRented = totalUnitsCount === 0 && hasWholePropertyContract;
+    const unitBasedRented = propertyUnits.filter(u => rentedUnitIds.has(u.id)).length;
+    const rented = (totalUnitsCount > 0 && hasWholePropertyContract && unitBasedRented === 0)
+      ? totalUnitsCount
+      : (isWholePropertyRented ? totalUnitsCount : unitBasedRented);
+
+    let occupancy: number;
+    if (totalUnitsCount > 0) {
+      occupancy = Math.round((rented / totalUnitsCount) * 100);
+    } else if (isWholePropertyRented) {
+      occupancy = 100;
+    } else {
+      occupancy = 0;
+    }
+    // ... باقي الحسابات تبقى كما هي
+});
+```
+
+هذا يضمن تطابق ارقام الإشغال والإيرادات بين صفحة التقارير وصفحة العقارات.
 
