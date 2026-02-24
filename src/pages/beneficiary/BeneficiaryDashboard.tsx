@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import type { AppRole } from '@/types/database';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -16,7 +17,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const BeneficiaryDashboard = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
@@ -73,7 +74,7 @@ const BeneficiaryDashboard = () => {
     fetchDistributions();
 
     const channel = supabase
-      .channel('beneficiary-distributions')
+      .channel(`beneficiary-distributions-${currentBeneficiary.id}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -85,7 +86,6 @@ const BeneficiaryDashboard = () => {
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [currentBeneficiary?.id]);
@@ -130,7 +130,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || 'مستفيد'}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}</h1>
                 </div>
               </div>
             </CardContent>
@@ -156,7 +156,7 @@ const BeneficiaryDashboard = () => {
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
-                    {currentBeneficiary?.name || 'مستفيد'}
+                    {currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}
                   </h1>
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
                 </div>
