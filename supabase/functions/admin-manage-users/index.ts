@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
       }
 
       case "list_users": {
-        const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 100 });
+        const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 500 });
         if (error) throw error;
         
         const { data: roles } = await adminClient.from("user_roles").select("*");
@@ -276,8 +276,8 @@ Deno.serve(async (req) => {
             errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
             continue;
           }
-          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
-            errors.push({ email: u.email, error: "Password must be 8-128 characters" });
+          if (!u.password || typeof u.password !== "string" || u.password.length < 6 || u.password.length > 128) {
+            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 6 و128 حرفاً" });
             continue;
           }
           if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {
