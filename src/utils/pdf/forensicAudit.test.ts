@@ -31,25 +31,27 @@ const mockRoundedRect = vi.fn();
 const mockSetLineDashPattern = vi.fn();
 const mockAddPage = vi.fn();
 
-vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    internal: { pageSize: { width: 210, height: 297 } },
-    text: mockText,
-    setFont: mockSetFont,
-    setFontSize: mockSetFontSize,
-    setTextColor: mockSetTextColor,
-    setFillColor: mockSetFillColor,
-    setDrawColor: mockSetDrawColor,
-    setLineWidth: mockSetLineWidth,
-    line: mockLine,
-    circle: mockCircle,
-    roundedRect: mockRoundedRect,
-    setLineDashPattern: mockSetLineDashPattern,
-    addPage: mockAddPage,
-    save: mockSave,
-    lastAutoTable: { finalY: 120 },
-  })),
-}));
+vi.mock('jspdf', () => {
+  return {
+    default: class MockJsPDF {
+      internal = { pageSize: { width: 210, height: 297 } };
+      text = mockText;
+      setFont = mockSetFont;
+      setFontSize = mockSetFontSize;
+      setTextColor = mockSetTextColor;
+      setFillColor = mockSetFillColor;
+      setDrawColor = mockSetDrawColor;
+      setLineWidth = mockSetLineWidth;
+      line = mockLine;
+      circle = mockCircle;
+      roundedRect = mockRoundedRect;
+      setLineDashPattern = mockSetLineDashPattern;
+      addPage = mockAddPage;
+      save = mockSave;
+      lastAutoTable = { finalY: 120 };
+    },
+  };
+});
 
 const sampleData: ForensicAuditData = {
   auditDate: '2025-02-17',
