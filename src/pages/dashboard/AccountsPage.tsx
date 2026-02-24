@@ -258,36 +258,40 @@ const AccountsPage = () => {
   const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
 
   const handleCreateAccount = async () => {
-    await createAccount.mutateAsync({
-      fiscal_year: selectedFY?.label || fiscalYear,
-      total_income: totalIncome,
-      total_expenses: totalExpenses,
-      admin_share: adminShare,
-      waqif_share: waqifShare,
-      waqf_revenue: waqfRevenue,
-      vat_amount: manualVat,
-      distributions_amount: manualDistributions,
-      waqf_capital: waqfCorpusManual,
-      net_after_expenses: netAfterExpenses,
-      net_after_vat: netAfterVat,
-      zakat_amount: zakatAmount,
-      waqf_corpus_manual: waqfCorpusManual,
-      waqf_corpus_previous: waqfCorpusPrevious,
-    });
+    try {
+      await createAccount.mutateAsync({
+        fiscal_year: selectedFY?.label || fiscalYear,
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+        admin_share: adminShare,
+        waqif_share: waqifShare,
+        waqf_revenue: waqfRevenue,
+        vat_amount: manualVat,
+        distributions_amount: manualDistributions,
+        waqf_capital: waqfCorpusManual,
+        net_after_expenses: netAfterExpenses,
+        net_after_vat: netAfterVat,
+        zakat_amount: zakatAmount,
+        waqf_corpus_manual: waqfCorpusManual,
+        waqf_corpus_previous: waqfCorpusPrevious,
+      });
 
-    notifyAllBeneficiaries(
-      'تحديث الحسابات الختامية',
-      `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
-      'info',
-      '/beneficiary/accounts',
-    );
-    if (manualDistributions > 0) {
       notifyAllBeneficiaries(
-        'تحديث التوزيعات المالية',
-        `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
+        'تحديث الحسابات الختامية',
+        `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
         'info',
-        '/beneficiary/my-share',
+        '/beneficiary/accounts',
       );
+      if (manualDistributions > 0) {
+        notifyAllBeneficiaries(
+          'تحديث التوزيعات المالية',
+          `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
+          'info',
+          '/beneficiary/my-share',
+        );
+      }
+    } catch (err) {
+      toast.error('خطأ في حفظ الحسابات: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
     }
   };
 
