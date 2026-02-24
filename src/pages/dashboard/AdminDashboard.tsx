@@ -13,7 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { useTenantPayments } from '@/hooks/useTenantPayments';
 import { Badge } from '@/components/ui/badge';
 import { differenceInMonths } from 'date-fns';
@@ -147,13 +147,21 @@ const AdminDashboard = () => {
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <DashboardSkeleton />
-      </DashboardLayout>
-    );
-  }
+  const kpis = useMemo(() => {
+    const collectionRate = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
+    const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
+    const totalUnitsCount = allUnits.length;
+    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
+    const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
+    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+
+    return [
+      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
+      { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+    ];
+  }, [contractualRevenue, totalIncome, totalExpenses, allUnits, activeContractsCount]);
 
   return (
     <DashboardLayout>
@@ -193,6 +201,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Stats Grid */}
+        {isLoading ? <StatsGridSkeleton /> : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
             <Card key={index} className="shadow-sm hover:shadow-md transition-shadow animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
@@ -210,49 +219,34 @@ const AdminDashboard = () => {
             </Card>
           ))}
         </div>
+        )}
 
         {/* KPI Panel */}
-        {(() => {
-          const collectionRate = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
-          const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
-          const totalUnitsCount = allUnits.length;
-          const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
-          const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
-          const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
-
-          const kpis = [
-            { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-            { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-            { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-            { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-          ];
-
-          return (
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gauge className="w-5 h-5" />
-                  مؤشرات الأداء الرئيسية (KPI)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-                  {kpis.map((kpi, idx) => (
-                    <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
-                      <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                      <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>
-                        {kpi.value.toLocaleString()}{kpi.suffix}
-                      </p>
-                      {kpi.progressColor && (
-                        <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
+        {isLoading ? <KpiSkeleton /> : (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gauge className="w-5 h-5" />
+                مؤشرات الأداء الرئيسية (KPI)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
+                {kpis.map((kpi, idx) => (
+                  <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
+                    <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
+                    <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>
+                      {kpi.value.toLocaleString()}{kpi.suffix}
+                    </p>
+                    {kpi.progressColor && (
+                      <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Collection Summary Card */}
         {collectionSummary.total > 0 && (
