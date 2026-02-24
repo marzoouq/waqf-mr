@@ -477,11 +477,12 @@ Deno.serve(async (req) => {
 
         results.push({ id: invoice.id, invoice_number: invoice.invoice_number, success: true });
       } catch (err) {
+        console.error("generate-invoice-pdf item error:", err instanceof Error ? err.message : String(err));
         results.push({
           id: invoice.id,
           invoice_number: invoice.invoice_number,
           success: false,
-          error: err instanceof Error ? err.message : String(err),
+          error: "فشل توليد الفاتورة",
         });
       }
     }
@@ -490,7 +491,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
+    console.error("generate-invoice-pdf error:", err instanceof Error ? err.message : String(err));
+    return new Response(JSON.stringify({ error: "حدث خطأ في معالجة الفواتير" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
