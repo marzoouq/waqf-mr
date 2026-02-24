@@ -54,7 +54,10 @@ describe('ExpensesPage', () => {
 
   it('shows total expenses', () => {
     render(<ExpensesPage />);
-    expect(screen.getByText(/4,500/)).toBeInTheDocument();
+    // toLocaleString('ar-SA') may render Arabic or Western numerals depending on env
+    // Check for the total (4500) in any format
+    const totalEl = screen.getByText('إجمالي المصروفات').closest('div')?.parentElement;
+    expect(totalEl?.textContent).toMatch(/4[,٬]?500|٤[,٬]?٥٠٠/);
   });
 
   it('shows documentation rate', () => {
@@ -73,7 +76,9 @@ describe('ExpensesPage', () => {
     render(<ExpensesPage />);
     fireEvent.change(screen.getByPlaceholderText('بحث في المصروفات...'), { target: { value: 'كهرباء' } });
     expect(screen.getAllByText('كهرباء').length).toBeGreaterThanOrEqual(1);
-    expect(screen.queryByText('صيانة')).not.toBeInTheDocument();
+    // "صيانة" may still appear in summary card "أعلى نوع" but should not appear in table rows
+    const table = screen.getByRole('table');
+    expect(table.textContent).not.toContain('صيانة');
   });
 
   it('shows empty state for no search results', () => {

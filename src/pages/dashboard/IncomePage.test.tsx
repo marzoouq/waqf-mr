@@ -49,7 +49,8 @@ describe('IncomePage', () => {
 
   it('shows total income', () => {
     render(<IncomePage />);
-    expect(screen.getByText(/29,000/)).toBeInTheDocument();
+    const totalEl = screen.getByText('إجمالي الدخل').closest('div')?.parentElement;
+    expect(totalEl?.textContent).toMatch(/29[,٬]?000|٢٩[,٬]?٠٠٠/);
   });
 
   it('renders income table rows', () => {
@@ -62,7 +63,8 @@ describe('IncomePage', () => {
     render(<IncomePage />);
     fireEvent.change(screen.getByPlaceholderText('بحث في سجلات الدخل...'), { target: { value: 'تبرع' } });
     expect(screen.getAllByText('تبرع').length).toBeGreaterThanOrEqual(1);
-    expect(screen.queryByText('إيجار شقة 101')).not.toBeInTheDocument();
+    const table = screen.getByRole('table');
+    expect(table.textContent).not.toContain('إيجار شقة 101');
   });
 
   it('shows empty state for no search results', () => {

@@ -24,7 +24,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
     fiscalYear: { id: 'fy1', label: '1446-1447', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
-    isClosed: false, isLoading: false,
+    isClosed: false, isLoading: false, noPublishedYears: false,
   })),
   FiscalYearProvider: ({ children }: any) => children,
 }));
@@ -61,11 +61,19 @@ vi.mock('@/hooks/useContracts', () => ({
     ],
     isLoading: false,
   })),
+  useContractsByFiscalYear: vi.fn(() => ({
+    data: [
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 50000, status: 'active', fiscal_year_id: 'fy1' },
+      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 30000, status: 'expired', fiscal_year_id: 'fy1' },
+    ],
+    isLoading: false,
+  })),
 }));
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu">تصدير</button> }));
 vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
+vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({ generateAccountsPDF: vi.fn().mockResolvedValue(undefined) }));
 
 import AccountsViewPage from './AccountsViewPage';
