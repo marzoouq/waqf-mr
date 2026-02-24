@@ -13,7 +13,7 @@ export const logAccessEvent = async (event: {
       p_email: event.email ?? null,
       p_user_id: event.user_id ?? null,
       p_target_path: event.target_path ?? null,
-      p_ip_info: navigator.userAgent?.substring(0, 500) ?? null,
+      p_device_info: navigator.userAgent?.substring(0, 500) ?? null,
       p_metadata: (event.metadata ?? {}) as unknown as Record<string, never>,
     });
   } catch {
