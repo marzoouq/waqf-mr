@@ -2,6 +2,9 @@
 
 # نظام إدارة وقف مرزوق بن علي الثبيتي
 
+[![codecov](https://codecov.io/gh/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME)
+[![Tests](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/actions/workflows/test.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/actions/workflows/test.yml)
+
 نظام إلكتروني شامل لإدارة الأوقاف يتضمن إدارة العقارات والعقود والإيرادات والمصروفات وتوزيع الحصص على المستفيدين، مع مساعد ذكي يعمل بالذكاء الاصطناعي.
 
 ---
