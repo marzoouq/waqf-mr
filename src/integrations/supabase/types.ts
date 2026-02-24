@@ -17,30 +17,30 @@ export type Database = {
       access_log: {
         Row: {
           created_at: string
+          device_info: string | null
           email: string | null
           event_type: string
           id: string
-          ip_info: string | null
           metadata: Json | null
           target_path: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
+          device_info?: string | null
           email?: string | null
           event_type: string
           id?: string
-          ip_info?: string | null
           metadata?: Json | null
           target_path?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
+          device_info?: string | null
           email?: string | null
           event_type?: string
           id?: string
-          ip_info?: string | null
           metadata?: Json | null
           target_path?: string | null
           user_id?: string | null
@@ -889,9 +889,9 @@ export type Database = {
       }
       log_access_event: {
         Args: {
+          p_device_info?: string
           p_email?: string
           p_event_type: string
-          p_ip_info?: string
           p_metadata?: Json
           p_target_path?: string
           p_user_id?: string

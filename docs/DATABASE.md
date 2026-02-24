@@ -178,7 +178,7 @@ erDiagram
         text email "nullable"
         uuid user_id "nullable"
         text target_path "nullable"
-        text ip_info "nullable"
+        text device_info "nullable"
         jsonb metadata
         timestamptz created_at
     }
@@ -376,7 +376,7 @@ erDiagram
 | `email` | text | البريد الإلكتروني (اختياري) |
 | `user_id` | UUID | معرف المستخدم (اختياري) |
 | `target_path` | text | المسار المستهدف (اختياري) |
-| `ip_info` | text | معلومات IP (اختياري) |
+| `device_info` | text | معلومات الجهاز (اختياري) |
 | `metadata` | jsonb | بيانات إضافية |
 
 > ⚠️ الإدخال يتم حصرياً عبر دالة `log_access_event()` — لا إدخال مباشر مسموح.
