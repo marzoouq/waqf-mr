@@ -13,7 +13,7 @@ import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property } from '@/types/database';
-import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
@@ -199,6 +199,10 @@ const PropertiesPage = () => {
                 : (isWholePropertyRented ? totalUnits : unitBasedRented);
               const vacant = totalUnits - rented;
               const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
+              const statusMismatch = propertyUnits.filter(u =>
+                (u.status === 'مؤجرة' && !rentedUnitIdsForProp.has(u.id) && !hasWholePropertyContract) ||
+                (u.status === 'شاغرة' && rentedUnitIdsForProp.has(u.id))
+              ).length;
               const occupancy = totalUnits > 0
                 ? Math.round((rented / totalUnits) * 100)
                 : isWholePropertyRented ? 100 : 0;
@@ -247,6 +251,19 @@ const PropertiesPage = () => {
                             <span className="flex items-center gap-1"><Home className="w-3.5 h-3.5 text-success" />مؤجرة: <strong>{rented}</strong></span>
                             <span className="flex items-center gap-1"><DoorOpen className="w-3.5 h-3.5 text-muted-foreground" />شاغرة: <strong>{vacant}</strong></span>
                             {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
+                            {statusMismatch > 0 && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="flex items-center gap-1 text-warning cursor-help">
+                                      <AlertTriangle className="w-3.5 h-3.5" />
+                                      <strong>{statusMismatch}</strong>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{statusMismatch} وحدة بها تناقض بين الحالة والعقود - يرجى المراجعة</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                           </div>
                         </div>
                         <TooltipProvider>
