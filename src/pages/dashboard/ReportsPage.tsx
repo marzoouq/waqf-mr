@@ -136,7 +136,7 @@ const ReportsPage = () => {
   ];
 
   const issuesFound = auditChecks.filter(c => !c.ok).length;
-  const issuesFixed = 0;
+  const issuesFixed = auditChecks.filter(c => c.ok).length;
   const overallScore = Math.round(((auditChecks.length - issuesFound) / Math.max(1, auditChecks.length)) * 100) / 10;
 
   const forensicAuditData: ForensicAuditData = {

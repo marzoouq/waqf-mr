@@ -94,8 +94,7 @@ Deno.serve(async (req) => {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", response.status);
       return new Response(JSON.stringify({ error: "خطأ في خدمة الذكاء الاصطناعي" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -105,8 +104,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
-    console.error("ai-assistant error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    console.error("ai-assistant error:", e instanceof Error ? e.message : "Unknown error");
+    return new Response(JSON.stringify({ error: "حدث خطأ داخلي" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
