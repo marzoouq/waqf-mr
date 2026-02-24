@@ -1,86 +1,102 @@
 
 
-# خطة إصلاح المشاكل المتبقية (5 إصلاحات في 6 ملفات)
-
-بعد الفحص الجنائي المباشر للكود الحالي (بعد آخر تعديلات)، إليك الوضع الحقيقي:
+# خطة إصلاح المشاكل الأربع المؤكدة
 
 ---
 
-## ما تم إصلاحه بالفعل (لا يحتاج تدخل)
+## المشاكل المؤكدة بالكود الحالي
 
-| الملاحظة | الحالة |
-|----------|--------|
-| `ProtectedRoute.tsx` يستورد supabase مباشرة | مُصلح -- يستخدم `signOut()` من AuthContext |
-| `useIdleTimeout` يعيد تسجيل listeners | مُصلح -- `onIdleRef` مستخدم |
-| `FiscalYearContext` initializer و handleSet بدون try/catch | مُصلح جزئياً (تبقى سطر واحد) |
-
----
-
-## المشاكل المتبقية الحقيقية
-
-### 1. نوع الإشعار `'payment'` غير صالح -- الإشعارات تفشل صامتاً (4 مواقع)
-
-**الخطورة: عالية -- وظيفي معطّل**
-
-دالة `notify_all_beneficiaries` في قاعدة البيانات تقبل فقط: `info | warning | error | success`. القيمة `'payment'` تتسبب في `RAISE EXCEPTION` مما يعني أن الإشعار لا يُرسل أبداً.
-
-**المواقع المتأثرة:**
-- `src/hooks/useIncome.ts` السطر 23: `'payment'`
-- `src/hooks/useExpenses.ts` السطر 23: `'payment'`
-- `src/pages/dashboard/AccountsPage.tsx` السطر 282: `'payment'`
-- `src/pages/dashboard/AccountsPage.tsx` السطر 289: `'payment'`
-
-**اكتشاف إضافي:** `src/hooks/useMessaging.ts` السطر 102 يستخدم `'message'` كنوع -- هذا لا يفشل لأن `notifyUser` يكتب مباشرة في الجدول (بدون RPC validation)، لكنه غير متسق مع الأنواع المعرّفة.
-
-**الإصلاح:** تغيير `'payment'` إلى `'info'` في المواقع الأربعة، و`'message'` إلى `'info'` في useMessaging.
-
-### 2. `Auth.tsx` السطر 287 -- `supabase.auth.signOut()` مباشرة
-
-**الخطورة: متوسطة -- معماري**
-
-زر تسجيل الخروج عند فشل جلب الدور (roleWaitTimeout) يستدعي `supabase.auth.signOut()` مباشرة بدلاً من `signOut()` من `useAuth()`. هذا يترك حالة `role` في AuthContext غير متزامنة.
-
-**الإصلاح:** استبدال `await supabase.auth.signOut()` بـ `await signOut()` (المستورد بالفعل في السطر 27).
-
-### 3. `useMessaging.ts` السطر 29 -- قناة Realtime ثابتة
-
-**الخطورة: منخفضة -- أداء**
-
-كل المستخدمين يشتركون في نفس القناة `'conversations-realtime'` بدون فلترة. كل تغيير في أي محادثة يُرسل لكل المستخدمين المتصلين ويتسبب في invalidation غير ضروري.
-
-**الإصلاح:** تغيير اسم القناة إلى `` `conversations-${user.id}` ``.
-
-### 4. `FiscalYearContext.tsx` السطر 35 -- `localStorage.removeItem` بدون try/catch
-
-**الخطورة: منخفضة -- دفاعي**
-
-الاستدعاء داخل `useEffect` (التحقق من صحة القيمة المخزنة) لا يزال بدون حماية رغم أن `handleSetFiscalYearId` تم لفّه.
-
-**الإصلاح:** لف السطر 35 بـ try/catch.
-
-### 5. `admin-manage-users` -- `delete_user` بدون `validateUuid`
-
-**الخطورة: منخفضة -- أمني**
-
-جميع العمليات الأخرى (`update_email`, `update_password`, `confirm_email`, `set_role`) تتحقق من UUID باستخدام `validateUuid(userId)`. `delete_user` تتحقق فقط من `!userId` بدون التحقق من صحة الصيغة.
-
-**الإصلاح:** إضافة `validateUuid(userId)` في حالة `delete_user`.
+| # | المشكلة | الخطورة |
+|---|---------|---------|
+| 1 | `waqif` يُوجَّه إلى `/dashboard` المحظور عليه -- يرى `/unauthorized` دائما | عالية |
+| 2 | `bulk_create_users` يطلب 8 أحرف بينما بقية النظام يطلب 6 | متوسطة |
+| 3 | `BulkNotificationsTab` يعرض أنواع `payment` و `message` غير صالحة + يكتب مباشرة بدون RPC | متوسطة |
+| 4 | `list_users` محدود بـ 100 بدون pagination | منخفضة |
 
 ---
 
-## ملخص التغييرات
+## التغييرات المطلوبة
 
-| # | الملف | التغيير |
-|---|-------|---------|
-| 1 | `src/hooks/useIncome.ts` | `'payment'` -> `'info'` (سطر 23) |
-| 2 | `src/hooks/useExpenses.ts` | `'payment'` -> `'info'` (سطر 23) |
-| 3 | `src/pages/dashboard/AccountsPage.tsx` | `'payment'` -> `'info'` (سطران: 282 و 289) |
-| 4 | `src/hooks/useMessaging.ts` | `'message'` -> `'info'` (سطر 102) + قناة Realtime فريدة (سطر 29) |
-| 5 | `src/pages/Auth.tsx` | `supabase.auth.signOut()` -> `signOut()` (سطر 287) |
-| 6 | `src/contexts/FiscalYearContext.tsx` | try/catch لـ `localStorage.removeItem` (سطر 35) |
-| 7 | `supabase/functions/admin-manage-users/index.ts` | إضافة `validateUuid(userId)` في `delete_user` (سطر 179) |
+### 1. `src/pages/Auth.tsx` (سطر 68)
 
-## تحديث الاختبارات
+فصل `waqif` عن `admin/accountant` وتوجيهه إلى `/beneficiary`:
 
-- `src/hooks/useNotifications.test.ts` يستخدم `'payment'` و `'message'` كأنواع -- يجب تحديثها إلى `'info'` و `'success'` لتتوافق مع الأنواع الصالحة.
+```text
+// قبل:
+} else if (role === 'admin' || role === 'waqif' || role === 'accountant') {
+  navigate('/dashboard');
+
+// بعد:
+} else if (role === 'admin' || role === 'accountant') {
+  navigate('/dashboard');
+} else if (role === 'waqif') {
+  navigate('/beneficiary');
+}
+```
+
+### 2. `supabase/functions/admin-manage-users/index.ts` (سطر 279)
+
+توحيد الحد الأدنى لكلمة المرور من 8 إلى 6:
+
+```text
+// قبل:
+u.password.length < 8
+
+// بعد:
+u.password.length < 6
+```
+
+وتحديث رسالة الخطأ من `"Password must be 8-128 characters"` إلى `"كلمة المرور يجب أن تكون بين 6 و128 حرفاً"`.
+
+### 3. `src/components/settings/BulkNotificationsTab.tsx`
+
+**تغييران:**
+
+**أ) الأنواع في Select (سطر 117-121):** استبدال `payment` و `message` بأنواع صالحة:
+
+```text
+// قبل:
+<SelectItem value="info">... معلومات</SelectItem>
+<SelectItem value="payment">... مالي</SelectItem>
+<SelectItem value="warning">... تحذير</SelectItem>
+<SelectItem value="message">... رسالة</SelectItem>
+
+// بعد:
+<SelectItem value="info">... معلومات</SelectItem>
+<SelectItem value="success">... نجاح</SelectItem>
+<SelectItem value="warning">... تحذير</SelectItem>
+<SelectItem value="error">... تنبيه</SelectItem>
+```
+
+**ب) الإرسال المحدد (سطر 77):** استبدال `insert` المباشر بـ `notifyUser` من `@/utils/notifications` لضمان الاتساق المعماري:
+
+```text
+// قبل:
+const { error } = await supabase.from('notifications').insert(notifications);
+
+// بعد:
+for (const b of selectedBeneficiaries) {
+  notifyUser(b.user_id!, title.trim(), message.trim(), type, link.trim() || undefined);
+}
+```
+
+### 4. `supabase/functions/admin-manage-users/index.ts` (سطر 111)
+
+زيادة `perPage` من 100 إلى 500:
+
+```text
+// قبل:
+const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 100 });
+
+// بعد:
+const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 500 });
+```
+
+---
+
+## الملفات المتأثرة
+
+1. `src/pages/Auth.tsx` -- توجيه waqif إلى `/beneficiary`
+2. `supabase/functions/admin-manage-users/index.ts` -- توحيد كلمة المرور + زيادة perPage
+3. `src/components/settings/BulkNotificationsTab.tsx` -- أنواع صالحة + notifyUser بدل insert
 
