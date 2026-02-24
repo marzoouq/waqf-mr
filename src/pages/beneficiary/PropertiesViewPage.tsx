@@ -66,6 +66,12 @@ const PropertiesViewPage = () => {
     rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
   ).length ?? 0;
 
+  // حساب العقارات بدون وحدات وبدون عقود (شاغرة)
+  const propertiesWithoutUnitsNoContract = (properties ?? []).filter(p => {
+    const pUnits = units?.filter(u => u.property_id === p.id) ?? [];
+    return pUnits.length === 0 && !wholePropertyIds.has(p.id);
+  }).length;
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
@@ -74,7 +80,7 @@ const PropertiesViewPage = () => {
         {/* بطاقات الملخص الإجمالية */}
         {(() => {
           const totalProperties = properties?.length ?? 0;
-          const totalVacant = totalUnits - occupiedUnits;
+          const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
 
           // المؤشرات المالية
           const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
