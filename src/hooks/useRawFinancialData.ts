@@ -12,12 +12,12 @@ export const useRawFinancialData = (fiscalYearId?: string) => {
   const fyFilter = fiscalYearId || 'all';
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
-  const { data: accounts = [], isLoading: accLoading } = useAccounts();
-  const { data: beneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
+  const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccounts();
+  const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: settings } = useAppSettings();
 
   const isLoading = incLoading || expLoading || accLoading || benLoading;
-  const isError = incError || expError;
+  const isError = incError || expError || accError || benError;
 
   return { income, expenses, accounts, beneficiaries, settings, isLoading, isError };
 };

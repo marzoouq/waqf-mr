@@ -63,8 +63,8 @@
 ## التشغيل المحلي
 
 ```sh
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
+git clone https://github.com/marzoouq/waqf-mr.git
+cd waqf-mr
 npm i
 npm run dev
 ```
