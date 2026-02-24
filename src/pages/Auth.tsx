@@ -71,7 +71,7 @@ const Auth = () => {
     }
   }, [user, role, loading, navigate]);
 
-  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 2 ثانية (يعتمد على AuthContext)
+  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 5 ثوانٍ (يعتمد على AuthContext)
   const [roleWaitTimeout, setRoleWaitTimeout] = useState(false);
   useEffect(() => {
     if (!user || loading || role) {
@@ -79,9 +79,9 @@ const Auth = () => {
       return;
     }
     const timer = setTimeout(() => {
-      console.warn('[Auth] Role not resolved after 2s from AuthContext');
+      console.warn('[Auth] Role not resolved after 5s from AuthContext');
       setRoleWaitTimeout(true);
-    }, 2000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 
