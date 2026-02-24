@@ -195,12 +195,19 @@ const PropertiesViewPage = () => {
               // حساب الإشغال من العقود المفلترة بالسنة المالية
               const propertyContracts = contracts.filter(c => c.property_id === property.id);
               const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
-              const isWholePropertyRented = propertyContracts.some(c => !c.unit_id);
+              const hasWholePropertyContract = propertyContracts.some(c => !c.unit_id);
 
-              const rented = isWholePropertyRented ? total : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              // الأولوية للوحدات: إذا كان للعقار وحدات، نحسب من عقود الوحدات فقط
+              const isWholePropertyRented = total === 0 && hasWholePropertyContract;
+              const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              const rented = (total > 0 && hasWholePropertyContract && unitBasedRented === 0)
+                ? total
+                : (isWholePropertyRented ? total : unitBasedRented);
               const vacant = total - rented;
               const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
-              const occupancy = total > 0 ? Math.round((rented / total) * 100) : 0;
+              const occupancy = total > 0
+                ? Math.round((rented / total) * 100)
+                : isWholePropertyRented ? 100 : 0;
 
               // الإيرادات التعاقدية (جميع العقود المرتبطة)
               const allPropertyContracts = contracts.filter(c => c.property_id === property.id);

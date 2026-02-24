@@ -318,9 +318,14 @@ const PropertiesPage = () => {
               const propertyUnits = allUnits.filter(u => u.property_id === property.id);
               const propContracts = contracts.filter(c => c.property_id === property.id);
               const rentedUnitIdsForProp = new Set(propContracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-              const isWholePropertyRented = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
+              const hasWholePropertyContract = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
               const totalUnits = propertyUnits.length;
-              const rented = isWholePropertyRented ? totalUnits : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              // الأولوية للوحدات: إذا كان للعقار وحدات، نحسب من عقود الوحدات فقط
+              const isWholePropertyRented = totalUnits === 0 && hasWholePropertyContract;
+              const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              const rented = (totalUnits > 0 && hasWholePropertyContract && unitBasedRented === 0)
+                ? totalUnits
+                : (isWholePropertyRented ? totalUnits : unitBasedRented);
               const vacant = totalUnits - rented;
               const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
               // توحيد منطق الإشغال: عقار بدون وحدات مع عقد = 100%، بدون عقد = 0%
