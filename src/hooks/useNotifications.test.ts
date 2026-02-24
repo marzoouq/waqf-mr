@@ -5,8 +5,8 @@ import { describe, it, expect } from 'vitest';
 describe('Notification filtering logic', () => {
   const notifications = [
     { id: '1', is_read: false, type: 'info', title: 'A', message: 'msg', created_at: '2024-01-01', user_id: 'u1', link: null },
-    { id: '2', is_read: true, type: 'payment', title: 'B', message: 'msg', created_at: '2024-01-02', user_id: 'u1', link: null },
-    { id: '3', is_read: false, type: 'message', title: 'C', message: 'msg', created_at: '2024-01-03', user_id: 'u1', link: null },
+    { id: '2', is_read: true, type: 'success', title: 'B', message: 'msg', created_at: '2024-01-02', user_id: 'u1', link: null },
+    { id: '3', is_read: false, type: 'info', title: 'C', message: 'msg', created_at: '2024-01-03', user_id: 'u1', link: null },
     { id: '4', is_read: true, type: 'info', title: 'D', message: 'msg', created_at: '2024-01-04', user_id: 'u1', link: null },
     { id: '5', is_read: false, type: 'warning', title: 'E', message: 'msg', created_at: '2024-01-05', user_id: 'u1', link: null },
   ];
@@ -23,13 +23,13 @@ describe('Notification filtering logic', () => {
 
   it('filters by type correctly', () => {
     const infoOnly = notifications.filter(n => n.type === 'info');
-    expect(infoOnly).toHaveLength(2);
+    expect(infoOnly).toHaveLength(3);
   });
 
   it('extracts unique types correctly', () => {
     const uniqueTypes = [...new Set(notifications.map(n => n.type))];
-    expect(uniqueTypes).toEqual(expect.arrayContaining(['info', 'payment', 'message', 'warning']));
-    expect(uniqueTypes).toHaveLength(4);
+    expect(uniqueTypes).toEqual(expect.arrayContaining(['info', 'success', 'warning']));
+    expect(uniqueTypes).toHaveLength(3);
   });
 
   it('returns all when type filter is "all"', () => {

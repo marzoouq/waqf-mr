@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
       }
 
       case "delete_user": {
-        if (!userId) throw new Error("userId required");
+        validateUuid(userId);
         await adminClient.from("beneficiaries").delete().eq("user_id", userId);
         await adminClient.from("user_roles").delete().eq("user_id", userId);
         const { error } = await adminClient.auth.admin.deleteUser(userId);
