@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * يحوّل رسائل الخطأ التقنية إلى رسائل آمنة للمستخدم
  * بدون كشف تفاصيل قاعدة البيانات أو البنية الداخلية
@@ -32,7 +34,7 @@ export function getSafeErrorMessage(error: unknown): string {
 
   // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
   if (typeof window !== 'undefined' && import.meta.env.DEV) {
-    console.error('[App Error]', error);
+    logger.error('[App Error]', error);
   }
   return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً';
 }
