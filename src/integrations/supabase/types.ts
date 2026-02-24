@@ -916,6 +916,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_bylaws: { Args: { items: Json }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "beneficiary" | "waqif" | "accountant"

@@ -15,10 +15,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    
-    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -36,7 +33,6 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userError } = await userClient.auth.getUser();
     if (userError || !userData?.user) {
-      
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,7 +40,6 @@ Deno.serve(async (req) => {
     }
 
     const callerId = userData.user.id;
-    
 
     // Check admin role using service role client to bypass RLS
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
@@ -107,9 +102,8 @@ Deno.serve(async (req) => {
       case "list_users": {
         const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 500 });
         if (error) throw error;
-        
         const { data: roles } = await adminClient.from("user_roles").select("*");
-        
+
         const users = data.users.map((u) => ({
           id: u.id,
           email: u.email,
@@ -118,7 +112,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u.last_sign_in_at,
           role: roles?.find((r) => r.user_id === u.id)?.role || null,
         }));
-        
+
         return new Response(JSON.stringify({ users }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -195,7 +189,7 @@ Deno.serve(async (req) => {
           email_confirm: true,
         });
         if (error) throw error;
-        
+
         if (body.role) {
           await adminClient.from("user_roles").insert({
             user_id: newUser.user.id,
@@ -240,7 +234,7 @@ Deno.serve(async (req) => {
               .eq("id", beneficiary.id);
           }
         }
-        
+
         if (body.role === "beneficiary") {
           await adminClient.rpc('notify_admins', {
             p_title: 'مستفيد جديد',
@@ -319,12 +313,12 @@ Deno.serve(async (req) => {
           }
         }
 
-        return new Response(JSON.stringify({ 
-          success: true, 
-          created: results.length, 
+        return new Response(JSON.stringify({
+          success: true,
+          created: results.length,
           failed: errors.length,
           results,
-          errors 
+          errors
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
