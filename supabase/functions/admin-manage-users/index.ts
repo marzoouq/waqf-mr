@@ -222,10 +222,14 @@ Deno.serve(async (req) => {
         if (error) throw error;
 
         if (body.role) {
-          await adminClient.from("user_roles").insert({
+          const { error: roleError } = await adminClient.from("user_roles").insert({
             user_id: newUser.user.id,
             role: body.role,
           });
+          if (roleError) {
+            await adminClient.auth.admin.deleteUser(newUser.user.id);
+            throw new Error("فشل تعيين الدور");
+          }
         }
 
         if (body.role === "beneficiary") {
@@ -239,18 +243,28 @@ Deno.serve(async (req) => {
             const updateData: Record<string, unknown> = { user_id: newUser.user.id };
             if (body.nationalId) updateData.national_id = body.nationalId;
             if (body.name) updateData.name = body.name;
-            await adminClient
+            const { error: benError } = await adminClient
               .from("beneficiaries")
               .update(updateData)
               .eq("id", existingBeneficiary.id);
+            if (benError) {
+              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              throw new Error("فشل تحديث بيانات المستفيد");
+            }
           } else {
-            await adminClient.from("beneficiaries").insert({
+            const { error: benError } = await adminClient.from("beneficiaries").insert({
               name: body.name || email.split("@")[0],
               email: email,
               share_percentage: 0,
               user_id: newUser.user.id,
               national_id: body.nationalId || null,
             });
+            if (benError) {
+              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              throw new Error("فشل إنشاء المستفيد");
+            }
           }
         } else if (body.nationalId) {
           const { data: beneficiary } = await adminClient
@@ -272,7 +286,7 @@ Deno.serve(async (req) => {
             p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          });
+          }).catch(() => {});
         }
 
         return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
@@ -314,7 +328,7 @@ Deno.serve(async (req) => {
               email_confirm: true,
             });
             if (createError) {
-              errors.push({ email: u.email, error: createError.message });
+              errors.push({ email: u.email, error: "فشل إنشاء المستخدم" });
               continue;
             }
 
@@ -324,7 +338,7 @@ Deno.serve(async (req) => {
             });
             if (roleError) {
               await adminClient.auth.admin.deleteUser(newUser.user.id);
-              errors.push({ email: u.email, error: "فشل تعيين الدور: " + roleError.message });
+              errors.push({ email: u.email, error: "فشل تعيين الدور" });
               continue;
             }
 
@@ -338,7 +352,7 @@ Deno.serve(async (req) => {
             if (benError) {
               await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
               await adminClient.auth.admin.deleteUser(newUser.user.id);
-              errors.push({ email: u.email, error: "فشل إنشاء المستفيد: " + benError.message });
+              errors.push({ email: u.email, error: "فشل إنشاء المستفيد" });
               continue;
             }
 
@@ -351,7 +365,7 @@ Deno.serve(async (req) => {
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch (err) {
-            errors.push({ email: u.email, error: (err as Error).message });
+            errors.push({ email: u.email, error: "خطأ غير متوقع" });
           }
         }
 

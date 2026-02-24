@@ -90,8 +90,9 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error("auto-expire-contracts error:", message);
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: 'حدث خطأ أثناء تحديث العقود' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
