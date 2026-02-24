@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -37,6 +38,7 @@ const ReportsPage = () => {
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
     incomeBySource, expensesByType,
+    isLoading,
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel);
 
   const beneficiariesShare = availableAmount;
@@ -252,6 +254,18 @@ const ReportsPage = () => {
         </div>
 
         {/* Summary Cards */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-3 sm:p-4 space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-7 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
@@ -278,6 +292,7 @@ const ReportsPage = () => {
             </CardContent>
           </Card>
         </div>
+        )}
 
         <Tabs defaultValue="financial" dir="rtl">
           <TabsList className="print:hidden w-full sm:w-auto">

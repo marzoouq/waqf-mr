@@ -30,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
   const roleFetchIdRef = useRef(0);
+  const lastUserIdRef = useRef<string | null>(null);
 
   // === الخطوة 1: onAuthStateChange يحدّث user/session فقط (بدون await) ===
   useEffect(() => {
@@ -37,13 +38,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        const newUserId = currentSession?.user?.id ?? null;
+
+        // حماية ضد الأحداث المتكررة لنفس المستخدم (INITIAL_SESSION + SIGNED_IN)
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newUserId && newUserId === lastUserIdRef.current && role) {
+          console.warn('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
+          return;
+        }
+
         console.warn('[Auth] onAuthStateChange:', event);
+        lastUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
         if (!currentSession?.user) {
           setRole(null);
           setLoading(false);
+          lastUserIdRef.current = null;
         }
         setAuthReady(true);
         initialSessionHandled = true;

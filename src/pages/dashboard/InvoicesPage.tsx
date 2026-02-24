@@ -20,6 +20,7 @@ import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import TablePagination from '@/components/TablePagination';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -220,6 +221,47 @@ const InvoicesPage = () => {
   return (
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+        {/* Summary Cards */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-3 sm:p-4 space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-7 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card className="shadow-sm">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الفواتير</p>
+                <p className="text-lg sm:text-2xl font-bold">{invoices.length}</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">المدفوعة</p>
+                <p className="text-lg sm:text-2xl font-bold text-success">{invoices.filter(i => i.status === 'paid').length}</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">المعلقة</p>
+                <p className="text-lg sm:text-2xl font-bold text-warning">{invoices.filter(i => i.status === 'pending').length}</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المبالغ</p>
+                <p className="text-lg sm:text-2xl font-bold text-primary">{invoices.reduce((s, i) => s + Number(i.amount), 0).toLocaleString()} ر.س</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة الفواتير</h1>

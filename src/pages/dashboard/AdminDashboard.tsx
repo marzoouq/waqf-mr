@@ -13,12 +13,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { useTenantPayments } from '@/hooks/useTenantPayments';
 import { Badge } from '@/components/ui/badge';
 import { differenceInMonths } from 'date-fns';
 
 const AdminDashboard = () => {
+  const { role } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
@@ -171,7 +173,7 @@ const AdminDashboard = () => {
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">لوحة التحكم</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              مرحباً بك في نظام إدارة الوقف
+              {role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : role === 'waqif' ? 'مرحباً بك، الواقف' : 'مرحباً بك، ناظر الوقف'}
               {fiscalYear && <span className="text-primary font-medium"> — {fiscalYear.label}</span>}
             </p>
           </div>
@@ -243,6 +245,46 @@ const AdminDashboard = () => {
                     )}
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Quick Actions for Accountant */}
+        {role === 'accountant' && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="w-5 h-5" />
+                إجراءات سريعة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Link to="/dashboard/income">
+                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <TrendingUp className="w-5 h-5 text-success" />
+                    <span className="text-xs">تسجيل دخل</span>
+                  </Button>
+                </Link>
+                <Link to="/dashboard/expenses">
+                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <TrendingDown className="w-5 h-5 text-destructive" />
+                    <span className="text-xs">تسجيل مصروف</span>
+                  </Button>
+                </Link>
+                <Link to="/dashboard/accounts">
+                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <span className="text-xs">الحسابات الختامية</span>
+                  </Button>
+                </Link>
+                <Link to="/dashboard/invoices">
+                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                    <FileText className="w-5 h-5 text-secondary" />
+                    <span className="text-xs">إدارة الفواتير</span>
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
