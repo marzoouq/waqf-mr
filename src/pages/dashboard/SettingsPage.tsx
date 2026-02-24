@@ -18,7 +18,7 @@ const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotifi
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
-import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

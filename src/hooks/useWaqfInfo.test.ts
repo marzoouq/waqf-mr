@@ -5,7 +5,7 @@ vi.mock('./useAppSettings', () => ({
 }));
 
 import { useAppSettings } from './useAppSettings';
-import { useWaqfInfo } from './useWaqfInfo';
+import { useWaqfInfo } from './useAppSettings';
 
 const mockedUseAppSettings = vi.mocked(useAppSettings);
 

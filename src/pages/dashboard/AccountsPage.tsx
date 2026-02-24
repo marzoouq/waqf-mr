@@ -278,14 +278,14 @@ const AccountsPage = () => {
 
       notifyAllBeneficiaries(
         'تحديث الحسابات الختامية',
-        `تم تحديث الحسابات الختامية للسنة المالية ${fiscalYear}`,
+        `تم تحديث الحسابات الختامية للسنة المالية ${selectedFY?.label || fiscalYear}`,
         'info',
         '/beneficiary/accounts',
       );
       if (manualDistributions > 0) {
         notifyAllBeneficiaries(
           'تحديث التوزيعات المالية',
-          `تم تحديث توزيعات الأرباح للسنة المالية ${fiscalYear}. يرجى مراجعة حصتك`,
+          `تم تحديث توزيعات الأرباح للسنة المالية ${selectedFY?.label || fiscalYear}. يرجى مراجعة حصتك`,
           'info',
           '/beneficiary/my-share',
         );
