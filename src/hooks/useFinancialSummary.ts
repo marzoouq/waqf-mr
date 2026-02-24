@@ -10,7 +10,7 @@ export { useComputedFinancials } from '@/hooks/useComputedFinancials';
 
 export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string) => {
   const { income, expenses, accounts, beneficiaries, settings, isLoading, isError } =
-    useRawFinancialData(fiscalYearId);
+    useRawFinancialData(fiscalYearId, fiscalYearLabel);
 
   const computed = useComputedFinancials({
     income,
