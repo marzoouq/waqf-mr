@@ -298,7 +298,7 @@ const AccountsPage = () => {
     try {
       // Step A: Auto-save final account snapshot before closing
       await createAccount.mutateAsync({
-        fiscal_year: fiscalYear,
+        fiscal_year: selectedFY?.label || fiscalYear,
         total_income: totalIncome,
         total_expenses: totalExpenses,
         admin_share: adminShare,
