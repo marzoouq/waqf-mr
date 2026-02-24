@@ -9,12 +9,11 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { Button } from '@/components/ui/button';
-
-type AllowedRole = 'admin' | 'beneficiary' | 'waqif' | 'accountant';
+import type { AppRole } from '@/types/database';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: AllowedRole[];
+  allowedRoles?: AppRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
@@ -24,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
   const isUnauthorized =
     !loading && !!user && !!allowedRoles && !!role &&
-    !allowedRoles.includes(role as AllowedRole);
+    !allowedRoles.includes(role as AppRole);
 
   useEffect(() => {
     if (isUnauthorized && !loggedRef.current) {
