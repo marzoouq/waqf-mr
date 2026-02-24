@@ -1,90 +1,123 @@
 
 
-# اصلاح ارقام مقارنة أداء العقارات في صفحة التقارير
+# إصلاح تناقض أرقام الإشغال - عقار 102
 
-## المشكلة
+## تحليل المشكلة
 
-تقرير "مقارنة أداء العقارات" في صفحة التقارير يحتوي على مشكلتين رئيسيتين تؤدي لأرقام خاطئة:
+عقار **102** يحتوي على 9 وحدات. البطاقة تعرض **4 شاغرة** بينما المتوقع **3 شاغرة**.
 
-### المشكلة الأولى: حساب الإشغال خاطئ
-التقرير يستخدم حقل `status` الثابت على جدول الوحدات (`u.status === 'مؤجرة'`) بدلاً من العقود النشطة كما في صفحة العقارات.
+### السبب الجذري
 
-| العقار | التقرير (خاطئ) | صفحة العقارات (صحيح) | السبب |
-|--------|---------------|---------------------|-------|
-| 001 | 83% (5/6 بالحالة) | 100% (عقد كامل) | التقرير يتجاهل العقد الكامل |
-| 101 | 50% (4/8) | 50% (4/8) | متطابق بالصدفة |
-| 102 | 67% (6/9 بالحالة) | 56% (5/9 بالعقود) | 6 وحدات "مؤجرة" بالحالة لكن فقط 5 عقود نشطة |
+وحدة **"محل شاورما"** حالتها في جدول الوحدات = "مؤجرة"، لكن عقدها الوحيد (`10704863701`) منتهي من السنة المالية السابقة ولم يُجدد في السنة الحالية.
 
-### المشكلة الثانية: العقود غير مفلترة بالسنة المالية
-- **العقود**: تستخدم `useContracts()` الذي يجلب كل العقود من كل السنوات
-- **المصروفات**: تأتي من `useFinancialSummary` وهي مفلترة بالسنة المالية
-- **النتيجة**: الإيرادات التعاقدية تشمل كل السنوات بينما المصروفات لسنة واحدة فقط = صافي دخل مضلل
+| الوحدة | حالة الوحدة | عقد نشط؟ | النتيجة في البطاقة |
+|--------|-----------|----------|-------------------|
+| شقة 1-4, 8 | مؤجرة | نعم | مؤجرة (صحيح) |
+| شقة 5, 6, 7 | شاغرة | لا | شاغرة (صحيح) |
+| محل شاورما | مؤجرة | **لا** | **شاغرة** (تناقض) |
 
-## الحل
+النظام يعتمد على العقود النشطة (وهو المنطق الصحيح)، لكن حالة الوحدة لم تُحدث تلقائياً عند انتهاء العقد.
 
-### 1. استبدال `useContracts()` بـ `useContractsByFiscalYear()`
-استخدام نفس hook الفلترة المستخدم في صفحة العقارات لضمان تطابق البيانات.
+## الحل المقترح
 
-### 2. توحيد منطق الإشغال مع صفحة العقارات
-نقل حساب الإشغال ليعتمد على العقود النشطة بدلاً من حالة الوحدة الثابتة، مع مراعاة:
-- العقود الكاملة (بدون unit_id)
-- أولوية عقود الوحدات عند وجود وحدات مسجلة
-- نفس المنطق المُصحح سابقاً في PropertiesPage
+### 1. مزامنة تلقائية لحالة الوحدات مع العقود
+
+إنشاء دالة قاعدة بيانات تُحدث حالة الوحدة تلقائياً عند:
+- إنشاء عقد جديد مرتبط بوحدة = تحويل الحالة إلى "مؤجرة"
+- انتهاء/إلغاء عقد = التحقق من وجود عقد نشط آخر، وإلا تحويل الحالة إلى "شاغرة"
+
+### 2. إضافة تنبيه مرئي للتناقضات
+
+في بطاقة العقار، إذا وُجدت وحدة حالتها "مؤجرة" بدون عقد نشط (أو العكس)، يظهر تنبيه بسيط يوجه الناظر لمراجعة الحالة.
+
+### 3. إصلاح فوري للبيانات الحالية
+
+تحديث حالة "محل شاورما" إلى "شاغرة" لمطابقة واقع العقود.
 
 ## التفاصيل التقنية
 
-### الملف: `src/pages/dashboard/ReportsPage.tsx`
+### Migration SQL
 
-**التغيير 1** - استبدال import (سطر 6):
-```typescript
-// قبل
-import { useContracts } from '@/hooks/useContracts';
-// بعد
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+```sql
+-- إصلاح البيانات: تحديث حالة محل شاورما
+UPDATE units SET status = 'شاغرة'
+WHERE id = '648c5c71-090f-4c12-9df0-09e15dee7f54'
+  AND NOT EXISTS (
+    SELECT 1 FROM contracts
+    WHERE unit_id = '648c5c71-090f-4c12-9df0-09e15dee7f54'
+      AND status = 'active'
+  );
+
+-- دالة مزامنة حالة الوحدة تلقائياً عند تغيير العقود
+CREATE OR REPLACE FUNCTION public.sync_unit_status_on_contract_change()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  target_unit_id uuid;
+  has_active boolean;
+BEGIN
+  -- تحديد الوحدة المتأثرة
+  IF TG_OP = 'DELETE' THEN
+    target_unit_id := OLD.unit_id;
+  ELSE
+    target_unit_id := NEW.unit_id;
+    -- إذا تغيرت الوحدة في UPDATE، نعالج الوحدة القديمة أيضاً
+    IF TG_OP = 'UPDATE' AND OLD.unit_id IS DISTINCT FROM NEW.unit_id AND OLD.unit_id IS NOT NULL THEN
+      SELECT EXISTS (
+        SELECT 1 FROM contracts WHERE unit_id = OLD.unit_id AND status = 'active'
+      ) INTO has_active;
+      IF NOT has_active THEN
+        UPDATE units SET status = 'شاغرة' WHERE id = OLD.unit_id AND status = 'مؤجرة';
+      END IF;
+    END IF;
+  END IF;
+
+  IF target_unit_id IS NULL THEN
+    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+  END IF;
+
+  -- التحقق من وجود عقد نشط للوحدة
+  SELECT EXISTS (
+    SELECT 1 FROM contracts WHERE unit_id = target_unit_id AND status = 'active'
+  ) INTO has_active;
+
+  IF has_active THEN
+    UPDATE units SET status = 'مؤجرة' WHERE id = target_unit_id AND status != 'صيانة';
+  ELSE
+    UPDATE units SET status = 'شاغرة' WHERE id = target_unit_id AND status = 'مؤجرة';
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END;
+$$;
+
+-- ربط الدالة بجدول العقود
+CREATE TRIGGER sync_unit_status_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON contracts
+  FOR EACH ROW
+  EXECUTE FUNCTION sync_unit_status_on_contract_change();
 ```
 
-**التغيير 2** - استبدال hook (سطر 26):
+### تعديل `src/pages/dashboard/PropertiesPage.tsx`
+
+إضافة تنبيه بسيط في بطاقة العقار عند وجود تناقض بين حالة الوحدة والعقود:
+
 ```typescript
-// قبل
-const { data: contracts = [] } = useContracts();
-// بعد
-const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
+// بعد حساب rented و vacant
+const statusMismatch = propertyUnits.filter(u =>
+  (u.status === 'مؤجرة' && !rentedUnitIdsForProp.has(u.id) && !hasWholePropertyContract) ||
+  (u.status === 'شاغرة' && rentedUnitIdsForProp.has(u.id))
+).length;
 ```
 
-**التغيير 3** - اصلاح منطق الإشغال (سطور 85-101):
-```typescript
-const propertyPerformance = properties.map((property) => {
-    const propertyUnits = allUnits.filter(u => u.property_id === property.id);
-    const totalUnitsCount = propertyUnits.length;
-    const isSpecificYear = fiscalYearId !== 'all';
-    
-    const propContracts = contracts.filter(c => c.property_id === property.id);
-    const rentedUnitIds = new Set(
-      propContracts
-        .filter(c => (isSpecificYear || c.status === 'active') && c.unit_id)
-        .map(c => c.unit_id)
-    );
-    const hasWholePropertyContract = propContracts.some(
-      c => (isSpecificYear || c.status === 'active') && !c.unit_id
-    );
-    
-    const isWholePropertyRented = totalUnitsCount === 0 && hasWholePropertyContract;
-    const unitBasedRented = propertyUnits.filter(u => rentedUnitIds.has(u.id)).length;
-    const rented = (totalUnitsCount > 0 && hasWholePropertyContract && unitBasedRented === 0)
-      ? totalUnitsCount
-      : (isWholePropertyRented ? totalUnitsCount : unitBasedRented);
+إذا كان `statusMismatch > 0`، يُعرض شارة تحذيرية صغيرة بجانب أرقام الإشغال.
 
-    let occupancy: number;
-    if (totalUnitsCount > 0) {
-      occupancy = Math.round((rented / totalUnitsCount) * 100);
-    } else if (isWholePropertyRented) {
-      occupancy = 100;
-    } else {
-      occupancy = 0;
-    }
-    // ... باقي الحسابات تبقى كما هي
-});
-```
+### النتيجة المتوقعة
 
-هذا يضمن تطابق ارقام الإشغال والإيرادات بين صفحة التقارير وصفحة العقارات.
-
+بعد التطبيق:
+- محل شاورما تتحول حالته تلقائياً إلى "شاغرة" (لعدم وجود عقد نشط)
+- مستقبلاً: عند إضافة أو إلغاء عقد، تتحدث حالة الوحدة تلقائياً
+- يظهر تنبيه مرئي إذا وُجد تناقض لأي سبب
