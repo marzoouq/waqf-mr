@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -351,6 +352,21 @@ const ContractsPage = () => {
         </div>
 
         {/* مربعات إحصائية */}
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Card key={i} className="shadow-sm">
+                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <Skeleton className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-5 w-12" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card className="border-info/30 bg-info/5">
              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
@@ -383,6 +399,7 @@ const ContractsPage = () => {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* شريط تنبيه العقود المنتهية مع اختيار انتقائي */}
         {expiredContracts.length > 0 && (
