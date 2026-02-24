@@ -154,6 +154,11 @@ Deno.serve(async (req) => {
       case "set_role": {
         validateUuid(userId);
         validateRole(body.role);
+        if (userId === callerId) {
+          return new Response(JSON.stringify({ error: "لا يمكنك تغيير دورك بنفسك" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         if (!userId || !body.role) throw new Error("userId and role required");
         await adminClient.from("user_roles").delete().eq("user_id", userId);
         const { error } = await adminClient.from("user_roles").insert({
@@ -168,6 +173,11 @@ Deno.serve(async (req) => {
 
       case "delete_user": {
         validateUuid(userId);
+        if (userId === callerId) {
+          return new Response(JSON.stringify({ error: "لا يمكنك حذف حسابك الخاص" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         await adminClient.from("beneficiaries").delete().eq("user_id", userId);
         await adminClient.from("user_roles").delete().eq("user_id", userId);
         const { error } = await adminClient.auth.admin.deleteUser(userId);
