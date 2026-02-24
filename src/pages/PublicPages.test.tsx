@@ -103,6 +103,7 @@ describe('Public pages smoke tests', () => {
   });
 
   it('renders NotFound page', () => {
+    // React Router emits console.error for unmatched routes in test env — safe to mute
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderWithRouter(<NotFound />, '/missing-page');
     expect(screen.getByText('عذراً! الصفحة غير موجودة')).toBeInTheDocument();

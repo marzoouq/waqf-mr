@@ -33,8 +33,6 @@ export function getSafeErrorMessage(error: unknown): string {
   }
 
   // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
-  if (typeof window !== 'undefined' && import.meta.env.DEV) {
-    logger.error('[App Error]', error);
-  }
+  logger.error('[App Error]', error);
   return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً';
 }

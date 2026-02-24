@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      console.error("guard-signup createUser error", createError);
+      console.error("guard-signup createUser error:", createError?.message);
       return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .insert({ user_id: userData.user.id, role: "beneficiary" });
       if (roleError) {
-        console.error("guard-signup role assignment error", roleError);
+        console.error("guard-signup role assignment error:", roleError?.message);
         // لا نفشل العملية — المستخدم أُنشئ بنجاح ويمكن للناظر تعيين الدور لاحقاً
       }
     }
