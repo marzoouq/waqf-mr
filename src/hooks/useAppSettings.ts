@@ -29,6 +29,9 @@ export const useAppSettings = () => {
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
     },
+    onError: () => {
+      toast.error('حدث خطأ أثناء حفظ الإعداد');
+    },
   });
 
   const getJsonSetting = <T>(key: string, fallback: T): T => {

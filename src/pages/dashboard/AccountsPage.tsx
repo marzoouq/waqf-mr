@@ -259,7 +259,7 @@ const AccountsPage = () => {
 
   const handleCreateAccount = async () => {
     await createAccount.mutateAsync({
-      fiscal_year: fiscalYear,
+      fiscal_year: selectedFY?.label || fiscalYear,
       total_income: totalIncome,
       total_expenses: totalExpenses,
       admin_share: adminShare,
