@@ -1,0 +1,68 @@
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import MobileCardView from './MobileCardView';
+
+interface Item { id: string; name: string; amount: number }
+
+const items: Item[] = [
+  { id: '1', name: 'عنصر أ', amount: 100 },
+  { id: '2', name: 'عنصر ب', amount: 200 },
+];
+
+const defaultProps = {
+  items,
+  getKey: (i: Item) => i.id,
+  getTitle: (i: Item) => i.name,
+  getFields: (i: Item) => [{ label: 'المبلغ', value: String(i.amount) }],
+};
+
+describe('MobileCardView', () => {
+  it('renders all items', () => {
+    render(<MobileCardView {...defaultProps} />);
+    expect(screen.getByText('عنصر أ')).toBeInTheDocument();
+    expect(screen.getByText('عنصر ب')).toBeInTheDocument();
+  });
+
+  it('renders field labels and values', () => {
+    render(<MobileCardView {...defaultProps} />);
+    expect(screen.getAllByText('المبلغ')).toHaveLength(2);
+    expect(screen.getByText('100')).toBeInTheDocument();
+  });
+
+  it('renders subtitle when provided', () => {
+    render(<MobileCardView {...defaultProps} getSubtitle={(i) => `فرعي ${i.id}`} />);
+    expect(screen.getByText('فرعي 1')).toBeInTheDocument();
+  });
+
+  it('renders badge when provided', () => {
+    render(<MobileCardView {...defaultProps} getBadge={() => <span>شارة</span>} />);
+    expect(screen.getAllByText('شارة')).toHaveLength(2);
+  });
+
+  it('calls onEdit when edit button clicked', async () => {
+    const onEdit = vi.fn();
+    render(<MobileCardView {...defaultProps} onEdit={onEdit} />);
+    const editButtons = screen.getAllByRole('button');
+    await userEvent.click(editButtons[0]);
+    expect(onEdit).toHaveBeenCalledWith(items[0]);
+  });
+
+  it('calls onDelete when delete button clicked', async () => {
+    const onDelete = vi.fn();
+    render(<MobileCardView {...defaultProps} onDelete={onDelete} />);
+    const deleteButtons = screen.getAllByRole('button');
+    await userEvent.click(deleteButtons[0]);
+    expect(onDelete).toHaveBeenCalledWith(items[0]);
+  });
+
+  it('renders extra actions', () => {
+    render(<MobileCardView {...defaultProps} extraActions={() => <button>إضافي</button>} />);
+    expect(screen.getAllByText('إضافي')).toHaveLength(2);
+  });
+
+  it('renders empty when no items', () => {
+    const { container } = render(<MobileCardView {...defaultProps} items={[]} />);
+    expect(container.querySelectorAll('.shadow-sm')).toHaveLength(0);
+  });
+});
