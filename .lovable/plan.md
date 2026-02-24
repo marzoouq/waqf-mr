@@ -1,86 +1,18 @@
 
 
-# خطة إصلاح المشاكل المكتشفة في الفحص الجنائي النهائي
-
-بعد التحقق من الكود الحالي، تم تأكيد 7 مشاكل حقيقية تحتاج إصلاح.
+# خطة إصلاح 4 مشاكل مؤكدة
 
 ---
 
-## المشاكل المؤكدة والإصلاحات المطلوبة
+## المشاكل والإصلاحات
 
-### 1. (حرج) `quickLinks` في `BeneficiaryDashboard` تظهر صفحات محظورة لـ `waqif`
+### 1. (حرج) `login_success` يسجّل رقم الهوية عبر البريد في `access_log`
 
-السطر 96-101 يعرض قائمة ثابتة تشمل "الإفصاح السنوي" و"حصتي من الريع" لكل الأدوار. الواقف عند الضغط عليهما يُوجَّه لصفحة "غير مصرح".
+**الملف:** `src/pages/Auth.tsx` (سطر 151-155)
 
-**الإصلاح:** فلترة `quickLinks` بناء على `role` من `useAuth()` — إخفاء "الإفصاح السنوي" و"حصتي من الريع" عندما يكون الدور `waqif`.
+تم إصلاح `login_failed` سابقا (سطر 145: `email: loginMethod === 'national_id' ? null : resolvedEmail`) لكن `login_success` لم يُصلح.
 
-### 2. (حرج) `nationalId@waqf.app` يُسجَّل كبريد في `access_log` (تسريب PII)
-
-السطر 143-146 في `Auth.tsx` يسجل البريد المبني من رقم الهوية `1234567890@waqf.app` في سجل الوصول، مما يكشف رقم الهوية الوطنية.
-
-**الإصلاح:** عند `login_method === 'national_id'`، إرسال `null` كبريد وتسجيل طريقة الدخول فقط في `metadata`.
-
-### 3. (متوسط) `useIdleTimeout` يُطلق `onIdle` مرتين
-
-السطران 47-56: الـ countdown interval والـ main timer يمكن أن يُطلقا `onIdle` في نفس اللحظة.
-
-**الإصلاح:** إضافة `firedRef = useRef(false)` كحارس يمنع الاستدعاء المزدوج، مع إعادة ضبطه في `resetTimer`.
-
-### 4. (متوسط) `defaultRolePerms` يُبطل `useMemo` في كل render
-
-الكائن يُنشأ داخل جسم المكون (سطر 108) فيحصل على مرجع جديد كل مرة.
-
-**الإصلاح:** نقل `defaultRolePerms` خارج المكون كثابت على مستوى الملف (module-level constant).
-
-### 5. (متوسط) `refreshRole` لا تعالج الخطأ ولا حالة `null`
-
-السطر 200-208 في `AuthContext.tsx`: لا يوجد try/catch، وإذا أرجعت الاستعلام `null` يبقى الدور القديم.
-
-**الإصلاح:** إضافة try/catch، وعند `data === null` تعيين `role = null` لأن المستخدم فقد دوره فعلا.
-
-### 6. (طفيف) `guard-signup` يُرجع كائن `user` كاملا في الاستجابة
-
-السطر 116-118: يكشف `user.id`, `user.email`, `user.app_metadata` للمتصفح.
-
-**الإصلاح:** إرجاع `{ success: true, message: "..." }` فقط.
-
-### 7. (طفيف) `settingsLoading` غير مستخدم في `DashboardLayout`
-
-السطر 103: متغير مُستورد بلا استخدام.
-
-**الإصلاح:** إزالة الاستيراد.
-
----
-
-## المشاكل المرفوضة
-
-| النقطة | السبب |
-|--------|-------|
-| NEW-CRITICAL-1 (Double Logout) | تأثير عملي معدوم — `setRoleWithRef(null)` مرتين لا يضر، و`window.location.href` يُلغي كل شيء |
-| NEW-MEDIUM-2 (authReady) | التقرير نفسه اعترف بعدم وجود مشكلة وظيفية |
-| NEW-MEDIUM-4 (list_users 500) | نظام وقف بـ 14 مستفيد — لن يصل لـ 500 مستخدم. تحسين مؤجل |
-| NEW-MINOR-2 (AppRole unused) | `type import` لا يؤثر على الحزمة ولا يُنتج كود |
-
----
-
-## القسم التقني — تفاصيل التعديلات
-
-### الملف 1: `src/pages/beneficiary/BeneficiaryDashboard.tsx`
-- استيراد `useAuth` من `AuthContext`
-- فلترة `quickLinks` لإخفاء disclosure و my-share عن waqif:
-```text
-const { role } = useAuth();
-const quickLinks = [
-  ...(role !== 'waqif' ? [
-    { title: 'الإفصاح السنوي', ..., path: '/beneficiary/disclosure', ... },
-    { title: 'حصتي من الريع', ..., path: '/beneficiary/my-share', ... },
-  ] : []),
-  { title: 'التقارير المالية', ... },
-  { title: 'اللائحة التنظيمية', ... },
-];
-```
-
-### الملف 2: `src/pages/Auth.tsx` (سطر 143-146)
+**الإصلاح:** تطبيق نفس الحماية على `login_success`:
 ```text
 // قبل
 email: resolvedEmail,
@@ -89,47 +21,75 @@ email: resolvedEmail,
 email: loginMethod === 'national_id' ? null : resolvedEmail,
 ```
 
-### الملف 3: `src/hooks/useIdleTimeout.ts`
-- إضافة `const firedRef = useRef(false);`
-- في `resetTimer`: إضافة `firedRef.current = false;`
-- في كلا الموقعين اللذين يستدعيان `onIdleRef.current()`: لف الاستدعاء بـ `if (!firedRef.current)`
+### 2. (حرج) `create_user` يُرجع كائن `user` كاملا
 
-### الملف 4: `src/components/DashboardLayout.tsx`
-- نقل كائن `defaultRolePerms` من داخل المكون (سطر 108-123) إلى خارجه كثابت module-level
+**الملف:** `supabase/functions/admin-manage-users/index.ts` (سطر 281)
 
-### الملف 5: `src/contexts/AuthContext.tsx` (سطر 200-208)
-```text
-const refreshRole = async () => {
-  if (!user) return;
-  try {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (error) throw error;
-    setRoleWithRef(data ? (data.role as AppRole) : null);
-  } catch {
-    // صامت — لا نكسر تجربة المستخدم
-  }
-};
-```
-
-### الملف 6: `supabase/functions/guard-signup/index.ts` (سطر 116-122)
+**الإصلاح:** إرجاع `id` و `email` فقط:
 ```text
 // قبل
-return new Response(JSON.stringify({ user: userData.user, message: "..." }), ...);
+return new Response(JSON.stringify({ success: true, user: newUser.user }), ...);
 
 // بعد
-return new Response(JSON.stringify({ success: true, message: "..." }), ...);
+return new Response(JSON.stringify({ 
+  success: true, 
+  user: { id: newUser.user.id, email: newUser.user.email } 
+}), ...);
 ```
 
-### الملف 7: `src/components/DashboardLayout.tsx` (سطر 103)
+### 3. (حرج) `bulk_create_users` يُعلن نجاحا كاذبا عند فشل `user_roles` أو `beneficiaries`
+
+**الملف:** `supabase/functions/admin-manage-users/index.ts` (سطر 324-344)
+
+**الإصلاح:** إضافة فحص أخطاء لكل عملية insert، وعند فشل أي منها تسجيل الخطأ وحذف المستخدم المُنشأ (rollback):
+```text
+const { error: roleError } = await adminClient.from("user_roles").insert({...});
+if (roleError) {
+  await adminClient.auth.admin.deleteUser(newUser.user.id);
+  errors.push({ email: u.email, error: "فشل تعيين الدور: " + roleError.message });
+  continue;
+}
+
+const { error: benError } = await adminClient.from("beneficiaries").insert({...});
+if (benError) {
+  await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+  await adminClient.auth.admin.deleteUser(newUser.user.id);
+  errors.push({ email: u.email, error: "فشل إنشاء المستفيد: " + benError.message });
+  continue;
+}
+
+// الإشعار اختياري — لا يُسبب فشلا
+await adminClient.rpc('notify_admins', {...}).catch(() => {});
+
+results.push({ email: u.email, userId: newUser.user.id, success: true });
+```
+
+### 4. (متوسط) `set_role` يستخدم DELETE+INSERT غير atomic
+
+**الملف:** `supabase/functions/admin-manage-users/index.ts` (سطر 163-168)
+
+**الإصلاح:** استخدام `upsert` بدلا من DELETE+INSERT:
 ```text
 // قبل
-const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+await adminClient.from("user_roles").delete().eq("user_id", userId);
+const { error } = await adminClient.from("user_roles").insert({
+  user_id: userId,
+  role: body.role,
+});
 
 // بعد
-const { getJsonSetting } = useAppSettings();
+const { error } = await adminClient.from("user_roles")
+  .upsert({ user_id: userId, role: body.role }, { onConflict: 'user_id' });
 ```
+
+---
+
+## ملخص الملفات المتأثرة
+
+| الملف | التعديل |
+|-------|---------|
+| `src/pages/Auth.tsx` | سطر 153: حماية البريد عند login_success |
+| `supabase/functions/admin-manage-users/index.ts` | سطر 163-168: upsert بدل DELETE+INSERT |
+| `supabase/functions/admin-manage-users/index.ts` | سطر 281: تصفية user object |
+| `supabase/functions/admin-manage-users/index.ts` | سطر 324-344: فحص أخطاء + rollback |
 
