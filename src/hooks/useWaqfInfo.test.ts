@@ -1,58 +1,67 @@
 import { describe, it, expect, vi } from 'vitest';
 
-const mockIn = vi.fn().mockResolvedValue({
-  data: [
-    { key: 'waqf_name', value: 'وقف الاختبار' },
-    { key: 'waqf_founder', value: 'مؤسس' },
-    { key: 'waqf_admin', value: 'ناظر' },
-  ],
-  error: null,
-});
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: () => ({ select: () => ({ in: mockIn }) }),
-  },
+vi.mock('./useAppSettings', () => ({
+  useAppSettings: vi.fn(),
 }));
 
-let capturedQueryFn: (() => Promise<unknown>) | null = null;
-
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ queryFn }: { queryFn: () => Promise<unknown> }) => {
-    capturedQueryFn = queryFn;
-    return { data: undefined, isLoading: true };
-  },
-}));
-
+import { useAppSettings } from './useAppSettings';
 import { useWaqfInfo } from './useWaqfInfo';
 
+const mockedUseAppSettings = vi.mocked(useAppSettings);
+
 describe('useWaqfInfo', () => {
-  it('returns a query hook', () => {
+  it('returns waqf info from app settings', () => {
+    mockedUseAppSettings.mockReturnValue({
+      data: {
+        waqf_name: 'وقف الاختبار',
+        waqf_founder: 'مؤسس',
+        waqf_admin: 'ناظر',
+      },
+      isLoading: false,
+      error: null,
+    } as any);
+
     const result = useWaqfInfo();
-    expect(result).toBeDefined();
+    expect(result.data.waqf_name).toBe('وقف الاختبار');
+    expect(result.data.waqf_founder).toBe('مؤسس');
+    expect(result.data.waqf_admin).toBe('ناظر');
+    expect(result.data.waqf_deed_number).toBe('');
+    expect(result.isLoading).toBe(false);
+  });
+
+  it('returns loading state', () => {
+    mockedUseAppSettings.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+    } as any);
+
+    const result = useWaqfInfo();
     expect(result.isLoading).toBe(true);
+    expect(result.data.waqf_name).toBe('');
   });
 
-  it('queryFn maps app_settings rows to WaqfInfo', async () => {
-    useWaqfInfo();
-    expect(capturedQueryFn).toBeDefined();
-    const info = await capturedQueryFn!() as Record<string, string>;
-    expect(info.waqf_name).toBe('وقف الاختبار');
-    expect(info.waqf_founder).toBe('مؤسس');
-    expect(info.waqf_admin).toBe('ناظر');
-    expect(info.waqf_deed_number).toBe('');
+  it('returns empty strings when settings is undefined', () => {
+    mockedUseAppSettings.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    } as any);
+
+    const result = useWaqfInfo();
+    expect(result.data.waqf_name).toBe('');
+    expect(result.data.waqf_founder).toBe('');
   });
 
-  it('queryFn handles empty data', async () => {
-    mockIn.mockResolvedValueOnce({ data: [], error: null });
-    useWaqfInfo();
-    const info = await capturedQueryFn!() as Record<string, string>;
-    expect(info.waqf_name).toBe('');
-  });
+  it('passes through error', () => {
+    const err = new Error('fail');
+    mockedUseAppSettings.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: err,
+    } as any);
 
-  it('queryFn throws on error', async () => {
-    mockIn.mockResolvedValueOnce({ data: null, error: { message: 'fail' } });
-    useWaqfInfo();
-    await expect(capturedQueryFn!()).rejects.toBeDefined();
+    const result = useWaqfInfo();
+    expect(result.error).toBe(err);
   });
 });
