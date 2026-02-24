@@ -24,7 +24,7 @@ const Auth = () => {
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const { signIn, signUp, user, role, loading } = useAuth();
+  const { signIn, signUp, signOut, user, role, loading } = useAuth();
   const navigate = useNavigate();
 
   // PWA install prompt
@@ -284,7 +284,7 @@ const Auth = () => {
             <>
               <span className="text-lg font-medium text-destructive">لم يتم التعرف على صلاحياتك</span>
               <span className="text-sm text-muted-foreground">تواصل مع الناظر أو حاول مرة أخرى</span>
-              <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
+              <Button variant="outline" onClick={async () => { await signOut(); }}>
                 تسجيل الخروج
               </Button>
             </>

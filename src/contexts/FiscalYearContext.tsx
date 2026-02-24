@@ -32,7 +32,7 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const exists = fiscalYears.some(fy => fy.id === selectedId);
       if (!exists) {
         setSelectedId('');
-        localStorage.removeItem(STORAGE_KEY);
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
       }
     }
   }, [isLoading, fiscalYears, selectedId]);
