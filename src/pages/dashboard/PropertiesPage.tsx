@@ -34,7 +34,8 @@ import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
-  const { fiscalYearId, isClosed } = useFiscalYear();
+  const { fiscalYearId } = useFiscalYear();
+  const isSpecificYear = fiscalYearId !== 'all';
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
@@ -66,8 +67,8 @@ const PropertiesPage = () => {
     const totalProperties = properties.length;
     const totalUnitsCount = allUnits.length;
 
-    const rentedUnitIds = new Set(contracts.filter(c => (isClosed || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-    const wholePropertyIds = new Set(contracts.filter(c => (isClosed || c.status === 'active') && !c.unit_id).map(c => c.property_id));
+    const rentedUnitIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
+    const wholePropertyIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && !c.unit_id).map(c => c.property_id));
 
     let totalRented = 0;
     let totalVacant = 0;
@@ -315,8 +316,8 @@ const PropertiesPage = () => {
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
               const propertyUnits = allUnits.filter(u => u.property_id === property.id);
               const propContracts = contracts.filter(c => c.property_id === property.id);
-              const rentedUnitIdsForProp = new Set(propContracts.filter(c => (isClosed || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-              const isWholePropertyRented = propContracts.some(c => (isClosed || c.status === 'active') && !c.unit_id);
+              const rentedUnitIdsForProp = new Set(propContracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
+              const isWholePropertyRented = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
               const totalUnits = propertyUnits.length;
               const rented = isWholePropertyRented ? totalUnits : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
               const vacant = totalUnits - rented;
