@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
@@ -559,6 +560,16 @@ const AccountsPage = () => {
           onManualDistributionsChange={setManualDistributions}
         />
 
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="p-4 rounded-lg bg-muted/30 space-y-2">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+            ))}
+          </div>
+        ) : (
         <AccountsSummaryCards
           waqfCorpusPrevious={waqfCorpusPrevious}
           totalIncome={totalIncome}
@@ -577,6 +588,7 @@ const AccountsPage = () => {
           manualDistributions={manualDistributions}
           remainingBalance={remainingBalance}
         />
+        )}
 
         <AccountsContractsTable
           contracts={contracts}
