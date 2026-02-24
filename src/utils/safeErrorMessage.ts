@@ -30,7 +30,9 @@ export function getSafeErrorMessage(error: unknown): string {
     return 'انتهت مهلة الطلب. يرجى المحاولة لاحقاً';
   }
 
-  // رسالة افتراضية آمنة — التفاصيل تبقى في console فقط
-  console.error('[App Error]', error);
+  // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
+  if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    console.error('[App Error]', error);
+  }
   return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً';
 }

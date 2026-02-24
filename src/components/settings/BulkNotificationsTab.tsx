@@ -84,7 +84,7 @@ const BulkNotificationsTab = () => {
       setLink('');
       setSelectedIds([]);
     } catch (err) {
-      console.error('Send notification error:', err);
+      // Send notification error — toast handles user notification
       toast.error('حدث خطأ أثناء إرسال الإشعار');
     } finally {
       setSending(false);

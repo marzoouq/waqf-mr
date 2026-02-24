@@ -22,7 +22,7 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
           .filter(n => !n.startsWith('workbox-precache'))
           .map(n => caches.delete(n))
       );
-      console.info('[PWA] Stale caches purged after update');
+      // PWA stale caches purged after update
     }
     localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
   } catch {

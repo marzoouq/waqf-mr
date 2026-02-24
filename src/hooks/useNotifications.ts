@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useRef } from 'react';
 import type { Notification } from '@/types/database';
+import { logger } from '@/lib/logger';
 
 export type { Notification };
 
@@ -19,7 +20,10 @@ export const useNotifications = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
-      if (error) throw error;
+      if (error) {
+        logger.error('Notifications fetch error:', error);
+        throw error;
+      }
       return (data || []) as Notification[];
     },
     enabled: !!user,
@@ -76,16 +80,23 @@ export const useNotifications = () => {
   });
 
   // Realtime subscription with browser push notifications
+  // إصلاح: اسم قناة فريد + فلترة server-side + dependency على user.id فقط
   useEffect(() => {
     if (!user) return;
+    const channelName = `notifications-${user.id}`;
     const channel = supabase
-      .channel('notifications-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      .channel(channelName)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
         
         // Show browser push notification
         const newNotif = payload.new as Notification;
-        if (newNotif.user_id === user.id && 'Notification' in window && Notification.permission === 'granted') {
+        if ('Notification' in window && Notification.permission === 'granted') {
           if (lastNotifIdRef.current !== newNotif.id) {
             lastNotifIdRef.current = newNotif.id;
             try {
@@ -103,8 +114,10 @@ export const useNotifications = () => {
         }
       })
       .subscribe();
-    return () => { channel.unsubscribe().then(() => supabase.removeChannel(channel)); };
-  }, [user, queryClient]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return { ...query, unreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

@@ -96,7 +96,7 @@ const AiAssistant = () => {
         }
       }
     } catch (e) {
-      console.error(e);
+      // AI assistant error — displayed inline to user
       setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${e instanceof Error ? e.message : 'حدث خطأ'}` }]);
     } finally {
       setIsLoading(false);

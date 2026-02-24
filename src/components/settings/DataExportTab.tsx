@@ -66,7 +66,7 @@ const DataExportTab = () => {
       downloadCSV(csv, `${table}_${date}.csv`);
       toast.success(`تم تصدير ${data.length} سجل من ${label}`);
     } catch (err) {
-      console.error('Export error:', err);
+      // Export error — toast handles user notification
       toast.error(`حدث خطأ أثناء تصدير ${label}`);
     } finally {
       setExporting(null);
@@ -78,7 +78,7 @@ const DataExportTab = () => {
     try {
       for (const table of tables) {
         const { data, error } = await supabase.from(table.key).select('*').limit(5000);
-        if (error) { console.error(`Error exporting ${table.key}:`, error); continue; }
+        if (error) { continue; }
         if (data && data.length > 0) {
           const csv = convertToCSV(data as Record<string, unknown>[]);
           const date = new Date().toISOString().slice(0, 10);

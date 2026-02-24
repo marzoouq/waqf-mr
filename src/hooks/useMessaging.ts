@@ -103,8 +103,8 @@ export const useSendMessage = () => {
               '/beneficiary/messages',
             );
           }
-        } catch (e) {
-          console.error('Failed to send message notification:', e);
+        } catch {
+          // Silent fail — notification is non-critical
         }
       }
     },
