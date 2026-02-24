@@ -101,8 +101,11 @@ Deno.serve(async (req) => {
       );
     }
 
+    // حجب البريد الإلكتروني لمنع تسريب PII — يُعرض للمستخدم فقط كتلميح
+    const maskedEmail = email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
+
     return new Response(
-      JSON.stringify({ email, found: true }),
+      JSON.stringify({ email: maskedEmail, found: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

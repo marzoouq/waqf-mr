@@ -30,15 +30,16 @@ Deno.serve(async (req: Request) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
+      // Use getUser for real-time session validation
+      const { data: { user: authUser }, error: userError } = await userClient.auth.getUser();
+      if (userError || !authUser) {
         return new Response(
           JSON.stringify({ error: "Invalid token" }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const userId = claimsData.claims.sub as string;
+      const userId = authUser.id;
       const adminClient = createClient(supabaseUrl, serviceKey);
       const { data: roleData } = await adminClient
         .from("user_roles")

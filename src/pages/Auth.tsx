@@ -119,7 +119,10 @@ const Auth = () => {
           toast.error('رقم الهوية غير مسجل في النظام');
           return;
         }
-        resolvedEmail = data.email;
+        // البريد المُرجع محجوب (مثل: ab***@gmail.com) — نستخدمه فقط كتلميح
+        // نحتاج البريد الحقيقي لتسجيل الدخول، لذا نبني البريد من رقم الهوية
+        // الصيغة المعتمدة: [NationalID]@waqf.app
+        resolvedEmail = `${nationalId}@waqf.app`;
       } else {
         if (!resolvedEmail) {
           toast.error('يرجى إدخال البريد الإلكتروني');

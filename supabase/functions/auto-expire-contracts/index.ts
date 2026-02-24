@@ -31,21 +31,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Use getClaims for faster verification
+    // Use getUser for real-time session validation (prevents revoked token usage)
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user: authUser }, error: userError } = await userClient.auth.getUser();
+    if (userError || !authUser) {
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = authUser.id;
 
     const { data: roleData } = await createClient(supabaseUrl, serviceRoleKey)
       .from('user_roles')

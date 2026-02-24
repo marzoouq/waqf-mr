@@ -98,7 +98,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ user: userData.user }), {
+    // تعيين دور افتراضي (مستفيد) لمنع بقاء المستخدم بدون صلاحيات
+    if (userData.user) {
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .insert({ user_id: userData.user.id, role: "beneficiary" });
+      if (roleError) {
+        console.error("guard-signup role assignment error", roleError);
+        // لا نفشل العملية — المستخدم أُنشئ بنجاح ويمكن للناظر تعيين الدور لاحقاً
+      }
+    }
+
+    return new Response(JSON.stringify({ 
+      user: userData.user,
+      message: "تم إنشاء حسابك بنجاح. يرجى تأكيد بريدك الإلكتروني ثم انتظار موافقة الناظر لتفعيل صلاحياتك."
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
