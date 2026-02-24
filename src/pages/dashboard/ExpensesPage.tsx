@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,17 @@ const ExpensesPage = () => {
   const documentedCount = expenses.filter((e) => expenseInvoiceMap.has(e.id)).length;
   const documentationRate = expenses.length > 0 ? Math.round((documentedCount / expenses.length) * 100) : 0;
 
+  const summaryCards = useMemo(() => {
+    const count = expenses.length;
+    const avg = count > 0 ? Math.round(totalExpenses / count) : 0;
+    const typeMap = new Map<string, number>();
+    expenses.forEach(e => typeMap.set(e.expense_type, (typeMap.get(e.expense_type) || 0) + Number(e.amount)));
+    let topType = '-';
+    let topTypeAmount = 0;
+    typeMap.forEach((amount, type) => { if (amount > topTypeAmount) { topTypeAmount = amount; topType = type; } });
+    return { avg, topType, topTypeAmount };
+  }, [expenses, totalExpenses]);
+
   const filteredExpenses = expenses.filter((item) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -144,45 +156,48 @@ const ExpensesPage = () => {
         )}
 
         {/* Summary Cards */}
-        {(() => {
-          const count = expenses.length;
-          const avg = count > 0 ? Math.round(totalExpenses / count) : 0;
-          // أعلى نوع مصروف
-          const typeMap = new Map<string, number>();
-          expenses.forEach(e => typeMap.set(e.expense_type, (typeMap.get(e.expense_type) || 0) + Number(e.amount)));
-          let topType = '-';
-          let topTypeAmount = 0;
-          typeMap.forEach((amount, type) => { if (amount > topTypeAmount) { topTypeAmount = amount; topType = type; } });
-
-          return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <Card className="shadow-sm">
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="shadow-sm">
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-                  <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                  <Skeleton className="w-9 h-9 rounded-lg" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-6 w-24" />
+                  </div>
                 </CardContent>
               </Card>
-              <Card className="shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10"><Paperclip className="w-5 h-5 text-primary" /></div>
-                  <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-xl font-bold">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{count}</p></div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-                  <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-                  <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{topType}</p><p className="text-xs text-muted-foreground">{topTypeAmount.toLocaleString('ar-SA')} ريال</p></div>
-                </CardContent>
-              </Card>
-            </div>
-          );
-        })()}
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="shadow-sm">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
+                <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10"><Paperclip className="w-5 h-5 text-primary" /></div>
+                <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-xl font-bold">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{expenses.length}</p></div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
+                <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{summaryCards.avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
+                <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topType}</p><p className="text-xs text-muted-foreground">{summaryCards.topTypeAmount.toLocaleString('ar-SA')} ريال</p></div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="relative max-w-md">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
