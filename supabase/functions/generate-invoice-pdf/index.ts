@@ -376,15 +376,16 @@ Deno.serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const { data, error: claimsError } = await supabaseAuth.auth.getClaims(token);
-      if (claimsError || !data?.claims) {
+      // Use getUser for real-time session validation (prevents revoked token usage)
+      const { data: { user: authUser }, error: userError } = await supabaseAuth.auth.getUser();
+      if (userError || !authUser) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      const userId = data.claims.sub as string;
+      const userId = authUser.id;
       const { data: roles } = await supabaseAdmin
         .from("user_roles")
         .select("role")
