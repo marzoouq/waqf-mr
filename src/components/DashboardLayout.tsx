@@ -116,8 +116,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
     },
     waqif: {
-      properties: true, contracts: true, disclosure: true,
+      properties: true, contracts: true, disclosure: false,
       reports: true, accounts: true, bylaws: true,
+      share: false,
     },
   };
 
