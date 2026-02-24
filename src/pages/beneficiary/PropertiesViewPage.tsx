@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -158,7 +159,16 @@ const PropertiesViewPage = () => {
                     <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
                     <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
                   </div>
-                  <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-help">
+                          <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | شاغرة: {totalVacant}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </CardContent>
               </Card>
             </div>
@@ -244,10 +254,17 @@ const PropertiesViewPage = () => {
                               {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
-                            <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-help">
+                                  <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                                  <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>مؤجرة: {rented} من {total} وحدة | شاغرة: {vacant}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       ) : activeContracts.length > 0 ? (
                         <>
@@ -255,10 +272,17 @@ const PropertiesViewPage = () => {
                             <Home className="w-3.5 h-3.5 text-success" />
                             <span className="font-medium text-success">مؤجر بالكامل</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
-                            <span className="text-xs font-semibold text-success">100%</span>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-help">
+                                  <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
+                                  <span className="text-xs font-semibold text-success">100%</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>العقار مؤجر بالكامل</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       ) : (
                         <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>

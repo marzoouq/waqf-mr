@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -381,10 +382,17 @@ const PropertiesPage = () => {
                             {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
-                          <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2 cursor-help">
+                                <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                                <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>مؤجرة: {rented} من {totalUnits} وحدة | شاغرة: {vacant}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </>
                     ) : activeContracts.length > 0 ? (
                       <>
@@ -392,10 +400,17 @@ const PropertiesPage = () => {
                           <Home className="w-3.5 h-3.5 text-success" />
                           <span className="font-medium text-success">مؤجر بالكامل</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
-                          <span className="text-xs font-semibold text-success">100%</span>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2 cursor-help">
+                                <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
+                                <span className="text-xs font-semibold text-success">100%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>العقار مؤجر بالكامل</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </>
                     ) : (
                       <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>
