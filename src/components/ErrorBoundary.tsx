@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Props {
   children: ReactNode;
@@ -8,25 +9,24 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(_error: Error): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    logger.error('ErrorBoundary caught:', error, errorInfo);
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false });
     window.location.href = '/';
   };
 
@@ -39,11 +39,6 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">حدث خطأ غير متوقع</h1>
-            {this.state.error && (
-              <p className="text-xs text-destructive bg-destructive/10 rounded-md p-3 font-mono break-all" dir="ltr">
-                [{this.state.error.name}: {this.state.error.message}]
-              </p>
-            )}
             <p className="text-muted-foreground">
               نعتذر عن هذا الخطأ. يرجى المحاولة مرة أخرى أو العودة للصفحة الرئيسية.
             </p>
