@@ -142,7 +142,7 @@ const Auth = () => {
         toast.error(getSafeErrorMessage(error));
         logAccessEvent({
           event_type: 'login_failed',
-          email: resolvedEmail,
+          email: loginMethod === 'national_id' ? null : resolvedEmail,
           metadata: { error_message: error.message, login_method: loginMethod },
         });
       } else {

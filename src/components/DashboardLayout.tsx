@@ -93,6 +93,23 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/audit-log',
 ];
 
+const DEFAULT_ROLE_PERMS: Record<string, Record<string, boolean>> = {
+  accountant: {
+    properties: true, contracts: true, income: true, expenses: true,
+    beneficiaries: true, reports: true, accounts: true, invoices: true,
+    bylaws: true, messages: true, audit_log: true,
+  },
+  beneficiary: {
+    properties: true, contracts: true, disclosure: true, share: true,
+    reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
+  },
+  waqif: {
+    properties: true, contracts: true, disclosure: false,
+    reports: true, accounts: true, bylaws: true,
+    share: false,
+  },
+};
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
@@ -100,29 +117,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+  const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
 
-  // Default role permissions
-  const defaultRolePerms: Record<string, Record<string, boolean>> = {
-    accountant: {
-      properties: true, contracts: true, income: true, expenses: true,
-      beneficiaries: true, reports: true, accounts: true, invoices: true,
-      bylaws: true, messages: true, audit_log: true,
-    },
-    beneficiary: {
-      properties: true, contracts: true, disclosure: true, share: true,
-      reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
-    },
-    waqif: {
-      properties: true, contracts: true, disclosure: false,
-      reports: true, accounts: true, bylaws: true,
-      share: false,
-    },
-  };
-
-  const rolePermissions = getJsonSetting('role_permissions', defaultRolePerms);
+  const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
   // Map admin routes to permission keys
   const adminRoutePermKeys: Record<string, string> = {
@@ -164,7 +163,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
 
     if (role === 'accountant') {
-      const perms = rolePermissions.accountant || defaultRolePerms.accountant;
+      const perms = rolePermissions.accountant || DEFAULT_ROLE_PERMS.accountant;
       return allAdminLinks
         .filter(link => !accountantExcludedRoutes.includes(link.to))
         .filter(link => {
@@ -179,7 +178,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
     // beneficiary or waqif
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
-    const perms = rolePermissions[roleKey] || defaultRolePerms[roleKey] || {};
+    const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
     return allBeneficiaryLinks.filter(link => {
       const key = beneficiaryRoutePermKeys[link.to];
       return !key || perms[key] !== false;

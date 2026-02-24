@@ -199,12 +199,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshRole = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-    if (data) setRoleWithRef(data.role as AppRole);
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      setRoleWithRef(data ? (data.role as AppRole) : null);
+    } catch {
+      // صامت — لا نكسر تجربة المستخدم
+    }
   };
 
   return (
