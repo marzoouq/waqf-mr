@@ -1,67 +1,108 @@
 
 
-# خطة إصلاح المشاكل المتبقية الفعلية (3 تعديلات)
+# خطة إصلاح الملاحظات المتبقية الفعلية (3 إصلاحات)
 
-## ملخص الحالة الحقيقية
+بعد الفحص الجنائي العميق لـ 15 ملاحظة، تبيّن أن 9 منها مُصلحة أو مقصودة تصميمياً. المتبقي 6 ملاحظات، منها 3 تستحق الإصلاح فعلياً.
 
-بعد الفحص الجنائي للكود الفعلي، تبيّن أن 4 من 7 مشاكل المذكورة في التقرير قد أُصلحت بالفعل في التعديلات السابقة. المتبقي 3 مشاكل منخفضة الخطورة فقط.
+---
 
-## التغييرات المطلوبة
+## ملخص الفحص الجنائي (مع الأدلة)
 
-### 1. `src/utils/safeErrorMessage.ts` -- إزالة شرط DEV المكرر
+### ملاحظات ثبت أنها لا تحتاج إصلاح:
 
-**المشكلة:** السطر 36 يتحقق من `import.meta.env.DEV` قبل استدعاء `logger.error`، لكن `logger` نفسه يتحقق من DEV داخلياً. هذا شرط مزدوج غير ضروري (double-gate) ويمنع logger من العمل في بيئة الاختبار إذا لم تكن DEV=true.
+| الملاحظة | الحكم | الدليل |
+|----------|-------|--------|
+| `.env` مكشوف | تصميم Lovable Cloud | الملف يُدار تلقائياً ويحتوي مفاتيح عامة فقط (anon key) |
+| `client.ts` بدون fallback | ملف محظور التعديل | يُولَّد تلقائياً من المنصة |
+| `useRawFinancialData` isError | مُصلح مسبقاً | السطر 20: `incError \|\| expError \|\| accError \|\| benError` |
+| `safeErrorMessage` شرط DEV | مُصلح في آخر تعديل | السطر 36: `logger.error(...)` مباشرة بدون شرط |
+| `Auth.tsx` يتجاوز guard-signup | خاطئ | السطر 185: `supabase.functions.invoke('guard-signup')` |
+| `verify_jwt = false` | تصميم موثّق | كل وظيفة تتحقق يدوياً من JWT/service_role |
+| `corsHeaders` ثابت | لا يُستخدم | جميع الـ 7 وظائف تستخدم `getCorsHeaders(req)` الديناميكية |
+| `ai-assistant` كشف الخطأ | مُصلح | السطر 107: `e.message` فقط |
+| Rate limit في الذاكرة | قيد بيئة معروف | Edge Functions تُعيد التشغيل — لا حل بدون Redis/DB خارجي |
 
-**الإصلاح:** إزالة الشرط واستدعاء `logger.error` مباشرة:
+### ملاحظات لا تحتاج إصلاح (تصميم مقصود):
+
+| الملاحظة | السبب |
+|----------|-------|
+| `pdf/entities.ts` يعرض national_id | يُستدعى حصرياً من لوحة الناظر (admin) الذي يملك صلاحية الاطلاع |
+| `hmr.overlay: false` | تفضيل تطويري لتجنب تراكب الأخطاء أثناء التطوير — Lovable's default |
+| `app_role` enum بدون accountant في migration الأول | migration لاحق يضيفها — تسلسل صحيح |
+
+---
+
+## التغييرات المطلوبة (3 إصلاحات)
+
+### 1. `src/components/ProtectedRoute.tsx` -- إصلاح التناقض المعماري
+
+**المشكلة:** التعليق في السطر 7 يقول "لا تستورد supabase مباشرة" لكن السطر 14 يستوردها. وتُستخدم فقط في زر تسجيل الخروج الطارئ (السطر 72). هذا يفتّت مسؤولية `signOut` بين `AuthContext` و `ProtectedRoute`.
+
+**الإصلاح:** استخدام `signOut` من `AuthContext` بدلاً من استيراد `supabase` مباشرة، وتحديث التعليق ليعكس الواقع:
+
+```text
+// قبل (سطر 14):
+import { supabase } from '@/integrations/supabase/client';
+
+// بعد: إزالة هذا السطر
+
+// قبل (سطر 72):
+onClick={async () => {
+  await supabase.auth.signOut();
+  window.location.href = '/auth';
+}}
+
+// بعد:
+onClick={async () => {
+  await signOut();
+  window.location.href = '/auth';
+}}
+```
+
+يتطلب أيضاً استخراج `signOut` من `useAuth()` في المكوّن.
+
+### 2. `src/hooks/useIdleTimeout.ts` -- إصلاح مشكلة الأداء
+
+**المشكلة:** `onIdle` في dependency array الخاص بـ `useCallback` (السطر 56) يتسبب في إعادة تسجيل جميع event listeners في كل render إذا مُرر `onIdle` كـ arrow function inline.
+
+**الإصلاح:** استخدام `useRef` لتخزين `onIdle` لمنع إعادة إنشاء `resetTimer` عند كل render:
+
+```text
+// إضافة:
+const onIdleRef = useRef(onIdle);
+useEffect(() => { onIdleRef.current = onIdle; }, [onIdle]);
+
+// تغيير في resetTimer و timerRef callback:
+// استبدال onIdle() بـ onIdleRef.current()
+// إزالة onIdle من dependency array
+```
+
+### 3. `src/contexts/FiscalYearContext.tsx` -- إضافة حماية دفاعية لـ localStorage
+
+**المشكلة:** السطر 23 يستدعي `localStorage.getItem` بدون `try/catch`. في بيئات معينة (Private browsing في بعض المتصفحات القديمة، أو Storage quota ممتلئ)، قد يرمي استثناء.
+
+**الإصلاح:** لف الاستدعاء بـ `try/catch`:
 
 ```text
 // قبل:
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
-  logger.error('[App Error]', error);
-}
+const [selectedId, setSelectedId] = useState<string>(() => {
+  return localStorage.getItem(STORAGE_KEY) || '';
+});
 
 // بعد:
-logger.error('[App Error]', error);
+const [selectedId, setSelectedId] = useState<string>(() => {
+  try { return localStorage.getItem(STORAGE_KEY) || ''; }
+  catch { return ''; }
+});
 ```
 
-### 2. `supabase/functions/guard-signup/index.ts` -- تقليص تفاصيل الخطأ المسجلة
+ونفس الشيء لـ `localStorage.setItem` و `localStorage.removeItem` في `handleSetFiscalYearId`.
 
-**المشكلة:** السطران 94 و 107 يسجلان كائن الخطأ الكامل (`createError`, `roleError`) مما قد يكشف تفاصيل قاعدة البيانات الداخلية في سجلات الخادم.
-
-**الإصلاح:** تسجيل `error.message` فقط بدلاً من الكائن الكامل:
-
-```text
-// قبل:
-console.error("guard-signup createUser error", createError);
-console.error("guard-signup role assignment error", roleError);
-
-// بعد:
-console.error("guard-signup createUser error:", createError?.message);
-console.error("guard-signup role assignment error:", roleError?.message);
-```
-
-### 3. `src/pages/PublicPages.test.tsx` -- توثيق سبب كتم console.error
-
-**المشكلة:** السطر 106 يكتم `console.error` دون توثيق السبب. هذا يخفي أخطاء React الداخلية الناتجة عن عدم مطابقة المسار.
-
-**الإصلاح:** إضافة تعليق توضيحي:
-
-```text
-// قبل:
-const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-
-// بعد:
-// React Router emits console.error for unmatched routes in test env — safe to mute
-const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-```
+---
 
 ## الملفات المتأثرة
 
-1. `src/utils/safeErrorMessage.ts` -- سطران (إزالة الشرط)
-2. `supabase/functions/guard-signup/index.ts` -- سطران (تقليص التفاصيل)
-3. `src/pages/PublicPages.test.tsx` -- سطر واحد (إضافة تعليق)
-
-## ملاحظة شفافية
-
-شارات `codecov` و `Tests` في README.md تعتمد على إعدادات خارجية (GitHub Actions + Codecov integration). إذا لم تكن مفعلة، ستظهر كـ "unknown". هذا ليس خطأ في الكود -- بل إعداد بنية تحتية خارجية.
+1. `src/components/ProtectedRoute.tsx` -- إزالة import supabase واستخدام signOut من AuthContext
+2. `src/hooks/useIdleTimeout.ts` -- useRef لـ onIdle
+3. `src/contexts/FiscalYearContext.tsx` -- try/catch لـ localStorage
 
