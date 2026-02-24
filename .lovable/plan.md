@@ -1,98 +1,135 @@
 
 
-# خطة إصلاح المشاكل الحقيقية المتبقية
+# خطة إصلاح المشاكل المكتشفة في الفحص الجنائي النهائي
 
-بعد فحص كل نقطة في التقرير مقابل الكود الفعلي، هذه هي المشاكل الحقيقية فقط:
+بعد التحقق من الكود الحالي، تم تأكيد 7 مشاكل حقيقية تحتاج إصلاح.
 
 ---
 
-## المشاكل المرفوضة (ليست مشاكل حقيقية)
+## المشاكل المؤكدة والإصلاحات المطلوبة
+
+### 1. (حرج) `quickLinks` في `BeneficiaryDashboard` تظهر صفحات محظورة لـ `waqif`
+
+السطر 96-101 يعرض قائمة ثابتة تشمل "الإفصاح السنوي" و"حصتي من الريع" لكل الأدوار. الواقف عند الضغط عليهما يُوجَّه لصفحة "غير مصرح".
+
+**الإصلاح:** فلترة `quickLinks` بناء على `role` من `useAuth()` — إخفاء "الإفصاح السنوي" و"حصتي من الريع" عندما يكون الدور `waqif`.
+
+### 2. (حرج) `nationalId@waqf.app` يُسجَّل كبريد في `access_log` (تسريب PII)
+
+السطر 143-146 في `Auth.tsx` يسجل البريد المبني من رقم الهوية `1234567890@waqf.app` في سجل الوصول، مما يكشف رقم الهوية الوطنية.
+
+**الإصلاح:** عند `login_method === 'national_id'`، إرسال `null` كبريد وتسجيل طريقة الدخول فقط في `metadata`.
+
+### 3. (متوسط) `useIdleTimeout` يُطلق `onIdle` مرتين
+
+السطران 47-56: الـ countdown interval والـ main timer يمكن أن يُطلقا `onIdle` في نفس اللحظة.
+
+**الإصلاح:** إضافة `firedRef = useRef(false)` كحارس يمنع الاستدعاء المزدوج، مع إعادة ضبطه في `resetTimer`.
+
+### 4. (متوسط) `defaultRolePerms` يُبطل `useMemo` في كل render
+
+الكائن يُنشأ داخل جسم المكون (سطر 108) فيحصل على مرجع جديد كل مرة.
+
+**الإصلاح:** نقل `defaultRolePerms` خارج المكون كثابت على مستوى الملف (module-level constant).
+
+### 5. (متوسط) `refreshRole` لا تعالج الخطأ ولا حالة `null`
+
+السطر 200-208 في `AuthContext.tsx`: لا يوجد try/catch، وإذا أرجعت الاستعلام `null` يبقى الدور القديم.
+
+**الإصلاح:** إضافة try/catch، وعند `data === null` تعيين `role = null` لأن المستخدم فقد دوره فعلا.
+
+### 6. (طفيف) `guard-signup` يُرجع كائن `user` كاملا في الاستجابة
+
+السطر 116-118: يكشف `user.id`, `user.email`, `user.app_metadata` للمتصفح.
+
+**الإصلاح:** إرجاع `{ success: true, message: "..." }` فقط.
+
+### 7. (طفيف) `settingsLoading` غير مستخدم في `DashboardLayout`
+
+السطر 103: متغير مُستورد بلا استخدام.
+
+**الإصلاح:** إزالة الاستيراد.
+
+---
+
+## المشاكل المرفوضة
 
 | النقطة | السبب |
 |--------|-------|
-| CRITICAL-1 (حذف النفس) | **مُصلح في الواجهة** — السطر 378: `{!isSelf(user.id) && (` يخفي زر الحذف. والسطر 450: `disabled={isSelf(editingUser.id)}` يعطل تغيير الدور. لكن Edge Function تحتاج حماية إضافية على الخادم. |
-| CRITICAL-3 (loading عالق) | **مُصلح** — `Auth.tsx` السطر 281-301 يعالج `user && !loading && !role` مع `roleWaitTimeout` بعد 5 ثوان. و`ProtectedRoute` السطر 56-58 يوجه لصفحة `/auth` عند `!role && !loading`. |
-| MEDIUM-2 (refreshRole) | تصميم مقصود — `refreshRole` وظيفة خفيفة للتحديث اليدوي ولا تحتاج loading state |
-| MEDIUM-3 (rate limiter) | مقبول لبيئة Edge Functions — الحماية الأساسية موجودة ومكملة بحماية الخادم |
-| MEDIUM-5 (waqif share=0) | متوقع — الواقف ليس مستفيداً ولا يظهر في جدول المستفيدين |
-| NEW-7 (role في deps) | **ليس خطأ** — `AuthContext` يستخدم `roleRef.current` (useRef) وليس `role` (state) داخل callback onAuthStateChange، وهذا هو الإصلاح المقصود لمشكلة stale closure |
-| MINOR-4 (AppRole unused) | مستخدم في السطر 4 كـ type import — ليس خطأ |
+| NEW-CRITICAL-1 (Double Logout) | تأثير عملي معدوم — `setRoleWithRef(null)` مرتين لا يضر، و`window.location.href` يُلغي كل شيء |
+| NEW-MEDIUM-2 (authReady) | التقرير نفسه اعترف بعدم وجود مشكلة وظيفية |
+| NEW-MEDIUM-4 (list_users 500) | نظام وقف بـ 14 مستفيد — لن يصل لـ 500 مستخدم. تحسين مؤجل |
+| NEW-MINOR-2 (AppRole unused) | `type import` لا يؤثر على الحزمة ولا يُنتج كود |
 
 ---
 
-## المشاكل الحقيقية (3 فقط)
+## القسم التقني — تفاصيل التعديلات
 
-### 1. CRITICAL-2 — تناقض صلاحيات `waqif` بين القائمة والمسارات (حرج)
-
-**المشكلة:** `DashboardLayout.tsx` يُظهر رابطي "الإفصاح السنوي" و"حصتي من الريع" للواقف (disclosure: true في defaultRolePerms)، لكن `App.tsx` يمنع الواقف من الوصول لهذين المسارين (`allowedRoles={['admin', 'beneficiary']}`). النتيجة: الواقف يرى الرابط ← يضغطه ← يُوجَّه لصفحة "غير مصرح".
-
-**الإصلاح:** إزالة `disclosure: true` من `waqif` في `DashboardLayout.tsx` وإزالة روابط "الإفصاح" و"حصتي" من القائمة عند غياب الصلاحية. يجب أيضاً إضافة `share: false` بشكل صريح.
-
-### 2. CRITICAL-1 (جزئي) — Edge Function لا تمنع حذف النفس على الخادم
-
-**المشكلة:** رغم إخفاء الزر في الواجهة، يمكن لشخص ما استدعاء Edge Function مباشرة لحذف حسابه أو تغيير دوره. الحماية يجب أن تكون على مستوى الخادم أيضاً.
-
-**الإصلاح:** إضافة فحص `callerId === userId` في حالتي `delete_user` و `set_role` في `admin-manage-users/index.ts`.
-
-### 3. MEDIUM-1 — تكرار تعريف `FiscalYear` (متوسط)
-
-**المشكلة:** `src/types/database.ts` يعرّف `published?: boolean` (اختياري)، بينما `src/hooks/useFiscalYears.ts` يعرّف `published: boolean` (إجباري). هذا يسبب عدم اتساق في TypeScript.
-
-**الإصلاح:** جعل `published` إجباري في `database.ts` ليتطابق مع قاعدة البيانات (العمود `NOT NULL DEFAULT false`).
-
----
-
-## القسم التقني
-
-### الملف 1: `src/components/DashboardLayout.tsx` (سطر 118-121)
+### الملف 1: `src/pages/beneficiary/BeneficiaryDashboard.tsx`
+- استيراد `useAuth` من `AuthContext`
+- فلترة `quickLinks` لإخفاء disclosure و my-share عن waqif:
 ```text
-// قبل
-waqif: {
-  properties: true, contracts: true, disclosure: true,
-  reports: true, accounts: true, bylaws: true,
-},
-
-// بعد
-waqif: {
-  properties: true, contracts: true, disclosure: false,
-  reports: true, accounts: true, bylaws: true,
-  share: false,
-},
+const { role } = useAuth();
+const quickLinks = [
+  ...(role !== 'waqif' ? [
+    { title: 'الإفصاح السنوي', ..., path: '/beneficiary/disclosure', ... },
+    { title: 'حصتي من الريع', ..., path: '/beneficiary/my-share', ... },
+  ] : []),
+  { title: 'التقارير المالية', ... },
+  { title: 'اللائحة التنظيمية', ... },
+];
 ```
 
-### الملف 2: `supabase/functions/admin-manage-users/index.ts`
-في `delete_user` (سطر 169-170): إضافة فحص `callerId === userId` قبل الحذف.
-في `set_role` (سطر 154-156): إضافة نفس الفحص قبل تغيير الدور.
-
-```text
-case "delete_user": {
-  validateUuid(userId);
-  if (userId === callerId) {
-    return new Response(JSON.stringify({ error: "لا يمكنك حذف حسابك الخاص" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  // ... باقي الكود
-}
-
-case "set_role": {
-  validateUuid(userId);
-  validateRole(body.role);
-  if (userId === callerId) {
-    return new Response(JSON.stringify({ error: "لا يمكنك تغيير دورك بنفسك" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  // ... باقي الكود
-}
-```
-
-### الملف 3: `src/types/database.ts` (سطر 164)
+### الملف 2: `src/pages/Auth.tsx` (سطر 143-146)
 ```text
 // قبل
-published?: boolean;
+email: resolvedEmail,
 
 // بعد
-published: boolean;
+email: loginMethod === 'national_id' ? null : resolvedEmail,
+```
+
+### الملف 3: `src/hooks/useIdleTimeout.ts`
+- إضافة `const firedRef = useRef(false);`
+- في `resetTimer`: إضافة `firedRef.current = false;`
+- في كلا الموقعين اللذين يستدعيان `onIdleRef.current()`: لف الاستدعاء بـ `if (!firedRef.current)`
+
+### الملف 4: `src/components/DashboardLayout.tsx`
+- نقل كائن `defaultRolePerms` من داخل المكون (سطر 108-123) إلى خارجه كثابت module-level
+
+### الملف 5: `src/contexts/AuthContext.tsx` (سطر 200-208)
+```text
+const refreshRole = async () => {
+  if (!user) return;
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (error) throw error;
+    setRoleWithRef(data ? (data.role as AppRole) : null);
+  } catch {
+    // صامت — لا نكسر تجربة المستخدم
+  }
+};
+```
+
+### الملف 6: `supabase/functions/guard-signup/index.ts` (سطر 116-122)
+```text
+// قبل
+return new Response(JSON.stringify({ user: userData.user, message: "..." }), ...);
+
+// بعد
+return new Response(JSON.stringify({ success: true, message: "..." }), ...);
+```
+
+### الملف 7: `src/components/DashboardLayout.tsx` (سطر 103)
+```text
+// قبل
+const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+
+// بعد
+const { getJsonSetting } = useAppSettings();
 ```
 
