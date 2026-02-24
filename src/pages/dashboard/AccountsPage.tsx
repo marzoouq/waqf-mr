@@ -115,14 +115,13 @@ const AccountsPage = () => {
     if (saveSettingTimeouts.current[key]) clearTimeout(saveSettingTimeouts.current[key]);
     saveSettingTimeouts.current[key] = setTimeout(async () => {
       try {
-        const { error } = await supabase.from('app_settings').upsert({ key, value }, { onConflict: 'key' });
-        if (error) throw error;
+        await appSettings.updateSetting.mutateAsync({ key, value });
         toast.success('تم حفظ الإعداد');
       } catch (err) {
         toast.error('خطأ في حفظ الإعداد: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
       }
     }, 500);
-  }, []);
+  }, [appSettings.updateSetting]);
 
   const handleAdminPercentChange = (val: string) => {
     const num = parseFloat(val);
