@@ -4,6 +4,7 @@
  * Calls are fire-and-forget (non-blocking) to avoid impacting main operations.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 /** Send notification to all beneficiaries (fire-and-forget) */
 export const notifyAllBeneficiaries = (
@@ -20,7 +21,7 @@ export const notifyAllBeneficiaries = (
       p_link: link ?? null,
     })
     .then(({ error }) => {
-      if (error) console.error('Failed to notify beneficiaries:', error);
+      if (error) logger.error('Failed to notify beneficiaries:', error);
     });
 };
 
@@ -39,7 +40,7 @@ export const notifyAdmins = (
       p_link: link ?? null,
     })
     .then(({ error }) => {
-      if (error) console.error('Failed to notify admins:', error);
+      if (error) logger.error('Failed to notify admins:', error);
     });
 };
 
@@ -61,6 +62,6 @@ export const notifyUser = (
       link: link ?? null,
     })
     .then(({ error }) => {
-      if (error) console.error('Failed to notify user:', error);
+      if (error) logger.error('Failed to notify user:', error);
     });
 };

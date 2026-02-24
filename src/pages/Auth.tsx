@@ -55,7 +55,7 @@ const Auth = () => {
     if (!isLoading) return;
     const safety = setTimeout(() => {
       setIsLoading(false);
-      console.warn('[Auth] Force-reset isLoading after 10s safety timeout');
+      // Force-reset isLoading after 10s safety timeout
     }, 10000);
     return () => clearTimeout(safety);
   }, [isLoading]);
@@ -79,7 +79,7 @@ const Auth = () => {
       return;
     }
     const timer = setTimeout(() => {
-      console.warn('[Auth] Role not resolved after 5s from AuthContext');
+      // Role not resolved after 5s from AuthContext
       setRoleWaitTimeout(true);
     }, 5000);
     return () => clearTimeout(timer);
@@ -154,7 +154,7 @@ const Auth = () => {
         }).catch(() => { /* silent */ });
       }
     } catch (err) {
-      console.error('[Auth] handleSignIn error:', err);
+      // handleSignIn error — toast handles user notification
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);

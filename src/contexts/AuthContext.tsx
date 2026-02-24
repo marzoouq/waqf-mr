@@ -3,13 +3,14 @@
  * يدير حالة تسجيل الدخول والخروج وجلب دور المستخدم من جدول user_roles.
  * 
  * إصلاح معماري: فصل جلب الدور عن onAuthStateChange لتجنب race condition
- * إصلاح ثاني: نقل IdleTimeoutWarning إلى DashboardLayout لفصل المسؤوليات
+ * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
  */
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
+import { logger } from '@/lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -31,6 +32,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authReady, setAuthReady] = useState(false);
   const roleFetchIdRef = useRef(0);
   const lastUserIdRef = useRef<string | null>(null);
+  // إصلاح stale closure: roleRef يقرأ القيمة الحالية دائماً
+  const roleRef = useRef<AppRole | null>(null);
+
+  const setRoleWithRef = (newRole: AppRole | null) => {
+    roleRef.current = newRole;
+    setRole(newRole);
+  };
 
   // === الخطوة 1: onAuthStateChange يحدّث user/session فقط (بدون await) ===
   useEffect(() => {
@@ -41,18 +49,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const newUserId = currentSession?.user?.id ?? null;
 
         // حماية ضد الأحداث المتكررة لنفس المستخدم (INITIAL_SESSION + SIGNED_IN)
-        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newUserId && newUserId === lastUserIdRef.current && role) {
-          console.warn('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
+        // roleRef.current يقرأ القيمة الحالية دائماً (لا يتأثر بالـ closure)
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newUserId && newUserId === lastUserIdRef.current && roleRef.current) {
+          logger.warn('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
           return;
         }
 
-        console.warn('[Auth] onAuthStateChange:', event);
+        logger.warn('[Auth] onAuthStateChange:', event);
         lastUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
         if (!currentSession?.user) {
-          setRole(null);
+          setRoleWithRef(null);
           setLoading(false);
           lastUserIdRef.current = null;
         }
@@ -64,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Fallback: getSession for initial load
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!initialSessionHandled) {
-        console.warn('[Auth] getSession fallback used');
+        logger.warn('[Auth] getSession fallback used');
         setSession(s);
         setUser(s?.user ?? null);
         if (!s?.user) {
@@ -82,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!authReady) return;
 
     if (!user) {
-      setRole(null);
+      setRoleWithRef(null);
       setLoading(false);
       return;
     }
@@ -93,12 +102,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchRole = async () => {
       const startTime = Date.now();
       let attempts = 0;
-      console.warn('[Auth] fetchRole started for user:', user.id);
+      logger.warn('[Auth] fetchRole started for user:', user.id);
       
-      // Safety timeout: 5 seconds max
+      // Safety timeout: 3 seconds max
       timeoutId = setTimeout(() => {
         if (roleFetchIdRef.current === fetchId) {
-          console.warn('[Auth] fetchRole timeout after 3s, forcing loading=false');
+          logger.warn('[Auth] fetchRole timeout after 3s, forcing loading=false');
           setLoading(false);
         }
       }, 3000);
@@ -106,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       for (let attempt = 0; attempt <= 2; attempt++) {
         attempts = attempt + 1;
         if (roleFetchIdRef.current !== fetchId) {
-          console.warn('[Auth] fetchRole aborted (stale)');
+          logger.warn('[Auth] fetchRole aborted (stale)');
           return;
         }
 
@@ -121,8 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (data && !error) {
             const duration = Date.now() - startTime;
-            console.warn('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
-            setRole(data.role as AppRole);
+            logger.warn('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
+            setRoleWithRef(data.role as AppRole);
             setLoading(false);
             clearTimeout(timeoutId);
             logAccessEvent({
@@ -137,15 +146,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await new Promise(r => setTimeout(r, (attempt + 1) * 300));
           }
         } catch (err) {
-          console.error('[Auth] fetchRole attempt', attempt, 'error:', err);
+          logger.error('[Auth] fetchRole attempt', attempt, 'error:', err);
         }
       }
 
       // All retries exhausted
       if (roleFetchIdRef.current === fetchId) {
         const duration = Date.now() - startTime;
-        console.warn('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
-        setRole(null);
+        logger.warn('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
+        setRoleWithRef(null);
         setLoading(false);
         clearTimeout(timeoutId);
         logAccessEvent({
@@ -184,7 +193,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setRole(null);
+    setRoleWithRef(null);
   };
 
   return (

@@ -82,7 +82,7 @@ const LogoManager = () => {
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم رفع الشعار بنجاح');
     } catch (err) {
-      console.error('Logo upload error:', err);
+      // Logo upload error — toast handles user notification
       toast.error('حدث خطأ أثناء رفع الشعار');
     } finally {
       setUploading(false);
