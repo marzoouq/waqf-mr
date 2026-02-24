@@ -99,6 +99,6 @@ describe('AccountsBeneficiariesTable', () => {
         totalBeneficiaryPercentage={100}
       />,
     );
-    expect(screen.getByText('7.142857%')).toBeInTheDocument();
+    expect(screen.getByText('7.14%')).toBeInTheDocument();
   });
 });

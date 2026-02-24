@@ -34,10 +34,7 @@ vi.mock('@/hooks/useAppSettings', () => ({
     getJsonSetting: vi.fn((key: string, defaults: any) => stableJsonSettings[key] || defaults),
     updateJsonSetting: vi.fn(),
   })),
-}));
-
-vi.mock('@/hooks/useWaqfInfo', () => ({
-  useWaqfInfo: vi.fn(() => ({ data: {} })),
+  useWaqfInfo: vi.fn(() => ({ data: {}, isLoading: false })),
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({
