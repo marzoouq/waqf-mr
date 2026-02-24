@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ 
-      user: userData.user,
+      success: true,
       message: "تم إنشاء حسابك بنجاح. يرجى تأكيد بريدك الإلكتروني ثم انتظار موافقة الناظر لتفعيل صلاحياتك."
     }), {
       status: 200,

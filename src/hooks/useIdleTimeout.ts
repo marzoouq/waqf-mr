@@ -23,6 +23,7 @@ export const useIdleTimeout = ({
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef(Date.now());
+  const firedRef = useRef(false);
   const onIdleRef = useRef(onIdle);
   useEffect(() => { onIdleRef.current = onIdle; }, [onIdle]);
 
@@ -34,6 +35,7 @@ export const useIdleTimeout = ({
 
   const resetTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
+    firedRef.current = false;
     setShowWarning(false);
     clearTimers();
 
@@ -44,7 +46,8 @@ export const useIdleTimeout = ({
         const elapsed = Date.now() - lastActivityRef.current;
         const left = Math.max(0, Math.ceil((timeout - elapsed) / 1000));
         setRemaining(left);
-        if (left <= 0) {
+        if (left <= 0 && !firedRef.current) {
+          firedRef.current = true;
           clearTimers();
           onIdleRef.current();
         }
@@ -52,8 +55,11 @@ export const useIdleTimeout = ({
     }, timeout - warningBefore);
 
     timerRef.current = setTimeout(() => {
-      clearTimers();
-      onIdleRef.current();
+      if (!firedRef.current) {
+        firedRef.current = true;
+        clearTimers();
+        onIdleRef.current();
+      }
     }, timeout);
   }, [timeout, warningBefore, clearTimers]);
 
