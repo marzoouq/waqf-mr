@@ -7,10 +7,7 @@ const ALLOWED_ACTIONS = [
 ];
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get("origin") || "NO_ORIGIN";
-  console.log(`[admin-manage-users] ${req.method} from origin: ${origin}`);
   const corsHeaders = getCorsHeaders(req);
-  console.log(`[admin-manage-users] CORS Allow-Origin: ${corsHeaders["Access-Control-Allow-Origin"]}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -18,10 +15,10 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    console.log(`[admin-manage-users] Auth header present: ${!!authHeader}, length: ${authHeader?.length ?? 0}`);
+    
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("[admin-manage-users] REJECTED: No valid authorization header");
+      
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -39,7 +36,7 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userError } = await userClient.auth.getUser();
     if (userError || !userData?.user) {
-      console.log(`[admin-manage-users] getUser FAILED: ${userError?.message ?? "no user"}`);
+      
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -47,7 +44,7 @@ Deno.serve(async (req) => {
     }
 
     const callerId = userData.user.id;
-    console.log(`[admin-manage-users] Authenticated user: ${callerId}`);
+    
 
     // Check admin role using service role client to bypass RLS
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);

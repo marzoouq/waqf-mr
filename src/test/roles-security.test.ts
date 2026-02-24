@@ -18,6 +18,7 @@ describe("Role-Based Access Control", () => {
       expect(isAllowed("admin")).toBe(true);
       expect(isAllowed("beneficiary")).toBe(true);
       expect(isAllowed("waqif")).toBe(true);
+      expect(isAllowed("accountant")).toBe(true);
       expect(isAllowed(null)).toBe(true);
     });
 
@@ -27,6 +28,11 @@ describe("Role-Based Access Control", () => {
 
     it("beneficiary cannot access admin-only routes", () => {
       expect(isAllowed("beneficiary", ["admin"])).toBe(false);
+    });
+
+    it("accountant cannot access admin-only routes alone but can with accountant", () => {
+      expect(isAllowed("accountant", ["admin"])).toBe(false);
+      expect(isAllowed("accountant", ["admin", "accountant"])).toBe(true);
     });
 
     it("waqif cannot access admin-only routes", () => {
@@ -56,24 +62,34 @@ describe("Role-Based Access Control", () => {
   });
 
   describe("AppRole type validation", () => {
-    it("only valid roles exist", () => {
-      const validRoles: AppRole[] = ["admin", "beneficiary", "waqif"];
-      expect(validRoles).toHaveLength(3);
+    it("all four roles exist", () => {
+      const validRoles: AppRole[] = ["admin", "beneficiary", "waqif", "accountant"];
+      expect(validRoles).toHaveLength(4);
       expect(validRoles).toContain("admin");
       expect(validRoles).toContain("beneficiary");
       expect(validRoles).toContain("waqif");
+      expect(validRoles).toContain("accountant");
     });
   });
 
   describe("Route protection matrix", () => {
     const adminRoutes = ["admin"] as AppRole[];
+    const dashboardRoutes = ["admin", "accountant"] as AppRole[];
     const beneficiaryRoutes = ["beneficiary", "admin"] as AppRole[];
     const allRoles = ["admin", "beneficiary", "waqif"] as AppRole[];
 
-    it("dashboard routes require admin", () => {
+    it("admin-only routes reject others", () => {
       expect(isAllowed("admin", adminRoutes)).toBe(true);
+      expect(isAllowed("accountant", adminRoutes)).toBe(false);
       expect(isAllowed("beneficiary", adminRoutes)).toBe(false);
       expect(isAllowed("waqif", adminRoutes)).toBe(false);
+    });
+
+    it("dashboard routes allow admin and accountant", () => {
+      expect(isAllowed("admin", dashboardRoutes)).toBe(true);
+      expect(isAllowed("accountant", dashboardRoutes)).toBe(true);
+      expect(isAllowed("beneficiary", dashboardRoutes)).toBe(false);
+      expect(isAllowed("waqif", dashboardRoutes)).toBe(false);
     });
 
     it("beneficiary routes allow admin preview", () => {

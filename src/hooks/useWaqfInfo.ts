@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useAppSettings } from './useAppSettings';
 
 export interface WaqfInfo {
   waqf_name: string;
@@ -18,36 +17,22 @@ const WAQF_KEYS = [
   'waqf_deed_number', 'waqf_deed_date',
   'waqf_nazara_number', 'waqf_nazara_date', 'waqf_court',
   'waqf_logo_url',
-];
+] as const;
 
 export const useWaqfInfo = () => {
-  return useQuery({
-    queryKey: ['waqf-info'],
-    queryFn: async (): Promise<WaqfInfo> => {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('key, value')
-        .in('key', WAQF_KEYS);
+  const { data: settings, isLoading, error } = useAppSettings();
 
-      if (error) throw error;
+  const info: WaqfInfo = {
+    waqf_name: settings?.waqf_name || '',
+    waqf_founder: settings?.waqf_founder || '',
+    waqf_admin: settings?.waqf_admin || '',
+    waqf_deed_number: settings?.waqf_deed_number || '',
+    waqf_deed_date: settings?.waqf_deed_date || '',
+    waqf_nazara_number: settings?.waqf_nazara_number || '',
+    waqf_nazara_date: settings?.waqf_nazara_date || '',
+    waqf_court: settings?.waqf_court || '',
+    waqf_logo_url: settings?.waqf_logo_url || '',
+  };
 
-      const info: Record<string, string> = {};
-      data?.forEach((row) => {
-        info[row.key] = row.value;
-      });
-
-      return {
-        waqf_name: info.waqf_name || '',
-        waqf_founder: info.waqf_founder || '',
-        waqf_admin: info.waqf_admin || '',
-        waqf_deed_number: info.waqf_deed_number || '',
-        waqf_deed_date: info.waqf_deed_date || '',
-        waqf_nazara_number: info.waqf_nazara_number || '',
-        waqf_nazara_date: info.waqf_nazara_date || '',
-        waqf_court: info.waqf_court || '',
-        waqf_logo_url: info.waqf_logo_url || '',
-      };
-    },
-    staleTime: 1000 * 60 * 10,
-  });
+  return { data: info, isLoading, error };
 };
