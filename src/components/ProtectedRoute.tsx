@@ -1,8 +1,7 @@
 /**
  * مكون حماية المسارات (ProtectedRoute)
  * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
- * 
- * النسخة المبسطة: لا تستورد supabase مباشرة — كل منطق الدور في AuthContext
+ * يعتمد بالكامل على AuthContext لمنطق المصادقة وتسجيل الخروج.
  */
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +9,6 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 
 type AllowedRole = 'admin' | 'beneficiary' | 'waqif' | 'accountant';
 
@@ -20,7 +18,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, signOut } = useAuth();
   const location = useLocation();
   const loggedRef = useRef(false);
 
@@ -66,7 +64,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
             size="sm"
             className="mt-2"
             onClick={async () => {
-              await supabase.auth.signOut();
+              await signOut();
               window.location.href = '/auth';
             }}
           >
