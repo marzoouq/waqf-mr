@@ -65,4 +65,49 @@ describe('MobileCardView', () => {
     const { container } = render(<MobileCardView {...defaultProps} items={[]} />);
     expect(container.querySelectorAll('.shadow-sm')).toHaveLength(0);
   });
+
+  it('renders multiple fields per item', () => {
+    render(
+      <MobileCardView
+        items={[items[0]]}
+        getKey={(i) => i.id}
+        getTitle={(i) => i.name}
+        getFields={(i) => [
+          { label: 'المبلغ', value: `${i.amount} ريال` },
+          { label: 'الحالة', value: 'نشط' },
+        ]}
+      />
+    );
+    expect(screen.getByText('المبلغ')).toBeInTheDocument();
+    expect(screen.getByText('100 ريال')).toBeInTheDocument();
+    expect(screen.getByText('الحالة')).toBeInTheDocument();
+  });
+
+  it('shows edit and delete buttons together', () => {
+    const onEdit = vi.fn();
+    const onDelete = vi.fn();
+    render(
+      <MobileCardView
+        items={[items[0]]}
+        getKey={(i) => i.id}
+        getTitle={(i) => i.name}
+        getFields={() => []}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    );
+    expect(screen.getAllByRole('button').length).toBe(2);
+  });
+
+  it('hides buttons when no callbacks provided', () => {
+    render(
+      <MobileCardView
+        items={[items[0]]}
+        getKey={(i) => i.id}
+        getTitle={(i) => i.name}
+        getFields={() => []}
+      />
+    );
+    expect(screen.queryAllByRole('button').length).toBe(0);
+  });
 });
