@@ -54,17 +54,10 @@ vi.mock('@/hooks/useProperties', () => ({
 }));
 
 vi.mock('@/hooks/useContracts', () => ({
-  useContracts: vi.fn(() => ({
-    data: [
-      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 30000, status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', fiscal_year_id: 'fy-1' },
-      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 20000, status: 'expired', start_date: '2023-01-01', end_date: '2024-01-01', fiscal_year_id: 'fy-1' },
-    ],
-    isLoading: false,
-  })),
   useContractsByFiscalYear: vi.fn(() => ({
     data: [
-      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 30000, status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', fiscal_year_id: 'fy-1' },
-      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 20000, status: 'expired', start_date: '2023-01-01', end_date: '2024-01-01', fiscal_year_id: 'fy-1' },
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 30000, status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', fiscal_year_id: 'fy-1', created_at: '2024-01-01' },
+      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 20000, status: 'expired', start_date: '2023-01-01', end_date: '2024-01-01', fiscal_year_id: 'fy-1', created_at: '2023-06-01' },
     ],
     isLoading: false,
   })),
