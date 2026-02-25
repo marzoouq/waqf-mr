@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw, Volume2, Play } from 'lucide-react';
 import { z } from 'zod';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
+import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
@@ -172,7 +173,7 @@ const BeneficiarySettingsPage = () => {
         </div>
 
         <Tabs defaultValue="account" dir="rtl" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm py-2">
               <User className="w-4 h-4 hidden sm:block" />
               الحساب
@@ -180,6 +181,10 @@ const BeneficiarySettingsPage = () => {
             <TabsTrigger value="password" className="gap-1.5 text-xs sm:text-sm py-2">
               <Lock className="w-4 h-4 hidden sm:block" />
               كلمة المرور
+            </TabsTrigger>
+            <TabsTrigger value="biometric" className="gap-1.5 text-xs sm:text-sm py-2">
+              <Shield className="w-4 h-4 hidden sm:block" />
+              البصمة
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm py-2">
               <Bell className="w-4 h-4 hidden sm:block" />
@@ -281,6 +286,11 @@ const BeneficiarySettingsPage = () => {
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Biometric Tab */}
+          <TabsContent value="biometric">
+            <BiometricSettings />
           </TabsContent>
 
           {/* Notifications Tab */}

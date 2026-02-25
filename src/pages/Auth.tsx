@@ -8,7 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2 } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint } from 'lucide-react';
+import { useWebAuthn, isBiometricEnabled } from '@/hooks/useWebAuthn';
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
@@ -34,6 +36,8 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, signOut, user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
+  const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
 
   // PWA install prompt
   const [installPrompt, setInstallPrompt] = useState<(Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }) | null>(null);
@@ -294,6 +298,29 @@ const Auth = () => {
       <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
         {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </Button>
+
+      {/* زر تسجيل الدخول بالبصمة */}
+      {showBiometric && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full h-11 gap-2 border-primary/30 hover:bg-primary/5"
+          disabled={biometricLoading}
+          onClick={async () => {
+            const success = await authenticateWithBiometric();
+            if (success) {
+              // سيتم التوجيه تلقائياً عبر useEffect
+            }
+          }}
+        >
+          {biometricLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Fingerprint className="w-5 h-5 text-primary" />
+          )}
+          تسجيل الدخول بالبصمة
+        </Button>
+      )}
     </form>
   );
 
