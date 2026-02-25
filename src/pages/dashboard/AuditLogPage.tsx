@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive } from 'lucide-react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
 import TablePagination from '@/components/TablePagination';
 import AccessLogTab from '@/components/audit/AccessLogTab';
+import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -156,6 +157,10 @@ const AuditLogPage = () => {
               <ShieldAlert className="w-4 h-4" />
               محاولات الوصول
             </TabsTrigger>
+            <TabsTrigger value="archive" className="gap-2">
+              <Archive className="w-4 h-4" />
+              الأرشيف
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="operations">
@@ -288,6 +293,10 @@ const AuditLogPage = () => {
 
           <TabsContent value="access">
             <AccessLogTab />
+          </TabsContent>
+
+          <TabsContent value="archive">
+            <ArchiveLogTab />
           </TabsContent>
         </Tabs>
       </div>
