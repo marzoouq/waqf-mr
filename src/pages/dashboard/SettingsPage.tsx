@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play } from 'lucide-react';
-import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, previewTone, type ToneId } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
 
@@ -415,6 +415,10 @@ const NotificationsTab = () => {
     try { return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId; } catch { return 'chime'; }
   });
 
+  const [volume, setVolume] = useState<VolumeLevel>(() => {
+    try { return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel; } catch { return 'medium'; }
+  });
+
   const handleSoundChange = (value: boolean) => {
     setSoundEnabled(value);
     localStorage.setItem('waqf_notification_sound', String(value));
@@ -424,7 +428,15 @@ const NotificationsTab = () => {
   const handleToneChange = (tone: ToneId) => {
     setSelectedTone(tone);
     localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
-    previewTone(tone);
+    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
+    previewTone(tone, vol);
+  };
+
+  const handleVolumeChange = (level: VolumeLevel) => {
+    setVolume(level);
+    localStorage.setItem(NOTIFICATION_VOLUME_KEY, level);
+    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
+    previewTone(selectedTone, vol);
   };
 
   const toggleField = (key: string) => {
@@ -487,6 +499,7 @@ const NotificationsTab = () => {
         </div>
 
         {soundEnabled && (
+          <>
           <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
             <div className="flex items-center gap-2">
               <Play className="w-4 h-4 text-primary" />
@@ -503,11 +516,28 @@ const NotificationsTab = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)}>
                 <Play className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
+          <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">مستوى الصوت</p>
+            </div>
+            <Select dir="rtl" value={volume} onValueChange={(v) => handleVolumeChange(v as VolumeLevel)}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VOLUME_OPTIONS.map(v => (
+                  <SelectItem key={v.id} value={v.id} className="text-xs">{v.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          </>
         )}
       </CardContent>
     </Card>

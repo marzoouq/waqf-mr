@@ -15,7 +15,7 @@ import { z } from 'zod';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, previewTone, type ToneId } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
@@ -74,6 +74,14 @@ const BeneficiarySettingsPage = () => {
     }
   });
 
+  const [volume, setVolume] = useState<VolumeLevel>(() => {
+    try {
+      return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel;
+    } catch {
+      return 'medium';
+    }
+  });
+
   const handleSoundChange = (value: boolean) => {
     setSoundEnabled(value);
     localStorage.setItem(NOTIF_SOUND_KEY, String(value));
@@ -83,7 +91,15 @@ const BeneficiarySettingsPage = () => {
   const handleToneChange = (tone: ToneId) => {
     setSelectedTone(tone);
     localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
-    previewTone(tone);
+    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
+    previewTone(tone, vol);
+  };
+
+  const handleVolumeChange = (level: VolumeLevel) => {
+    setVolume(level);
+    localStorage.setItem(NOTIFICATION_VOLUME_KEY, level);
+    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
+    previewTone(selectedTone, vol);
   };
 
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
@@ -313,6 +329,7 @@ const BeneficiarySettingsPage = () => {
                 </div>
 
                 {soundEnabled && (
+                  <>
                   <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
                     <div className="flex items-center gap-2">
                       <Play className="w-4 h-4 text-primary" />
@@ -329,11 +346,28 @@ const BeneficiarySettingsPage = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)}>
                         <Play className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Volume2 className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">مستوى الصوت</p>
+                    </div>
+                    <Select dir="rtl" value={volume} onValueChange={(v) => handleVolumeChange(v as VolumeLevel)}>
+                      <SelectTrigger className="w-28 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VOLUME_OPTIONS.map(v => (
+                          <SelectItem key={v.id} value={v.id} className="text-xs">{v.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
