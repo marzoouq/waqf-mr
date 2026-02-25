@@ -5,22 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/useAdvanceRequests';
-import { Banknote, Loader2 } from 'lucide-react';
+import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
   fiscalYearId?: string;
   estimatedShare: number;
   paidAdvances: number;
+  carryforwardBalance?: number;
 }
 
-const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances }: AdvanceRequestDialogProps) => {
+const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0 }: AdvanceRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const create = useCreateAdvanceRequest();
 
-  const maxAdvance = Math.max(0, (estimatedShare * 0.5) - paidAdvances);
+  const effectiveShare = Math.max(0, estimatedShare - carryforwardBalance);
+  const maxAdvance = Math.max(0, (effectiveShare * 0.5) - paidAdvances);
 
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
@@ -51,7 +53,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
         <DialogHeader>
           <DialogTitle>طلب سلفة من الحصة</DialogTitle>
           <DialogDescription>
-            يمكنك طلب سلفة مقدمة من حصتك (بحد أقصى 50% من الحصة التقديرية)
+            يمكنك طلب سلفة مقدمة من حصتك (بحد أقصى 50% من الحصة الصافية)
           </DialogDescription>
         </DialogHeader>
 
@@ -61,6 +63,18 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
               <span>الحصة التقديرية</span>
               <span className="font-medium">{estimatedShare.toLocaleString()} ر.س</span>
             </div>
+            {carryforwardBalance > 0 && (
+              <div className="flex justify-between text-destructive">
+                <span>فروق مرحّلة من سنوات سابقة</span>
+                <span className="font-medium">-{carryforwardBalance.toLocaleString()} ر.س</span>
+              </div>
+            )}
+            {carryforwardBalance > 0 && (
+              <div className="flex justify-between">
+                <span>الحصة بعد خصم المرحّل</span>
+                <span className="font-medium">{effectiveShare.toLocaleString()} ر.س</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>سُلف سابقة</span>
               <span className="font-medium">{paidAdvances.toLocaleString()} ر.س</span>
@@ -70,6 +84,13 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
               <span className="font-bold text-primary">{maxAdvance.toLocaleString()} ر.س</span>
             </div>
           </div>
+
+          {carryforwardBalance > 0 && (
+            <div className="flex items-start gap-2 p-2 bg-warning/10 border border-warning/20 rounded text-xs">
+              <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+              <span>لديك فروق مرحّلة من سنوات سابقة ستُخصم من حصتك عند التوزيع</span>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>المبلغ المطلوب (ر.س)</Label>

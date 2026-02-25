@@ -107,6 +107,68 @@ export type Database = {
         }
         Relationships: []
       }
+      advance_carryforward: {
+        Row: {
+          amount: number
+          beneficiary_id: string
+          created_at: string
+          from_fiscal_year_id: string
+          id: string
+          notes: string | null
+          status: string
+          to_fiscal_year_id: string | null
+        }
+        Insert: {
+          amount?: number
+          beneficiary_id: string
+          created_at?: string
+          from_fiscal_year_id: string
+          id?: string
+          notes?: string | null
+          status?: string
+          to_fiscal_year_id?: string | null
+        }
+        Update: {
+          amount?: number
+          beneficiary_id?: string
+          created_at?: string
+          from_fiscal_year_id?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          to_fiscal_year_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_carryforward_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_from_fiscal_year_id_fkey"
+            columns: ["from_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_to_fiscal_year_id_fkey"
+            columns: ["to_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advance_requests: {
         Row: {
           amount: number

@@ -1,6 +1,5 @@
 /**
- * هوكات إدارة طلبات السُلف (advance_requests)
- * يوفر: useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus, usePaidAdvancesTotal
+ * هوكات إدارة طلبات السُلف (advance_requests) + ترحيل الفروق السالبة
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +19,17 @@ export interface AdvanceRequest {
   paid_at: string | null;
   created_at: string;
   beneficiary?: { id: string; name: string; share_percentage: number; user_id: string | null };
+}
+
+export interface AdvanceCarryforward {
+  id: string;
+  beneficiary_id: string;
+  from_fiscal_year_id: string;
+  to_fiscal_year_id: string | null;
+  amount: number;
+  status: string;
+  notes: string | null;
+  created_at: string;
 }
 
 /**
@@ -84,6 +94,70 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
       return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0);
     },
     enabled: !!beneficiaryId,
+  });
+};
+
+/**
+ * جلب الفروق المرحّلة النشطة لمستفيد (من سنوات سابقة)
+ */
+export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
+  return useQuery({
+    queryKey: ['advance_carryforward', beneficiaryId, fiscalYearId],
+    queryFn: async () => {
+      if (!beneficiaryId) return 0;
+      // جلب كل المرحّل النشط الذي يستهدف هذه السنة أو بدون سنة مستهدفة
+      let query = supabase
+        .from('advance_carryforward' as any)
+        .select('amount')
+        .eq('beneficiary_id', beneficiaryId)
+        .eq('status', 'active');
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0);
+    },
+    enabled: !!beneficiaryId,
+  });
+};
+
+/**
+ * جلب سجلات الترحيل لمستفيد
+ */
+export const useMyCarryforwards = (beneficiaryId?: string) => {
+  return useQuery({
+    queryKey: ['advance_carryforward', 'my', beneficiaryId],
+    queryFn: async () => {
+      if (!beneficiaryId) return [];
+      const { data, error } = await supabase
+        .from('advance_carryforward' as any)
+        .select('*')
+        .eq('beneficiary_id', beneficiaryId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as AdvanceCarryforward[];
+    },
+    enabled: !!beneficiaryId,
+  });
+};
+
+/**
+ * جلب كل المرحّلات النشطة (للناظر) لسنة مالية محددة
+ */
+export const useAllCarryforwards = (fiscalYearId?: string) => {
+  return useQuery({
+    queryKey: ['advance_carryforward', 'all', fiscalYearId],
+    queryFn: async () => {
+      let query = supabase
+        .from('advance_carryforward' as any)
+        .select('*, beneficiary:beneficiaries(id, name)')
+        .eq('status', 'active');
+      if (fiscalYearId) {
+        query = query.eq('from_fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as unknown as (AdvanceCarryforward & { beneficiary?: { id: string; name: string } })[];
+    },
   });
 };
 
