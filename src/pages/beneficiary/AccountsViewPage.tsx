@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
@@ -11,7 +10,6 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
@@ -19,7 +17,6 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
 
