@@ -22,6 +22,7 @@ import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
 import SidebarContent from '@/components/Sidebar';
+import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { supabase } from '@/integrations/supabase/client';
@@ -278,6 +279,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="hidden lg:flex items-center justify-between">
           <WaqfInfoBar />
           <div className="flex items-center gap-3 px-4 py-2">
+            <GlobalSearch />
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
               <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">

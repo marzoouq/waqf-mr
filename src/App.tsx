@@ -50,6 +50,7 @@ const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
 const PropertiesViewPage = lazy(() => import("./pages/beneficiary/PropertiesViewPage"));
 const ContractsViewPage = lazy(() => import("./pages/beneficiary/ContractsViewPage"));
 const CarryforwardHistoryPage = lazy(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
+const WaqifDashboard = lazy(() => import("./pages/beneficiary/WaqifDashboard"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
@@ -114,6 +115,7 @@ const App = () => (
 
                   {/* Beneficiary Routes (admin can also access) */}
                   <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiaryDashboard /></ProtectedRoute>} />
+                  <Route path="/waqif" element={<ProtectedRoute allowedRoles={['admin', 'waqif']}><WaqifDashboard /></ProtectedRoute>} />
                   <Route path="/beneficiary/properties" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><PropertiesViewPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/contracts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><ContractsViewPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/disclosure" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><DisclosurePage /></ProtectedRoute>} />
