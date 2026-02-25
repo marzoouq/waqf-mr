@@ -7,6 +7,81 @@ import { logger } from '@/lib/logger';
 
 export type { Notification };
 
+export const NOTIFICATION_TONE_KEY = 'waqf_notification_tone';
+
+export type ToneId = 'chime' | 'bell' | 'drop' | 'pulse' | 'gentle';
+
+export interface ToneOption {
+  id: ToneId;
+  label: string;
+}
+
+export const TONE_OPTIONS: ToneOption[] = [
+  { id: 'chime', label: 'رنين كلاسيكي' },
+  { id: 'bell', label: 'جرس' },
+  { id: 'drop', label: 'قطرة ماء' },
+  { id: 'pulse', label: 'نبضة' },
+  { id: 'gentle', label: 'هادئ' },
+];
+
+const playTone = (ctx: AudioContext, tone: ToneId) => {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  const t = ctx.currentTime;
+
+  switch (tone) {
+    case 'bell':
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.exponentialRampToValueAtTime(600, t + 0.4);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+      osc.start(t); osc.stop(t + 0.4);
+      break;
+    case 'drop':
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, t);
+      osc.frequency.exponentialRampToValueAtTime(400, t + 0.25);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+      osc.start(t); osc.stop(t + 0.25);
+      break;
+    case 'pulse':
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(600, t);
+      osc.frequency.setValueAtTime(800, t + 0.1);
+      osc.frequency.setValueAtTime(600, t + 0.2);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+      osc.start(t); osc.stop(t + 0.3);
+      break;
+    case 'gentle':
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(520, t);
+      osc.frequency.setValueAtTime(660, t + 0.2);
+      gain.gain.setValueAtTime(0.1, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+      osc.start(t); osc.stop(t + 0.5);
+      break;
+    default: // chime
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(830, t);
+      osc.frequency.setValueAtTime(1050, t + 0.12);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+      osc.start(t); osc.stop(t + 0.3);
+  }
+};
+
+export const previewTone = (tone: ToneId) => {
+  try {
+    const ctx = new AudioContext();
+    playTone(ctx, tone);
+  } catch { /* silent */ }
+};
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -18,21 +93,8 @@ export const useNotifications = () => {
       if (!audioCtxRef.current) {
         audioCtxRef.current = new AudioContext();
       }
-      const ctx = audioCtxRef.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      // Two-tone chime
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(830, ctx.currentTime);
-      osc.frequency.setValueAtTime(1050, ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.3);
+      const tone = (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId;
+      playTone(audioCtxRef.current, tone);
     } catch {
       // Silent fail if audio not supported
     }
