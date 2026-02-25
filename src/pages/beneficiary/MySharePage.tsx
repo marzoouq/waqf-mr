@@ -16,7 +16,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useMyAdvanceRequests, usePaidAdvancesTotal } from '@/hooks/useAdvanceRequests';
+import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 
 const MySharePage = () => {
@@ -65,6 +65,8 @@ const MySharePage = () => {
   // سُلف المستفيد
   const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id);
   const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
 
   const beneficiariesShare = availableAmount;
 
@@ -189,6 +191,7 @@ const MySharePage = () => {
                 fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
                 estimatedShare={myShare}
                 paidAdvances={paidAdvancesTotal}
+                carryforwardBalance={carryforwardBalance}
               />
             )}
             <ExportMenu onExportPdf={handleDownloadPDF} />
@@ -253,6 +256,24 @@ const MySharePage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* تنبيه الفروق المرحّلة */}
+        {carryforwardBalance > 0 && (
+          <Card className="shadow-sm border-warning/30 bg-warning/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-sm">فروق مرحّلة من سنوات سابقة</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    لديك مبلغ <span className="font-bold text-warning">{carryforwardBalance.toLocaleString()} ر.س</span> مرحّل من سُلف سابقة تجاوزت حصتك.
+                    سيتم خصمه تلقائياً من حصتك عند التوزيع القادم.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Link to Disclosure */}
         <Card className="shadow-sm">
@@ -339,6 +360,46 @@ const MySharePage = () => {
                         {adv.status === 'rejected' && adv.rejection_reason && (
                           <p className="text-xs text-muted-foreground mt-1">{adv.rejection_reason}</p>
                         )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* سجل الفروق المرحّلة */}
+        {myCarryforwards.length > 0 && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5" />
+                سجل الفروق المرحّلة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">التاريخ</TableHead>
+                    <TableHead className="text-right">المبلغ</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">ملاحظات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myCarryforwards.map(cf => (
+                    <TableRow key={cf.id}>
+                      <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                      <TableCell className="font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell>
+                        <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
+                          {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                        {cf.notes || '—'}
                       </TableCell>
                     </TableRow>
                   ))}
