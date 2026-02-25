@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
 
@@ -11,6 +11,32 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const lastNotifIdRef = useRef<string | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext();
+      }
+      const ctx = audioCtxRef.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      // Two-tone chime
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(830, ctx.currentTime);
+      osc.frequency.setValueAtTime(1050, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    } catch {
+      // Silent fail if audio not supported
+    }
+  }, []);
 
   const query = useQuery({
     queryKey: ['notifications', user?.id],
@@ -94,8 +120,12 @@ export const useNotifications = () => {
       }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
         
-        // Show browser push notification
         const newNotif = payload.new as Notification;
+
+        // Play notification chime
+        playNotificationSound();
+
+        // Show browser push notification
         if ('Notification' in window && Notification.permission === 'granted') {
           if (lastNotifIdRef.current !== newNotif.id) {
             lastNotifIdRef.current = newNotif.id;
