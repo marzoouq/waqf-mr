@@ -13,7 +13,10 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
-const COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
+const COLORS = [
+  'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
+  'hsl(var(--warning))', 'hsl(var(--chart-4))', 'hsl(var(--primary))',
+];
 
 const formatArabicMonth = (month: string) => {
   const arabicMonths: Record<string, string> = {
@@ -59,17 +62,17 @@ const FinancialReportsPage = () => {
     : 0;
 
   const incomeVsExpenses = [
-    { name: 'الإيرادات', value: totalIncome, fill: '#22c55e' },
-    { name: 'المصروفات', value: totalExpenses, fill: '#ef4444' },
+    { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
+    { name: 'المصروفات', value: totalExpenses, fill: 'hsl(var(--destructive))' },
   ];
 
   const expensesPieData = Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }));
   const incomePieData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
 
   const distributionData = [
-    { name: 'المستفيدين', value: beneficiariesShare, fill: '#3b82f6' },
-    { name: 'الناظر', value: adminShare, fill: '#f59e0b' },
-    { name: 'الواقف', value: waqifShare, fill: '#8b5cf6' },
+    { name: 'المستفيدين', value: beneficiariesShare, fill: 'hsl(var(--info))' },
+    { name: 'الناظر', value: adminShare, fill: 'hsl(var(--warning))' },
+    { name: 'الواقف', value: waqifShare, fill: 'hsl(var(--chart-4))' },
   ];
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
@@ -350,7 +353,7 @@ const FinancialReportsPage = () => {
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} width={50} />
                   <Tooltip formatter={(value: number) => Math.round(value).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
-                  <Bar dataKey="income" fill="#22c55e" name="الإيرادات" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               ) : (
