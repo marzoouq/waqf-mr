@@ -1,0 +1,146 @@
+/**
+ * هوكات إدارة طلبات السُلف (advance_requests)
+ * يوفر: useAdvanceRequests, useCreateAdvanceRequest, useUpdateAdvanceStatus, usePaidAdvancesTotal
+ */
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+export interface AdvanceRequest {
+  id: string;
+  beneficiary_id: string;
+  fiscal_year_id: string | null;
+  amount: number;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  rejection_reason: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  paid_at: string | null;
+  created_at: string;
+  beneficiary?: { id: string; name: string; share_percentage: number; user_id: string | null };
+}
+
+/**
+ * جلب طلبات السُلف — للناظر: الكل، للمستفيد: طلباته فقط (RLS تتكفل)
+ */
+export const useAdvanceRequests = (fiscalYearId?: string) => {
+  return useQuery({
+    queryKey: ['advance_requests', fiscalYearId ?? 'all'],
+    queryFn: async () => {
+      let query = supabase
+        .from('advance_requests' as any)
+        .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id)')
+        .order('created_at', { ascending: false });
+      if (fiscalYearId) {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as unknown as AdvanceRequest[];
+    },
+  });
+};
+
+/**
+ * جلب طلبات سُلف مستفيد معين
+ */
+export const useMyAdvanceRequests = (beneficiaryId?: string) => {
+  return useQuery({
+    queryKey: ['advance_requests', 'my', beneficiaryId],
+    queryFn: async () => {
+      if (!beneficiaryId) return [];
+      const { data, error } = await supabase
+        .from('advance_requests' as any)
+        .select('*')
+        .eq('beneficiary_id', beneficiaryId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as AdvanceRequest[];
+    },
+    enabled: !!beneficiaryId,
+  });
+};
+
+/**
+ * إجمالي السُلف المصروفة لمستفيد في سنة مالية
+ */
+export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
+  return useQuery({
+    queryKey: ['advance_requests', 'paid_total', beneficiaryId, fiscalYearId],
+    queryFn: async () => {
+      if (!beneficiaryId) return 0;
+      let query = supabase
+        .from('advance_requests' as any)
+        .select('amount')
+        .eq('beneficiary_id', beneficiaryId)
+        .eq('status', 'paid');
+      if (fiscalYearId) {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0);
+    },
+    enabled: !!beneficiaryId,
+  });
+};
+
+/**
+ * إنشاء طلب سلفة جديد (من المستفيد)
+ */
+export const useCreateAdvanceRequest = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (req: { beneficiary_id: string; fiscal_year_id?: string; amount: number; reason?: string }) => {
+      const { data, error } = await supabase
+        .from('advance_requests' as any)
+        .insert({ ...req, status: 'pending' })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['advance_requests'] });
+      toast.success('تم إرسال طلب السلفة بنجاح');
+    },
+    onError: () => toast.error('فشل إرسال طلب السلفة'),
+  });
+};
+
+/**
+ * تحديث حالة طلب السلفة (موافقة / رفض / صرف)
+ */
+export const useUpdateAdvanceStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status, rejection_reason }: { id: string; status: string; rejection_reason?: string }) => {
+      const updates: Record<string, any> = { status };
+      if (status === 'approved') {
+        updates.approved_at = new Date().toISOString();
+      }
+      if (status === 'paid') {
+        updates.paid_at = new Date().toISOString();
+      }
+      if (rejection_reason) {
+        updates.rejection_reason = rejection_reason;
+      }
+      const { error } = await supabase
+        .from('advance_requests' as any)
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['advance_requests'] });
+      const msgs: Record<string, string> = {
+        approved: 'تمت الموافقة على طلب السلفة',
+        rejected: 'تم رفض طلب السلفة',
+        paid: 'تم تأكيد صرف السلفة',
+      };
+      toast.success(msgs[vars.status] || 'تم تحديث الطلب');
+    },
+    onError: () => toast.error('فشل تحديث حالة الطلب'),
+  });
+};

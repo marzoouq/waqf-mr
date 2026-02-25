@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
 import { Users, Percent, Search } from 'lucide-react';
@@ -18,6 +19,7 @@ import {
 import TablePagination from '@/components/TablePagination';
 import BeneficiaryFormDialog, { BeneficiaryFormData } from '@/components/beneficiaries/BeneficiaryFormDialog';
 import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
+import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -129,70 +131,83 @@ const BeneficiariesPage = () => {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
-                  <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-7 w-16" />
-                  </div>
+        <Tabs defaultValue="beneficiaries" dir="rtl">
+          <TabsList>
+            <TabsTrigger value="beneficiaries">المستفيدون</TabsTrigger>
+            <TabsTrigger value="advances">طلبات السُلف</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="beneficiaries" className="space-y-5 mt-4">
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <Card key={i} className="shadow-sm">
+                    <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
+                      <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-7 w-16" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="relative max-w-md">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+            ) : filteredBeneficiaries.length === 0 ? (
+              <Card className="shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
-                  <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
+                    <BeneficiaryCard
+                      key={beneficiary.id}
+                      beneficiary={beneficiary}
+                      onEdit={handleEdit}
+                      onDelete={(id, name) => setDeleteTarget({ id, name })}
+                    />
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
-                  <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                <TablePagination currentPage={currentPage} totalItems={filteredBeneficiaries.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+              </>
+            )}
+          </TabsContent>
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
-        ) : filteredBeneficiaries.length === 0 ? (
-          <Card className="shadow-sm">
-            <CardContent className="py-12 text-center">
-              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
-                <BeneficiaryCard
-                  key={beneficiary.id}
-                  beneficiary={beneficiary}
-                  onEdit={handleEdit}
-                  onDelete={(id, name) => setDeleteTarget({ id, name })}
-                />
-              ))}
-            </div>
-            <TablePagination currentPage={currentPage} totalItems={filteredBeneficiaries.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-          </>
-        )}
+          <TabsContent value="advances" className="mt-4">
+            <AdvanceRequestsTab />
+          </TabsContent>
+        </Tabs>
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>
