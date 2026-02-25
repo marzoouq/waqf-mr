@@ -458,10 +458,14 @@ export function useAccountsPage() {
     });
   };
 
+  const currentAccount = selectedFY?.label
+    ? accounts.find(a => a.fiscal_year === selectedFY.label) || null
+    : accounts.length === 1 ? accounts[0] : null;
+
   return {
     // Data
     accounts, contracts, beneficiaries, income, expenses, isLoading,
-    selectedFY, fiscalYear, fiscalYears, fiscalYearId, isClosed,
+    selectedFY, fiscalYear, fiscalYears, fiscalYearId, isClosed, currentAccount,
     // Settings
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
     manualVat, manualDistributions, calculatedVat, commercialRent, vatPercentage,

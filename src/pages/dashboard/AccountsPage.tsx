@@ -168,6 +168,10 @@ const AccountsPage = () => {
           beneficiaries={page.beneficiaries}
           manualDistributions={page.manualDistributions}
           totalBeneficiaryPercentage={page.totalBeneficiaryPercentage}
+          availableAmount={page.availableAmount}
+          accountId={page.currentAccount?.id}
+          fiscalYearId={page.fiscalYearId === 'all' ? undefined : page.fiscalYearId}
+          fiscalYearLabel={page.selectedFY?.label}
         />
 
         <AccountsSavedTable

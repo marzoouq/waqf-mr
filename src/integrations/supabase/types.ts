@@ -107,6 +107,70 @@ export type Database = {
         }
         Relationships: []
       }
+      advance_requests: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          beneficiary_id: string
+          created_at: string
+          fiscal_year_id: string | null
+          id: string
+          paid_at: string | null
+          reason: string | null
+          rejection_reason: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          beneficiary_id: string
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          beneficiary_id?: string
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_requests_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_requests_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_requests_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -322,6 +386,7 @@ export type Database = {
           beneficiary_id: string
           created_at: string
           date: string
+          fiscal_year_id: string | null
           id: string
           status: string
         }
@@ -331,6 +396,7 @@ export type Database = {
           beneficiary_id: string
           created_at?: string
           date: string
+          fiscal_year_id?: string | null
           id?: string
           status?: string
         }
@@ -340,6 +406,7 @@ export type Database = {
           beneficiary_id?: string
           created_at?: string
           date?: string
+          fiscal_year_id?: string | null
           id?: string
           status?: string
         }
@@ -363,6 +430,13 @@ export type Database = {
             columns: ["beneficiary_id"]
             isOneToOne: false
             referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distributions_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
         ]
