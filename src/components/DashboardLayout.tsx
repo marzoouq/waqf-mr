@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
-  Bell, ShieldCheck, BookOpen, Menu, Lock,
+  Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
   { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
+  { to: '/beneficiary/carryforward', icon: ArrowDownUp, label: 'الترحيلات والخصومات' },
   { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
   { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات الختامية' },
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
