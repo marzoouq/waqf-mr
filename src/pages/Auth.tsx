@@ -13,6 +13,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 
+/** تحويل الأرقام العربية-الهندية (٠-٩) والفارسية (۰-۹) إلى أرقام لاتينية */
+function normalizeArabicDigits(str: string): string {
+  return str
+    .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
+    .replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
+    .trim();
+}
+
 const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -113,18 +121,30 @@ const Auth = () => {
           toast.error('يرجى إدخال رقم الهوية الوطنية');
           return;
         }
+
+        // تحويل الأرقام العربية/الفارسية تلقائياً
+        const cleanId = normalizeArabicDigits(nationalId);
+
+        // التحقق الفوري من صحة التنسيق قبل الإرسال
+        if (!/^\d{10}$/.test(cleanId)) {
+          toast.error('رقم الهوية يجب أن يكون 10 أرقام');
+          return;
+        }
+
         const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-          body: { national_id: nationalId }
+          body: { national_id: cleanId }
         });
 
-        if (lookupError || !data?.found || !data?.email) {
+        if (lookupError) {
+          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+          return;
+        }
+        if (!data?.found || !data?.email) {
           toast.error('رقم الهوية غير مسجل في النظام');
           return;
         }
-        // البريد المُرجع محجوب (مثل: ab***@gmail.com) — نستخدمه فقط كتلميح
-        // نحتاج البريد الحقيقي لتسجيل الدخول، لذا نبني البريد من رقم الهوية
-        // الصيغة المعتمدة: [NationalID]@waqf.app
-        resolvedEmail = `${nationalId}@waqf.app`;
+        // البريد المُرجع محجوب — نبني البريد الحقيقي من رقم الهوية
+        resolvedEmail = `${cleanId}@waqf.app`;
       } else {
         if (!resolvedEmail) {
           toast.error('يرجى إدخال البريد الإلكتروني');
