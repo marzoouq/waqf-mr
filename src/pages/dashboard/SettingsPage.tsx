@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2 } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play } from 'lucide-react';
+import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, previewTone, type ToneId } from '@/hooks/useNotifications';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
 
@@ -410,10 +411,20 @@ const NotificationsTab = () => {
     try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
   });
 
+  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
+    try { return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId; } catch { return 'chime'; }
+  });
+
   const handleSoundChange = (value: boolean) => {
     setSoundEnabled(value);
     localStorage.setItem('waqf_notification_sound', String(value));
     toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+  };
+
+  const handleToneChange = (tone: ToneId) => {
+    setSelectedTone(tone);
+    localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
+    previewTone(tone);
   };
 
   const toggleField = (key: string) => {
@@ -474,6 +485,30 @@ const NotificationsTab = () => {
           </div>
           <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
         </div>
+
+        {soundEnabled && (
+          <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Play className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">نغمة التنبيه</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select dir="rtl" value={selectedTone} onValueChange={(v) => handleToneChange(v as ToneId)}>
+                <SelectTrigger className="w-36 h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TONE_OPTIONS.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="text-xs">{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone)}>
+                <Play className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
