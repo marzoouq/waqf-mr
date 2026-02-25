@@ -2,14 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { generateMySharePDF } from '@/utils/pdf';
+import { generateMySharePDF, generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -112,6 +112,36 @@ const MySharePage = () => {
     }
   };
 
+  const handleDownloadDistributionsPDF = async () => {
+    if (!currentBeneficiary) return;
+    try {
+      const shareAmount = myShare;
+      const advances = paidAdvancesTotal;
+      const carryforward = carryforwardBalance;
+      const totalDeductions = advances + carryforward;
+      const rawNet = shareAmount - totalDeductions;
+      const net = Math.max(0, rawNet);
+      const deficit = rawNet < 0 ? Math.abs(rawNet) : 0;
+
+      await generateDistributionsPDF({
+        fiscalYearLabel: selectedFY?.label || '',
+        availableAmount: beneficiariesShare,
+        distributions: [{
+          beneficiary_name: currentBeneficiary.name,
+          share_percentage: currentBeneficiary.share_percentage,
+          share_amount: shareAmount,
+          advances_paid: advances,
+          carryforward_deducted: Math.min(carryforward, shareAmount - advances > 0 ? shareAmount - advances : 0),
+          net_amount: net,
+          deficit,
+        }],
+      }, pdfWaqfInfo);
+      toast.success('تم تحميل تقرير التوزيعات بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير التقرير');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
@@ -194,6 +224,10 @@ const MySharePage = () => {
                 carryforwardBalance={carryforwardBalance}
               />
             )}
+            <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
+              <FileDown className="w-4 h-4" />
+              تقرير التوزيع
+            </Button>
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
