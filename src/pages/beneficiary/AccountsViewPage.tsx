@@ -44,6 +44,8 @@ const AccountsViewPage = () => {
     availableAmount,
     incomeBySource,
     expensesByType,
+    isLoading: finLoading,
+    isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
@@ -64,6 +66,24 @@ const AccountsViewPage = () => {
       default: return status;
     }
   };
+
+  if (finError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (finLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
 
   if (noPublishedYears) {
     return (

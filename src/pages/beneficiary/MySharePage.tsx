@@ -176,7 +176,7 @@ const MySharePage = () => {
       <p class="section-title">بيانات المستفيد</p>
       <table>
         <tr><th>الاسم</th><td>${currentBeneficiary.name}</td></tr>
-        <tr><th>نسبة الحصة</th><td>${currentBeneficiary.share_percentage}%</td></tr>
+        <tr><th>نسبة الحصة</th><td>محجوبة</td></tr>
         <tr><th>إجمالي الريع المتاح للتوزيع</th><td>${beneficiariesShare.toLocaleString()} ر.س</td></tr>
       </table>
 
@@ -224,7 +224,7 @@ const MySharePage = () => {
   const getAdvanceStatusBadge = (status: string) => {
     const map: Record<string, { label: string; cls: string }> = {
       pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning' },
-      approved: { label: 'معتمد', cls: 'bg-blue-500/20 text-blue-600' },
+      approved: { label: 'معتمد', cls: 'bg-info/20 text-info' },
       paid: { label: 'مصروف', cls: 'bg-success/20 text-success' },
       rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive' },
     };
@@ -351,12 +351,12 @@ const MySharePage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-orange-500/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Banknote className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <Banknote className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">السُلف المصروفة</p>
-                  <p className="text-base sm:text-2xl font-bold text-orange-600 truncate">{paidAdvancesTotal.toLocaleString()} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{paidAdvancesTotal.toLocaleString()} ر.س</p>
                 </div>
               </div>
             </CardContent>

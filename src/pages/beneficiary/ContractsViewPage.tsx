@@ -86,7 +86,7 @@ const ContractsViewPage = () => {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <CheckCircle className="w-8 h-8 text-green-500" />
+              <CheckCircle className="w-8 h-8 text-success" />
               <div>
                 <p className="text-xs text-muted-foreground">نشطة</p>
                 <p className="text-xl font-bold">{stats.active}</p>
@@ -113,7 +113,7 @@ const ContractsViewPage = () => {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <AlertTriangle className="w-8 h-8 text-orange-500" />
+              <AlertTriangle className="w-8 h-8 text-warning" />
               <div>
                 <p className="text-xs text-muted-foreground">قريبة الانتهاء</p>
                 <p className="text-xl font-bold">{stats.expiringSoon}</p>
