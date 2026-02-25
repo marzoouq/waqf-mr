@@ -1,13 +1,37 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
 
 export type { Notification };
 
 export const NOTIFICATION_TONE_KEY = 'waqf_notification_tone';
+export const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
+
+/** Maps beneficiary preference keys to notification types */
+const PREF_TYPE_MAP: Record<string, string> = {
+  distributions: 'payment',
+  contracts: 'warning',
+  messages: 'message',
+};
+
+/** Returns set of notification types disabled by beneficiary prefs */
+const getDisabledTypes = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(NOTIF_PREFS_KEY);
+    if (!stored) return new Set();
+    const prefs = JSON.parse(stored);
+    const disabled = new Set<string>();
+    for (const [prefKey, notifType] of Object.entries(PREF_TYPE_MAP)) {
+      if (prefs[prefKey] === false) disabled.add(notifType);
+    }
+    return disabled;
+  } catch {
+    return new Set();
+  }
+};
 
 export type ToneId = 'chime' | 'bell' | 'drop' | 'pulse' | 'gentle';
 
@@ -119,6 +143,17 @@ export const useNotifications = () => {
 
   const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
 
+  // Filtered data based on beneficiary notification preferences
+  const disabledTypes = useMemo(() => getDisabledTypes(), []);
+  const filteredData = useMemo(
+    () => query.data?.filter((n) => !disabledTypes.has(n.type)) || [],
+    [query.data, disabledTypes]
+  );
+  const filteredUnreadCount = useMemo(
+    () => filteredData.filter((n) => !n.is_read).length,
+    [filteredData]
+  );
+
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -212,5 +247,5 @@ export const useNotifications = () => {
     };
   }, [user?.id, queryClient]);
 
-  return { ...query, unreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
+  return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

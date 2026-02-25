@@ -26,6 +26,7 @@ const passwordSchema = z.object({
 });
 
 const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
+export { NOTIF_PREFS_KEY };
 export const NOTIF_SOUND_KEY = 'waqf_notification_sound';
 
 const defaultPrefs = {
