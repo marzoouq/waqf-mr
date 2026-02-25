@@ -15,3 +15,5 @@ project_id = "nuzdeamtujezrsxbvpfi"
     verify_jwt = false
   [functions.lookup-national-id]
     verify_jwt = false
+  [functions.webauthn]
+    verify_jwt = false

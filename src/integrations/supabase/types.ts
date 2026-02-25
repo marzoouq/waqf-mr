@@ -1001,6 +1001,63 @@ export type Database = {
         }
         Relationships: []
       }
+      webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          id?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          counter: number
+          created_at: string
+          credential_id: string
+          device_name: string | null
+          id: string
+          public_key: string
+          transports: string[] | null
+          user_id: string
+        }
+        Insert: {
+          counter?: number
+          created_at?: string
+          credential_id: string
+          device_name?: string | null
+          id?: string
+          public_key: string
+          transports?: string[] | null
+          user_id: string
+        }
+        Update: {
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          device_name?: string | null
+          id?: string
+          public_key?: string
+          transports?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       beneficiaries_safe: {
@@ -1047,6 +1104,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_challenges: { Args: never; Returns: undefined }
       cron_archive_old_access_logs: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
