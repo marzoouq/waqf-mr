@@ -49,6 +49,7 @@ const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPa
 const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
 const PropertiesViewPage = lazy(() => import("./pages/beneficiary/PropertiesViewPage"));
 const ContractsViewPage = lazy(() => import("./pages/beneficiary/ContractsViewPage"));
+const CarryforwardHistoryPage = lazy(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
@@ -124,6 +125,7 @@ const App = () => (
                   <Route path="/beneficiary/invoices" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><InvoicesViewPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/notifications" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><NotificationsPage /></ProtectedRoute>} />
                   <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
+                  <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><CarryforwardHistoryPage /></ProtectedRoute>} />
 
                   {/* Catch-all Route */}
                   <Route path="*" element={<NotFound />} />
