@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2 } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
 
@@ -406,6 +406,16 @@ const NotificationsTab = () => {
   const defaults = { contract_expiry: true, contract_expiry_days: 30, payment_delays: true, email_notifications: false };
   const settings = getJsonSetting('notification_settings', defaults);
 
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
+  });
+
+  const handleSoundChange = (value: boolean) => {
+    setSoundEnabled(value);
+    localStorage.setItem('waqf_notification_sound', String(value));
+    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+  };
+
   const toggleField = (key: string) => {
     updateJsonSetting('notification_settings', { ...settings, [key]: !settings[key] });
   };
@@ -452,6 +462,17 @@ const NotificationsTab = () => {
             <p className="text-xs text-muted-foreground">إرسال نسخة من الإشعارات إلى بريدك</p>
           </div>
           <Switch checked={settings.email_notifications} onCheckedChange={() => toggleField('email_notifications')} />
+        </div>
+
+        <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">صوت التنبيه</p>
+              <p className="text-xs text-muted-foreground">تشغيل صوت عند وصول إشعار جديد</p>
+            </div>
+          </div>
+          <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
         </div>
       </CardContent>
     </Card>
