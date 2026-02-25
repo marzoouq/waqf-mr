@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
@@ -34,7 +34,7 @@ const InvoicesPage = () => {
 
   const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
-  const { data: contracts = [] } = useContracts();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
