@@ -21,15 +21,28 @@ const AdvanceRequestsTab = () => {
   const { fiscalYearId } = useFiscalYear();
   const { data: requests = [], isLoading } = useAdvanceRequests(fiscalYearId);
   const updateStatus = useUpdateAdvanceStatus();
-  const [rejectDialog, setRejectDialog] = useState<{ id: string } | null>(null);
+  
   const [rejectionReason, setRejectionReason] = useState('');
 
-  const handleApprove = (id: string) => updateStatus.mutate({ id, status: 'approved' });
-  const handlePaid = (id: string) => updateStatus.mutate({ id, status: 'paid' });
+  const [rejectTarget, setRejectTarget] = useState<{ id: string; userId?: string; amount?: number } | null>(null);
+
+  const handleApprove = (req: any) => updateStatus.mutate({
+    id: req.id, status: 'approved',
+    beneficiary_user_id: req.beneficiary?.user_id, amount: req.amount,
+  } as any);
+
+  const handlePaid = (req: any) => updateStatus.mutate({
+    id: req.id, status: 'paid',
+    beneficiary_user_id: req.beneficiary?.user_id, amount: req.amount,
+  } as any);
+
   const handleReject = () => {
-    if (!rejectDialog) return;
-    updateStatus.mutate({ id: rejectDialog.id, status: 'rejected', rejection_reason: rejectionReason });
-    setRejectDialog(null);
+    if (!rejectTarget) return;
+    updateStatus.mutate({
+      id: rejectTarget.id, status: 'rejected', rejection_reason: rejectionReason,
+      beneficiary_user_id: rejectTarget.userId, amount: rejectTarget.amount,
+    } as any);
+    setRejectTarget(null);
     setRejectionReason('');
   };
 
@@ -76,16 +89,16 @@ const AdvanceRequestsTab = () => {
                     <div className="flex gap-1">
                       {req.status === 'pending' && (
                         <>
-                          <Button size="sm" variant="outline" className="text-success" onClick={() => handleApprove(req.id)} disabled={updateStatus.isPending}>
+                          <Button size="sm" variant="outline" className="text-success" onClick={() => handleApprove(req)} disabled={updateStatus.isPending}>
                             موافقة
                           </Button>
-                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRejectDialog({ id: req.id })} disabled={updateStatus.isPending}>
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRejectTarget({ id: req.id, userId: req.beneficiary?.user_id ?? undefined, amount: req.amount })} disabled={updateStatus.isPending}>
                             رفض
                           </Button>
                         </>
                       )}
                       {req.status === 'approved' && (
-                        <Button size="sm" onClick={() => handlePaid(req.id)} disabled={updateStatus.isPending}>
+                        <Button size="sm" onClick={() => handlePaid(req)} disabled={updateStatus.isPending}>
                           تأكيد الصرف
                         </Button>
                       )}
@@ -102,7 +115,7 @@ const AdvanceRequestsTab = () => {
       </CardContent>
 
       {/* حوار الرفض */}
-      <Dialog open={!!rejectDialog} onOpenChange={(o) => !o && setRejectDialog(null)}>
+      <Dialog open={!!rejectTarget} onOpenChange={(o) => !o && setRejectTarget(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>رفض طلب السلفة</DialogTitle>
@@ -110,7 +123,7 @@ const AdvanceRequestsTab = () => {
           </DialogHeader>
           <Textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="سبب الرفض..." />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialog(null)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setRejectTarget(null)}>إلغاء</Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>تأكيد الرفض</Button>
           </DialogFooter>
         </DialogContent>

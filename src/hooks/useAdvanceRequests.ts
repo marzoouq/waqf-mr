@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { notifyAdmins, notifyUser } from '@/utils/notifications';
 
 export interface AdvanceRequest {
   id: string;
@@ -101,9 +102,15 @@ export const useCreateAdvanceRequest = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
       toast.success('تم إرسال طلب السلفة بنجاح');
+      notifyAdmins(
+        'طلب سلفة جديد',
+        `طلب سلفة جديد بمبلغ ${Number(vars.amount).toLocaleString()} ر.س`,
+        'info',
+        '/dashboard/beneficiaries',
+      );
     },
     onError: () => toast.error('فشل إرسال طلب السلفة'),
   });
@@ -115,7 +122,10 @@ export const useCreateAdvanceRequest = () => {
 export const useUpdateAdvanceStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, rejection_reason }: { id: string; status: string; rejection_reason?: string }) => {
+    mutationFn: async ({ id, status, rejection_reason }: {
+      id: string; status: string; rejection_reason?: string;
+      beneficiary_user_id?: string; amount?: number;
+    }) => {
       const updates: Record<string, any> = { status };
       if (status === 'approved') {
         updates.approved_at = new Date().toISOString();
@@ -140,6 +150,20 @@ export const useUpdateAdvanceStatus = () => {
         paid: 'تم تأكيد صرف السلفة',
       };
       toast.success(msgs[vars.status] || 'تم تحديث الطلب');
+
+      // إشعار المستفيد
+      const uid = (vars as any).beneficiary_user_id;
+      const amt = (vars as any).amount;
+      if (uid) {
+        const amtStr = amt ? Number(amt).toLocaleString() : '';
+        const notifMap: Record<string, { title: string; message: string; type: string }> = {
+          approved: { title: 'تمت الموافقة على طلب السلفة', message: `تمت الموافقة على طلب السلفة بمبلغ ${amtStr} ر.س`, type: 'success' },
+          rejected: { title: 'تم رفض طلب السلفة', message: `تم رفض طلب السلفة بمبلغ ${amtStr} ر.س${vars.rejection_reason ? '. السبب: ' + vars.rejection_reason : ''}`, type: 'warning' },
+          paid: { title: 'تم صرف السلفة', message: `تم صرف سلفة بمبلغ ${amtStr} ر.س إلى حسابك`, type: 'success' },
+        };
+        const n = notifMap[vars.status];
+        if (n) notifyUser(uid, n.title, n.message, n.type, '/beneficiary/my-share');
+      }
     },
     onError: () => toast.error('فشل تحديث حالة الطلب'),
   });
