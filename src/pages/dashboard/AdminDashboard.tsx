@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
-import { useContractsByFiscalYear, useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,7 +25,7 @@ const AdminDashboard = () => {
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  const { data: allContracts = [] } = useContracts();
+  const { data: allContracts = [] } = useContractsByFiscalYear('all');
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: tenantPayments = [], isLoading: paymentsLoading } = useTenantPayments();
 
@@ -135,7 +135,17 @@ const AdminDashboard = () => {
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [filteredExpenses]);
 
-  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+  // Use CSS custom property HSL values for themed chart colors
+  const COLORS = [
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--info))',
+    'hsl(var(--success))',
+    'hsl(var(--destructive))',
+    'hsl(var(--warning))',
+    'hsl(var(--accent-foreground))',
+    'hsl(var(--muted-foreground))',
+  ];
 
   const formatArabicMonth = (month: string) => {
     const arabicMonths: Record<string, string> = {
@@ -318,8 +328,8 @@ const AdminDashboard = () => {
                         startAngle={90}
                         endAngle={-270}
                       >
-                        <Cell fill="hsl(142, 71%, 35%)" />
-                        <Cell fill="hsl(0, 72%, 51%)" />
+                        <Cell fill="hsl(var(--success))" />
+                        <Cell fill="hsl(var(--destructive))" />
                       </Pie>
                       <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} />
                     </PieChart>
@@ -378,8 +388,8 @@ const AdminDashboard = () => {
                     <YAxis />
                     <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                     <Legend />
-                    <Bar dataKey="income" fill="hsl(158, 64%, 25%)" name="الدخل" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(43, 74%, 49%)" name="المصروفات" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -439,7 +449,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {fyContracts.slice(0, 5).map((contract) => (
+                {[...fyContracts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
