@@ -122,8 +122,9 @@ export const useNotifications = () => {
         
         const newNotif = payload.new as Notification;
 
-        // Play notification chime
-        playNotificationSound();
+        // Play notification chime (if enabled)
+        const soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false';
+        if (soundEnabled) playNotificationSound();
 
         // Show browser push notification
         if ('Notification' in window && Notification.permission === 'granted') {

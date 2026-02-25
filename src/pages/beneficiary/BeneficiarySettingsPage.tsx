@@ -10,7 +10,7 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
-import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
+import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw, Volume2 } from 'lucide-react';
 import { z } from 'zod';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -24,6 +24,7 @@ const passwordSchema = z.object({
 });
 
 const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
+export const NOTIF_SOUND_KEY = 'waqf_notification_sound';
 
 const defaultPrefs = {
   distributions: true,
@@ -53,6 +54,20 @@ const BeneficiarySettingsPage = () => {
       return defaultPrefs;
     }
   });
+
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(NOTIF_SOUND_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  const handleSoundChange = (value: boolean) => {
+    setSoundEnabled(value);
+    localStorage.setItem(NOTIF_SOUND_KEY, String(value));
+    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+  };
 
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
     const updated = { ...prefs, [key]: value };
@@ -262,11 +277,22 @@ const BeneficiarySettingsPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
+<div>
                     <p className="font-medium text-sm">إشعارات الرسائل</p>
                     <p className="text-xs text-muted-foreground">تنبيهات الرسائل الجديدة</p>
                   </div>
                   <Switch checked={prefs.messages} onCheckedChange={v => handlePrefChange('messages', v)} />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">صوت التنبيه</p>
+                      <p className="text-xs text-muted-foreground">تشغيل صوت عند وصول إشعار جديد</p>
+                    </div>
+                  </div>
+                  <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
                 </div>
               </CardContent>
             </Card>
