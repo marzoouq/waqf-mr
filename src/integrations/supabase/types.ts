@@ -1011,6 +1011,8 @@ export type Database = {
       }
     }
     Functions: {
+      cron_auto_expire_contracts: { Args: never; Returns: undefined }
+      cron_check_contract_expiry: { Args: never; Returns: undefined }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {

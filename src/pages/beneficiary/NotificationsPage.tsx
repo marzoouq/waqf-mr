@@ -24,7 +24,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 const NotificationsPage = () => {
-  const { data: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, unreadCount, isLoading, isError } = useNotifications();
+  const { data: allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
