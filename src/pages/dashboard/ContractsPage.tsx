@@ -94,6 +94,7 @@ const ContractsPage = () => {
       notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual',
       payment_count: (contract.payment_count || 1).toString(),
+      rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
     });
     setEditingContract(null);
     setIsOpen(true);
@@ -106,25 +107,70 @@ const ContractsPage = () => {
       start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
+      rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
     });
     setIsOpen(true);
   };
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
     const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
-    const rentAmount = parseFloat(formData.rent_amount);
-    const paymentAmount = rentAmount / paymentCount;
-    const contractData: Record<string, unknown> = {
-      contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
-      start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
-      status: formData.status, notes: formData.notes || undefined,
-      payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-    };
+
     if (isEditing && editingContract) {
+      const rentAmount = parseFloat(formData.rent_amount);
+      const paymentAmount = rentAmount / paymentCount;
+      const contractData: Record<string, unknown> = {
+        contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
+        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+        status: formData.status, notes: formData.notes || undefined,
+        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+      };
       await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
+      return;
+    }
+
+    // Get active fiscal year
+    const { data: activeFY } = await supabase
+      .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+
+    const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    if (formData.rental_mode === 'multi' && formData.selected_unit_ids.length > 1) {
+      // Multi-unit: create one contract per selected unit
+      const units = formData.selected_unit_ids;
+      let created = 0;
+      for (let i = 0; i < units.length; i++) {
+        const unitId = units[i];
+        const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
+        let rentAmount: number;
+        if (formData.pricing_mode === 'per_unit') {
+          rentAmount = parseFloat(formData.rent_per_unit[unitId]) || 0;
+        } else {
+          rentAmount = parseFloat(formData.rent_amount) / units.length;
+        }
+        const paymentAmount = rentAmount / paymentCount;
+        const contractData: Record<string, unknown> = {
+          contract_number: contractNumber, property_id: formData.property_id, unit_id: unitId, tenant_name: formData.tenant_name,
+          start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+          status: formData.status, notes: formData.notes || undefined,
+          payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+          fiscal_year_id: activeFY?.id || null,
+        };
+        await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
+        created++;
+      }
+      toast.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
-      const { data: activeFY } = await supabase
-        .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      // Single or full property
+      const rentAmount = parseFloat(formData.rent_amount);
+      const paymentAmount = rentAmount / paymentCount;
+      const contractData: Record<string, unknown> = {
+        contract_number: formData.contract_number, property_id: formData.property_id,
+        unit_id: (formData.rental_mode === 'single' ? formData.unit_id : (formData.rental_mode === 'multi' && formData.selected_unit_ids.length === 1 ? formData.selected_unit_ids[0] : null)) || null,
+        tenant_name: formData.tenant_name,
+        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+        status: formData.status, notes: formData.notes || undefined,
+        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+      };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
       await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
     }
@@ -434,6 +480,7 @@ const ContractsPage = () => {
           onOpenChange={setIsOpen}
           editingContract={editingContract}
           properties={properties}
+          activeContracts={contracts}
           onSubmit={handleFormSubmit}
           onReset={resetForm}
           isPending={createContract.isPending || updateContract.isPending}
