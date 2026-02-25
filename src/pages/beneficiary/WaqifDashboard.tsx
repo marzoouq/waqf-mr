@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useProperties } from '@/hooks/useProperties';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import DashboardLayout from '@/components/DashboardLayout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -28,7 +28,7 @@ const WaqifDashboard = () => {
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const { availableAmount, totalIncome, totalExpenses, isLoading: finLoading } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
   const { data: properties = [], isLoading: propLoading } = useProperties();
-  const { data: contracts = [], isLoading: contLoading } = useContracts();
+  const { data: contracts = [], isLoading: contLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: beneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
 
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
