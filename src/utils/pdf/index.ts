@@ -4,7 +4,7 @@ export { type UnitPdfRow } from './core';
 export { generateAnnualReportPDF, generateBeneficiaryStatementPDF, generateAnnualDisclosurePDF } from './reports';
 export { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
 export { generateIncomePDF, generateExpensesPDF } from './expenses';
-export { generateAccountsPDF } from './accounts';
+export { generateAccountsPDF, generateDistributionsPDF } from './accounts';
 export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
 export { generateInvoicesViewPDF } from './invoices';
 export { generateYearComparisonPDF } from './comparison';
