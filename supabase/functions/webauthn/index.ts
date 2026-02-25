@@ -5,6 +5,7 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "npm:@simplewebauthn/server@11";
+import { isoUint8Array } from "npm:@simplewebauthn/server@11/helpers";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -16,11 +17,20 @@ function getSupabaseAdmin() {
   });
 }
 
+/**
+ * استخراج rpID و origin من الطلب.
+ * WebAuthn يتطلب أن يتطابق rpID مع نطاق الصفحة الحالية تماماً.
+ * نستخدم نطاقاً عاماً (eTLD+1) بحيث يعمل مع أي نطاق فرعي.
+ */
 function getRpInfo(req: Request) {
   const origin = req.headers.get("origin") || "https://waqf-mr.lovable.app";
   const url = new URL(origin);
+  
+  // استخدام الـ hostname الكامل كـ rpID لضمان التطابق
+  const rpID = url.hostname;
+  
   return {
-    rpID: url.hostname,
+    rpID,
     rpName: "نظام إدارة الوقف",
     origin,
   };
@@ -69,13 +79,15 @@ Deno.serve(async (req: Request) => {
       const options = await generateRegistrationOptions({
         rpName: rp.rpName,
         rpID: rp.rpID,
+        // v10+ يتطلب userID كـ Uint8Array
+        userID: isoUint8Array.fromUTF8String(user.id),
         userName: user.email || user.id,
         userDisplayName: user.email || "مستخدم",
         attestationType: "none",
         excludeCredentials,
         authenticatorSelection: {
-          authenticatorAttachment: "platform",
-          userVerification: "required",
+          // لا نحدد authenticatorAttachment لدعم كل أنواع المصادقة
+          userVerification: "preferred",
           residentKey: "preferred",
           requireResidentKey: false,
         },
@@ -124,9 +136,8 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: "فشل التحقق من البصمة" }), { status: 400, headers: cors });
       }
 
-      const { credential: regCred, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
+      const { credential: regCred } = verification.registrationInfo;
 
-      // حفظ بيانات الاعتماد
       // Convert Uint8Array to base64url string for storage
       const credIdBase64 = btoa(String.fromCharCode(...regCred.id));
       const pubKeyBase64 = btoa(String.fromCharCode(...regCred.publicKey));
@@ -153,7 +164,7 @@ Deno.serve(async (req: Request) => {
 
       const options = await generateAuthenticationOptions({
         rpID: rp.rpID,
-        userVerification: "required",
+        userVerification: "preferred",
       });
 
       // حفظ التحدي (بدون user_id لأن المستخدم لم يسجل دخوله بعد)
@@ -239,20 +250,16 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: "فشل إنشاء جلسة" }), { status: 500, headers: cors });
       }
 
-      // Extract token hash from the generated link
-      const linkUrl = new URL(linkData.properties.action_link);
-      const tokenHash = linkUrl.searchParams.get("token") || linkUrl.hash?.replace("#", "");
-
       return new Response(JSON.stringify({
         verified: true,
         email: userData.user.email,
         token_hash: linkData.properties.hashed_token,
-        action_link: linkData.properties.action_link,
       }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "إجراء غير معروف" }), { status: 400, headers: cors });
   } catch (err) {
-    return new Response(JSON.stringify({ error: "حدث خطأ داخلي" }), { status: 500, headers: getCorsHeaders(req) });
+    console.error("WebAuthn error:", err);
+    return new Response(JSON.stringify({ error: "حدث خطأ داخلي", details: String(err) }), { status: 500, headers: getCorsHeaders(req) });
   }
 });

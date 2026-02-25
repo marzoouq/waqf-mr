@@ -43,7 +43,15 @@ export function useWebAuthn() {
       });
 
       if (optErr || !options) {
+        console.error('WebAuthn register-options error:', optErr, options);
         toast.error('فشل في بدء عملية التسجيل');
+        return false;
+      }
+
+      // التحقق من وجود خطأ في الاستجابة
+      if (options.error) {
+        console.error('WebAuthn register-options server error:', options.error);
+        toast.error(options.error || 'فشل في بدء عملية التسجيل');
         return false;
       }
 
@@ -67,10 +75,15 @@ export function useWebAuthn() {
       toast.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
     } catch (err: any) {
+      console.error('WebAuthn registration error:', err);
       if (err.name === 'NotAllowedError') {
         toast.error('تم إلغاء عملية البصمة من قبل المستخدم');
+      } else if (err.name === 'SecurityError') {
+        toast.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
+      } else if (err.name === 'InvalidStateError') {
+        toast.error('هذا الجهاز مسجل مسبقاً');
       } else {
-        toast.error('حدث خطأ أثناء تسجيل البصمة');
+        toast.error(`حدث خطأ أثناء تسجيل البصمة: ${err.message || 'خطأ غير معروف'}`);
       }
       return false;
     } finally {
