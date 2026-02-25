@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      access_log_archive: {
+        Row: {
+          archived_at: string
+          created_at: string
+          device_info: string | null
+          email: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          target_path: string | null
+          user_id: string | null
+        }
+        Insert: {
+          archived_at?: string
+          created_at: string
+          device_info?: string | null
+          email?: string | null
+          event_type: string
+          id: string
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          archived_at?: string
+          created_at?: string
+          device_info?: string | null
+          email?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           admin_share: number
@@ -1011,8 +1047,10 @@ export type Database = {
       }
     }
     Functions: {
+      cron_archive_old_access_logs: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
+      cron_cleanup_old_notifications: { Args: never; Returns: undefined }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
