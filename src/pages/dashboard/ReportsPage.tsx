@@ -54,7 +54,11 @@ const ReportsPage = () => {
     percentage: b.share_percentage,
   }));
 
-  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+  const COLORS = [
+    'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
+    'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
+    'hsl(var(--accent))', 'hsl(var(--chart-4))',
+  ];
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
@@ -457,7 +461,7 @@ const ReportsPage = () => {
                   {incomeSourceData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
-                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="#8884d8" dataKey="value" style={{ fontSize: '12px' }}>
+                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
@@ -483,7 +487,7 @@ const ReportsPage = () => {
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
-                        <Bar dataKey="value" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
