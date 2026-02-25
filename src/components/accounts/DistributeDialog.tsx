@@ -5,7 +5,9 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/lib/utils';
 import { useDistributeShares } from '@/hooks/useDistribute';
-import { Loader2, AlertTriangle, ArrowLeftRight } from 'lucide-react';
+import { Loader2, AlertTriangle, ArrowLeftRight, FileDown } from 'lucide-react';
+import { generateDistributionsPDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -31,6 +33,7 @@ const DistributeDialog = ({
   open, onOpenChange, beneficiaries, availableAmount,
   totalBeneficiaryPercentage, accountId, fiscalYearId, fiscalYearLabel,
 }: DistributeDialogProps) => {
+  const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();
 
   // جلب السُلف المصروفة لكل مستفيد في هذه السنة
@@ -225,7 +228,20 @@ const DistributeDialog = ({
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => generateDistributionsPDF({
+              fiscalYearLabel: fiscalYearLabel || '',
+              availableAmount,
+              distributions,
+            }, pdfWaqfInfo)}
+            disabled={beneficiaries.length === 0}
+          >
+            <FileDown className="w-4 h-4 ml-2" />
+            تصدير PDF
+          </Button>
+          <div className="flex-1" />
           <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
           <Button
             onClick={handleConfirm}

@@ -6,6 +6,107 @@ import {
   baseTableStyles, headStyles, footStyles,
 } from './core';
 
+/* ───── تقرير توزيع الحصص ───── */
+export const generateDistributionsPDF = async (data: {
+  fiscalYearLabel: string;
+  availableAmount: number;
+  distributions: Array<{
+    beneficiary_name: string;
+    share_percentage: number;
+    share_amount: number;
+    advances_paid: number;
+    carryforward_deducted: number;
+    net_amount: number;
+    deficit: number;
+  }>;
+}, waqfInfo?: PdfWaqfInfo) => {
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  const startY = await addHeader(doc, fontFamily, waqfInfo);
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(18);
+  doc.text('تقرير توزيع الحصص', 105, startY + 5, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text(`السنة المالية: ${data.fiscalYearLabel}`, 105, startY + 14, { align: 'center' });
+
+  // ملخص مالي
+  const totalAdvances = data.distributions.reduce((s, d) => s + d.advances_paid, 0);
+  const totalCarryforward = data.distributions.reduce((s, d) => s + d.carryforward_deducted, 0);
+  const totalNet = data.distributions.reduce((s, d) => s + d.net_amount, 0);
+  const totalDeficit = data.distributions.reduce((s, d) => s + d.deficit, 0);
+
+  const summaryRows = [
+    ['المبلغ المتاح للتوزيع', `${data.availableAmount.toLocaleString()} ر.س`],
+    ['إجمالي السُلف المخصومة', `(${totalAdvances.toLocaleString()}) ر.س`],
+    ['إجمالي المرحّل المخصوم', `(${totalCarryforward.toLocaleString()}) ر.س`],
+    ['صافي التوزيع الفعلي', `${totalNet.toLocaleString()} ر.س`],
+  ];
+  if (totalDeficit > 0) {
+    summaryRows.push(['فروق مرحّلة للسنة القادمة', `${totalDeficit.toLocaleString()} ر.س`]);
+  }
+
+  autoTable(doc, {
+    startY: startY + 20,
+    head: [['البند', 'المبلغ']],
+    body: summaryRows,
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 80) + 10;
+
+  // جدول التوزيع التفصيلي
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(13);
+  doc.text('تفاصيل التوزيع', 105, y, { align: 'center' });
+
+  const bodyRows = data.distributions.map(d => [
+    d.beneficiary_name,
+    `${Number(d.share_percentage).toFixed(6)}%`,
+    d.share_amount.toLocaleString(),
+    d.advances_paid > 0 ? `(${d.advances_paid.toLocaleString()})` : '—',
+    d.carryforward_deducted > 0 ? `(${d.carryforward_deducted.toLocaleString()})` : '—',
+    d.net_amount.toLocaleString(),
+    d.deficit > 0 ? d.deficit.toLocaleString() : '—',
+  ]);
+
+  const totalShareAmt = data.distributions.reduce((s, d) => s + d.share_amount, 0);
+
+  autoTable(doc, {
+    startY: y + 6,
+    head: [['المستفيد', 'النسبة', 'الحصة', 'السُلف', 'المرحّل', 'الصافي', 'فرق مرحّل']],
+    body: bodyRows,
+    foot: [[
+      'الإجمالي', '100%',
+      totalShareAmt.toLocaleString(),
+      totalAdvances > 0 ? `(${totalAdvances.toLocaleString()})` : '—',
+      totalCarryforward > 0 ? `(${totalCarryforward.toLocaleString()})` : '—',
+      totalNet.toLocaleString(),
+      totalDeficit > 0 ? totalDeficit.toLocaleString() : '—',
+    ]],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_GOLD, fontFamily),
+    ...footStyles(TABLE_HEAD_GREEN, fontFamily),
+    ...baseTableStyles(fontFamily),
+    didParseCell: (hookData: any) => {
+      if (hookData.section === 'body') {
+        const deficit = data.distributions[hookData.row.index]?.deficit ?? 0;
+        if (deficit > 0) {
+          hookData.cell.styles.fillColor = [255, 240, 240];
+        }
+      }
+    },
+  });
+
+  addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save(`distributions-report-${data.fiscalYearLabel}.pdf`);
+};
+
 export const generateAccountsPDF = async (data: {
   contracts: Array<{ contract_number: string; tenant_name: string; rent_amount: number; status: string }>;
   incomeBySource: Record<string, number>;
