@@ -143,7 +143,7 @@ const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerfo
                   labelFormatter={(label) => label}
                 />
                 <Legend formatter={(value) => value === 'income' ? 'الدخل' : value === 'expenses' ? 'المصروفات' : 'الصافي'} />
-                <Bar dataKey="income" fill="hsl(var(--success, 142 76% 36%))" name="income" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="income" fill="hsl(var(--success))" name="income" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expenses" fill="hsl(var(--destructive))" name="expenses" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteExpense } from '@/hooks/useExpenses';
-import { useInvoices } from '@/hooks/useInvoices';
+import { useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
@@ -29,7 +29,7 @@ const ExpensesPage = () => {
   const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
-  const { data: allInvoices = [] } = useInvoices();
+  const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
