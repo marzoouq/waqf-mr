@@ -21,6 +21,7 @@ const operationColor = (op: string) => {
     case 'INSERT': return 'bg-success/15 text-success border-success/30';
     case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
     case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
+    case 'REOPEN': return 'bg-info/15 text-info border-info/30';
     default: return '';
   }
 };
@@ -40,6 +41,7 @@ const FIELD_LABELS: Record<string, string> = {
   waqif_share: 'حصة الواقف', waqf_revenue: 'ريع الوقف',
   name: 'الاسم', share_percentage: 'نسبة الحصة', status: 'الحالة',
   beneficiary_id: 'المستفيد', account_id: 'الحساب',
+  reason: 'السبب', label: 'التسمية',
 };
 
 const getFieldLabel = (key: string) => FIELD_LABELS[key] || key;
@@ -49,6 +51,25 @@ const DataDiff = ({ oldData, newData, operation }: {
   newData: Record<string, unknown> | null;
   operation: string;
 }) => {
+  if (operation === 'REOPEN' && newData) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+        {oldData && Object.entries(oldData).map(([key, val]) => (
+          <div key={`old-${key}`} className="flex gap-2">
+            <span className="font-medium text-muted-foreground">{getFieldLabel(key)} (قبل):</span>
+            <span className="text-destructive line-through">{formatValue(val)}</span>
+          </div>
+        ))}
+        {Object.entries(newData).map(([key, val]) => (
+          <div key={`new-${key}`} className="flex gap-2">
+            <span className="font-medium text-muted-foreground">{getFieldLabel(key)} (بعد):</span>
+            <span className="text-success">{formatValue(val)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (operation === 'INSERT' && newData) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
@@ -210,6 +231,7 @@ const AuditLogPage = () => {
                     <SelectItem value="INSERT">إضافة</SelectItem>
                     <SelectItem value="UPDATE">تعديل</SelectItem>
                     <SelectItem value="DELETE">حذف</SelectItem>
+                    <SelectItem value="REOPEN">إعادة فتح</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -240,7 +262,9 @@ const AuditLogPage = () => {
                               ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
                               : log.operation === 'DELETE'
                                 ? `حذف سجل من ${getTableNameAr(log.table_name)}`
-                                : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
+                                : log.operation === 'REOPEN'
+                                  ? `إعادة فتح ${getTableNameAr(log.table_name)}`
+                                  : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
                             return (
                               <Collapsible key={log.id} open={isExpanded} onOpenChange={() => toggleRow(log.id)} asChild>
                                 <>
