@@ -1159,6 +1159,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      reopen_fiscal_year: {
+        Args: { p_fiscal_year_id: string; p_reason: string }
+        Returns: Json
+      }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
     }
     Enums: {
