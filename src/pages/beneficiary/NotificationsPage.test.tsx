@@ -6,11 +6,11 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import React from 'react';
 
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() })),
+  useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() }))
 }));
 
 vi.mock('@/hooks/useAppSettings', () => ({
-  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false }))
 }));
 
 const mockMarkAsRead = { mutate: vi.fn() };
@@ -51,8 +51,6 @@ vi.mock('@/hooks/useNotifications', () => ({
   ],
   NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
   NOTIFICATION_VOLUME_KEY: 'waqf_notification_volume',
-  NOTIF_PREFS_KEY: 'waqf_notification_preferences',
-  previewTone: vi.fn(),
 }));
 
 vi.mock('@/hooks/usePushNotifications', () => ({
@@ -61,7 +59,7 @@ vi.mock('@/hooks/usePushNotifications', () => ({
     permission: 'default' as NotificationPermission,
     requestPermission: vi.fn(),
     showNotification: vi.fn(),
-  })),
+  }))
 }));
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
@@ -91,12 +89,9 @@ describe('NotificationsPage', () => {
 
   it('shows unread badge', () => {
     renderPage();
-    // النص "1 غير مقروء" موزع على عناصر متعددة داخل <p> - نستخدم matcher مرنة
-    expect(
-      screen.getByText((_, element) =>
-        !!element && element.tagName !== 'SCRIPT' && (element.textContent ?? '').includes('1') && (element.textContent ?? '').includes('غير مقروء')
-      )
-    ).toBeInTheDocument();
+    // النص "1" و"غير مقروء" موزعان على عناصر منفصلة - نبحث عن كل منهما مستقلاً
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('غير مقروء')).toBeInTheDocument();
   });
 
   it('shows notification items', () => {
@@ -107,7 +102,6 @@ describe('NotificationsPage', () => {
 
   it('shows mark all as read button', () => {
     renderPage();
-    // الزر يحتوي على span.hidden-sm-inline لذلك نبحث بطريقة أشمل
     expect(screen.getByText('قراءة الكل')).toBeInTheDocument();
   });
 
