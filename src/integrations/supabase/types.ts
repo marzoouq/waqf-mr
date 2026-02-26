@@ -1109,6 +1109,8 @@ export type Database = {
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
+      decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
+      encrypt_pii: { Args: { p_value: string }; Returns: string }
       execute_distribution: {
         Args: {
           p_account_id: string
@@ -1118,6 +1120,21 @@ export type Database = {
         }
         Returns: Json
       }
+      get_beneficiary_decrypted: {
+        Args: { p_beneficiary_id: string }
+        Returns: {
+          bank_account: string
+          email: string
+          id: string
+          name: string
+          national_id: string
+          notes: string
+          phone: string
+          share_percentage: number
+          user_id: string
+        }[]
+      }
+      get_pii_key: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
@@ -1140,6 +1157,12 @@ export type Database = {
           p_user_id?: string
         }
         Returns: undefined
+      }
+      lookup_by_national_id: {
+        Args: { p_national_id: string }
+        Returns: {
+          email: string
+        }[]
       }
       notify_admins: {
         Args: {

@@ -81,11 +81,10 @@ Deno.serve(async (req) => {
     let email: string | null = null;
 
     try {
-      const { data, error } = await supabase
-        .from("beneficiaries")
-        .select("email")
-        .eq("national_id", national_id)
-        .limit(1);
+      // البحث بالهوية مع فك التشفير عبر دالة مخصصة
+      const { data, error } = await supabase.rpc('lookup_by_national_id', {
+        p_national_id: national_id,
+      });
 
       if (!error && data && data.length > 0 && data[0]?.email) {
         email = data[0].email;
