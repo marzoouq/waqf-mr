@@ -133,6 +133,14 @@ export const useDistributeShares = () => {
       if (withDeficit > 0) msg += ` (${withDeficit} مستفيد لديهم فروق مرحّلة)`;
       toast.success(msg);
     },
-    onError: () => toast.error('فشل تنفيذ التوزيع'),
+    onError: () => {
+      toast.error('فشل تنفيذ التوزيع — يرجى مراجعة البيانات يدوياً');
+      // إعادة تحميل البيانات لعكس الحالة الفعلية بعد فشل جزئي محتمل
+      qc.invalidateQueries({ queryKey: ['distributions'] });
+      qc.invalidateQueries({ queryKey: ['my-distributions'] });
+      qc.invalidateQueries({ queryKey: ['accounts'] });
+      qc.invalidateQueries({ queryKey: ['advance_requests'] });
+      qc.invalidateQueries({ queryKey: ['advance_carryforward'] });
+    },
   });
 };

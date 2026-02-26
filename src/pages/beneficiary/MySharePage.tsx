@@ -92,7 +92,7 @@ const MySharePage = () => {
     try {
       await generateMySharePDF({
         beneficiaryName: currentBeneficiary.name,
-        sharePercentage: 0,
+        sharePercentage: currentBeneficiary.share_percentage,
         myShare,
         totalReceived,
         pendingAmount,
