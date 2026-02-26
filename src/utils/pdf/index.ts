@@ -13,3 +13,5 @@ export { generateForensicAuditPDF } from './forensicAudit';
 export type { ForensicAuditData } from './forensicAudit';
 export { generateBylawsPDF } from './bylaws';
 export type { BylawPdfEntry } from './bylaws';
+export { generateAuditLogPDF } from './auditLog';
+export type { AuditLogPdfOptions } from './auditLog';
