@@ -38,7 +38,8 @@ const Index = () => {
       if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'waqif') {
-        navigate('/waqif');
+        // إصلاح #8: كان يوجّه إلى /waqif غير موجود في App.tsx → الصحيح /beneficiary
+        navigate('/beneficiary');
       } else if (role === 'beneficiary') {
         navigate('/beneficiary');
       }
@@ -69,8 +70,6 @@ const Index = () => {
     { icon: Shield, title: 'أمان وخصوصية', description: 'حماية متقدمة للبيانات مع إدارة دقيقة للصلاحيات' },
   ];
 
-
-  // JSON-LD structured data for SEO
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -101,19 +100,9 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* SEO: JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
-      />
-
-      {/* Hero Section */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }} />
       <header className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center" role="banner">
-        {/* Islamic geometric SVG decoration */}
         <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true">
           <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
             <defs>
@@ -130,13 +119,10 @@ const Index = () => {
             <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
           </svg>
         </div>
-        {/* Decorative glows */}
         <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" />
-        
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Logo */}
             <div className="animate-slide-up mb-10">
               {waqfInfo?.waqf_logo_url ? (
                 <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-sm flex items-center justify-center">
@@ -147,14 +133,11 @@ const Index = () => {
                   <Building2 className="w-12 h-12 text-primary-foreground" />
                 </div>
               )}
-              
-              {/* Ornamental divider */}
               <div className="flex items-center justify-center gap-4 mb-8">
                 <div className="h-px w-16 bg-gradient-to-l from-secondary/60 to-transparent" />
                 <Star className="w-4 h-4 text-secondary fill-secondary/30" />
                 <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
               </div>
-
               <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                 {content.hero_title}
               </h1>
@@ -165,8 +148,6 @@ const Index = () => {
                 {content.hero_tagline}
               </p>
             </div>
-
-            {/* CTA Button */}
             <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
               <Button
                 onClick={() => navigate('/auth')}
@@ -177,8 +158,6 @@ const Index = () => {
                 {content.cta_text}
               </Button>
             </div>
-
-            {/* Stats */}
             <div className="mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
@@ -189,17 +168,12 @@ const Index = () => {
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce" aria-hidden="true">
           <ChevronDown className="w-6 h-6 text-white/40" />
         </div>
       </header>
-
-      {/* Features Section */}
       <section className="py-20 md:py-28 relative">
         <div className="container mx-auto px-4">
-          {/* Section header */}
           <div className="text-center mb-16 animate-slide-up">
             <div className="ornament-divider mb-6">
               <span className="bg-background px-6 text-secondary font-display text-lg">✦</span>
@@ -211,8 +185,6 @@ const Index = () => {
               {content.features_subtitle}
             </p>
           </div>
-
-          {/* Features grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <Card
@@ -236,8 +208,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
       <section className="py-16 gradient-primary pattern-islamic relative overflow-hidden" aria-label="دعوة للبدء">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -253,12 +223,10 @@ const Index = () => {
             className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-all duration-300 rounded-xl font-bold px-8"
           >
             <ArrowLeft className="w-5 h-5" />
-                {content.cta_text}
+            {content.cta_text}
           </Button>
         </div>
       </section>
-
-      {/* Footer */}
       <footer className="bg-primary py-8 border-t border-primary-foreground/10" role="contentinfo">
         <div className="container mx-auto px-4 text-center space-y-3">
           <div className="flex items-center justify-center gap-4 text-sm">
