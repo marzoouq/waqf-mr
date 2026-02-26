@@ -3,7 +3,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { BarChart3, CalendarRange, Download, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
@@ -18,15 +18,15 @@ import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatPercentage } from '@/lib/utils';
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
   const { data: properties = [] } = useProperties();
-  const { data: contracts = [] } = useContracts();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
   const reportRef = useRef<HTMLDivElement>(null);
-
-  const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
@@ -42,7 +42,7 @@ const ReportsPage = () => {
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel);
 
   const beneficiariesShare = availableAmount;
-  const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
+  const netRevenue = netAfterExpenses;
 
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
   const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
@@ -54,7 +54,11 @@ const ReportsPage = () => {
     percentage: b.share_percentage,
   }));
 
-  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+  const COLORS = [
+    'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
+    'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
+    'hsl(var(--accent))', 'hsl(var(--chart-4))',
+  ];
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
@@ -81,25 +85,37 @@ const ReportsPage = () => {
   };
 
   // ─── Property Performance Data ──────────────────────────────────────
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
   const propertyPerformance = properties.map((property) => {
     const propertyUnits = allUnits.filter(u => u.property_id === property.id);
     const totalUnitsCount = propertyUnits.length;
-    const rented = propertyUnits.filter(u => u.status === 'مؤجرة').length;
-    // الإيرادات التعاقدية (نشطة + منتهية) - متوافق مع صفحة العقارات
-    const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
-    const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
-    const hasActiveContract = activeContracts.length > 0;
+
+    const propContracts = contracts.filter(c => c.property_id === property.id);
+    const rentedUnitIds = new Set(
+      propContracts
+        .filter(c => (isSpecificYear || c.status === 'active') && c.unit_id)
+        .map(c => c.unit_id)
+    );
+    const hasWholePropertyContract = propContracts.some(
+      c => (isSpecificYear || c.status === 'active') && !c.unit_id
+    );
+
+    const isWholePropertyRented = totalUnitsCount === 0 && hasWholePropertyContract;
+    const unitBasedRented = propertyUnits.filter(u => rentedUnitIds.has(u.id)).length;
+    const rented = (totalUnitsCount > 0 && hasWholePropertyContract && unitBasedRented === 0)
+      ? totalUnitsCount
+      : (isWholePropertyRented ? totalUnitsCount : unitBasedRented);
 
     let occupancy: number;
     if (totalUnitsCount > 0) {
       occupancy = Math.round((rented / totalUnitsCount) * 100);
-    } else if (hasActiveContract) {
+    } else if (isWholePropertyRented) {
       occupancy = 100;
     } else {
       occupancy = 0;
     }
 
-    const annualRent = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+    const annualRent = propContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
     const propExp = expenses.filter(e => e.property_id === property.id);
     const totalPropExpenses = propExp.reduce((sum, e) => sum + Number(e.amount), 0);
     const netIncome = annualRent - totalPropExpenses;
@@ -136,7 +152,7 @@ const ReportsPage = () => {
   ];
 
   const issuesFound = auditChecks.filter(c => !c.ok).length;
-  const issuesFixed = 0;
+  const issuesFixed = auditChecks.filter(c => c.ok).length;
   const overallScore = Math.round(((auditChecks.length - issuesFound) / Math.max(1, auditChecks.length)) * 100) / 10;
 
   const forensicAuditData: ForensicAuditData = {
@@ -445,7 +461,7 @@ const ReportsPage = () => {
                   {incomeSourceData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
-                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="#8884d8" dataKey="value" style={{ fontSize: '12px' }}>
+                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
@@ -471,7 +487,7 @@ const ReportsPage = () => {
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
-                        <Bar dataKey="value" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
@@ -500,13 +516,13 @@ const ReportsPage = () => {
                       {distributionData.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{item.percentage}%</TableCell>
+                          <TableCell>{formatPercentage(item.percentage)}</TableCell>
                           <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
                         <TableCell>الإجمالي</TableCell>
-                        <TableCell>{beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0)}%</TableCell>
+                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0))}</TableCell>
                         <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     </TableBody>

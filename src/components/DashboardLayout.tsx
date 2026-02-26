@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
-  Bell, ShieldCheck, BookOpen, Menu, Lock,
+  Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
@@ -22,9 +22,9 @@ import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
 import SidebarContent from '@/components/Sidebar';
+import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardLayoutProps {
@@ -74,6 +74,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
   { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
+  { to: '/beneficiary/carryforward', icon: ArrowDownUp, label: 'الترحيلات والخصومات' },
   { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
   { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات الختامية' },
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
@@ -93,6 +94,23 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/audit-log',
 ];
 
+const DEFAULT_ROLE_PERMS: Record<string, Record<string, boolean>> = {
+  accountant: {
+    properties: true, contracts: true, income: true, expenses: true,
+    beneficiaries: true, reports: true, accounts: true, invoices: true,
+    bylaws: true, messages: true, audit_log: true,
+  },
+  beneficiary: {
+    properties: true, contracts: true, disclosure: true, share: true,
+    reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
+  },
+  waqif: {
+    properties: true, contracts: true, disclosure: false,
+    reports: true, accounts: true, bylaws: true,
+    share: false,
+  },
+};
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
@@ -100,28 +118,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+  const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
 
-  // Default role permissions
-  const defaultRolePerms: Record<string, Record<string, boolean>> = {
-    accountant: {
-      properties: true, contracts: true, income: true, expenses: true,
-      beneficiaries: true, reports: true, accounts: true, invoices: true,
-      bylaws: true, messages: true, audit_log: true,
-    },
-    beneficiary: {
-      properties: true, contracts: true, disclosure: true, share: true,
-      reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
-    },
-    waqif: {
-      properties: true, contracts: true, disclosure: true,
-      reports: true, accounts: true, bylaws: true,
-    },
-  };
-
-  const rolePermissions = getJsonSetting('role_permissions', defaultRolePerms);
+  const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
   // Map admin routes to permission keys
   const adminRoutePermKeys: Record<string, string> = {
@@ -163,7 +164,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
 
     if (role === 'accountant') {
-      const perms = rolePermissions.accountant || defaultRolePerms.accountant;
+      const perms = rolePermissions.accountant || DEFAULT_ROLE_PERMS.accountant;
       return allAdminLinks
         .filter(link => !accountantExcludedRoutes.includes(link.to))
         .filter(link => {
@@ -178,7 +179,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
     // beneficiary or waqif
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
-    const perms = rolePermissions[roleKey] || defaultRolePerms[roleKey] || {};
+    const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
     return allBeneficiaryLinks.filter(link => {
       const key = beneficiaryRoutePermKeys[link.to];
       return !key || perms[key] !== false;
@@ -189,17 +190,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     await signOut();
   };
 
-  // ─── Idle Timeout (moved from AuthContext) ───
-  const { data: idleMinutes } = useQuery({
-    queryKey: ['idle-timeout-setting'],
-    queryFn: async () => {
-      const { data } = await supabase.from('app_settings').select('value').eq('key', 'idle_timeout_minutes').maybeSingle();
-      return data?.value ? parseInt(data.value, 10) : 15;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const timeoutMs = (idleMinutes ?? 15) * 60 * 1000;
+  // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
+  const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
+  const timeoutMs = (idleMinutesRaw ?? 15) * 60 * 1000;
 
   const handleIdleLogout = useCallback(async () => {
     await signOut();
@@ -286,6 +279,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="hidden lg:flex items-center justify-between">
           <WaqfInfoBar />
           <div className="flex items-center gap-3 px-4 py-2">
+            <GlobalSearch />
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
               <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">

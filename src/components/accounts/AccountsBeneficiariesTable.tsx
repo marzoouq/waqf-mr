@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, Banknote } from 'lucide-react';
+import { formatPercentage } from '@/lib/utils';
+import DistributeDialog from './DistributeDialog';
 
 interface Beneficiary {
   id: string;
@@ -12,17 +16,32 @@ interface AccountsBeneficiariesTableProps {
   beneficiaries: Beneficiary[];
   manualDistributions: number;
   totalBeneficiaryPercentage: number;
+  availableAmount?: number;
+  accountId?: string;
+  fiscalYearId?: string;
+  fiscalYearLabel?: string;
 }
 
 const AccountsBeneficiariesTable = ({
   beneficiaries, manualDistributions, totalBeneficiaryPercentage,
+  availableAmount = 0, accountId, fiscalYearId, fiscalYearLabel,
 }: AccountsBeneficiariesTableProps) => {
+  const [distributeOpen, setDistributeOpen] = useState(false);
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          توزيع حصص المستفيدين
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            توزيع حصص المستفيدين
+          </span>
+          {accountId && (
+            <Button size="sm" className="gap-2" onClick={() => setDistributeOpen(true)}>
+              <Banknote className="w-4 h-4" />
+              توزيع الحصص
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -42,7 +61,7 @@ const AccountsBeneficiariesTable = ({
                 {beneficiaries.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{Number(b.share_percentage).toFixed(6)}%</TableCell>
+                    <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
                     <TableCell className="text-primary font-medium">
                       {(totalBeneficiaryPercentage > 0
                         ? manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage
@@ -62,6 +81,19 @@ const AccountsBeneficiariesTable = ({
           </>
         )}
       </CardContent>
+
+      {accountId && (
+        <DistributeDialog
+          open={distributeOpen}
+          onOpenChange={setDistributeOpen}
+          beneficiaries={beneficiaries}
+          availableAmount={availableAmount}
+          totalBeneficiaryPercentage={totalBeneficiaryPercentage}
+          accountId={accountId}
+          fiscalYearId={fiscalYearId}
+          fiscalYearLabel={fiscalYearLabel}
+        />
+      )}
     </Card>
   );
 };

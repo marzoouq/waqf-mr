@@ -1,58 +1,92 @@
 import { describe, it, expect, vi } from 'vitest';
-
-const mockIn = vi.fn().mockResolvedValue({
-  data: [
-    { key: 'waqf_name', value: 'وقف الاختبار' },
-    { key: 'waqf_founder', value: 'مؤسس' },
-    { key: 'waqf_admin', value: 'ناظر' },
-  ],
-  error: null,
-});
+import { renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: () => ({ select: () => ({ in: mockIn }) }),
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        data: [] as any[],
+        error: null,
+      })),
+    })),
   },
 }));
 
-let capturedQueryFn: (() => Promise<unknown>) | null = null;
+import { supabase } from '@/integrations/supabase/client';
 
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ queryFn }: { queryFn: () => Promise<unknown> }) => {
-    capturedQueryFn = queryFn;
-    return { data: undefined, isLoading: true };
-  },
-}));
-
-import { useWaqfInfo } from './useWaqfInfo';
+const createWrapper = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: qc }, children);
+};
 
 describe('useWaqfInfo', () => {
-  it('returns a query hook', () => {
-    const result = useWaqfInfo();
-    expect(result).toBeDefined();
-    expect(result.isLoading).toBe(true);
+  it('returns waqf info from app settings', async () => {
+    const mockData = [
+      { key: 'waqf_name', value: 'وقف الاختبار' },
+      { key: 'waqf_founder', value: 'مؤسس' },
+      { key: 'waqf_admin', value: 'ناظر' },
+    ];
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn(() => ({ data: mockData, error: null })),
+    } as any);
+
+    const { useWaqfInfo } = await import('./useAppSettings');
+    const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
+
+    // Wait for query to settle
+    await vi.waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data.waqf_name).toBe('وقف الاختبار');
+    expect(result.current.data.waqf_founder).toBe('مؤسس');
+    expect(result.current.data.waqf_admin).toBe('ناظر');
   });
 
-  it('queryFn maps app_settings rows to WaqfInfo', async () => {
-    useWaqfInfo();
-    expect(capturedQueryFn).toBeDefined();
-    const info = await capturedQueryFn!() as Record<string, string>;
-    expect(info.waqf_name).toBe('وقف الاختبار');
-    expect(info.waqf_founder).toBe('مؤسس');
-    expect(info.waqf_admin).toBe('ناظر');
-    expect(info.waqf_deed_number).toBe('');
+  it('returns loading state initially', async () => {
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn(() => new Promise(() => {})), // never resolves
+    } as any);
+
+    const { useWaqfInfo } = await import('./useAppSettings');
+    const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.data.waqf_name).toBe('');
   });
 
-  it('queryFn handles empty data', async () => {
-    mockIn.mockResolvedValueOnce({ data: [], error: null });
-    useWaqfInfo();
-    const info = await capturedQueryFn!() as Record<string, string>;
-    expect(info.waqf_name).toBe('');
+  it('returns empty strings when settings is empty', async () => {
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn(() => ({ data: [], error: null })),
+    } as any);
+
+    const { useWaqfInfo } = await import('./useAppSettings');
+    const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
+
+    await vi.waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.data.waqf_name).toBe('');
+    expect(result.current.data.waqf_founder).toBe('');
   });
 
-  it('queryFn throws on error', async () => {
-    mockIn.mockResolvedValueOnce({ data: null, error: { message: 'fail' } });
-    useWaqfInfo();
-    await expect(capturedQueryFn!()).rejects.toBeDefined();
+  it('passes through error', async () => {
+    const err = new Error('fail');
+    vi.mocked(supabase.from).mockReturnValue({
+      select: vi.fn(() => ({ data: null, error: err })),
+    } as any);
+
+    const { useWaqfInfo } = await import('./useAppSettings');
+    const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
+
+    await vi.waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.error).toBeTruthy();
   });
 });

@@ -20,7 +20,8 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_KEY) || '';
+    try { return localStorage.getItem(STORAGE_KEY) || ''; }
+    catch { return ''; }
   });
 
   const isNonAdmin = role === 'beneficiary' || role === 'waqif';
@@ -31,7 +32,7 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const exists = fiscalYears.some(fy => fy.id === selectedId);
       if (!exists) {
         setSelectedId('');
-        localStorage.removeItem(STORAGE_KEY);
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignored */ }
       }
     }
   }, [isLoading, fiscalYears, selectedId]);
@@ -52,11 +53,13 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const handleSetFiscalYearId = (id: string) => {
     setSelectedId(id);
-    if (id) {
-      localStorage.setItem(STORAGE_KEY, id);
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    try {
+      if (id) {
+        localStorage.setItem(STORAGE_KEY, id);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch { /* storage unavailable */ }
   };
 
   return (

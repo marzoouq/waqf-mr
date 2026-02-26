@@ -87,9 +87,9 @@ describe('BeneficiariesPage', () => {
 
   it('renders share percentages', () => {
     renderPage();
-    expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getByText('15%')).toBeInTheDocument();
-    expect(screen.getByText('10%')).toBeInTheDocument();
+    expect(screen.getByText('25.00%')).toBeInTheDocument();
+    expect(screen.getByText('15.00%')).toBeInTheDocument();
+    expect(screen.getByText('10.00%')).toBeInTheDocument();
   });
 
   it('shows linked badge for linked beneficiary', () => {

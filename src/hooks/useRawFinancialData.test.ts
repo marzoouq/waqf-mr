@@ -4,8 +4,8 @@ import { renderHook } from '@testing-library/react';
 // ─── Mock all sub-hooks ───
 const mockIncome = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
 const mockExpenses = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
-const mockAccounts = { data: undefined as unknown[] | undefined, isLoading: false };
-const mockBeneficiaries = { data: undefined as unknown[] | undefined, isLoading: false };
+const mockAccounts = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
+const mockBeneficiaries = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
 const mockSettings = { data: undefined as Record<string, string> | undefined };
 
 vi.mock('@/hooks/useIncome', () => ({
@@ -16,6 +16,7 @@ vi.mock('@/hooks/useExpenses', () => ({
 }));
 vi.mock('@/hooks/useAccounts', () => ({
   useAccounts: () => mockAccounts,
+  useAccountByFiscalYear: () => mockAccounts,
 }));
 vi.mock('@/hooks/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => mockBeneficiaries,
@@ -35,8 +36,10 @@ beforeEach(() => {
   mockExpenses.isError = false;
   mockAccounts.data = undefined;
   mockAccounts.isLoading = false;
+  mockAccounts.isError = false;
   mockBeneficiaries.data = undefined;
   mockBeneficiaries.isLoading = false;
+  mockBeneficiaries.isError = false;
   mockSettings.data = undefined;
 });
 

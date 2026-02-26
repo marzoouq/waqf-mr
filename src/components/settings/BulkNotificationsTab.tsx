@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Send, Megaphone, Loader2, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { notifyUser } from '@/utils/notifications';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -67,15 +68,9 @@ const BulkNotificationsTab = () => {
           setSending(false);
           return;
         }
-        const notifications = selectedBeneficiaries.map(b => ({
-          user_id: b.user_id!,
-          title: title.trim(),
-          message: message.trim(),
-          type,
-          link: link.trim() || null,
-        }));
-        const { error } = await supabase.from('notifications').insert(notifications);
-        if (error) throw error;
+        for (const b of selectedBeneficiaries) {
+          notifyUser(b.user_id!, title.trim(), message.trim(), type, link.trim() || undefined);
+        }
         toast.success(`تم إرسال الإشعار لـ ${selectedBeneficiaries.length} مستفيد`);
       }
       // Reset form
@@ -84,7 +79,7 @@ const BulkNotificationsTab = () => {
       setLink('');
       setSelectedIds([]);
     } catch (err) {
-      console.error('Send notification error:', err);
+      // Send notification error — toast handles user notification
       toast.error('حدث خطأ أثناء إرسال الإشعار');
     } finally {
       setSending(false);
@@ -115,9 +110,9 @@ const BulkNotificationsTab = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="info">ℹ️ معلومات</SelectItem>
-                  <SelectItem value="payment">💰 مالي</SelectItem>
+                  <SelectItem value="success">✅ نجاح</SelectItem>
                   <SelectItem value="warning">⚠️ تحذير</SelectItem>
-                  <SelectItem value="message">💬 رسالة</SelectItem>
+                  <SelectItem value="error">🔴 تنبيه</SelectItem>
                 </SelectContent>
               </Select>
             </div>

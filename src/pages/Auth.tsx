@@ -8,10 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2 } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint } from 'lucide-react';
+import { useWebAuthn, isBiometricEnabled } from '@/hooks/useWebAuthn';
+import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+
+/** تحويل الأرقام العربية-الهندية (٠-٩) والفارسية (۰-۹) إلى أرقام لاتينية */
+function normalizeArabicDigits(str: string): string {
+  return str
+    .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
+    .replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
+    .trim();
+}
 
 const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -24,8 +34,10 @@ const Auth = () => {
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const { signIn, signUp, user, role, loading } = useAuth();
+  const { signIn, signUp, signOut, user, role, loading } = useAuth();
   const navigate = useNavigate();
+  const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
+  const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
 
   // PWA install prompt
   const [installPrompt, setInstallPrompt] = useState<(Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }) | null>(null);
@@ -55,7 +67,7 @@ const Auth = () => {
     if (!isLoading) return;
     const safety = setTimeout(() => {
       setIsLoading(false);
-      console.warn('[Auth] Force-reset isLoading after 10s safety timeout');
+      // Force-reset isLoading after 10s safety timeout
     }, 10000);
     return () => clearTimeout(safety);
   }, [isLoading]);
@@ -65,8 +77,10 @@ const Auth = () => {
     if (user && !loading && role) {
       if (role === 'beneficiary') {
         navigate('/beneficiary');
-      } else if (role === 'admin' || role === 'waqif' || role === 'accountant') {
+      } else if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
+      } else if (role === 'waqif') {
+        navigate('/beneficiary');
       }
     }
   }, [user, role, loading, navigate]);
@@ -79,7 +93,7 @@ const Auth = () => {
       return;
     }
     const timer = setTimeout(() => {
-      console.warn('[Auth] Role not resolved after 5s from AuthContext');
+      // Role not resolved after 5s from AuthContext
       setRoleWaitTimeout(true);
     }, 5000);
     return () => clearTimeout(timer);
@@ -111,18 +125,30 @@ const Auth = () => {
           toast.error('يرجى إدخال رقم الهوية الوطنية');
           return;
         }
+
+        // تحويل الأرقام العربية/الفارسية تلقائياً
+        const cleanId = normalizeArabicDigits(nationalId);
+
+        // التحقق الفوري من صحة التنسيق قبل الإرسال
+        if (!/^\d{10}$/.test(cleanId)) {
+          toast.error('رقم الهوية يجب أن يكون 10 أرقام');
+          return;
+        }
+
         const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-          body: { national_id: nationalId }
+          body: { national_id: cleanId }
         });
 
-        if (lookupError || !data?.found || !data?.email) {
+        if (lookupError) {
+          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+          return;
+        }
+        if (!data?.found || !data?.email) {
           toast.error('رقم الهوية غير مسجل في النظام');
           return;
         }
-        // البريد المُرجع محجوب (مثل: ab***@gmail.com) — نستخدمه فقط كتلميح
-        // نحتاج البريد الحقيقي لتسجيل الدخول، لذا نبني البريد من رقم الهوية
-        // الصيغة المعتمدة: [NationalID]@waqf.app
-        resolvedEmail = `${nationalId}@waqf.app`;
+        // البريد المُرجع محجوب — نبني البريد الحقيقي من رقم الهوية
+        resolvedEmail = `${cleanId}@waqf.app`;
       } else {
         if (!resolvedEmail) {
           toast.error('يرجى إدخال البريد الإلكتروني');
@@ -140,21 +166,21 @@ const Auth = () => {
         toast.error(getSafeErrorMessage(error));
         logAccessEvent({
           event_type: 'login_failed',
-          email: resolvedEmail,
-          metadata: { error_message: error.message, login_method: loginMethod },
+          email: loginMethod === 'national_id' ? null : resolvedEmail,
+          metadata: { error_message: 'login_error', login_method: loginMethod },
         });
       } else {
         toast.success('تم تسجيل الدخول بنجاح');
         supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
           logAccessEvent({
             event_type: 'login_success',
-            email: resolvedEmail,
+            email: loginMethod === 'national_id' ? null : resolvedEmail,
             user_id: currentUser?.id,
           });
         }).catch(() => { /* silent */ });
       }
     } catch (err) {
-      console.error('[Auth] handleSignIn error:', err);
+      // handleSignIn error — toast handles user notification
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
@@ -272,6 +298,29 @@ const Auth = () => {
       <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
         {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </Button>
+
+      {/* زر تسجيل الدخول بالبصمة */}
+      {showBiometric && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full h-11 gap-2 border-primary/30 hover:bg-primary/5"
+          disabled={biometricLoading}
+          onClick={async () => {
+            const success = await authenticateWithBiometric();
+            if (success) {
+              // سيتم التوجيه تلقائياً عبر useEffect
+            }
+          }}
+        >
+          {biometricLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Fingerprint className="w-5 h-5 text-primary" />
+          )}
+          تسجيل الدخول بالبصمة
+        </Button>
+      )}
     </form>
   );
 
@@ -284,7 +333,7 @@ const Auth = () => {
             <>
               <span className="text-lg font-medium text-destructive">لم يتم التعرف على صلاحياتك</span>
               <span className="text-sm text-muted-foreground">تواصل مع الناظر أو حاول مرة أخرى</span>
-              <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); }}>
+              <Button variant="outline" onClick={async () => { await signOut(); }}>
                 تسجيل الخروج
               </Button>
             </>

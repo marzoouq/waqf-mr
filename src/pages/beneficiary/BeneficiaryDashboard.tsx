@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import type { AppRole } from '@/types/database';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -16,7 +17,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const BeneficiaryDashboard = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
@@ -63,17 +64,26 @@ const BeneficiaryDashboard = () => {
 
   /* ── Recent distributions (with Realtime) ── */
   const [distributions, setDistributions] = useState<Array<{ id: string; amount: number; date: string; status: string }>>([]);
+  const beneficiaryIdRef = useRef(currentBeneficiary?.id);
+
+  useEffect(() => {
+    beneficiaryIdRef.current = currentBeneficiary?.id;
+  }, [currentBeneficiary?.id]);
+
+  const fetchDistributions = useCallback(() => {
+    const id = beneficiaryIdRef.current;
+    if (!id) return;
+    supabase.from('distributions').select('*').eq('beneficiary_id', id)
+      .order('date', { ascending: false }).limit(3)
+      .then(({ data }) => { if (data) setDistributions(data); });
+  }, []);
+
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
-    const fetchDistributions = () => {
-      supabase.from('distributions').select('*').eq('beneficiary_id', currentBeneficiary.id)
-        .order('date', { ascending: false }).limit(3)
-        .then(({ data }) => { if (data) setDistributions(data); });
-    };
     fetchDistributions();
 
     const channel = supabase
-      .channel('beneficiary-distributions')
+      .channel(`beneficiary-distributions-${currentBeneficiary.id}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -85,17 +95,18 @@ const BeneficiaryDashboard = () => {
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [currentBeneficiary?.id]);
+  }, [currentBeneficiary?.id, fetchDistributions]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
 
   const quickLinks = [
-    { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
-    { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/my-share', color: 'bg-accent/10 text-accent-foreground' },
+    ...(role !== 'waqif' ? [
+      { title: 'الإفصاح السنوي', description: 'البيان المالي التفصيلي', icon: FileText, path: '/beneficiary/disclosure', color: 'bg-primary/10 text-primary' },
+      { title: 'حصتي من الريع', description: 'تفاصيل حصتك والتوزيعات', icon: PieChart, path: '/beneficiary/my-share', color: 'bg-accent/10 text-accent-foreground' },
+    ] : []),
     { title: 'التقارير المالية', description: 'الرسوم البيانية والإحصائيات', icon: BarChart3, path: '/beneficiary/financial-reports', color: 'bg-muted text-muted-foreground' },
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
@@ -130,7 +141,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || 'مستفيد'}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}</h1>
                 </div>
               </div>
             </CardContent>
@@ -156,7 +167,7 @@ const BeneficiaryDashboard = () => {
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
-                    {currentBeneficiary?.name || 'مستفيد'}
+                    {currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}
                   </h1>
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
                 </div>

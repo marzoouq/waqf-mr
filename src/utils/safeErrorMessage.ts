@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 /**
  * يحوّل رسائل الخطأ التقنية إلى رسائل آمنة للمستخدم
  * بدون كشف تفاصيل قاعدة البيانات أو البنية الداخلية
@@ -30,7 +32,7 @@ export function getSafeErrorMessage(error: unknown): string {
     return 'انتهت مهلة الطلب. يرجى المحاولة لاحقاً';
   }
 
-  // رسالة افتراضية آمنة — التفاصيل تبقى في console فقط
-  console.error('[App Error]', error);
+  // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط
+  logger.error('[App Error]', error);
   return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً';
 }

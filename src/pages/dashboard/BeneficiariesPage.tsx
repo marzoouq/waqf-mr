@@ -1,27 +1,25 @@
 import { useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
-import { Plus, Edit, Trash2, Users, Phone, Mail, CreditCard, Percent, UserCheck, Link, IdCard, Search } from 'lucide-react';
-import { maskNationalId, maskBankAccount, maskPhone, maskEmail } from '@/utils/maskData';
+import { Users, Percent, Search } from 'lucide-react';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import TablePagination from '@/components/TablePagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import BeneficiaryFormDialog, { BeneficiaryFormData } from '@/components/beneficiaries/BeneficiaryFormDialog';
+import BeneficiaryCard from '@/components/beneficiaries/BeneficiaryCard';
+import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
 
 const ITEMS_PER_PAGE = 9;
 
@@ -44,7 +42,6 @@ const BeneficiariesPage = () => {
       });
       if (error) throw error;
       const allUsers: AuthUser[] = (data?.users || []).map((u: { id: string; email?: string }) => ({ id: u.id, email: u.email || u.id }));
-      // Filter to only beneficiary-role users
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'beneficiary');
       const beneficiaryIds = new Set((roles || []).map((r: { user_id: string }) => r.user_id));
       return allUsers.filter(u => beneficiaryIds.has(u.id));
@@ -56,11 +53,10 @@ const BeneficiariesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BeneficiaryFormData>({
     name: '', share_percentage: '', phone: '', email: '', bank_account: '', notes: '', user_id: '', national_id: '',
   });
 
-  // Users available for linking (beneficiary role, not already linked to another beneficiary)
   const availableUsers = useMemo(() => {
     const linkedUserIds = new Set(
       beneficiaries.filter(b => b.user_id && b.id !== editingBeneficiary?.id).map(b => b.user_id)
@@ -119,7 +115,7 @@ const BeneficiariesPage = () => {
 
   return (
     <DashboardLayout>
-       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+      <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستفيدين</h1>
@@ -127,135 +123,91 @@ const BeneficiariesPage = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} />
-            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة مستفيد</span></Button></DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{editingBeneficiary ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل بيانات مستفيد</DialogDescription></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
-                  <div className="space-y-2"><Label>الاسم *</Label><Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" /></div>
-                  <div className="space-y-2"><Label>نسبة الحصة (%) *</Label><Input type="number" step="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" /></div>
-                  <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" /></div>
-                  <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" /></div>
-                  <div className="space-y-2"><Label>رقم الحساب البنكي</Label><Input value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA..." dir="ltr" /></div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><IdCard className="w-4 h-4" />رقم الهوية الوطنية</Label>
-                    <Input value={formData.national_id} onChange={(e) => setFormData({ ...formData, national_id: e.target.value })} placeholder="1234567890" dir="ltr" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Link className="w-4 h-4" />ربط بحساب مستخدم</Label>
-                    <Select
-                      value={formData.user_id || '__none__'}
-                      onValueChange={(value) => setFormData({ ...formData, user_id: value === '__none__' ? '' : value })}
-                    >
-                      <SelectTrigger dir="ltr">
-                        <SelectValue placeholder="اختر مستخدم للربط" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">بدون ربط</SelectItem>
-                        {availableUsers.map((user) => (
-                          <SelectItem key={user.id} value={user.id}>{user.email}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">اختر حساب المستفيد لربطه بملفه الشخصي</p>
-                  </div>
-                  <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createBeneficiary.isPending || updateBeneficiary.isPending}>{editingBeneficiary ? 'تحديث' : 'إضافة'}</Button>
-                    <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <BeneficiaryFormDialog
+              isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
+              isEditing={!!editingBeneficiary} isPending={createBeneficiary.isPending || updateBeneficiary.isPending}
+              availableUsers={availableUsers} onSubmit={handleSubmit} onReset={resetForm}
+            />
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
-                  <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3 w-20" />
-                    <Skeleton className="h-7 w-16" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
-                <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
-                <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        )}
+        <Tabs defaultValue="beneficiaries" dir="rtl">
+          <TabsList>
+            <TabsTrigger value="beneficiaries">المستفيدون</TabsTrigger>
+            <TabsTrigger value="advances">طلبات السُلف</TabsTrigger>
+          </TabsList>
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
-        </div>
-
-        {isLoading ? (
-          <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
-        ) : filteredBeneficiaries.length === 0 ? (
-          <Card className="shadow-sm">
-            <CardContent className="py-12 text-center">
-              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
-                <Card key={beneficiary.id} className="shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg">{beneficiary.name}</CardTitle>
-                        {beneficiary.user_id && (
-                          <Badge variant="secondary" className="text-xs"><UserCheck className="w-3 h-3 ml-1" />مرتبط</Badge>
-                        )}
+          <TabsContent value="beneficiaries" className="space-y-5 mt-4">
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <Card key={i} className="shadow-sm">
+                    <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
+                      <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-7 w-16" />
                       </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleEdit(beneficiary)}><Edit className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: beneficiary.id, name: `المستفيد ${beneficiary.name}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <Card className="shadow-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2 text-lg font-bold text-primary"><Percent className="w-4 h-4" /><span>{beneficiary.share_percentage}%</span></div>
-                    {beneficiary.phone && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Phone className="w-4 h-4" /><span dir="ltr">{maskPhone(beneficiary.phone)}</span></div>)}
-                    {beneficiary.email && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><Mail className="w-4 h-4" /><span dir="ltr">{maskEmail(beneficiary.email)}</span></div>)}
-                    {beneficiary.bank_account && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><CreditCard className="w-4 h-4" /><span dir="ltr">{maskBankAccount(beneficiary.bank_account)}</span></div>)}
-                    {beneficiary.national_id && (<div className="flex items-center gap-2 text-sm text-muted-foreground" data-sensitive><IdCard className="w-4 h-4" /><span dir="ltr">{maskNationalId(beneficiary.national_id)}</span></div>)}
                   </CardContent>
                 </Card>
-              ))}
+                <Card className="shadow-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <div className="relative max-w-md">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
             </div>
-            <TablePagination
-              currentPage={currentPage}
-              totalItems={filteredBeneficiaries.length}
-              itemsPerPage={ITEMS_PER_PAGE}
-              onPageChange={setCurrentPage}
-            />
-          </>
-        )}
+
+            {isLoading ? (
+              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+            ) : filteredBeneficiaries.length === 0 ? (
+              <Card className="shadow-sm">
+                <CardContent className="py-12 text-center">
+                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredBeneficiaries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((beneficiary) => (
+                    <BeneficiaryCard
+                      key={beneficiary.id}
+                      beneficiary={beneficiary}
+                      onEdit={handleEdit}
+                      onDelete={(id, name) => setDeleteTarget({ id, name })}
+                    />
+                  ))}
+                </div>
+                <TablePagination currentPage={currentPage} totalItems={filteredBeneficiaries.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="advances" className="mt-4">
+            <AdvanceRequestsTab />
+          </TabsContent>
+        </Tabs>
 
         <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>

@@ -17,30 +17,66 @@ export type Database = {
       access_log: {
         Row: {
           created_at: string
+          device_info: string | null
           email: string | null
           event_type: string
           id: string
-          ip_info: string | null
           metadata: Json | null
           target_path: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
+          device_info?: string | null
           email?: string | null
           event_type: string
           id?: string
-          ip_info?: string | null
           metadata?: Json | null
           target_path?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
+          device_info?: string | null
           email?: string | null
           event_type?: string
           id?: string
-          ip_info?: string | null
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      access_log_archive: {
+        Row: {
+          archived_at: string
+          created_at: string
+          device_info: string | null
+          email: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          target_path: string | null
+          user_id: string | null
+        }
+        Insert: {
+          archived_at?: string
+          created_at: string
+          device_info?: string | null
+          email?: string | null
+          event_type: string
+          id: string
+          metadata?: Json | null
+          target_path?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          archived_at?: string
+          created_at?: string
+          device_info?: string | null
+          email?: string | null
+          event_type?: string
+          id?: string
           metadata?: Json | null
           target_path?: string | null
           user_id?: string | null
@@ -106,6 +142,132 @@ export type Database = {
           zakat_amount?: number
         }
         Relationships: []
+      }
+      advance_carryforward: {
+        Row: {
+          amount: number
+          beneficiary_id: string
+          created_at: string
+          from_fiscal_year_id: string
+          id: string
+          notes: string | null
+          status: string
+          to_fiscal_year_id: string | null
+        }
+        Insert: {
+          amount?: number
+          beneficiary_id: string
+          created_at?: string
+          from_fiscal_year_id: string
+          id?: string
+          notes?: string | null
+          status?: string
+          to_fiscal_year_id?: string | null
+        }
+        Update: {
+          amount?: number
+          beneficiary_id?: string
+          created_at?: string
+          from_fiscal_year_id?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          to_fiscal_year_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_carryforward_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_from_fiscal_year_id_fkey"
+            columns: ["from_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_carryforward_to_fiscal_year_id_fkey"
+            columns: ["to_fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advance_requests: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          beneficiary_id: string
+          created_at: string
+          fiscal_year_id: string | null
+          id: string
+          paid_at: string | null
+          reason: string | null
+          rejection_reason: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          beneficiary_id: string
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          beneficiary_id?: string
+          created_at?: string
+          fiscal_year_id?: string | null
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          rejection_reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_requests_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_requests_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_requests_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       app_settings: {
         Row: {
@@ -322,6 +484,7 @@ export type Database = {
           beneficiary_id: string
           created_at: string
           date: string
+          fiscal_year_id: string | null
           id: string
           status: string
         }
@@ -331,6 +494,7 @@ export type Database = {
           beneficiary_id: string
           created_at?: string
           date: string
+          fiscal_year_id?: string | null
           id?: string
           status?: string
         }
@@ -340,6 +504,7 @@ export type Database = {
           beneficiary_id?: string
           created_at?: string
           date?: string
+          fiscal_year_id?: string | null
           id?: string
           status?: string
         }
@@ -363,6 +528,13 @@ export type Database = {
             columns: ["beneficiary_id"]
             isOneToOne: false
             referencedRelation: "beneficiaries_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distributions_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
             referencedColumns: ["id"]
           },
         ]
@@ -829,6 +1001,63 @@ export type Database = {
         }
         Relationships: []
       }
+      webauthn_challenges: {
+        Row: {
+          challenge: string
+          created_at: string
+          id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge: string
+          created_at?: string
+          id?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge?: string
+          created_at?: string
+          id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      webauthn_credentials: {
+        Row: {
+          counter: number
+          created_at: string
+          credential_id: string
+          device_name: string | null
+          id: string
+          public_key: string
+          transports: string[] | null
+          user_id: string
+        }
+        Insert: {
+          counter?: number
+          created_at?: string
+          credential_id: string
+          device_name?: string | null
+          id?: string
+          public_key: string
+          transports?: string[] | null
+          user_id: string
+        }
+        Update: {
+          counter?: number
+          created_at?: string
+          credential_id?: string
+          device_name?: string | null
+          id?: string
+          public_key?: string
+          transports?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       beneficiaries_safe: {
@@ -875,6 +1104,20 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_challenges: { Args: never; Returns: undefined }
+      cron_archive_old_access_logs: { Args: never; Returns: undefined }
+      cron_auto_expire_contracts: { Args: never; Returns: undefined }
+      cron_check_contract_expiry: { Args: never; Returns: undefined }
+      cron_cleanup_old_notifications: { Args: never; Returns: undefined }
+      execute_distribution: {
+        Args: {
+          p_account_id: string
+          p_distributions?: Json
+          p_fiscal_year_id?: string
+          p_total_distributed?: number
+        }
+        Returns: Json
+      }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
@@ -889,9 +1132,9 @@ export type Database = {
       }
       log_access_event: {
         Args: {
+          p_device_info?: string
           p_email?: string
           p_event_type: string
-          p_ip_info?: string
           p_metadata?: Json
           p_target_path?: string
           p_user_id?: string
@@ -916,6 +1159,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_bylaws: { Args: { items: Json }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "beneficiary" | "waqif" | "accountant"

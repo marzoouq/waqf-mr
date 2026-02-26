@@ -26,7 +26,7 @@ export const useConversations = (type?: string) => {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel('conversations-realtime')
+      .channel(`conversations-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
       })
@@ -99,12 +99,12 @@ export const useSendMessage = () => {
               conv.participant_id,
               'رسالة جديدة من ناظر الوقف',
               `لديك رسالة جديدة في محادثة "${conv.subject || 'محادثة'}"`,
-              'message',
+              'info',
               '/beneficiary/messages',
             );
           }
-        } catch (e) {
-          console.error('Failed to send message notification:', e);
+        } catch {
+          // Silent fail — notification is non-critical
         }
       }
     },

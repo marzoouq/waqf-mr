@@ -1,88 +1,59 @@
 
+# إضافة تقرير PDF لتوزيعات الحصص
 
-## تحليل شامل لمشاكل الاختبارات وخطة الإصلاح
+## الهدف
+إنشاء تقرير PDF تفصيلي يعرض توزيعات حصص المستفيدين، متضمناً: الحصة المستحقة، السُلف المصروفة، الفروق المرحّلة، وصافي التوزيع لكل مستفيد.
 
-### المشاكل المكتشفة
+## التغييرات المطلوبة
 
-#### 1. مكتبات الاختبار في القسم الخاطئ من package.json
-الحزم التالية موجودة في `dependencies` بدلا من `devDependencies`:
-- `@testing-library/dom`
-- `@testing-library/user-event`  
-- `@vitest/coverage-v8`
+### 1. إنشاء دالة توليد PDF جديدة
+**ملف جديد: لا** -- سيتم إضافة الدالة في `src/utils/pdf/accounts.ts`
 
-هذا لا يسبب فشل الاختبارات مباشرة لكنه ممارسة سيئة تزيد حجم الحزمة في الإنتاج.
+دالة `generateDistributionsPDF` ستتضمن:
+- ترويسة رسمية بشعار الوقف (نفس النمط المستخدم في باقي التقارير)
+- عنوان "تقرير توزيع الحصص" مع اسم السنة المالية
+- **ملخص مالي**: المبلغ المتاح للتوزيع، إجمالي السُلف، إجمالي المرحّل، صافي التوزيع
+- **جدول تفصيلي** بأعمدة: المستفيد | النسبة | الحصة | السُلف | المرحّل | الصافي | الفرق المرحّل
+- **صف إجمالي** في أسفل الجدول
+- تنبيه بصري في حال وجود فروق مرحّلة
+- تذييل رسمي بختم الوقف
 
-#### 2. تعارض ملفات القفل (Lock Files)
-المشروع يحتوي على `bun.lockb` و `package-lock.json` معا. خطوة CI تستخدم `npm ci` الذي يعتمد على `package-lock.json`. إذا كان هذا الملف غير متزامن مع `package.json` الحالي، فإن `npm ci` سيفشل بالكامل مما يعني عدم تثبيت أي حزمة وبالتالي فشل جميع الاختبارات.
+### 2. تصدير الدالة من ملف الفهرس
+**ملف: `src/utils/pdf/index.ts`**
+إضافة `generateDistributionsPDF` إلى قائمة التصدير.
 
-#### 3. إصدار jsdom قديم
-`jsdom ^20.0.3` قديم جدا مقارنة بـ `vitest ^4.0.18`. الإصدار الحالي من jsdom هو 26+. هذا يمكن أن يسبب مشاكل توافق مع واجهات DOM الحديثة.
+### 3. إضافة زر التصدير في نافذة التوزيع
+**ملف: `src/components/accounts/DistributeDialog.tsx`**
+إضافة زر "تصدير PDF" في أسفل النافذة بجانب أزرار التأكيد والإلغاء، يقوم بتوليد التقرير بناءً على البيانات المعروضة حالياً.
 
-#### 4. ملفات اختبار مكررة
-يوجد ملفان يختبران نفس المكون `MobileCardView`:
-- `MobileCardView.test.tsx` (8 اختبارات)
-- `MobileCardViewExtra.test.tsx` (6 اختبارات)
+## التفاصيل التقنية
 
-يحتويان على اختبارات متداخلة ويجب دمجهما في ملف واحد.
-
----
-
-### خطة الإصلاح
-
-#### الخطوة 1: إصلاح package.json
-- نقل `@testing-library/dom`، `@testing-library/user-event`، `@vitest/coverage-v8` من `dependencies` إلى `devDependencies`
-- ترقية `jsdom` من `^20.0.3` إلى `^26.0.0`
-
-#### الخطوة 2: تحديث GitHub Actions workflow
-- إضافة خطوة `npm install` بدلا من `npm ci` لتجنب مشاكل تزامن ملفات القفل، أو تحديث `package-lock.json`
-- إضافة تكامل Codecov لرفع تقارير التغطية تلقائيا
-
-```text
-الخطوات في workflow المحدث:
-1. Checkout
-2. Setup Node.js 20
-3. Install dependencies
-4. Run tests with coverage (json reporter مضاف)
-5. Upload coverage to Codecov
-6. Upload coverage artifact (backup)
+### هيكل بيانات الدالة الجديدة:
+```typescript
+generateDistributionsPDF(data: {
+  fiscalYearLabel: string;
+  availableAmount: number;
+  distributions: Array<{
+    beneficiary_name: string;
+    share_percentage: number;
+    share_amount: number;
+    advances_paid: number;
+    carryforward_deducted: number;
+    net_amount: number;
+    deficit: number;
+  }>;
+}, waqfInfo?: PdfWaqfInfo)
 ```
 
-#### الخطوة 3: دمج ملفات اختبار MobileCardView
-- دمج محتوى `MobileCardViewExtra.test.tsx` في `MobileCardView.test.tsx`
-- حذف الملف المكرر `MobileCardViewExtra.test.tsx`
-- إزالة الاختبارات المتكررة والإبقاء على الاختبارات الفريدة فقط
+### تصميم الجدول:
+- رؤوس الأعمدة بلون ذهبي (TABLE_HEAD_GOLD) لتمييزه عن باقي التقارير
+- صفوف المستفيدين ذوي الفروق المرحّلة بخلفية مميزة
+- صف الإجمالي بلون أخضر (TABLE_HEAD_GREEN)
 
-#### الخطوة 4: إضافة Codecov
-- إضافة خطوة `codecov/codecov-action@v5` في workflow
-- تعديل `vitest.config.ts` لإنتاج تقرير بتنسيق `json` بالإضافة إلى `text` (مطلوب لـ Codecov)
-- ملاحظة: يتطلب Codecov إضافة `CODECOV_TOKEN` كـ secret في إعدادات المستودع على GitHub
+### الملفات المتأثرة:
 
----
-
-### التفاصيل التقنية
-
-**vitest.config.ts** - إضافة reporter:
-```text
-reporter: ["text", "text-summary", "json"]
-                                      ^^^^
-                                   مطلوب لـ Codecov
-```
-
-**workflow المحدث**:
-```text
-steps:
-  - Checkout
-  - Setup Node 20
-  - npm ci (بعد تحديث package-lock.json)
-  - npx vitest run --coverage
-  - Upload to Codecov (يحتاج CODECOV_TOKEN secret)
-  - Upload artifact (نسخة احتياطية)
-```
-
-**ملفات ستتأثر**:
-- `package.json` (نقل حزم + ترقية jsdom)
-- `.github/workflows/test.yml` (إضافة Codecov)
-- `vitest.config.ts` (إضافة json reporter)
-- `src/components/MobileCardView.test.tsx` (دمج الاختبارات)
-- حذف `src/components/MobileCardViewExtra.test.tsx`
-
+| الملف | التغيير |
+|-------|---------|
+| `src/utils/pdf/accounts.ts` | إضافة دالة `generateDistributionsPDF` |
+| `src/utils/pdf/index.ts` | تصدير الدالة الجديدة |
+| `src/components/accounts/DistributeDialog.tsx` | إضافة زر تصدير PDF + استخدام `usePdfWaqfInfo` |

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint } from 'lucide-react';
+import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
 
@@ -18,7 +19,8 @@ const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotifi
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
-import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -82,7 +84,7 @@ const LogoManager = () => {
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم رفع الشعار بنجاح');
     } catch (err) {
-      console.error('Logo upload error:', err);
+      // Logo upload error — toast handles user notification
       toast.error('حدث خطأ أثناء رفع الشعار');
     } finally {
       setUploading(false);
@@ -406,6 +408,38 @@ const NotificationsTab = () => {
   const defaults = { contract_expiry: true, contract_expiry_days: 30, payment_delays: true, email_notifications: false };
   const settings = getJsonSetting('notification_settings', defaults);
 
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
+  });
+
+  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
+    try { return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId; } catch { return 'chime'; }
+  });
+
+  const [volume, setVolume] = useState<VolumeLevel>(() => {
+    try { return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel; } catch { return 'medium'; }
+  });
+
+  const handleSoundChange = (value: boolean) => {
+    setSoundEnabled(value);
+    localStorage.setItem('waqf_notification_sound', String(value));
+    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+  };
+
+  const handleToneChange = (tone: ToneId) => {
+    setSelectedTone(tone);
+    localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
+    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
+    previewTone(tone, vol);
+  };
+
+  const handleVolumeChange = (level: VolumeLevel) => {
+    setVolume(level);
+    localStorage.setItem(NOTIFICATION_VOLUME_KEY, level);
+    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
+    previewTone(selectedTone, vol);
+  };
+
   const toggleField = (key: string) => {
     updateJsonSetting('notification_settings', { ...settings, [key]: !settings[key] });
   };
@@ -453,6 +487,59 @@ const NotificationsTab = () => {
           </div>
           <Switch checked={settings.email_notifications} onCheckedChange={() => toggleField('email_notifications')} />
         </div>
+
+        <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">صوت التنبيه</p>
+              <p className="text-xs text-muted-foreground">تشغيل صوت عند وصول إشعار جديد</p>
+            </div>
+          </div>
+          <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
+        </div>
+
+        {soundEnabled && (
+          <>
+          <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Play className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">نغمة التنبيه</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Select dir="rtl" value={selectedTone} onValueChange={(v) => handleToneChange(v as ToneId)}>
+                <SelectTrigger className="w-36 h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TONE_OPTIONS.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="text-xs">{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)}>
+                <Play className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">مستوى الصوت</p>
+            </div>
+            <Select dir="rtl" value={volume} onValueChange={(v) => handleVolumeChange(v as VolumeLevel)}>
+              <SelectTrigger className="w-28 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VOLUME_OPTIONS.map(v => (
+                  <SelectItem key={v.id} value={v.id} className="text-xs">{v.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -573,6 +660,10 @@ const SettingsPage = () => {
               <Shield className="w-4 h-4" />
               صلاحيات الأدوار
             </TabsTrigger>
+            <TabsTrigger value="biometric" className="gap-1.5 text-xs md:text-sm">
+              <Fingerprint className="w-4 h-4" />
+              البصمة
+            </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
               الأمان
@@ -590,6 +681,7 @@ const SettingsPage = () => {
           <TabsContent value="export"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><DataExportTab /></Suspense></TabsContent>
           <TabsContent value="banner"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BannerSettingsTab /></Suspense></TabsContent>
           <TabsContent value="role-permissions"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><RolePermissionsTab /></Suspense></TabsContent>
+          <TabsContent value="biometric"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>

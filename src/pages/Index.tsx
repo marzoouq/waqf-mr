@@ -5,7 +5,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 import type { LandingPageContent } from '@/components/settings/LandingPageTab';
 
 const defaultLanding: LandingPageContent = {
@@ -25,6 +25,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { getJsonSetting } = useAppSettings();
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
+  const { data: waqfInfo } = useWaqfInfo();
 
   const [stats, setStats] = useState([
     { label: 'عقار مُدار', value: '...' },
@@ -34,9 +35,11 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      if (role === 'admin') {
+      if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
-      } else if (role === 'beneficiary' || role === 'waqif') {
+      } else if (role === 'waqif') {
+        navigate('/waqif');
+      } else if (role === 'beneficiary') {
         navigate('/beneficiary');
       }
     }
@@ -135,9 +138,15 @@ const Index = () => {
           <div className="text-center max-w-4xl mx-auto">
             {/* Logo */}
             <div className="animate-slide-up mb-10">
-              <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
-                <Building2 className="w-12 h-12 text-primary-foreground" />
-              </div>
+              {waqfInfo?.waqf_logo_url ? (
+                <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" />
+                </div>
+              ) : (
+                <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
+                  <Building2 className="w-12 h-12 text-primary-foreground" />
+                </div>
+              )}
               
               {/* Ornamental divider */}
               <div className="flex items-center justify-center gap-4 mb-8">

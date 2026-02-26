@@ -42,7 +42,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { national_id } = await req.json();
+    const { national_id: rawId } = await req.json();
+
+    // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
+    const national_id = typeof rawId === "string"
+      ? rawId
+          .replace(/[٠-٩]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
+          .replace(/[۰-۹]/g, (d: string) => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
+          .trim()
+      : rawId;
 
     // Input validation: must be exactly 10 digits
     if (!national_id || typeof national_id !== "string" || !/^\d{10}$/.test(national_id)) {
@@ -102,7 +110,9 @@ Deno.serve(async (req) => {
     }
 
     // حجب البريد الإلكتروني لمنع تسريب PII — يُعرض للمستخدم فقط كتلميح
-    const maskedEmail = email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
+    const [localPart, domain] = email.split('@');
+    const maskedLocal = localPart.length <= 2 ? '*'.repeat(localPart.length) : localPart.slice(0, 2) + '***';
+    const maskedEmail = `${maskedLocal}@${domain}`;
 
     return new Response(
       JSON.stringify({ email: maskedEmail, found: true }),

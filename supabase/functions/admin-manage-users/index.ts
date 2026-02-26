@@ -7,10 +7,7 @@ const ALLOWED_ACTIONS = [
 ];
 
 Deno.serve(async (req) => {
-  const origin = req.headers.get("origin") || "NO_ORIGIN";
-  console.log(`[admin-manage-users] ${req.method} from origin: ${origin}`);
   const corsHeaders = getCorsHeaders(req);
-  console.log(`[admin-manage-users] CORS Allow-Origin: ${corsHeaders["Access-Control-Allow-Origin"]}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
@@ -18,10 +15,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    console.log(`[admin-manage-users] Auth header present: ${!!authHeader}, length: ${authHeader?.length ?? 0}`);
-    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("[admin-manage-users] REJECTED: No valid authorization header");
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -39,7 +33,6 @@ Deno.serve(async (req) => {
 
     const { data: userData, error: userError } = await userClient.auth.getUser();
     if (userError || !userData?.user) {
-      console.log(`[admin-manage-users] getUser FAILED: ${userError?.message ?? "no user"}`);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -47,7 +40,6 @@ Deno.serve(async (req) => {
     }
 
     const callerId = userData.user.id;
-    console.log(`[admin-manage-users] Authenticated user: ${callerId}`);
 
     // Check admin role using service role client to bypass RLS
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
@@ -108,11 +100,10 @@ Deno.serve(async (req) => {
       }
 
       case "list_users": {
-        const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 100 });
+        const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 500 });
         if (error) throw error;
-        
         const { data: roles } = await adminClient.from("user_roles").select("*");
-        
+
         const users = data.users.map((u) => ({
           id: u.id,
           email: u.email,
@@ -121,7 +112,7 @@ Deno.serve(async (req) => {
           last_sign_in_at: u.last_sign_in_at,
           role: roles?.find((r) => r.user_id === u.id)?.role || null,
         }));
-        
+
         return new Response(JSON.stringify({ users }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -163,12 +154,14 @@ Deno.serve(async (req) => {
       case "set_role": {
         validateUuid(userId);
         validateRole(body.role);
+        if (userId === callerId) {
+          return new Response(JSON.stringify({ error: "لا يمكنك تغيير دورك بنفسك" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         if (!userId || !body.role) throw new Error("userId and role required");
-        await adminClient.from("user_roles").delete().eq("user_id", userId);
-        const { error } = await adminClient.from("user_roles").insert({
-          user_id: userId,
-          role: body.role,
-        });
+        const { error } = await adminClient.from("user_roles")
+          .upsert({ user_id: userId, role: body.role }, { onConflict: 'user_id' });
         if (error) throw error;
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -176,8 +169,37 @@ Deno.serve(async (req) => {
       }
 
       case "delete_user": {
-        if (!userId) throw new Error("userId required");
-        await adminClient.from("beneficiaries").delete().eq("user_id", userId);
+        validateUuid(userId);
+        if (userId === callerId) {
+          return new Response(JSON.stringify({ error: "لا يمكنك حذف حسابك الخاص" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // حماية البيانات المالية: فحص وجود توزيعات تاريخية مرتبطة بالمستفيد
+        const { data: beneficiary } = await adminClient
+          .from("beneficiaries")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (beneficiary) {
+          const { count } = await adminClient
+            .from("distributions")
+            .select("id", { count: "exact", head: true })
+            .eq("beneficiary_id", beneficiary.id);
+
+          if (count && count > 0) {
+            // فصل المستفيد عن حساب المستخدم بدلاً من حذفه (soft-delete)
+            await adminClient
+              .from("beneficiaries")
+              .update({ user_id: null })
+              .eq("id", beneficiary.id);
+          } else {
+            await adminClient.from("beneficiaries").delete().eq("user_id", userId);
+          }
+        }
+
         await adminClient.from("user_roles").delete().eq("user_id", userId);
         const { error } = await adminClient.auth.admin.deleteUser(userId);
         if (error) throw error;
@@ -198,12 +220,16 @@ Deno.serve(async (req) => {
           email_confirm: true,
         });
         if (error) throw error;
-        
+
         if (body.role) {
-          await adminClient.from("user_roles").insert({
+          const { error: roleError } = await adminClient.from("user_roles").insert({
             user_id: newUser.user.id,
             role: body.role,
           });
+          if (roleError) {
+            await adminClient.auth.admin.deleteUser(newUser.user.id);
+            throw new Error("فشل تعيين الدور");
+          }
         }
 
         if (body.role === "beneficiary") {
@@ -217,18 +243,28 @@ Deno.serve(async (req) => {
             const updateData: Record<string, unknown> = { user_id: newUser.user.id };
             if (body.nationalId) updateData.national_id = body.nationalId;
             if (body.name) updateData.name = body.name;
-            await adminClient
+            const { error: benError } = await adminClient
               .from("beneficiaries")
               .update(updateData)
               .eq("id", existingBeneficiary.id);
+            if (benError) {
+              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              throw new Error("فشل تحديث بيانات المستفيد");
+            }
           } else {
-            await adminClient.from("beneficiaries").insert({
+            const { error: benError } = await adminClient.from("beneficiaries").insert({
               name: body.name || email.split("@")[0],
               email: email,
               share_percentage: 0,
               user_id: newUser.user.id,
               national_id: body.nationalId || null,
             });
+            if (benError) {
+              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              throw new Error("فشل إنشاء المستفيد");
+            }
           }
         } else if (body.nationalId) {
           const { data: beneficiary } = await adminClient
@@ -243,17 +279,17 @@ Deno.serve(async (req) => {
               .eq("id", beneficiary.id);
           }
         }
-        
+
         if (body.role === "beneficiary") {
           await adminClient.rpc('notify_admins', {
             p_title: 'مستفيد جديد',
             p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          });
+          }).catch(() => {});
         }
 
-        return new Response(JSON.stringify({ success: true, user: newUser.user }), {
+        return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -276,8 +312,8 @@ Deno.serve(async (req) => {
             errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
             continue;
           }
-          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
-            errors.push({ email: u.email, error: "Password must be 8-128 characters" });
+          if (!u.password || typeof u.password !== "string" || u.password.length < 6 || u.password.length > 128) {
+            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 6 و128 حرفاً" });
             continue;
           }
           if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {
@@ -292,42 +328,53 @@ Deno.serve(async (req) => {
               email_confirm: true,
             });
             if (createError) {
-              errors.push({ email: u.email, error: createError.message });
+              errors.push({ email: u.email, error: "فشل إنشاء المستخدم" });
               continue;
             }
 
-            await adminClient.from("user_roles").insert({
+            const { error: roleError } = await adminClient.from("user_roles").insert({
               user_id: newUser.user.id,
               role: "beneficiary",
             });
+            if (roleError) {
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              errors.push({ email: u.email, error: "فشل تعيين الدور" });
+              continue;
+            }
 
-            await adminClient.from("beneficiaries").insert({
+            const { error: benError } = await adminClient.from("beneficiaries").insert({
               name: u.name,
               email: u.email,
               share_percentage: 0,
               user_id: newUser.user.id,
               national_id: u.national_id || null,
             });
+            if (benError) {
+              await adminClient.from("user_roles").delete().eq("user_id", newUser.user.id);
+              await adminClient.auth.admin.deleteUser(newUser.user.id);
+              errors.push({ email: u.email, error: "فشل إنشاء المستفيد" });
+              continue;
+            }
 
             await adminClient.rpc('notify_admins', {
               p_title: 'مستفيد جديد',
               p_message: `تم تسجيل مستفيد جديد: ${u.name}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
-            });
+            }).catch(() => {});
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch (err) {
-            errors.push({ email: u.email, error: (err as Error).message });
+            errors.push({ email: u.email, error: "خطأ غير متوقع" });
           }
         }
 
-        return new Response(JSON.stringify({ 
-          success: true, 
-          created: results.length, 
+        return new Response(JSON.stringify({
+          success: true,
+          created: results.length,
           failed: errors.length,
           results,
-          errors 
+          errors
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -340,7 +387,18 @@ Deno.serve(async (req) => {
         });
     }
   } catch (error) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    const msg = (error as Error).message;
+    console.error("admin-manage-users error:", msg);
+    // تعقيم رسالة الخطأ — لا نكشف تفاصيل DB الداخلية للمتصفح
+    const safeMessages: Record<string, string> = {
+      "email and password required": "البريد وكلمة المرور مطلوبان",
+      "userId and role required": "معرف المستخدم والدور مطلوبان",
+      "users array is required": "قائمة المستخدمين مطلوبة",
+      "Maximum 50 users at a time": "الحد الأقصى 50 مستخدماً في المرة",
+    };
+    const safeMsg = safeMessages[msg]
+      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") ? msg : "حدث خطأ في العملية");
+    return new Response(JSON.stringify({ error: safeMsg }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

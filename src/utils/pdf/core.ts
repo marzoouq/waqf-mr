@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { logger } from '@/lib/logger';
 
 /* PDF Core - Shared types, font loading, header/footer, table styles */
 
@@ -43,7 +44,7 @@ export const loadArabicFont = async (doc: jsPDF) => {
     doc.setLanguage('ar');
     return true;
   } catch (e) {
-    console.warn('Failed to load Arabic font, falling back to helvetica:', e);
+    // Silent fallback in production
     doc.setFont('helvetica');
     return false;
   }

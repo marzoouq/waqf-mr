@@ -91,26 +91,30 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
-      console.error("guard-signup createUser error", createError);
+      console.error("guard-signup createUser error:", createError?.message);
       return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // تعيين دور افتراضي (مستفيد) لمنع بقاء المستخدم بدون صلاحيات
+    // تعيين دور افتراضي (مستفيد) — تصميم مقصود:
+    // الدور يُمنح فوراً لكن المستخدم لا يستطيع الوصول الفعلي لأن:
+    // 1. البريد غير مؤكد (email_confirm: false) → لا يمكنه تسجيل الدخول
+    // 2. تأكيد البريد يتم يدوياً من الناظر فقط عبر لوحة إدارة المستخدمين
+    // 3. بدون تأكيد البريد + تسجيل الدخول، سياسات RLS تمنع أي وصول للبيانات
     if (userData.user) {
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .insert({ user_id: userData.user.id, role: "beneficiary" });
       if (roleError) {
-        console.error("guard-signup role assignment error", roleError);
+        console.error("guard-signup role assignment error:", roleError?.message);
         // لا نفشل العملية — المستخدم أُنشئ بنجاح ويمكن للناظر تعيين الدور لاحقاً
       }
     }
 
     return new Response(JSON.stringify({ 
-      user: userData.user,
+      success: true,
       message: "تم إنشاء حسابك بنجاح. يرجى تأكيد بريدك الإلكتروني ثم انتظار موافقة الناظر لتفعيل صلاحياتك."
     }), {
       status: 200,

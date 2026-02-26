@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
@@ -11,7 +10,6 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
@@ -19,7 +17,6 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -44,6 +41,8 @@ const AccountsViewPage = () => {
     availableAmount,
     incomeBySource,
     expensesByType,
+    isLoading: finLoading,
+    isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
@@ -64,6 +63,24 @@ const AccountsViewPage = () => {
       default: return status;
     }
   };
+
+  if (finError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (finLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
 
   if (noPublishedYears) {
     return (

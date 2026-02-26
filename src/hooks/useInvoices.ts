@@ -147,7 +147,7 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
 
 /** @deprecated Use getInvoiceSignedUrl instead – invoices bucket is private */
 export const getInvoiceFileUrl = (_filePath: string) => {
-  console.warn('getInvoiceFileUrl is deprecated. Use getInvoiceSignedUrl for private bucket access.');
+  // deprecated — use getInvoiceSignedUrl
   return '';
 };
 

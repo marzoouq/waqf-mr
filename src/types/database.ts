@@ -105,6 +105,21 @@ export interface Account {
   updated_at: string;
 }
 
+export interface AdvanceRequest {
+  id: string;
+  beneficiary_id: string;
+  fiscal_year_id: string | null;
+  amount: number;
+  reason: string | null;
+  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  rejection_reason: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  paid_at: string | null;
+  created_at: string;
+  beneficiary?: Beneficiary;
+}
+
 export interface Distribution {
   id: string;
   beneficiary_id: string;
@@ -149,7 +164,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: string;
+  type: 'info' | 'success' | 'warning' | 'error';
   is_read: boolean;
   link: string | null;
   created_at: string;
@@ -161,6 +176,7 @@ export interface FiscalYear {
   start_date: string;
   end_date: string;
   status: 'active' | 'closed';
+  published: boolean;
   created_at: string;
 }
 

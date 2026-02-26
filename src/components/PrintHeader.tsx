@@ -1,4 +1,4 @@
-import { useWaqfInfo } from '@/hooks/useWaqfInfo';
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 import waqfLogo from '@/assets/waqf-logo.png';
 
 const PrintHeader = () => {

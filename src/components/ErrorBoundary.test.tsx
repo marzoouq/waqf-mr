@@ -2,9 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ErrorBoundary from './ErrorBoundary';
+import { logger } from '@/lib/logger';
 
-// Suppress console.error from ErrorBoundary.componentDidCatch
-beforeEach(() => { vi.spyOn(console, 'error').mockImplementation(() => {}); });
+// Mock logger instead of spying on console.error
+vi.mock('@/lib/logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), log: vi.fn() },
+}));
+
+// Suppress React's own console.error for ErrorBoundary
+beforeEach(() => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.mocked(logger.error).mockClear();
+});
 
 const ThrowingChild = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) throw new Error('Test explosion');
@@ -41,7 +50,6 @@ describe('ErrorBoundary', () => {
   });
 
   it('navigates to home on reset button click', async () => {
-    // Mock window.location
     const originalHref = window.location.href;
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -58,12 +66,12 @@ describe('ErrorBoundary', () => {
     expect(window.location.href).toBe('/');
   });
 
-  it('logs error info via console.error', () => {
+  it('logs error info via logger.error', () => {
     render(
       <ErrorBoundary>
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>,
     );
-    expect(console.error).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith('ErrorBoundary caught:', expect.any(Error), expect.anything());
   });
 });

@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const isSpecificYear = fiscalYearId !== 'all';
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -57,10 +59,10 @@ const PropertiesViewPage = () => {
 
   // حساب الإشغال من العقود المفلترة بالسنة المالية (بدلاً من حالة الوحدة الثابتة)
   const rentedUnitIds = new Set(
-    contracts.filter(c => c.unit_id).map(c => c.unit_id)
+    contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id)
   );
   const wholePropertyIds = new Set(
-    contracts.filter(c => c.property_id && !c.unit_id).map(c => c.property_id)
+    contracts.filter(c => (isSpecificYear || c.status === 'active') && c.property_id && !c.unit_id).map(c => c.property_id)
   );
   const occupiedUnits = units?.filter(u =>
     rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
@@ -157,7 +159,16 @@ const PropertiesViewPage = () => {
                     <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>
                     <span className={`text-sm font-bold ${occColor}`}>{overallOccupancy}%</span>
                   </div>
-                  <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="cursor-help">
+                          <Progress value={overallOccupancy} className={`h-3 ${occBarColor}`} />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>مؤجرة: {occupiedUnits} من {totalUnits} وحدة | شاغرة: {totalVacant}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </CardContent>
               </Card>
             </div>
@@ -184,12 +195,19 @@ const PropertiesViewPage = () => {
               // حساب الإشغال من العقود المفلترة بالسنة المالية
               const propertyContracts = contracts.filter(c => c.property_id === property.id);
               const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
-              const isWholePropertyRented = propertyContracts.some(c => !c.unit_id);
+              const hasWholePropertyContract = propertyContracts.some(c => !c.unit_id);
 
-              const rented = isWholePropertyRented ? total : propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              // الأولوية للوحدات: إذا كان للعقار وحدات، نحسب من عقود الوحدات فقط
+              const isWholePropertyRented = total === 0 && hasWholePropertyContract;
+              const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
+              const rented = (total > 0 && hasWholePropertyContract && unitBasedRented === 0)
+                ? total
+                : (isWholePropertyRented ? total : unitBasedRented);
               const vacant = total - rented;
               const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
-              const occupancy = total > 0 ? Math.round((rented / total) * 100) : 0;
+              const occupancy = total > 0
+                ? Math.round((rented / total) * 100)
+                : isWholePropertyRented ? 100 : 0;
 
               // الإيرادات التعاقدية (جميع العقود المرتبطة)
               const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
@@ -243,10 +261,17 @@ const PropertiesViewPage = () => {
                               {maintenance > 0 && <span className="flex items-center gap-1 text-destructive">صيانة: <strong>{maintenance}</strong></span>}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
-                            <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-help">
+                                  <Progress value={occupancy} className={`h-2 flex-1 ${progressColor}`} />
+                                  <span className={`text-xs font-semibold ${occupancyColor}`}>{occupancy}%</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>مؤجرة: {rented} من {total} وحدة | شاغرة: {vacant}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       ) : activeContracts.length > 0 ? (
                         <>
@@ -254,10 +279,17 @@ const PropertiesViewPage = () => {
                             <Home className="w-3.5 h-3.5 text-success" />
                             <span className="font-medium text-success">مؤجر بالكامل</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
-                            <span className="text-xs font-semibold text-success">100%</span>
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-help">
+                                  <Progress value={100} className="h-2 flex-1 [&>div]:bg-success" />
+                                  <span className="text-xs font-semibold text-success">100%</span>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>العقار مؤجر بالكامل</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       ) : (
                         <div className="text-sm text-muted-foreground">لا توجد وحدات مسجلة</div>

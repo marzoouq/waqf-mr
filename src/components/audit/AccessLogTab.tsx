@@ -16,7 +16,7 @@ interface AccessLogEntry {
   event_type: string;
   email: string | null;
   user_id: string | null;
-  ip_info: string | null;
+  device_info: string | null;
   target_path: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
@@ -59,7 +59,7 @@ const AccessLogTab = () => {
     return logs.filter(l =>
       (l.email && l.email.toLowerCase().includes(q)) ||
       (l.target_path && l.target_path.toLowerCase().includes(q)) ||
-      (l.ip_info && l.ip_info.toLowerCase().includes(q))
+      (l.device_info && l.device_info.toLowerCase().includes(q))
     );
   }, [logs, searchQuery]);
 

@@ -1,6 +1,9 @@
 /**
  * مكون حماية المسارات — نسخة مبسّطة
  * يعتمد كليًا على AuthContext. AuthContext يتكفل بالـ timeout والـ retries.
+ * مكون حماية المسارات (ProtectedRoute)
+ * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
+ * يعتمد بالكامل على AuthContext لمنطق المصادقة وتسجيل الخروج.
  */
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,10 +19,15 @@ type AllowedRole = 'admin' | 'beneficiary' | 'waqif' | 'accountant';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: AllowedRole[];
+import type { AppRole } from '@/types/database';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  allowedRoles?: AppRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, signOut } = useAuth();
   const location = useLocation();
   const loggedRef = useRef(false);
 
@@ -29,6 +37,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     !!allowedRoles &&
     !!role &&
     !allowedRoles.includes(role as AllowedRole);
+    !loading && !!user && !!allowedRoles && !!role &&
+    !allowedRoles.includes(role as AppRole);
 
   useEffect(() => {
     if (isUnauthorized && !loggedRef.current) {
@@ -59,6 +69,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   // 3. مسجّل لكن الدور لم يُجلب بعد (AuthContext يتكفل بالـ timeout)
   if (allowedRoles && !role) {
     logger.warn('[ProtectedRoute] Waiting for role from AuthContext...');
+  // 3. مسجّل لكن الدور لم يُجلب بعد
+  // إذا انتهى التحميل ولا يوجد دور → إعادة توجيه لتسجيل الدخول بدل حلقة تحميل لا نهائية
+  if (allowedRoles && !role) {
+    if (!loading) {
+      return <Navigate to="/auth" state={{ from: location }} replace />;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center" dir="rtl">
         <div className="flex flex-col items-center gap-4">
@@ -70,6 +86,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
             className="mt-2"
             onClick={async () => {
               await supabase.auth.signOut();
+              await signOut();
               window.location.href = '/auth';
             }}
           >

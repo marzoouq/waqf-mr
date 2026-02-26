@@ -54,12 +54,10 @@ export const useBylaws = () => {
 
   const reorderBylaws = useMutation({
     mutationFn: async (items: { id: string; sort_order: number }[]) => {
-      const promises = items.map((item) =>
-        supabase.from('waqf_bylaws').update({ sort_order: item.sort_order }).eq('id', item.id)
-      );
-      const results = await Promise.all(promises);
-      const err = results.find((r) => r.error);
-      if (err?.error) throw err.error;
+      const { error } = await supabase.rpc('reorder_bylaws', {
+        items: JSON.stringify(items),
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waqf_bylaws'] });

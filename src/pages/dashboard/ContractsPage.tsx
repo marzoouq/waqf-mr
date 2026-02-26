@@ -1,23 +1,17 @@
-import { useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useContracts, useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
-import { useUnits } from '@/hooks/useUnits';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { Plus, Minus, Trash2, FileText, Edit, Search, CheckCircle, XCircle, DollarSign, AlertTriangle, Lock, Info, RefreshCw, CheckSquare, Square } from 'lucide-react';
+import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useMemo } from 'react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generateContractsPDF } from '@/utils/pdf';
@@ -25,10 +19,13 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ContractStatsCards from '@/components/contracts/ContractStatsCards';
+import ContractFormDialog, { ContractFormData, emptyFormData } from '@/components/contracts/ContractFormDialog';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -73,24 +70,19 @@ const ContractsPage = () => {
   const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
+  const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const ITEMS_PER_PAGE = 10;
-  const [formData, setFormData] = useState({
-    contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
-    payment_type: 'annual', payment_count: '1',
-  });
-
-  const { data: propertyUnits = [] } = useUnits(formData.property_id || undefined);
 
   const resetForm = () => {
-    setFormData({ contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '', payment_type: 'annual', payment_count: '1' });
     setEditingContract(null);
+    setFormInitialData(emptyFormData);
   };
 
   const handleRenew = (contract: Contract) => {
     const num = contract.contract_number;
     const match = num.match(/-R(\d+)$/);
     const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
-    setFormData({
+    setFormInitialData({
       contract_number: newNumber,
       property_id: contract.property_id,
       unit_id: contract.unit_id || '',
@@ -102,6 +94,7 @@ const ContractsPage = () => {
       notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual',
       payment_count: (contract.payment_count || 1).toString(),
+      rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
     });
     setEditingContract(null);
     setIsOpen(true);
@@ -109,42 +102,78 @@ const ContractsPage = () => {
 
   const handleEdit = (contract: Contract) => {
     setEditingContract(contract);
-    setFormData({
+    setFormInitialData({
       contract_number: contract.contract_number, property_id: contract.property_id, unit_id: contract.unit_id || '', tenant_name: contract.tenant_name,
       start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
+      rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
     });
     setIsOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.contract_number || !formData.property_id || !formData.tenant_name || !formData.start_date || !formData.end_date || !formData.rent_amount) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+  const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
+    const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
+
+    if (isEditing && editingContract) {
+      const rentAmount = parseFloat(formData.rent_amount);
+      const paymentAmount = rentAmount / paymentCount;
+      const contractData: Record<string, unknown> = {
+        contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
+        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+        status: formData.status, notes: formData.notes || undefined,
+        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+      };
+      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
       return;
     }
-    const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
-    const rentAmount = parseFloat(formData.rent_amount);
-    const paymentAmount = rentAmount / paymentCount;
-    const contractData: Record<string, unknown> = {
-      contract_number: formData.contract_number, property_id: formData.property_id, unit_id: formData.unit_id || null, tenant_name: formData.tenant_name,
-      start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
-      status: formData.status, notes: formData.notes || undefined,
-      payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
-    };
-    if (editingContract) {
-      // fiscal_year_id لا يتغير عند التعديل (العقد يبقى في سنته الأصلية)
-      await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
+
+    // Get active fiscal year
+    const { data: activeFY } = await supabase
+      .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+
+    const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    if (formData.rental_mode === 'multi' && formData.selected_unit_ids.length > 1) {
+      // Multi-unit: create one contract per selected unit
+      const units = formData.selected_unit_ids;
+      let created = 0;
+      for (let i = 0; i < units.length; i++) {
+        const unitId = units[i];
+        const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
+        let rentAmount: number;
+        if (formData.pricing_mode === 'per_unit') {
+          rentAmount = parseFloat(formData.rent_per_unit[unitId]) || 0;
+        } else {
+          rentAmount = parseFloat(formData.rent_amount) / units.length;
+        }
+        const paymentAmount = rentAmount / paymentCount;
+        const contractData: Record<string, unknown> = {
+          contract_number: contractNumber, property_id: formData.property_id, unit_id: unitId, tenant_name: formData.tenant_name,
+          start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+          status: formData.status, notes: formData.notes || undefined,
+          payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+          fiscal_year_id: activeFY?.id || null,
+        };
+        await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
+        created++;
+      }
+      toast.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
-      // العقد الجديد يُربط بالسنة المالية النشطة تلقائياً
-      const { data: activeFY } = await (await import('@/integrations/supabase/client')).supabase
-        .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      // Single or full property
+      const rentAmount = parseFloat(formData.rent_amount);
+      const paymentAmount = rentAmount / paymentCount;
+      const contractData: Record<string, unknown> = {
+        contract_number: formData.contract_number, property_id: formData.property_id,
+        unit_id: (formData.rental_mode === 'single' ? formData.unit_id : (formData.rental_mode === 'multi' && formData.selected_unit_ids.length === 1 ? formData.selected_unit_ids[0] : null)) || null,
+        tenant_name: formData.tenant_name,
+        start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
+        status: formData.status, notes: formData.notes || undefined,
+        payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+      };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
       await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
     }
-    setIsOpen(false);
-    resetForm();
   };
 
   const handleConfirmDelete = async () => {
@@ -153,7 +182,6 @@ const ContractsPage = () => {
     setDeleteTarget(null);
   };
 
-  // Move expiredContracts before state that references it (selectAllExpired)
   const expiredContracts = useMemo(() => contracts.filter(c => c.status === 'expired'), [contracts]);
 
   const toggleSelection = (id: string) => {
@@ -169,14 +197,12 @@ const ContractsPage = () => {
   const handleBulkRenew = async () => {
     setBulkRenewing(true);
     try {
-      // Get active fiscal year
       const { data: activeFY } = await supabase
         .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
 
       const contractsToRenew = expiredContracts.filter(c => selectedForRenewal.has(c.id));
       let created = 0;
       for (const contract of contractsToRenew) {
-        // حساب التواريخ: البداية = تاريخ انتهاء العقد القديم، المدة = نفس مدة العقد الأصلي
         const oldStart = new Date(contract.start_date);
         const oldEnd = new Date(contract.end_date);
         const durationMs = oldEnd.getTime() - oldStart.getTime();
@@ -192,38 +218,19 @@ const ContractsPage = () => {
         const paymentAmount = Number(contract.rent_amount) / paymentCount;
 
         const newContract: Record<string, unknown> = {
-          contract_number: newNumber,
-          property_id: contract.property_id,
-          unit_id: contract.unit_id || null,
-          tenant_name: contract.tenant_name,
-          start_date: startDate,
-          end_date: endDate,
-          rent_amount: contract.rent_amount,
-          status: 'active',
+          contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || null,
+          tenant_name: contract.tenant_name, start_date: startDate, end_date: endDate,
+          rent_amount: contract.rent_amount, status: 'active',
           notes: `تجديد جماعي للعقد ${contract.contract_number}`,
-          payment_type: contract.payment_type || 'annual',
-          payment_count: paymentCount,
-          payment_amount: paymentAmount,
+          payment_type: contract.payment_type || 'annual', payment_count: paymentCount, payment_amount: paymentAmount,
           fiscal_year_id: activeFY?.id || null,
         };
         await createContract.mutateAsync(newContract as unknown as Parameters<typeof createContract.mutateAsync>[0]);
         created++;
       }
 
-      // Send notifications
-      await supabase.rpc('notify_admins', {
-        p_title: 'تجديد جماعي للعقود',
-        p_message: `تم تجديد ${created} عقد منتهي بنجاح`,
-        p_type: 'success',
-        p_link: '/dashboard/contracts',
-      });
-      await supabase.rpc('notify_all_beneficiaries', {
-        p_title: 'تجديد عقود الإيجار',
-        p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`,
-        p_type: 'info',
-        p_link: '/beneficiary/notifications',
-      });
-
+      await supabase.rpc('notify_admins', { p_title: 'تجديد جماعي للعقود', p_message: `تم تجديد ${created} عقد منتهي بنجاح`, p_type: 'success', p_link: '/dashboard/contracts' });
+      await supabase.rpc('notify_all_beneficiaries', { p_title: 'تجديد عقود الإيجار', p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`, p_type: 'info', p_link: '/beneficiary/notifications' });
       toast.success(`تم تجديد ${created} عقد بنجاح`);
     } catch (err) {
       toast.error('حدث خطأ أثناء التجديد');
@@ -275,157 +282,29 @@ const ContractsPage = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} />
-            <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة عقد</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader><DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل عقد إيجار</DialogDescription></DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
-                  <div className="space-y-2"><Label>رقم العقد *</Label><Input value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
-                  <div className="space-y-2">
-                    <Label>العقار *</Label>
-                    <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
-                      <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
-                      <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
-                    </Select>
-                  </div>
-                  {formData.property_id && (
-                    <div className="space-y-2">
-                      <Label>الوحدة</Label>
-                      <Select value={formData.unit_id} onValueChange={(value) => setFormData({ ...formData, unit_id: value === 'full' ? '' : value })}>
-                        <SelectTrigger><SelectValue placeholder="العقار كامل" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="full">العقار كامل</SelectItem>
-                          {propertyUnits.map((u) => (<SelectItem key={u.id} value={u.id}>وحدة {u.unit_number}</SelectItem>))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  <div className="space-y-2"><Label>اسم المستأجر *</Label><Input value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>تاريخ البداية *</Label><Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
-                    <div className="space-y-2"><Label>تاريخ النهاية *</Label><Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
-                  </div>
-                  <div className="space-y-2"><Label>قيمة الإيجار السنوي (ر.س) *</Label><Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" /></div>
-                  <div className="space-y-2">
-                    <Label>نوع الدفع *</Label>
-                    <Select value={formData.payment_type} onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'annual' ? '1' : formData.payment_count })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="annual">سنوي (دفعة واحدة)</SelectItem>
-                        <SelectItem value="monthly">شهري (12 دفعة)</SelectItem>
-                        <SelectItem value="multi">دفعات متعددة</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {formData.payment_type === 'multi' && (
-                    <div className="space-y-2">
-                      <Label>عدد الدفعات *</Label>
-                      <Input type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
-                    </div>
-                  )}
-                  {formData.rent_amount && (
-                    <div className="p-3 rounded-lg bg-muted/50 text-sm">
-                      <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
-                      <span className="font-bold text-primary">
-                        {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
-                      </span>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <Label>الحالة</Label>
-                    <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="active">نشط</SelectItem><SelectItem value="expired">منتهي</SelectItem><SelectItem value="pending">معلق</SelectItem></SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createContract.isPending || updateContract.isPending}>{editingContract ? 'تحديث' : 'إضافة'}</Button>
-                    <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button className="gradient-primary gap-2" onClick={() => { resetForm(); setIsOpen(true); }}><Plus className="w-4 h-4" />إضافة عقد</Button>
           </div>
         </div>
 
-        {/* مربعات إحصائية */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Card key={i} className="shadow-sm">
-                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                  <Skeleton className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="h-5 w-12" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <Card className="border-info/30 bg-info/5">
-             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-info/15 text-info"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-               <div><p className="text-[10px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
-            </CardContent>
-          </Card>
-          <Card className="border-success/30 bg-success/5">
-             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-success/15 text-success"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-               <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
-            </CardContent>
-          </Card>
-          <Card className="border-destructive/30 bg-destructive/5">
-             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-               <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
-            </CardContent>
-          </Card>
-          <Card className="border-accent/30 bg-accent/5">
-             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className="p-1.5 sm:p-2 rounded-lg bg-accent/15 text-accent-foreground"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-               <div><p className="text-[10px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold truncate">{stats.totalRent.toLocaleString()} <span className="text-[10px] sm:text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {stats.activeRent.toLocaleString()}</p></div>
-            </CardContent>
-          </Card>
-          <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
-             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-               <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-               <div><p className="text-[10px] sm:text-xs text-muted-foreground">قريبة الانتهاء (90 يوم)</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
-            </CardContent>
-          </Card>
-        </div>
-        )}
+        <ContractStatsCards stats={stats} isLoading={isLoading} />
 
-        {/* شريط تنبيه العقود المنتهية مع اختيار انتقائي */}
+        {/* شريط تنبيه العقود المنتهية */}
         {expiredContracts.length > 0 && (
           <Alert className="border-destructive/40 bg-destructive/10">
             <AlertTriangle className="w-4 h-4 text-destructive" />
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-destructive font-medium">
                 يوجد {expiredContracts.length} عقد منتهي
-                {selectedForRenewal.size > 0 && (
-                  <span className="text-foreground mr-1">— تم اختيار {selectedForRenewal.size}</span>
-                )}
+                {selectedForRenewal.size > 0 && <span className="text-foreground mr-1">— تم اختيار {selectedForRenewal.size}</span>}
               </span>
               <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5 shrink-0"
-                  onClick={selectedForRenewal.size === expiredContracts.length ? deselectAll : selectAllExpired}
-                >
+                <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={selectedForRenewal.size === expiredContracts.length ? deselectAll : selectAllExpired}>
                   {selectedForRenewal.size === expiredContracts.length ? <Square className="w-3.5 h-3.5" /> : <CheckSquare className="w-3.5 h-3.5" />}
                   {selectedForRenewal.size === expiredContracts.length ? 'إلغاء التحديد' : 'تحديد الكل'}
                 </Button>
                 {selectedForRenewal.size > 0 && (
                   <Button size="sm" variant="destructive" className="gap-2 shrink-0" onClick={() => setBulkRenewOpen(true)}>
-                    <RefreshCw className="w-4 h-4" />
-                    تجديد المختارة ({selectedForRenewal.size})
+                    <RefreshCw className="w-4 h-4" />تجديد المختارة ({selectedForRenewal.size})
                   </Button>
                 )}
               </div>
@@ -442,8 +321,7 @@ const ContractsPage = () => {
 
         {isClosed && (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
-            <Lock className="w-4 h-4 shrink-0" />
-            <span>سنة مقفلة - تعديل بصلاحية الناظر</span>
+            <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة - تعديل بصلاحية الناظر</span>
           </div>
         )}
 
@@ -460,13 +338,7 @@ const ContractsPage = () => {
                     <Info className="w-4 h-4 shrink-0" />
                     <span>
                       لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
-                      <button
-                        type="button"
-                        className="underline font-semibold hover:opacity-80"
-                        onClick={() => setFiscalYearId('all')}
-                      >
-                        جميع السنوات
-                      </button>
+                      <button type="button" className="underline font-semibold hover:opacity-80" onClick={() => setFiscalYearId('all')}>جميع السنوات</button>
                       {' '}أو اختر سنة مالية أخرى من القائمة أعلاه.
                     </span>
                   </div>
@@ -474,40 +346,37 @@ const ContractsPage = () => {
               </div>
             ) : (
               <>
-               {/* Mobile Cards */}
-               <div className="space-y-3 md:hidden px-3 py-2">
-                 {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
-                   <Card key={contract.id} className="shadow-sm">
+                {/* Mobile Cards */}
+                <div className="space-y-3 md:hidden px-3 py-2">
+                  {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
+                    <Card key={contract.id} className="shadow-sm">
                       <CardContent className="p-4 space-y-3">
                         {contract.status === 'expired' && (
                           <div className="flex items-center gap-2 pb-2 border-b border-destructive/20">
-                            <Checkbox
-                              checked={selectedForRenewal.has(contract.id)}
-                              onCheckedChange={() => toggleSelection(contract.id)}
-                            />
+                            <Checkbox checked={selectedForRenewal.has(contract.id)} onCheckedChange={() => toggleSelection(contract.id)} />
                             <span className="text-xs text-destructive">اختر للتجديد</span>
                           </div>
                         )}
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                             <span className="font-bold text-sm">{contract.contract_number}</span>
-                             {getStatusBadge(contract.status)}
-                           </div>
-                           <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
-                         </div>
+                              <span className="font-bold text-sm">{contract.contract_number}</span>
+                              {getStatusBadge(contract.status)}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
+                          </div>
                           <div className="flex gap-1 shrink-0">
                             <Button variant="ghost" size="icon" className="w-8 h-8 text-success hover:text-success/80" onClick={() => handleRenew(contract)} title="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
                             <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
                           </div>
-                       </div>
-                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                         <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{contract.property?.property_number || '-'}</p></div>
-                         <div><p className="text-[10px] text-muted-foreground">الوحدة</p><p className="text-sm font-medium">{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'كامل'}</p></div>
-                         <div><p className="text-[10px] text-muted-foreground">البداية</p><p className="text-sm font-medium">{contract.start_date}</p></div>
-                         <div><p className="text-[10px] text-muted-foreground">النهاية</p><p className="text-sm font-medium">{contract.end_date}</p></div>
-                         <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                          <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{contract.property?.property_number || '-'}</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">الوحدة</p><p className="text-sm font-medium">{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'كامل'}</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">البداية</p><p className="text-sm font-medium">{contract.start_date}</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">النهاية</p><p className="text-sm font-medium">{contract.end_date}</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
                           <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
                         </div>
                         {/* التحصيل */}
@@ -529,84 +398,94 @@ const ContractsPage = () => {
                           })()}
                         </div>
                       </CardContent>
-                   </Card>
-                 ))}
-               </div>
-               {/* Desktop Table */}
-               <div className="overflow-x-auto hidden md:block">
-               <Table className="min-w-[1000px]">
-                <TableHeader>
-                   <TableRow className="bg-muted/50">
-                     {expiredContracts.length > 0 && <TableHead className="text-center w-10"></TableHead>}
-                     <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
-                    <TableHead className="text-right">الوحدة</TableHead>
-                    <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
-                    <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
-                     <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
-                     <TableHead className="text-right">التحصيل</TableHead>
-                     <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
-                     <TableRow key={contract.id}>
-                       {expiredContracts.length > 0 && (
-                         <TableCell className="text-center">
-                           {contract.status === 'expired' ? (
-                             <Checkbox
-                               checked={selectedForRenewal.has(contract.id)}
-                               onCheckedChange={() => toggleSelection(contract.id)}
-                             />
-                           ) : null}
-                         </TableCell>
-                       )}
-                       <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                      <TableCell>{contract.property?.property_number || '-'}</TableCell>
-                      <TableCell>{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'العقار كامل'}</TableCell>
-                      <TableCell>{contract.tenant_name}</TableCell>
-                      <TableCell>{contract.start_date}</TableCell>
-                      <TableCell>{contract.end_date}</TableCell>
-                      <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>
-                        {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
-                      </TableCell>
-                      <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
-                      <TableCell>
-                        {(() => {
-                          const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-                          const paid = paymentsMap.get(contract.id) ?? 0;
-                          return (
-                            <div className="space-y-1.5">
-                              <div className="flex items-center gap-1">
-                                <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
-                                <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
-                              </div>
-                              <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
-                            </div>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(contract.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
-                          </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    </Card>
                   ))}
-                </TableBody>
-               </Table>
-               </div>
+                </div>
+                {/* Desktop Table */}
+                <div className="overflow-x-auto hidden md:block">
+                  <Table className="min-w-[1000px]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        {expiredContracts.length > 0 && <TableHead className="text-center w-10"></TableHead>}
+                        <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
+                        <TableHead className="text-right">الوحدة</TableHead>
+                        <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
+                        <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
+                        <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
+                        <TableHead className="text-right">التحصيل</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
+                        <TableRow key={contract.id}>
+                          {expiredContracts.length > 0 && (
+                            <TableCell className="text-center">
+                              {contract.status === 'expired' ? (
+                                <Checkbox checked={selectedForRenewal.has(contract.id)} onCheckedChange={() => toggleSelection(contract.id)} />
+                              ) : null}
+                            </TableCell>
+                          )}
+                          <TableCell className="font-medium">{contract.contract_number}</TableCell>
+                          <TableCell>{contract.property?.property_number || '-'}</TableCell>
+                          <TableCell>{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'العقار كامل'}</TableCell>
+                          <TableCell>{contract.tenant_name}</TableCell>
+                          <TableCell>{contract.start_date}</TableCell>
+                          <TableCell>{contract.end_date}</TableCell>
+                          <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>
+                            {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
+                          </TableCell>
+                          <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
+                          <TableCell>
+                            {(() => {
+                              const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                              const paid = paymentsMap.get(contract.id) ?? 0;
+                              return (
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
+                                    <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
+                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
+                                  </div>
+                                  <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
+                                </div>
+                              );
+                            })()}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(contract.status)}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
+                              </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </>
             )}
             <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
+
+        {/* Contract Form Dialog */}
+        <ContractFormDialog
+          open={isOpen}
+          onOpenChange={setIsOpen}
+          editingContract={editingContract}
+          properties={properties}
+          activeContracts={contracts}
+          onSubmit={handleFormSubmit}
+          onReset={resetForm}
+          isPending={createContract.isPending || updateContract.isPending}
+          initialFormData={formInitialData}
+        />
 
         {/* حوار تأكيد تجديد العقود المختارة */}
         <AlertDialog open={bulkRenewOpen} onOpenChange={setBulkRenewOpen}>

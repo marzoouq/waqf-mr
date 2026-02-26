@@ -87,7 +87,7 @@ export const useUpsertTenantPayment = () => {
           .insert(incomeRecords);
 
         if (incomeError) {
-          console.error('فشل إنشاء سجل الدخل التلقائي:', incomeError.message);
+          // فشل إنشاء سجل الدخل التلقائي — toast يكفي للمستخدم
           // لا نرمي خطأ هنا حتى لا نفقد تحديث التحصيل الذي نجح بالفعل
           toast.error('تم تحديث التحصيل لكن فشل إنشاء سجل الدخل تلقائياً');
         }

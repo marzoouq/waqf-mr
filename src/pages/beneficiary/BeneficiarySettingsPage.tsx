@@ -10,10 +10,13 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
-import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw } from 'lucide-react';
+import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw, Volume2, Play } from 'lucide-react';
 import { z } from 'zod';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
+import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
@@ -24,6 +27,8 @@ const passwordSchema = z.object({
 });
 
 const NOTIF_PREFS_KEY = 'waqf_notification_preferences';
+export { NOTIF_PREFS_KEY };
+export const NOTIF_SOUND_KEY = 'waqf_notification_sound';
 
 const defaultPrefs = {
   distributions: true,
@@ -53,6 +58,50 @@ const BeneficiarySettingsPage = () => {
       return defaultPrefs;
     }
   });
+
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(NOTIF_SOUND_KEY) !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
+    try {
+      return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId;
+    } catch {
+      return 'chime';
+    }
+  });
+
+  const [volume, setVolume] = useState<VolumeLevel>(() => {
+    try {
+      return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel;
+    } catch {
+      return 'medium';
+    }
+  });
+
+  const handleSoundChange = (value: boolean) => {
+    setSoundEnabled(value);
+    localStorage.setItem(NOTIF_SOUND_KEY, String(value));
+    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
+  };
+
+  const handleToneChange = (tone: ToneId) => {
+    setSelectedTone(tone);
+    localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
+    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
+    previewTone(tone, vol);
+  };
+
+  const handleVolumeChange = (level: VolumeLevel) => {
+    setVolume(level);
+    localStorage.setItem(NOTIFICATION_VOLUME_KEY, level);
+    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
+    previewTone(selectedTone, vol);
+  };
 
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
     const updated = { ...prefs, [key]: value };
@@ -124,7 +173,7 @@ const BeneficiarySettingsPage = () => {
         </div>
 
         <Tabs defaultValue="account" dir="rtl" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm py-2">
               <User className="w-4 h-4 hidden sm:block" />
               الحساب
@@ -132,6 +181,10 @@ const BeneficiarySettingsPage = () => {
             <TabsTrigger value="password" className="gap-1.5 text-xs sm:text-sm py-2">
               <Lock className="w-4 h-4 hidden sm:block" />
               كلمة المرور
+            </TabsTrigger>
+            <TabsTrigger value="biometric" className="gap-1.5 text-xs sm:text-sm py-2">
+              <Shield className="w-4 h-4 hidden sm:block" />
+              البصمة
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm py-2">
               <Bell className="w-4 h-4 hidden sm:block" />
@@ -235,6 +288,11 @@ const BeneficiarySettingsPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Biometric Tab */}
+          <TabsContent value="biometric">
+            <BiometricSettings />
+          </TabsContent>
+
           {/* Notifications Tab */}
           <TabsContent value="notifications">
             <Card className="shadow-sm">
@@ -262,12 +320,65 @@ const BeneficiarySettingsPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div>
+<div>
                     <p className="font-medium text-sm">إشعارات الرسائل</p>
                     <p className="text-xs text-muted-foreground">تنبيهات الرسائل الجديدة</p>
                   </div>
                   <Switch checked={prefs.messages} onCheckedChange={v => handlePrefChange('messages', v)} />
                 </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Volume2 className="w-4 h-4 text-primary" />
+                    <div>
+                      <p className="font-medium text-sm">صوت التنبيه</p>
+                      <p className="text-xs text-muted-foreground">تشغيل صوت عند وصول إشعار جديد</p>
+                    </div>
+                  </div>
+                  <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
+                </div>
+
+                {soundEnabled && (
+                  <>
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Play className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">نغمة التنبيه</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select dir="rtl" value={selectedTone} onValueChange={(v) => handleToneChange(v as ToneId)}>
+                        <SelectTrigger className="w-36 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TONE_OPTIONS.map(t => (
+                            <SelectItem key={t.id} value={t.id} className="text-xs">{t.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)}>
+                        <Play className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Volume2 className="w-4 h-4 text-primary" />
+                      <p className="font-medium text-sm">مستوى الصوت</p>
+                    </div>
+                    <Select dir="rtl" value={volume} onValueChange={(v) => handleVolumeChange(v as VolumeLevel)}>
+                      <SelectTrigger className="w-28 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VOLUME_OPTIONS.map(v => (
+                          <SelectItem key={v.id} value={v.id} className="text-xs">{v.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

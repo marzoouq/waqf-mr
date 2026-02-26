@@ -20,7 +20,7 @@ const expensesCrud = createCrudFactory<'expenses', Expense>({
     notifyAllBeneficiaries(
       'مصروف جديد',
       `تم تسجيل مصروف جديد (${data.expense_type}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
-      'payment',
+      'info',
       '/beneficiary/disclosure',
     );
   },

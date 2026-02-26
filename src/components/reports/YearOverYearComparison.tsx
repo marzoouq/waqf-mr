@@ -83,7 +83,11 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
     });
   }, [summary1.income, summary1.expenses, summary2.income, summary2.expenses, year1Label, year2Label]);
 
-  const COLORS = ['#166534', '#ca8a04', '#0891b2', '#7c3aed', '#dc2626', '#059669', '#d97706', '#4f46e5'];
+  const COLORS = [
+    'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
+    'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
+    'hsl(var(--accent))', 'hsl(var(--chart-4))',
+  ];
 
   const expensesByType1 = useMemo(() => {
     return Object.entries(summary1.expensesByType).map(([name, value]) => ({ name, value }));
@@ -289,7 +293,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
                 />
                 <Legend />
                 <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="net2" stroke="hsl(var(--success, 142 76% 36%))" strokeWidth={2} name={`صافي ${year2Label}`} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="net2" stroke="hsl(var(--success))" strokeWidth={2} name={`صافي ${year2Label}`} dot={{ r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

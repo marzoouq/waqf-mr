@@ -20,7 +20,7 @@ const incomeCrud = createCrudFactory<'income', Income>({
     notifyAllBeneficiaries(
       'دخل جديد',
       `تم تسجيل دخل جديد (${data.source}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
-      'payment',
+      'info',
       '/beneficiary/disclosure',
     );
   },

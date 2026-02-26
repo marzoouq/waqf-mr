@@ -26,6 +26,7 @@ const unitsCrud = createCrudFactory<'units', Unit>({
   orderBy: 'unit_number',
   ascending: true,
   label: 'الوحدة',
+  limit: 1000,
 });
 
 /** Fetch all units (no property filter) */
