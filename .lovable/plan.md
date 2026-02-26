@@ -1,30 +1,95 @@
 
 
-# خطة إصلاح أخطاء البناء
+# خطة إنشاء دالة `reopen_fiscal_year` RPC
 
-## المشكلة الأولى: `src/lib/logger.ts` — محتوى مكرر ومشوه
+## الهدف
+إنشاء دالة RPC في قاعدة البيانات لإعادة فتح السنة المالية المقفلة، مع تسجيل السبب في سجل التدقيق، ثم إزالة `as any` من الكود.
 
-الملف يحتوي على نسختين من الكود ملتصقتين ببعضهما. السطور 1-13 هي النسخة الأولى الكاملة، ثم السطور 14-27 هي نسخة ثانية تبدأ بتعليق `*` بدون فتح `/**`، مما يسبب خطأ `Unexpected "*"` عند البناء.
+## التحليل
 
-**الإصلاح:** حذف المحتوى المكرر (السطور 14-27) والإبقاء على النسخة الأولى فقط.
-
----
-
-## المشكلة الثانية: `supabase/functions/admin-manage-users/index.ts` — `.catch()` على `PostgrestFilterBuilder`
-
-في السطرين 289 و364، يتم استدعاء `.catch(() => {})` على نتيجة `adminClient.rpc('notify_admins', ...)`. المشكلة أن `rpc()` يُرجع `PostgrestFilterBuilder` وليس `Promise` مباشرة، لذا لا تملك خاصية `.catch`.
-
-**الإصلاح:** تحويل الاستدعاءين لاستخدام `try/catch` مع `await` بدلا من `.catch()`:
+الكود في `FiscalYearManagementTab.tsx` (سطر 144) يستدعي:
 ```typescript
-try { await adminClient.rpc('notify_admins', {...}); } catch {}
+supabase.rpc('reopen_fiscal_year' as any, {
+  p_fiscal_year_id: fy.id,
+  p_reason: reason,
+})
+```
+ويتوقع أن تُرجع الدالة كائن JSON يحتوي على `label`.
+
+## التنفيذ
+
+### 1. Migration: إنشاء دالة `reopen_fiscal_year`
+
+الدالة ستقوم بالتالي:
+- التحقق من أن المستدعي هو الناظر (admin) فقط — لا يُسمح للمحاسب بإعادة الفتح (سلوك مقصود موثق في H-6)
+- التحقق من أن السنة المالية موجودة وحالتها `closed`
+- تحديث الحالة إلى `active`
+- تسجيل العملية في `audit_log` مع السبب في `new_data`
+- إرجاع `{ label }` للواجهة
+
+```sql
+CREATE OR REPLACE FUNCTION public.reopen_fiscal_year(
+  p_fiscal_year_id uuid,
+  p_reason text
+) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_label text;
+  v_status text;
+BEGIN
+  -- الناظر فقط
+  IF NOT public.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'غير مصرح بإعادة فتح السنة المالية';
+  END IF;
+
+  -- التحقق من الوجود والحالة
+  SELECT label, status INTO v_label, v_status
+  FROM fiscal_years WHERE id = p_fiscal_year_id;
+
+  IF v_label IS NULL THEN
+    RAISE EXCEPTION 'السنة المالية غير موجودة';
+  END IF;
+  IF v_status != 'closed' THEN
+    RAISE EXCEPTION 'السنة المالية ليست مقفلة';
+  END IF;
+  IF p_reason IS NULL OR length(trim(p_reason)) = 0 THEN
+    RAISE EXCEPTION 'سبب إعادة الفتح مطلوب';
+  END IF;
+
+  -- إعادة الفتح
+  UPDATE fiscal_years SET status = 'active' WHERE id = p_fiscal_year_id;
+
+  -- تسجيل في سجل التدقيق
+  INSERT INTO audit_log (table_name, operation, record_id, old_data, new_data, user_id)
+  VALUES (
+    'fiscal_years', 'REOPEN', p_fiscal_year_id,
+    jsonb_build_object('status', 'closed'),
+    jsonb_build_object('status', 'active', 'reason', p_reason),
+    auth.uid()
+  );
+
+  RETURN jsonb_build_object('label', v_label);
+END;
+$$;
 ```
 
----
+### 2. إزالة `as any` من الكود
 
-## ملخص الملفات المتأثرة
+في `FiscalYearManagementTab.tsx` سطر 144:
+```typescript
+// قبل:
+await supabase.rpc('reopen_fiscal_year' as any, { ... });
+// بعد:
+await supabase.rpc('reopen_fiscal_year', { ... });
+```
+
+ملاحظة: بعد تنفيذ الـ migration، سيتم تحديث `types.ts` تلقائيا وستتعرف TypeScript على الدالة بدون الحاجة للـ cast.
+
+## الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/lib/logger.ts` | حذف السطور 14-27 (المحتوى المكرر) |
-| `supabase/functions/admin-manage-users/index.ts` | إصلاح `.catch()` في السطرين 289 و 364 |
-
+| Migration جديد | إنشاء دالة `reopen_fiscal_year` |
+| `src/components/settings/FiscalYearManagementTab.tsx` | إزالة `as any` من سطر 144 |
