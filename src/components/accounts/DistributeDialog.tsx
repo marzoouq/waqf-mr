@@ -5,9 +5,10 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { formatPercentage } from '@/lib/utils';
 import { useDistributeShares } from '@/hooks/useDistribute';
-import { Loader2, AlertTriangle, ArrowLeftRight, FileDown } from 'lucide-react';
+import { Loader2, AlertTriangle, ArrowLeftRight, FileDown, Printer } from 'lucide-react';
 import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { printDistributionReport } from '@/utils/printDistributionReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -229,6 +230,23 @@ const DistributeDialog = ({
         )}
 
         <DialogFooter className="gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => {
+              printDistributionReport({
+                fiscalYearLabel: fiscalYearLabel || '',
+                availableAmount,
+                distributions,
+                waqfName: pdfWaqfInfo.waqfName,
+                deedNumber: pdfWaqfInfo.deedNumber,
+                logoUrl: pdfWaqfInfo.logoUrl,
+              });
+            }}
+            disabled={beneficiaries.length === 0}
+          >
+            <Printer className="w-4 h-4 ml-2" />
+            طباعة
+          </Button>
           <Button
             variant="secondary"
             onClick={async () => {
