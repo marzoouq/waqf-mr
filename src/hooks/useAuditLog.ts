@@ -29,6 +29,7 @@ const OPERATION_NAMES_AR: Record<string, string> = {
   INSERT: 'إضافة',
   UPDATE: 'تعديل',
   DELETE: 'حذف',
+  REOPEN: 'إعادة فتح',
 };
 
 export const getTableNameAr = (name: string) => TABLE_NAMES_AR[name] || name;
