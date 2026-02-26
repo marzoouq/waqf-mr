@@ -141,7 +141,7 @@ const FiscalYearManagementTab = () => {
   const handleReopen = async (fy: FiscalYear, reason: string) => {
     setActionLoading(fy.id);
     try {
-      const { data, error } = await supabase.rpc('reopen_fiscal_year', {
+      const { data, error } = await supabase.rpc('reopen_fiscal_year' as any, {
         p_fiscal_year_id: fy.id,
         p_reason: reason,
       });

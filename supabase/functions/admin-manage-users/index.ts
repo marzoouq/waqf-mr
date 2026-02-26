@@ -281,12 +281,12 @@ Deno.serve(async (req) => {
         }
 
         if (body.role === "beneficiary") {
-          await adminClient.rpc('notify_admins', {
+          try { await adminClient.rpc('notify_admins', {
             p_title: 'مستفيد جديد',
             p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          }).catch(() => {});
+          }); } catch {}
         }
 
         return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
@@ -356,12 +356,12 @@ Deno.serve(async (req) => {
               continue;
             }
 
-            await adminClient.rpc('notify_admins', {
+            try { await adminClient.rpc('notify_admins', {
               p_title: 'مستفيد جديد',
               p_message: `تم تسجيل مستفيد جديد: ${u.name}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
-            }).catch(() => {});
+            }); } catch {}
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch (err) {
