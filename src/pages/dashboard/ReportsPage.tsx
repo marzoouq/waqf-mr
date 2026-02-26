@@ -42,7 +42,7 @@ const ReportsPage = () => {
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel);
 
   const beneficiariesShare = availableAmount;
-  const netRevenue = currentAccount ? Number(currentAccount.net_after_expenses) : (totalIncome - totalExpenses);
+  const netRevenue = netAfterExpenses;
 
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
   const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));

@@ -1109,6 +1109,15 @@ export type Database = {
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
+      execute_distribution: {
+        Args: {
+          p_account_id: string
+          p_distributions?: Json
+          p_fiscal_year_id?: string
+          p_total_distributed?: number
+        }
+        Returns: Json
+      }
       get_public_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
