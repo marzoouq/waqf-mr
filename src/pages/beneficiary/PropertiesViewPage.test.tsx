@@ -58,6 +58,22 @@ vi.mock('@/hooks/useExpenses', () => ({
 
 vi.mock('@/hooks/useNotifications', () => ({
   useNotifications: vi.fn(() => ({ data: [], unreadCount: 0 })),
+  TONE_OPTIONS: [
+    { id: 'chime', label: 'رنين كلاسيكي' },
+    { id: 'bell', label: 'جرس' },
+    { id: 'drop', label: 'قطرة ماء' },
+    { id: 'pulse', label: 'نبضة' },
+    { id: 'gentle', label: 'هادئ' },
+  ],
+  VOLUME_OPTIONS: [
+    { id: 'high', label: 'مرتفع', gain: 1.0 },
+    { id: 'medium', label: 'متوسط', gain: 0.5 },
+    { id: 'low', label: 'منخفض', gain: 0.15 },
+  ],
+  NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
+  NOTIFICATION_VOLUME_KEY: 'waqf_notification_volume',
+  NOTIF_PREFS_KEY: 'waqf_notification_preferences',
+  previewTone: vi.fn(),
 }));
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
