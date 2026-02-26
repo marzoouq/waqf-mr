@@ -1,4 +1,6 @@
 /**
+ * مكون حماية المسارات — نسخة مبسّطة
+ * يعتمد كليًا على AuthContext. AuthContext يتكفل بالـ timeout والـ retries.
  * مكون حماية المسارات (ProtectedRoute)
  * يمنع الوصول للصفحات المحمية بدون تسجيل دخول أو بدون الدور المناسب.
  * يعتمد بالكامل على AuthContext لمنطق المصادقة وتسجيل الخروج.
@@ -9,6 +11,14 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+
+type AllowedRole = 'admin' | 'beneficiary' | 'waqif' | 'accountant';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  allowedRoles?: AllowedRole[];
 import type { AppRole } from '@/types/database';
 
 interface ProtectedRouteProps {
@@ -22,6 +32,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const loggedRef = useRef(false);
 
   const isUnauthorized =
+    !loading &&
+    !!user &&
+    !!allowedRoles &&
+    !!role &&
+    !allowedRoles.includes(role as AllowedRole);
     !loading && !!user && !!allowedRoles && !!role &&
     !allowedRoles.includes(role as AppRole);
 
@@ -51,6 +66,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // 3. مسجّل لكن الدور لم يُجلب بعد (AuthContext يتكفل بالـ timeout)
+  if (allowedRoles && !role) {
+    logger.warn('[ProtectedRoute] Waiting for role from AuthContext...');
   // 3. مسجّل لكن الدور لم يُجلب بعد
   // إذا انتهى التحميل ولا يوجد دور → إعادة توجيه لتسجيل الدخول بدل حلقة تحميل لا نهائية
   if (allowedRoles && !role) {
@@ -67,6 +85,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
             size="sm"
             className="mt-2"
             onClick={async () => {
+              await supabase.auth.signOut();
               await signOut();
               window.location.href = '/auth';
             }}
