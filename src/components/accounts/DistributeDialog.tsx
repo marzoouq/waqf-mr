@@ -10,6 +10,7 @@ import { generateDistributionsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface Beneficiary {
   id: string;
@@ -35,6 +36,7 @@ const DistributeDialog = ({
 }: DistributeDialogProps) => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // جلب السُلف المصروفة لكل مستفيد في هذه السنة
   const { data: paidAdvances = [] } = useQuery({
@@ -84,9 +86,7 @@ const DistributeDialog = ({
 
   const distributions = useMemo(() => {
     return beneficiaries.map(b => {
-      const shareAmount = totalBeneficiaryPercentage > 0
-        ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
-        : 0;
+      const shareAmount = availableAmount * Number(b.share_percentage) / 100;
       const advances = advancesByBeneficiary[b.id] || 0;
       const carryforward = carryforwardByBeneficiary[b.id] || 0;
       const totalDeductions = advances + carryforward;
@@ -231,14 +231,23 @@ const DistributeDialog = ({
         <DialogFooter className="gap-2">
           <Button
             variant="secondary"
-            onClick={() => generateDistributionsPDF({
-              fiscalYearLabel: fiscalYearLabel || '',
-              availableAmount,
-              distributions,
-            }, pdfWaqfInfo)}
-            disabled={beneficiaries.length === 0}
+            onClick={async () => {
+              setPdfLoading(true);
+              try {
+                await generateDistributionsPDF({
+                  fiscalYearLabel: fiscalYearLabel || '',
+                  availableAmount,
+                  distributions,
+                }, pdfWaqfInfo);
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير PDF');
+              } finally {
+                setPdfLoading(false);
+              }
+            }}
+            disabled={beneficiaries.length === 0 || pdfLoading}
           >
-            <FileDown className="w-4 h-4 ml-2" />
+            {pdfLoading ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <FileDown className="w-4 h-4 ml-2" />}
             تصدير PDF
           </Button>
           <div className="flex-1" />
