@@ -24,12 +24,35 @@ vi.mock('@/hooks/useNotifications', () => ({
       { id: 'n1', title: 'تم حفظ الحسابات', message: 'تم حفظ الحسابات الختامية', type: 'payment', is_read: false, created_at: new Date().toISOString(), link: null },
       { id: 'n2', title: 'رسالة جديدة', message: 'لديك رسالة من الناظر', type: 'message', is_read: true, created_at: new Date().toISOString(), link: '/messages' },
     ],
+    filteredData: [
+      { id: 'n1', title: 'تم حفظ الحسابات', message: 'تم حفظ الحسابات الختامية', type: 'payment', is_read: false, created_at: new Date().toISOString(), link: null },
+      { id: 'n2', title: 'رسالة جديدة', message: 'لديك رسالة من الناظر', type: 'message', is_read: true, created_at: new Date().toISOString(), link: '/messages' },
+    ],
     markAsRead: mockMarkAsRead,
     markAllAsRead: mockMarkAllAsRead,
     deleteRead: mockDeleteRead,
     deleteOne: mockDeleteOne,
     unreadCount: 1,
+    filteredUnreadCount: 1,
+    isLoading: false,
+    isError: false,
   })),
+  TONE_OPTIONS: [
+    { id: 'chime', label: 'رنين كلاسيكي' },
+    { id: 'bell', label: 'جرس' },
+    { id: 'drop', label: 'قطرة ماء' },
+    { id: 'pulse', label: 'نبضة' },
+    { id: 'gentle', label: 'هادئ' },
+  ],
+  VOLUME_OPTIONS: [
+    { id: 'high', label: 'مرتفع', gain: 1.0 },
+    { id: 'medium', label: 'متوسط', gain: 0.5 },
+    { id: 'low', label: 'منخفض', gain: 0.15 },
+  ],
+  NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
+  NOTIFICATION_VOLUME_KEY: 'waqf_notification_volume',
+  NOTIF_PREFS_KEY: 'waqf_notification_preferences',
+  previewTone: vi.fn(),
 }));
 
 vi.mock('@/hooks/usePushNotifications', () => ({
@@ -68,7 +91,12 @@ describe('NotificationsPage', () => {
 
   it('shows unread badge', () => {
     renderPage();
-    expect(screen.getByText(/1 غير مقروء/)).toBeInTheDocument();
+    // النص "1 غير مقروء" موزع على عناصر متعددة داخل <p> - نستخدم matcher مرنة
+    expect(
+      screen.getByText((_, element) =>
+        !!element && element.tagName !== 'SCRIPT' && (element.textContent ?? '').includes('1') && (element.textContent ?? '').includes('غير مقروء')
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows notification items', () => {
@@ -79,6 +107,7 @@ describe('NotificationsPage', () => {
 
   it('shows mark all as read button', () => {
     renderPage();
+    // الزر يحتوي على span.hidden-sm-inline لذلك نبحث بطريقة أشمل
     expect(screen.getByText('قراءة الكل')).toBeInTheDocument();
   });
 
@@ -89,14 +118,27 @@ describe('NotificationsPage', () => {
 
   it('shows notification count', () => {
     renderPage();
-    expect(screen.getByText(/2 إشعار/)).toBeInTheDocument();
+    // "2 إشعار" موزع على text nodes متعددة
+    expect(
+      screen.getByText((_, element) =>
+        !!element && element.tagName !== 'SCRIPT' && (element.textContent ?? '').includes('2') && (element.textContent ?? '').includes('إشعار')
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows empty state when no notifications', async () => {
     const { useNotifications } = await import('@/hooks/useNotifications');
     (useNotifications as any).mockReturnValueOnce({
-      data: [], markAsRead: mockMarkAsRead, markAllAsRead: mockMarkAllAsRead,
-      deleteRead: mockDeleteRead, deleteOne: mockDeleteOne, unreadCount: 0,
+      data: [],
+      filteredData: [],
+      markAsRead: mockMarkAsRead,
+      markAllAsRead: mockMarkAllAsRead,
+      deleteRead: mockDeleteRead,
+      deleteOne: mockDeleteOne,
+      unreadCount: 0,
+      filteredUnreadCount: 0,
+      isLoading: false,
+      isError: false,
     });
     renderPage();
     expect(screen.getByText('لا توجد إشعارات')).toBeInTheDocument();
