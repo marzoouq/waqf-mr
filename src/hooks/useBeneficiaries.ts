@@ -6,6 +6,8 @@
  *
  * useBeneficiariesSafe: هوك للقراءة فقط من العرض الآمن beneficiaries_safe
  * يُستخدم في واجهات المستفيدين لإخفاء البيانات الحساسة على مستوى الخادم
+ *
+ * useBeneficiariesDecrypted: هوك لفك تشفير البيانات الحساسة (ناظر/محاسب فقط)
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +35,30 @@ export const useBeneficiaries = beneficiariesCrud.useList;
 export const useCreateBeneficiary = beneficiariesCrud.useCreate;
 export const useUpdateBeneficiary = beneficiariesCrud.useUpdate;
 export const useDeleteBeneficiary = beneficiariesCrud.useDelete;
+
+/** هوك لفك تشفير البيانات الحساسة — متاح للناظر والمحاسب فقط */
+export const useBeneficiariesDecrypted = () => {
+  return useQuery({
+    queryKey: ['beneficiaries-decrypted'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
+        p_beneficiary_id: null,
+      });
+      if (error) {
+        // fallback to regular query if RPC fails
+        console.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', error.message);
+        const { data: fallback, error: fbError } = await supabase
+          .from('beneficiaries')
+          .select('*')
+          .order('name', { ascending: true })
+          .limit(500);
+        if (fbError) throw fbError;
+        return fallback as Beneficiary[];
+      }
+      return (data || []) as Beneficiary[];
+    },
+  });
+};
 
 /** هوك للقراءة فقط من العرض الآمن — يُخفي البيانات الحساسة على مستوى الخادم */
 export const useBeneficiariesSafe = () => {

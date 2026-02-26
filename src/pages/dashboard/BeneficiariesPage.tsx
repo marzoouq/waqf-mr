@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBeneficiaries, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
+import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
 import { Users, Percent, Search } from 'lucide-react';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
@@ -28,6 +28,7 @@ interface AuthUser { id: string; email: string; }
 const BeneficiariesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: beneficiaries = [], isLoading } = useBeneficiaries();
+  const { data: decryptedBeneficiaries = [] } = useBeneficiariesDecrypted();
   const createBeneficiary = useCreateBeneficiary();
   const updateBeneficiary = useUpdateBeneficiary();
   const deleteBeneficiary = useDeleteBeneficiary();
@@ -89,12 +90,15 @@ const BeneficiariesPage = () => {
   };
 
   const handleEdit = (beneficiary: Beneficiary) => {
+    // استخدام البيانات المفكوكة إن وجدت
+    const decrypted = decryptedBeneficiaries.find(b => b.id === beneficiary.id);
+    const source = decrypted || beneficiary;
     setEditingBeneficiary(beneficiary);
     setFormData({
-      name: beneficiary.name, share_percentage: beneficiary.share_percentage.toString(),
-      phone: beneficiary.phone || '', email: beneficiary.email || '',
-      bank_account: beneficiary.bank_account || '', notes: beneficiary.notes || '',
-      user_id: beneficiary.user_id || '', national_id: beneficiary.national_id || '',
+      name: source.name, share_percentage: source.share_percentage.toString(),
+      phone: source.phone || '', email: source.email || '',
+      bank_account: source.bank_account || '', notes: source.notes || '',
+      user_id: source.user_id || '', national_id: source.national_id || '',
     });
     setIsOpen(true);
   };
