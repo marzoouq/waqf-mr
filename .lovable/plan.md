@@ -1,59 +1,30 @@
 
-# إضافة تقرير PDF لتوزيعات الحصص
 
-## الهدف
-إنشاء تقرير PDF تفصيلي يعرض توزيعات حصص المستفيدين، متضمناً: الحصة المستحقة، السُلف المصروفة، الفروق المرحّلة، وصافي التوزيع لكل مستفيد.
+# خطة إصلاح أخطاء البناء
 
-## التغييرات المطلوبة
+## المشكلة الأولى: `src/lib/logger.ts` — محتوى مكرر ومشوه
 
-### 1. إنشاء دالة توليد PDF جديدة
-**ملف جديد: لا** -- سيتم إضافة الدالة في `src/utils/pdf/accounts.ts`
+الملف يحتوي على نسختين من الكود ملتصقتين ببعضهما. السطور 1-13 هي النسخة الأولى الكاملة، ثم السطور 14-27 هي نسخة ثانية تبدأ بتعليق `*` بدون فتح `/**`، مما يسبب خطأ `Unexpected "*"` عند البناء.
 
-دالة `generateDistributionsPDF` ستتضمن:
-- ترويسة رسمية بشعار الوقف (نفس النمط المستخدم في باقي التقارير)
-- عنوان "تقرير توزيع الحصص" مع اسم السنة المالية
-- **ملخص مالي**: المبلغ المتاح للتوزيع، إجمالي السُلف، إجمالي المرحّل، صافي التوزيع
-- **جدول تفصيلي** بأعمدة: المستفيد | النسبة | الحصة | السُلف | المرحّل | الصافي | الفرق المرحّل
-- **صف إجمالي** في أسفل الجدول
-- تنبيه بصري في حال وجود فروق مرحّلة
-- تذييل رسمي بختم الوقف
+**الإصلاح:** حذف المحتوى المكرر (السطور 14-27) والإبقاء على النسخة الأولى فقط.
 
-### 2. تصدير الدالة من ملف الفهرس
-**ملف: `src/utils/pdf/index.ts`**
-إضافة `generateDistributionsPDF` إلى قائمة التصدير.
+---
 
-### 3. إضافة زر التصدير في نافذة التوزيع
-**ملف: `src/components/accounts/DistributeDialog.tsx`**
-إضافة زر "تصدير PDF" في أسفل النافذة بجانب أزرار التأكيد والإلغاء، يقوم بتوليد التقرير بناءً على البيانات المعروضة حالياً.
+## المشكلة الثانية: `supabase/functions/admin-manage-users/index.ts` — `.catch()` على `PostgrestFilterBuilder`
 
-## التفاصيل التقنية
+في السطرين 289 و364، يتم استدعاء `.catch(() => {})` على نتيجة `adminClient.rpc('notify_admins', ...)`. المشكلة أن `rpc()` يُرجع `PostgrestFilterBuilder` وليس `Promise` مباشرة، لذا لا تملك خاصية `.catch`.
 
-### هيكل بيانات الدالة الجديدة:
+**الإصلاح:** تحويل الاستدعاءين لاستخدام `try/catch` مع `await` بدلا من `.catch()`:
 ```typescript
-generateDistributionsPDF(data: {
-  fiscalYearLabel: string;
-  availableAmount: number;
-  distributions: Array<{
-    beneficiary_name: string;
-    share_percentage: number;
-    share_amount: number;
-    advances_paid: number;
-    carryforward_deducted: number;
-    net_amount: number;
-    deficit: number;
-  }>;
-}, waqfInfo?: PdfWaqfInfo)
+try { await adminClient.rpc('notify_admins', {...}); } catch {}
 ```
 
-### تصميم الجدول:
-- رؤوس الأعمدة بلون ذهبي (TABLE_HEAD_GOLD) لتمييزه عن باقي التقارير
-- صفوف المستفيدين ذوي الفروق المرحّلة بخلفية مميزة
-- صف الإجمالي بلون أخضر (TABLE_HEAD_GREEN)
+---
 
-### الملفات المتأثرة:
+## ملخص الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/utils/pdf/accounts.ts` | إضافة دالة `generateDistributionsPDF` |
-| `src/utils/pdf/index.ts` | تصدير الدالة الجديدة |
-| `src/components/accounts/DistributeDialog.tsx` | إضافة زر تصدير PDF + استخدام `usePdfWaqfInfo` |
+| `src/lib/logger.ts` | حذف السطور 14-27 (المحتوى المكرر) |
+| `supabase/functions/admin-manage-users/index.ts` | إصلاح `.catch()` في السطرين 289 و 364 |
+
