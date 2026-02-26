@@ -1,13 +1,22 @@
 /**
  * تبويب إدارة السنوات المالية
  * إنشاء / إقفال / إعادة فتح السنوات المالية
+ *
+ * الإصلاحات:
+ *  C-5  — إعادة الفتح تمر عبر RPC مع سبب إلزامي + تسجيل audit
+ *  H-11 — منع حذف السنة النشطة من الواجهة
+ *  M-14 — حقل published مُضاف لـ FiscalYear type (no more `as any`)
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useFiscalYears, type FiscalYear } from '@/hooks/useFiscalYears';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +24,69 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
+// ── ReopenDialog: يطلب سبباً إلزامياً قبل إعادة الفتح (FIX C-5) ─────────────
+const ReopenDialog = ({ fy, onConfirm, loading }: {
+  fy: FiscalYear;
+  onConfirm: (reason: string) => void;
+  loading: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+
+  const handleConfirm = () => {
+    if (reason.trim().length < 10) {
+      toast.error('يجب ذكر سبب واضح لإعادة الفتح (10 أحرف على الأقل)');
+      return;
+    }
+    onConfirm(reason.trim());
+    setOpen(false);
+    setReason('');
+  };
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button size="sm" variant="ghost" className="gap-1 text-xs text-amber-600 hover:text-amber-700" disabled={loading}>
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3 h-3" />}
+          إعادة فتح
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>⚠️ إعادة فتح سنة مقفلة — عملية حساسة</AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2 text-sm">
+            <p>إعادة فتح <strong>{fy.label}</strong> ستسمح بتعديل بياناتها المالية المؤرشفة.</p>
+            <p className="text-destructive font-medium">هذه العملية تُسجَّل في سجل المراجعة ولا يمكن إخفاؤها.</p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="space-y-1.5 px-1 pb-1">
+          <Label>سبب إعادة الفتح <span className="text-destructive">*</span></Label>
+          <Textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="مثال: تصحيح خطأ في قيد دخل الوحدة 3 بتاريخ ..."
+            rows={3}
+            maxLength={500}
+            className="resize-none"
+          />
+          <p className="text-xs text-muted-foreground">{reason.trim().length} / 500 — حد أدنى 10 أحرف</p>
+        </div>
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel onClick={() => setReason('')}>إلغاء</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            className="bg-amber-600 hover:bg-amber-700"
+            disabled={reason.trim().length < 10}
+          >
+            تأكيد إعادة الفتح
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+// ── Component الرئيسي ──────────────────────────────────────────────────────────
 const FiscalYearManagementTab = () => {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
   const queryClient = useQueryClient();
@@ -22,6 +94,7 @@ const FiscalYearManagementTab = () => {
   const [newFY, setNewFY] = useState({ label: '', start_date: '', end_date: '' });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
+  // ── إنشاء سنة جديدة (FIX C-6: published: false صريح) ──────────────────────
   const handleCreate = async () => {
     if (!newFY.label || !newFY.start_date || !newFY.end_date) {
       toast.error('يرجى تعبئة جميع الحقول');
@@ -34,10 +107,11 @@ const FiscalYearManagementTab = () => {
         start_date: newFY.start_date,
         end_date: newFY.end_date,
         status: 'active',
+        published: false, // FIX C-6: دائماً محجوبة عند الإنشاء — الناظر ينشرها يدوياً
       });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success('تم إنشاء السنة المالية بنجاح');
+      toast.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
       setCreating(false);
     } catch (err: unknown) {
@@ -47,26 +121,50 @@ const FiscalYearManagementTab = () => {
     }
   };
 
-  const toggleStatus = async (fy: FiscalYear) => {
-    const newStatus = fy.status === 'active' ? 'closed' : 'active';
+  // ── إقفال السنة فقط — لا إعادة فتح مباشرة (FIX C-5) ──────────────────────
+  const handleClose = async (fy: FiscalYear) => {
+    if (fy.status !== 'active') return;
     setActionLoading(fy.id);
     try {
-      const { error } = await supabase.from('fiscal_years').update({ status: newStatus }).eq('id', fy.id);
+      const { error } = await supabase.from('fiscal_years').update({ status: 'closed' }).eq('id', fy.id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(newStatus === 'closed' ? `تم إقفال السنة: ${fy.label}` : `تم إعادة فتح السنة: ${fy.label}`);
+      toast.success(`تم إقفال السنة: ${fy.label}`);
     } catch {
-      toast.error('حدث خطأ أثناء تحديث الحالة');
+      toast.error('حدث خطأ أثناء إقفال السنة');
     } finally {
       setActionLoading(null);
     }
   };
 
+  // ── إعادة الفتح عبر RPC + سبب إلزامي (FIX C-5) ───────────────────────────
+  const handleReopen = async (fy: FiscalYear, reason: string) => {
+    setActionLoading(fy.id);
+    try {
+      const { data, error } = await supabase.rpc('reopen_fiscal_year', {
+        p_fiscal_year_id: fy.id,
+        p_reason: reason,
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success(`تم إعادة فتح السنة: ${(data as { label: string }).label}`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // ── نشر / حجب (FIX M-14: بدون as any) ─────────────────────────────────────
   const togglePublished = async (fy: FiscalYear) => {
     const newVal = !fy.published;
     setActionLoading(`pub-${fy.id}`);
     try {
-      const { error } = await supabase.from('fiscal_years').update({ published: newVal } as any).eq('id', fy.id);
+      // published موجود الآن في FiscalYear type — لا حاجة لـ as any
+      const { error } = await supabase
+        .from('fiscal_years')
+        .update({ published: newVal })
+        .eq('id', fy.id);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
@@ -77,7 +175,13 @@ const FiscalYearManagementTab = () => {
     }
   };
 
+  // ── حذف (FIX H-11: منع حذف السنة النشطة) ──────────────────────────────────
   const handleDelete = async (fy: FiscalYear) => {
+    // منع حذف السنة النشطة مباشرة من الواجهة
+    if (fy.status === 'active') {
+      toast.error('لا يمكن حذف سنة نشطة — أقفلها أولاً قبل الحذف');
+      return;
+    }
     setActionLoading(fy.id);
     try {
       const { error } = await supabase.from('fiscal_years').delete().eq('id', fy.id);
@@ -85,7 +189,11 @@ const FiscalYearManagementTab = () => {
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success(`تم حذف السنة: ${fy.label}`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error && err.message?.includes('violates foreign key') ? 'لا يمكن حذف سنة مرتبطة ببيانات' : 'حدث خطأ أثناء الحذف');
+      toast.error(
+        err instanceof Error && err.message?.includes('violates foreign key')
+          ? 'لا يمكن حذف سنة مرتبطة ببيانات مالية'
+          : 'حدث خطأ أثناء الحذف',
+      );
     } finally {
       setActionLoading(null);
     }
@@ -127,6 +235,9 @@ const FiscalYearManagementTab = () => {
                     <Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
                   </div>
                 </div>
+                <p className="text-xs text-amber-600">
+                  ملاحظ: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.
+                </p>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleCreate} disabled={actionLoading === 'create'} className="gap-1.5">
                     {actionLoading === 'create' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -150,7 +261,9 @@ const FiscalYearManagementTab = () => {
                       {fy.status === 'active' ? 'نشطة' : 'مقفلة'}
                     </Badge>
                     <Badge
-                      className={`gap-1 ${fy.published ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700' : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700'}`}
+                      className={`gap-1 ${fy.published
+                        ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700'
+                        : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700'}`} 
                       variant="outline"
                     >
                       {fy.published ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -162,6 +275,7 @@ const FiscalYearManagementTab = () => {
                     </div>
                   </div>
                   <div className="flex gap-1 flex-wrap">
+                    {/* نشر / حجب */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -179,9 +293,8 @@ const FiscalYearManagementTab = () => {
                           <AlertDialogTitle>{fy.published ? 'حجب السنة المالية' : 'نشر السنة المالية'}</AlertDialogTitle>
                           <AlertDialogDescription>
                             {fy.published
-                              ? `هل أنت متأكد من حجب السنة "${fy.label}" عن المستفيدين؟ لن تظهر لهم في التقارير والحسابات.`
-                              : `هل أنت متأكد من نشر السنة "${fy.label}" للمستفيدين؟ ستظهر لهم في التقارير والحسابات.`
-                            }
+                              ? `هل أنت متأكد من حجب السنة "${fy.label}" عن المستفيدين؟ لن تظهر لهم في التقارير والحسابات. `
+                              : `هل أنت متأكد من نشر السنة "${fy.label}" للمستفيدين؟ ستظهر لهم في التقارير والحسابات.`}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="gap-2">
@@ -192,19 +305,50 @@ const FiscalYearManagementTab = () => {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="gap-1 text-xs"
-                      disabled={actionLoading === fy.id}
-                      onClick={() => toggleStatus(fy)}
-                    >
-                      {actionLoading === fy.id ? <Loader2 className="w-3 h-3 animate-spin" /> : fy.status === 'active' ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-                      {fy.status === 'active' ? 'إقفال' : 'إعادة فتح'}
-                    </Button>
+
+                    {/* إقفال (للنشطة فقط) */}
+                    {fy.status === 'active' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="ghost" className="gap-1 text-xs" disabled={actionLoading === fy.id}>
+                            {actionLoading === fy.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Lock className="w-3 h-3" />}
+                            إقفال
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>إقفال السنة المالية</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              هل أنت متأكد من إقفال "{fy.label}"؟ لن تتمكن من تعديل بياناتها بعد الإقفال إلا عبر طلب خاص.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-2">
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleClose(fy)}>إقفال</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+
+                    {/* إعادة الفتح (للمقفلة فقط — عبر RPC مع سبب) */}
+                    {fy.status === 'closed' && (
+                      <ReopenDialog
+                        fy={fy}
+                        onConfirm={(reason) => handleReopen(fy, reason)}
+                        loading={actionLoading === fy.id}
+                      />
+                    )}
+
+                    {/* حذف (محظور للنشطة — FIX H-11) */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive gap-1 text-xs" disabled={actionLoading === fy.id}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive gap-1 text-xs"
+                          disabled={actionLoading === fy.id || fy.status === 'active'}
+                          title={fy.status === 'active' ? 'أقفل السنة أولاً قبل حذفها' : 'حذف'}
+                        >
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </AlertDialogTrigger>
