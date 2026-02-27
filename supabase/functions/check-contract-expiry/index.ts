@@ -17,12 +17,26 @@ Deno.serve(async (req: Request) => {
 
     // مقارنة آمنة ضد timing attack
     function timingSafeEqual(a: string, b: string): boolean {
-      if (a.length !== b.length) return false;
-      let result = 0;
-      for (let i = 0; i < a.length; i++) {
-        result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      const encoder = new TextEncoder();
+      const aBytes = encoder.encode(a);
+      const bBytes = encoder.encode(b);
+      if (aBytes.byteLength !== bBytes.byteLength) {
+        // Compare against itself to maintain constant time even on length mismatch
+        const dummy = new Uint8Array(aBytes.byteLength);
+        crypto.subtle.timingSafeEqual?.(aBytes, dummy);
+        return false;
       }
-      return result === 0;
+      // Use Web Crypto API for constant-time comparison
+      try {
+        return (crypto.subtle as any).timingSafeEqual(aBytes, bBytes);
+      } catch {
+        // Fallback for environments without timingSafeEqual
+        let result = 0;
+        for (let i = 0; i < aBytes.byteLength; i++) {
+          result |= aBytes[i] ^ bBytes[i];
+        }
+        return result === 0;
+      }
     }
     const isServiceRole = timingSafeEqual(token, serviceKey);
 
