@@ -1,5 +1,4 @@
 import { useWaqfInfo } from '@/hooks/useAppSettings';
-import waqfLogo from '@/assets/waqf-logo.png';
 
 const PrintHeader = () => {
   const { data: waqfInfo } = useWaqfInfo();
@@ -39,7 +38,7 @@ const PrintHeader = () => {
               {logoUrl ? (
                 <img src={logoUrl} alt="شعار الوقف" className="w-full h-full rounded-lg object-contain" />
               ) : (
-                <img src={waqfLogo} alt="شعار الوقف" className="w-full h-full rounded-lg object-contain" />
+                <span className="text-2xl font-bold" style={{ color: 'hsl(158, 64%, 25%)', fontFamily: 'Amiri, serif' }}>وقف</span>
               )}
             </div>
             <div>
