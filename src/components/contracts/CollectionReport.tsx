@@ -6,10 +6,14 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell, Pencil } from 'lucide-react';
 import { Contract } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import ExportMenu from '@/components/ExportMenu';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
@@ -71,7 +75,11 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sendingAlerts, setSendingAlerts] = useState(false);
+  const [editRow, setEditRow] = useState<CollectionRow | null>(null);
+  const [editPaidMonths, setEditPaidMonths] = useState(0);
+  const [editNotes, setEditNotes] = useState('');
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const upsertPayment = useUpsertTenantPayment();
 
   const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
 
@@ -308,7 +316,14 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
                         {getStatusBadge(row.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground text-xs">الدفعات</span><p className="font-medium">{row.paid}/{row.paymentCount}</p></div>
+                        <div><span className="text-muted-foreground text-xs">الدفعات</span>
+                          <div className="flex items-center gap-1">
+                            <p className="font-medium">{row.paid}/{row.paymentCount}</p>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }}>
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
                         <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
                         <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
                         {row.overdue > 0 && (
@@ -350,9 +365,14 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
                         <TableCell>{row.totalAmount.toLocaleString()} ر.س</TableCell>
                         <TableCell>{row.paymentAmount.toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-center">
-                          <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
-                            {row.paid}/{row.paymentCount}
-                          </span>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
+                              {row.paid}/{row.paymentCount}
+                            </span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }}>
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                          </div>
                           {row.overdue > 0 && (
                             <span className="text-xs text-destructive block">({row.overdue} متأخرة)</span>
                           )}
@@ -377,6 +397,74 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
           )}
         </CardContent>
       </Card>
+
+      {/* حوار تصحيح الدفعات */}
+      <Dialog open={!!editRow} onOpenChange={() => setEditRow(null)}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تصحيح عدد الدفعات المسددة</DialogTitle>
+          </DialogHeader>
+          {editRow && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p><span className="text-muted-foreground">العقد:</span> {editRow.contract.contract_number}</p>
+                <p><span className="text-muted-foreground">المستأجر:</span> {editRow.contract.tenant_name}</p>
+                <p><span className="text-muted-foreground">إجمالي الدفعات:</span> {editRow.paymentCount}</p>
+                <p><span className="text-muted-foreground">قيمة الدفعة:</span> {editRow.paymentAmount.toLocaleString()} ر.س</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>عدد الدفعات المسددة (الحالي: {editRow.paid})</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={editRow.paymentCount}
+                  value={editPaidMonths}
+                  onChange={e => setEditPaidMonths(Math.max(0, Math.min(editRow.paymentCount, parseInt(e.target.value) || 0)))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>سبب التصحيح</Label>
+                <Textarea
+                  placeholder="اذكر سبب التعديل..."
+                  value={editNotes}
+                  onChange={e => setEditNotes(e.target.value)}
+                />
+              </div>
+
+              {editPaidMonths !== editRow.paid && (
+                <div className={`text-sm p-2 rounded-lg ${editPaidMonths > editRow.paid ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'}`}>
+                  {editPaidMonths > editRow.paid
+                    ? `⚠️ سيتم زيادة الدفعات من ${editRow.paid} إلى ${editPaidMonths} (بدون إنشاء سجلات دخل)`
+                    : `سيتم تقليل الدفعات من ${editRow.paid} إلى ${editPaidMonths}`
+                  }
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditRow(null)}>إلغاء</Button>
+            <Button
+              disabled={!editRow || editPaidMonths === editRow.paid || upsertPayment.isPending}
+              onClick={async () => {
+                if (!editRow) return;
+                const note = `تصحيح يدوي: من ${editRow.paid} إلى ${editPaidMonths}${editNotes ? ' - ' + editNotes : ''}`;
+                upsertPayment.mutate({
+                  contract_id: editRow.contract.id,
+                  paid_months: editPaidMonths,
+                  notes: note,
+                  // payment_amount = 0 to prevent creating income records
+                }, {
+                  onSuccess: () => setEditRow(null),
+                });
+              }}
+            >
+              {upsertPayment.isPending ? 'جاري الحفظ...' : 'حفظ التصحيح'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
