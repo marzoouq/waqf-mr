@@ -52,11 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // حماية ضد الأحداث المتكررة لنفس المستخدم (INITIAL_SESSION + SIGNED_IN)
         // roleRef.current يقرأ القيمة الحالية دائماً (لا يتأثر بالـ closure)
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newUserId && newUserId === lastUserIdRef.current && roleRef.current) {
-          logger.warn('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
+          logger.info('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
           return;
         }
 
-        logger.warn('[Auth] onAuthStateChange:', event);
+        logger.info('[Auth] onAuthStateChange:', event);
         lastUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);

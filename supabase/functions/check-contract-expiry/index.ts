@@ -14,7 +14,17 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "").trim();
-    const isServiceRole = token === serviceKey;
+
+    // مقارنة آمنة ضد timing attack
+    function timingSafeEqual(a: string, b: string): boolean {
+      if (a.length !== b.length) return false;
+      let result = 0;
+      for (let i = 0; i < a.length; i++) {
+        result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      }
+      return result === 0;
+    }
+    const isServiceRole = timingSafeEqual(token, serviceKey);
 
     // Only allow service_role (for cron) or verified admin users
     if (!isServiceRole) {
