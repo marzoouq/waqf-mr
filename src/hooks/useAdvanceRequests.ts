@@ -204,11 +204,11 @@ export const useCreateAdvanceRequest = () => {
 /**
  * تحديث حالة طلب السلفة (موافقة / رفض / صرف)
  */
-/** Allowed state transitions for advance requests */
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending: ['approved', 'rejected'],
-  approved: ['paid', 'rejected'],
-  // rejected and paid are terminal states
+/** Allowed source statuses for each target status (reverse map for atomic UPDATE) */
+const VALID_TRANSITIONS_TO: Record<string, string[]> = {
+  approved: ['pending'],
+  rejected: ['pending', 'approved'],
+  paid: ['approved'],
 };
 
 export const useUpdateAdvanceStatus = () => {
@@ -218,18 +218,8 @@ export const useUpdateAdvanceStatus = () => {
       id: string; status: string; rejection_reason?: string;
       beneficiary_user_id?: string; amount?: number;
     }) => {
-      // Fetch current status to validate transition
-      const { data: current, error: fetchErr } = await supabase
-        .from('advance_requests')
-        .select('status')
-        .eq('id', id)
-        .single();
-      if (fetchErr) throw fetchErr;
-
-      const allowed = VALID_TRANSITIONS[current.status];
-      if (!allowed || !allowed.includes(status)) {
-        throw new Error(`لا يمكن تغيير الحالة من "${current.status}" إلى "${status}"`);
-      }
+      const allowedFrom = VALID_TRANSITIONS_TO[status];
+      if (!allowedFrom) throw new Error('حالة غير صالحة');
 
       const updates: { status: string; approved_at?: string; paid_at?: string; rejection_reason?: string } = { status };
       if (status === 'approved') {
@@ -241,11 +231,16 @@ export const useUpdateAdvanceStatus = () => {
       if (rejection_reason) {
         updates.rejection_reason = rejection_reason;
       }
-      const { error } = await supabase
+
+      // Atomic: UPDATE only if current status is in the allowed list
+      const { data, error } = await supabase
         .from('advance_requests')
         .update(updates)
-        .eq('id', id);
+        .eq('id', id)
+        .in('status', allowedFrom)
+        .select('id');
       if (error) throw error;
+      if (!data?.length) throw new Error('لا يمكن تغيير الحالة — ربما تم تعديلها مسبقاً');
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
