@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       p_window_seconds: 60,
     });
     if (rlError) {
-      console.error("ai rate_limit check failed:", rlError.message);
+      console.error("ai rate_limit check failed");
       return new Response(
         JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
