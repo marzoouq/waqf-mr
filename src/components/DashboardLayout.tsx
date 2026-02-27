@@ -9,6 +9,7 @@ import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
+  ClipboardList, Calculator,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
@@ -72,14 +73,14 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
   { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
   { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
-  { to: '/beneficiary/disclosure', icon: FileText, label: 'الإفصاح السنوي' },
+  { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح السنوي' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
   { to: '/beneficiary/carryforward', icon: ArrowDownUp, label: 'الترحيلات والخصومات' },
   { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
-  { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات الختامية' },
+  { to: '/beneficiary/accounts', icon: Calculator, label: 'الحسابات الختامية' },
   { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
-  { to: '/beneficiary/invoices', icon: FileText, label: 'الفواتير' },
+  { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
