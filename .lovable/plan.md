@@ -1,64 +1,211 @@
 
+# إضافة `fiscal_year_id` إلى جدول `accounts` — خطة تنفيذ نهائية
 
-# إصلاح 3 بنود متبقية
-
-## ملخص التحقق
-تم التحقق من الكود الفعلي لكل الملفات. من أصل 17 بنداً في التقرير:
-- **13 بنداً مُصلحاً بالكامل** (مؤكد)
-- **3 بنود قابلة للإصلاح الآن** (أدناه)
-- بند واحد هيكلي (fiscal_year_id) يحتاج migration منفصل
+## نظرة عامة
+ربط جدول `accounts` بجدول `fiscal_years` عبر مفتاح أجنبي UUID بدلاً من الاعتماد على النص فقط، مما يجعل الربط موثوقاً ولا يتأثر بتغيير تسمية السنة المالية.
 
 ---
 
-## البند 1 (MEDIUM): إضافة `staleTime` + `.limit()` لـ 4 hooks في useAdvanceRequests
+## الخطوة 1: Database Migration
 
-**الملف:** `src/hooks/useAdvanceRequests.ts`
-
-**المشكلة:** 4 hooks بدون `staleTime` ولا `.limit()`:
-- `useMyAdvanceRequests` (سطر 60)
-- `usePaidAdvancesTotal` (سطر 80)
-- `useCarryforwardBalance` (سطر 104)
-- `useMyCarryforwards` (سطر 127)
-
-**الإصلاح:** إضافة `staleTime: 60_000` لكل منها + `.limit(500)` حيث يُناسب (useMyAdvanceRequests و useMyCarryforwards). الـ `usePaidAdvancesTotal` و `useCarryforwardBalance` يجلبان عموداً واحداً (amount) لمستفيد واحد — الحجم محدود طبيعياً لكن `.limit(200)` إضافة دفاعية جيدة.
-
----
-
-## البند 2 (HIGH): إصلاح `btoa(String.fromCharCode(...array))` في webauthn
-
-**الملف:** `supabase/functions/webauthn/index.ts` سطر 142-143
-
-**المشكلة:** استخدام spread operator على Uint8Array في `String.fromCharCode(...)`. إذا كان الـ publicKey أكبر من ~65,000 بايت (نادر لكن ممكن مع بعض المفاتيح)، يحدث "Maximum call stack size exceeded".
-
-**الإصلاح:** استبدال بـ حلقة تكرارية آمنة:
 ```text
-// قبل (خطر stack overflow):
-const credIdBase64 = btoa(String.fromCharCode(...regCred.id));
+ALTER TABLE accounts ADD COLUMN fiscal_year_id UUID REFERENCES fiscal_years(id);
 
-// بعد (آمن):
-const toBase64 = (arr: Uint8Array) =>
-  btoa(Array.from(arr, b => String.fromCharCode(b)).join(''));
-const credIdBase64 = toBase64(regCred.id);
-const pubKeyBase64 = toBase64(regCred.publicKey);
+UPDATE accounts a
+SET fiscal_year_id = fy.id
+FROM fiscal_years fy
+WHERE TRIM(a.fiscal_year) = TRIM(fy.label);
+
+CREATE INDEX idx_accounts_fiscal_year_id ON accounts(fiscal_year_id);
 ```
 
-`Array.from()` لا يستخدم spread على الـ call stack — آمن لأي حجم.
+العمود nullable للتوافق. عمود `fiscal_year` النصي يبقى للعرض.
 
 ---
 
-## البند 3 (معلومات فقط — لا إصلاح الآن): `fiscal_year_id` في جدول accounts
+## الخطوة 2: تحديث `src/types/database.ts`
 
-**المشكلة:** جدول `accounts` يربط بالسنة المالية عبر `fiscal_year` (نص) فقط. هذا يجعل البحث هشاً عند تغيير label السنة.
+إضافة في interface `Account` (بعد سطر `fiscal_year: string;`):
 
-**لماذا لا نُصلحه الآن:**
-- يحتاج migration لإضافة عمود `fiscal_year_id` (UUID) + foreign key
-- يحتاج تحديث كل الكود الذي يقرأ/يكتب في `accounts` (useAccountsPage, useAccounts, AccountsPage, BeneficiaryDashboard...)
-- يحتاج ربط الحسابات الموجودة بالسنوات المالية الصحيحة (data migration)
-- تغيير هيكلي كبير يستحق جلسة مخصصة
+```text
+fiscal_year_id?: string | null;
+```
+
+---
+
+## الخطوة 3: تحديث `src/hooks/useAccounts.ts`
+
+تغيير `useAccountByFiscalYear` ليقبل `fiscalYearId` ويفلتر به أولاً:
+
+```text
+export const useAccountByFiscalYear = (
+  fiscalYearLabel?: string,
+  fiscalYearId?: string
+) => {
+  return useQuery({
+    queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
+    staleTime: 60_000,
+    queryFn: async () => {
+      let query = supabase
+        .from('accounts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (fiscalYearId) {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      } else if (fiscalYearLabel) {
+        query = query.eq('fiscal_year', fiscalYearLabel);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+};
+```
+
+---
+
+## الخطوة 4: تحديث `src/hooks/useRawFinancialData.ts`
+
+تمرير `fiscalYearId` لـ `useAccountByFiscalYear` (سطر 15):
+
+```text
+const { data: accounts = [], ... } = useAccountByFiscalYear(fiscalYearLabel, fiscalYearId);
+```
+
+حيث `fiscalYearId` متاح بالفعل كأول معامل للهوك.
+
+---
+
+## الخطوة 5: تحديث `src/hooks/useComputedFinancials.ts`
+
+### 5a. إضافة `fiscalYearId` للـ interface (سطر 16):
+```text
+fiscalYearId?: string;
+```
+
+### 5b. تحديث destructuring (سطر 27):
+```text
+fiscalYearId,
+```
+
+### 5c. تحديث منطق `currentAccount` (سطر 34-40):
+```text
+const currentAccount = useMemo(() => {
+  if (fiscalYearId) {
+    const byId = accounts.find(a => a.fiscal_year_id === fiscalYearId);
+    if (byId) return byId;
+  }
+  if (fiscalYearLabel) {
+    return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
+  }
+  if (accounts.length === 1) return accounts[0];
+  return null;
+}, [accounts, fiscalYearId, fiscalYearLabel]);
+```
+
+---
+
+## الخطوة 6: تحديث `src/hooks/useFinancialSummary.ts`
+
+تمرير `fiscalYearId` لـ `useComputedFinancials` (سطر 18):
+
+```text
+const computed = useComputedFinancials({
+  income, expenses, accounts, settings,
+  fiscalYearLabel, fiscalYearId,
+});
+```
+
+حيث `fiscalYearId` = المعامل الأول للهوك.
+
+---
+
+## الخطوة 7: تحديث `src/hooks/useAccountsPage.ts` (4 أماكن)
+
+### 7a. دالة مساعدة موحدة (قبل سطر 70):
+```text
+const findAccount = (accts: typeof accounts, fy: typeof selectedFY) =>
+  fy
+    ? accts.find(a =>
+        (fy.id && a.fiscal_year_id === fy.id) ||
+        a.fiscal_year === fy.label
+      ) ?? null
+    : accts.length === 1 ? accts[0] : null;
+```
+
+### 7b. `useEffect` matchingAccount (سطر 72-73):
+```text
+const matchingAccount = findAccount(accounts, selectedFY);
+```
+
+### 7c. `useEffect` dependency array (سطر 88):
+```text
+}, [accounts, selectedFY?.id, selectedFY?.label]);
+```
+
+### 7d. `buildAccountData()` (سطر 231-246):
+إضافة سطر بعد `fiscal_year`:
+```text
+fiscal_year_id: selectedFY?.id || null,
+```
+
+### 7e. `handleCloseYear` insert (سطر 308-315):
+إضافة `fiscal_year_id: nextFYId` في الـ insert:
+```text
+await supabase.from('accounts').insert({
+  fiscal_year: nextLabel,
+  fiscal_year_id: nextFYId,
+  waqf_corpus_previous: waqfCorpusManual,
+  ...
+});
+```
+
+### 7f. `currentAccount` (سطر 461-463):
+```text
+const currentAccount = findAccount(accounts, selectedFY);
+```
+
+---
+
+## الخطوة 8: تحديث الاختبارات (3 ملفات)
+
+إضافة `fiscal_year_id: null` في mock objects التي تستخدم `Tables<'accounts'>`:
+
+| الملف | الموقع |
+|---|---|
+| `src/hooks/useComputedFinancials.test.ts` | `mkAccount` (سطر 27-46) |
+| `src/test/financialIntegration.test.ts` | `mkAccount` (سطر 25-44) |
+| `src/hooks/useAccounts.test.ts` | `sampleAccount` (سطر 38-56) |
+
+الملفات الأخرى لا تحتاج تحديثاً (interfaces محلية أو mocks كاملة).
+
+---
+
+## الخطوة 9: تحديث `docs/DATABASE.md`
+
+إضافة سطر بعد `fiscal_year` في قسم جدول accounts (سطر 279):
+```text
+| `fiscal_year_id` | UUID | مفتاح أجنبي لجدول السنوات المالية |
+```
 
 ---
 
 ## ترتيب التنفيذ
-1. `useAdvanceRequests.ts` — إضافة staleTime + limit (4 hooks)
-2. `webauthn/index.ts` — إصلاح btoa/fromCharCode
+1. Migration (إضافة العمود + ربط البيانات + index)
+2. `types/database.ts` (إضافة الحقل)
+3. `useAccounts.ts` (تحديث الهوك + queryKey)
+4. `useRawFinancialData.ts` (تمرير fiscalYearId)
+5. `useComputedFinancials.ts` (إضافة fiscalYearId للمنطق)
+6. `useFinancialSummary.ts` (تمرير fiscalYearId)
+7. `useAccountsPage.ts` (findAccount + buildAccountData + handleCloseYear + dependency array)
+8. الاختبارات (3 ملفات)
+9. `docs/DATABASE.md`
 
+## ملاحظات مهمة
+- لا يُستخدم `as any` في أي مكان
+- `supabase/types.ts` يُحدَّث تلقائياً بعد الـ migration
+- عمود `fiscal_year` النصي يبقى للتوافق وللعرض
+- كل المطابقات تستخدم `fiscal_year_id` أولاً مع fallback للنص
+- دالة `findAccount` موحدة تمنع التناقض بين السطرين 72 و 461
+- dependency array محدّثة لتشمل `selectedFY?.id`
