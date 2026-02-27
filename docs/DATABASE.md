@@ -277,6 +277,7 @@ erDiagram
 | العمود | النوع | وصف |
 |--------|-------|------|
 | `fiscal_year` | text | تسمية السنة المالية |
+| `fiscal_year_id` | UUID | مفتاح أجنبي لجدول السنوات المالية |
 | `total_income` | numeric | إجمالي الدخل |
 | `total_expenses` | numeric | إجمالي المصروفات |
 | `vat_amount` | numeric | ضريبة القيمة المضافة |

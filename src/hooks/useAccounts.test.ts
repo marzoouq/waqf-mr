@@ -51,6 +51,7 @@ const sampleAccount = {
   waqf_corpus_previous: 0,
   waqf_corpus_manual: 0,
   distributions_amount: 0,
+  fiscal_year_id: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
 };

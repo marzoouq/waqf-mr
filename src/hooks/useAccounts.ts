@@ -25,16 +25,21 @@ export const useDeleteAccount = accountsCrud.useDelete;
  * جلب الحسابات مع فلترة server-side بالسنة المالية (label).
  * إذا لم يُمرر label، يجلب كل الحسابات.
  */
-export const useAccountByFiscalYear = (fiscalYearLabel?: string) => {
+export const useAccountByFiscalYear = (
+  fiscalYearLabel?: string,
+  fiscalYearId?: string,
+) => {
   return useQuery({
-    queryKey: ['accounts', 'fiscal_year', fiscalYearLabel ?? 'all'],
+    queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
     staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from('accounts')
         .select('*')
         .order('created_at', { ascending: false });
-      if (fiscalYearLabel) {
+      if (fiscalYearId) {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      } else if (fiscalYearLabel) {
         query = query.eq('fiscal_year', fiscalYearLabel);
       }
       const { data, error } = await query;
