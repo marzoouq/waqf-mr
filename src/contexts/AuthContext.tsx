@@ -11,6 +11,7 @@ import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 
 interface AuthContextType {
   user: User | null;
@@ -187,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: { email, password }
     });
     if (error || data?.error) {
-      return { error: new Error(data?.error || error?.message || 'خطأ في التسجيل') };
+      return { error: new Error(data?.error || getSafeErrorMessage(error)) };
     }
     return { error: null };
   };
