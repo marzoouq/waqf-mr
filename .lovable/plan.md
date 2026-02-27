@@ -1,19 +1,25 @@
 
-# حالة النظام — آخر تحديث: 2026-02-27
+# إصلاح توجيه الواقف + تعليق الاختبار
 
-## الإصلاحات المُنفّذة (الفحص الجنائي)
+## ملخص
+إصلاحان بسيطان تم التحقق من صحتهما بالكامل مقابل الكود الفعلي.
 
-| # | البند | الحالة |
-|---|-------|--------|
-| 1 | حذف `details: String(err)` من WebAuthn | ✅ مُنفَّذ |
-| 2 | استبدال Google Fonts بخط Amiri محلي | ✅ مُنفَّذ |
-| 3 | استبدال `setTimeout` بـ `onload` في printShareReport | ✅ مُنفَّذ |
-| 4 | حذف `as any` من `account.fiscal_year` | ✅ مُنفَّذ |
-| 5 | إضافة `.limit(500)` لـ useAllCarryforwards | ✅ مُنفَّذ |
-| 6 | تحسين أنواع useUpdateAdvanceStatus | ✅ مُنفَّذ |
-| 7 | توحيد التسجيل (`logger.warn`) | ✅ مُنفَّذ |
-| 8 | تحسين type safety في useWebAuthn | ✅ مُنفَّذ |
-| 9 | توثيق `as any` في useDistribute | ✅ مُنفَّذ |
-| 10 | AbortController في AiAssistant | ✅ مُنفَّذ سابقاً |
+---
 
-## لا توجد بنود معلّقة.
+## الإصلاح 1: توجيه الواقف إلى لوحته المخصصة
+**الملف:** `src/pages/Index.tsx` سطر 40-42
+
+**المشكلة:** الواقف يُوجَّه إلى `/beneficiary` بدلاً من `/waqif` رغم وجود المسار `/waqif` في `App.tsx`.
+
+**التغيير:**
+- حذف التعليق الخاطئ وتغيير `navigate('/beneficiary')` إلى `navigate('/waqif')`
+
+---
+
+## الإصلاح 2: تحديث اسم الاختبار
+**الملف:** `src/contexts/FiscalYearContext.test.tsx` سطر 48
+
+**المشكلة:** اسم الاختبار يقول `defaults to "all"` لكن التوقع الفعلي هو `'fy-1'` (السنة المالية النشطة).
+
+**التغيير:**
+- تحديث اسم الاختبار من `defaults to "all" for admin when no selection` إلى `defaults to active fiscal year for admin when no selection`
