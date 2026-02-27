@@ -11,7 +11,7 @@
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
@@ -27,6 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const location = useLocation();
   const navigate = useNavigate();
   const loggedRef = useRef(false);
+  const [showSignOut, setShowSignOut] = useState(false);
 
   // إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار
   useEffect(() => {
@@ -53,6 +54,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
   }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
 
+  // إصلاح #4: إظهار زر الخروج فقط بعد 5 ثوانٍ لتجنب الإرباك أثناء التحقق الأولي
+  useEffect(() => {
+    if (allowedRoles && !role && !loading && user) {
+      const timer = setTimeout(() => setShowSignOut(true), 5000);
+      return () => clearTimeout(timer);
+    }
+    setShowSignOut(false);
+  }, [allowedRoles, role, loading, user]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -65,7 +75,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // إصلاح #2: كتلة واحدة نظيفة (loading=false مضمون هنا)
   if (allowedRoles && !role) {
     logger.warn('[ProtectedRoute] loading=false but role=null');
     return (
@@ -73,18 +82,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">جاري التحقق من الصلاحيات...</p>
-          {/* إصلاح #3: signOut() فقط، يستدعي supabase.auth.signOut() داخلياً */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={async () => {
-              await signOut();
-              navigate('/auth', { replace: true });
-            }}
-          >
-            تسجيل الخروج
-          </Button>
+          {showSignOut && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={async () => {
+                await signOut();
+                navigate('/auth', { replace: true });
+              }}
+            >
+              تسجيل الخروج
+            </Button>
+          )}
         </div>
       </div>
     );
