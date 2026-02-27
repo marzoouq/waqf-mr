@@ -26,6 +26,7 @@ const mockBeneficiaries = [
 
 vi.mock('@/hooks/useBeneficiaries', () => ({
   useBeneficiaries: () => ({ data: mockBeneficiaries, isLoading: false }),
+  useBeneficiariesDecrypted: () => ({ data: mockBeneficiaries, isLoading: false }),
   useCreateBeneficiary: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateBeneficiary: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useDeleteBeneficiary: () => ({ mutateAsync: vi.fn() }),

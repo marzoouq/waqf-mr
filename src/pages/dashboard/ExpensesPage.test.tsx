@@ -18,6 +18,7 @@ vi.mock('@/hooks/useExpenses', () => ({
 
 vi.mock('@/hooks/useInvoices', () => ({
   useInvoices: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
+  useInvoicesByFiscalYear: vi.fn(() => ({ data: [{ id: 'inv1', expense_id: 'e1' }] })),
 }));
 
 vi.mock('@/hooks/useProperties', () => ({
