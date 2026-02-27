@@ -1,61 +1,68 @@
 
 
-# تقرير التحقق الجنائي — النتائج الفعلية من الكود الحالي
+# إصلاح 3 مشاكل متبقية من الفحص الجنائي
 
-## ملخص: من 14 ادعاء في التقرير، مشكلتان فقط حقيقيتان
+## 1. FiscalYearContext -- حماية من عرض بيانات 'all' قبل تحديد الدور
 
-معظم المشاكل المُبلَّغ عنها **تم إصلاحها مسبقاً** في الجولات السابقة. التقرير المُقدَّم يستند إلى commits قديمة وليس الكود الحالي.
+**الملف:** `src/contexts/FiscalYearContext.tsx`
 
----
+**المشكلة:** `isLoading` يخص fiscal_years فقط. عندما `role = null` (لم يُحمَّل بعد) يُحسب `isNonAdmin = false` فيُعاد `'all'` مؤقتاً.
 
-## بنود مُصلحة مسبقاً (التقرير خاطئ بشأنها)
-
-| # | الادعاء | الحقيقة من الكود الحالي |
-|---|---------|------------------------|
-| #1 | `cron_check_contract_expiry` يُرسل `tenant_name` للمستفيدين | **مُصلح** -- الدالة في DB تستخدم `ben_msg` عام (مؤكد من schema الحالي) |
-| #2 | `fetchWaqfData` لا تُفرّق بين الأدوار | **مُصلح** -- `isAdmin` في سطر 207، فلترة في سطور 232/274/342 |
-| #3 | `generate-invoice-pdf` بدون تحقق يدوي | **مُصلح** -- `getUser()` في سطر 400 + role check في سطر 426-436 |
-| #4 | TOCTOU في `useUpdateAdvanceStatus` | **مُصلح** -- `.in('status', allowedFrom)` في سطر 240 (atomic guard) |
-| #7 | `useAccountsPage` error.message في saveSetting وcloseYear | **مُصلح** -- سطر 109: `console.error` + toast ثابت. سطر 352: نفس الشيء |
-| #10 | كل Edge Functions بـ `verify_jwt=false` | **بالتصميم** -- كل دالة تتحقق يدوياً عبر `getUser()` + role check |
-| #14 | `webauthn` بدون default handler | **مُصلح** -- سطر 304: `return ... "إجراء غير معروف"` |
-| .env | `.env` مرفوع في GitHub | **طبيعي** -- Lovable Cloud يدير `.env` تلقائياً، يحتوي فقط مفاتيح عامة |
-
----
-
-## المشكلتان الحقيقيتان المتبقيتان
-
-### 1. [متوسط] `check-contract-expiry` Edge Function -- يُرسل `tenant_name` لجميع المستفيدين
-
-**الملف:** `supabase/functions/check-contract-expiry/index.ts` سطر 155
+**الإصلاح:** استخدام `loading` من `useAuth()` (يغطي تحميل الدور) مع `isLoading` الخاص بالسنوات المالية:
 
 ```text
-const msg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
-// ثم يُرسل msg لكل allRecipients بما فيهم المستفيدين
+const { role, loading: authLoading } = useAuth();
+// ...
+const fiscalYearId = (isLoading || authLoading)
+  ? '__none__'
+  : noPublishedYears ...
 ```
 
-ملاحظة: دالة `cron_check_contract_expiry` في DB تم إصلاحها (تستخدم `ben_msg`)، لكن Edge Function المنفصلة لا تزال تُرسل نفس الرسالة التفصيلية للجميع.
-
-**الإصلاح:** فصل الرسالة حسب الدور -- رسالة عامة للمستفيدين بدون `tenant_name`.
-
-### 2. [منخفض] `useAccountsPage` -- `handleCreateAccount` يكشف `error.message` في toast
-
-**الملف:** `src/hooks/useAccountsPage.ts` سطر 280
-
+ملاحظة: `noPublishedYears` يحتاج نفس الحماية:
 ```text
-toast.error('خطأ في حفظ الحسابات: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
 ```
-
-تم إصلاح `saveSetting` (سطر 109) و `handleCloseYear` (سطر 352) لكن `handleCreateAccount` لا يزال يكشف الرسالة.
-
-**الإصلاح:** `console.error` + toast ثابت.
 
 ---
 
-## ملخص التغييرات المطلوبة
+## 2. accountsCalculations -- حماية shareBase من القيم السالبة
+
+**الملف:** `src/utils/accountsCalculations.ts` سطر 47
+
+**المشكلة:** اذا المصروفات + الزكاة اكبر من الدخل، تصبح حصص الناظر والواقف سالبة.
+
+**الإصلاح:** اضافة `Math.max(0, ...)` على shareBase:
+
+```text
+const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
+```
+
+هذا يمنع الحصص السالبة مع الحفاظ على باقي الحسابات (netAfterExpenses, netAfterVat, netAfterZakat) كما هي لعرض الخسارة الفعلية.
+
+---
+
+## 3. useTenantPayments -- نقل منطق التحصيل الى RPC
+
+**الملف:** `src/hooks/useTenantPayments.ts` + Migration جديد
+
+**المشكلة:** SELECT ثم UPSERT ثم INSERT income -- ثلاث عمليات منفصلة بدون transaction. ضغطتان سريعتان تُسبب سجلات دخل مكررة.
+
+**الإصلاح:** انشاء Postgres Function `upsert_tenant_payment` تنفذ كل المنطق داخل transaction واحد:
+- تقرأ `paid_months` الحالي مع `FOR UPDATE`
+- تنفذ UPSERT على `tenant_payments`
+- تنشئ سجلات الدخل التلقائية اذا زادت الدفعات
+- تُعيد النتيجة
+
+ثم تحديث `useUpsertTenantPayment` لاستدعاء RPC بدلاً من المنطق الحالي.
+
+---
+
+## ملخص الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `supabase/functions/check-contract-expiry/index.ts` | فصل رسالة المستفيدين عن رسالة الأدمن (بدون tenant_name) |
-| `src/hooks/useAccountsPage.ts` سطر 280 | تعقيم error.message في handleCreateAccount |
+| `src/contexts/FiscalYearContext.tsx` | اضافة authLoading من useAuth |
+| `src/utils/accountsCalculations.ts` | Math.max(0, shareBase) |
+| Migration جديد | دالة upsert_tenant_payment |
+| `src/hooks/useTenantPayments.ts` | استدعاء RPC بدلاً من client-side logic |
 
