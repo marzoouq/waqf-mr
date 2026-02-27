@@ -7,10 +7,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useUnits } from '@/hooks/useUnits';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { getContractSpanInfo } from '@/utils/contractAllocation';
 import { Contract } from '@/types/database';
 import { toast } from 'sonner';
-import { Building2, CheckSquare } from 'lucide-react';
+import { Building2, CheckSquare, Info } from 'lucide-react';
 
 interface ContractFormDialogProps {
   open: boolean;
@@ -55,6 +58,7 @@ export const emptyFormData: ContractFormData = {
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
   const [formData, setFormData] = useState<ContractFormData>(initialFormData || emptyFormData);
   const { data: propertyUnits = [] } = useUnits(formData.property_id || undefined);
+  const { fiscalYears } = useFiscalYear();
 
   // Sync form when initialFormData changes
   const [lastInitial, setLastInitial] = useState(initialFormData);
@@ -351,6 +355,42 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               </div>
             </div>
           )}
+
+          {/* Fiscal year span alert */}
+          {formData.start_date && formData.end_date && formData.rent_amount && parseFloat(formData.rent_amount) > 0 && (() => {
+            const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
+            const spanInfo = getContractSpanInfo(
+              {
+                id: 'preview',
+                start_date: formData.start_date,
+                end_date: formData.end_date,
+                rent_amount: parseFloat(formData.rent_amount),
+                payment_type: formData.payment_type,
+                payment_count: paymentCount,
+                payment_amount: parseFloat(formData.rent_amount) / paymentCount,
+              },
+              fiscalYears
+            );
+            if (spanInfo.spansMultiple) {
+              return (
+                <Alert className="border-primary/40 bg-primary/5">
+                  <Info className="w-4 h-4 text-primary" />
+                  <AlertDescription className="text-sm space-y-1">
+                    <p className="font-medium text-primary">هذا العقد يمتد عبر {spanInfo.allocations.length} سنوات مالية</p>
+                    {spanInfo.allocations.map(a => {
+                      const fy = fiscalYears.find(f => f.id === a.fiscal_year_id);
+                      return (
+                        <p key={a.fiscal_year_id} className="text-muted-foreground">
+                          {fy?.label || 'سنة مالية'}: {a.allocated_payments} دفعة = {a.allocated_amount.toLocaleString('ar-SA')} ر.س
+                        </p>
+                      );
+                    })}
+                  </AlertDescription>
+                </Alert>
+              );
+            }
+            return null;
+          })()}
 
           <div className="space-y-2">
             <Label>الحالة</Label>
