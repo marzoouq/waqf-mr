@@ -17,18 +17,24 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
 const BeneficiaryDashboard = () => {
-  const { user, role } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
-  const { availableAmount, isLoading: finLoading } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
+
+  // Don't fetch financial data until fiscalYearId is valid
+  const fyReady = fiscalYearId && fiscalYearId !== '__none__';
+  const { availableAmount, isLoading: finLoading } = useFinancialSummary(
+    fyReady ? fiscalYearId : undefined,
+    fyReady ? fiscalYear?.label : undefined,
+  );
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const safeAvailable = Number(availableAmount) || 0;
   const beneficiariesShare = safeAvailable;
   const myShare = currentBeneficiary ? (safeAvailable * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
 
-  const isLoading = benLoading || fyLoading || finLoading;
+  const isLoading = authLoading || benLoading || fyLoading || (!fyReady ? false : finLoading);
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());

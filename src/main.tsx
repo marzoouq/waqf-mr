@@ -16,7 +16,7 @@ console.error = (...args: unknown[]) => {
   origConsoleError.apply(console, args);
 };
 
-// ─── PWA: Purge stale caches on version change ───
+// ─── PWA: Purge ALL stale caches on version change ───
 const APP_CACHE_VERSION = 'v-' + (import.meta.env.VITE_BUILD_TIME || Date.now());
 const CACHE_VERSION_KEY = 'pwa_cache_version';
 
@@ -24,14 +24,20 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
   try {
     const stored = localStorage.getItem(CACHE_VERSION_KEY);
     if (stored && stored !== APP_CACHE_VERSION) {
-      // Version changed — wipe all caches except workbox-managed ones
+      // Version changed — wipe ALL caches including workbox-precache
       const names = await caches.keys();
-      await Promise.all(
-        names
-          .filter(n => !n.startsWith('workbox-precache'))
-          .map(n => caches.delete(n))
-      );
-      // PWA stale caches purged after update
+      await Promise.all(names.map(n => caches.delete(n)));
+
+      // Unregister old Service Workers to force fresh install
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(r => r.unregister()));
+      }
+
+      localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
+      // Reload to pick up new assets
+      window.location.reload();
+      return;
     }
     localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
   } catch {
