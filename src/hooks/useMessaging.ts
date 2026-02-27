@@ -21,6 +21,7 @@ export const useConversations = (type?: string) => {
       return (data || []) as Conversation[];
     },
     enabled: !!user,
+    staleTime: 30_000,
   });
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export const useMessages = (conversationId: string | null) => {
       return (data || []) as Message[];
     },
     enabled: !!user && !!conversationId,
+    staleTime: 30_000,
   });
 
   useEffect(() => {

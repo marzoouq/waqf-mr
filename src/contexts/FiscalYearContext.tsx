@@ -41,9 +41,11 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // If no fiscal years are available (all unpublished), don't fallback to 'all'.
   const noPublishedYears = !isLoading && isNonAdmin && fiscalYears.length === 0;
 
-  const fiscalYearId = noPublishedYears
+  const fiscalYearId = isLoading
     ? '__none__'
-    : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || '__none__') : 'all'));
+    : noPublishedYears
+      ? '__none__'
+      : (selectedId || activeFY?.id || (isNonAdmin ? (fiscalYears[0]?.id || '__none__') : 'all'));
 
   const fiscalYear = useMemo(
     () => (fiscalYearId === 'all' || fiscalYearId === '__none__') ? null : (fiscalYears.find(fy => fy.id === fiscalYearId) || activeFY || null),

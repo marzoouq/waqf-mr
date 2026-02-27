@@ -7,8 +7,17 @@ export const usePushNotifications = () => {
   const [isSupported] = useState(() => 'Notification' in window);
 
   useEffect(() => {
-    if (isSupported) {
-      setPermission(Notification.permission);
+    if (!isSupported) return;
+    setPermission(Notification.permission);
+
+    if ('permissions' in navigator) {
+      let status: PermissionStatus | null = null;
+      const onChange = () => setPermission(Notification.permission);
+      navigator.permissions.query({ name: 'notifications' as PermissionName }).then(s => {
+        status = s;
+        s.addEventListener('change', onChange);
+      }).catch(() => { /* unsupported browser */ });
+      return () => { status?.removeEventListener('change', onChange); };
     }
   }, [isSupported]);
 
