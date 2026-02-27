@@ -3,12 +3,13 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle } from 'lucide-react';
+import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractFormDialog, { ContractFormData, emptyFormData } from '@/components/contracts/ContractFormDialog';
+import CollectionReport from '@/components/contracts/CollectionReport';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -286,7 +288,14 @@ const ContractsPage = () => {
           </div>
         </div>
 
-        <ContractStatsCards stats={stats} isLoading={isLoading} />
+        <Tabs defaultValue="contracts" className="space-y-4">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
+            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="contracts" className="space-y-5">
+            <ContractStatsCards stats={stats} isLoading={isLoading} />
 
         {/* شريط تنبيه العقود المنتهية */}
         {expiredContracts.length > 0 && (
@@ -473,6 +482,12 @@ const ContractsPage = () => {
             <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="collection">
+            <CollectionReport contracts={contracts} paymentsMap={paymentsMap} isLoading={isLoading} />
+          </TabsContent>
+        </Tabs>
 
         {/* Contract Form Dialog */}
         <ContractFormDialog
