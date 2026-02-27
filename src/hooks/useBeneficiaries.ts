@@ -10,6 +10,7 @@
  * useBeneficiariesDecrypted: هوك لفك تشفير البيانات الحساسة (ناظر/محاسب فقط)
  */
 import { useQuery } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { createCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
@@ -46,7 +47,7 @@ export const useBeneficiariesDecrypted = () => {
       });
       if (error) {
         // fallback to regular query if RPC fails
-        console.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', error.message);
+        logger.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', error.message);
         const { data: fallback, error: fbError } = await supabase
           .from('beneficiaries')
           .select('*')

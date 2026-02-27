@@ -41,6 +41,7 @@ export const useDistributeShares = () => {
         p_account_id: account_id,
         p_fiscal_year_id: fiscal_year_id || null,
         p_total_distributed: total_distributed,
+        // as any required: Supabase RPC accepts jsonb, TypeScript cannot type this
         p_distributions: distributions as any,
       });
       if (error) throw error;

@@ -39,7 +39,8 @@ export function printShareReport(params: PrintShareReportParams) {
   printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
     <title>تقرير التوزيع - ${beneficiaryName}</title>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Amiri&display=swap');
+      @font-face { font-family: 'Amiri'; font-style: normal; font-weight: 400; src: url('${window.location.origin}/fonts/Amiri-Regular.woff2') format('woff2'), url('${window.location.origin}/fonts/Amiri-Regular.ttf') format('truetype'); }
+      @font-face { font-family: 'Amiri'; font-style: normal; font-weight: 700; src: url('${window.location.origin}/fonts/Amiri-Bold.woff2') format('woff2'), url('${window.location.origin}/fonts/Amiri-Bold.ttf') format('truetype'); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Amiri', serif; padding: 40px; color: #1a1a1a; direction: rtl; }
       h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
@@ -78,7 +79,7 @@ export function printShareReport(params: PrintShareReportParams) {
         <tr><th>التاريخ</th><th>السنة المالية</th><th>المبلغ</th><th>الحالة</th></tr>
         ${filteredDistributions.map(d => `<tr>
           <td>${new Date(d.date).toLocaleDateString('ar-SA')}</td>
-          <td>${(d as any).account?.fiscal_year || '—'}</td>
+          <td>${d.account?.fiscal_year || '—'}</td>
           <td>${Number(d.amount).toLocaleString()} ر.س</td>
           <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : d.status}</td>
         </tr>`).join('')}
@@ -88,7 +89,9 @@ export function printShareReport(params: PrintShareReportParams) {
     <p class="footer">تمت الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — نظام إدارة الوقف</p>
   </body></html>`);
 
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
   printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => printWindow.print(), 400);
 }
