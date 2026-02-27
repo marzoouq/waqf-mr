@@ -59,6 +59,8 @@ erDiagram
         numeric payment_amount
         integer payment_count
         text status
+        text notes "nullable"
+        uuid fiscal_year_id FK "nullable"
     }
 
     income {
@@ -90,6 +92,8 @@ erDiagram
         date date
         text status
         text file_path
+        text description "nullable"
+        text file_name "nullable"
         uuid property_id FK "nullable"
         uuid contract_id FK "nullable"
         uuid expense_id FK "nullable"
@@ -102,6 +106,7 @@ erDiagram
         date start_date
         date end_date
         text status
+        boolean published
     }
 
     accounts {
@@ -127,6 +132,7 @@ erDiagram
         uuid id PK
         uuid account_id FK
         uuid beneficiary_id FK
+        uuid fiscal_year_id FK "nullable"
         numeric amount
         date date
         text status
@@ -187,6 +193,62 @@ erDiagram
         timestamptz created_at
     }
 
+    access_log_archive {
+        uuid id PK
+        text event_type
+        text email "nullable"
+        uuid user_id "nullable"
+        text target_path "nullable"
+        text device_info "nullable"
+        jsonb metadata
+        timestamptz created_at
+        timestamptz archived_at
+    }
+
+    advance_requests {
+        uuid id PK
+        uuid beneficiary_id FK
+        uuid fiscal_year_id FK "nullable"
+        numeric amount
+        text reason "nullable"
+        text status
+        text rejection_reason "nullable"
+        uuid approved_by "nullable"
+        timestamptz approved_at "nullable"
+        timestamptz paid_at "nullable"
+        timestamptz created_at
+    }
+
+    advance_carryforward {
+        uuid id PK
+        uuid beneficiary_id FK
+        uuid from_fiscal_year_id FK
+        uuid to_fiscal_year_id FK "nullable"
+        numeric amount
+        text status
+        text notes "nullable"
+        timestamptz created_at
+    }
+
+    webauthn_challenges {
+        uuid id PK
+        uuid user_id "nullable"
+        text challenge
+        text type
+        timestamptz created_at
+    }
+
+    webauthn_credentials {
+        uuid id PK
+        uuid user_id FK
+        text credential_id
+        text public_key
+        bigint counter
+        text[] transports "nullable"
+        text device_name "nullable"
+        timestamptz created_at
+    }
+
     app_settings {
         text key PK
         text value
@@ -216,8 +278,13 @@ erDiagram
     fiscal_years ||--o{ expenses : "سنة مالية"
     fiscal_years ||--o{ invoices : "سنة مالية"
     fiscal_years ||--o{ accounts : "سنة مالية"
+    fiscal_years ||--o{ distributions : "سنة مالية"
+    fiscal_years ||--o{ advance_requests : "سنة مالية"
+    fiscal_years ||--o{ advance_carryforward : "من سنة"
     accounts ||--o{ distributions : "توزيعات"
     beneficiaries ||--o{ distributions : "يستلم"
+    beneficiaries ||--o{ advance_requests : "طلبات سلف"
+    beneficiaries ||--o{ advance_carryforward : "ترحيل سلف"
     conversations ||--o{ messages : "رسائل"
 ```
 
@@ -225,7 +292,7 @@ erDiagram
 
 ---
 
-## الجداول والأعمدة (19 جدول/عرض)
+## الجداول والأعمدة (24 جدول/عرض)
 
 ### 1. `user_roles` — أدوار المستخدمين
 | العمود | النوع | وصف |
@@ -261,6 +328,8 @@ erDiagram
 | `rent_amount` | numeric | مبلغ الإيجار الإجمالي |
 | `payment_type` | text | نوع الدفع: سنوي/نصف سنوي/ربعي/شهري |
 | `status` | text | الحالة: active / expired |
+| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
+| `notes` | text | ملاحظات (اختياري) |
 
 ### 5. `income` — الإيرادات
 | العمود | النوع | وصف |
@@ -311,6 +380,7 @@ erDiagram
 |--------|-------|------|
 | `account_id` | UUID | الحساب الختامي |
 | `beneficiary_id` | UUID | المستفيد |
+| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
 | `amount` | numeric | المبلغ |
 | `date` | date | تاريخ التوزيع |
 | `status` | text | الحالة: pending / paid |
@@ -333,6 +403,8 @@ erDiagram
 | `date` | date | التاريخ |
 | `status` | text | الحالة |
 | `file_path` | text | مسار الملف في التخزين |
+| `file_name` | text | اسم الملف الأصلي (اختياري) |
+| `description` | text | وصف الفاتورة (اختياري) |
 
 ### 12. `tenant_payments` — دفعات المستأجرين
 | العمود | النوع | وصف |
@@ -411,12 +483,68 @@ erDiagram
 
 > ⚠️ القراءة العامة مقتصرة على مفتاح `registration_enabled` فقط.
 
+### 20. `access_log_archive` — أرشيف سجل الوصول
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `event_type` | text | نوع الحدث |
+| `email` | text | البريد الإلكتروني (اختياري) |
+| `user_id` | UUID | معرف المستخدم (اختياري) |
+| `target_path` | text | المسار المستهدف (اختياري) |
+| `device_info` | text | معلومات الجهاز (اختياري) |
+| `metadata` | jsonb | بيانات إضافية |
+| `created_at` | timestamptz | تاريخ الحدث الأصلي |
+| `archived_at` | timestamptz | تاريخ الأرشفة |
+
+> ⚠️ يُملأ تلقائياً بواسطة دالة `cron_archive_old_access_logs()` كل 6 أشهر. لا إدخال أو تعديل أو حذف مباشر.
+
+### 21. `advance_requests` — طلبات السلف
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `beneficiary_id` | UUID | المستفيد مقدم الطلب |
+| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
+| `amount` | numeric | المبلغ المطلوب |
+| `reason` | text | سبب الطلب (اختياري) |
+| `status` | text | الحالة: pending / approved / paid / rejected |
+| `rejection_reason` | text | سبب الرفض (اختياري) |
+| `approved_by` | UUID | المعتمِد (اختياري) |
+| `approved_at` | timestamptz | تاريخ الاعتماد (اختياري) |
+| `paid_at` | timestamptz | تاريخ الصرف (اختياري) |
+
+### 22. `advance_carryforward` — ترحيل فروقات السلف
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `beneficiary_id` | UUID | المستفيد |
+| `from_fiscal_year_id` | UUID | السنة المالية المصدر |
+| `to_fiscal_year_id` | UUID | السنة المالية الهدف (اختياري) |
+| `amount` | numeric | المبلغ المرحّل |
+| `status` | text | الحالة: active / settled |
+| `notes` | text | ملاحظات (اختياري) |
+
+### 23. `webauthn_challenges` — تحديات المصادقة البيومترية
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `user_id` | UUID | المستخدم (اختياري) |
+| `challenge` | text | نص التحدي |
+| `type` | text | النوع: register / authenticate |
+
+> ⚠️ تنتهي صلاحيتها بعد 5 دقائق عبر دالة `cleanup_expired_challenges()`. لا وصول مباشر — فقط عبر Edge Function.
+
+### 24. `webauthn_credentials` — بيانات اعتماد WebAuthn
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `user_id` | UUID | المستخدم المالك |
+| `credential_id` | text | معرف الاعتماد |
+| `public_key` | text | المفتاح العام |
+| `counter` | bigint | عداد الاستخدام |
+| `transports` | text[] | أنواع النقل المدعومة (اختياري) |
+| `device_name` | text | اسم الجهاز (اختياري) |
+
 ### عرض `beneficiaries_safe` — عرض آمن للمستفيدين
 > عرض (View) يُخفي البيانات الحساسة (الهوية، البنك، الهاتف، البريد) ويستخدم `security_invoker=on` لوراثة سياسات RLS من جدول `beneficiaries`.
 
 ---
 
-## سياسات الأمان (RLS) — 19 جدول/عرض محمي
+## سياسات الأمان (RLS) — 24 جدول/عرض محمي
 
 كل جدول محمي بسياسات:
 
@@ -441,6 +569,11 @@ erDiagram
 | `access_log` | الناظر فقط | لا أحد (دالة SECURITY DEFINER فقط) |
 | `waqf_bylaws` | جميع الأدوار | الناظر فقط |
 | `app_settings` | جميع الأدوار + `registration_enabled` للعامة | الناظر فقط |
+| `access_log_archive` | الناظر فقط | لا أحد (أرشفة تلقائية فقط) |
+| `advance_requests` | المستفيد يرى طلباته + الناظر | المستفيد ينشئ (pending فقط) + الناظر |
+| `advance_carryforward` | المستفيد يرى ترحيلاته + الناظر | الناظر فقط |
+| `webauthn_challenges` | لا أحد (Edge Function فقط) | لا أحد (Edge Function فقط) |
+| `webauthn_credentials` | المستخدم يرى بياناته + الناظر | المستخدم ينشئ/يحذف بياناته فقط |
 
 ---
 
@@ -455,7 +588,7 @@ erDiagram
 
 ---
 
-## الدوال المخزنة (Functions) — 8 دوال
+## الدوال المخزنة (Functions) — 20 دالة
 
 | الدالة | الوصف | الصلاحية |
 |--------|-------|----------|
@@ -467,6 +600,18 @@ erDiagram
 | `log_access_event(event_type, email?, user_id?, ...)` | تسجيل أحداث الوصول بأمان | SECURITY DEFINER |
 | `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً | عادية |
 | `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية | SECURITY DEFINER |
+| `execute_distribution(p_account_id, ...)` | تنفيذ توزيع الحصص مع تسوية السلف | SECURITY DEFINER — الناظر/المحاسب |
+| `reopen_fiscal_year(p_fiscal_year_id, p_reason)` | إعادة فتح سنة مالية مقفلة | SECURITY DEFINER — الناظر فقط |
+| `reorder_bylaws(items)` | إعادة ترتيب بنود اللائحة | SECURITY DEFINER — الناظر فقط |
+| `is_fiscal_year_accessible(p_fiscal_year_id)` | التحقق من إمكانية وصول المستخدم للسنة المالية | SECURITY DEFINER |
+| `encrypt_pii(p_value)` | تشفير بيانات حساسة | SECURITY DEFINER |
+| `decrypt_pii(p_encrypted)` | فك تشفير بيانات حساسة (الناظر/المحاسب فقط) | SECURITY DEFINER |
+| `get_beneficiary_decrypted(p_beneficiary_id)` | جلب بيانات مستفيد مفكوكة التشفير | SECURITY DEFINER — الناظر/المحاسب |
+| `get_pii_key()` | جلب مفتاح التشفير من الإعدادات | SECURITY DEFINER |
+| `lookup_by_national_id(p_national_id)` | البحث عن مستفيد برقم الهوية | SECURITY DEFINER |
+| `cleanup_expired_challenges()` | حذف تحديات WebAuthn المنتهية | SECURITY DEFINER |
+| `cron_archive_old_access_logs()` | أرشفة سجلات الوصول القديمة | SECURITY DEFINER |
+| `cron_auto_expire_contracts()` | انتهاء العقود المنتهية تلقائياً | SECURITY DEFINER |
 
 ### قيود `log_access_event` الأمنية:
 - المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
