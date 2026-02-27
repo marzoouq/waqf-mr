@@ -1,6 +1,6 @@
 # 📋 خطة الإصلاح الجنائي الشامل — `waqf-mr`
 
-> **تاريخ الإعداد:** 2026-02-26 | **الحالة:** مكتمل ✅
+> **تاريخ الإعداد:** 2026-02-26 | **آخر تحديث:** 2026-02-27 (الجولة 16) | **الحالة:** مكتمل ✅
 
 ---
 
@@ -10,9 +10,9 @@
 
 | الفئة | العدد | المُنفذ | ملاحظة |
 |-------|-------|---------|--------|
-| 🔴 حرج (Critical) | 4 | 3 | C-1 و C-2 مقيدان بملفات تُدار تلقائياً |
-| 🟠 عاجل (High) | 7 | 5 | |
-| 🟡 مهم (Medium) | 10 | 6 | M-1 يتطلب تحديث types.ts (تلقائي) |
+| 🔴 حرج (Critical) | 4 | 4 | شامل تقييد AI حسب الدور |
+| 🟠 عاجل (High) | 7 | 7 | |
+| 🟡 مهم (Medium) | 10 | 10 | |
 | 🔵 تحسين (Low) | 5 | 1 | |
 
 ---
@@ -58,6 +58,59 @@
 **الملف:** `src/pages/dashboard/ReportsPage.tsx`
 **المشكلة:** `netRevenue` يُحسب بطريقة مختلفة عن `useComputedFinancials`.
 **الإصلاح:** استخدام `netAfterExpenses` مباشرة (يشمل `waqfCorpusPrevious`).
+
+---
+
+## ✅ إصلاحات الجولة الثالثة (2026-02-27)
+
+### 9. تعقيم `body.name` في إشعارات `admin-manage-users`
+**الملف:** `supabase/functions/admin-manage-users/index.ts`
+**المشكلة:** اسم المستخدم يُمرر بدون تعقيم في نص الإشعار.
+**الإصلاح:** استخدام `safeName` (تقليص + إزالة أحرف خاصة) في موضعين: `create_user` و `bulk_create_users`.
+
+### 10. إخفاء تفاصيل العقد عن المستفيدين في `cron_check_contract_expiry`
+**الملف:** Migration (دالة مخزنة)
+**المشكلة:** `tenant_name` و `contract_number` يظهران في إشعارات المستفيدين.
+**الإصلاح:** استخدام `ben_msg` عام ("أحد العقود قارب على الانتهاء") بدون تفاصيل المستأجر.
+
+### 11. دمج SELECT+UPDATE في `useUpdateAdvanceStatus` لمنع TOCTOU
+**الملف:** `src/hooks/useAdvanceRequests.ts`
+**المشكلة:** SELECT ثم UPDATE منفصلتان تسمحان بـ race condition.
+**الإصلاح:** استخدام `.in('status', allowedFrom)` في الـ UPDATE مباشرة (atomic guard).
+
+### 12. تعقيم رسالة خطأ WebAuthn registration
+**الملف:** `supabase/functions/webauthn/index.ts`
+**الإصلاح:** عدم إعادة `error.message` الخام في استجابة الخطأ.
+
+### 13. حذف `invalidIds` من استجابة `generate-invoice-pdf`
+**الملف:** `supabase/functions/generate-invoice-pdf/index.ts`
+**الإصلاح:** عدم كشف معرفات الفواتير غير الصالحة في الاستجابة.
+
+---
+
+## ✅ إصلاحات الجولة الرابعة (2026-02-27)
+
+### 14. [حرج] تقييد `fetchWaqfData` حسب الدور في AI Assistant
+**الملف:** `supabase/functions/ai-assistant/index.ts`
+**المشكلة:** المستفيد يحصل على بيانات حساسة (أسماء المستأجرين، تفاصيل العقود، أرقام مالية كاملة) عبر المساعد الذكي.
+**الإصلاح:** فلترة البيانات حسب الدور:
+- الأدمن/المحاسب: بيانات كاملة (عقود، حسابات تفصيلية، مستفيدين)
+- المستفيد/الواقف: ملخص مالي عام فقط (إجمالي دخل/مصروفات، عدد العقود النشطة بدون تفاصيل، بياناته الشخصية فقط)
+
+### 15. رفض الطلب عند فشل جلب الدور في AI Assistant
+**الملف:** `supabase/functions/ai-assistant/index.ts`
+**المشكلة:** `userRole` يُعيَّن `"beneficiary"` عند فشل جلب الدور من قاعدة البيانات.
+**الإصلاح:** إرجاع خطأ 403 ("لم يتم التعرف على صلاحياتك") بدلاً من الاستمرار بدور خاطئ.
+
+### 16. تعقيم `error.message` في `useAccountsPage`
+**الملف:** `src/hooks/useAccountsPage.ts`
+**المشكلة:** `error.message` يظهر في toast عند فشل حفظ الإعداد وإقفال السنة (admin فقط).
+**الإصلاح:** استبدال بـ `console.error` + toast ثابت ("خطأ في حفظ الإعداد" / "خطأ في إقفال السنة المالية").
+
+### 17. إصلاح `isAdmin` temporal dead zone في `fetchWaqfData`
+**الملف:** `supabase/functions/ai-assistant/index.ts`
+**المشكلة:** `isAdmin` مُستخدم في سطر 231 لكن مُعرّف في سطر 341 — يسبب `ReferenceError`.
+**الإصلاح:** نقل تعريف `const isAdmin` إلى أعلى دالة `fetchWaqfData` (بعد إنشاء `sections` مباشرة).
 
 ---
 

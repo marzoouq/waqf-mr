@@ -204,6 +204,7 @@ async function fetchWaqfData(
   userId: string
 ): Promise<string> {
   const sections: string[] = [];
+  const isAdmin = userRole === "admin" || userRole === "accountant";
 
   try {
     // 1. السنوات المالية
@@ -338,7 +339,6 @@ async function fetchWaqfData(
     }
 
     // 7. المستفيدين
-    const isAdmin = userRole === "admin" || userRole === "accountant";
     if (isAdmin) {
       const { data: beneficiaries } = await client
         .from("beneficiaries")
