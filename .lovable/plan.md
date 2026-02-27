@@ -1,59 +1,73 @@
 
-# خطة إصلاح المشاكل المتبقية بعد الفحص الجنائي الشامل
 
-## ملخص الوضع الحالي
+# خطة إصلاح المشكلتين المتبقيتين
 
-من أصل الإصلاحات الأربع السابقة، تم تنفيذ 4/4 بنجاح. لكن الفحص الشامل كشف عن مشكلتين جديدتين وملاحظة تجميلية.
+## التحقق الجنائي - النتائج
 
----
+تم فحص الملفات الثلاثة مباشرة من الكود الفعلي وتأكيد ما يلي:
 
-## الإصلاح 1 (أولوية عالية): نقل rate limiting في `guard-signup` إلى قاعدة البيانات
-
-**الملف:** `supabase/functions/guard-signup/index.ts`
-
-**المشكلة:** يستخدم `Map` في الذاكرة + `setInterval` للـ rate limiting -- نفس المشكلة التي أُصلحت في `lookup-national-id` لكن لم تُصلح هنا. الكود نفسه يحمل تحذير `WARNING` صريح.
-
-**التغيير:**
-- حذف السطور 6-29 (المتغيرات `signupRateLimitMap`، دالة `isSignupRateLimited`، `setInterval`)
-- استبدال استدعاء `isSignupRateLimited(clientIp)` في السطر 46 باستدعاء `check_rate_limit` RPC عبر `supabaseAdmin` مع سياسة fail-closed
-- نقل إنشاء `supabaseAdmin` client قبل استدعاء rate limit (حاليا في السطر 70)
+- **الإصلاح 1 (UserManagementPage):** مُنفَّذ بالكامل -- لا يحتاج أي تعديل
+- **الإصلاح 2 (useCrudFactory + staleTime):** لم يُنفَّذ -- المشكلة قائمة
+- **الإصلاح 3 (ALLOWED_ORIGINS مكررة):** لم يُنفَّذ -- التكرار قائم
 
 ---
 
-## الإصلاح 2 (أولوية منخفضة): إضافة rate limiting لـ `ai-assistant`
+## الإصلاح A: إضافة `staleTime` إلى `createCrudFactory`
 
-**الملف:** `supabase/functions/ai-assistant/index.ts`
+**الملف:** `src/hooks/useCrudFactory.ts`
 
-**المشكلة:** المستخدم المصادق يمكنه إرسال طلبات AI بلا حد. الحماية الموجودة (`slice(-20)` و `slice(0, 4000)`) تحد من حجم الطلب الواحد لكن لا تمنع الاستنزاف عبر طلبات كثيرة.
+**المشكلة:** الـ factory لا يدعم `staleTime` -- كل الـ hooks المبنية عليه (8 جداول) تُعيد جلب البيانات عند كل window focus بدون داعٍ.
 
-**التغيير:**
-- بعد التحقق من المستخدم (سطر 31)، إضافة استدعاء `check_rate_limit` بمفتاح `ai:${userId}` وحد 30 طلب/دقيقة
-- سياسة fail-closed (إرجاع 503 عند فشل RPC)
+**التغييرات:**
+1. إضافة `staleTime?: number` إلى `CrudFactoryConfig` interface (سطر 37)
+2. استخراج `staleTime` مع قيمة افتراضية `60_000` في الـ factory (سطر 57)
+3. تمرير `staleTime` إلى `useQuery` في `useList` (سطر 62)
+
+**التأثير:** يُصلح تلقائياً 8 hooks دون تعديل أي ملف آخر:
+- useAccounts, useContracts, useProperties, useBeneficiaries
+- useIncome, useExpenses, useInvoices, useAllUnits
 
 ---
 
-## الإصلاح 3 (تجميلي): حذف نطاق preview القديم من `cors.ts`
+## الإصلاح B: توحيد `ALLOWED_ORIGINS` بين `cors.ts` و `webauthn/index.ts`
 
-**الملف:** `supabase/functions/_shared/cors.ts`
+### الملف 1: `supabase/functions/_shared/cors.ts`
 
-**المشكلة:** نطاق `id-preview--29470216...lovable.app` لا يزال في القائمة رغم أن الـ regex يغطيه. تنظيف بسيط.
+**التغيير:** تصدير القائمة والـ regex patterns كـ named exports
 
-**التغيير:** حذف السطر 3 من مصفوفة `ALLOWED_ORIGINS`
+```text
+export const ALLOWED_ORIGINS = [...]
+
+export const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/,
+];
+```
+
+تعديل `getAllowedOrigin` لاستخدام `ALLOWED_ORIGIN_PATTERNS` بدل regex مكرر.
+
+### الملف 2: `supabase/functions/webauthn/index.ts`
+
+**التغيير:** استيراد من `_shared/cors.ts` بدل تعريف محلي
+
+```text
+import { getCorsHeaders, ALLOWED_ORIGINS, ALLOWED_ORIGIN_PATTERNS } from "../_shared/cors.ts";
+// حذف السطور 15-19 (التعريف المحلي المكرر)
+// تعديل getRpInfo لاستخدام ALLOWED_ORIGIN_PATTERNS
+```
 
 ---
 
 ## ترتيب التنفيذ
 
-| # | الإصلاح | الملف | الأولوية |
-|---|---|---|---|
-| 1 | نقل rate limiting لـ DB في guard-signup | `guard-signup/index.ts` | عالية |
-| 2 | إضافة rate limiting لـ ai-assistant | `ai-assistant/index.ts` | متوسطة |
-| 3 | حذف نطاق preview قديم | `_shared/cors.ts` | منخفضة |
+| # | الإصلاح | الملف | التعقيد |
+|---|---------|-------|---------|
+| 1 | staleTime في factory | `useCrudFactory.ts` | بسيط (+3 سطور) |
+| 2 | تصدير origins | `_shared/cors.ts` | بسيط (+6 سطور) |
+| 3 | استيراد في webauthn | `webauthn/index.ts` | بسيط (حذف + import) |
 
 ## الملفات المتأثرة
-1. `supabase/functions/guard-signup/index.ts`
-2. `supabase/functions/ai-assistant/index.ts`
-3. `supabase/functions/_shared/cors.ts`
+1. `src/hooks/useCrudFactory.ts`
+2. `supabase/functions/_shared/cors.ts`
+3. `supabase/functions/webauthn/index.ts`
 
-## ملاحظة
-دالة `check_rate_limit` وجدول `rate_limits` موجودان بالفعل في قاعدة البيانات -- لا حاجة لـ migration جديد.
