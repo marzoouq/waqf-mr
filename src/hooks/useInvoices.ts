@@ -146,12 +146,6 @@ export const uploadInvoiceFile = async (file: File): Promise<{ path: string; nam
   return { path, name: file.name };
 };
 
-/** @deprecated Use getInvoiceSignedUrl instead – invoices bucket is private */
-export const getInvoiceFileUrl = (_filePath: string) => {
-  // deprecated — use getInvoiceSignedUrl
-  return '';
-};
-
 export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => {
   const { data, error } = await supabase.storage
     .from('invoices')
