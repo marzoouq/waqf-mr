@@ -1,120 +1,112 @@
 
 
-# توثيق شامل للجداول والأعمدة المفقودة في `docs/DATABASE.md`
+# خطة الإصلاح الشاملة — 12 بند مُتحقق جنائياً
 
-## نظرة عامة
-إضافة 5 جداول كاملة غائبة وأعمدة مفقودة من جداول `contracts` و `invoices` و `distributions` إلى التوثيق، مع تحديث مخطط Mermaid ERD وجدول سياسات RLS وعدد الجداول والدوال المخزنة.
-
-## تأكيد: جدول `accounts` مكتمل
-تم التحقق — كتلة Mermaid ERD (سطر 107-124) تتطابق تماماً مع الجدول النصي (سطر 284-298). لا تغييرات مطلوبة على `accounts`.
+## ملخص
+تم التحقق من كل بند مقابل الكود الفعلي. جميع المشاكل الـ 12 مؤكدة. الخطة تُنفذ بالترتيب التالي:
 
 ---
 
-## التغيير 1: أعمدة مفقودة من جداول موجودة
+## المجموعة 1: إصلاحات أمنية في WebAuthn (خطورة عالية)
 
-### 1a. `contracts` — كتلة Mermaid
-إضافة عمودين مفقودين:
-```text
-        text notes "nullable"
-        uuid fiscal_year_id FK "nullable"
-```
+### الخطوة 1: إزالة `email` من استجابة `auth-verify`
+**الملف:** `supabase/functions/webauthn/index.ts` سطر 255-259
 
-### 1b. `contracts` — الجدول النصي
-إضافة صفين:
-```text
-| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
-| `notes` | text | ملاحظات (اختياري) |
-```
+حذف `email: userData.user.email` من الاستجابة. الـ client (سطر 132 في `useWebAuthn.ts`) يستخدم `token_hash` فقط.
 
-### 1c. `invoices` — كتلة Mermaid
-إضافة عمودين مفقودين:
-```text
-        text description "nullable"
-        text file_name "nullable"
-```
+### الخطوة 2: إصلاح race condition في `auth-options`/`auth-verify`
+**الملفات:** `supabase/functions/webauthn/index.ts` + `src/hooks/useWebAuthn.ts`
 
-### 1d. `invoices` — الجدول النصي
-إضافة صفين:
-```text
-| `file_name` | text | اسم الملف الأصلي (اختياري) |
-| `description` | text | وصف الفاتورة (اختياري) |
-```
+- في `auth-options` (سطر 173-178): تعديل الـ insert ليُرجع `id` ثم إضافة `challenge_id` في الاستجابة
+- في `auth-verify` (سطر 186-192): استبدال `ORDER BY created_at DESC LIMIT 1` بـ `.eq("id", challenge_id)`
+- في `useWebAuthn.ts` (سطر 109-124): تمرير `challenge_id` من `options` إلى `auth-verify`
 
-### 1e. `fiscal_years` — كتلة Mermaid
-إضافة `published`:
-```text
-        boolean published
-```
+### الخطوة 3: إضافة origin whitelist لـ `getRpInfo`
+**الملف:** `supabase/functions/webauthn/index.ts` سطر 25-37
 
-### 1f. `distributions` — كتلة Mermaid
-إضافة `fiscal_year_id`:
-```text
-        uuid fiscal_year_id FK "nullable"
-```
+استيراد `getAllowedOrigin` من `cors.ts` واستخدام نفس المنطق الموجود (الذي يدعم `*.lovable.app` و `*.lovableproject.com` والنطاقات المحددة) للتحقق من الـ origin قبل استخدامه كـ `rpID`.
+
+### الخطوة 4: إضافة error check لـ `getUserById`
+**الملف:** `supabase/functions/webauthn/index.ts` سطر 241
+
+تغيير من `const { data: userData }` إلى `const { data: userData, error: userError }` وإضافة فحص `userError`.
+
+### الخطوة 5: حذف challenge محدد في `register-verify`
+**الملف:** `supabase/functions/webauthn/index.ts` سطر 157
+
+تغيير `.eq("type", "registration")` إلى `.eq("challenge", challengeRow.challenge)` لحذف التحدي المُستخدم فقط.
 
 ---
 
-## التغيير 2: إضافة 5 جداول جديدة
+## المجموعة 2: إصلاح rate limiting (خطورة عالية)
 
-### الجداول:
-1. `access_log_archive` — أرشيف سجل الوصول (8 أعمدة)
-2. `advance_requests` — طلبات السلف (9 أعمدة)
-3. `advance_carryforward` — ترحيل فروقات السلف (6 أعمدة)
-4. `webauthn_challenges` — تحديات المصادقة البيومترية (3 أعمدة)
-5. `webauthn_credentials` — بيانات اعتماد WebAuthn (6 أعمدة)
+### الخطوة 6: نقل rate limiting لقاعدة البيانات
+**الملفات:**
+- Migration جديد: إنشاء جدول `rate_limits` + دالة `check_rate_limit` RPC
+- `supabase/functions/lookup-national-id/index.ts`: استبدال `rateLimitMap` و `setInterval` باستدعاء RPC
 
-يتم إضافة كل جدول في:
-- كتلة Mermaid ERD (تعريف الجدول + العلاقات)
-- الجدول النصي التفصيلي مع الأوصاف
-
-### علاقات Mermaid الجديدة:
 ```text
-    beneficiaries ||--o{ advance_requests : "طلبات سلف"
-    beneficiaries ||--o{ advance_carryforward : "ترحيل سلف"
-    fiscal_years ||--o{ advance_requests : "سنة مالية"
-    fiscal_years ||--o{ advance_carryforward : "من سنة"
-    fiscal_years ||--o{ distributions : "سنة مالية"
+جدول rate_limits:
+  key (text PK) | count (int) | window_start (timestamptz)
+
+دالة check_rate_limit(p_key text, p_limit int, p_window_seconds int):
+  - إذا انتهت النافذة: إعادة تعيين العداد
+  - إذا لم تنتهِ: زيادة العداد
+  - إرجاع true إذا تجاوز الحد
 ```
 
----
-
-## التغيير 3: تحديث جدول سياسات RLS
-
-تحديث العنوان من "19 جدول/عرض" إلى "24 جدول/عرض" وإضافة 5 صفوف للجداول الجديدة مع وصف سياسات SELECT و INSERT/UPDATE/DELETE لكل منها.
+RLS: لا وصول مباشر (الجدول يُستخدم فقط عبر service role في Edge Function).
 
 ---
 
-## التغيير 4: تحديث عدد الدوال المخزنة
+## المجموعة 3: تحسينات أداء وسلامة (متوسطة-منخفضة)
 
-تغيير "8 دوال" إلى "20 دالة" وإضافة 12 دالة مفقودة تشمل:
-- `execute_distribution` — تنفيذ توزيع الحصص
-- `reopen_fiscal_year` — إعادة فتح سنة مالية
-- `encrypt_pii` / `decrypt_pii` — تشفير/فك تشفير البيانات الحساسة
-- `cleanup_expired_challenges` — حذف تحديات WebAuthn المنتهية
-- وغيرها
+### الخطوة 7: `useTenantPayments` — إضافة `limit` و `staleTime`
+**الملف:** `src/hooks/useTenantPayments.ts` سطر 30-37
+
+إضافة `.limit(500)` و `staleTime: 60_000`.
+
+### الخطوة 8: `handleCloseYear` — error check للـ insert الصامت
+**الملف:** `src/hooks/useAccountsPage.ts` سطر 319-329
+
+استخراج `error` من الـ insert وعرض toast تحذيري عند الفشل (بدون إيقاف العملية لأن الإقفال نفسه نجح).
+
+### الخطوة 9: `useMemo` لحسابات `useAccountsPage`
+**الملف:** `src/hooks/useAccountsPage.ts` سطر 139-169
+
+لف `computeTotals`، `calculateFinancials`، `groupIncomeBySource`، `groupExpensesByType` بـ `useMemo`.
+
+### الخطوة 10: `useAuditLog` — إضافة `staleTime`
+**الملف:** `src/hooks/useAuditLog.ts`
+
+إضافة `staleTime: 30_000`.
+
+### الخطوة 11: `fetchCredentials` — إضافة `.limit(20)`
+**الملف:** `src/hooks/useWebAuthn.ts` سطر 24-27
+
+### الخطوة 12: `useDistribute` — إزالة `as any`
+**الملف:** `src/hooks/useDistribute.ts`
+
+استبدال `distributions as any` بـ `JSON.parse(JSON.stringify(distributions))`.
 
 ---
 
-## التحقق من الأخطاء الإملائية
+## ترتيب التنفيذ
 
-جميع أسماء الأعمدة تم فحصها مقابل schema قاعدة البيانات الفعلية (المقدمة في useful-context). لا توجد أخطاء إملائية.
-
-| العمود | الجدول | النتيجة |
-|---|---|---|
-| `fiscal_year_id` | contracts | مطابق |
-| `notes` | contracts | مطابق |
-| `description` | invoices | مطابق |
-| `file_name` | invoices | مطابق |
-| `published` | fiscal_years | مطابق |
-| `fiscal_year_id` | distributions | مطابق |
-| `archived_at` | access_log_archive | مطابق |
-| `rejection_reason` | advance_requests | مطابق |
-| `from_fiscal_year_id` | advance_carryforward | مطابق |
-| `credential_id` | webauthn_credentials | مطابق |
-| `transports` | webauthn_credentials (ARRAY) | مطابق |
-
----
+| الأولوية | الخطوات | الملفات | التعقيد |
+|---|---|---|---|
+| عالية | 1-5 | `webauthn/index.ts` + `useWebAuthn.ts` | متوسط |
+| عالية | 6 | `lookup-national-id/index.ts` + migration | متوسط |
+| متوسطة | 7-8 | `useTenantPayments.ts` + `useAccountsPage.ts` | بسيط |
+| منخفضة | 9-12 | hooks متعددة | بسيط |
 
 ## الملفات المتأثرة
-1. `docs/DATABASE.md` — جميع التغييرات (1-4)
+1. `supabase/functions/webauthn/index.ts` (خطوات 1-5)
+2. `src/hooks/useWebAuthn.ts` (خطوات 2, 11)
+3. `supabase/functions/lookup-national-id/index.ts` (خطوة 6)
+4. Migration جديد لـ `rate_limits` (خطوة 6)
+5. `src/hooks/useTenantPayments.ts` (خطوة 7)
+6. `src/hooks/useAccountsPage.ts` (خطوات 8, 9)
+7. `src/hooks/useAuditLog.ts` (خطوة 10)
+8. `src/hooks/useDistribute.ts` (خطوة 12)
 
