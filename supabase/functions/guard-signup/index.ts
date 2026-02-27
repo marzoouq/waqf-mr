@@ -2,31 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// ⚠️ WARNING: In-memory rate limiting does NOT work reliably across distributed Edge Function instances.
-// Each instance maintains its own Map, so limits are per-instance, not global.
-// For production-grade rate limiting, consider using a shared store (Redis, KV, or database).
-const signupRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const SIGNUP_RATE_LIMIT = 5;
-const SIGNUP_RATE_WINDOW_MS = 60_000;
-
-function isSignupRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = signupRateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    signupRateLimitMap.set(ip, { count: 1, resetAt: now + SIGNUP_RATE_WINDOW_MS });
-    return false;
-  }
-  entry.count += 1;
-  return entry.count > SIGNUP_RATE_LIMIT;
-}
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of signupRateLimitMap) {
-    if (now > val.resetAt) signupRateLimitMap.delete(key);
-  }
-}, 5 * 60_000);
+const SIGNUP_RATE_WINDOW_SECONDS = 60;
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -42,8 +19,29 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // Rate limiting عبر قاعدة البيانات (يعمل بشكل موثوق عبر كل instances)
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (isSignupRateLimited(clientIp)) {
+    const { data: isLimited, error: rlError } = await supabaseAdmin.rpc('check_rate_limit', {
+      p_key: `signup:${clientIp}`,
+      p_limit: SIGNUP_RATE_LIMIT,
+      p_window_seconds: SIGNUP_RATE_WINDOW_SECONDS,
+    });
+
+    // Fail-closed: إذا فشل التحقق من rate limit نرفض الطلب احترازياً
+    if (rlError) {
+      console.error("rate_limit check failed:", rlError.message);
+      return new Response(
+        JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (isLimited) {
       return new Response(JSON.stringify({ error: "تم تجاوز حد المحاولات، يرجى المحاولة لاحقاً" }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -66,11 +64,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
 
     // Check registration_enabled setting
     const { data: setting } = await supabaseAdmin
