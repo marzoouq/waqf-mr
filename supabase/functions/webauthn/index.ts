@@ -260,6 +260,6 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "إجراء غير معروف" }), { status: 400, headers: cors });
   } catch (err) {
     console.error("WebAuthn error:", err);
-    return new Response(JSON.stringify({ error: "حدث خطأ داخلي", details: String(err) }), { status: 500, headers: getCorsHeaders(req) });
+    return new Response(JSON.stringify({ error: "حدث خطأ داخلي" }), { status: 500, headers: getCorsHeaders(req) });
   }
 });

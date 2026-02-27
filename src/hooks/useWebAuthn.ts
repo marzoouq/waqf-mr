@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 
 const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
 
+interface WebAuthnCredential { id: string; device_name: string; created_at: string; }
+
 export function useWebAuthn() {
   const [isSupported, setIsSupported] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [credentials, setCredentials] = useState<any[]>([]);
+  const [credentials, setCredentials] = useState<WebAuthnCredential[]>([]);
 
   useEffect(() => {
     setIsSupported(browserSupportsWebAuthn());
@@ -74,16 +76,18 @@ export function useWebAuthn() {
       await fetchCredentials();
       toast.success('تم تسجيل البصمة بنجاح! يمكنك الآن تسجيل الدخول بها');
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+      const message = err instanceof Error ? err.message : 'خطأ غير معروف';
       console.error('WebAuthn registration error:', err);
-      if (err.name === 'NotAllowedError') {
+      if (name === 'NotAllowedError') {
         toast.error('تم إلغاء عملية البصمة من قبل المستخدم');
-      } else if (err.name === 'SecurityError') {
+      } else if (name === 'SecurityError') {
         toast.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
-      } else if (err.name === 'InvalidStateError') {
+      } else if (name === 'InvalidStateError') {
         toast.error('هذا الجهاز مسجل مسبقاً');
       } else {
-        toast.error(`حدث خطأ أثناء تسجيل البصمة: ${err.message || 'خطأ غير معروف'}`);
+        toast.error(`حدث خطأ أثناء تسجيل البصمة: ${message}`);
       }
       return false;
     } finally {
@@ -133,8 +137,9 @@ export function useWebAuthn() {
 
       toast.success('تم تسجيل الدخول بالبصمة بنجاح');
       return true;
-    } catch (err: any) {
-      if (err.name === 'NotAllowedError') {
+    } catch (err: unknown) {
+      const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+      if (name === 'NotAllowedError') {
         toast.error('تم إلغاء عملية البصمة');
       } else {
         toast.error('حدث خطأ أثناء المصادقة بالبصمة');

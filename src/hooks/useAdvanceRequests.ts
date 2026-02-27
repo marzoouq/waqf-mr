@@ -154,7 +154,7 @@ export const useAllCarryforwards = (fiscalYearId?: string) => {
       if (fiscalYearId) {
         query = query.eq('from_fiscal_year_id', fiscalYearId);
       }
-      const { data, error } = await query;
+      const { data, error } = await query.limit(500);
       if (error) throw error;
       return (data ?? []) as unknown as (AdvanceCarryforward & { beneficiary?: { id: string; name: string } })[];
     },
@@ -196,11 +196,11 @@ export const useCreateAdvanceRequest = () => {
 export const useUpdateAdvanceStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, rejection_reason }: {
+    mutationFn: async ({ id, status, rejection_reason, beneficiary_user_id, amount }: {
       id: string; status: string; rejection_reason?: string;
       beneficiary_user_id?: string; amount?: number;
     }) => {
-      const updates: Record<string, any> = { status };
+      const updates: { status: string; approved_at?: string; paid_at?: string; rejection_reason?: string } = { status };
       if (status === 'approved') {
         updates.approved_at = new Date().toISOString();
       }
@@ -226,8 +226,8 @@ export const useUpdateAdvanceStatus = () => {
       toast.success(msgs[vars.status] || 'تم تحديث الطلب');
 
       // إشعار المستفيد
-      const uid = (vars as any).beneficiary_user_id;
-      const amt = (vars as any).amount;
+      const uid = vars.beneficiary_user_id;
+      const amt = vars.amount;
       if (uid) {
         const amtStr = amt ? Number(amt).toLocaleString() : '';
         const notifMap: Record<string, { title: string; message: string; type: string }> = {
