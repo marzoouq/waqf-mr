@@ -15,28 +15,21 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "").trim();
 
-    // مقارنة آمنة ضد timing attack
+    // مقارنة آمنة ضد timing attack — constant-time بدون تسريب الطول
     function timingSafeEqual(a: string, b: string): boolean {
       const encoder = new TextEncoder();
       const aBytes = encoder.encode(a);
       const bBytes = encoder.encode(b);
-      if (aBytes.byteLength !== bBytes.byteLength) {
-        // Compare against itself to maintain constant time even on length mismatch
-        const dummy = new Uint8Array(aBytes.byteLength);
-        crypto.subtle.timingSafeEqual?.(aBytes, dummy);
-        return false;
+      const maxLen = Math.max(aBytes.byteLength, bBytes.byteLength);
+      const aPadded = new Uint8Array(maxLen);
+      const bPadded = new Uint8Array(maxLen);
+      aPadded.set(aBytes);
+      bPadded.set(bBytes);
+      let result = aBytes.byteLength ^ bBytes.byteLength;
+      for (let i = 0; i < maxLen; i++) {
+        result |= aPadded[i] ^ bPadded[i];
       }
-      // Use Web Crypto API for constant-time comparison
-      try {
-        return (crypto.subtle as any).timingSafeEqual(aBytes, bBytes);
-      } catch {
-        // Fallback for environments without timingSafeEqual
-        let result = 0;
-        for (let i = 0; i < aBytes.byteLength; i++) {
-          result |= aBytes[i] ^ bBytes[i];
-        }
-        return result === 0;
-      }
+      return result === 0;
     }
     const isServiceRole = timingSafeEqual(token, serviceKey);
 
