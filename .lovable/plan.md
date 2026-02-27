@@ -1,59 +1,72 @@
 
 
-# خطة إصلاح البنود الثلاثة المؤكدة
+# خطة إصلاح البنود الأربعة المتبقية
 
-تم التحقق الجنائي من كل بند مقابل الكود الفعلي. النتائج:
-
----
-
-## نتائج التحقق
-
-| البند | الحكم | الدليل |
-|-------|-------|--------|
-| `main.tsx` سطر 11 — `VITE_BUILD_TIME` غائب، `Date.now()` يُستخدم دائماً | **مؤكدة** | `VITE_BUILD_TIME` لا يظهر في أي ملف آخر غير `main.tsx` — لا في `vite.config.ts` ولا في `.env` |
-| `useAppSettings.ts` سطر 34-37 — `.update()` بدلاً من `.upsert()` | **مؤكدة** | `.update({ value, updated_at }).eq('key', key)` — إعداد غير موجود = 0 rows بصمت |
-| `useBylaws.ts` سطر 21-32 — بدون `staleTime` | **مؤكدة** | لا `staleTime` في `useQuery` — يُعيد الجلب عند كل window focus |
+تم التحقق من كل بند مقابل الكود الفعلي. جميعها مؤكدة.
 
 ---
 
-## الإصلاحات المطلوبة
+## البنود والإصلاحات
 
-### 1. `vite.config.ts` — تثبيت `VITE_BUILD_TIME` وقت البناء
+### 1. `src/hooks/useContracts.ts` — اضافة `staleTime` لـ `useContractsByFiscalYear`
 
-اضافة `define` داخل `defineConfig` لتعيين `VITE_BUILD_TIME` بقيمة ثابتة وقت الـ build:
+**المشكلة:** الهوك المنفصل `useContractsByFiscalYear` (سطر 24-41) لا يحتوي `staleTime`، بينما الـ factory حصل عليه. كل تركيز على النافذة يعيد جلب العقود.
 
-```typescript
-define: {
-  'import.meta.env.VITE_BUILD_TIME': JSON.stringify(Date.now().toString()),
-},
+**الإصلاح:** اضافة `staleTime: 60_000` في `useQuery`.
+
+---
+
+### 2. `execute_distribution` — حماية من التوزيع المزدوج (Idempotency Guard)
+
+**المشكلة:** استدعاء `execute_distribution` مرتين لنفس `account_id` و `fiscal_year_id` ينشئ توزيعات مكررة بدون أي فحص.
+
+**الإصلاح:** اضافة فحص في بداية الدالة:
+```text
+IF EXISTS (SELECT 1 FROM distributions WHERE account_id = p_account_id
+  AND (p_fiscal_year_id IS NULL OR fiscal_year_id = p_fiscal_year_id))
+THEN RAISE EXCEPTION 'تم توزيع حصص هذا الحساب مسبقاً';
+END IF;
 ```
 
-هذا يجعل القيمة ثابتة لكل build بدلاً من تغييرها عند كل تحميل صفحة.
+---
 
-### 2. `src/hooks/useAppSettings.ts` — تغيير `.update()` إلى `.upsert()`
+### 3. `execute_distribution` — التحقق من `p_total_distributed` داخل الخادم
 
-استبدال:
-```typescript
-.update({ value, updated_at: new Date().toISOString() })
-.eq('key', key);
+**المشكلة:** `p_total_distributed` يأتي من العميل مباشرة ويُحفظ في `accounts.distributions_amount` بدون مقارنة بالمجموع الفعلي المحسوب.
+
+**الإصلاح:** حساب المجموع الفعلي داخل الدالة واستخدامه بدلاً من القيمة المُمررة:
+```text
+-- بعد انتهاء الحلقة، نحسب المجموع الفعلي
+v_actual_total := (SELECT COALESCE(SUM(amount), 0) FROM distributions
+  WHERE account_id = p_account_id AND fiscal_year_id = p_fiscal_year_id);
+
+UPDATE accounts SET distributions_amount = v_actual_total WHERE id = p_account_id;
 ```
+مع التحقق من عدم وجود فرق كبير بين القيمتين كاشعار.
 
-بـ:
-```typescript
-.upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+---
+
+### 4. `src/contexts/AuthContext.tsx` — تعميم رسالة خطأ `signUp`
+
+**المشكلة:** سطر 190: `error?.message` قد يكشف تفاصيل داخلية من Supabase (مثل اسماء الجداول أو رسائل PostgreSQL).
+
+**الإصلاح:** استخدام `getSafeErrorMessage` الموجود بالفعل في المشروع:
+```text
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+// ...
+return { error: new Error(data?.error || getSafeErrorMessage(error)) };
 ```
-
-هذا يضمن حفظ الإعدادات الجديدة التي لم تُدخل مسبقاً.
-
-### 3. `src/hooks/useBylaws.ts` — اضافة `staleTime`
-
-اضافة `staleTime: 5 * 60 * 1000` (5 دقائق) في `useQuery` — اللوائح نادرة التغيير.
 
 ---
 
 ## الملفات المتأثرة
 
-1. `vite.config.ts` — اضافة `define` block
-2. `src/hooks/useAppSettings.ts` — سطر واحد: `.update()` -> `.upsert()`
-3. `src/hooks/useBylaws.ts` — سطر واحد: اضافة `staleTime`
+1. `src/hooks/useContracts.ts` — سطر واحد: اضافة `staleTime`
+2. `supabase/migrations/` — migration جديد لتحديث `execute_distribution` (idempotency + server-side total)
+3. `src/contexts/AuthContext.tsx` — سطر واحد: استخدام `getSafeErrorMessage`
+
+## ترتيب التنفيذ
+
+1. إصلاح `useContracts.ts` و `AuthContext.tsx` (تغييرات كود بسيطة)
+2. انشاء migration لتحديث `execute_distribution` (يتطلب موافقة)
 
