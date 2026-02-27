@@ -1,70 +1,65 @@
 
 
-# إصلاح 3 مشاكل مؤكدة من الجولة الرابعة
+# تحديث الوثائق وإصلاح خطأ برمجي مكتشف
 
-## التحقق من ادعاءات التقرير
+## خطأ برمجي حرج مكتشف أثناء المراجعة
 
-بعد قراءة الكود الفعلي الحالي، تبيّن أن **3 من 13 ادعاء فقط هي مشاكل حقيقية**. الباقي إما مُصلَح أو مقبول:
+في `supabase/functions/ai-assistant/index.ts`، دالة `fetchWaqfData` تستخدم `isAdmin` في سطر 231 لكن `const isAdmin` مُعرّف في سطر 341. هذا يسبب `ReferenceError` بسبب temporal dead zone في JavaScript. النتيجة: **الدالة تتعطل عند أي استدعاء**.
 
-| الادعاء | الحالة |
-|---------|--------|
-| #2 TOCTOU في useUpdateAdvanceStatus | **مُصلَح** -- يستخدم `.in('status', allowedFrom)` ذري |
-| #3 cron يُرسل tenant_name للمستفيدين | **مُصلَح** -- يستخدم `ben_msg` عام |
-| #5 signIn يُعيد AuthApiError خام | **مُصلَح** -- `Auth.tsx:170` يستخدم `getSafeErrorMessage()` |
-| #1 useCarryforwardBalance | **تصميم موثّق متعمد** |
-| #4 text-match deduplication | **منخفض** -- يعمل بشكل مقبول |
-| #10 fetchRole timeout | **مقبول** -- Auth.tsx يعالجه بـ roleWaitTimeout + زر خروج |
-| #13 setRoleWithRef | **نظري** -- لا أثر وظيفي |
-| #8 AI gateway DPA | **خارج نطاق الكود** -- قرار تنظيمي |
-| #12 bulk_create_users userId في response | **مقبول** -- admin-only function |
+**الإصلاح:** نقل تعريف `isAdmin` إلى أعلى دالة `fetchWaqfData` (بعد سطر 206 مباشرة).
 
 ---
 
-## المشاكل المؤكدة (3 مشاكل)
+## التحديثات المطلوبة للوثائق
 
-### 1. [حرج] `fetchWaqfData` -- بيانات حساسة تُرسل لجميع الأدوار عبر AI
+### 1. `docs/FORENSIC-FIX-PLAN.md` -- إضافة إصلاحات الجولتين 3 و 4
 
-**الملف:** `supabase/functions/ai-assistant/index.ts`
+إضافة قسمين جديدين:
 
-قسم المستفيدين (سطر 311-339) يُفرّق بين الأدوار بشكل صحيح. لكن:
-- العقود النشطة (سطر 255-266): `tenant_name`, `rent_amount`, `contract_number` تُرسل لجميع الأدوار
-- الحسابات المالية (سطر 217-238): كل التفاصيل المالية تُرسل لجميع الأدوار
-- التوزيعات (سطر 343+): جميع التوزيعات تُرسل بدون فلترة
+**إصلاحات الجولة الثالثة (2026-02-27):**
+- تعقيم `body.name` في إشعارات `admin-manage-users` (موضعان: create_user + bulk_create_users)
+- إخفاء تفاصيل العقد عن المستفيدين في `cron_check_contract_expiry` (استخدام `ben_msg` عام)
+- دمج SELECT+UPDATE في `useUpdateAdvanceStatus` لمنع TOCTOU race condition
+- تعقيم رسالة خطأ WebAuthn registration
+- حذف `invalidIds` من استجابة `generate-invoice-pdf`
 
-**الإصلاح:** تقييد البيانات حسب الدور:
-- المستفيد/الواقف: السنوات المالية + بياناته الشخصية فقط + ملخص مالي عام (إجمالي الدخل/المصروفات بدون تفاصيل العقود أو أسماء المستأجرين)
-- الأدمن/المحاسب: البيانات الكاملة كما هي
+**إصلاحات الجولة الرابعة (2026-02-27):**
+- تقييد `fetchWaqfData` حسب الدور (المستفيد/الواقف: ملخص عام فقط)
+- رفض الطلب عند فشل جلب الدور بدلا من الافتراض كمستفيد
+- تعقيم `error.message` في `useAccountsPage` (موضعان)
+- إصلاح `isAdmin` temporal dead zone في `fetchWaqfData`
 
-### 2. [منخفض] `useAccountsPage` -- `error.message` في toast (موضعان)
+### 2. `docs/INDEX.md` -- تحديث الإحصائيات
 
-**الملف:** `src/hooks/useAccountsPage.ts`
+| الحقل | القيمة القديمة | القيمة الجديدة |
+|-------|---------------|---------------|
+| تاريخ الفحص | 2026-02-20 (الجولة 12) | 2026-02-27 (الجولة 16) |
+| Edge Functions | 8 وظائف (محدّثة) | 8 وظائف (مع تقييد AI حسب الدور) |
+| نموذج AI | google/gemini-2.5-pro | google/gemini-2.5-pro + flash |
+| سجل التحديثات الأمنية | 4 إدخالات | 4 إدخالات أصلية + 8 إصلاحات جديدة |
 
-- سطر 109: `toast.error('خطأ في حفظ الإعداد: ' + err.message)`
-- سطر 351: `toast.error('خطأ في إقفال السنة: ' + err.message)`
+### 3. `docs/API.md` -- تحديث توثيق `ai-assistant`
 
-**الإصلاح:** استبدال بـ `console.error` + toast ثابت:
-```text
-سطر 109: toast.error('خطأ في حفظ الإعداد')
-سطر 351: toast.error('خطأ في إقفال السنة المالية')
-```
+- إضافة توضيح أن البيانات تُفلتر حسب الدور
+- توضيح أن المستفيد يرى ملخصاً عاماً فقط (بدون تفاصيل العقود أو أسماء المستأجرين)
+- إضافة رمز الاستجابة 403 عند فشل جلب الدور
+- تحديث وصف `admin-manage-users` لذكر تعقيم `safeName`
+- إضافة أن `generate-invoice-pdf` لا يكشف معرفات غير صالحة
 
-### 3. [منخفض] `ai-assistant` -- `userRole` يُعيَّن `"beneficiary"` عند فشل جلبه
+### 4. `docs/DATABASE.md` -- تحديث الدوال المخزنة
 
-**الملف:** `supabase/functions/ai-assistant/index.ts` سطر 61
-
-عند فشل جلب الدور من DB، يُعامَل المستخدم كـ `beneficiary`. هذا آمن (أقل صلاحيات) لكنه يُخفي المشكلة. بعد إصلاح المشكلة #1، يصبح هذا أقل خطورة لأن المستفيد لن يرى بيانات حساسة.
-
-**الإصلاح:** إضافة log + إرجاع خطأ واضح بدلاً من الاستمرار بدور خاطئ:
-```text
-if (!roleData?.role) return error 403: "لم يتم التعرف على صلاحياتك"
-```
+- تحديث وصف `cron_check_contract_expiry` لذكر أن المستفيدين يتلقون رسائل عامة (`ben_msg`) بينما الأدمن يتلقى التفاصيل
+- إضافة `cron_cleanup_old_notifications` للقائمة (20 --> 21 دالة)
 
 ---
 
-## ملخص التغييرات
+## ملخص الملفات المتأثرة
 
-| الملف | التغيير | الأولوية |
-|-------|---------|----------|
-| `supabase/functions/ai-assistant/index.ts` | تقييد `fetchWaqfData` حسب الدور + رفض الطلب عند فشل جلب الدور | حرج |
-| `src/hooks/useAccountsPage.ts` | تعقيم `error.message` في سطري 109 و 351 | منخفض |
+| الملف | نوع التغيير |
+|-------|------------|
+| `supabase/functions/ai-assistant/index.ts` | إصلاح خطأ `isAdmin` temporal dead zone |
+| `docs/FORENSIC-FIX-PLAN.md` | إضافة إصلاحات الجولتين 3 و 4 |
+| `docs/INDEX.md` | تحديث الإحصائيات والتواريخ |
+| `docs/API.md` | تحديث توثيق ai-assistant و admin-manage-users |
+| `docs/DATABASE.md` | تحديث وصف cron_check_contract_expiry + إضافة دالة |
 
