@@ -29,6 +29,7 @@ export const useBylaws = () => {
       if (error) throw error;
       return (data || []) as BylawEntry[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const updateBylaw = useMutation({
