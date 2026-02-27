@@ -106,7 +106,8 @@ export function useAccountsPage() {
         await appSettings.updateSetting.mutateAsync({ key, value });
         toast.success('تم حفظ الإعداد');
       } catch (err) {
-        toast.error('خطأ في حفظ الإعداد: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+        console.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
+        toast.error('خطأ في حفظ الإعداد');
       }
     }, 500);
   }, [appSettings.updateSetting]);
@@ -348,7 +349,8 @@ export function useAccountsPage() {
       toast.success(`تم إقفال السنة المالية ${selectedFY.label} وترحيل الرصيد بنجاح`);
       setCloseYearOpen(false);
     } catch (err) {
-      toast.error('خطأ في إقفال السنة: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+      console.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
+      toast.error('خطأ في إقفال السنة المالية');
     } finally {
       setIsClosingYear(false);
     }

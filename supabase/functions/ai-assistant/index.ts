@@ -58,7 +58,14 @@ Deno.serve(async (req) => {
       .eq("user_id", userData.user.id)
       .single();
 
-    const userRole = roleData?.role || "beneficiary";
+    if (!roleData?.role) {
+      console.error("ai-assistant: failed to fetch role for user", userData.user.id);
+      return new Response(
+        JSON.stringify({ error: "لم يتم التعرف على صلاحياتك. يرجى التواصل مع الناظر." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const userRole = roleData.role;
 
     const { messages, mode } = await req.json();
 
@@ -213,7 +220,7 @@ async function fetchWaqfData(
       }
     }
 
-    // 2. الحسابات المالية (ملخص)
+    // 2. الحسابات المالية (ملخص) — للأدمن/المحاسب فقط التفاصيل الكاملة
     const { data: accounts } = await client
       .from("accounts")
       .select("*")
@@ -221,20 +228,31 @@ async function fetchWaqfData(
       .limit(3);
 
     if (accounts?.length) {
-      sections.push("\n### الحسابات المالية:");
-      for (const acc of accounts) {
-        sections.push(`**السنة: ${acc.fiscal_year}**`);
-        sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- صافي بعد المصروفات: ${Number(acc.net_after_expenses).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- الزكاة: ${Number(acc.zakat_amount).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- الضريبة: ${Number(acc.vat_amount).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- حصة الناظر (10%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- حصة الواقف (5%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- رقبة الوقف المرحلة: ${Number(acc.waqf_corpus_previous).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- رقبة الوقف اليدوية: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
-        sections.push(`- رأس مال الوقف: ${Number(acc.waqf_capital).toLocaleString("ar-SA")} ر.س`);
+      if (isAdmin) {
+        sections.push("\n### الحسابات المالية:");
+        for (const acc of accounts) {
+          sections.push(`**السنة: ${acc.fiscal_year}**`);
+          sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- صافي بعد المصروفات: ${Number(acc.net_after_expenses).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- الزكاة: ${Number(acc.zakat_amount).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- الضريبة: ${Number(acc.vat_amount).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- حصة الناظر (10%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- حصة الواقف (5%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- رقبة الوقف المرحلة: ${Number(acc.waqf_corpus_previous).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- رقبة الوقف اليدوية: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- رأس مال الوقف: ${Number(acc.waqf_capital).toLocaleString("ar-SA")} ر.س`);
+        }
+      } else {
+        // المستفيد/الواقف: ملخص عام فقط بدون تفاصيل حساسة
+        sections.push("\n### ملخص مالي عام:");
+        for (const acc of accounts) {
+          sections.push(`**السنة: ${acc.fiscal_year}**`);
+          sections.push(`- إجمالي الدخل: ${Number(acc.total_income).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- إجمالي المصروفات: ${Number(acc.total_expenses).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
+        }
       }
     }
 
@@ -251,17 +269,29 @@ async function fetchWaqfData(
       }
     }
 
-    // 4. العقود النشطة
-    const { data: contracts } = await client
-      .from("contracts")
-      .select("contract_number, tenant_name, rent_amount, start_date, end_date, status, payment_type")
-      .eq("status", "active")
-      .limit(30);
+    // 4. العقود النشطة — التفاصيل للأدمن/المحاسب فقط
+    if (isAdmin) {
+      const { data: contracts } = await client
+        .from("contracts")
+        .select("contract_number, tenant_name, rent_amount, start_date, end_date, status, payment_type")
+        .eq("status", "active")
+        .limit(30);
 
-    if (contracts?.length) {
-      sections.push(`\n### العقود النشطة (${contracts.length} عقد):`);
-      for (const c of contracts) {
-        sections.push(`- عقد ${c.contract_number} | ${c.tenant_name} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س/${c.payment_type === "annual" ? "سنوي" : c.payment_type === "monthly" ? "شهري" : "دفعات"} | ${c.start_date} → ${c.end_date}`);
+      if (contracts?.length) {
+        sections.push(`\n### العقود النشطة (${contracts.length} عقد):`);
+        for (const c of contracts) {
+          sections.push(`- عقد ${c.contract_number} | ${c.tenant_name} | ${Number(c.rent_amount).toLocaleString("ar-SA")} ر.س/${c.payment_type === "annual" ? "سنوي" : c.payment_type === "monthly" ? "شهري" : "دفعات"} | ${c.start_date} → ${c.end_date}`);
+        }
+      }
+    } else {
+      // المستفيد/الواقف: عدد العقود فقط بدون تفاصيل
+      const { count } = await client
+        .from("contracts")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active");
+
+      if (count && count > 0) {
+        sections.push(`\n### العقود: يوجد ${count} عقد نشط حالياً.`);
       }
     }
 
@@ -339,19 +369,43 @@ async function fetchWaqfData(
       }
     }
 
-    // 8. التوزيعات الأخيرة
-    const { data: distributions } = await client
-      .from("distributions")
-      .select("amount, date, status, beneficiary_id")
-      .order("date", { ascending: false })
-      .limit(20);
+    // 8. التوزيعات الأخيرة — للأدمن التفاصيل الكاملة، للمستفيد حصته فقط
+    if (isAdmin) {
+      const { data: distributions } = await client
+        .from("distributions")
+        .select("amount, date, status, beneficiary_id")
+        .order("date", { ascending: false })
+        .limit(20);
 
-    if (distributions?.length) {
-      const totalDist = distributions.reduce((s, d) => s + Number(d.amount), 0);
-      const pending = distributions.filter(d => d.status === "pending").length;
-      const paid = distributions.filter(d => d.status === "paid").length;
-      sections.push(`\n### آخر التوزيعات:`);
-      sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
+      if (distributions?.length) {
+        const totalDist = distributions.reduce((s, d) => s + Number(d.amount), 0);
+        const pending = distributions.filter(d => d.status === "pending").length;
+        const paid = distributions.filter(d => d.status === "paid").length;
+        sections.push(`\n### آخر التوزيعات:`);
+        sections.push(`- إجمالي: ${totalDist.toLocaleString("ar-SA")} ر.س | مدفوعة: ${paid} | معلقة: ${pending}`);
+      }
+    } else {
+      // المستفيد: حصته الشخصية فقط
+      const { data: myBen } = await client
+        .from("beneficiaries")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+      if (myBen) {
+        const { data: myDists } = await client
+          .from("distributions")
+          .select("amount, date, status")
+          .eq("beneficiary_id", myBen.id)
+          .order("date", { ascending: false })
+          .limit(10);
+
+        if (myDists?.length) {
+          const myTotal = myDists.reduce((s, d) => s + Number(d.amount), 0);
+          sections.push(`\n### توزيعاتك:`);
+          sections.push(`- إجمالي حصتك: ${myTotal.toLocaleString("ar-SA")} ر.س (${myDists.length} توزيعة)`);
+        }
+      }
     }
 
     // 9. العقود المنتهية أو قريبة الانتهاء (للمشرفين فقط)
