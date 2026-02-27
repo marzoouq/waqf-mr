@@ -23,6 +23,7 @@ export interface PaymentInvoice {
     contract_number: string;
     tenant_name: string;
     property_id: string;
+    payment_count: number;
     property?: { property_number: string } | null;
   };
 }
@@ -35,7 +36,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
     queryFn: async () => {
       let query = supabase
         .from('payment_invoices')
-        .select('*, contract:contracts(contract_number, tenant_name, property_id, property:properties(property_number))')
+        .select('*, contract:contracts(contract_number, tenant_name, property_id, payment_count, property:properties(property_number))')
         .order('due_date', { ascending: true })
         .limit(1000);
       if (fiscalYearId !== 'all') {
@@ -85,22 +86,21 @@ export const useGenerateAllInvoices = () => {
 export const useMarkInvoicePaid = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ invoiceId, paidAmount, paidDate }: { invoiceId: string; paidAmount?: number; paidDate?: string }) => {
-      const { error } = await supabase
-        .from('payment_invoices')
-        .update({
-          status: 'paid',
-          paid_date: paidDate || new Date().toISOString().split('T')[0],
-          paid_amount: paidAmount,
-        } as any)
-        .eq('id', invoiceId);
+    mutationFn: async ({ invoiceId, paidAmount }: { invoiceId: string; paidAmount?: number }) => {
+      const { data, error } = await supabase.rpc('pay_invoice_and_record_collection', {
+        p_invoice_id: invoiceId,
+        p_paid_amount: paidAmount ?? null,
+      });
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
-      toast.success('تم تسديد الفاتورة');
+      qc.invalidateQueries({ queryKey: ['tenant_payments'] });
+      qc.invalidateQueries({ queryKey: ['income'] });
+      toast.success('تم تسديد الفاتورة وتسجيل التحصيل');
     },
-    onError: () => toast.error('فشل تحديث الفاتورة'),
+    onError: () => toast.error('فشل تسديد الفاتورة'),
   });
 };
 
@@ -108,20 +108,18 @@ export const useMarkInvoiceUnpaid = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (invoiceId: string) => {
-      const { error } = await supabase
-        .from('payment_invoices')
-        .update({
-          status: 'pending',
-          paid_date: null,
-          paid_amount: 0,
-        } as any)
-        .eq('id', invoiceId);
+      const { data, error } = await supabase.rpc('unpay_invoice_and_revert_collection', {
+        p_invoice_id: invoiceId,
+      });
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
-      toast.success('تم إلغاء التسديد');
+      qc.invalidateQueries({ queryKey: ['tenant_payments'] });
+      qc.invalidateQueries({ queryKey: ['income'] });
+      toast.success('تم إلغاء التسديد والتراجع عن التحصيل');
     },
-    onError: () => toast.error('فشل تحديث الفاتورة'),
+    onError: () => toast.error('فشل إلغاء التسديد'),
   });
 };

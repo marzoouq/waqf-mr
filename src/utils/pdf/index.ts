@@ -17,3 +17,5 @@ export { generateAuditLogPDF } from './auditLog';
 export type { AuditLogPdfOptions } from './auditLog';
 export { generateComprehensiveBeneficiaryPDF } from './comprehensiveBeneficiary';
 export type { ComprehensiveBeneficiaryData } from './comprehensiveBeneficiary';
+export { generatePaymentInvoicePDF } from './paymentInvoice';
+export type { PaymentInvoicePdfData } from './paymentInvoice';

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
-  Zap, TrendingUp, TrendingDown, FileWarning, Check, X,
+  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download,
 } from 'lucide-react';
 import {
   PaymentInvoice,
@@ -17,6 +17,8 @@ import {
   useMarkInvoicePaid,
   useMarkInvoiceUnpaid,
 } from '@/hooks/usePaymentInvoices';
+import { generatePaymentInvoicePDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 
 interface PaymentInvoicesTabProps {
@@ -31,6 +33,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const generateAll = useGenerateAllInvoices();
   const markPaid = useMarkInvoicePaid();
   const markUnpaid = useMarkInvoiceUnpaid();
+  const waqfInfo = usePdfWaqfInfo();
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
@@ -70,6 +73,23 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, currentPage]);
+
+  const handleDownloadPdf = (inv: PaymentInvoice) => {
+    generatePaymentInvoicePDF({
+      invoiceNumber: inv.invoice_number,
+      contractNumber: inv.contract?.contract_number || '-',
+      tenantName: inv.contract?.tenant_name || '-',
+      propertyNumber: inv.contract?.property?.property_number || '-',
+      paymentNumber: inv.payment_number,
+      totalPayments: inv.contract?.payment_count || 1,
+      amount: Number(inv.amount),
+      dueDate: inv.due_date,
+      status: inv.status,
+      paidDate: inv.paid_date,
+      paidAmount: inv.paid_amount,
+      notes: inv.notes,
+    }, waqfInfo);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -210,11 +230,16 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
                         {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                       </div>
-                      {!isClosed && inv.status !== 'paid' && (
-                        <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
-                          <Check className="w-3.5 h-3.5" />تسديد
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)}>
+                          <Download className="w-3.5 h-3.5" />PDF
                         </Button>
-                      )}
+                        {!isClosed && inv.status !== 'paid' && (
+                          <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
+                            <Check className="w-3.5 h-3.5" />تسديد
+                          </Button>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -234,7 +259,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                       <TableHead className="text-right">المبلغ</TableHead>
                       <TableHead className="text-right">تاريخ السداد</TableHead>
                       <TableHead className="text-center">الحالة</TableHead>
-                      {!isClosed && <TableHead className="text-center">إجراء</TableHead>}
+                      <TableHead className="text-center">إجراء</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -249,19 +274,24 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                         <TableCell className={inv.paid_date ? 'text-success' : 'text-muted-foreground'}>{inv.paid_date || '-'}</TableCell>
                         <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
-                        {!isClosed && (
-                          <TableCell className="text-center">
-                            {inv.status !== 'paid' ? (
-                              <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
-                                <Check className="w-3.5 h-3.5" />تسديد
-                              </Button>
-                            ) : (
-                              <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground h-8" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
-                                <X className="w-3.5 h-3.5" />إلغاء
-                              </Button>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF">
+                              <Download className="w-3.5 h-3.5" />
+                            </Button>
+                            {!isClosed && (
+                              inv.status !== 'paid' ? (
+                                <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
+                                  <Check className="w-3.5 h-3.5" />تسديد
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground h-8" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
+                                  <X className="w-3.5 h-3.5" />إلغاء
+                                </Button>
+                              )
                             )}
-                          </TableCell>
-                        )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

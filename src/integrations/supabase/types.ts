@@ -1333,11 +1333,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      pay_invoice_and_record_collection: {
+        Args: { p_invoice_id: string; p_paid_amount?: number }
+        Returns: Json
+      }
       reopen_fiscal_year: {
         Args: { p_fiscal_year_id: string; p_reason: string }
         Returns: Json
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
+      unpay_invoice_and_revert_collection: {
+        Args: { p_invoice_id: string }
+        Returns: Json
+      }
       upsert_tenant_payment: {
         Args: {
           p_contract_id: string
