@@ -53,8 +53,11 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
   const year1Label = fiscalYears.find(fy => fy.id === year1Id)?.label || '';
   const year2Label = fiscalYears.find(fy => fy.id === year2Id)?.label || '';
 
-  const summary1 = useFinancialSummary(year1Id || undefined, year1Label);
-  const summary2 = useFinancialSummary(year2Id || undefined, year2Label);
+  const year1Status = fiscalYears.find(fy => fy.id === year1Id)?.status;
+  const year2Status = fiscalYears.find(fy => fy.id === year2Id)?.status;
+
+  const summary1 = useFinancialSummary(year1Id || undefined, year1Label, { fiscalYearStatus: year1Status });
+  const summary2 = useFinancialSummary(year2Id || undefined, year2Label, { fiscalYearStatus: year2Status });
 
   const comparisonData = useMemo(() => {
     const incomeMap1 = buildMonthlyMap(summary1.income);
