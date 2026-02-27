@@ -1,59 +1,50 @@
 
 
-# إصلاح 3 مشاكل متبقية من الفحص الجنائي
+# إصلاح مشكلة "رقم الهوية غير مسجل في النظام"
 
-## 1. `guard-signup` -- فشل الدور يترك مستخدم بدون role
+## المشكلة الجذرية
 
-**الملف:** `supabase/functions/guard-signup/index.ts` سطور 102-110
+عند تسجيل الدخول برقم الهوية، الكود يتجاهل البريد المرجع من الخادم ويبني بريداً وهمياً `{رقم_الهوية}@waqf.app`. هذا يعمل لمعظم المستفيدين لأن الناظر أنشأهم ببريد `@waqf.app`، لكنه يفشل تماماً للمستفيد الذي بريده `alkayala15@gmail.com`.
 
-**المشكلة الحالية:** إذا فشل `insert` الدور في سطر 103-105، المستخدم يبقى موجوداً في auth بدون دور. التعليق يقول "لا نفشل العملية" لكن هذا يترك مستخدم يتيم.
+## البيانات الفعلية في قاعدة البيانات
 
-**الإصلاح:** إذا فشل insert الدور، نحذف المستخدم ونعيد خطأ:
+- 4 مستفيدين ببريد `@waqf.app` -- تسجيل الدخول يعمل لهم
+- مستفيد واحد ببريد `alkayala15@gmail.com` -- تسجيل الدخول بالهوية **مكسور** له
+
+## الحل (خيار أ -- الأبسط والأسرع)
+
+### تغيير 1: Edge Function `lookup-national-id` -- إرجاع البريد الكامل
+
+**الملف:** `supabase/functions/lookup-national-id/index.ts`
+
+إزالة منطق حجب البريد وإرجاعه كاملاً. الحجب لم يعد ضرورياً لأن:
+- الدالة محمية بـ Rate Limiting (3 محاولات/دقيقة)
+- تتطلب رقم هوية صحيح من 10 أرقام
+- الاتصال عبر HTTPS
+- البريد يُستخدم فقط داخلياً لتسجيل الدخول ولا يُعرض للمستخدم
+
+### تغيير 2: `Auth.tsx` سطر 154-155 -- استخدام البريد المرجع
+
+بدلاً من:
 ```text
-if (roleError) {
-  console.error("guard-signup role assignment error");
-  await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
-  return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
-    status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
-  });
-}
+resolvedEmail = `${cleanId}@waqf.app`;
 ```
 
-ملاحظة: هذا يتوافق مع نمط rollback المستخدم في `admin-manage-users` (سطر 244).
+يصبح:
+```text
+resolvedEmail = data.email;
+```
 
----
+## ملاحظات مهمة
 
-## 2. `auth-email-hook` -- توحيد CORS مع بقية الدوال
+- **البصمة (WebAuthn) لا تتأثر** -- تعمل عبر مسار مستقل تماماً (`webauthn -> getUserById -> magiclink`)
+- **لا حاجة لـ migration** -- دالة SQL `lookup_by_national_id` ترجع البريد من `beneficiaries.email` وهو مطابق لـ `auth.users.email` لأن كلاهما يُعيَّن عند الإنشاء في `admin-manage-users`
+- **لا حاجة لتعديل Types** -- لا تغيير في بنية قاعدة البيانات
 
-**الملف:** `supabase/functions/auth-email-hook/index.ts` سطر 12-16
-
-**المشكلة:** يستخدم `Access-Control-Allow-Origin: *` بينما بقية الدوال تستخدم `getCorsHeaders(req)`.
-
-**الإصلاح:** استبدال `corsHeaders` الثابت بـ `getCorsHeaders(req)` من `_shared/cors.ts`. الدالة مستوردة أصلاً (`import { getCorsHeaders } from ...` غير موجود حالياً). سنضيف الاستيراد ونستبدل الاستخدامات.
-
-ملاحظة: هذه الدالة هي webhook داخلي يتم التحقق منه عبر توقيع (`verifyWebhookRequest`) لذا المخاطر العملية منخفضة، لكن التوحيد مطلوب للنظافة المعمارية.
-
----
-
-## 3. CSP `unsafe-inline` -- لا يمكن إزالته حالياً
-
-**الملف:** `index.html` سطر 6
-
-**التوضيح:** `'unsafe-inline'` مطلوب لأن:
-- Vite يحقن inline scripts أثناء التطوير
-- الـ splash screen في body يستخدم inline `<style>` tags
-- إزالته ستكسر التطبيق تماماً
-
-**الإجراء:** لن نغيّر هذا. هذا قيد معماري من Vite. الحماية الفعلية ضد XSS تأتي من React's DOM escaping + CSP restrictions الأخرى (no eval, object-src none).
-
----
-
-## ملخص التغييرات
+## الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| `supabase/functions/guard-signup/index.ts` | Rollback المستخدم عند فشل الدور |
-| `supabase/functions/auth-email-hook/index.ts` | استبدال CORS wildcard بـ getCorsHeaders |
-
-ملاحظة: نشر الدوال سيتم تلقائياً بعد التعديل.
+| `supabase/functions/lookup-national-id/index.ts` | إزالة حجب البريد، إرجاعه كاملاً |
+| `src/pages/Auth.tsx` | استخدام `data.email` بدلاً من بناء بريد وهمي |
 
