@@ -67,7 +67,7 @@ const ReportsPage = () => {
   const handleExportPDF = async () => {
     const { generateAnnualReportPDF } = await import('@/utils/pdf');
     await generateAnnualReportPDF({
-      fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
+      fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
       totalIncome,
       totalExpenses,
       netRevenue,
@@ -227,7 +227,7 @@ const ReportsPage = () => {
             <Button onClick={async () => {
               const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
               await generateAnnualDisclosurePDF({
-                fiscalYear: currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ',
+                fiscalYear: currentAccount?.fiscal_year || fiscalYear?.label || '',
                 totalIncome,
                 totalExpenses,
                 waqfCorpusPrevious,
