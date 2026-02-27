@@ -1,31 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-// ⚠️ WARNING: In-memory rate limiting does NOT work reliably across distributed Edge Function instances.
-// Each instance maintains its own Map, so limits are per-instance, not global.
-// For production-grade rate limiting, consider using a shared store (Redis, KV, or database).
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 3;
-const RATE_WINDOW_MS = 60_000;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
-
-// Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of rateLimitMap) {
-    if (now > val.resetAt) rateLimitMap.delete(key);
-  }
-}, 5 * 60_000);
+const RATE_WINDOW_SECONDS = 60;
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -35,9 +12,31 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Rate limiting
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: "خطأ في إعدادات الخادم" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Rate limiting عبر قاعدة البيانات (يعمل بشكل موثوق عبر كل instances)
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    if (isRateLimited(clientIp)) {
+    const rateLimitKey = `lookup_nid:${clientIp}`;
+
+    const { data: isLimited } = await supabase.rpc('check_rate_limit', {
+      p_key: rateLimitKey,
+      p_limit: RATE_LIMIT,
+      p_window_seconds: RATE_WINDOW_SECONDS,
+    });
+
+    if (isLimited) {
       return new Response(
         JSON.stringify({ error: "تم تجاوز حد المحاولات، يرجى الانتظار دقيقة" }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -61,20 +60,6 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return new Response(
-        JSON.stringify({ error: "خطأ في إعدادات الخادم" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
 
     // Fixed delay to prevent timing-based enumeration
     const fixedDelay = 300;
@@ -102,7 +87,6 @@ Deno.serve(async (req) => {
     }
 
     // Identical response structure for both found and not-found
-    // Same status code (200) to prevent enumeration via status codes
     if (!email) {
       return new Response(
         JSON.stringify({ email: null, found: false }),
@@ -110,7 +94,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // حجب البريد الإلكتروني لمنع تسريب PII — يُعرض للمستخدم فقط كتلميح
+    // حجب البريد الإلكتروني لمنع تسريب PII
     const [localPart, domain] = email.split('@');
     const maskedLocal = localPart.length <= 2 ? '*'.repeat(localPart.length) : localPart.slice(0, 2) + '***';
     const maskedEmail = `${maskedLocal}@${domain}`;

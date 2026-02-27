@@ -30,10 +30,12 @@ export const useTenantPayments = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tenant_payments')
-        .select('*');
+        .select('*')
+        .limit(500);
       if (error) throw error;
       return data as TenantPayment[];
     },
+    staleTime: 60_000,
   });
 };
 

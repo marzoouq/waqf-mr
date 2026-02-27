@@ -59,5 +59,6 @@ export const useAuditLog = (filters?: {
       if (error) throw error;
       return (data || []) as AuditLogEntry[];
     },
+    staleTime: 30_000,
   });
 };

@@ -24,7 +24,8 @@ export function useWebAuthn() {
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(20);
     if (error) {
       logger.error('Failed to fetch credentials:', error.message);
       toast.error('تعذر جلب بيانات الاعتماد');
@@ -118,9 +119,9 @@ export function useWebAuthn() {
       // 2. تشغيل مطالبة البصمة
       const credential = await startAuthentication({ optionsJSON: options });
 
-      // 3. التحقق من البصمة
+      // 3. التحقق من البصمة — تمرير challenge_id لمنع race condition
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'auth-verify', credential },
+        body: { action: 'auth-verify', credential, challenge_id: options.challenge_id },
       });
 
       if (verErr || !result?.verified) {

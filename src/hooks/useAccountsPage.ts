@@ -136,7 +136,10 @@ export function useAccountsPage() {
     saveSetting('fiscal_year', val);
   };
 
-  const { totalIncome, totalExpenses } = computeTotals(income, expenses);
+  const { totalIncome, totalExpenses } = useMemo(
+    () => computeTotals(income, expenses),
+    [income, expenses]
+  );
 
   const vatPercentage = Number(appSettings.data?.['vat_percentage'] || '15');
   const residentialVatExempt = (appSettings.data?.['residential_vat_exempt'] || 'true') === 'true';
@@ -158,15 +161,15 @@ export function useAccountsPage() {
     .reduce((sum, c) => sum + Number(c.rent_amount), 0);
   const calculatedVat = commercialRent * (vatPercentage / 100);
 
-  const financials = calculateFinancials({
+  const financials = useMemo(() => calculateFinancials({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent,
     waqfCorpusManual, manualDistributions,
-  });
+  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
   const { grandTotal, netAfterExpenses, netAfterVat, netAfterZakat, adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance } = financials;
 
-  const incomeBySource = groupIncomeBySource(income);
-  const expensesByType = groupExpensesByType(expenses);
+  const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
+  const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
   const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
@@ -317,7 +320,7 @@ export function useAccountsPage() {
       }
 
       if (nextFYId) {
-        await supabase.from('accounts').insert({
+        const { error: seedErr } = await supabase.from('accounts').insert({
           fiscal_year: nextLabel,
           fiscal_year_id: nextFYId,
           waqf_corpus_previous: waqfCorpusManual,
@@ -326,6 +329,9 @@ export function useAccountsPage() {
           waqf_capital: 0, net_after_expenses: 0, net_after_vat: 0,
           zakat_amount: 0, waqf_corpus_manual: 0,
         });
+        if (seedErr) {
+          toast.error('تحذير: فشل إنشاء حساب السنة الجديدة تلقائياً');
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
