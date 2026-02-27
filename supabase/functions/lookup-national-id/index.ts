@@ -85,8 +85,12 @@ Deno.serve(async (req) => {
       if (!error && data && data.length > 0 && data[0]?.email) {
         email = data[0].email;
       }
-    } catch {
-      // Swallow DB errors - will return generic "not found" response
+    } catch (dbErr) {
+      console.error("lookup_by_national_id failed:", (dbErr as Error).message);
+      return new Response(
+        JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Ensure consistent response time regardless of result
@@ -103,13 +107,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // حجب البريد الإلكتروني لمنع تسريب PII
-    const [localPart, domain] = email.split('@');
-    const maskedLocal = localPart.length <= 2 ? '*'.repeat(localPart.length) : localPart.slice(0, 2) + '***';
-    const maskedEmail = `${maskedLocal}@${domain}`;
-
     return new Response(
-      JSON.stringify({ email: maskedEmail, found: true }),
+      JSON.stringify({ email, found: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
