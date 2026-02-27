@@ -2,67 +2,58 @@
 
 # إصلاح 3 مشاكل متبقية من الفحص الجنائي
 
-## 1. FiscalYearContext -- حماية من عرض بيانات 'all' قبل تحديد الدور
+## 1. `guard-signup` -- فشل الدور يترك مستخدم بدون role
 
-**الملف:** `src/contexts/FiscalYearContext.tsx`
+**الملف:** `supabase/functions/guard-signup/index.ts` سطور 102-110
 
-**المشكلة:** `isLoading` يخص fiscal_years فقط. عندما `role = null` (لم يُحمَّل بعد) يُحسب `isNonAdmin = false` فيُعاد `'all'` مؤقتاً.
+**المشكلة الحالية:** إذا فشل `insert` الدور في سطر 103-105، المستخدم يبقى موجوداً في auth بدون دور. التعليق يقول "لا نفشل العملية" لكن هذا يترك مستخدم يتيم.
 
-**الإصلاح:** استخدام `loading` من `useAuth()` (يغطي تحميل الدور) مع `isLoading` الخاص بالسنوات المالية:
-
+**الإصلاح:** إذا فشل insert الدور، نحذف المستخدم ونعيد خطأ:
 ```text
-const { role, loading: authLoading } = useAuth();
-// ...
-const fiscalYearId = (isLoading || authLoading)
-  ? '__none__'
-  : noPublishedYears ...
+if (roleError) {
+  console.error("guard-signup role assignment error");
+  await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
+  return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
+    status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
+  });
+}
 ```
 
-ملاحظة: `noPublishedYears` يحتاج نفس الحماية:
-```text
-const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
-```
+ملاحظة: هذا يتوافق مع نمط rollback المستخدم في `admin-manage-users` (سطر 244).
 
 ---
 
-## 2. accountsCalculations -- حماية shareBase من القيم السالبة
+## 2. `auth-email-hook` -- توحيد CORS مع بقية الدوال
 
-**الملف:** `src/utils/accountsCalculations.ts` سطر 47
+**الملف:** `supabase/functions/auth-email-hook/index.ts` سطر 12-16
 
-**المشكلة:** اذا المصروفات + الزكاة اكبر من الدخل، تصبح حصص الناظر والواقف سالبة.
+**المشكلة:** يستخدم `Access-Control-Allow-Origin: *` بينما بقية الدوال تستخدم `getCorsHeaders(req)`.
 
-**الإصلاح:** اضافة `Math.max(0, ...)` على shareBase:
+**الإصلاح:** استبدال `corsHeaders` الثابت بـ `getCorsHeaders(req)` من `_shared/cors.ts`. الدالة مستوردة أصلاً (`import { getCorsHeaders } from ...` غير موجود حالياً). سنضيف الاستيراد ونستبدل الاستخدامات.
 
-```text
-const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
-```
-
-هذا يمنع الحصص السالبة مع الحفاظ على باقي الحسابات (netAfterExpenses, netAfterVat, netAfterZakat) كما هي لعرض الخسارة الفعلية.
+ملاحظة: هذه الدالة هي webhook داخلي يتم التحقق منه عبر توقيع (`verifyWebhookRequest`) لذا المخاطر العملية منخفضة، لكن التوحيد مطلوب للنظافة المعمارية.
 
 ---
 
-## 3. useTenantPayments -- نقل منطق التحصيل الى RPC
+## 3. CSP `unsafe-inline` -- لا يمكن إزالته حالياً
 
-**الملف:** `src/hooks/useTenantPayments.ts` + Migration جديد
+**الملف:** `index.html` سطر 6
 
-**المشكلة:** SELECT ثم UPSERT ثم INSERT income -- ثلاث عمليات منفصلة بدون transaction. ضغطتان سريعتان تُسبب سجلات دخل مكررة.
+**التوضيح:** `'unsafe-inline'` مطلوب لأن:
+- Vite يحقن inline scripts أثناء التطوير
+- الـ splash screen في body يستخدم inline `<style>` tags
+- إزالته ستكسر التطبيق تماماً
 
-**الإصلاح:** انشاء Postgres Function `upsert_tenant_payment` تنفذ كل المنطق داخل transaction واحد:
-- تقرأ `paid_months` الحالي مع `FOR UPDATE`
-- تنفذ UPSERT على `tenant_payments`
-- تنشئ سجلات الدخل التلقائية اذا زادت الدفعات
-- تُعيد النتيجة
-
-ثم تحديث `useUpsertTenantPayment` لاستدعاء RPC بدلاً من المنطق الحالي.
+**الإجراء:** لن نغيّر هذا. هذا قيد معماري من Vite. الحماية الفعلية ضد XSS تأتي من React's DOM escaping + CSP restrictions الأخرى (no eval, object-src none).
 
 ---
 
-## ملخص الملفات المتأثرة
+## ملخص التغييرات
 
 | الملف | التغيير |
 |-------|---------|
-| `src/contexts/FiscalYearContext.tsx` | اضافة authLoading من useAuth |
-| `src/utils/accountsCalculations.ts` | Math.max(0, shareBase) |
-| Migration جديد | دالة upsert_tenant_payment |
-| `src/hooks/useTenantPayments.ts` | استدعاء RPC بدلاً من client-side logic |
+| `supabase/functions/guard-signup/index.ts` | Rollback المستخدم عند فشل الدور |
+| `supabase/functions/auth-email-hook/index.ts` | استبدال CORS wildcard بـ getCorsHeaders |
+
+ملاحظة: نشر الدوال سيتم تلقائياً بعد التعديل.
 
