@@ -1,24 +1,27 @@
 
 
-# إصلاح `r: any` في `useAdvanceRequests.ts`
+# تحديث ERD Mermaid في `docs/DATABASE.md`
 
 ## نظرة عامة
-استبدال `r: any` بنوع محدد في سطرَي 99 و 123 لتفعيل فحص TypeScript على خاصية `amount`.
+إضافة `fiscal_year_id` المفقود في مخطط ERD Mermaid وعلاقة `fiscal_years` مع `accounts`.
 
 ## التغييرات
 
-### ملف واحد: `src/hooks/useAdvanceRequests.ts`
+### ملف واحد: `docs/DATABASE.md`
 
-**سطر 99** (`usePaidAdvancesTotal`):
+**1. سطر 109-120** — إضافة `fiscal_year_id` في كتلة `accounts`:
 ```text
-// قبل
-(data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0)
-// بعد
-(data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0)
+    accounts {
+        uuid id PK
+        text fiscal_year
+        uuid fiscal_year_id FK "nullable"
+        numeric total_income
+        ...
+    }
 ```
 
-**سطر 123** (`useCarryforwardBalance`):
+**2. سطر 213** — إضافة علاقة بعد سطر `fiscal_years ||--o{ invoices`:
 ```text
-// نفس التغيير بالضبط
+    fiscal_years ||--o{ accounts : "سنة مالية"
 ```
 
