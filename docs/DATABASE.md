@@ -107,6 +107,7 @@ erDiagram
     accounts {
         uuid id PK
         text fiscal_year
+        uuid fiscal_year_id FK "nullable"
         numeric total_income
         numeric total_expenses
         numeric vat_amount
@@ -211,6 +212,7 @@ erDiagram
     fiscal_years ||--o{ income : "سنة مالية"
     fiscal_years ||--o{ expenses : "سنة مالية"
     fiscal_years ||--o{ invoices : "سنة مالية"
+    fiscal_years ||--o{ accounts : "سنة مالية"
     accounts ||--o{ distributions : "توزيعات"
     beneficiaries ||--o{ distributions : "يستلم"
     conversations ||--o{ messages : "رسائل"
