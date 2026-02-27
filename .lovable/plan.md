@@ -1,44 +1,47 @@
 
 
-# إصلاح 3 مشاكل متبقية
+# إصلاح بندين متبقيين
 
-## ملخص
-تم التحقق من الكود الفعلي وتأكيد أن الـ 3 بنود لا تزال قائمة.
+## ملخص التحقق
+من أصل 8 بنود في التقرير:
+- البند 1 (staleTime): مُصلح بالفعل (السطر 41 يحتوي `staleTime: 60_000`)
+- البنود 3/4 (fiscal_year_id): جدول `accounts` لا يحتوي عمود `fiscal_year_id` أصلاً — تغيير هيكلي كبير يحتاج migration منفصل
+- البنود 5-7 (as any / limit): منخفضة الأولوية، تمت مناقشتها سابقاً
 
----
-
-## البند 1: `Index.tsx` — fallback عند فشل `get_public_stats`
-
-**الملف:** `src/pages/Index.tsx` سطر 51-58
-
-**المشكلة:** إذا فشل استدعاء `get_public_stats` تبقى الإحصائيات على `'...'` للأبد بدون أي تغيير.
-
-**الإصلاح:** إضافة `else` block يعيد القيم إلى `'0'` عند الفشل.
+**بندان قابلان للإصلاح الآن:**
 
 ---
 
-## البند 2: `use-toast.ts` — تقليل `TOAST_REMOVE_DELAY`
+## البند 2 (MEDIUM): fiscalYear hardcoded في useAccountsPage
 
-**الملف:** `src/hooks/use-toast.ts` سطر 6
+**الملف:** `src/hooks/useAccountsPage.ts` سطر 54
 
-**المشكلة:** `TOAST_REMOVE_DELAY = 1000000` (16.6 دقيقة) — Toast المُغلق يبقى في الذاكرة لفترة طويلة جداً.
+**المشكلة:** القيمة الافتراضية `'25/10/1446 - 25/10/1447هـ'` مشفّرة. لكن السطر 66 يُحدّثها من `appSettings` عند التحميل، والسطر 72 يستخدم `selectedFY?.label` أولاً. المشكلة الحقيقية هي أن القيمة الافتراضية قد تظهر لحظياً قبل تحميل الإعدادات.
 
-**الإصلاح:** تغيير القيمة إلى `5000` (5 ثوانٍ).
+**الإصلاح:** تغيير القيمة الافتراضية إلى سلسلة فارغة `''` بحيث لا تُطابق أي حساب خطأً قبل تحميل الإعدادات الفعلية.
 
 ---
 
-## البند 3: `Auth.tsx` — إضافة error handling لـ `fetchSettings`
+## البند 8 (LOW): HTML injection في تقارير الطباعة
 
-**الملف:** `src/pages/Auth.tsx` سطر 102-114
+**الملفات:** `src/utils/printShareReport.ts` سطر 40، `src/utils/printDistributionReport.ts` سطر 45
 
-**المشكلة:** `useEffect` يجلب `registration_enabled` بدون `try/catch` ولا تحقق من `error`.
+**المشكلة:** أسماء المستفيدين تُدرج مباشرة في HTML بدون escaping. إذا احتوى الاسم على `<script>` أو علامات HTML، سيُنفَّذ في نافذة الطباعة.
 
-**الإصلاح:** إضافة `try/catch` و فحص `error` من الاستجابة. الحالة الافتراضية `false` هي الأكثر أماناً (لا تسجيل مفتوح).
+**الإصلاح:** إضافة دالة `escapeHtml` بسيطة واستخدامها قبل إدراج أي نص مستخدم في HTML:
+```text
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+```
+
+تطبيقها على: `beneficiaryName`, `d.beneficiary_name`, `waqfName`, `deedNumber`, `fiscalYearLabel`.
 
 ---
 
 ## ترتيب التنفيذ
-1. `Index.tsx` — error fallback
-2. `use-toast.ts` — TOAST_REMOVE_DELAY
-3. `Auth.tsx` — error handling
+1. `useAccountsPage.ts` — تغيير القيمة الافتراضية
+2. `printShareReport.ts` — إضافة escapeHtml
+3. `printDistributionReport.ts` — إضافة escapeHtml
 
