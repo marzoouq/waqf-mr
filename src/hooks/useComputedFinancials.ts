@@ -107,8 +107,12 @@ export const useComputedFinancials = ({
     return groupExpensesByType(filtered);
   }, [expenses]);
 
+  // إذا كانت هناك سنة مالية محددة ولم يُعثر على الحساب الختامي
+  const isAccountMissing = !currentAccount && !!fiscalYearId && fiscalYearId !== 'all';
+
   return {
     currentAccount,
+    isAccountMissing,
     adminPct,
     waqifPct,
     totalIncome,
