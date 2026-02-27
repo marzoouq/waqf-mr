@@ -1,72 +1,35 @@
 
 
-# خطة إصلاح البنود الأربعة المتبقية
+# خطة إصلاح البنود الثلاثة المتبقية (منخفضة التأثير)
 
-تم التحقق من كل بند مقابل الكود الفعلي. جميعها مؤكدة.
-
----
-
-## البنود والإصلاحات
-
-### 1. `src/hooks/useContracts.ts` — اضافة `staleTime` لـ `useContractsByFiscalYear`
-
-**المشكلة:** الهوك المنفصل `useContractsByFiscalYear` (سطر 24-41) لا يحتوي `staleTime`، بينما الـ factory حصل عليه. كل تركيز على النافذة يعيد جلب العقود.
-
-**الإصلاح:** اضافة `staleTime: 60_000` في `useQuery`.
+بعد التحقق الجنائي من الكود الفعلي، تبيّن أن 4 من 7 ادعاءات خاطئة (تستشهد بكود قديم مُصلَح). البنود الثلاثة المتبقية كلها تتعلق بخصوصية server logs.
 
 ---
 
-### 2. `execute_distribution` — حماية من التوزيع المزدوج (Idempotency Guard)
+## البنود المؤكدة
 
-**المشكلة:** استدعاء `execute_distribution` مرتين لنفس `account_id` و `fiscal_year_id` ينشئ توزيعات مكررة بدون أي فحص.
+### 1. `guard-signup/index.ts` سطر 37 — `rlError.message` في console.error
+- **الحالة:** يُسجّل تفاصيل خطأ rate limit الداخلية في server logs
+- **الإصلاح:** إزالة `.message` من `console.error("rate_limit check failed:", rlError.message)` ليصبح `console.error("rate_limit check failed")`
+- **التأثير:** منخفض — logs فقط
 
-**الإصلاح:** اضافة فحص في بداية الدالة:
-```text
-IF EXISTS (SELECT 1 FROM distributions WHERE account_id = p_account_id
-  AND (p_fiscal_year_id IS NULL OR fiscal_year_id = p_fiscal_year_id))
-THEN RAISE EXCEPTION 'تم توزيع حصص هذا الحساب مسبقاً';
-END IF;
-```
+### 2. `auth-email-hook/index.ts` سطر 208 — يُسجّل البريد الإلكتروني
+- **الحالة:** `console.log('Received auth event', { emailType, email: payload.data.email, run_id })` يُظهر البريد في server logs
+- **الإصلاح:** إزالة `email` من الكائن المُسجّل: `console.log('Received auth event', { emailType, run_id })`
+- **التأثير:** منخفض — تحسين خصوصية
 
----
-
-### 3. `execute_distribution` — التحقق من `p_total_distributed` داخل الخادم
-
-**المشكلة:** `p_total_distributed` يأتي من العميل مباشرة ويُحفظ في `accounts.distributions_amount` بدون مقارنة بالمجموع الفعلي المحسوب.
-
-**الإصلاح:** حساب المجموع الفعلي داخل الدالة واستخدامه بدلاً من القيمة المُمررة:
-```text
--- بعد انتهاء الحلقة، نحسب المجموع الفعلي
-v_actual_total := (SELECT COALESCE(SUM(amount), 0) FROM distributions
-  WHERE account_id = p_account_id AND fiscal_year_id = p_fiscal_year_id);
-
-UPDATE accounts SET distributions_amount = v_actual_total WHERE id = p_account_id;
-```
-مع التحقق من عدم وجود فرق كبير بين القيمتين كاشعار.
+### 3. `guard-signup/index.ts` سطر 28 — IP fallback `"unknown"`
+- **الحالة:** كل الطلبات بدون `x-forwarded-for` تشترك في bucket rate limit واحد
+- **الإصلاح:** لا يحتاج تغيير كود — Lovable Cloud proxy يضيف header دائماً. يمكن تحسينه بتغيير fallback إلى hash من headers أخرى متاحة لتمييز الطلبات بشكل أفضل، لكن الأثر العملي شبه معدوم
 
 ---
 
-### 4. `src/contexts/AuthContext.tsx` — تعميم رسالة خطأ `signUp`
+## ملخص التغييرات
 
-**المشكلة:** سطر 190: `error?.message` قد يكشف تفاصيل داخلية من Supabase (مثل اسماء الجداول أو رسائل PostgreSQL).
+| الملف | التغيير |
+|-------|---------|
+| `supabase/functions/guard-signup/index.ts` | حذف `.message` من سطر 37 |
+| `supabase/functions/auth-email-hook/index.ts` | حذف `email` من log سطر 208 |
 
-**الإصلاح:** استخدام `getSafeErrorMessage` الموجود بالفعل في المشروع:
-```text
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-// ...
-return { error: new Error(data?.error || getSafeErrorMessage(error)) };
-```
-
----
-
-## الملفات المتأثرة
-
-1. `src/hooks/useContracts.ts` — سطر واحد: اضافة `staleTime`
-2. `supabase/migrations/` — migration جديد لتحديث `execute_distribution` (idempotency + server-side total)
-3. `src/contexts/AuthContext.tsx` — سطر واحد: استخدام `getSafeErrorMessage`
-
-## ترتيب التنفيذ
-
-1. إصلاح `useContracts.ts` و `AuthContext.tsx` (تغييرات كود بسيطة)
-2. انشاء migration لتحديث `execute_distribution` (يتطلب موافقة)
+ملاحظة: البند الثالث (IP fallback) لا يحتاج تغيير فعلي — البيئة الحالية تضمن وجود header دائماً.
 
