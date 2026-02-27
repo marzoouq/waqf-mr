@@ -174,8 +174,13 @@ Deno.serve(async (req) => {
           });
         }
         if (!userId || !body.role) throw new Error("userId and role required");
-        const { error } = await adminClient.from("user_roles")
-          .upsert({ user_id: userId, role: body.role }, { onConflict: 'user_id' });
+        // حذف الدور القديم ثم إدراج الجديد (القيد الفريد على user_id+role وليس user_id وحده)
+        const { error: delError } = await adminClient.from("user_roles").delete().eq("user_id", userId);
+        if (delError) throw delError;
+        const { error } = await adminClient.from("user_roles").insert({
+          user_id: userId,
+          role: body.role,
+        });
         if (error) throw error;
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
