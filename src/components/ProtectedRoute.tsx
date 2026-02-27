@@ -8,7 +8,7 @@
  * إصلاح #3: حذف استدعاء supabase.auth.signOut() المباشر المكرر (Double Logout)
  * إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار لضمان تسجيل كل حدث وصول غير مصرح
  */
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -25,6 +25,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, role, loading, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const loggedRef = useRef(false);
 
   // إصلاح #9: إعادة ضبط loggedRef عند تغيير المسار
@@ -79,7 +80,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
             className="mt-2"
             onClick={async () => {
               await signOut();
-              window.location.href = '/auth';
+              navigate('/auth', { replace: true });
             }}
           >
             تسجيل الخروج

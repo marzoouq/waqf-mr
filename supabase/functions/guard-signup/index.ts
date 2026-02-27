@@ -3,6 +3,9 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// ⚠️ WARNING: In-memory rate limiting does NOT work reliably across distributed Edge Function instances.
+// Each instance maintains its own Map, so limits are per-instance, not global.
+// For production-grade rate limiting, consider using a shared store (Redis, KV, or database).
 const signupRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const SIGNUP_RATE_LIMIT = 5;
 const SIGNUP_RATE_WINDOW_MS = 60_000;
