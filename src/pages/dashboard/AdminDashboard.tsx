@@ -36,7 +36,9 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
-  } = useFinancialSummary(fiscalYearId, fiscalYear?.label);
+  } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
+    fiscalYearStatus: fiscalYear?.status,
+  });
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading;
 
@@ -87,15 +89,18 @@ const AdminDashboard = () => {
     return { onTime, late, total, percentage };
   }, [fyContracts, tenantPayments]);
 
+  const isYearActive = fiscalYear?.status === 'active';
+  const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
+
   const stats = [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
     { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary' },
     { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
-    { title: 'حصة الناظر', value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
-    { title: 'حصة الواقف', value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
-    { title: 'ريع الوقف للمستفيدين', value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
+    { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
+    { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
+    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 

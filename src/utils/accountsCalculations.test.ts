@@ -25,6 +25,7 @@ describe('calculateFinancials – التسلسل المالي الهرمي', () 
     waqifPercent: 5,
     waqfCorpusManual: 3_000,
     manualDistributions: 8_000,
+    isClosed: true,
   };
 
   it('يحسب الإجمالي الشامل = إيرادات + رصيد مرحل', () => {
@@ -81,13 +82,30 @@ describe('calculateFinancials – التسلسل المالي الهرمي', () 
     const r = calculateFinancials({
       totalIncome: 0, totalExpenses: 0, waqfCorpusPrevious: 0,
       manualVat: 0, zakatAmount: 0, adminPercent: 10, waqifPercent: 5,
-      waqfCorpusManual: 0, manualDistributions: 0,
+      waqfCorpusManual: 0, manualDistributions: 0, isClosed: true,
     });
     expect(r.grandTotal).toBe(0);
     expect(r.shareBase).toBe(0);
     expect(r.adminShare).toBe(0);
     expect(r.waqfRevenue).toBe(0);
     expect(r.remainingBalance).toBe(0);
+  });
+
+  it('سنة نشطة (isClosed=false) تصفّر الحصص', () => {
+    const r = calculateFinancials({ ...base, isClosed: false });
+    expect(r.grandTotal).toBe(130_000);
+    expect(r.netAfterExpenses).toBe(100_000);
+    expect(r.adminShare).toBe(0);
+    expect(r.waqifShare).toBe(0);
+    expect(r.waqfRevenue).toBe(r.netAfterZakat);
+    expect(r.availableAmount).toBe(0);
+    expect(r.remainingBalance).toBe(0);
+  });
+
+  it('isClosed افتراضي = true', () => {
+    const { isClosed: _, ...withoutClosed } = base;
+    const r = calculateFinancials(withoutClosed);
+    expect(r.adminShare).toBe(8_800);
   });
 });
 
@@ -185,6 +203,7 @@ describe('تكامل: تطابق calculateFinancials مع سجل حساب مخز
     waqifPercent: 5,
     waqfCorpusManual: storedAccount.waqf_corpus_manual,
     manualDistributions: storedAccount.distributions_amount,
+    isClosed: true,
   };
 
   const result = calculateFinancials(params);
@@ -297,8 +316,8 @@ describe('حالات حدية للحسابات المالية', () => {
       waqfCorpusManual: 0,
       manualDistributions: 0,
     });
-    expect(r.shareBase).toBe(-30_000);
-    expect(r.adminShare).toBe(-3_000);
+    expect(r.shareBase).toBe(0); // Math.max(0, ...) clamps negative
+    expect(r.adminShare).toBe(0);
   });
 
   it('نسب حصص صفرية لا تُنتج NaN', () => {

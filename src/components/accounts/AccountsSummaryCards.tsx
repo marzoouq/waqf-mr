@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator } from 'lucide-react';
+import { Calculator, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AccountsSummaryCardsProps {
   waqfCorpusPrevious: number;
@@ -18,6 +19,8 @@ interface AccountsSummaryCardsProps {
   waqfCorpusManual: number;
   manualDistributions: number;
   remainingBalance: number;
+  /** Whether the fiscal year is closed — if false and forcePreview, shows estimate notice */
+  isClosed?: boolean;
 }
 
 const AccountsSummaryCards = ({
@@ -25,6 +28,7 @@ const AccountsSummaryCards = ({
   netAfterExpenses, manualVat, netAfterVat, zakatAmount,
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, manualDistributions, remainingBalance,
+  isClosed = true,
 }: AccountsSummaryCardsProps) => {
   return (
     <Card className="shadow-sm gradient-hero text-primary-foreground">
@@ -35,6 +39,14 @@ const AccountsSummaryCards = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {!isClosed && (
+          <Alert className="mb-4 border-warning/50 bg-warning/20 text-primary-foreground">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              هذه أرقام تقديرية — يتم اعتمادها رسمياً عند إقفال السنة المالية
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
