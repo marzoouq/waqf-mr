@@ -13,7 +13,7 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/useContractAllocations';
+import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,23 +50,37 @@ export function useAccountsPage() {
   const upsertPayment = useUpsertTenantPayment();
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
-  const { data: allocations = [] } = useContractAllocations(fiscalYearId);
 
-  // Build a map of contract_id -> allocation for the selected fiscal year
+  // Dynamic allocation: compute contract allocations in memory instead of fetching from DB
   const allocationMap = useMemo(() => {
     const map = new Map<string, { allocated_payments: number; allocated_amount: number }>();
-    for (const a of allocations) {
-      map.set(a.contract_id, { allocated_payments: a.allocated_payments, allocated_amount: a.allocated_amount });
+    if (!fiscalYearId || fiscalYearId === 'all' || fiscalYears.length === 0) return map;
+    for (const c of allContracts) {
+      const allocs = allocateContractToFiscalYears(
+        {
+          id: c.id,
+          start_date: c.start_date,
+          end_date: c.end_date,
+          rent_amount: Number(c.rent_amount),
+          payment_type: c.payment_type,
+          payment_count: c.payment_count,
+          payment_amount: c.payment_amount ? Number(c.payment_amount) : undefined,
+        },
+        fiscalYears
+      );
+      const match = allocs.find(a => a.fiscal_year_id === fiscalYearId);
+      if (match) {
+        map.set(c.id, { allocated_payments: match.allocated_payments, allocated_amount: match.allocated_amount });
+      }
     }
     return map;
-  }, [allocations]);
+  }, [allContracts, fiscalYearId, fiscalYears]);
 
   const contracts = useMemo(() => {
     if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
-    // Include contracts that have allocations for this FY OR are directly assigned to it
-    const allocatedIds = new Set(allocations.map(a => a.contract_id));
-    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocatedIds.has(c.id));
-  }, [allContracts, fiscalYearId, allocations]);
+    // Include contracts that have dynamic allocations for this FY OR are directly assigned to it
+    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocationMap.has(c.id));
+  }, [allContracts, fiscalYearId, allocationMap]);
 
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
