@@ -7,6 +7,17 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 // Apply saved theme before render
 initThemeFromStorage();
 
+// ─── Suppress forwardRef warnings from third-party libraries ───
+const SUPPRESSED_COMPONENTS = ['QueryClientProvider', 'TooltipProvider', 'ToastProvider', 'BrowserRouter', 'Routes'];
+const origConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('Function components cannot be given refs')) {
+    const msg = String(args[0]);
+    if (SUPPRESSED_COMPONENTS.some(c => msg.includes(c))) return;
+  }
+  origConsoleError.apply(console, args);
+};
+
 // ─── PWA: Purge stale caches on version change ───
 const APP_CACHE_VERSION = 'v-' + (import.meta.env.VITE_BUILD_TIME || Date.now());
 const CACHE_VERSION_KEY = 'pwa_cache_version';
