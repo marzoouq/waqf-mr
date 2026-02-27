@@ -1,14 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
-import { Wallet, FileText, TrendingUp, TrendingDown, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { generateAccountsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -46,24 +44,11 @@ const AccountsViewPage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
 
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
-
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-
-  const totalRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   const myShare = currentBeneficiary
     ? (availableAmount * Number(currentBeneficiary.share_percentage)) / 100
     : 0;
-
-  const statusLabel = (status: string) => {
-    switch (status) {
-      case 'active': return 'نشط';
-      case 'expired': return 'منتهي';
-      case 'cancelled': return 'ملغي';
-      default: return status;
-    }
-  };
 
   if (finError) {
     return (
@@ -118,18 +103,13 @@ const AccountsViewPage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الحسابات الختامية</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض تفصيلي للحسابات الختامية للوقف</p>
+            <p className="text-muted-foreground mt-1 text-sm">ملخص الأرقام النهائية للحسابات الختامية</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({
-                  contracts: contracts.map(c => ({
-                    contract_number: c.contract_number,
-                    tenant_name: c.tenant_name,
-                    rent_amount: Number(c.rent_amount),
-                    status: c.status,
-                  })),
+                  contracts: [],
                   incomeBySource,
                   expensesByType,
                   totalIncome,
@@ -214,140 +194,23 @@ const AccountsViewPage = () => {
           </Card>
         )}
 
-        {/* Contracts */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-              العقود
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {contracts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table className="min-w-[600px]">
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right w-12">#</TableHead>
-                      <TableHead className="text-right">رقم العقد</TableHead>
-                      <TableHead className="text-right">المستأجر</TableHead>
-                      <TableHead className="text-right">الإيجار السنوي</TableHead>
-                      <TableHead className="text-right">الإيجار الشهري</TableHead>
-                      <TableHead className="text-right">الحالة</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contracts.map((contract, index) => (
-                      <TableRow key={contract.id}>
-                        <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                        <TableCell>{contract.tenant_name}</TableCell>
-                        <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
-                        <TableCell className="font-bold text-primary">{Math.round(Number(contract.rent_amount) / 12).toLocaleString()} ريال</TableCell>
-                        <TableCell>{statusLabel(contract.status)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow className="bg-muted/70 font-bold">
-                      <TableCell>الإجمالي</TableCell>
-                      <TableCell></TableCell>
-                      <TableCell>{contracts.length} عقد</TableCell>
-                      <TableCell className="text-primary font-bold">{totalRent.toLocaleString()} ريال</TableCell>
-                      <TableCell className="text-primary font-bold">{Math.round(totalRent / 12).toLocaleString()} ريال</TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
+        {/* Link to Disclosure for full details */}
+        <Card className="shadow-sm border-primary/20 bg-primary/5">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">تبحث عن التفاصيل الكاملة؟</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  جداول العقود وتفصيل الإيرادات والمصروفات متاحة في صفحة الإفصاح السنوي
+                </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Income Details */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
-              تفصيل الإيرادات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table className="min-w-[400px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">المصدر</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.entries(incomeBySource).map(([source, amount]) => (
-                    <TableRow key={source}>
-                      <TableCell className="font-medium">{source}</TableCell>
-                      <TableCell className="text-success">+{amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-              <span className="font-medium text-sm">إجمالي الإيرادات</span>
-              <span className="font-bold text-success text-sm sm:text-base">+{totalIncome.toLocaleString()} ريال</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Expenses Details */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
-              تفصيل المصروفات
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table className="min-w-[400px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">النوع</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Object.entries(expensesByType).map(([type, amount]) => (
-                    <TableRow key={type}>
-                      <TableCell className="font-medium">{type}</TableCell>
-                      <TableCell className="text-destructive">-{amount.toLocaleString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
-              <span className="font-medium text-sm">إجمالي المصروفات</span>
-              <span className="font-bold text-destructive text-sm sm:text-base">-{totalExpenses.toLocaleString()} ريال</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Link to Disclosure */}
-        <Card className="shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                للاطلاع على التسلسل المالي الكامل وتوزيع الحصص
-              </p>
               <Button
-                variant="link"
-                className="text-primary gap-1 px-0 sm:px-3"
+                variant="outline"
+                className="gap-2 border-primary/30 hover:bg-primary/10 shrink-0"
                 onClick={() => navigate('/beneficiary/disclosure')}
               >
                 <PieChart className="w-4 h-4" />
-                صفحة الإفصاح السنوي
+                الإفصاح السنوي
               </Button>
             </div>
           </CardContent>
