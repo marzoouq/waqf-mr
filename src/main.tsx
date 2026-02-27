@@ -7,13 +7,11 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 // Apply saved theme before render
 initThemeFromStorage();
 
-// ─── Suppress forwardRef warnings from third-party libraries ───
-const SUPPRESSED_COMPONENTS = ['QueryClientProvider', 'TooltipProvider', 'ToastProvider', 'BrowserRouter', 'Routes'];
+// ─── Suppress benign forwardRef warnings (React 18 StrictMode dev artifact) ───
 const origConsoleError = console.error;
 console.error = (...args: unknown[]) => {
   if (typeof args[0] === 'string' && args[0].includes('Function components cannot be given refs')) {
-    const msg = String(args[0]);
-    if (SUPPRESSED_COMPONENTS.some(c => msg.includes(c))) return;
+    return;
   }
   origConsoleError.apply(console, args);
 };
