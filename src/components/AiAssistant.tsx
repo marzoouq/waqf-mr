@@ -30,20 +30,30 @@ const AiAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<ChatMode>('chat');
   const endRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
 
+  useEffect(() => {
+    return () => abortControllerRef.current?.abort();
+  }, []);
+
   const handleModeChange = (newMode: string) => {
     if (newMode === mode) return;
+    abortControllerRef.current?.abort();
     setMode(newMode as ChatMode);
     setMessages([]);
+    setIsLoading(false);
   };
 
   const send = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
+
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     const userMsg: Msg = { role: 'user', content: trimmed };
     const allMessages = [...messages, userMsg];
@@ -67,6 +77,7 @@ const AiAssistant = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ messages: allMessages, mode }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!resp.ok || !resp.body) {
@@ -111,6 +122,7 @@ const AiAssistant = () => {
         }
       }
     } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return;
       setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${e instanceof Error ? e.message : 'حدث خطأ'}` }]);
     } finally {
       setIsLoading(false);
@@ -175,7 +187,7 @@ const AiAssistant = () => {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => setOpen(false)}>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => { abortControllerRef.current?.abort(); setOpen(false); }}>
               <X className="w-4 h-4" />
             </Button>
           </div>
