@@ -158,91 +158,13 @@ const FinancialReportsPage = () => {
           </div>
         </div>
 
-        {/* Summary Cards - improved mobile grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-4 h-4 sm:w-6 sm:h-6 text-success" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي الإيرادات</p>
-                  <p className="text-sm sm:text-xl font-bold text-success truncate">{totalIncome.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-destructive/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
-                  <p className="text-sm sm:text-xl font-bold text-destructive truncate">{totalExpenses.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">الصافي بعد الضريبة</p>
-                  <p className="text-sm sm:text-xl font-bold text-primary truncate">{netAfterVat.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm gradient-primary text-primary-foreground">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <PieChart className="w-4 h-4 sm:w-6 sm:h-6" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصتي</p>
-                  <p className="text-sm sm:text-xl font-bold truncate">{myShare.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6 text-warning" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">الزكاة</p>
-                  <p className="text-sm sm:text-xl font-bold text-warning truncate">{zakatAmount.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] sm:text-sm text-muted-foreground">رقبة الوقف</p>
-                  <p className="text-sm sm:text-xl font-bold text-accent-foreground truncate">{waqfCorpusManual.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Subtitle */}
+        <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 text-center">
+          التحليل البياني للبيانات المالية — للأرقام التفصيلية راجع{' '}
+          <Button variant="link" className="px-1 h-auto text-sm" onClick={() => window.location.href = '/beneficiary/disclosure'}>
+            صفحة الإفصاح السنوي
+          </Button>
+        </p>
 
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
