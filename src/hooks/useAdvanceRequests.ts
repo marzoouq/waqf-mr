@@ -41,9 +41,10 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
     staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
-        .from('advance_requests' as any)
+      .from('advance_requests')
         .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
@@ -64,7 +65,7 @@ export const useMyAdvanceRequests = (beneficiaryId?: string) => {
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
-        .from('advance_requests' as any)
+        .from('advance_requests')
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
         .order('created_at', { ascending: false })
@@ -86,7 +87,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
-        .from('advance_requests' as any)
+        .from('advance_requests')
         .select('amount')
         .eq('beneficiary_id', beneficiaryId)
         .eq('status', 'paid');
@@ -112,7 +113,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
       if (!beneficiaryId) return 0;
       // جلب كل المرحّل النشط الذي يستهدف هذه السنة أو بدون سنة مستهدفة
       let query = supabase
-        .from('advance_carryforward' as any)
+        .from('advance_carryforward')
         .select('amount')
         .eq('beneficiary_id', beneficiaryId)
         .eq('status', 'active');
@@ -135,7 +136,7 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
-        .from('advance_carryforward' as any)
+        .from('advance_carryforward')
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
         .order('created_at', { ascending: false })
@@ -153,9 +154,10 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
 export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'all', fiscalYearId],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
-        .from('advance_carryforward' as any)
+        .from('advance_carryforward')
         .select('*, beneficiary:beneficiaries(id, name)')
         .eq('status', 'active');
       if (fiscalYearId) {
@@ -176,7 +178,7 @@ export const useCreateAdvanceRequest = () => {
   return useMutation({
     mutationFn: async (req: { beneficiary_id: string; fiscal_year_id?: string; amount: number; reason?: string }) => {
       const { data, error } = await supabase
-        .from('advance_requests' as any)
+        .from('advance_requests')
         .insert({ ...req, status: 'pending' })
         .select()
         .single();
@@ -218,7 +220,7 @@ export const useUpdateAdvanceStatus = () => {
         updates.rejection_reason = rejection_reason;
       }
       const { error } = await supabase
-        .from('advance_requests' as any)
+        .from('advance_requests')
         .update(updates)
         .eq('id', id);
       if (error) throw error;

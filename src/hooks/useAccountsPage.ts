@@ -19,6 +19,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+/** Module-level helper: find account by fiscal year (UUID first, then label fallback) */
+function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
+  accts: T[],
+  fy: { id: string; label: string } | null
+): T | null {
+  if (fy) {
+    return accts.find(a =>
+      (fy.id && a.fiscal_year_id === fy.id) ||
+      a.fiscal_year === fy.label
+    ) ?? null;
+  }
+  return accts.length === 1 ? accts[0] : null;
+}
+
 export function useAccountsPage() {
   const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
@@ -67,16 +81,8 @@ export function useAccountsPage() {
     }
   }, [appSettings.data]);
 
-  const findAccount = (accts: typeof accounts, fy: typeof selectedFY) =>
-    fy
-      ? accts.find(a =>
-          (fy.id && a.fiscal_year_id === fy.id) ||
-          a.fiscal_year === fy.label
-        ) ?? null
-      : accts.length === 1 ? accts[0] : null;
-
   useEffect(() => {
-    const matchingAccount = findAccount(accounts, selectedFY);
+    const matchingAccount = findAccountByFY(accounts, selectedFY);
     if (matchingAccount) {
       if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
       if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
@@ -465,7 +471,7 @@ export function useAccountsPage() {
     });
   };
 
-  const currentAccount = findAccount(accounts, selectedFY);
+  const currentAccount = findAccountByFY(accounts, selectedFY);
 
   return {
     // Data
