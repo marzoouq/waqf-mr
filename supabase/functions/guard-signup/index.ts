@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     // Fail-closed: إذا فشل التحقق من rate limit نرفض الطلب احترازياً
     if (rlError) {
-      console.error("rate_limit check failed:", rlError.message);
+      console.error("rate_limit check failed");
       return new Response(
         JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
