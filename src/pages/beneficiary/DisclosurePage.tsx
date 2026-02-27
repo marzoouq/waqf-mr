@@ -107,7 +107,7 @@ const DisclosurePage = () => {
   const handleDownloadPDF = async () => {
     try {
       await generateDisclosurePDF({
-        fiscalYear,
+        fiscalYear: gregorianFiscalYear,
         beneficiaryName: currentBeneficiary?.name || '',
         sharePercentage: 0,
         myShare,
@@ -130,7 +130,7 @@ const DisclosurePage = () => {
     try {
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary?.name || '',
-        fiscalYear,
+        fiscalYear: gregorianFiscalYear,
         totalIncome,
         totalExpenses,
         netAfterExpenses,
