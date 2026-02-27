@@ -1,5 +1,9 @@
 import { toast } from 'sonner';
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 interface PrintShareReportParams {
   beneficiaryName: string;
   beneficiariesShare: number;
@@ -37,7 +41,7 @@ export function printShareReport(params: PrintShareReportParams) {
   }
 
   printWindow.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
-    <title>تقرير التوزيع - ${beneficiaryName}</title>
+    <title>تقرير التوزيع - ${escapeHtml(beneficiaryName)}</title>
     <style>
       @font-face { font-family: 'Amiri'; font-style: normal; font-weight: 400; src: url('${window.location.origin}/fonts/Amiri-Regular.woff2') format('woff2'), url('${window.location.origin}/fonts/Amiri-Regular.ttf') format('truetype'); }
       @font-face { font-family: 'Amiri'; font-style: normal; font-weight: 700; src: url('${window.location.origin}/fonts/Amiri-Bold.woff2') format('woff2'), url('${window.location.origin}/fonts/Amiri-Bold.ttf') format('truetype'); }
@@ -55,11 +59,11 @@ export function printShareReport(params: PrintShareReportParams) {
       @media print { body { padding: 20px; } }
     </style></head><body>
     <h1>تقرير توزيع الحصة</h1>
-    <p class="subtitle">السنة المالية: ${fiscalYearLabel || '—'}</p>
+    <p class="subtitle">السنة المالية: ${escapeHtml(fiscalYearLabel || '—')}</p>
 
     <p class="section-title">بيانات المستفيد</p>
     <table>
-      <tr><th>الاسم</th><td>${beneficiaryName}</td></tr>
+      <tr><th>الاسم</th><td>${escapeHtml(beneficiaryName)}</td></tr>
       <tr><th>نسبة الحصة</th><td>محجوبة</td></tr>
       <tr><th>إجمالي الريع المتاح للتوزيع</th><td>${beneficiariesShare.toLocaleString()} ر.س</td></tr>
     </table>

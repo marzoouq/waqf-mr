@@ -51,7 +51,7 @@ export function useAccountsPage() {
   // Editable settings
   const [adminPercent, setAdminPercent] = useState(10);
   const [waqifPercent, setWaqifPercent] = useState(5);
-  const [fiscalYear, setFiscalYear] = useState('25/10/1446 - 25/10/1447هـ');
+  const [fiscalYear, setFiscalYear] = useState('');
   const [zakatAmount, setZakatAmount] = useState(0);
   const [waqfCorpusManual, setWaqfCorpusManual] = useState(0);
   const [waqfCorpusPrevious, setWaqfCorpusPrevious] = useState(0);
