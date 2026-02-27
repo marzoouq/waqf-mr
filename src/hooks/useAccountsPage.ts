@@ -13,6 +13,7 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useProperties } from '@/hooks/useProperties';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useContractAllocations } from '@/hooks/useContractAllocations';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,11 +50,23 @@ export function useAccountsPage() {
   const upsertPayment = useUpsertTenantPayment();
 
   const { fiscalYearId, fiscalYear: selectedFY, fiscalYears, isClosed } = useFiscalYear();
+  const { data: allocations = [] } = useContractAllocations(fiscalYearId);
+
+  // Build a map of contract_id -> allocation for the selected fiscal year
+  const allocationMap = useMemo(() => {
+    const map = new Map<string, { allocated_payments: number; allocated_amount: number }>();
+    for (const a of allocations) {
+      map.set(a.contract_id, { allocated_payments: a.allocated_payments, allocated_amount: a.allocated_amount });
+    }
+    return map;
+  }, [allocations]);
 
   const contracts = useMemo(() => {
     if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
-    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId);
-  }, [allContracts, fiscalYearId]);
+    // Include contracts that have allocations for this FY OR are directly assigned to it
+    const allocatedIds = new Set(allocations.map(a => a.contract_id));
+    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocatedIds.has(c.id));
+  }, [allContracts, fiscalYearId, allocations]);
 
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
@@ -172,7 +185,10 @@ export function useAccountsPage() {
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
-  const totalAnnualRent = contracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  const totalAnnualRent = contracts.reduce((sum, c) => {
+    const allocation = allocationMap.get(c.id);
+    return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+  }, 0);
 
   const getPaymentPerPeriod = (contract: typeof contracts[0]) => {
     const rent = Number(contract.rent_amount);
@@ -182,6 +198,10 @@ export function useAccountsPage() {
   };
 
   const getExpectedPayments = (contract: typeof contracts[0]) => {
+    // If allocation exists for this FY, use allocated payments
+    const allocation = allocationMap.get(contract.id);
+    if (allocation) return allocation.allocated_payments;
+    // Fallback to full contract payments
     if (contract.payment_type === 'monthly') return 12;
     if (contract.payment_type === 'multi') return contract.payment_count || 1;
     return 1;

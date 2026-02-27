@@ -376,6 +376,54 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_fiscal_allocations: {
+        Row: {
+          allocated_amount: number
+          allocated_payments: number
+          contract_id: string
+          created_at: string
+          fiscal_year_id: string
+          id: string
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          allocated_amount?: number
+          allocated_payments?: number
+          contract_id: string
+          created_at?: string
+          fiscal_year_id: string
+          id?: string
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          allocated_amount?: number
+          allocated_payments?: number
+          contract_id?: string
+          created_at?: string
+          fiscal_year_id?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_fiscal_allocations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_fiscal_allocations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           contract_number: string
