@@ -24,8 +24,9 @@ const SecurityGuard = () => {
 
     // Disable text selection on sensitive content
     const handleSelectStart = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target?.closest('[data-sensitive]')) {
+      const target = e.target as Node;
+      const el = target instanceof HTMLElement ? target : target?.parentElement;
+      if (el?.closest('[data-sensitive]')) {
         e.preventDefault();
       }
     };
