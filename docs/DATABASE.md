@@ -588,7 +588,7 @@ erDiagram
 
 ---
 
-## الدوال المخزنة (Functions) — 20 دالة
+## الدوال المخزنة (Functions) — 21 دالة
 
 | الدالة | الوصف | الصلاحية |
 |--------|-------|----------|
@@ -610,8 +610,10 @@ erDiagram
 | `get_pii_key()` | جلب مفتاح التشفير من الإعدادات | SECURITY DEFINER |
 | `lookup_by_national_id(p_national_id)` | البحث عن مستفيد برقم الهوية | SECURITY DEFINER |
 | `cleanup_expired_challenges()` | حذف تحديات WebAuthn المنتهية | SECURITY DEFINER |
-| `cron_archive_old_access_logs()` | أرشفة سجلات الوصول القديمة | SECURITY DEFINER |
+| `cron_archive_old_access_logs()` | أرشفة سجلات الوصول القديمة (أكثر من 6 أشهر) | SECURITY DEFINER |
 | `cron_auto_expire_contracts()` | انتهاء العقود المنتهية تلقائياً | SECURITY DEFINER |
+| `cron_check_contract_expiry()` | تنبيه العقود القريبة من الانتهاء (30 يوم). الأدمن يتلقى تفاصيل كاملة (`msg`)، المستفيدون يتلقون رسالة عامة (`ben_msg`) بدون أسماء مستأجرين | SECURITY DEFINER |
+| `cron_cleanup_old_notifications()` | حذف الإشعارات المقروءة القديمة (أكثر من 90 يوم) | SECURITY DEFINER |
 
 ### قيود `log_access_event` الأمنية:
 - المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
