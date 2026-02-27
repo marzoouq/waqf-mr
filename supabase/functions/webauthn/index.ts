@@ -100,13 +100,16 @@ Deno.serve(async (req: Request) => {
 
       // تنظيف التحديات القديمة ثم حفظ التحدي الجديد
       await admin.rpc("cleanup_expired_challenges");
-      await admin.from("webauthn_challenges").insert({
+      const { data: insertedChallenge } = await admin.from("webauthn_challenges").insert({
         user_id: user.id,
         challenge: options.challenge,
         type: "registration",
-      });
+      }).select("id").single();
 
-      return new Response(JSON.stringify(options), { headers: { ...cors, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({
+        ...options,
+        challenge_id: insertedChallenge?.id || null,
+      }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
     // ─── تسجيل البصمة: التحقق من الاستجابة ───
@@ -114,17 +117,32 @@ Deno.serve(async (req: Request) => {
       const user = await getAuthUser(req);
       if (!user) return new Response(JSON.stringify({ error: "غير مصرح" }), { status: 401, headers: cors });
 
-      const { credential, deviceName } = body;
+      const { credential, deviceName, challenge_id } = body;
 
-      // جلب التحدي المحفوظ
-      const { data: challengeRow } = await admin
-        .from("webauthn_challenges")
-        .select("challenge")
-        .eq("user_id", user.id)
-        .eq("type", "registration")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+      // جلب التحدي بواسطة challenge_id المحدد (بدل ORDER BY الأحدث)
+      let challengeRow: { challenge: string } | null = null;
+
+      if (challenge_id) {
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("challenge")
+          .eq("id", challenge_id)
+          .eq("user_id", user.id)
+          .eq("type", "registration")
+          .single();
+        challengeRow = data;
+      } else {
+        // Fallback للتوافق مع العملاء القدامى
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("challenge")
+          .eq("user_id", user.id)
+          .eq("type", "registration")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        challengeRow = data;
+      }
 
       if (!challengeRow) {
         return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });

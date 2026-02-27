@@ -312,8 +312,9 @@ async function fetchWaqfData(
     if (isAdmin) {
       const { data: beneficiaries } = await client
         .from("beneficiaries")
-        .select("name, share_percentage, email, phone")
-        .order("share_percentage", { ascending: false });
+        .select("name, share_percentage")
+        .order("share_percentage", { ascending: false })
+        .limit(50);
 
       if (beneficiaries?.length) {
         sections.push(`\n### المستفيدون (${beneficiaries.length} مستفيد):`);

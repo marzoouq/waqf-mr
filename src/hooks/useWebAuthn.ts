@@ -67,9 +67,9 @@ export function useWebAuthn() {
       // 2. تشغيل مطالبة البصمة في المتصفح
       const credential = await startRegistration({ optionsJSON: options });
 
-      // 3. إرسال النتيجة للتحقق
+      // 3. إرسال النتيجة للتحقق — تمرير challenge_id لمنع race condition
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-        body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName() },
+        body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName(), challenge_id: options.challenge_id },
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
