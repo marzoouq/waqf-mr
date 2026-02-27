@@ -28,8 +28,6 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   ascending?: boolean;
   /** Max rows to fetch – defaults to 500 */
   limit?: number;
-  /** Fields to omit when creating (always omits 'id' and 'created_at') */
-  omitOnCreate?: string[];
   /** Arabic entity label for toast messages (e.g. 'العقار') */
   label: string;
   /** Callback after successful create – receives the created row */

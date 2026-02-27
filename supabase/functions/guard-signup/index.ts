@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!password || typeof password !== "string" || password.length < 6 || password.length > 128) {
-      return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تكون بين 6 و 128 حرفاً" }), {
+    if (!password || typeof password !== "string" || password.length < 8 || password.length > 128) {
+      return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
