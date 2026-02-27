@@ -177,7 +177,7 @@ const Index = () => {
           <ChevronDown className="w-6 h-6 text-white/40" />
         </div>
       </header>
-      <section className="py-20 md:py-28 relative">
+      <section className="py-20 md:py-28 relative" style={{ contain: 'layout' }}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-slide-up">
             <div className="ornament-divider mb-6">
