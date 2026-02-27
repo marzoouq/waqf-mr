@@ -35,10 +35,11 @@ const BeneficiariesPage = () => {
 
   const { data: users = [] } = useQuery({
     queryKey: ['beneficiary-users'],
+    staleTime: 60_000,
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-        body: { action: 'list_users' },
+        body: { action: 'list_users', per_page: 100 },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;

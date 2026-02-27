@@ -30,11 +30,20 @@ Deno.serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
-    const { data: isLimited } = await supabase.rpc('check_rate_limit', {
+    const { data: isLimited, error: rlError } = await supabase.rpc('check_rate_limit', {
       p_key: rateLimitKey,
       p_limit: RATE_LIMIT,
       p_window_seconds: RATE_WINDOW_SECONDS,
     });
+
+    // Fail-closed: إذا فشل التحقق من rate limit نرفض الطلب احترازياً
+    if (rlError) {
+      console.error("rate_limit check failed:", rlError.message);
+      return new Response(
+        JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (isLimited) {
       return new Response(

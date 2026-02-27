@@ -188,10 +188,10 @@ export function useAccountsPage() {
 
   const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
 
-  const paymentMap = tenantPayments.reduce((acc, p) => {
+  const paymentMap = useMemo(() => tenantPayments.reduce((acc, p) => {
     acc[p.contract_id] = p;
     return acc;
-  }, {} as Record<string, typeof tenantPayments[0]>);
+  }, {} as Record<string, typeof tenantPayments[0]>), [tenantPayments]);
 
   // Editing state for collection table
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -215,7 +215,7 @@ export function useAccountsPage() {
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string; name: string } | null>(null);
 
-  const collectionData = contracts.map((contract, index) => {
+  const collectionData = useMemo(() => contracts.map((contract, index) => {
     const paymentInfo = paymentMap[contract.id];
     const expectedPayments = getExpectedPayments(contract);
     const paidMonths = paymentInfo ? paymentInfo.paid_months : expectedPayments;
@@ -233,7 +233,7 @@ export function useAccountsPage() {
       status: arrears <= 0 ? 'مكتمل' : 'متأخر',
       notes: paymentInfo?.notes || '',
     };
-  });
+  }), [contracts, paymentMap]);
 
   const totalCollectedAll = collectionData.reduce((sum, d) => sum + d.totalCollected, 0);
   const totalArrearsAll = collectionData.reduce((sum, d) => sum + d.arrears, 0);
