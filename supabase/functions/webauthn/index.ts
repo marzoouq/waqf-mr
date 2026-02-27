@@ -11,6 +11,13 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// النطاقات المسموح بها لـ WebAuthn rpID (defense-in-depth)
+const ALLOWED_ORIGINS = [
+  "https://waqf-mr.lovable.app",
+  "https://waqf-wise.net",
+  "https://www.waqf-wise.net",
+];
+
 function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -18,15 +25,23 @@ function getSupabaseAdmin() {
 }
 
 /**
- * استخراج rpID و origin من الطلب.
+ * استخراج rpID و origin من الطلب مع التحقق من origin whitelist.
  * WebAuthn يتطلب أن يتطابق rpID مع نطاق الصفحة الحالية تماماً.
- * نستخدم نطاقاً عاماً (eTLD+1) بحيث يعمل مع أي نطاق فرعي.
  */
 function getRpInfo(req: Request) {
   const origin = req.headers.get("origin") || "https://waqf-mr.lovable.app";
-  const url = new URL(origin);
   
-  // استخدام الـ hostname الكامل كـ rpID لضمان التطابق
+  // التحقق من أن الـ origin مسموح به
+  const isAllowed =
+    ALLOWED_ORIGINS.includes(origin) ||
+    /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin) ||
+    /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(origin);
+
+  if (!isAllowed) {
+    throw new Error("Origin غير مسموح به");
+  }
+
+  const url = new URL(origin);
   const rpID = url.hostname;
   
   return {
@@ -79,14 +94,12 @@ Deno.serve(async (req: Request) => {
       const options = await generateRegistrationOptions({
         rpName: rp.rpName,
         rpID: rp.rpID,
-        // v10+ يتطلب userID كـ Uint8Array
         userID: isoUint8Array.fromUTF8String(user.id),
         userName: user.email || user.id,
         userDisplayName: user.email || "مستخدم",
         attestationType: "none",
         excludeCredentials,
         authenticatorSelection: {
-          // لا نحدد authenticatorAttachment لدعم كل أنواع المصادقة
           userVerification: "preferred",
           residentKey: "preferred",
           requireResidentKey: false,
@@ -138,7 +151,6 @@ Deno.serve(async (req: Request) => {
 
       const { credential: regCred } = verification.registrationInfo;
 
-      // Convert Uint8Array to base64 string for storage (safe for large arrays)
       const toBase64 = (arr: Uint8Array) =>
         btoa(Array.from(arr, (b) => String.fromCharCode(b)).join(''));
       const credIdBase64 = toBase64(regCred.id);
@@ -153,8 +165,10 @@ Deno.serve(async (req: Request) => {
         transports: credential.response?.transports || [],
       });
 
-      // حذف التحدي المستخدم
-      await admin.from("webauthn_challenges").delete().eq("user_id", user.id).eq("type", "registration");
+      // حذف التحدي المُستخدم فقط (بدل حذف كل تحديات التسجيل)
+      await admin.from("webauthn_challenges").delete()
+        .eq("user_id", user.id)
+        .eq("challenge", challengeRow.challenge);
 
       return new Response(JSON.stringify({ verified: true }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
@@ -169,27 +183,44 @@ Deno.serve(async (req: Request) => {
         userVerification: "preferred",
       });
 
-      // حفظ التحدي (بدون user_id لأن المستخدم لم يسجل دخوله بعد)
-      await admin.from("webauthn_challenges").insert({
+      // حفظ التحدي وإرجاع challenge_id لربطه بالتحقق لاحقاً
+      const { data: insertedChallenge } = await admin.from("webauthn_challenges").insert({
         challenge: options.challenge,
         type: "authentication",
-      });
+      }).select("id").single();
 
-      return new Response(JSON.stringify(options), { headers: { ...cors, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({
+        ...options,
+        challenge_id: insertedChallenge?.id || null,
+      }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
     // ─── تسجيل الدخول بالبصمة: التحقق من الاستجابة ───
     if (action === "auth-verify") {
-      const { credential } = body;
+      const { credential, challenge_id } = body;
 
-      // جلب التحدي
-      const { data: challengeRow } = await admin
-        .from("webauthn_challenges")
-        .select("id, challenge")
-        .eq("type", "authentication")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+      // جلب التحدي بواسطة challenge_id المحدد (بدل ORDER BY الأحدث)
+      let challengeRow: { id: string; challenge: string } | null = null;
+
+      if (challenge_id) {
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("id, challenge")
+          .eq("id", challenge_id)
+          .eq("type", "authentication")
+          .single();
+        challengeRow = data;
+      } else {
+        // Fallback للتوافق مع العملاء القدامى
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("id, challenge")
+          .eq("type", "authentication")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        challengeRow = data;
+      }
 
       if (!challengeRow) {
         return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });
@@ -238,8 +269,9 @@ Deno.serve(async (req: Request) => {
       await admin.from("webauthn_challenges").delete().eq("id", challengeRow.id);
 
       // إنشاء رابط تسجيل دخول سحري للمستخدم
-      const { data: userData } = await admin.auth.admin.getUserById(storedCred.user_id);
-      if (!userData?.user?.email) {
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(storedCred.user_id);
+      if (userError || !userData?.user?.email) {
+        console.error("getUserById failed:", userError);
         return new Response(JSON.stringify({ error: "المستخدم غير موجود" }), { status: 400, headers: cors });
       }
 
@@ -252,9 +284,9 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: "فشل إنشاء جلسة" }), { status: 500, headers: cors });
       }
 
+      // إزالة email من الاستجابة — الـ client يحتاج token_hash فقط
       return new Response(JSON.stringify({
         verified: true,
-        email: userData.user.email,
         token_hash: linkData.properties.hashed_token,
       }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
