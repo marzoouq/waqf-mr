@@ -3,6 +3,10 @@
  */
 import { toast } from 'sonner';
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 interface Distribution {
   beneficiary_name: string;
   share_percentage: number;
@@ -42,7 +46,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
 
   const rows = distributions.map(d => `
     <tr${d.deficit > 0 ? ' class="deficit-row"' : ''}>
-      <td class="name-cell">${d.beneficiary_name}</td>
+      <td class="name-cell">${escapeHtml(d.beneficiary_name)}</td>
       <td>${d.share_percentage.toFixed(2)}%</td>
       <td>${d.share_amount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
       <td>${d.advances_paid > 0 ? '-' + d.advances_paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
@@ -56,7 +60,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>تقرير توزيع الحصص - ${fiscalYearLabel}</title>
+  <title>تقرير توزيع الحصص - ${escapeHtml(fiscalYearLabel)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,13 +107,13 @@ export function printDistributionReport(params: PrintDistributionParams) {
 <body>
   <div class="header">
     ${logoHtml}
-    <h1>${waqfName || 'نظام إدارة الوقف'}</h1>
+    <h1>${escapeHtml(waqfName || 'نظام إدارة الوقف')}</h1>
     <h2>تقرير توزيع حصص المستفيدين</h2>
-    ${deedNumber ? `<p class="deed">${deedNumber}</p>` : ''}
+    ${deedNumber ? `<p class="deed">${escapeHtml(deedNumber)}</p>` : ''}
   </div>
 
   <div class="meta">
-    <span>السنة المالية: <strong>${fiscalYearLabel || '—'}</strong></span>
+    <span>السنة المالية: <strong>${escapeHtml(fiscalYearLabel || '—')}</strong></span>
     <span>المبلغ المتاح للتوزيع: <strong>${availableAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</strong></span>
     <span>عدد المستفيدين: <strong>${distributions.length}</strong></span>
   </div>
@@ -161,7 +165,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
     </div>` : ''}
   </div>
 
-  <p class="footer">تمت الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — ${waqfName || 'نظام إدارة الوقف'}</p>
+  <p class="footer">تمت الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — ${escapeHtml(waqfName || 'نظام إدارة الوقف')}</p>
 </body>
 </html>`);
 
