@@ -67,9 +67,11 @@ beforeEach(() => {
 
 describe('useTenantPayments', () => {
   it('fetches all tenant payments', async () => {
-    // Override for simple select
+    // Override for simple select with .limit() chain
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockResolvedValue({ data: samplePayments, error: null }),
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: samplePayments, error: null }),
+      }),
     } as any);
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -78,7 +80,9 @@ describe('useTenantPayments', () => {
 
   it('handles fetch error', async () => {
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockResolvedValue({ data: null, error: { message: 'network error' } }),
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'network error' } }),
+      }),
     } as any);
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -86,7 +90,9 @@ describe('useTenantPayments', () => {
 
   it('returns empty array when no payments exist', async () => {
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
+      select: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }),
     } as any);
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
