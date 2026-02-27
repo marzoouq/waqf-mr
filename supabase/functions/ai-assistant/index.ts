@@ -31,6 +31,27 @@ Deno.serve(async (req) => {
     }
 
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    // Rate limiting: 30 طلب/دقيقة لكل مستخدم
+    const { data: isLimited, error: rlError } = await serviceClient.rpc('check_rate_limit', {
+      p_key: `ai:${userData.user.id}`,
+      p_limit: 30,
+      p_window_seconds: 60,
+    });
+    if (rlError) {
+      console.error("ai rate_limit check failed:", rlError.message);
+      return new Response(
+        JSON.stringify({ error: "خطأ مؤقت في الخادم، يرجى المحاولة لاحقاً" }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (isLimited) {
+      return new Response(
+        JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار دقيقة" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { data: roleData } = await serviceClient
       .from("user_roles")
       .select("role")
