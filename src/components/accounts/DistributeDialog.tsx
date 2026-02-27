@@ -86,14 +86,44 @@ const DistributeDialog = ({
   }, [activeCarryforwards]);
 
   const distributions = useMemo(() => {
+    // === Largest Remainder algorithm for precise share allocation ===
+    const totalPercentage = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+    if (totalPercentage === 0 || availableAmount === 0) {
+      return beneficiaries.map(b => ({
+        beneficiary_id: b.id, beneficiary_name: b.name, beneficiary_user_id: b.user_id,
+        share_percentage: b.share_percentage, share_amount: 0, advances_paid: 0,
+        carryforward_deducted: 0, net_amount: 0, deficit: 0,
+      }));
+    }
+
+    // Step 1: Calculate raw shares and floor them to 2 decimals
+    const rawShares = beneficiaries.map(b => {
+      const exact = availableAmount * Number(b.share_percentage) / 100;
+      const floored = Math.floor(exact * 100) / 100;
+      return { id: b.id, exact, floored, remainder: exact - floored };
+    });
+
+    // Step 2: Distribute the remaining pennies by largest remainder
+    const totalFloored = rawShares.reduce((s, r) => s + r.floored, 0);
+    let remainingPennies = Math.round((availableAmount - totalFloored) * 100);
+    const sorted = [...rawShares].sort((a, b) => b.remainder - a.remainder);
+    const adjustments: Record<string, number> = {};
+    for (const item of sorted) {
+      if (remainingPennies <= 0) break;
+      adjustments[item.id] = 0.01;
+      remainingPennies--;
+    }
+
+    // Step 3: Build distributions with deductions
     return beneficiaries.map(b => {
-      const shareAmount = availableAmount * Number(b.share_percentage) / 100;
+      const raw = rawShares.find(r => r.id === b.id)!;
+      const shareAmount = raw.floored + (adjustments[b.id] || 0);
       const advances = advancesByBeneficiary[b.id] || 0;
       const carryforward = carryforwardByBeneficiary[b.id] || 0;
       const totalDeductions = advances + carryforward;
       const rawNet = shareAmount - totalDeductions;
-      const net = Math.max(0, rawNet);
-      const deficit = rawNet < 0 ? Math.abs(rawNet) : 0;
+      const net = Math.max(0, Math.round(rawNet * 100) / 100);
+      const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
       return {
         beneficiary_id: b.id,
@@ -102,12 +132,12 @@ const DistributeDialog = ({
         share_percentage: b.share_percentage,
         share_amount: shareAmount,
         advances_paid: advances,
-        carryforward_deducted: Math.min(carryforward, shareAmount - advances > 0 ? shareAmount - advances : 0),
+        carryforward_deducted: Math.min(carryforward, shareAmount - advances > 0 ? Math.round((shareAmount - advances) * 100) / 100 : 0),
         net_amount: net,
         deficit,
       };
     });
-  }, [beneficiaries, availableAmount, totalBeneficiaryPercentage, advancesByBeneficiary, carryforwardByBeneficiary]);
+  }, [beneficiaries, availableAmount, advancesByBeneficiary, carryforwardByBeneficiary]);
 
   const totalNet = distributions.reduce((s, d) => s + d.net_amount, 0);
   const totalAdvances = distributions.reduce((s, d) => s + d.advances_paid, 0);

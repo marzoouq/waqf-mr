@@ -36,11 +36,14 @@ const AccountsBeneficiariesTable = ({
             <Users className="w-5 h-5" />
             توزيع حصص المستفيدين
           </span>
-          {accountId && (
+          {accountId && fiscalYearId && fiscalYearId !== 'all' && (
             <Button size="sm" className="gap-2" onClick={() => setDistributeOpen(true)}>
               <Banknote className="w-4 h-4" />
               توزيع الحصص
             </Button>
+          )}
+          {accountId && (!fiscalYearId || fiscalYearId === 'all') && (
+            <span className="text-xs text-muted-foreground">اختر سنة مالية محددة للتوزيع</span>
           )}
         </CardTitle>
       </CardHeader>
@@ -82,7 +85,7 @@ const AccountsBeneficiariesTable = ({
         )}
       </CardContent>
 
-      {accountId && (
+      {accountId && fiscalYearId && fiscalYearId !== 'all' && (
         <DistributeDialog
           open={distributeOpen}
           onOpenChange={setDistributeOpen}
