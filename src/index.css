@@ -5,23 +5,7 @@
 /* نظام التصميم لإدارة الوقف - ألوان إسلامية */
 /* Tajawal font loaded via <link> in index.html for non-blocking load */
 
-@font-face {
-  font-family: 'Amiri';
-  src: url('/fonts/Amiri-Regular.woff2') format('woff2'),
-       url('/fonts/Amiri-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: optional;
-}
-
-@font-face {
-  font-family: 'Amiri';
-  src: url('/fonts/Amiri-Bold.woff2') format('woff2'),
-       url('/fonts/Amiri-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: optional;
-}
+/* Amiri fonts loaded dynamically — see loadAmiriFonts() in utils */
 
 @layer base {
   :root {
