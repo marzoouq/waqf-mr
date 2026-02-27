@@ -1,91 +1,120 @@
 
 
-# تحديث خطة المشروع وتوثيق قاعدة البيانات
+# توثيق شامل للجداول والأعمدة المفقودة في `docs/DATABASE.md`
 
 ## نظرة عامة
-تحديث ملف الخطة بملاحظة `.limit(500)` وإصلاح نقص التوثيق في `docs/DATABASE.md`. يشمل اضافة 3 اعمدة مفقودة لجدول `accounts` وعمود `published` لجدول `fiscal_years`.
+إضافة 5 جداول كاملة غائبة وأعمدة مفقودة من جداول `contracts` و `invoices` و `distributions` إلى التوثيق، مع تحديث مخطط Mermaid ERD وجدول سياسات RLS وعدد الجداول والدوال المخزنة.
+
+## تأكيد: جدول `accounts` مكتمل
+تم التحقق — كتلة Mermaid ERD (سطر 107-124) تتطابق تماماً مع الجدول النصي (سطر 284-298). لا تغييرات مطلوبة على `accounts`.
 
 ---
 
-## التغيير 1: تحديث `.lovable/plan.md`
+## التغيير 1: أعمدة مفقودة من جداول موجودة
 
-### 1a. اضافة ملاحظة بعد الخطوة 3 (سطر 31)
-
+### 1a. `contracts` — كتلة Mermaid
+إضافة عمودين مفقودين:
 ```text
-> ملاحظة: `.limit(500)` لم يُضَف على `useUnits` (المُفلتر) — لكن هذا مقبول لان الاستعلام مُقيّد بـ `property_id` واحد فعلياً، مما يجعل النتائج محدودة بطبيعتها.
+        text notes "nullable"
+        uuid fiscal_year_id FK "nullable"
 ```
 
-### 1b. اضافة خطوة 6 جديدة قبل قسم "ملاحظة: بنود مستبعدة"
-
+### 1b. `contracts` — الجدول النصي
+إضافة صفين:
 ```text
-## الخطوة 6: توثيق الاعمدة المفقودة في `docs/DATABASE.md`
-
-اضافة 3 اعمدة مفقودة لجدول `accounts` (في الجدول النصي + كتلة Mermaid) وعمود `published` لجدول `fiscal_years`.
+| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
+| `notes` | text | ملاحظات (اختياري) |
 ```
 
-### 1c. تحديث قسم "الملفات المتاثرة" لاضافة `docs/DATABASE.md`
-
----
-
-## التغيير 2: `docs/DATABASE.md` — جدول `accounts`
-
-### 2a. كتلة Mermaid (سطر 120)
-
-اضافة 3 حقول قبل `}` الاغلاق:
-
+### 1c. `invoices` — كتلة Mermaid
+إضافة عمودين مفقودين:
 ```text
-        numeric net_after_expenses
-        numeric net_after_vat
-        numeric waqf_capital
+        text description "nullable"
+        text file_name "nullable"
 ```
 
-### 2b. الجدول النصي (سطر 292)
-
-اضافة 3 صفوف بعد `distributions_amount`:
-
+### 1d. `invoices` — الجدول النصي
+إضافة صفين:
 ```text
-| `net_after_expenses` | numeric | صافي الدخل بعد المصروفات |
-| `net_after_vat` | numeric | صافي الدخل بعد الضريبة |
-| `waqf_capital` | numeric | راس مال الوقف |
+| `file_name` | text | اسم الملف الأصلي (اختياري) |
+| `description` | text | وصف الفاتورة (اختياري) |
 ```
 
----
-
-## التغيير 3: `docs/DATABASE.md` — جدول `fiscal_years`
-
-### سطر 318
-
-اضافة عمود `published` بعد `status`:
-
+### 1e. `fiscal_years` — كتلة Mermaid
+إضافة `published`:
 ```text
-| `published` | boolean | هل السنة منشورة للمستفيدين |
+        boolean published
+```
+
+### 1f. `distributions` — كتلة Mermaid
+إضافة `fiscal_year_id`:
+```text
+        uuid fiscal_year_id FK "nullable"
 ```
 
 ---
 
-## التحقق من الاخطاء الاملائية
+## التغيير 2: إضافة 5 جداول جديدة
 
-تم فحص جميع اسماء الاعمدة مقابل `src/integrations/supabase/types.ts` (المُولّد تلقائياً من قاعدة البيانات):
+### الجداول:
+1. `access_log_archive` — أرشيف سجل الوصول (8 أعمدة)
+2. `advance_requests` — طلبات السلف (9 أعمدة)
+3. `advance_carryforward` — ترحيل فروقات السلف (6 أعمدة)
+4. `webauthn_challenges` — تحديات المصادقة البيومترية (3 أعمدة)
+5. `webauthn_credentials` — بيانات اعتماد WebAuthn (6 أعمدة)
 
-| العمود في الخطة | العمود في `types.ts` | النتيجة |
+يتم إضافة كل جدول في:
+- كتلة Mermaid ERD (تعريف الجدول + العلاقات)
+- الجدول النصي التفصيلي مع الأوصاف
+
+### علاقات Mermaid الجديدة:
+```text
+    beneficiaries ||--o{ advance_requests : "طلبات سلف"
+    beneficiaries ||--o{ advance_carryforward : "ترحيل سلف"
+    fiscal_years ||--o{ advance_requests : "سنة مالية"
+    fiscal_years ||--o{ advance_carryforward : "من سنة"
+    fiscal_years ||--o{ distributions : "سنة مالية"
+```
+
+---
+
+## التغيير 3: تحديث جدول سياسات RLS
+
+تحديث العنوان من "19 جدول/عرض" إلى "24 جدول/عرض" وإضافة 5 صفوف للجداول الجديدة مع وصف سياسات SELECT و INSERT/UPDATE/DELETE لكل منها.
+
+---
+
+## التغيير 4: تحديث عدد الدوال المخزنة
+
+تغيير "8 دوال" إلى "20 دالة" وإضافة 12 دالة مفقودة تشمل:
+- `execute_distribution` — تنفيذ توزيع الحصص
+- `reopen_fiscal_year` — إعادة فتح سنة مالية
+- `encrypt_pii` / `decrypt_pii` — تشفير/فك تشفير البيانات الحساسة
+- `cleanup_expired_challenges` — حذف تحديات WebAuthn المنتهية
+- وغيرها
+
+---
+
+## التحقق من الأخطاء الإملائية
+
+جميع أسماء الأعمدة تم فحصها مقابل schema قاعدة البيانات الفعلية (المقدمة في useful-context). لا توجد أخطاء إملائية.
+
+| العمود | الجدول | النتيجة |
 |---|---|---|
-| `waqf_corpus_manual` | `waqf_corpus_manual` | مطابق |
-| `distributions_amount` | `distributions_amount` | مطابق |
-| `net_after_expenses` | `net_after_expenses` | مطابق |
-| `net_after_vat` | `net_after_vat` | مطابق |
-| `waqf_capital` | `waqf_capital` | مطابق |
-| `published` | `published` | مطابق |
-
-لا توجد اخطاء املائية.
-
----
-
-## بنود مكتشفة خارج نطاق هذه الخطة
-
-الفحص كشف 5 جداول كاملة غائبة من التوثيق (`access_log_archive`, `advance_carryforward`, `advance_requests`, `webauthn_challenges`, `webauthn_credentials`) واعمدة مفقودة من جداول `contracts` و `invoices`. هذه تتطلب خطة منفصلة لتحديث التوثيق الشامل.
+| `fiscal_year_id` | contracts | مطابق |
+| `notes` | contracts | مطابق |
+| `description` | invoices | مطابق |
+| `file_name` | invoices | مطابق |
+| `published` | fiscal_years | مطابق |
+| `fiscal_year_id` | distributions | مطابق |
+| `archived_at` | access_log_archive | مطابق |
+| `rejection_reason` | advance_requests | مطابق |
+| `from_fiscal_year_id` | advance_carryforward | مطابق |
+| `credential_id` | webauthn_credentials | مطابق |
+| `transports` | webauthn_credentials (ARRAY) | مطابق |
 
 ---
 
-## الملفات المتاثرة
-1. `.lovable/plan.md` (تغيير 1)
-2. `docs/DATABASE.md` (تغييرات 2 + 3)
+## الملفات المتأثرة
+1. `docs/DATABASE.md` — جميع التغييرات (1-4)
+
