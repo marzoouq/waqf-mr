@@ -1,117 +1,50 @@
 
-# اصلاح تحذيرات forwardRef - تحليل فردي لكل مكون
 
-## التحذيرات المسجلة (11 تحذير)
+# خطة: تنظيف الكاش + دفع الإصلاحات للإنتاج + إصلاح مشكلة بيانات المستفيد
 
-بعد فحص كل تحذير في الكونسول وتتبعه للمكون المصاب:
+## المشكلات المحددة
 
----
+### 1. الكاش القديم (PWA Cache)
+التطبيق يستخدم Service Worker للتخزين المؤقت. عند التحديث، قد تبقى نسخ قديمة من الملفات محفوظة في المتصفح. الحل:
+- تحسين آلية تنظيف الكاش في `main.tsx` لتشمل **جميع** الكاشات بما فيها `workbox-precache`
+- إضافة زر "مسح الكاش" في إعدادات المستفيد حتى يتمكن من تنظيفه يدوياً
+- تحديث نسخة التطبيق في PWA manifest لفرض التحديث
 
-### التحذير 1: `at App`
-- **الملف**: `src/App.tsx` سطر 76
-- **السبب**: `const App = () => (...)` - معرّف كـ arrow function
-- **الاصلاح**: تحويل الى `function App() { return (...) }`
-- **التصنيف**: كود المشروع - قابل للاصلاح
+### 2. دفع الإصلاحات لبيئة الإنتاج
+التغييرات على الكود (الواجهة الأمامية) لا تظهر في الإنتاج حتى تضغط زر **"Publish"** في أعلى يمين الشاشة. التغييرات على قاعدة البيانات والدوال الخلفية تم تطبيقها تلقائياً.
 
-### التحذير 2: `at QueryClientProvider`
-- **المصدر**: `@tanstack/react-query` (مكتبة خارجية)
-- **السياق**: يُستخدم داخل `App` كمكون ابن مباشر
-- **الاصلاح**: لا يمكن تعديل المكتبة - يجب كتم التحذير
-- **التصنيف**: مكتبة خارجية
+**الإجراء المطلوب منك**: اضغط زر "Publish" ثم "Update" لدفع جميع تغييرات الواجهة للإنتاج.
 
-### التحذير 3: `at AuthProvider`
-- **الملف**: `src/contexts/AuthContext.tsx` سطر 29
-- **السبب**: `export const AuthProvider: React.FC<...> = ({ children }) => {` - arrow function مع `React.FC`
-- **الاصلاح**: تحويل الى `export function AuthProvider({ children }: { children: React.ReactNode }) {`
-- **التصنيف**: كود المشروع - قابل للاصلاح
+### 3. مشكلة "البيانات الخاطئة ثم التحويل" للمستفيد
+**السبب الجذري**: عند دخول المستفيد، يحدث التالي بالتسلسل:
+1. `AuthContext` يجلب الجلسة (user) -- سريع
+2. `fetchRole` يجلب الدور من `user_roles` -- قد يتأخر 300-900ms
+3. خلال هذه الفترة، `role = null` و `ProtectedRoute` يعرض شاشة "جاري التحقق من الصلاحيات..."
+4. بعدها يتم تحميل البيانات المالية والسنة المالية
 
-### التحذير 4: `at FiscalYearProvider`
-- **الملف**: `src/contexts/FiscalYearContext.tsx` سطر 22
-- **السبب**: `export const FiscalYearProvider: React.FC<...> = ({ children }) => {` - نفس النمط
-- **الاصلاح**: تحويل الى function declaration
-- **التصنيف**: كود المشروع - قابل للاصلاح
+المشكلة: إذا تأخر جلب الدور، قد يرى المستفيد بيانات فارغة أو أصفار قبل أن تكتمل التحميلات. أيضاً `FiscalYearContext` يرسل `__none__` كمعرف أثناء التحميل مما يسبب طلبات فاشلة.
 
-### التحذير 5: `at TooltipProvider`
-- **المصدر**: `@radix-ui/react-tooltip` (مكتبة خارجية)
-- **السياق**: يُعاد تصديره من `src/components/ui/tooltip.tsx` لكن المكون نفسه من Radix
-- **الاصلاح**: لا يمكن تعديل المكتبة - يجب كتم التحذير
-- **التصنيف**: مكتبة خارجية
-
-### التحذير 6: `at Toaster` (toaster.tsx)
-- **الملف**: `src/components/ui/toaster.tsx` سطر 4
-- **السبب**: `export function Toaster()` - لكنه يُستدعى داخل App كـ JSX مباشر
-- **ملاحظة**: المكون معرّف بـ function declaration فعلاً. التحذير ينتج لان React يتعامل مع جميع المكونات الابناء في arrow function parent بنفس طريقة التحقق
-- **الاصلاح**: سيختفي تلقائياً عند اصلاح App
-- **التصنيف**: تأثير جانبي من App
-
-### التحذير 7: `at ToastProvider`
-- **المصدر**: `@radix-ui/react-toast` (مكتبة خارجية)
-- **السياق**: يُستخدم داخل `Toaster` - "Check the render method of Toaster"
-- **الاصلاح**: لا يمكن تعديل المكتبة - يجب كتم التحذير
-- **التصنيف**: مكتبة خارجية
-
-### التحذير 8: `at Toaster` (sonner.tsx)
-- **الملف**: `src/components/ui/sonner.tsx` سطر 6
-- **السبب**: `const Toaster = ({ ...props }: ToasterProps) => {` - arrow function
-- **الاصلاح**: تحويل الى `function Toaster({ ...props }: ToasterProps) {`
-- **التصنيف**: كود المشروع - قابل للاصلاح
-
-### التحذير 9: `at BrowserRouter`
-- **المصدر**: `react-router-dom` (مكتبة خارجية)
-- **الاصلاح**: لا يمكن تعديل المكتبة - يجب كتم التحذير
-- **التصنيف**: مكتبة خارجية
-
-### التحذير 10: `at Routes`
-- **المصدر**: `react-router-dom` (مكتبة خارجية)
-- **الاصلاح**: لا يمكن تعديل المكتبة - يجب كتم التحذير
-- **التصنيف**: مكتبة خارجية
-
-### التحذير 11: `at PageLoader`
-- **الملف**: `src/App.tsx` سطر 60
-- **السبب**: `const PageLoader = () => (...)` - arrow function
-- **الاصلاح**: تحويل الى `function PageLoader() { return (...) }`
-- **التصنيف**: كود المشروع - قابل للاصلاح
+**الإصلاحات:**
+- منع `BeneficiaryDashboard` من عرض أي بيانات مالية حتى يكتمل تحميل الدور والسنة المالية بالكامل
+- تحسين شاشة التحميل في `ProtectedRoute` لتكون أوضح
+- منع `useRawFinancialData` من إرسال طلبات عندما يكون `fiscalYearId` هو `__none__`
 
 ---
 
-## ملخص التصنيف
+## التفاصيل التقنية
 
-| النوع | العدد | الاصلاح |
-|---|---|---|
-| كود المشروع (قابل للاصلاح) | 5 | تحويل arrow function الى function declaration |
-| مكتبة خارجية (لا يمكن تعديلها) | 5 | كتم التحذير في main.tsx |
-| تأثير جانبي (يختفي تلقائياً) | 1 | لا يحتاج تدخل |
+### ملف `src/main.tsx`
+- تحديث منطق تنظيف الكاش ليشمل حذف **كل** الكاشات عند تغير النسخة (بما فيها workbox-precache)
+- إضافة إلغاء تسجيل Service Worker القديم وإعادة تحميل الصفحة عند اكتشاف نسخة جديدة
 
----
+### ملف `src/hooks/useRawFinancialData.ts`
+- إضافة شرط `enabled` للـ hooks بحيث لا ترسل طلبات إذا كان `fiscalYearId` هو `__none__` أو فارغ
+- هذا يمنع ظهور أخطاء أو بيانات فارغة أثناء التحميل
 
-## خطة التنفيذ
+### ملف `src/pages/beneficiary/BeneficiaryDashboard.tsx`
+- إضافة فحص `authLoading` من `useAuth` ضمن حالة `isLoading`
+- عدم عرض البطاقات المالية حتى يكتمل تحميل الدور والبيانات المالية معاً
 
-### الملفات والتعديلات:
+### ملف `src/components/ProtectedRoute.tsx`
+- تحسين رسالة التحميل عندما `role = null` لتكون أقل إرباكاً (إزالة زر تسجيل الخروج من شاشة التحقق الأولية وإضافته فقط بعد timeout)
 
-**1. `src/App.tsx`** - تحذيران (App + PageLoader)
-- سطر 60: تحويل `const PageLoader = () => (` الى `function PageLoader() { return (`
-- سطر 76: تحويل `const App = () => (` الى `function App() { return (`
-
-**2. `src/contexts/AuthContext.tsx`** - تحذير واحد
-- سطر 29: تحويل `export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {`
-  الى `export function AuthProvider({ children }: { children: React.ReactNode }) {`
-
-**3. `src/contexts/FiscalYearContext.tsx`** - تحذير واحد
-- سطر 22: تحويل `export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {`
-  الى `export function FiscalYearProvider({ children }: { children: React.ReactNode }) {`
-
-**4. `src/components/ui/sonner.tsx`** - تحذير واحد
-- سطر 6: تحويل `const Toaster = ({ ...props }: ToasterProps) => {`
-  الى `function Toaster({ ...props }: ToasterProps) {`
-
-**5. `src/main.tsx`** - كتم تحذيرات المكتبات الخارجية
-- اضافة فلتر `console.error` يكتم التحذيرات التي تأتي من:
-  - `QueryClientProvider` (@tanstack/react-query)
-  - `TooltipProvider` (@radix-ui/react-tooltip)
-  - `ToastProvider` (@radix-ui/react-toast)
-  - `BrowserRouter` و `Routes` (react-router-dom)
-- الفلتر يتحقق من نص التحذير ويكتم فقط "Function components cannot be given refs" عندما يكون المكون المذكور من مكتبة خارجية
-
-### النتيجة المتوقعة:
-- 0 تحذيرات forwardRef في الكونسول
-- لا تأثير على وظائف التطبيق (التحذيرات لم تكن تسبب أخطاء وظيفية)
