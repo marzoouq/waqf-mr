@@ -31,7 +31,8 @@ export const useAccountByFiscalYear = (
 ) => {
   return useQuery({
     queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
-    staleTime: 60_000,
+    staleTime: 30_000,
+    retry: 2,
     queryFn: async () => {
       let query = supabase
         .from('accounts')

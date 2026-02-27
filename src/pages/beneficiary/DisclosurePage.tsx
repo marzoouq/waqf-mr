@@ -29,6 +29,7 @@ const DisclosurePage = () => {
     totalIncome,
     totalExpenses,
     currentAccount,
+    isAccountMissing,
     vatAmount,
     zakatAmount,
     waqfCorpusManual,
@@ -101,6 +102,23 @@ const DisclosurePage = () => {
         <div className="p-4 sm:p-6 space-y-5">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
           <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isAccountMissing) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
+          </p>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة تحميل
+          </Button>
         </div>
       </DashboardLayout>
     );
