@@ -224,7 +224,7 @@ const FiscalYearManagementTab = () => {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label>المسمى</Label>
-                    <Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 1447-1448هـ" />
+                    <Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" />
                   </div>
                   <div className="space-y-1.5">
                     <Label>تاريخ البداية</Label>
