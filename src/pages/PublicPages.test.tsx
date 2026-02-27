@@ -8,6 +8,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/hooks/useAppSettings', () => ({
   useAppSettings: vi.fn(),
+  useWaqfInfo: vi.fn(() => ({ data: null })),
 }));
 
 vi.mock('sonner', () => ({

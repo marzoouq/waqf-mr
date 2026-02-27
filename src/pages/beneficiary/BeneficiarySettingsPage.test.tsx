@@ -32,6 +32,11 @@ vi.mock('@/hooks/useFiscalYears', () => ({
 
 vi.mock('@/hooks/useNotifications', () => ({
   useNotifications: vi.fn(() => ({ data: [], unreadCount: 0 })),
+  TONE_OPTIONS: [{ id: 'default', label: 'افتراضي', file: '/sounds/default.mp3' }],
+  NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
+  NOTIFICATION_VOLUME_KEY: 'waqf_notification_volume',
+  VOLUME_OPTIONS: [{ value: 'medium', label: 'متوسط' }],
+  previewTone: vi.fn(),
 }));
 
 vi.mock('@/integrations/supabase/client', () => ({

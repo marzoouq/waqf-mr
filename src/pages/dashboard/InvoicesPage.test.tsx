@@ -28,6 +28,7 @@ vi.mock('@/hooks/useProperties', () => ({
 
 vi.mock('@/hooks/useContracts', () => ({
   useContracts: vi.fn(() => ({ data: [] })),
+  useContractsByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
 vi.mock('@/hooks/useFiscalYears', () => ({

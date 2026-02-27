@@ -83,8 +83,8 @@ describe("ProtectedRoute", () => {
     expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/unauthorized");
   });
 
-  it("redirects to /auth when loading is done but role is null", () => {
-    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: false });
+  it("shows verification message when loading is done but role is null", () => {
+    mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: false, signOut: vi.fn() });
     render(
       <MemoryRouter>
         <ProtectedRoute allowedRoles={["admin"]}>
@@ -92,8 +92,9 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    // loading=false + role=null → redirect to /auth instead of infinite spinner
-    expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/auth");
+    // loading=false + role=null → shows verification spinner with sign out button
+    expect(screen.getByText('جاري التحقق من الصلاحيات...')).toBeInTheDocument();
+    expect(screen.getByText('تسجيل الخروج')).toBeInTheDocument();
   });
 
   it("shows loading spinner when role is loading", () => {
