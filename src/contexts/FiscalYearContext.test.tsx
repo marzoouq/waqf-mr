@@ -45,7 +45,7 @@ describe('FiscalYearContext', () => {
     expect(screen.getByTestId('count').textContent).toBe('2');
   });
 
-  it('defaults to "all" for admin when no selection', () => {
+  it('defaults to active fiscal year for admin when no selection', () => {
     render(
       <FiscalYearProvider><TestConsumer /></FiscalYearProvider>
     );
