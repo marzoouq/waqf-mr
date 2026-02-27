@@ -38,8 +38,7 @@ const Index = () => {
       if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'waqif') {
-        // إصلاح #8: كان يوجّه إلى /waqif غير موجود في App.tsx → الصحيح /beneficiary
-        navigate('/beneficiary');
+        navigate('/waqif');
       } else if (role === 'beneficiary') {
         navigate('/beneficiary');
       }
