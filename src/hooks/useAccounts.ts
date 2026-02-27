@@ -36,7 +36,8 @@ export const useAccountByFiscalYear = (
       let query = supabase
         .from('accounts')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10);
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       } else if (fiscalYearLabel) {
