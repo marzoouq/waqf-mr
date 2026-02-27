@@ -38,6 +38,7 @@ export interface AdvanceCarryforward {
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', fiscalYearId ?? 'all'],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from('advance_requests' as any)

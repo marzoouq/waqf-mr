@@ -28,6 +28,7 @@ export const useDeleteAccount = accountsCrud.useDelete;
 export const useAccountByFiscalYear = (fiscalYearLabel?: string) => {
   return useQuery({
     queryKey: ['accounts', 'fiscal_year', fiscalYearLabel ?? 'all'],
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from('accounts')
