@@ -37,7 +37,7 @@ export const generateMySharePDF = async (data: {
     head: [['البيان', 'القيمة']],
     body: [
       ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
-      ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
+      ['نسبتي من الريع', `${data.sharePercentage}%`],
       ['(-) حصة الناظر (10%)', `${data.adminShare.toLocaleString()} ر.س`],
       ['(-) حصة الواقف (5%)', `${data.waqifShare.toLocaleString()} ر.س`],
       ['صافي ريع المستفيدين', `${data.beneficiariesShare.toLocaleString()} ر.س`],
