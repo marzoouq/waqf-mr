@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { startRegistration, startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
 
@@ -25,7 +26,7 @@ export function useWebAuthn() {
       .select('id, device_name, created_at')
       .order('created_at', { ascending: false });
     if (error) {
-      console.error('Failed to fetch credentials:', error.message);
+      logger.error('Failed to fetch credentials:', error.message);
       toast.error('تعذر جلب بيانات الاعتماد');
       return [];
     }
@@ -50,14 +51,14 @@ export function useWebAuthn() {
       });
 
       if (optErr || !options) {
-        console.error('WebAuthn register-options error:', optErr, options);
+        logger.error('WebAuthn register-options error:', optErr);
         toast.error('فشل في بدء عملية التسجيل');
         return false;
       }
 
       // التحقق من وجود خطأ في الاستجابة
       if (options.error) {
-        console.error('WebAuthn register-options server error:', options.error);
+        logger.error('WebAuthn register-options server error');
         toast.error(options.error || 'فشل في بدء عملية التسجيل');
         return false;
       }
@@ -84,7 +85,7 @@ export function useWebAuthn() {
     } catch (err: unknown) {
       const name = err instanceof DOMException || err instanceof Error ? err.name : '';
       const message = err instanceof Error ? err.message : 'خطأ غير معروف';
-      console.error('WebAuthn registration error:', err);
+      logger.error('WebAuthn registration error:', err);
       if (name === 'NotAllowedError') {
         toast.error('تم إلغاء عملية البصمة من قبل المستخدم');
       } else if (name === 'SecurityError') {
