@@ -1,97 +1,59 @@
 
 
-# خطة إصلاح 4 مشاكل متبقية حقيقية
+# خطة تحسينات طفيفة متبقية بعد التحقق الجنائي
 
-## ملخص التحقق الجنائي
+## نتائج التحقق
 
-بعد قراءة كل ملف مذكور سطراً بسطر، تبيّن أن عدة ادعاءات في التقرير كانت خاطئة:
-- `DataExportTab` يحتوي `.limit(5000)` فعلاً (سطر 58 و80)
-- `ai-assistant` محمي بـ try/catch شامل + `Array.isArray(messages)`
-- `useCrudFactory` و `ALLOWED_ORIGINS` أُصلحا في الـ commit السابق
+تم فحص كل بند في التقرير مقابل الكود الفعلي. الخلاصة:
 
-المشاكل الحقيقية المتبقية هي 4 فقط:
+- **`logger.info`** في `AuthContext.tsx`: تم تنفيذه بالفعل (سطر 55 و59 يستخدمان `logger.info`)
+- **`DataExportTab`** يحتوي `.limit(5000)` في سطر 58 و80: مُنفَّذ بالفعل
+- **`staleTime`** في `useCrudFactory`: مُنفَّذ بالفعل
+- **`ALLOWED_ORIGINS`** موحَّدة: مُنفَّذ بالفعل
 
----
+## المشاكل المتبقية الحقيقية (تحسينات طفيفة)
 
-## الإصلاح 1: `check-contract-expiry` -- مقارنة آمنة للـ service key
+### الإصلاح 1: رفع الحد الأدنى لكلمة المرور من 6 إلى 8 أحرف
 
-**الملف:** `supabase/functions/check-contract-expiry/index.ts` سطر 17
+**المشكلة:** 3 ملفات تستخدم الحد الأدنى 6 أحرف وهو أقل من الممارسات الحديثة (NIST توصي بـ 8+).
 
-**المشكلة:** `token === serviceKey` مقارنة مباشرة عرضة لـ timing attack نظرياً.
+**الملفات المتأثرة:**
+1. `src/pages/Auth.tsx` سطر 200: `signupPassword.length < 6`
+2. `src/pages/ResetPassword.tsx` سطر 40: `password.length < 6`
+3. `src/pages/dashboard/UserManagementPage.tsx` سطر 513: `newPassword.length < 6`
 
-**التغيير:** إضافة دالة `timingSafeEqual(a, b)` تقارن حرفاً حرفاً بوقت ثابت، واستخدامها بدل `===`:
-
-```text
-function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let result = 0;
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return result === 0;
-}
-
-// سطر 17: بدل token === serviceKey
-const isServiceRole = timingSafeEqual(token, serviceKey);
-```
+**التغيير:** تعديل `< 6` الى `< 8` + تحديث رسالة الخطأ في كل موقع.
 
 ---
 
-## الإصلاح 2: `webauthn register-verify` -- استخدام challenge_id
+### الإصلاح 2: تنظيف `console.error` في Edge Function
 
-**الملف:** `supabase/functions/webauthn/index.ts` سطور 100-127
+**الملف:** `supabase/functions/lookup-national-id/index.ts` سطر 41
 
-**المشكلة:** `auth-verify` يستخدم `challenge_id` لتجنب race condition، لكن `register-verify` لا يزال يستخدم `ORDER BY created_at DESC LIMIT 1`.
+**المشكلة:** `console.error("rate_limit check failed:", rlError.message)` يطبع رسالة الخطأ الكاملة في logs. التأثير منخفض لأن logs الـ Edge Functions لا تُكشف للمستخدم، لكن من باب التنظيف يُفضَّل تقليل المعلومات المطبوعة.
 
-**التغيير:**
-1. في `reg-options` (سطر 102-109): حفظ الـ challenge ثم إرجاع `challenge_id` في الاستجابة مع الـ options
-2. في `register-verify` (سطر 120-127): استقبال `challenge_id` من الطلب واستخدام `.eq("id", challenge_id)` بدل ORDER BY
+**التغيير:** تغيير الى `console.error("rate_limit check failed")` بدون تفاصيل الخطأ.
 
 ---
 
-## الإصلاح 3: `ai-assistant` -- إزالة email/phone من استعلام المستفيدين
+## ملاحظات لا تحتاج إصلاح
 
-**الملف:** `supabase/functions/ai-assistant/index.ts` سطر 313-316
-
-**المشكلة:** `email` و `phone` يُجلبان من جدول المستفيدين لكن لا يُستخدمان (سطر 321 يستخدم `name` و `share_percentage` فقط). بالإضافة لعدم وجود `.limit()`.
-
-**التغيير:**
-```text
-// سطر 314-316: تغيير من
-.select("name, share_percentage, email, phone")
-.order("share_percentage", { ascending: false });
-
-// إلى
-.select("name, share_percentage")
-.order("share_percentage", { ascending: false })
-.limit(50);
-```
-
----
-
-## الإصلاح 4: `AuthContext` -- تغيير `logger.warn` إلى `logger.info`
-
-**الملف:** `src/contexts/AuthContext.tsx` سطر 55 و59
-
-**المشكلة:** أحداث auth عادية (`SIGNED_IN`, `INITIAL_SESSION`) تُسجَّل كـ `warn` بدل `info`.
-
-**التغيير:**
-- سطر 55: `logger.warn(...)` يتغير إلى `logger.info(...)`
-- سطر 59: `logger.warn(...)` يتغير إلى `logger.info(...)`
-
----
+| البند | السبب |
+|-------|-------|
+| `as unknown as AdvanceRequest[]` | متوقع -- الجدول أُنشئ حديثاً والأنواع تُحدَّث تلقائياً عند النشر |
+| `shareBase` بدون خصم الضريبة | قرار محاسبي/فقهي وليس خطأ برمجي |
+| `console.error` في Edge Function | خطورة منخفضة جداً (logs داخلية فقط) |
 
 ## ترتيب التنفيذ
 
-| # | الإصلاح | الملف | التعقيد |
-|---|---------|-------|---------|
-| 1 | timing-safe comparison | `check-contract-expiry/index.ts` | بسيط (+10 سطور) |
-| 2 | challenge_id في register | `webauthn/index.ts` | متوسط (~12 سطر) |
-| 3 | إزالة email/phone + limit | `ai-assistant/index.ts` | بسيط (تعديل سطرين) |
-| 4 | logger.warn الى info | `AuthContext.tsx` | بسيط (تعديل سطرين) |
+| # | الإصلاح | الملفات | التعقيد |
+|---|---------|---------|---------|
+| 1 | رفع حد كلمة المرور لـ 8 | `Auth.tsx` + `ResetPassword.tsx` + `UserManagementPage.tsx` | بسيط (3 تعديلات) |
+| 2 | تنظيف console.error | `lookup-national-id/index.ts` | بسيط (سطر واحد) |
 
 ## الملفات المتأثرة
-1. `supabase/functions/check-contract-expiry/index.ts`
-2. `supabase/functions/webauthn/index.ts`
-3. `supabase/functions/ai-assistant/index.ts`
-4. `src/contexts/AuthContext.tsx`
+1. `src/pages/Auth.tsx`
+2. `src/pages/ResetPassword.tsx`
+3. `src/pages/dashboard/UserManagementPage.tsx`
+4. `supabase/functions/lookup-national-id/index.ts`
+
