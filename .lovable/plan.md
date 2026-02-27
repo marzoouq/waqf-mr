@@ -1,87 +1,70 @@
 
 
-# إصلاح 3 مشاكل مؤكدة من الفحص الجنائي
+# إصلاح 3 مشاكل مؤكدة من الجولة الرابعة
 
-## المشكلة 1: `body.name` و `u.name` غير مُعقّمين في إشعارات `admin-manage-users`
+## التحقق من ادعاءات التقرير
 
-**الملف:** `supabase/functions/admin-manage-users/index.ts`
+بعد قراءة الكود الفعلي الحالي، تبيّن أن **3 من 13 ادعاء فقط هي مشاكل حقيقية**. الباقي إما مُصلَح أو مقبول:
 
-**الموضع الأول (سطر 297):**
-```
-p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`
-```
-**الموضع الثاني (سطر 372):**
-```
-p_message: `تم تسجيل مستفيد جديد: ${u.name}`
-```
-
-**الإصلاح:** تعقيم الاسم بتقييد الطول وإزالة أي أحرف خاصة:
-```typescript
-const safeName = (name: string) => name.substring(0, 100).replace(/[<>&"']/g, '');
-```
-يُطبَّق على كلا الموضعين.
+| الادعاء | الحالة |
+|---------|--------|
+| #2 TOCTOU في useUpdateAdvanceStatus | **مُصلَح** -- يستخدم `.in('status', allowedFrom)` ذري |
+| #3 cron يُرسل tenant_name للمستفيدين | **مُصلَح** -- يستخدم `ben_msg` عام |
+| #5 signIn يُعيد AuthApiError خام | **مُصلَح** -- `Auth.tsx:170` يستخدم `getSafeErrorMessage()` |
+| #1 useCarryforwardBalance | **تصميم موثّق متعمد** |
+| #4 text-match deduplication | **منخفض** -- يعمل بشكل مقبول |
+| #10 fetchRole timeout | **مقبول** -- Auth.tsx يعالجه بـ roleWaitTimeout + زر خروج |
+| #13 setRoleWithRef | **نظري** -- لا أثر وظيفي |
+| #8 AI gateway DPA | **خارج نطاق الكود** -- قرار تنظيمي |
+| #12 bulk_create_users userId في response | **مقبول** -- admin-only function |
 
 ---
 
-## المشكلة 2: `cron_check_contract_expiry` يُرسل تفاصيل المستأجر لجميع المستفيدين
+## المشاكل المؤكدة (3 مشاكل)
 
-**الملف:** دالة SQL `cron_check_contract_expiry` (تحتاج migration جديد)
+### 1. [حرج] `fetchWaqfData` -- بيانات حساسة تُرسل لجميع الأدوار عبر AI
 
-**الحالة الحالية:** المستفيدون يتلقون رسالة تحتوي `contract_number` و `tenant_name`.
+**الملف:** `supabase/functions/ai-assistant/index.ts`
 
-**الإصلاح:** تعديل الدالة عبر `CREATE OR REPLACE FUNCTION` لإرسال رسالة عامة للمستفيدين بدون تفاصيل العقد:
-```sql
--- للأدمن: الرسالة التفصيلية (كما هي)
-INSERT INTO notifications (...) SELECT ... msg ...
-FROM user_roles ur WHERE ur.role = 'admin';
+قسم المستفيدين (سطر 311-339) يُفرّق بين الأدوار بشكل صحيح. لكن:
+- العقود النشطة (سطر 255-266): `tenant_name`, `rent_amount`, `contract_number` تُرسل لجميع الأدوار
+- الحسابات المالية (سطر 217-238): كل التفاصيل المالية تُرسل لجميع الأدوار
+- التوزيعات (سطر 343+): جميع التوزيعات تُرسل بدون فلترة
 
--- للمستفيدين: رسالة عامة بدون تفاصيل
-INSERT INTO notifications (user_id, title, message, type, link)
-SELECT b.user_id, 'تنبيه: عقد قارب على الانتهاء',
-       'أحد العقود قارب على الانتهاء خلال ' || days_left || ' يوم',
-       'warning', '/beneficiary/notifications'
-FROM beneficiaries b WHERE b.user_id IS NOT NULL;
+**الإصلاح:** تقييد البيانات حسب الدور:
+- المستفيد/الواقف: السنوات المالية + بياناته الشخصية فقط + ملخص مالي عام (إجمالي الدخل/المصروفات بدون تفاصيل العقود أو أسماء المستأجرين)
+- الأدمن/المحاسب: البيانات الكاملة كما هي
+
+### 2. [منخفض] `useAccountsPage` -- `error.message` في toast (موضعان)
+
+**الملف:** `src/hooks/useAccountsPage.ts`
+
+- سطر 109: `toast.error('خطأ في حفظ الإعداد: ' + err.message)`
+- سطر 351: `toast.error('خطأ في إقفال السنة: ' + err.message)`
+
+**الإصلاح:** استبدال بـ `console.error` + toast ثابت:
+```text
+سطر 109: toast.error('خطأ في حفظ الإعداد')
+سطر 351: toast.error('خطأ في إقفال السنة المالية')
 ```
 
----
+### 3. [منخفض] `ai-assistant` -- `userRole` يُعيَّن `"beneficiary"` عند فشل جلبه
 
-## المشكلة 3: TOCTOU في `useUpdateAdvanceStatus`
+**الملف:** `supabase/functions/ai-assistant/index.ts` سطر 61
 
-**الملف:** `src/hooks/useAdvanceRequests.ts`
+عند فشل جلب الدور من DB، يُعامَل المستخدم كـ `beneficiary`. هذا آمن (أقل صلاحيات) لكنه يُخفي المشكلة. بعد إصلاح المشكلة #1، يصبح هذا أقل خطورة لأن المستفيد لن يرى بيانات حساسة.
 
-**الحالة الحالية:** SELECT للتحقق من الحالة ثم UPDATE منفصل -- نافذة زمنية للسباق.
-
-**الإصلاح:** دمج الفحص مع التحديث في عملية واحدة بإضافة `.in('status', allowedFromStatuses)` للـ UPDATE ثم التحقق من عدد الصفوف المتأثرة:
-
-```typescript
-// بدلاً من SELECT ثم UPDATE:
-// نبني قائمة الحالات المسموح الانتقال منها
-const VALID_TRANSITIONS_TO: Record<string, string[]> = {
-  approved: ['pending'],
-  rejected: ['pending', 'approved'],
-  paid: ['approved'],
-};
-
-const allowedFrom = VALID_TRANSITIONS_TO[status];
-if (!allowedFrom) throw new Error('حالة غير صالحة');
-
-const { data, error } = await supabase
-  .from('advance_requests')
-  .update(updates)
-  .eq('id', id)
-  .in('status', allowedFrom)
-  .select('id');
-
-if (!data?.length) throw new Error('لا يمكن تغيير الحالة — ربما تم تعديلها مسبقاً');
+**الإصلاح:** إضافة log + إرجاع خطأ واضح بدلاً من الاستمرار بدور خاطئ:
+```text
+if (!roleData?.role) return error 403: "لم يتم التعرف على صلاحياتك"
 ```
 
 ---
 
 ## ملخص التغييرات
 
-| الملف | التغيير |
-|-------|---------|
-| `supabase/functions/admin-manage-users/index.ts` | تعقيم الاسم في سطري 297 و 372 |
-| Migration جديد | تعديل `cron_check_contract_expiry` لإخفاء تفاصيل العقد عن المستفيدين |
-| `src/hooks/useAdvanceRequests.ts` | دمج SELECT+UPDATE في عملية ذرية واحدة |
+| الملف | التغيير | الأولوية |
+|-------|---------|----------|
+| `supabase/functions/ai-assistant/index.ts` | تقييد `fetchWaqfData` حسب الدور + رفض الطلب عند فشل جلب الدور | حرج |
+| `src/hooks/useAccountsPage.ts` | تعقيم `error.message` في سطري 109 و 351 | منخفض |
 
