@@ -8,8 +8,7 @@ import { useCreateContract, useUpdateContract, useDeleteContract, useContractsBy
 import { useProperties } from '@/hooks/useProperties';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useUpsertContractAllocations } from '@/hooks/useContractAllocations';
-import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
+
 import { Contract } from '@/types/database';
 import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -42,7 +41,7 @@ const ContractsPage = () => {
   const deleteContract = useDeleteContract();
   const { data: tenantPayments = [] } = useTenantPayments();
   const upsertPayment = useUpsertTenantPayment();
-  const upsertAllocations = useUpsertContractAllocations();
+  
 
   const paymentsMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -120,30 +119,6 @@ const ContractsPage = () => {
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
     const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
 
-    // Helper: create allocations for a saved contract
-    const createAllocationsForContract = async (contractId: string, rentAmount: number) => {
-      if (!formData.start_date || !formData.end_date) return;
-      try {
-        const allocs = allocateContractToFiscalYears(
-          {
-            id: contractId,
-            start_date: formData.start_date,
-            end_date: formData.end_date,
-            rent_amount: rentAmount,
-            payment_type: formData.payment_type,
-            payment_count: paymentCount,
-            payment_amount: rentAmount / paymentCount,
-          },
-          fiscalYears
-        );
-        if (allocs.length > 0) {
-          await upsertAllocations.mutateAsync(allocs);
-        }
-      } catch (err) {
-        console.error('Allocation error:', err);
-      }
-    };
-
     if (isEditing && editingContract) {
       const rentAmount = parseFloat(formData.rent_amount);
       const paymentAmount = rentAmount / paymentCount;
@@ -154,8 +129,6 @@ const ContractsPage = () => {
         payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
       };
       await updateContract.mutateAsync({ id: editingContract.id, ...contractData } as unknown as Parameters<typeof updateContract.mutateAsync>[0]);
-      // Recalculate allocations for edited contract
-      await createAllocationsForContract(editingContract.id, rentAmount);
       return;
     }
 
@@ -166,7 +139,6 @@ const ContractsPage = () => {
     const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     if (formData.rental_mode === 'multi' && formData.selected_unit_ids.length > 1) {
-      // Multi-unit: create one contract per selected unit
       const units = formData.selected_unit_ids;
       let created = 0;
       for (let i = 0; i < units.length; i++) {
@@ -186,14 +158,11 @@ const ContractsPage = () => {
           payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
           fiscal_year_id: activeFY?.id || null,
         };
-        const result = await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
-        const contractId = (result as unknown as { id: string })?.id;
-        if (contractId) await createAllocationsForContract(contractId, rentAmount);
+        await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
         created++;
       }
       toast.success(`تم إنشاء ${created} عقد للمستأجر ${formData.tenant_name}`);
     } else {
-      // Single or full property
       const rentAmount = parseFloat(formData.rent_amount);
       const paymentAmount = rentAmount / paymentCount;
       const contractData: Record<string, unknown> = {
@@ -205,9 +174,7 @@ const ContractsPage = () => {
         payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
-      const result = await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
-      const contractId = (result as unknown as { id: string })?.id;
-      if (contractId) await createAllocationsForContract(contractId, rentAmount);
+      await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
     }
   };
 
