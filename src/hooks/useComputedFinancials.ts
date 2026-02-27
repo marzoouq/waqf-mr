@@ -45,21 +45,27 @@ export const useComputedFinancials = ({
     return null;
   }, [accounts, fiscalYearId, fiscalYearLabel]);
 
-  const adminPctRaw = settings?.admin_share_percentage
-    ? parseFloat(settings.admin_share_percentage)
-    : NaN;
-  const adminPct = Number.isFinite(adminPctRaw) ? adminPctRaw : 10;
-
-  const waqifPctRaw = settings?.waqif_share_percentage
-    ? parseFloat(settings.waqif_share_percentage)
-    : NaN;
-  const waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
-
-  const zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-  const vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
-  const waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
-  const waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
-  const distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+  const {
+    adminPct, waqifPct, zakatAmount, vatAmount,
+    waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
+  } = useMemo(() => {
+    const adminPctRaw = settings?.admin_share_percentage
+      ? parseFloat(settings.admin_share_percentage) : NaN;
+    const _adminPct = Number.isFinite(adminPctRaw) ? adminPctRaw : 10;
+    const waqifPctRaw = settings?.waqif_share_percentage
+      ? parseFloat(settings.waqif_share_percentage) : NaN;
+    const _waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
+    const _zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
+    const _vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
+    const _waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
+    const _waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
+    const _distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+    return {
+      adminPct: _adminPct, waqifPct: _waqifPct, zakatAmount: _zakatAmount,
+      vatAmount: _vatAmount, waqfCorpusPrevious: _waqfCorpusPrevious,
+      waqfCorpusManual: _waqfCorpusManual, distributionsAmount: _distributionsAmount,
+    };
+  }, [settings, currentAccount]);
 
   const financials = useMemo(() => {
     if (currentAccount) {
