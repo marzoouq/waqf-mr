@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
 
@@ -128,6 +128,7 @@ export const useNotifications = () => {
   const queryClient = useQueryClient();
   const lastNotifIdRef = useRef<string | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const [prefsVersion, setPrefsVersion] = useState(0);
 
   const playNotificationSound = useCallback(() => {
     try {
@@ -140,6 +141,20 @@ export const useNotifications = () => {
     } catch {
       // Silent fail if audio not supported
     }
+  }, []);
+
+  // Cleanup AudioContext on unmount
+  useEffect(() => {
+    return () => { audioCtxRef.current?.close(); };
+  }, []);
+
+  // Listen for localStorage changes to notification preferences
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === NOTIF_PREFS_KEY) setPrefsVersion((v) => v + 1);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
   const query = useQuery({
@@ -162,7 +177,7 @@ export const useNotifications = () => {
   const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
 
   // Filtered data based on beneficiary notification preferences
-  const disabledTypes = useMemo(() => getDisabledTypes(), []);
+  const disabledTypes = useMemo(() => getDisabledTypes(), [prefsVersion]);
   const filteredData = useMemo(
     () => query.data?.filter((n) => !disabledTypes.has(n.type)) || [],
     [query.data, disabledTypes]
@@ -263,7 +278,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, playNotificationSound]);
 
   return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

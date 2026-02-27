@@ -190,7 +190,32 @@ interface InvoiceData {
   status: string;
 }
 
-async function generateInvoicePdf(invoice: InvoiceData): Promise<Uint8Array> {
+interface WaqfSettings {
+  waqf_name: string;
+  waqf_deed_number: string;
+  waqf_court: string;
+  waqf_admin: string;
+}
+
+async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
+  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin'];
+  const { data } = await adminClient
+    .from('app_settings')
+    .select('key, value')
+    .in('key', keys);
+
+  const map: Record<string, string> = {};
+  for (const row of data ?? []) map[row.key] = row.value;
+
+  return {
+    waqf_name: map.waqf_name || 'وقف مرزوق بن علي الثبيتي',
+    waqf_deed_number: map.waqf_deed_number || '411209707',
+    waqf_court: map.waqf_court || 'محكمة الأحوال الشخصية بالطائف',
+    waqf_admin: map.waqf_admin || 'عبدالله بن مرزوق بن علي الثبيتي',
+  };
+}
+
+async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettings): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
@@ -224,8 +249,8 @@ async function generateInvoicePdf(invoice: InvoiceData): Promise<Uint8Array> {
   const headerY = height - margin - headerH;
   page.drawRectangle({ x: margin, y: headerY, width: width - 2 * margin, height: headerH, color: darkGreen });
 
-  // Header text (waqf name)
-  const headerText = processArabicText("وقف مرزوق بن علي الثبيتي");
+  // Header text (waqf name — dynamic)
+  const headerText = processArabicText(waqfSettings.waqf_name);
   const headerW = amiriBold.widthOfTextAtSize(headerText, 20);
   page.drawText(headerText, {
     x: width - margin - 15 - headerW,
@@ -245,12 +270,12 @@ async function generateInvoicePdf(invoice: InvoiceData): Promise<Uint8Array> {
     color: rgb(0.9, 0.85, 0.6),
   });
 
-  // ── Waqf details ──
+  // ── Waqf details (dynamic) ──
   let y = headerY - 30;
   const detailLines = [
-    "رقم الصك: 411209707",
-    "المحكمة: محكمة الأحوال الشخصية بالطائف",
-    "الناظر: عبدالله بن مرزوق بن علي الثبيتي",
+    `رقم الصك: ${waqfSettings.waqf_deed_number}`,
+    `المحكمة: ${waqfSettings.waqf_court}`,
+    `الناظر: ${waqfSettings.waqf_admin}`,
   ];
 
   for (const line of detailLines) {
@@ -384,11 +409,25 @@ Deno.serve(async (req) => {
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const userId = authUser.id;
+
+    // Rate limiting: 10 requests per minute per user
+    const { data: rateLimited } = await supabaseAdmin.rpc("check_rate_limit", {
+      p_key: `pdf_gen_${userId}`,
+      p_limit: 10,
+      p_window_seconds: 60,
+    });
+    if (rateLimited === true) {
+      return new Response(JSON.stringify({ error: "تم تجاوز الحد الأقصى للطلبات. حاول بعد دقيقة." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: roles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .eq("role", "admin");
+      .in("role", ["admin", "accountant"]);
 
     if (!roles || roles.length === 0) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
@@ -437,6 +476,9 @@ Deno.serve(async (req) => {
 
     const results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] = [];
 
+    // Fetch waqf settings once for all invoices
+    const waqfSettings = await fetchWaqfSettings(supabaseAdmin);
+
     for (const invoice of invoices) {
       try {
         if (invoice.file_path) {
@@ -451,7 +493,7 @@ Deno.serve(async (req) => {
           date: invoice.date,
           description: invoice.description,
           status: invoice.status,
-        });
+        }, waqfSettings);
 
         const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
         const storagePath = `generated/${fileName}`;

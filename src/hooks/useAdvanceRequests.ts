@@ -202,6 +202,13 @@ export const useCreateAdvanceRequest = () => {
 /**
  * تحديث حالة طلب السلفة (موافقة / رفض / صرف)
  */
+/** Allowed state transitions for advance requests */
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending: ['approved', 'rejected'],
+  approved: ['paid', 'rejected'],
+  // rejected and paid are terminal states
+};
+
 export const useUpdateAdvanceStatus = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -209,6 +216,19 @@ export const useUpdateAdvanceStatus = () => {
       id: string; status: string; rejection_reason?: string;
       beneficiary_user_id?: string; amount?: number;
     }) => {
+      // Fetch current status to validate transition
+      const { data: current, error: fetchErr } = await supabase
+        .from('advance_requests')
+        .select('status')
+        .eq('id', id)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const allowed = VALID_TRANSITIONS[current.status];
+      if (!allowed || !allowed.includes(status)) {
+        throw new Error(`لا يمكن تغيير الحالة من "${current.status}" إلى "${status}"`);
+      }
+
       const updates: { status: string; approved_at?: string; paid_at?: string; rejection_reason?: string } = { status };
       if (status === 'approved') {
         updates.approved_at = new Date().toISOString();

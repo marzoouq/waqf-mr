@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -97,7 +98,8 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
         toast.success(`تم إضافة ${label} بنجاح`);
         onCreateSuccess?.(data);
       },
-      onError: () => {
+      onError: (error) => {
+        logger.error(`${label} create error:`, error);
         toast.error(`حدث خطأ أثناء إضافة ${label}`);
       },
     });
@@ -124,7 +126,8 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
         toast.success(`تم تحديث ${label} بنجاح`);
         onUpdateSuccess?.(data);
       },
-      onError: () => {
+      onError: (error) => {
+        logger.error(`${label} update error:`, error);
         toast.error(`حدث خطأ أثناء تحديث ${label}`);
       },
     });
@@ -147,7 +150,8 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
         queryClient.invalidateQueries({ queryKey: [queryKey] });
         toast.success(`تم حذف ${label} بنجاح`);
       },
-      onError: () => {
+      onError: (error) => {
+        logger.error(`${label} delete error:`, error);
         toast.error(`حدث خطأ أثناء حذف ${label}`);
       },
     });
