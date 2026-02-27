@@ -6,17 +6,10 @@ import {
   verifyAuthenticationResponse,
 } from "npm:@simplewebauthn/server@11";
 import { isoUint8Array } from "npm:@simplewebauthn/server@11/helpers";
-import { getCorsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders, ALLOWED_ORIGINS, ALLOWED_ORIGIN_PATTERNS } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-// النطاقات المسموح بها لـ WebAuthn rpID (defense-in-depth)
-const ALLOWED_ORIGINS = [
-  "https://waqf-mr.lovable.app",
-  "https://waqf-wise.net",
-  "https://www.waqf-wise.net",
-];
 
 function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey, {
@@ -34,8 +27,7 @@ function getRpInfo(req: Request) {
   // التحقق من أن الـ origin مسموح به
   const isAllowed =
     ALLOWED_ORIGINS.includes(origin) ||
-    /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin) ||
-    /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(origin);
+    ALLOWED_ORIGIN_PATTERNS.some((p) => p.test(origin));
 
   if (!isAllowed) {
     throw new Error("Origin غير مسموح به");
