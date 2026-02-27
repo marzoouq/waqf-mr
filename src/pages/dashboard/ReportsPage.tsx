@@ -340,7 +340,7 @@ const ReportsPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
-                  الإفصاح السنوي ({currentAccount?.fiscal_year || '25/10/1446 - 25/10/1447هـ'})
+                  الإفصاح السنوي ({currentAccount?.fiscal_year || fiscalYear?.label || ''})
                 </CardTitle>
               </CardHeader>
               <CardContent>
