@@ -392,7 +392,7 @@ Deno.serve(async (req) => {
       }
 
       default:
-        return new Response(JSON.stringify({ error: `Invalid action: ${action}` }), {
+        return new Response(JSON.stringify({ error: "إجراء غير صالح" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

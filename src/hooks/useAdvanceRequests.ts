@@ -103,7 +103,10 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
 };
 
 /**
- * جلب الفروق المرحّلة النشطة لمستفيد (من سنوات سابقة)
+ * جلب الفروق المرحّلة النشطة لمستفيد (من كل السنوات)
+ * ملاحظة: يتم جلب كل الترحيلات النشطة بغض النظر عن السنة المالية — لأن الترحيل النشط
+ * يُخصم من أقرب توزيع مستقبلي بغض النظر عن مصدره.
+ * المعامل fiscalYearId يُستخدم فقط في queryKey لإعادة الجلب عند تغيير السنة.
  */
 export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
@@ -111,8 +114,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
     staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
-      // جلب كل المرحّل النشط الذي يستهدف هذه السنة أو بدون سنة مستهدفة
-      let query = supabase
+      const query = supabase
         .from('advance_carryforward')
         .select('amount')
         .eq('beneficiary_id', beneficiaryId)
