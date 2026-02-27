@@ -101,13 +101,17 @@ const Auth = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const { data } = await supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'registration_enabled')
-        .maybeSingle();
-      if (data) {
-        setRegistrationEnabled(data.value === 'true');
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'registration_enabled')
+          .maybeSingle();
+        if (!error && data) {
+          setRegistrationEnabled(data.value === 'true');
+        }
+      } catch {
+        // الافتراضي false — لا تسجيل مفتوح
       }
     };
     fetchSettings();
