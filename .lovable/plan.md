@@ -1,41 +1,49 @@
 
-
-# Fix Active Security Findings
+# Fix Remaining PDF Bugs in beneficiary.ts
 
 ## Summary
-There are 3 active (non-ignored) security findings to address. After analysis, all three are **false positives** that need to be formally dismissed with proper justification.
+Out of 8 reported bugs, 6 were already fixed in previous iterations. Only 2 real issues remain, both in `src/utils/pdf/beneficiary.ts`.
 
 ---
 
-## Finding 1: "Beneficiary Personal Information Could Be Stolen" (ERROR)
+## Fix 1: Remove duplicate "إجمالي ريع الوقف" row (BUG #3)
 
-**Current State:** The RLS policy `Beneficiaries can view their own data` uses `user_id = auth.uid()` -- this already ensures each beneficiary can ONLY see their own record. Additionally:
-- Public registration is disabled by default
-- Accounts are created exclusively by the admin
-- `national_id` and `bank_account` are encrypted with AES-256
+**File:** `src/utils/pdf/beneficiary.ts`, lines 39-40
 
-**Action:** Mark as ignored with justification -- the policy is correctly restrictive.
+The same row appears twice in the PDF table body. Remove the duplicate on line 40.
 
----
+Before:
+```text
+['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
+['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],  // duplicate
+```
 
-## Finding 2: "Backup Table Exposes All Beneficiary Data Without Protection" (ERROR)
-
-**Current State:** `beneficiaries_safe` is a **VIEW** (not a table) created with `security_invoker=on`. This means it automatically inherits all RLS policies from the underlying `beneficiaries` table. The scanner incorrectly flags it because views don't have their own RLS policies listed.
-
-**Action:** Mark as ignored with justification -- VIEW with security_invoker inherits RLS protection.
-
----
-
-## Finding 3: "Tenant Names Visible to All Beneficiaries and Waqif" (WARNING)
-
-**Current State:** This is an intentional design choice for Waqf transparency. Beneficiaries and the Waqif have a legitimate right to know which tenants are renting Waqf properties as part of the annual disclosure requirements.
-
-**Action:** Mark as ignored with justification -- intentional for Waqf transparency.
+After:
+```text
+['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
+```
 
 ---
 
-## Technical Steps
+## Fix 2: Add sharePercentage to PDF output (BUG #7)
 
-1. Use the security findings management tool to update all 3 findings with `ignore: true` and detailed `ignore_reason`
-2. No code or database changes required
+**File:** `src/utils/pdf/beneficiary.ts`, line 39
 
+Add a row showing the beneficiary's share percentage, which is passed in the data but never displayed.
+
+Add this row after "إجمالي ريع الوقف":
+```text
+['نسبتي من الريع', `${data.sharePercentage}%`],
+```
+
+---
+
+## What about AiAssistant.tsx (BUG #8)?
+
+`VITE_SUPABASE_URL` is automatically provided by Lovable Cloud and is always defined in production. Adding a fallback would be defensive but unnecessary. Skipping this fix.
+
+## Technical Details
+
+- Only `src/utils/pdf/beneficiary.ts` will be modified
+- Lines 39-40 will be changed (remove duplicate, add sharePercentage row)
+- No other files affected
