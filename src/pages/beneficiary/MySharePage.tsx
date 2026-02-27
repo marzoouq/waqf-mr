@@ -10,7 +10,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import DashboardLayout from '@/components/DashboardLayout';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { generateMySharePDF, generateDistributionsPDF } from '@/utils/pdf';
+import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -19,6 +19,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -42,6 +43,8 @@ const MySharePage = () => {
     zakatAmount,
     netAfterExpenses,
     availableAmount,
+    incomeBySource,
+    expensesByTypeExcludingVat,
     isLoading: finLoading,
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label);
@@ -69,6 +72,7 @@ const MySharePage = () => {
   const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
   const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
   const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
   const beneficiariesShare = availableAmount;
 
@@ -155,6 +159,48 @@ const MySharePage = () => {
       fiscalYearLabel: selectedFY?.label,
       filteredDistributions,
     });
+  };
+
+  const handleDownloadComprehensivePDF = async () => {
+    if (!currentBeneficiary) return;
+    try {
+      await generateComprehensiveBeneficiaryPDF({
+        beneficiaryName: currentBeneficiary.name,
+        fiscalYear: selectedFY?.label || '',
+        totalIncome,
+        totalExpenses,
+        netAfterExpenses,
+        vatAmount,
+        netAfterVat,
+        zakatAmount,
+        netAfterZakat: netAfterVat - zakatAmount,
+        adminShare,
+        waqifShare,
+        waqfRevenue,
+        waqfCorpusManual,
+        availableAmount: beneficiariesShare,
+        myShare,
+        totalReceived,
+        pendingAmount,
+        incomeBySource,
+        expensesByType: expensesByTypeExcludingVat,
+        contracts: contracts.map(c => ({
+          contract_number: c.contract_number,
+          tenant_name: c.tenant_name,
+          rent_amount: Number(c.rent_amount),
+          status: c.status,
+        })),
+        distributions: filteredDistributions.map(d => ({
+          date: d.date,
+          fiscalYear: (d as any).account?.fiscal_year || '-',
+          amount: Number(d.amount),
+          status: d.status,
+        })),
+      }, pdfWaqfInfo);
+      toast.success('تم تحميل التقرير الشامل بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير التقرير الشامل');
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -263,6 +309,10 @@ const MySharePage = () => {
             <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
               <FileDown className="w-4 h-4" />
               تقرير التوزيع
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
+              <FileDown className="w-4 h-4" />
+              تقرير شامل
             </Button>
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>

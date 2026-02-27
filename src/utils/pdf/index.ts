@@ -15,3 +15,5 @@ export { generateBylawsPDF } from './bylaws';
 export type { BylawPdfEntry } from './bylaws';
 export { generateAuditLogPDF } from './auditLog';
 export type { AuditLogPdfOptions } from './auditLog';
+export { generateComprehensiveBeneficiaryPDF } from './comprehensiveBeneficiary';
+export type { ComprehensiveBeneficiaryData } from './comprehensiveBeneficiary';

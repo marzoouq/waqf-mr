@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
-import { generateDisclosurePDF } from '@/utils/pdf';
+import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
@@ -12,6 +12,8 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,6 +58,34 @@ const DisclosurePage = () => {
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 
+  // Distributions for comprehensive report
+  const { data: distributions = [] } = useQuery({
+    queryKey: ['my-distributions-disclosure', currentBeneficiary?.id],
+    queryFn: async () => {
+      if (!currentBeneficiary?.id) return [];
+      const { data, error } = await supabase
+        .from('distributions')
+        .select('*, account:accounts(*)')
+        .eq('beneficiary_id', currentBeneficiary.id)
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!currentBeneficiary?.id,
+  });
+
+  const filteredDistributions = currentAccount
+    ? distributions.filter(d => d.account_id === currentAccount.id)
+    : distributions;
+
+  const totalReceived = filteredDistributions
+    .filter(d => d.status === 'paid')
+    .reduce((sum, d) => sum + Number(d.amount), 0);
+
+  const pendingAmount = filteredDistributions
+    .filter(d => d.status === 'pending')
+    .reduce((sum, d) => sum + Number(d.amount), 0);
+
   const handleDownloadPDF = async () => {
     try {
       await generateDisclosurePDF({
@@ -75,6 +105,47 @@ const DisclosurePage = () => {
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');
+    }
+  };
+
+  const handleDownloadComprehensivePDF = async () => {
+    try {
+      await generateComprehensiveBeneficiaryPDF({
+        beneficiaryName: currentBeneficiary?.name || '',
+        fiscalYear,
+        totalIncome,
+        totalExpenses,
+        netAfterExpenses,
+        vatAmount,
+        netAfterVat,
+        zakatAmount,
+        netAfterZakat: netAfterVat - zakatAmount,
+        adminShare,
+        waqifShare,
+        waqfRevenue,
+        waqfCorpusManual,
+        availableAmount: beneficiariesShare,
+        myShare,
+        totalReceived,
+        pendingAmount,
+        incomeBySource,
+        expensesByType: expensesByTypeExcludingVat,
+        contracts: contracts.map(c => ({
+          contract_number: c.contract_number,
+          tenant_name: c.tenant_name,
+          rent_amount: Number(c.rent_amount),
+          status: c.status,
+        })),
+        distributions: filteredDistributions.map(d => ({
+          date: d.date,
+          fiscalYear: (d as any).account?.fiscal_year || '-',
+          amount: Number(d.amount),
+          status: d.status,
+        })),
+      }, pdfWaqfInfo);
+      toast.success('تم تحميل التقرير الشامل بنجاح');
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
   };
 
@@ -133,7 +204,11 @@ const DisclosurePage = () => {
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الإفصاح السنوي</h1>
             <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {fiscalYear}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadComprehensivePDF}>
+              <FileDown className="w-4 h-4" />
+              تقرير شامل
+            </Button>
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
         </div>
