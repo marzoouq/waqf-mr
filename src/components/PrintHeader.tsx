@@ -1,6 +1,8 @@
 import { useWaqfInfo } from '@/hooks/useAppSettings';
-
+import { useEffect } from 'react';
+import { loadAmiriFonts } from '@/utils/loadAmiriFonts';
 const PrintHeader = () => {
+  useEffect(() => { loadAmiriFonts(); }, []);
   const { data: waqfInfo } = useWaqfInfo();
   const waqfName = waqfInfo?.waqf_name || 'وقف مرزوق بن علي الثبيتي';
   const waqfAdmin = waqfInfo?.waqf_admin || '';
