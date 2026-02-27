@@ -15,6 +15,10 @@ interface ComputedParams {
   settings: Record<string, string> | null | undefined;
   fiscalYearLabel?: string;
   fiscalYearId?: string;
+  /** Override: when true, always compute shares (used in AccountsPage) */
+  forceClosedMode?: boolean;
+  /** Fiscal year status */
+  fiscalYearStatus?: string;
 }
 
 /**
@@ -27,6 +31,8 @@ export const useComputedFinancials = ({
   settings,
   fiscalYearLabel,
   fiscalYearId,
+  forceClosedMode,
+  fiscalYearStatus,
 }: ComputedParams) => {
   const { totalIncome, totalExpenses } = useMemo(
     () => computeTotals(income, expenses),
@@ -67,9 +73,30 @@ export const useComputedFinancials = ({
     };
   }, [settings, currentAccount]);
 
+  // Determine if fiscal year is closed for share calculation
+  const isClosed = forceClosedMode || fiscalYearStatus === 'closed';
+
   const financials = useMemo(() => {
     if (currentAccount) {
       const grandTotal = totalIncome + waqfCorpusPrevious;
+
+      // If year is not closed and not forced, zero out shares
+      if (!isClosed) {
+        const netAfterZakat = Number(currentAccount.net_after_vat) - zakatAmount;
+        return {
+          grandTotal,
+          netAfterExpenses: Number(currentAccount.net_after_expenses),
+          netAfterVat: Number(currentAccount.net_after_vat),
+          netAfterZakat,
+          shareBase: totalIncome - totalExpenses - zakatAmount,
+          adminShare: 0,
+          waqifShare: 0,
+          waqfRevenue: netAfterZakat,
+          availableAmount: 0,
+          remainingBalance: 0,
+        };
+      }
+
       return {
         grandTotal,
         netAfterExpenses: Number(currentAccount.net_after_expenses),
@@ -94,10 +121,12 @@ export const useComputedFinancials = ({
       waqifPercent: waqifPct,
       waqfCorpusManual,
       manualDistributions: distributionsAmount,
+      isClosed,
     });
   }, [
     currentAccount, totalIncome, totalExpenses, waqfCorpusPrevious,
     vatAmount, zakatAmount, adminPct, waqifPct, waqfCorpusManual, distributionsAmount,
+    isClosed,
   ]);
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);

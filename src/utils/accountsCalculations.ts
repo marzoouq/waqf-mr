@@ -15,6 +15,8 @@ export interface FinancialParams {
   waqifPercent: number;
   waqfCorpusManual: number;
   manualDistributions: number;
+  /** When false (active year), shares and corpus are zeroed out */
+  isClosed?: boolean;
 }
 
 export interface FinancialResult {
@@ -38,6 +40,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const {
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions,
+    isClosed = true,
   } = params;
 
   const grandTotal = totalIncome + waqfCorpusPrevious;
@@ -45,6 +48,20 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const netAfterVat = netAfterExpenses - manualVat;
   const netAfterZakat = netAfterVat - zakatAmount;
   const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
+
+  // Shares and corpus only apply after fiscal year closure
+  if (!isClosed) {
+    return {
+      grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
+      shareBase,
+      adminShare: 0,
+      waqifShare: 0,
+      waqfRevenue: netAfterZakat,
+      availableAmount: 0,
+      remainingBalance: 0,
+    };
+  }
+
   const adminShare = Math.round(shareBase * (adminPercent / 100) * 100) / 100;
   const waqifShare = Math.round(shareBase * (waqifPercent / 100) * 100) / 100;
   const waqfRevenue = Math.round((netAfterZakat - adminShare - waqifShare) * 100) / 100;

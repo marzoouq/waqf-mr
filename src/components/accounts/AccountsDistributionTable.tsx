@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { PieChart } from 'lucide-react';
+import { PieChart, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AccountsDistributionTableProps {
   waqfCorpusPrevious: number;
@@ -21,6 +22,8 @@ interface AccountsDistributionTableProps {
   availableAmount: number;
   manualDistributions: number;
   remainingBalance: number;
+  /** Whether the fiscal year is closed */
+  isClosed?: boolean;
 }
 
 const AccountsDistributionTable = ({
@@ -29,6 +32,7 @@ const AccountsDistributionTable = ({
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, availableAmount,
   manualDistributions, remainingBalance,
+  isClosed = true,
 }: AccountsDistributionTableProps) => {
   return (
     <Card className="shadow-sm">
@@ -39,6 +43,14 @@ const AccountsDistributionTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {!isClosed && (
+          <Alert className="mb-4 border-warning/50 bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">
+              هذه أرقام تقديرية — يتم اعتمادها رسمياً عند إقفال السنة المالية
+            </AlertDescription>
+          </Alert>
+        )}
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">

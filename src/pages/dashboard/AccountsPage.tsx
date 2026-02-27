@@ -100,6 +100,7 @@ const AccountsPage = () => {
           waqfCorpusManual={page.waqfCorpusManual}
           manualDistributions={page.manualDistributions}
           remainingBalance={page.remainingBalance}
+          isClosed={page.isClosed}
         />
         )}
 
@@ -162,6 +163,7 @@ const AccountsPage = () => {
           availableAmount={page.availableAmount}
           manualDistributions={page.manualDistributions}
           remainingBalance={page.remainingBalance}
+          isClosed={page.isClosed}
         />
 
         <AccountsBeneficiariesTable

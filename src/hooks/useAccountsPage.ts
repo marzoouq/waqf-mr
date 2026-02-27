@@ -189,10 +189,12 @@ export function useAccountsPage() {
     .reduce((sum, c) => sum + Number(c.rent_amount), 0);
   const calculatedVat = commercialRent * (vatPercentage / 100);
 
+  // AccountsPage always shows shares (forceClosedMode) so admin can preview before closing
   const financials = useMemo(() => calculateFinancials({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent,
     waqfCorpusManual, manualDistributions,
+    isClosed: true, // Always compute shares in accounts page
   }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
   const { grandTotal, netAfterExpenses, netAfterVat, netAfterZakat, adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance } = financials;
 

@@ -8,7 +8,7 @@ import { useComputedFinancials } from '@/hooks/useComputedFinancials';
 export { useRawFinancialData } from '@/hooks/useRawFinancialData';
 export { useComputedFinancials } from '@/hooks/useComputedFinancials';
 
-export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string) => {
+export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string, opts?: { forceClosedMode?: boolean; fiscalYearStatus?: string }) => {
   const { income, expenses, accounts, beneficiaries, settings, isLoading, isError } =
     useRawFinancialData(fiscalYearId, fiscalYearLabel);
 
@@ -19,6 +19,8 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
     settings,
     fiscalYearLabel,
     fiscalYearId,
+    forceClosedMode: opts?.forceClosedMode,
+    fiscalYearStatus: opts?.fiscalYearStatus,
   });
 
   return {
