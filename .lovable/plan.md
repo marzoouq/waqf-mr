@@ -1,68 +1,59 @@
 
-# خطة إصلاح 4 مشاكل متبقية
+# خطة إصلاح المشاكل المتبقية بعد الفحص الجنائي الشامل
 
-## ملخص
-تم التحقق جنائياً من الكود الحالي (HEAD). جميع المشاكل الأربع مؤكدة ومطابقة للتقرير.
+## ملخص الوضع الحالي
+
+من أصل الإصلاحات الأربع السابقة، تم تنفيذ 4/4 بنجاح. لكن الفحص الشامل كشف عن مشكلتين جديدتين وملاحظة تجميلية.
 
 ---
 
-## الإصلاح 1: fail-closed لـ rate limit RPC (أمني - أولوية عالية)
+## الإصلاح 1 (أولوية عالية): نقل rate limiting في `guard-signup` إلى قاعدة البيانات
 
-**الملف:** `supabase/functions/lookup-national-id/index.ts` سطر 33
+**الملف:** `supabase/functions/guard-signup/index.ts`
 
-**المشكلة:** `{ data: isLimited }` يتجاهل `error`. إذا فشل RPC، `isLimited = null` ويتجاوز الحد.
+**المشكلة:** يستخدم `Map` في الذاكرة + `setInterval` للـ rate limiting -- نفس المشكلة التي أُصلحت في `lookup-national-id` لكن لم تُصلح هنا. الكود نفسه يحمل تحذير `WARNING` صريح.
 
 **التغيير:**
-- تغيير السطر 33 من `{ data: isLimited }` إلى `{ data: isLimited, error: rlError }`
-- إضافة كتلة `if (rlError)` ترجع 503 قبل `if (isLimited)`
+- حذف السطور 6-29 (المتغيرات `signupRateLimitMap`، دالة `isSignupRateLimited`، `setInterval`)
+- استبدال استدعاء `isSignupRateLimited(clientIp)` في السطر 46 باستدعاء `check_rate_limit` RPC عبر `supabaseAdmin` مع سياسة fail-closed
+- نقل إنشاء `supabaseAdmin` client قبل استدعاء rate limit (حاليا في السطر 70)
 
 ---
 
-## الإصلاح 2: إضافة `.limit(10)` لـ `useAccountByFiscalYear`
+## الإصلاح 2 (أولوية منخفضة): إضافة rate limiting لـ `ai-assistant`
 
-**الملف:** `src/hooks/useAccounts.ts` سطر 39
+**الملف:** `supabase/functions/ai-assistant/index.ts`
 
-**المشكلة:** بدون `.limit()` عند استدعائها بدون filter ترجع كل السجلات.
-
-**التغيير:** إضافة `.limit(10)` بعد `.order(...)`
-
----
-
-## الإصلاح 3: إضافة `per_page` و `staleTime` في `BeneficiariesPage`
-
-**الملف:** `src/pages/dashboard/BeneficiariesPage.tsx` سطور 36-49
-
-**المشكلة:** `list_users` بدون `per_page` يجلب الصفحة الأولى فقط (10-20 مستخدم). المستفيدون في صفحات لاحقة لا يظهرون في dropdown الربط.
+**المشكلة:** المستخدم المصادق يمكنه إرسال طلبات AI بلا حد. الحماية الموجودة (`slice(-20)` و `slice(0, 4000)`) تحد من حجم الطلب الواحد لكن لا تمنع الاستنزاف عبر طلبات كثيرة.
 
 **التغيير:**
-- إضافة `staleTime: 60_000` للـ useQuery (سطر 37)
-- إضافة `per_page: 100` في body الطلب (سطر 41)
+- بعد التحقق من المستخدم (سطر 31)، إضافة استدعاء `check_rate_limit` بمفتاح `ai:${userId}` وحد 30 طلب/دقيقة
+- سياسة fail-closed (إرجاع 503 عند فشل RPC)
 
 ---
 
-## الإصلاح 4: `useMemo` لـ `paymentMap` و `collectionData`
+## الإصلاح 3 (تجميلي): حذف نطاق preview القديم من `cors.ts`
 
-**الملف:** `src/hooks/useAccountsPage.ts` سطور 191-236
+**الملف:** `supabase/functions/_shared/cors.ts`
 
-**المشكلة:** `paymentMap` (reduce) و `collectionData` (map) تُعاد حسابهما في كل render بدون `useMemo`.
+**المشكلة:** نطاق `id-preview--29470216...lovable.app` لا يزال في القائمة رغم أن الـ regex يغطيه. تنظيف بسيط.
 
-**التغيير:**
-- لف `paymentMap` بـ `useMemo` مع dependency على `tenantPayments`
-- لف `collectionData` بـ `useMemo` مع dependencies على `contracts` و `paymentMap`
+**التغيير:** حذف السطر 3 من مصفوفة `ALLOWED_ORIGINS`
 
 ---
 
 ## ترتيب التنفيذ
 
-| # | الإصلاح | الملف | التعقيد |
+| # | الإصلاح | الملف | الأولوية |
 |---|---|---|---|
-| 1 | fail-closed rate limit | `lookup-national-id/index.ts` | بسيط (+8 سطور) |
-| 2 | `.limit(10)` | `useAccounts.ts` | بسيط (+1 سطر) |
-| 3 | `per_page` + `staleTime` | `BeneficiariesPage.tsx` | بسيط (+2 سطر) |
-| 4 | `useMemo` | `useAccountsPage.ts` | بسيط (إعادة هيكلة) |
+| 1 | نقل rate limiting لـ DB في guard-signup | `guard-signup/index.ts` | عالية |
+| 2 | إضافة rate limiting لـ ai-assistant | `ai-assistant/index.ts` | متوسطة |
+| 3 | حذف نطاق preview قديم | `_shared/cors.ts` | منخفضة |
 
 ## الملفات المتأثرة
-1. `supabase/functions/lookup-national-id/index.ts`
-2. `src/hooks/useAccounts.ts`
-3. `src/pages/dashboard/BeneficiariesPage.tsx`
-4. `src/hooks/useAccountsPage.ts`
+1. `supabase/functions/guard-signup/index.ts`
+2. `supabase/functions/ai-assistant/index.ts`
+3. `supabase/functions/_shared/cors.ts`
+
+## ملاحظة
+دالة `check_rate_limit` وجدول `rate_limits` موجودان بالفعل في قاعدة البيانات -- لا حاجة لـ migration جديد.
