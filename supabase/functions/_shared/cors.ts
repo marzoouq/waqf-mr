@@ -1,17 +1,20 @@
-const ALLOWED_ORIGINS = [
+export const ALLOWED_ORIGINS = [
   "https://waqf-mr.lovable.app",
   "https://waqf-wise.net",
   "https://www.waqf-wise.net",
 ];
 
+export const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/,
+];
+
 function getAllowedOrigin(req?: Request): string {
   if (!req) return ALLOWED_ORIGINS[0];
   const origin = req.headers.get("origin") || "";
-  // Allow any *.lovable.app or *.lovableproject.com subdomain
   if (
     ALLOWED_ORIGINS.includes(origin) ||
-    /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(origin) ||
-    /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/.test(origin)
+    ALLOWED_ORIGIN_PATTERNS.some((p) => p.test(origin))
   ) {
     return origin;
   }

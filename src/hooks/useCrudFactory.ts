@@ -35,6 +35,8 @@ interface CrudFactoryConfig<T extends TableName, TData = Row<T>> {
   onCreateSuccess?: (data: TData) => void;
   /** Callback after successful update */
   onUpdateSuccess?: (data: TData) => void;
+  /** ms before data is considered stale — defaults to 60 000 (1 min) */
+  staleTime?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,12 +56,14 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
     label,
     onCreateSuccess,
     onUpdateSuccess,
+    staleTime = 60_000,
   } = config;
 
   /** List / fetch all rows */
   const useList = (): UseQueryResult<TData[]> => {
     return useQuery({
       queryKey: [queryKey],
+      staleTime,
       queryFn: async () => {
         const { data, error } = await supabase
           .from(table)
