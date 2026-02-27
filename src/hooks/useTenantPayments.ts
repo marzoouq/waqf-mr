@@ -103,7 +103,8 @@ export const useUpsertTenantPayment = () => {
       toast.success('تم حفظ بيانات التحصيل');
     },
     onError: (error: Error) => {
-      toast.error('خطأ في حفظ بيانات التحصيل: ' + error.message);
+      console.error('Tenant payment error:', error.message);
+      toast.error('خطأ في حفظ بيانات التحصيل');
     },
   });
 };
