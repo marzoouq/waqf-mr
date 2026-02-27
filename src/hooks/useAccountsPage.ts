@@ -277,7 +277,8 @@ export function useAccountsPage() {
         );
       }
     } catch (err) {
-      toast.error('خطأ في حفظ الحسابات: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+      console.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
+      toast.error('خطأ في حفظ الحسابات');
     }
   };
 

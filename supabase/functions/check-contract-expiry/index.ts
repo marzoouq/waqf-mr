@@ -152,9 +152,13 @@ Deno.serve(async (req: Request) => {
       const daysLeft = Math.ceil(
         (new Date(contract.end_date).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
       );
-      const msg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
+      // رسالة تفصيلية للأدمن فقط
+      const adminMsg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
+      // رسالة عامة للمستفيدين بدون تفاصيل المستأجر
+      const benMsg = `أحد عقود الوقف ينتهي خلال ${daysLeft} يوم`;
 
       for (const recipient of allRecipients) {
+        const msg = recipient.role === 'admin' ? adminMsg : benMsg;
         if (existingByUser.get(recipient.user_id)?.has(msg)) continue;
         notifications.push({
           user_id: recipient.user_id,
