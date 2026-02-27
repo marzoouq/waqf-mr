@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -12,28 +12,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
+import type { FiscalYear } from '@/hooks/useFiscalYears';
 
 interface CollectionReportProps {
   contracts: Contract[];
   paymentsMap: Map<string, number>;
   isLoading: boolean;
+  fiscalYears?: FiscalYear[];
+  fiscalYearId?: string;
 }
 
 type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
 interface CollectionRow {
   contract: Contract;
-  paymentCount: number;
+  paymentCount: number;       // total payments in this FY (or contract total for 'all')
   paid: number;
   expected: number;
   overdue: number;
   overdueAmount: number;
   collectedAmount: number;
-  totalAmount: number;
+  totalAmount: number;        // allocated amount for this FY
+  paymentAmount: number;      // per-payment amount
   status: 'complete' | 'partial' | 'overdue' | 'not_started';
 }
 
-function getExpectedPayments(contract: Contract): number {
+/**
+ * Fallback: date-based expected payments (used when fiscalYearId === 'all')
+ */
+function getExpectedPaymentsFallback(contract: Contract): number {
   const start = new Date(contract.start_date);
   const end = new Date(contract.end_date);
   const now = new Date();
@@ -54,42 +62,80 @@ function getExpectedPayments(contract: Contract): number {
     return monthsSinceStart >= 1 ? 1 : 0;
   }
 
-  // متعدد الدفعات
   const totalDays = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 3600 * 24));
   const elapsedDays = Math.max(0, (now.getTime() - start.getTime()) / (1000 * 3600 * 24));
   return Math.min(Math.floor(paymentCount * elapsedDays / totalDays), paymentCount);
 }
 
-export default function CollectionReport({ contracts, paymentsMap, isLoading }: CollectionReportProps) {
+export default function CollectionReport({ contracts, paymentsMap, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sendingAlerts, setSendingAlerts] = useState(false);
   const pdfWaqfInfo = usePdfWaqfInfo();
 
+  const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
+
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active'), [contracts]);
 
   const rows: CollectionRow[] = useMemo(() => {
     return activeContracts.map(contract => {
-      const paymentCount = contract.payment_type === 'monthly' ? 12
+      const contractPaymentCount = contract.payment_type === 'monthly' ? 12
         : contract.payment_type === 'annual' ? 1
         : (contract.payment_count || 1);
+      const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
       const paid = paymentsMap.get(contract.id) ?? 0;
-      const expected = getExpectedPayments(contract);
+
+      let allocatedPayments: number;
+      let allocatedAmount: number;
+
+      if (useDynamicAllocation) {
+        // Dynamic allocation: compute payments allocated to the selected fiscal year
+        const allocations = allocateContractToFiscalYears(
+          {
+            id: contract.id,
+            start_date: contract.start_date,
+            end_date: contract.end_date,
+            rent_amount: Number(contract.rent_amount),
+            payment_type: contract.payment_type,
+            payment_count: contract.payment_count,
+            payment_amount: contract.payment_amount ?? undefined,
+          },
+          fiscalYears as any
+        );
+        const fyAlloc = allocations.find(a => a.fiscal_year_id === fiscalYearId);
+        allocatedPayments = fyAlloc?.allocated_payments ?? 0;
+        allocatedAmount = fyAlloc?.allocated_amount ?? 0;
+      } else {
+        // Fallback: use full contract values
+        allocatedPayments = contractPaymentCount;
+        allocatedAmount = Number(contract.rent_amount);
+      }
+
+      const expected = useDynamicAllocation ? allocatedPayments : getExpectedPaymentsFallback(contract);
       const overdue = Math.max(0, expected - paid);
-      const paymentAmount = contract.payment_amount || (Number(contract.rent_amount) / paymentCount);
-      const overdueAmount = overdue * paymentAmount;
-      const collectedAmount = paid * paymentAmount;
-      const totalAmount = Number(contract.rent_amount);
+      const overdueAmount = overdue * perPayment;
+      const collectedAmount = paid * perPayment;
 
       let status: CollectionRow['status'];
-      if (paid >= paymentCount) status = 'complete';
+      if (paid >= allocatedPayments) status = 'complete';
       else if (overdue > 0) status = 'overdue';
       else if (paid > 0) status = 'partial';
       else status = 'not_started';
 
-      return { contract, paymentCount, paid, expected, overdue, overdueAmount, collectedAmount, totalAmount, status };
+      return {
+        contract,
+        paymentCount: allocatedPayments,
+        paid,
+        expected,
+        overdue,
+        overdueAmount,
+        collectedAmount,
+        totalAmount: allocatedAmount,
+        paymentAmount: perPayment,
+        status,
+      };
     });
-  }, [activeContracts, paymentsMap]);
+  }, [activeContracts, paymentsMap, useDynamicAllocation, fiscalYears, fiscalYearId]);
 
   const filteredRows = useMemo(() => {
     let result = rows;
@@ -145,6 +191,8 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading }: 
 
   if (isLoading) return <div className="text-center py-12 text-muted-foreground">جاري التحميل...</div>;
 
+  const expectedLabel = useDynamicAllocation ? 'المتوقع في هذه السنة' : 'إجمالي الإيجارات';
+
   return (
     <div className="space-y-5">
       {/* بطاقات الملخص */}
@@ -155,7 +203,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading }: 
               <Banknote className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">إجمالي الإيجارات</p>
+              <p className="text-xs text-muted-foreground">{expectedLabel}</p>
               <p className="text-lg font-bold">{summary.totalExpected.toLocaleString()}</p>
             </div>
           </CardContent>
@@ -261,7 +309,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading }: 
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><span className="text-muted-foreground text-xs">الدفعات</span><p className="font-medium">{row.paid}/{row.paymentCount}</p></div>
-                        <div><span className="text-muted-foreground text-xs">المتوقع</span><p className="font-medium">{row.expected} دفعة</p></div>
+                        <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
                         <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
                         {row.overdue > 0 && (
                           <div><span className="text-muted-foreground text-xs">المتأخر</span><p className="font-medium text-destructive">{row.overdueAmount.toLocaleString()} ر.س</p></div>
@@ -284,7 +332,8 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading }: 
                       <TableHead className="text-right">رقم العقد</TableHead>
                       <TableHead className="text-right">المستأجر</TableHead>
                       <TableHead className="text-right">العقار</TableHead>
-                      <TableHead className="text-right">الإيجار</TableHead>
+                      <TableHead className="text-right">{expectedLabel}</TableHead>
+                      <TableHead className="text-right">قيمة الدفعة</TableHead>
                       <TableHead className="text-center">الدفعات</TableHead>
                       <TableHead className="text-right">المحصّل</TableHead>
                       <TableHead className="text-right">المتأخر</TableHead>
@@ -299,6 +348,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading }: 
                         <TableCell>{row.contract.tenant_name}</TableCell>
                         <TableCell>{row.contract.property?.property_number || '-'}</TableCell>
                         <TableCell>{row.totalAmount.toLocaleString()} ر.س</TableCell>
+                        <TableCell>{row.paymentAmount.toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-center">
                           <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
                             {row.paid}/{row.paymentCount}
