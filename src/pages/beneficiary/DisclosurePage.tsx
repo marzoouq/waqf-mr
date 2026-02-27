@@ -19,16 +19,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-/** تحويل تاريخ ميلادي إلى هجري مختصر (يوم/شهر/سنة) */
-function toHijriShort(dateStr: string): string {
+/** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
+function toGregorianShort(dateStr: string): string {
   try {
     const d = new Date(dateStr);
-    const parts = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
-      day: 'numeric', month: 'numeric', year: 'numeric',
-    }).formatToParts(d);
-    const day = parts.find(p => p.type === 'day')?.value || '';
-    const month = parts.find(p => p.type === 'month')?.value || '';
-    const year = parts.find(p => p.type === 'year')?.value || '';
+    const day = d.getDate();
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
     return `${day}/${month}/${year}`;
   } catch {
     return dateStr;
@@ -74,9 +71,9 @@ const DisclosurePage = () => {
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 
-  // Build Hijri fiscal year label from start/end dates
-  const hijriFiscalYear = selectedFY
-    ? `${toHijriShort(selectedFY.start_date)}هـ — ${toHijriShort(selectedFY.end_date)}هـ`
+  // Build Gregorian fiscal year label from start/end dates
+  const gregorianFiscalYear = selectedFY
+    ? `${toGregorianShort(selectedFY.start_date)}م — ${toGregorianShort(selectedFY.end_date)}م`
     : fiscalYear;
 
   // Distributions for comprehensive report
@@ -223,7 +220,7 @@ const DisclosurePage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الإفصاح السنوي</h1>
-            <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {hijriFiscalYear}</p>
+            <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {gregorianFiscalYear}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadComprehensivePDF}>
