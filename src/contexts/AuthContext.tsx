@@ -103,12 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fetchRole = async () => {
       const startTime = Date.now();
       let attempts = 0;
-      logger.warn('[Auth] fetchRole started for user:', user.id);
+      logger.info('[Auth] fetchRole started for user:', user.id);
       
       // Safety timeout: 3 seconds max
       timeoutId = setTimeout(() => {
         if (roleFetchIdRef.current === fetchId) {
-          logger.warn('[Auth] fetchRole timeout after 3s, forcing loading=false');
+          logger.info('[Auth] fetchRole timeout after 3s, forcing loading=false');
           setLoading(false);
         }
       }, 3000);
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       for (let attempt = 0; attempt <= 2; attempt++) {
         attempts = attempt + 1;
         if (roleFetchIdRef.current !== fetchId) {
-          logger.warn('[Auth] fetchRole aborted (stale)');
+          logger.info('[Auth] fetchRole aborted (stale)');
           return;
         }
 
@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (data && !error) {
             const duration = Date.now() - startTime;
-            logger.warn('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
+            logger.info('[Auth] fetchRole success:', data.role, `(${duration}ms, ${attempts} attempts)`);
             setRoleWithRef(data.role as AppRole);
             setLoading(false);
             clearTimeout(timeoutId);
@@ -154,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // All retries exhausted
       if (roleFetchIdRef.current === fetchId) {
         const duration = Date.now() - startTime;
-        logger.warn('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
+        logger.info('[Auth] fetchRole failed after all retries', `(${duration}ms)`);
         setRoleWithRef(null);
         setLoading(false);
         clearTimeout(timeoutId);
