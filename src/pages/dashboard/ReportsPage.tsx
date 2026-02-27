@@ -39,7 +39,7 @@ const ReportsPage = () => {
     availableAmount, remainingBalance,
     incomeBySource, expensesByType,
     isLoading,
-  } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel);
+  } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
   const beneficiariesShare = availableAmount;
   const netRevenue = netAfterExpenses;

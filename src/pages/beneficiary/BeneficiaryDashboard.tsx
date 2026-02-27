@@ -28,6 +28,7 @@ const BeneficiaryDashboard = () => {
   const { availableAmount, isLoading: finLoading } = useFinancialSummary(
     fyReady ? fiscalYearId : undefined,
     fyReady ? fiscalYear?.label : undefined,
+    { fiscalYearStatus: fiscalYear?.status },
   );
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const safeAvailable = Number(availableAmount) || 0;

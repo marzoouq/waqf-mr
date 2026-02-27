@@ -46,7 +46,7 @@ const DisclosurePage = () => {
     availableAmount,
     isLoading: finLoading,
     isError: finError,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
 

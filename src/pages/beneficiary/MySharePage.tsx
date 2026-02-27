@@ -47,7 +47,7 @@ const MySharePage = () => {
     expensesByTypeExcludingVat,
     isLoading: finLoading,
     isError: finError,
-  } = useFinancialSummary(fiscalYearId, selectedFY?.label);
+  } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
