@@ -60,13 +60,15 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 export const useMyAdvanceRequests = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'my', beneficiaryId],
+    staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
         .from('advance_requests' as any)
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
       if (error) throw error;
       return (data ?? []) as unknown as AdvanceRequest[];
     },
@@ -80,6 +82,7 @@ export const useMyAdvanceRequests = (beneficiaryId?: string) => {
 export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'paid_total', beneficiaryId, fiscalYearId],
+    staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
@@ -90,7 +93,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
-      const { data, error } = await query;
+      const { data, error } = await query.limit(200);
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0);
     },
@@ -104,6 +107,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
 export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', beneficiaryId, fiscalYearId],
+    staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       // جلب كل المرحّل النشط الذي يستهدف هذه السنة أو بدون سنة مستهدفة
@@ -113,7 +117,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
         .eq('beneficiary_id', beneficiaryId)
         .eq('status', 'active');
 
-      const { data, error } = await query;
+      const { data, error } = await query.limit(200);
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.amount), 0);
     },
@@ -127,13 +131,15 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
 export const useMyCarryforwards = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'my', beneficiaryId],
+    staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
         .from('advance_carryforward' as any)
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
       if (error) throw error;
       return (data ?? []) as unknown as AdvanceCarryforward[];
     },

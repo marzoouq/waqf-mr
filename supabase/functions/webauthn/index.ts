@@ -138,9 +138,11 @@ Deno.serve(async (req: Request) => {
 
       const { credential: regCred } = verification.registrationInfo;
 
-      // Convert Uint8Array to base64url string for storage
-      const credIdBase64 = btoa(String.fromCharCode(...regCred.id));
-      const pubKeyBase64 = btoa(String.fromCharCode(...regCred.publicKey));
+      // Convert Uint8Array to base64 string for storage (safe for large arrays)
+      const toBase64 = (arr: Uint8Array) =>
+        btoa(Array.from(arr, (b) => String.fromCharCode(b)).join(''));
+      const credIdBase64 = toBase64(regCred.id);
+      const pubKeyBase64 = toBase64(regCred.publicKey);
 
       await admin.from("webauthn_credentials").insert({
         user_id: user.id,
