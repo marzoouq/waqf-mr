@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     // Validate action against whitelist
     if (!action || !ALLOWED_ACTIONS.includes(action)) {
-      return new Response(JSON.stringify({ error: `Invalid action: ${action}` }), {
+      return new Response(JSON.stringify({ error: "إجراء غير صالح" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
