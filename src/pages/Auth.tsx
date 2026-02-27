@@ -197,8 +197,8 @@ const Auth = () => {
       toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
-    if (signupPassword.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+    if (signupPassword.length < 8) {
+      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return;
     }
     setIsLoading(true);

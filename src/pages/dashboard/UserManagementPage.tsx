@@ -510,7 +510,7 @@ const UserManagementPage = () => {
               <Button
                 className="w-full"
                 onClick={() => passwordDialog && newPassword && updatePassword.mutate({ userId: passwordDialog, password: newPassword })}
-                disabled={updatePassword.isPending || newPassword.length < 6}
+                disabled={updatePassword.isPending || newPassword.length < 8}
               >
                 {updatePassword.isPending ? 'جاري التحديث...' : 'تحديث كلمة المرور'}
               </Button>
