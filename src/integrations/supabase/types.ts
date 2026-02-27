@@ -885,6 +885,69 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_invoices: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          due_date: string
+          fiscal_year_id: string | null
+          id: string
+          invoice_number: string
+          notes: string | null
+          paid_amount: number | null
+          paid_date: string | null
+          payment_number: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          contract_id: string
+          created_at?: string
+          due_date: string
+          fiscal_year_id?: string | null
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          payment_number?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          due_date?: string
+          fiscal_year_id?: string | null
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          payment_number?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_invoices_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       properties: {
         Row: {
           area: number
@@ -1191,6 +1254,7 @@ export type Database = {
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_check_late_payments: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
+      cron_update_overdue_invoices: { Args: never; Returns: undefined }
       decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
       encrypt_pii: { Args: { p_value: string }; Returns: string }
       execute_distribution: {
@@ -1201,6 +1265,11 @@ export type Database = {
           p_total_distributed?: number
         }
         Returns: Json
+      }
+      generate_all_active_invoices: { Args: never; Returns: number }
+      generate_contract_invoices: {
+        Args: { p_contract_id: string }
+        Returns: number
       }
       get_beneficiary_decrypted: {
         Args: { p_beneficiary_id: string }
