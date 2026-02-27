@@ -118,6 +118,9 @@ erDiagram
         numeric waqf_corpus_previous
         numeric waqf_corpus_manual
         numeric distributions_amount
+        numeric net_after_expenses
+        numeric net_after_vat
+        numeric waqf_capital
     }
 
     distributions {
@@ -290,6 +293,9 @@ erDiagram
 | `waqf_corpus_previous` | numeric | رصيد جسم الوقف السابق |
 | `waqf_corpus_manual` | numeric | استقطاع جسم الوقف |
 | `distributions_amount` | numeric | إجمالي التوزيعات |
+| `net_after_expenses` | numeric | صافي الدخل بعد المصروفات |
+| `net_after_vat` | numeric | صافي الدخل بعد الضريبة |
+| `waqf_capital` | numeric | رأس مال الوقف |
 
 ### 8. `beneficiaries` — المستفيدين
 | العمود | النوع | وصف |
@@ -316,6 +322,7 @@ erDiagram
 | `start_date` | date | تاريخ البداية |
 | `end_date` | date | تاريخ النهاية |
 | `status` | text | الحالة: active / closed |
+| `published` | boolean | هل السنة منشورة للمستفيدين |
 
 ### 11. `invoices` — الفواتير
 | العمود | النوع | وصف |
