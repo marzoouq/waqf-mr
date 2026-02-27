@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Fallback: getSession for initial load
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!initialSessionHandled) {
-        logger.warn('[Auth] getSession fallback used');
+        logger.info('[Auth] getSession fallback used');
         setSession(s);
         setUser(s?.user ?? null);
         if (!s?.user) {

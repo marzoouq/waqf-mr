@@ -281,7 +281,7 @@ Deno.serve(async (req: Request) => {
       // إنشاء رابط تسجيل دخول سحري للمستخدم
       const { data: userData, error: userError } = await admin.auth.admin.getUserById(storedCred.user_id);
       if (userError || !userData?.user?.email) {
-        console.error("getUserById failed:", userError);
+        console.error("getUserById failed");
         return new Response(JSON.stringify({ error: "المستخدم غير موجود" }), { status: 400, headers: cors });
       }
 
@@ -303,7 +303,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ error: "إجراء غير معروف" }), { status: 400, headers: cors });
   } catch (err) {
-    console.error("WebAuthn error:", err);
+    console.error("WebAuthn error:", err instanceof Error ? err.message : "Unknown error");
     return new Response(JSON.stringify({ error: "حدث خطأ داخلي" }), { status: 500, headers: getCorsHeaders(req) });
   }
 });
