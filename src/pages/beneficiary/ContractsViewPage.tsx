@@ -34,7 +34,7 @@ const ContractsViewPage = () => {
       total: contracts.length,
       active: active.length,
       expired: contracts.filter(c => c.status === 'expired').length,
-      totalRent: active.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
+      totalRent: contracts.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
       expiringSoon: active.filter(c => new Date(c.end_date) <= in90Days).length,
     };
   }, [contracts]);
