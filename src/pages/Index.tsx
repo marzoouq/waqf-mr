@@ -128,10 +128,10 @@ const Index = () => {
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" />
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="animate-slide-up mb-10">
+            <div className="mb-10">
               {waqfInfo?.waqf_logo_url ? (
                 <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" />
+                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" fetchPriority="high" />
                 </div>
               ) : (
                 <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
@@ -143,7 +143,7 @@ const Index = () => {
                 <Star className="w-4 h-4 text-secondary fill-secondary/30" />
                 <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
               </div>
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+              <h1 className="font-arabic text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                 {content.hero_title}
               </h1>
               <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto leading-relaxed font-arabic">
