@@ -91,6 +91,18 @@ const UserManagementPage = () => {
   const totalUsers = usersResult.total;
   const nextPage = usersResult.nextPage;
 
+  // تحقق وقائي: كشف المستفيدين بدون بريد أو بدون ربط بحساب مستخدم
+  const { data: orphanedBeneficiaries = [] } = useQuery({
+    queryKey: ['orphaned-beneficiaries'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('beneficiaries')
+        .select('id, name, email, user_id')
+        .or('email.is.null,email.eq.,user_id.is.null');
+      return data || [];
+    },
+  });
+
   const createUser = useMutation({
     mutationFn: (data: { email: string; password: string; role: string; nationalId: string; name: string }) =>
       callAdminApi({ action: 'create_user', ...data }),
@@ -297,6 +309,24 @@ const UserManagementPage = () => {
           </Dialog>
         </div>
 
+        {/* تنبيه المستفيدين بدون بريد أو بدون ربط */}
+        {orphanedBeneficiaries.length > 0 && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>تنبيه:</strong> يوجد {orphanedBeneficiaries.length} مستفيد بدون بريد إلكتروني أو بدون ربط بحساب مستخدم.
+              تسجيل الدخول بالهوية لن يعمل لهم.
+              <ul className="mt-2 list-disc list-inside text-sm">
+                {orphanedBeneficiaries.map((b) => (
+                  <li key={b.id}>
+                    {b.name} — {!b.email ? 'بدون بريد' : ''}{!b.email && !b.user_id ? ' و ' : ''}{!b.user_id ? 'غير مربوط بحساب' : ''}
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Users Table */}
         <Card className="shadow-sm">
           <CardHeader>
@@ -323,8 +353,13 @@ const UserManagementPage = () => {
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell dir="ltr">
-                        {user.email}
-                        {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                        <span className="flex items-center gap-1">
+                          {user.email}
+                          {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                          {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
+                            <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
+                          )}
+                        </span>
                       </TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
                       <TableCell>
