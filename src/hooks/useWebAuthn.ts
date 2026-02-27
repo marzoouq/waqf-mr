@@ -20,10 +20,15 @@ export function useWebAuthn() {
 
   // جلب بيانات الاعتماد المسجلة
   const fetchCredentials = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
       .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Failed to fetch credentials:', error.message);
+      toast.error('تعذر جلب بيانات الاعتماد');
+      return [];
+    }
     setCredentials(data || []);
     return data || [];
   }, []);

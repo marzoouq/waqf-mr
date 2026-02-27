@@ -100,9 +100,15 @@ Deno.serve(async (req) => {
       }
 
       case "list_users": {
-        const { data, error } = await adminClient.auth.admin.listUsers({ perPage: 500 });
+        const page = body.page || 1;
+        const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 50 });
         if (error) throw error;
-        const { data: roles } = await adminClient.from("user_roles").select("*");
+
+        const userIds = data.users.map((u) => u.id);
+        const { data: roles } = await adminClient
+          .from("user_roles")
+          .select("*")
+          .in("user_id", userIds);
 
         const users = data.users.map((u) => ({
           id: u.id,
@@ -113,7 +119,12 @@ Deno.serve(async (req) => {
           role: roles?.find((r) => r.user_id === u.id)?.role || null,
         }));
 
-        return new Response(JSON.stringify({ users }), {
+        return new Response(JSON.stringify({
+          users,
+          total: data.total ?? users.length,
+          page,
+          nextPage: users.length === 50 ? page + 1 : null,
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

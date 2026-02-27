@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 
 /**
  * SecurityGuard component - lightweight version
- * Only prevents copying on elements marked with data-sensitive attribute
- * and disables drag on sensitive content.
+ * Prevents copying, selecting, dragging, and context menu on elements marked with data-sensitive attribute.
  */
 const SecurityGuard = () => {
   useEffect(() => {
@@ -25,12 +24,34 @@ const SecurityGuard = () => {
       }
     };
 
+    // Disable text selection on sensitive content
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target?.closest('[data-sensitive]')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    // Disable right-click context menu on sensitive content
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.closest('[data-sensitive]')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
     document.addEventListener('copy', handleCopy);
     document.addEventListener('dragstart', handleDragStart);
+    document.addEventListener('selectstart', handleSelectStart);
+    document.addEventListener('contextmenu', handleContextMenu);
 
     return () => {
       document.removeEventListener('copy', handleCopy);
       document.removeEventListener('dragstart', handleDragStart);
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('contextmenu', handleContextMenu);
     };
   }, []);
 

@@ -295,7 +295,7 @@ async function generateInvoicePdf(invoice: InvoiceData): Promise<Uint8Array> {
     ["النوع", TYPE_AR[invoice.invoice_type] || invoice.invoice_type],
     ["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })],
     ["التاريخ", invoice.date],
-    ["الوصف", (invoice.description || "—").substring(0, 50)],
+    ["الوصف", (() => { const d = invoice.description || "—"; return d.length > 47 ? d.substring(0, 47) + "..." : d; })()],
     ["الحالة", STATUS_AR[invoice.status] || invoice.status],
   ];
 
@@ -360,44 +360,41 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.replace("Bearer ", "");
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Use getUser for real-time session validation (prevents revoked token usage)
+    const { data: { user: authUser }, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError || !authUser) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create admin client only after successful authentication
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const isServiceRole = token === SUPABASE_SERVICE_ROLE_KEY;
-    if (!isServiceRole) {
-      if (!authHeader.startsWith("Bearer ")) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    const userId = authUser.id;
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin");
 
-      const supabaseAuth = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
-        global: { headers: { Authorization: authHeader } },
+    if (!roles || roles.length === 0) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-
-      // Use getUser for real-time session validation (prevents revoked token usage)
-      const { data: { user: authUser }, error: userError } = await supabaseAuth.auth.getUser();
-      if (userError || !authUser) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const userId = authUser.id;
-      const { data: roles } = await supabaseAdmin
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin");
-
-      if (!roles || roles.length === 0) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
     }
 
     const { invoice_ids } = await req.json();

@@ -1,7 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-// Simple in-memory rate limiter (per IP, 3 requests per minute)
+// ⚠️ WARNING: In-memory rate limiting does NOT work reliably across distributed Edge Function instances.
+// Each instance maintains its own Map, so limits are per-instance, not global.
+// For production-grade rate limiting, consider using a shared store (Redis, KV, or database).
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 3;
 const RATE_WINDOW_MS = 60_000;
