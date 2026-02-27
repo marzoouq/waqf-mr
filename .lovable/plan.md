@@ -1,49 +1,38 @@
 
-# Fix Remaining PDF Bugs in beneficiary.ts
+
+# Add AbortController to AI Assistant
 
 ## Summary
-Out of 8 reported bugs, 6 were already fixed in previous iterations. Only 2 real issues remain, both in `src/utils/pdf/beneficiary.ts`.
+Add an `AbortController` to the `AiAssistant` component to properly cancel in-flight fetch requests when the user closes the chat panel, changes mode, or when the component unmounts.
 
----
+## Changes (single file)
 
-## Fix 1: Remove duplicate "إجمالي ريع الوقف" row (BUG #3)
+**File:** `src/components/AiAssistant.tsx`
 
-**File:** `src/utils/pdf/beneficiary.ts`, lines 39-40
-
-The same row appears twice in the PDF table body. Remove the duplicate on line 40.
-
-Before:
-```text
-['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
-['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],  // duplicate
-```
-
-After:
-```text
-['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
-```
-
----
-
-## Fix 2: Add sharePercentage to PDF output (BUG #7)
-
-**File:** `src/utils/pdf/beneficiary.ts`, line 39
-
-Add a row showing the beneficiary's share percentage, which is passed in the data but never displayed.
-
-Add this row after "إجمالي ريع الوقف":
-```text
-['نسبتي من الريع', `${data.sharePercentage}%`],
-```
-
----
-
-## What about AiAssistant.tsx (BUG #8)?
-
-`VITE_SUPABASE_URL` is automatically provided by Lovable Cloud and is always defined in production. Adding a fallback would be defensive but unnecessary. Skipping this fix.
+1. Add an `abortControllerRef` using `useRef<AbortController | null>(null)`
+2. In the `send()` function: abort any previous request, create a new `AbortController`, and pass its `signal` to the `fetch()` call
+3. Add a cleanup `useEffect` that aborts on unmount
+4. When closing the chat (`setOpen(false)`), abort any active request
+5. When changing mode (`handleModeChange`), abort any active request
+6. In the `catch` block, silently ignore `AbortError` so cancelled requests don't show error messages to the user
 
 ## Technical Details
 
-- Only `src/utils/pdf/beneficiary.ts` will be modified
-- Lines 39-40 will be changed (remove duplicate, add sharePercentage row)
-- No other files affected
+```text
+Key changes in send():
+  - abortControllerRef.current?.abort()        // cancel previous
+  - abortControllerRef.current = new AbortController()
+  - fetch(AI_URL, { signal: abortControllerRef.current.signal, ... })
+
+Cleanup useEffect:
+  - useEffect(() => () => abortControllerRef.current?.abort(), [])
+
+Close/mode handlers:
+  - abortControllerRef.current?.abort() before setOpen(false)
+  - abortControllerRef.current?.abort() in handleModeChange
+```
+
+This prevents:
+- Memory leaks from orphaned streaming readers
+- `setState` on unmounted components
+- Unnecessary network usage when user navigates away
