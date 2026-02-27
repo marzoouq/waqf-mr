@@ -55,6 +55,12 @@ const Index = () => {
           { label: 'مستفيد', value: String(d.beneficiaries ?? 0) },
           { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
         ]);
+      } else {
+        setStats([
+          { label: 'عقار مُدار', value: '0' },
+          { label: 'مستفيد', value: '0' },
+          { label: 'تقرير سنوي', value: '0' },
+        ]);
       }
     };
     fetchStats();
