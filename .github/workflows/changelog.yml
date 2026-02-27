@@ -1,0 +1,74 @@
+name: Update CHANGELOG
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'رقم الإصدار (مثل v1.2.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get release info
+        id: info
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "version=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+            echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+            # Use release body as notes
+            cat <<'BODY' > /tmp/release_notes.md
+          ${{ github.event.release.body }}
+          BODY
+          else
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+            # Generate from recent commits
+            git log --oneline --no-merges -20 --pretty="- %s" > /tmp/release_notes.md
+          fi
+
+      - name: Prepend to CHANGELOG.md
+        run: |
+          VERSION="${{ steps.info.outputs.version }}"
+          DATE="${{ steps.info.outputs.date }}"
+          NOTES=$(cat /tmp/release_notes.md)
+
+          # Build new entry
+          NEW_ENTRY="## ${VERSION} — ${DATE}
+
+          ${NOTES}
+
+          ---
+
+          "
+
+          # Insert after the header (line 7, after the --- separator)
+          if [ -f docs/CHANGELOG.md ]; then
+            head -7 docs/CHANGELOG.md > /tmp/changelog_new.md
+            echo "" >> /tmp/changelog_new.md
+            echo "$NEW_ENTRY" >> /tmp/changelog_new.md
+            tail -n +8 docs/CHANGELOG.md >> /tmp/changelog_new.md
+            mv /tmp/changelog_new.md docs/CHANGELOG.md
+          else
+            echo "docs/CHANGELOG.md not found"
+            exit 1
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/CHANGELOG.md
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "docs: تحديث سجل التغييرات — ${{ steps.info.outputs.version }}"
+          git push
