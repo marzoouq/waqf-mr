@@ -12,11 +12,6 @@ const PrintHeader = () => {
   const logoUrl = waqfInfo?.waqf_logo_url;
 
   const today = new Date();
-  const hijriDate = today.toLocaleDateString('ar-SA-u-ca-islamic', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
   const gregorianDate = today.toLocaleDateString('ar-SA', {
     year: 'numeric',
     month: 'long',
@@ -66,7 +61,6 @@ const PrintHeader = () => {
           {/* تاريخ الطباعة */}
           <div className="text-left text-xs flex-shrink-0" style={{ color: 'hsl(150, 15%, 45%)' }}>
             <p className="font-bold mb-1" style={{ color: 'hsl(150, 15%, 35%)' }}>تاريخ الطباعة</p>
-            <p>{hijriDate} هـ</p>
             <p>{gregorianDate} م</p>
           </div>
         </div>
