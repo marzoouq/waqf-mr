@@ -43,58 +43,16 @@ export const useUpsertTenantPayment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payment: UpsertPaymentParams) => {
-      // 1) جلب عدد الدفعات الحالي
-      const { data: existing } = await supabase
-        .from('tenant_payments')
-        .select('paid_months')
-        .eq('contract_id', payment.contract_id)
-        .maybeSingle();
-
-      const oldPaidMonths = existing?.paid_months ?? 0;
-
-      // 2) تحديث/إنشاء سجل التحصيل
-      const { data, error } = await supabase
-        .from('tenant_payments')
-        .upsert(
-          {
-            contract_id: payment.contract_id,
-            paid_months: payment.paid_months,
-            notes: payment.notes || null,
-          },
-          { onConflict: 'contract_id' }
-        )
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('upsert_tenant_payment', {
+        p_contract_id: payment.contract_id,
+        p_paid_months: payment.paid_months,
+        p_notes: payment.notes ?? null,
+        p_payment_amount: payment.auto_income?.payment_amount ?? 0,
+        p_property_id: payment.auto_income?.property_id ?? null,
+        p_fiscal_year_id: payment.auto_income?.fiscal_year_id ?? null,
+        p_tenant_name: payment.auto_income?.tenant_name ?? null,
+      });
       if (error) throw error;
-
-      // 3) إنشاء سجل دخل تلقائي إذا زادت الدفعات
-      if (
-        payment.auto_income &&
-        payment.paid_months > oldPaidMonths &&
-        payment.auto_income.payment_amount > 0
-      ) {
-        const diff = payment.paid_months - oldPaidMonths;
-        const incomeRecords = Array.from({ length: diff }, (_, i) => ({
-          source: `إيجار - ${payment.auto_income!.tenant_name}`,
-          amount: payment.auto_income!.payment_amount,
-          date: new Date().toISOString().split('T')[0],
-          property_id: payment.auto_income!.property_id,
-          contract_id: payment.contract_id,
-          fiscal_year_id: payment.auto_income!.fiscal_year_id,
-          notes: `تحصيل تلقائي - الدفعة رقم ${oldPaidMonths + i + 1}`,
-        }));
-
-        const { error: incomeError } = await supabase
-          .from('income')
-          .insert(incomeRecords);
-
-        if (incomeError) {
-          // فشل إنشاء سجل الدخل التلقائي — toast يكفي للمستخدم
-          // لا نرمي خطأ هنا حتى لا نفقد تحديث التحصيل الذي نجح بالفعل
-          toast.error('تم تحديث التحصيل لكن فشل إنشاء سجل الدخل تلقائياً');
-        }
-      }
-
       return data;
     },
     onSuccess: () => {
