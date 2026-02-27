@@ -6,6 +6,9 @@ const ALLOWED_ACTIONS = [
   "confirm_email", "set_role", "delete_user", "create_user", "bulk_create_users",
 ];
 
+/** Sanitize user-provided name to prevent injection in notification messages */
+const safeName = (name: string) => name.substring(0, 100).replace(/[<>&"']/g, '');
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -294,7 +297,7 @@ Deno.serve(async (req) => {
         if (body.role === "beneficiary") {
           try { await adminClient.rpc('notify_admins', {
             p_title: 'مستفيد جديد',
-            p_message: `تم تسجيل مستفيد جديد: ${body.name || email}`,
+            p_message: `تم تسجيل مستفيد جديد: ${safeName(body.name || email)}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
           }); } catch {}
@@ -369,7 +372,7 @@ Deno.serve(async (req) => {
 
             try { await adminClient.rpc('notify_admins', {
               p_title: 'مستفيد جديد',
-              p_message: `تم تسجيل مستفيد جديد: ${u.name}`,
+              p_message: `تم تسجيل مستفيد جديد: ${safeName(u.name)}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
             }); } catch {}
