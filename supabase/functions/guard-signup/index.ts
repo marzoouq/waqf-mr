@@ -105,7 +105,12 @@ Deno.serve(async (req) => {
         .insert({ user_id: userData.user.id, role: "beneficiary" });
       if (roleError) {
         console.error("guard-signup role assignment error");
-        // لا نفشل العملية — المستخدم أُنشئ بنجاح ويمكن للناظر تعيين الدور لاحقاً
+        // Rollback: حذف المستخدم لمنع وجود حساب يتيم بدون دور
+        await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
+        return new Response(JSON.stringify({ error: "تعذر إتمام التسجيل" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
