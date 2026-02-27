@@ -1,38 +1,104 @@
 
+# اصلاح 10 بنود من الفحص الجنائي (النسخة النهائية المُدققة)
 
-# Add AbortController to AI Assistant
+## ملخص
+اصلاح 10 مشاكل حقيقية تم التحقق منها بالكامل مقابل الكود الفعلي، مع تطبيق التعديلات الثلاثة الواجبة من تقرير التحقق.
 
-## Summary
-Add an `AbortController` to the `AiAssistant` component to properly cancel in-flight fetch requests when the user closes the chat panel, changes mode, or when the component unmounts.
+---
 
-## Changes (single file)
+## البند 1: حذف تسريب معلومات داخلية من WebAuthn (امني)
+**الملف:** `supabase/functions/webauthn/index.ts` سطر 263
+- تغيير الاستجابة من `{ error: "حدث خطأ داخلي", details: String(err) }` الى `{ error: "حدث خطأ داخلي" }` فقط
 
-**File:** `src/components/AiAssistant.tsx`
+---
 
-1. Add an `abortControllerRef` using `useRef<AbortController | null>(null)`
-2. In the `send()` function: abort any previous request, create a new `AbortController`, and pass its `signal` to the `fetch()` call
-3. Add a cleanup `useEffect` that aborts on unmount
-4. When closing the chat (`setOpen(false)`), abort any active request
-5. When changing mode (`handleModeChange`), abort any active request
-6. In the `catch` block, silently ignore `AbortError` so cancelled requests don't show error messages to the user
+## البنود 2+3+4: اصلاح printShareReport (3 اصلاحات مترابطة)
+**الملف:** `src/utils/printShareReport.ts`
 
-## Technical Details
+### 4a. استبدال Google Fonts بخط Amiri محلي
+- حذف سطر `@import url('https://fonts.googleapis.com/css2?family=Amiri&display=swap');`
+- اضافة `@font-face` declarations مع مسار **مطلق**: `${window.location.origin}/fonts/Amiri-Regular.woff2` (وليس نسبي، لان النافذة الجديدة `about:blank`)
 
+### 2a. استبدال setTimeout بـ onload (بالترتيب الصحيح)
+- تسجيل `printWindow.onload` **قبل** استدعاء `printWindow.document.close()` لضمان عدم فوات الحدث
+
+### 3a. حذف `as any` من سطر 81
+- تغيير `(d as any).account?.fiscal_year` الى `d.account?.fiscal_year` (الـ type يحتوي فعلا على `account`)
+
+---
+
+## البند 5: اضافة حد للاستعلام
+**الملف:** `src/hooks/useAdvanceRequests.ts` سطر 157
+- اضافة `.limit(500)` قبل تنفيذ استعلام `advance_carryforward`
+
+---
+
+## البند 6: تحسين انواع TypeScript في useUpdateAdvanceStatus
+**الملف:** `src/hooks/useAdvanceRequests.ts`
+
+### 6a. سطر 203: استبدال `Record<string, any>` بنوع صريح
 ```text
-Key changes in send():
-  - abortControllerRef.current?.abort()        // cancel previous
-  - abortControllerRef.current = new AbortController()
-  - fetch(AI_URL, { signal: abortControllerRef.current.signal, ... })
-
-Cleanup useEffect:
-  - useEffect(() => () => abortControllerRef.current?.abort(), [])
-
-Close/mode handlers:
-  - abortControllerRef.current?.abort() before setOpen(false)
-  - abortControllerRef.current?.abort() in handleModeChange
+const updates: { status: string; approved_at?: string; paid_at?: string; rejection_reason?: string } = { status };
 ```
 
-This prevents:
-- Memory leaks from orphaned streaming readers
-- `setState` on unmounted components
-- Unnecessary network usage when user navigates away
+### 6b. سطر 199: اضافة `beneficiary_user_id` و `amount` للـ destructuring
+```text
+mutationFn: async ({ id, status, rejection_reason, beneficiary_user_id, amount }: { ... })
+```
+ثم حذف `as any` من السطرين 229-230 واستخدام المتغيرات مباشرة
+
+---
+
+## البند 7: توحيد التسجيل (logging)
+**الملف:** `src/hooks/useBeneficiaries.ts`
+- اضافة `import { logger } from '@/lib/logger';`
+- سطر 49: تغيير `console.warn(...)` الى `logger.warn(...)`
+
+---
+
+## البند 8: تحسين type safety في useWebAuthn
+**الملف:** `src/hooks/useWebAuthn.ts`
+
+### 8a. سطر 12: اضافة interface واستبدال `any[]`
+```text
+interface WebAuthnCredential { id: string; device_name: string; created_at: string; }
+useState<WebAuthnCredential[]>([])
+```
+
+### 8b. سطر 77: تغيير `catch (err: any)` مع narrowing يشمل DOMException
+```text
+} catch (err: unknown) {
+  const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+  const message = err instanceof Error ? err.message : 'خطأ غير معروف';
+  console.error('WebAuthn registration error:', err);
+  if (name === 'NotAllowedError') { ... }
+  else if (name === 'SecurityError') { ... }
+  else if (name === 'InvalidStateError') { ... }
+  else { toast.error(`... ${message}`); }
+}
+```
+
+### 8c. سطر 136: نفس التحسين للـ catch الثاني
+
+---
+
+## البند 9: تحديث plan.md
+**الملف:** `.lovable/plan.md`
+- تحديث المحتوى ليعكس الحالة الفعلية للنظام بعد كل الاصلاحات
+
+---
+
+## البند 10: توثيق `as any` الضروري
+**الملف:** `src/hooks/useDistribute.ts` سطر 44
+- اضافة تعليق: `// as any required: Supabase RPC accepts jsonb, TypeScript cannot type this`
+
+---
+
+## ترتيب التنفيذ
+1. WebAuthn edge function (امني - ملف واحد)
+2. printShareReport (3 اصلاحات مترابطة)
+3. useAdvanceRequests (limit + typing)
+4. useBeneficiaries (logger)
+5. useWebAuthn (type safety)
+6. useDistribute (تعليق)
+7. plan.md (تنظيف)
