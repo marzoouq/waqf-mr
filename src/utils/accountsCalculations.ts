@@ -44,7 +44,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const netAfterExpenses = grandTotal - totalExpenses;
   const netAfterVat = netAfterExpenses - manualVat;
   const netAfterZakat = netAfterVat - zakatAmount;
-  const shareBase = totalIncome - totalExpenses - zakatAmount;
+  const shareBase = Math.max(0, totalIncome - totalExpenses - zakatAmount);
   const adminShare = Math.round(shareBase * (adminPercent / 100) * 100) / 100;
   const waqifShare = Math.round(shareBase * (waqifPercent / 100) * 100) / 100;
   const waqfRevenue = Math.round((netAfterZakat - adminShare - waqifShare) * 100) / 100;

@@ -18,7 +18,7 @@ const STORAGE_KEY = 'waqf_selected_fiscal_year';
 
 export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
-  const { role } = useAuth();
+  const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
     try { return localStorage.getItem(STORAGE_KEY) || ''; }
     catch { return ''; }
@@ -39,9 +39,9 @@ export const FiscalYearProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // For beneficiary/waqif: RLS already filters to published-only fiscal years.
   // If no fiscal years are available (all unpublished), don't fallback to 'all'.
-  const noPublishedYears = !isLoading && isNonAdmin && fiscalYears.length === 0;
+  const noPublishedYears = !isLoading && !authLoading && isNonAdmin && fiscalYears.length === 0;
 
-  const fiscalYearId = isLoading
+  const fiscalYearId = (isLoading || authLoading)
     ? '__none__'
     : noPublishedYears
       ? '__none__'

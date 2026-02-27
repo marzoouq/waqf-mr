@@ -1220,6 +1220,18 @@ export type Database = {
         Returns: Json
       }
       reorder_bylaws: { Args: { items: Json }; Returns: undefined }
+      upsert_tenant_payment: {
+        Args: {
+          p_contract_id: string
+          p_fiscal_year_id?: string
+          p_notes?: string
+          p_paid_months: number
+          p_payment_amount?: number
+          p_property_id?: string
+          p_tenant_name?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "beneficiary" | "waqif" | "accountant"
