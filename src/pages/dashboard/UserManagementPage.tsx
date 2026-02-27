@@ -51,6 +51,7 @@ const UserManagementPage = () => {
   const [editRole, setEditRole] = useState('');
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // BUG-11 fix: استخدام useQuery بدلاً من useEffect + setState
   const { data: registrationEnabled = false } = useQuery({
@@ -75,13 +76,20 @@ const UserManagementPage = () => {
     }
   };
 
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['admin-users'],
+  const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading } = useQuery({
+    queryKey: ['admin-users', currentPage],
     queryFn: async () => {
-      const result = await callAdminApi({ action: 'list_users' });
-      return result.users as ManagedUser[];
+      const result = await callAdminApi({ action: 'list_users', page: currentPage });
+      return {
+        users: result.users as ManagedUser[],
+        total: (result.total as number) ?? (result.users as ManagedUser[]).length,
+        nextPage: (result.nextPage as number | null) ?? null,
+      };
     },
   });
+  const users = usersResult.users;
+  const totalUsers = usersResult.total;
+  const nextPage = usersResult.nextPage;
 
   const createUser = useMutation({
     mutationFn: (data: { email: string; password: string; role: string; nationalId: string; name: string }) =>
@@ -294,7 +302,7 @@ const UserManagementPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              المستخدمون ({users.length})
+              المستخدمون ({totalUsers})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -391,6 +399,29 @@ const UserManagementPage = () => {
                   ))}
                 </TableBody>
               </Table>
+            )}
+
+            {/* Pagination */}
+            {(currentPage > 1 || nextPage) && (
+              <div className="flex items-center justify-center gap-4 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  السابق
+                </Button>
+                <span className="text-sm text-muted-foreground">صفحة {currentPage}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!nextPage}
+                  onClick={() => nextPage && setCurrentPage(nextPage)}
+                >
+                  التالي
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

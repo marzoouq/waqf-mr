@@ -11,7 +11,6 @@ const SecurityGuard = () => {
       const target = e.target as HTMLElement;
       if (target?.closest('[data-sensitive]')) {
         e.preventDefault();
-        return false;
       }
     };
 
@@ -20,7 +19,6 @@ const SecurityGuard = () => {
       const target = e.target as HTMLElement;
       if (target?.closest('[data-sensitive]')) {
         e.preventDefault();
-        return false;
       }
     };
 
@@ -29,7 +27,6 @@ const SecurityGuard = () => {
       const target = e.target as HTMLElement;
       if (target?.closest('[data-sensitive]')) {
         e.preventDefault();
-        return false;
       }
     };
 
@@ -38,7 +35,6 @@ const SecurityGuard = () => {
       const target = e.target as HTMLElement;
       if (target?.closest('[data-sensitive]')) {
         e.preventDefault();
-        return false;
       }
     };
 
