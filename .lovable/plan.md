@@ -1,85 +1,61 @@
 
 
-# إصلاح 4 مشاكل مؤكدة من الفحص الجنائي العميق
+# تقرير التحقق الجنائي — النتائج الفعلية من الكود الحالي
 
-## نتائج التحقق
+## ملخص: من 14 ادعاء في التقرير، مشكلتان فقط حقيقيتان
 
-بعد قراءة كل ملف سطراً بسطر، من أصل 10 بنود في التقرير:
-- **4 مشاكل حقيقية تستحق الإصلاح**
-- **3 بنود صحيحة لكنها قرارات تصميمية واعية** (shareBase سالب، تحيز AI، logger)
-- **2 بند خطره أقل مما يبدو** (isNonAdmin محمي بـ isLoading، cache invalidation يعمل صحيحاً)
-- **1 بند خاطئ** (cache invalidation -- React Query يستخدم prefix match)
+معظم المشاكل المُبلَّغ عنها **تم إصلاحها مسبقاً** في الجولات السابقة. التقرير المُقدَّم يستند إلى commits قديمة وليس الكود الحالي.
 
 ---
 
-## الإصلاحات المطلوبة
+## بنود مُصلحة مسبقاً (التقرير خاطئ بشأنها)
 
-### 1. [امني - عاجل] كلمة المرور 6 vs 8 في guard-signup
-
-**الملف:** `supabase/functions/guard-signup/index.ts` سطر 61
-
-**المشكلة:** الواجهة تفرض 8 أحرف لكن الـ Edge Function تقبل 6.
-
-**الإصلاح:** تغيير `< 6` الى `< 8` وتحديث رسالة الخطأ:
-```text
-password.length < 8  -->  "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً"
-```
-
-### 2. [اداء] logger.warn في كل render
-
-**الملف:** `src/hooks/useFiscalYears.ts` سطر 37-39
-
-**المشكلة:** `logger.warn` خارج `useEffect` يُنفّذ في كل render. لا أثر في production لكن يُولّد ضجيج في development.
-
-**الإصلاح:** لف الـ log في `useEffect`:
-```text
-useEffect(() => {
-  if (!active && fiscalYears.length > 0) {
-    logger.warn('No active fiscal year found...');
-  }
-}, [active, fiscalYears.length]);
-```
-
-### 3. [تقني] omitOnCreate dead code في useCrudFactory
-
-**الملف:** `src/hooks/useCrudFactory.ts` سطر 31-32
-
-**المشكلة:** `omitOnCreate` معرّف في الـ interface لكن غير مُستخدم في `useCreate`.
-
-**الإصلاح:** حذف الخاصية من الـ interface والتعليق المرافق لها (سطران فقط). لا يوجد أي مستهلك لها في المشروع.
-
-### 4. [امني - محدود] اضافة RLS على accounts لفلترة السنوات غير المنشورة
-
-**الملف:** Migration جديد
-
-**المشكلة:** جدول `accounts` يسمح للمستفيد بقراءة حسابات سنوات مالية غير منشورة. باقي الجداول (contracts, income, expenses, invoices) تطبق `is_fiscal_year_accessible` لكن `accounts` لا.
-
-**الإصلاح:** اضافة سياسة RLS تقييدية:
-```text
-CREATE POLICY "Restrict unpublished fiscal year data on accounts"
-ON public.accounts FOR SELECT AS RESTRICTIVE
-USING (is_fiscal_year_accessible(fiscal_year_id));
-```
+| # | الادعاء | الحقيقة من الكود الحالي |
+|---|---------|------------------------|
+| #1 | `cron_check_contract_expiry` يُرسل `tenant_name` للمستفيدين | **مُصلح** -- الدالة في DB تستخدم `ben_msg` عام (مؤكد من schema الحالي) |
+| #2 | `fetchWaqfData` لا تُفرّق بين الأدوار | **مُصلح** -- `isAdmin` في سطر 207، فلترة في سطور 232/274/342 |
+| #3 | `generate-invoice-pdf` بدون تحقق يدوي | **مُصلح** -- `getUser()` في سطر 400 + role check في سطر 426-436 |
+| #4 | TOCTOU في `useUpdateAdvanceStatus` | **مُصلح** -- `.in('status', allowedFrom)` في سطر 240 (atomic guard) |
+| #7 | `useAccountsPage` error.message في saveSetting وcloseYear | **مُصلح** -- سطر 109: `console.error` + toast ثابت. سطر 352: نفس الشيء |
+| #10 | كل Edge Functions بـ `verify_jwt=false` | **بالتصميم** -- كل دالة تتحقق يدوياً عبر `getUser()` + role check |
+| #14 | `webauthn` بدون default handler | **مُصلح** -- سطر 304: `return ... "إجراء غير معروف"` |
+| .env | `.env` مرفوع في GitHub | **طبيعي** -- Lovable Cloud يدير `.env` تلقائياً، يحتوي فقط مفاتيح عامة |
 
 ---
 
-## بنود تم التحقق منها ولا تحتاج اصلاح
+## المشكلتان الحقيقيتان المتبقيتان
 
-| البند | السبب |
-|-------|-------|
-| shareBase سالب | قرار محاسبي صحيح -- الخسارة معلومة مفيدة للناظر |
-| isNonAdmin قبل تحميل role | محمي بـ `isLoading = true` اثناء التحميل |
-| Cache invalidation | React Query يستخدم prefix match -- يعمل صحيحا |
-| تحيز AI prompt | تصميم مقصود من صاحب المشروع (الناظر) |
-| Logger في production | تصميم امني مقصود لمنع تسريب معلومات |
+### 1. [متوسط] `check-contract-expiry` Edge Function -- يُرسل `tenant_name` لجميع المستفيدين
+
+**الملف:** `supabase/functions/check-contract-expiry/index.ts` سطر 155
+
+```text
+const msg = `عقد رقم ${contract.contract_number} (${contract.tenant_name}) ينتهي خلال ${daysLeft} يوم`;
+// ثم يُرسل msg لكل allRecipients بما فيهم المستفيدين
+```
+
+ملاحظة: دالة `cron_check_contract_expiry` في DB تم إصلاحها (تستخدم `ben_msg`)، لكن Edge Function المنفصلة لا تزال تُرسل نفس الرسالة التفصيلية للجميع.
+
+**الإصلاح:** فصل الرسالة حسب الدور -- رسالة عامة للمستفيدين بدون `tenant_name`.
+
+### 2. [منخفض] `useAccountsPage` -- `handleCreateAccount` يكشف `error.message` في toast
+
+**الملف:** `src/hooks/useAccountsPage.ts` سطر 280
+
+```text
+toast.error('خطأ في حفظ الحسابات: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+```
+
+تم إصلاح `saveSetting` (سطر 109) و `handleCloseYear` (سطر 352) لكن `handleCreateAccount` لا يزال يكشف الرسالة.
+
+**الإصلاح:** `console.error` + toast ثابت.
 
 ---
 
-## ملخص الملفات المتأثرة
+## ملخص التغييرات المطلوبة
 
 | الملف | التغيير |
 |-------|---------|
-| `supabase/functions/guard-signup/index.ts` | تغيير حد كلمة المرور من 6 الى 8 |
-| `src/hooks/useFiscalYears.ts` | لف logger.warn في useEffect |
-| `src/hooks/useCrudFactory.ts` | حذف omitOnCreate dead code |
-| Migration جديد | اضافة RLS على accounts لفلترة السنوات غير المنشورة |
+| `supabase/functions/check-contract-expiry/index.ts` | فصل رسالة المستفيدين عن رسالة الأدمن (بدون tenant_name) |
+| `src/hooks/useAccountsPage.ts` سطر 280 | تعقيم error.message في handleCreateAccount |
+
