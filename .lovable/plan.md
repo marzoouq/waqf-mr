@@ -1,59 +1,44 @@
 
 
-# إصلاح 6 بنود معلّقة
+# إصلاح 3 مشاكل متبقية
 
 ## ملخص
-6 مشاكل تم التحقق منها في الكود الفعلي وجميعها لا تزال قائمة.
+تم التحقق من الكود الفعلي وتأكيد أن الـ 3 بنود لا تزال قائمة.
 
 ---
 
-## البند 1 (MEDIUM): إزالة N+1 query من BeneficiariesPage
+## البند 1: `Index.tsx` — fallback عند فشل `get_public_stats`
 
-**الملف:** `src/pages/dashboard/BeneficiariesPage.tsx` سطر 36-50
+**الملف:** `src/pages/Index.tsx` سطر 51-58
 
-**المشكلة:** الصفحة تستدعي `list_users` (الذي يُرجع `role` لكل مستخدم في سطر 119 من Edge Function) ثم تستعلم `user_roles` مرة أخرى بشكل منفصل. استعلام زائد تماماً.
+**المشكلة:** إذا فشل استدعاء `get_public_stats` تبقى الإحصائيات على `'...'` للأبد بدون أي تغيير.
 
-**الإصلاح:**
-- حذف استعلام `supabase.from('user_roles')` الزائد (سطر 46-47)
-- تصفية المستخدمين مباشرة من الاستجابة باستخدام `u.role === 'beneficiary'`
-- تبسيط الكود من 12 سطر إلى 6 أسطر
+**الإصلاح:** إضافة `else` block يعيد القيم إلى `'0'` عند الفشل.
 
 ---
 
-## البند 2-5 (LOW): إضافة staleTime لـ 4 hooks مالية
+## البند 2: `use-toast.ts` — تقليل `TOAST_REMOVE_DELAY`
 
-| الملف | السطر | Hook |
-|-------|-------|------|
-| `src/hooks/useAccounts.ts` | 30 | `useAccountByFiscalYear` |
-| `src/hooks/useFiscalYears.ts` | 18 | `useFiscalYears` |
-| `src/hooks/useExpenses.ts` | 38 | `useExpensesByFiscalYear` |
-| `src/hooks/useAdvanceRequests.ts` | 40 | `useAdvanceRequests` |
+**الملف:** `src/hooks/use-toast.ts` سطر 6
 
-**الإصلاح:** إضافة `staleTime: 60_000` لكل hook للتناسق مع `useIncomeByFiscalYear` و `useInvoicesByFiscalYear`.
+**المشكلة:** `TOAST_REMOVE_DELAY = 1000000` (16.6 دقيقة) — Toast المُغلق يبقى في الذاكرة لفترة طويلة جداً.
+
+**الإصلاح:** تغيير القيمة إلى `5000` (5 ثوانٍ).
 
 ---
 
-## البند 6 (LOW): تأمين logger.error في Production
+## البند 3: `Auth.tsx` — إضافة error handling لـ `fetchSettings`
 
-**الملف:** `src/lib/logger.ts` سطر 10
+**الملف:** `src/pages/Auth.tsx` سطر 102-114
 
-**المشكلة:** `logger.error` يطبع التفاصيل الكاملة في production console. التعليق في الملف يقول "يُسكت كل شيء" لكن `error` مستثنى.
+**المشكلة:** `useEffect` يجلب `registration_enabled` بدون `try/catch` ولا تحقق من `error`.
 
-**الإصلاح:**
-```text
-error: (...args: unknown[]) => {
-  if (isDev) {
-    console.error(...args);
-  } else {
-    console.error('[App Error]');
-  }
-},
-```
+**الإصلاح:** إضافة `try/catch` و فحص `error` من الاستجابة. الحالة الافتراضية `false` هي الأكثر أماناً (لا تسجيل مفتوح).
 
 ---
 
 ## ترتيب التنفيذ
-1. BeneficiariesPage (N+1 fix)
-2. 4 hooks (staleTime) — تعديلات متوازية
-3. logger.ts (error guard)
+1. `Index.tsx` — error fallback
+2. `use-toast.ts` — TOAST_REMOVE_DELAY
+3. `Auth.tsx` — error handling
 
