@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 // Pages - Lazy loaded
@@ -63,6 +63,22 @@ function PageLoader() {
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
+}
+
+/** Renders children only after a delay so non-critical JS doesn't block initial paint */
+function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode; delay?: number }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const id = window.requestIdleCallback
+      ? window.requestIdleCallback(() => setReady(true), { timeout: delay })
+      : window.setTimeout(() => setReady(true), delay);
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(id as number);
+      else window.clearTimeout(id as number);
+    };
+  }, [delay]);
+  if (!ready) return null;
+  return <>{children}</>;
 }
 
 const queryClient = new QueryClient({
@@ -136,11 +152,13 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-                <Suspense fallback={null}>
-                  <AiAssistant />
-                  <SecurityGuard />
-                  <PwaUpdateNotifier />
-                </Suspense>
+                <DeferredRender>
+                  <Suspense fallback={null}>
+                    <AiAssistant />
+                    <SecurityGuard />
+                    <PwaUpdateNotifier />
+                  </Suspense>
+                </DeferredRender>
               </BrowserRouter>
             </TooltipProvider>
           </FiscalYearProvider>
