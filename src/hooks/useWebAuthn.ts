@@ -94,7 +94,7 @@ export function useWebAuthn() {
       } else if (name === 'InvalidStateError') {
         toast.error('هذا الجهاز مسجل مسبقاً');
       } else {
-        toast.error(`حدث خطأ أثناء تسجيل البصمة: ${message}`);
+        toast.error('حدث خطأ أثناء تسجيل البصمة');
       }
       return false;
     } finally {
