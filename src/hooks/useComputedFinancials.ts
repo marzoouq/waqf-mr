@@ -14,6 +14,7 @@ interface ComputedParams {
   accounts: Tables<'accounts'>[];
   settings: Record<string, string> | null | undefined;
   fiscalYearLabel?: string;
+  fiscalYearId?: string;
 }
 
 /**
@@ -25,6 +26,7 @@ export const useComputedFinancials = ({
   accounts,
   settings,
   fiscalYearLabel,
+  fiscalYearId,
 }: ComputedParams) => {
   const { totalIncome, totalExpenses } = useMemo(
     () => computeTotals(income, expenses),
@@ -32,12 +34,16 @@ export const useComputedFinancials = ({
   );
 
   const currentAccount = useMemo(() => {
+    if (fiscalYearId) {
+      const byId = accounts.find(a => a.fiscal_year_id === fiscalYearId);
+      if (byId) return byId;
+    }
     if (fiscalYearLabel) {
       return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
     }
     if (accounts.length === 1) return accounts[0];
     return null;
-  }, [accounts, fiscalYearLabel]);
+  }, [accounts, fiscalYearId, fiscalYearLabel]);
 
   const adminPctRaw = settings?.admin_share_percentage
     ? parseFloat(settings.admin_share_percentage)

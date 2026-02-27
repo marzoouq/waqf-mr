@@ -67,11 +67,16 @@ export function useAccountsPage() {
     }
   }, [appSettings.data]);
 
+  const findAccount = (accts: typeof accounts, fy: typeof selectedFY) =>
+    fy
+      ? accts.find(a =>
+          (fy.id && a.fiscal_year_id === fy.id) ||
+          a.fiscal_year === fy.label
+        ) ?? null
+      : accts.length === 1 ? accts[0] : null;
+
   useEffect(() => {
-    const fyLabel = selectedFY?.label;
-    const matchingAccount = fyLabel
-      ? accounts.find(a => a.fiscal_year === fyLabel)
-      : accounts.length === 1 ? accounts[0] : null;
+    const matchingAccount = findAccount(accounts, selectedFY);
     if (matchingAccount) {
       if (matchingAccount.zakat_amount !== undefined) setZakatAmount(Number(matchingAccount.zakat_amount));
       if (matchingAccount.waqf_corpus_manual !== undefined) setWaqfCorpusManual(Number(matchingAccount.waqf_corpus_manual));
@@ -85,7 +90,7 @@ export function useAccountsPage() {
       setManualVat(0);
       setManualDistributions(0);
     }
-  }, [accounts, selectedFY?.label]);
+  }, [accounts, selectedFY?.id, selectedFY?.label]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const saveSetting = useCallback(async (key: string, value: string) => {
@@ -230,6 +235,7 @@ export function useAccountsPage() {
 
   const buildAccountData = () => ({
     fiscal_year: selectedFY?.label || fiscalYear,
+    fiscal_year_id: selectedFY?.id || null,
     total_income: totalIncome,
     total_expenses: totalExpenses,
     admin_share: adminShare,
@@ -307,6 +313,7 @@ export function useAccountsPage() {
       if (nextFYId) {
         await supabase.from('accounts').insert({
           fiscal_year: nextLabel,
+          fiscal_year_id: nextFYId,
           waqf_corpus_previous: waqfCorpusManual,
           total_income: 0, total_expenses: 0, admin_share: 0, waqif_share: 0,
           waqf_revenue: 0, vat_amount: 0, distributions_amount: 0,
@@ -458,9 +465,7 @@ export function useAccountsPage() {
     });
   };
 
-  const currentAccount = selectedFY?.label
-    ? accounts.find(a => a.fiscal_year === selectedFY.label) || null
-    : accounts.length === 1 ? accounts[0] : null;
+  const currentAccount = findAccount(accounts, selectedFY);
 
   return {
     // Data

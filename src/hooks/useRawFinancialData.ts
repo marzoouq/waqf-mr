@@ -13,7 +13,7 @@ export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: str
   const fyFilter = fiscalYearId || 'all';
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
-  const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(fiscalYearLabel);
+  const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(fiscalYearLabel, fiscalYearId);
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: settings } = useAppSettings();
 

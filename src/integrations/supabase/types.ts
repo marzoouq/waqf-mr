@@ -89,6 +89,7 @@ export type Database = {
           created_at: string
           distributions_amount: number
           fiscal_year: string
+          fiscal_year_id: string | null
           id: string
           net_after_expenses: number
           net_after_vat: number
@@ -108,6 +109,7 @@ export type Database = {
           created_at?: string
           distributions_amount?: number
           fiscal_year: string
+          fiscal_year_id?: string | null
           id?: string
           net_after_expenses?: number
           net_after_vat?: number
@@ -127,6 +129,7 @@ export type Database = {
           created_at?: string
           distributions_amount?: number
           fiscal_year?: string
+          fiscal_year_id?: string | null
           id?: string
           net_after_expenses?: number
           net_after_vat?: number
@@ -141,7 +144,15 @@ export type Database = {
           waqif_share?: number
           zakat_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounts_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       advance_carryforward: {
         Row: {

@@ -18,6 +18,7 @@ export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: str
     accounts,
     settings,
     fiscalYearLabel,
+    fiscalYearId,
   });
 
   return {

@@ -88,6 +88,7 @@ export interface Beneficiary {
 export interface Account {
   id: string;
   fiscal_year: string;
+  fiscal_year_id?: string | null;
   total_income: number;
   total_expenses: number;
   admin_share: number;
