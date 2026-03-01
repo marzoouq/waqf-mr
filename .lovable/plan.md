@@ -1,60 +1,40 @@
 
 
-# تقرير التحقق النهائي والإصلاحات المتبقية
+# إصلاح الخطأين الحرجين المتبقيين
 
-## نتيجة الفحص
+## 1. تناقض مالي: `waqfRevenue: netAfterZakat` في `accountsCalculations.ts`
 
-تقريرك يستند إلى commits قديمة (`757c13eb`). بعد فحص الكود الحالي، معظم المشكلات المذكورة **تم إصلاحها بالفعل**:
+**الملف:** `src/utils/accountsCalculations.ts` سطر 59
 
-| المشكلة | الحالة الفعلية |
-|---------|---------------|
-| BUG-08: `waqfRevenue = netAfterZakat` | تم الاصلاح - السطر 94 يقول `waqfRevenue: 0` |
-| نص حوار التجديد الجماعي | تم الاصلاح - يقول "من تاريخ انتهاء العقد السابق وبنفس المدة" |
-| بطاقات الحصص "0 ر.س" | تم الاصلاح - تعرض "تُحسب عند الإقفال" |
-| دعم `quarterly`/`semi_annual` في الواجهة | تم الاصلاح - في ContractsPage وAdminDashboard وcontractAllocation |
+**المشكلة:** عند السنة غير المقفلة، `waqfRevenue` يُعاد كـ `netAfterZakat` بينما `useComputedFinancials.ts` يُعيده كـ `0`. هذا يُنشئ تناقضاً بين لوحة المدير ولوحة المستفيد.
 
-## المشكلة المتبقية الوحيدة
+**الإصلاح:** تغيير السطر 59 من `waqfRevenue: netAfterZakat` إلى `waqfRevenue: 0`
 
-### دالة SQL `cron_check_late_payments` لا تدعم `quarterly`/`semi_annual`
+---
 
-الدالة الحالية تعالج 3 حالات فقط:
-- `monthly` = حساب شهري
-- `annual` = دفعة واحدة
-- `ELSE` = حساب نسبي بناء على `payment_count`
+## 2. تواريخ استحقاق خاطئة لـ `quarterly`/`semi_annual` في `contractAllocation.ts`
 
-المشكلة: عقد بنوع `quarterly` (4 دفعات) او `semi_annual` (دفعتان) يسقط في الفرع `ELSE` الذي يعتمد على `payment_count`. اذا كان `payment_count = 1` (القيمة الافتراضية)، تُحسب الدفعات المتوقعة بشكل خاطئ.
+**الملف:** `src/utils/contractAllocation.ts` سطور 43-54
 
-### الاصلاح
+**المشكلة:** الدفعات الربعية والنصف سنوية تسقط في فرع `else` العام الذي يوزع بالتساوي بناء على الأيام بدلاً من استخدام فترات شهرية دقيقة (كل 3 أو 6 أشهر).
 
-تحديث دالة `cron_check_late_payments` لاضافة فرعين صريحين:
+**الإصلاح:** إضافة فرعين صريحين قبل `else`:
 
 ```text
-monthly = حساب شهري (كما هو)
-quarterly = totalMonths / 3، حد اقصى 4
-semi_annual = totalMonths / 6، حد اقصى 2
-annual = دفعة واحدة (كما هو)
-ELSE = حساب نسبي (كما هو)
+if (payment_type === 'monthly') → setMonth(i + 1)
+else if (payment_type === 'quarterly') → setMonth((i + 1) * 3)
+else if (payment_type === 'semi_annual') → setMonth((i + 1) * 6)
+else → evenly spaced (كما هو)
 ```
 
-هذا يتطلب migration واحدة لاستبدال الدالة.
-
 ---
 
-## بخصوص `.env` و `.gitignore`
-
-ملف `.env` يُدار تلقائيا من Lovable Cloud ويحتوي فقط على مفاتيح عامة (anon key). هذه المفاتيح مصممة للاستخدام في الواجهة الامامية وليست سرية. حماية المشروع تعتمد على سياسات RLS المطبقة (24 جدول محمي). لا يوجد خطر امني فعلي.
-
-## بخصوص `net_after_zakat`
-
-هذا تصميم مقصود: القيمة تُحسب ديناميكيا من `net_after_vat - zakat_amount` المحفوظتين في جدول `accounts`. اضافة عمود اضافي يُنشئ مخاطر عدم اتساق البيانات بدون فائدة حقيقية.
-
----
-
-## ملخص التنفيذ
+## ملخص الملفات المتأثرة
 
 | الملف | التعديل |
 |-------|---------|
-| Migration SQL جديدة | تحديث `cron_check_late_payments` لدعم `quarterly` و `semi_annual` |
+| `src/utils/accountsCalculations.ts` | سطر 59: `waqfRevenue: 0` |
+| `src/utils/contractAllocation.ts` | سطور 47-54: إضافة فرعي `quarterly` و `semi_annual` |
 
-**الاجمالي:** migration واحدة فقط
+**الإجمالي:** ملفان، تعديلان
 
