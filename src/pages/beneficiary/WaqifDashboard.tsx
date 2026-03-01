@@ -245,7 +245,7 @@ const WaqifDashboard = () => {
                 { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
                 { label: 'حصة الناظر', value: adminShare, cls: 'text-muted-foreground' },
                 { label: 'حصة الواقف', value: waqifShare, cls: 'text-secondary' },
-                { label: 'ريع المستفيدين', value: availableAmount, cls: 'font-bold text-lg' },
+                { label: 'الريع القابل للتوزيع', value: availableAmount, cls: 'font-bold text-lg' },
               ].map((row, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 4 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>

@@ -121,7 +121,7 @@ const FinancialReportsPage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={() => window.location.href = '/beneficiary/financial-reports'} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>
@@ -161,9 +161,9 @@ const FinancialReportsPage = () => {
         {/* Subtitle */}
         <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 text-center">
           التحليل البياني للبيانات المالية — للأرقام التفصيلية راجع{' '}
-          <Button variant="link" className="px-1 h-auto text-sm" onClick={() => window.location.href = '/beneficiary/disclosure'}>
+          <a href="/beneficiary/disclosure" className="text-sm text-primary hover:underline px-1">
             صفحة الإفصاح السنوي
-          </Button>
+          </a>
         </p>
 
         {/* Charts Row 1 */}

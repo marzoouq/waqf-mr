@@ -211,7 +211,7 @@ const AdminDashboard = () => {
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">لوحة التحكم</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              {role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : role === 'waqif' ? 'مرحباً بك، الواقف' : 'مرحباً بك، ناظر الوقف'}
+              {role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف'}
               {fiscalYear && <span className="text-primary font-medium"> — {fiscalYear.label}</span>}
             </p>
           </div>

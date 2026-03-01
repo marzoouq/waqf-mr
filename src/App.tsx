@@ -108,9 +108,7 @@ function App() {
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms" element={<TermsOfUse />} />
-                    <Route path="/terms-of-use" element={<TermsOfUse />} />
                     <Route path="/install" element={<InstallApp />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -146,7 +144,7 @@ function App() {
                     <Route path="/beneficiary/invoices" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><InvoicesViewPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/notifications" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><NotificationsPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
-                    <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><CarryforwardHistoryPage /></ProtectedRoute>} />
+                    <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
 
                     {/* Catch-all Route */}
                     <Route path="*" element={<NotFound />} />

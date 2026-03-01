@@ -173,7 +173,7 @@ const DisclosurePage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={() => window.location.href = '/beneficiary/disclosure'} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>
@@ -205,7 +205,7 @@ const DisclosurePage = () => {
           <p className="text-muted-foreground text-center max-w-md">
             لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
           </p>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={() => window.location.href = '/beneficiary/disclosure'} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة تحميل
           </Button>
         </div>
@@ -448,11 +448,11 @@ const DisclosurePage = () => {
                 </div>
               </div>
 
-              {/* My Share - without percentage */}
+              {/* My Share */}
               <div className="bg-primary/10 rounded-xl p-4 sm:p-6 mt-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة ({currentBeneficiary?.share_percentage ?? 0}%)</p>
                     <p className="font-bold text-xl sm:text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
                   </div>
                   <div className="sm:text-left">

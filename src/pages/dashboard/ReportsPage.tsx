@@ -150,7 +150,7 @@ const ReportsPage = () => {
     { key: 'expenseData', ok: expenses.length > 0 },
     { key: 'contractsData', ok: contracts.length > 0 },
     { key: 'distributionConsistency', ok: availableAmount >= distributionsAmount },
-    { key: 'shareConsistency', ok: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 },
+    { key: 'shareConsistency', ok: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 },
   ];
 
   const issuesFound = auditChecks.filter(c => !c.ok).length;
@@ -185,9 +185,9 @@ const ReportsPage = () => {
       },
       {
         category: 'اتساق معادلة الحصص',
-        status: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 ? 'سليم' : 'ملاحظة',
+        status: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? 'سليم' : 'ملاحظة',
         details: 'تمت مقارنة مجموع الحصص مع صافي ما بعد الزكاة للتحقق من سلامة الحساب.',
-        score: Math.round((adminShare + waqifShare + waqfRevenue) * 100) / 100 === Math.round(netAfterZakat * 100) / 100 ? '10/10' : '5/10',
+        score: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? '10/10' : '5/10',
       },
     ],
     securityFindings: [
