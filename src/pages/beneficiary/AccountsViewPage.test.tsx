@@ -50,23 +50,9 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     availableAmount: 60000,
     incomeBySource: { 'إيجار': 100000 },
     expensesByType: { 'كهرباء': 10000, 'صيانة': 10000 },
-  })),
-}));
-
-vi.mock('@/hooks/useContracts', () => ({
-  useContracts: vi.fn(() => ({
-    data: [
-      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 50000, status: 'active', fiscal_year_id: 'fy1' },
-      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 30000, status: 'expired', fiscal_year_id: 'fy1' },
-    ],
     isLoading: false,
-  })),
-  useContractsByFiscalYear: vi.fn(() => ({
-    data: [
-      { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 50000, status: 'active', fiscal_year_id: 'fy1' },
-      { id: 'c2', contract_number: 'W-002', tenant_name: 'محمد', rent_amount: 30000, status: 'expired', fiscal_year_id: 'fy1' },
-    ],
-    isLoading: false,
+    isError: false,
+    isAccountMissing: false,
   })),
 }));
 
@@ -110,28 +96,16 @@ describe('AccountsViewPage', () => {
     expect(screen.getByText(/12,000/)).toBeInTheDocument();
   });
 
-  it('shows contracts table', () => {
+  it('shows financial summary values', () => {
     renderPage();
-    expect(screen.getByText('العقود')).toBeInTheDocument();
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
-    expect(screen.getByText('محمد')).toBeInTheDocument();
-  });
-
-  it('shows income details section', () => {
-    renderPage();
-    expect(screen.getByText('تفصيل الإيرادات')).toBeInTheDocument();
-    expect(screen.getByText('إيجار')).toBeInTheDocument();
-  });
-
-  it('shows expenses details section', () => {
-    renderPage();
-    expect(screen.getByText('تفصيل المصروفات')).toBeInTheDocument();
-    expect(screen.getByText('كهرباء')).toBeInTheDocument();
-    expect(screen.getByText('صيانة')).toBeInTheDocument();
+    expect(screen.getByText('الصافي بعد الضريبة')).toBeInTheDocument();
+    expect(screen.getByText('حصة الناظر')).toBeInTheDocument();
+    expect(screen.getByText('حصة الواقف')).toBeInTheDocument();
+    expect(screen.getByText('ريع الوقف')).toBeInTheDocument();
   });
 
   it('shows link to disclosure page', () => {
     renderPage();
-    expect(screen.getByText('صفحة الإفصاح السنوي')).toBeInTheDocument();
+    expect(screen.getByText('الإفصاح السنوي')).toBeInTheDocument();
   });
 });

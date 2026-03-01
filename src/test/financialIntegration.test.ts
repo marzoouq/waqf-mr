@@ -47,7 +47,7 @@ const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'account
 const compute = (params: Parameters<typeof useComputedFinancials>[0]) =>
   renderHook(() => useComputedFinancials(params)).result.current;
 
-// ─── Scenario 1: Full dynamic pipeline (no saved account) ───
+// ─── Scenario 1: Full dynamic pipeline (no saved account, closed year) ───
 
 describe('Integration: Full dynamic financial pipeline', () => {
   const income: Income[] = [
@@ -68,24 +68,22 @@ describe('Integration: Full dynamic financial pipeline', () => {
   // Total expenses = 35,000
 
   it('computes full hierarchy with default percentages (10% admin, 5% waqif)', () => {
-    const r = compute({ income, expenses, accounts: [], settings: null });
+    const r = compute({ income, expenses, accounts: [], settings: null, forceClosedMode: true });
 
     expect(r.totalIncome).toBe(210000);
     expect(r.totalExpenses).toBe(35000);
-    expect(r.grandTotal).toBe(210000); // no carry-forward
-    expect(r.netAfterExpenses).toBe(175000); // 210000 - 35000
-    expect(r.netAfterVat).toBe(175000); // no VAT
-    expect(r.netAfterZakat).toBe(175000); // no zakat
+    expect(r.grandTotal).toBe(210000);
+    expect(r.netAfterExpenses).toBe(175000);
+    expect(r.netAfterVat).toBe(175000);
+    expect(r.netAfterZakat).toBe(175000);
 
-    // shareBase = income - expenses - zakat = 210000 - 35000 - 0 = 175000
     expect(r.shareBase).toBe(175000);
-    expect(r.adminShare).toBe(17500); // 10%
-    expect(r.waqifShare).toBe(8750); // 5%
+    expect(r.adminShare).toBe(17500);
+    expect(r.waqifShare).toBe(8750);
 
-    // waqfRevenue = netAfterZakat - adminShare - waqifShare = 175000 - 17500 - 8750
     expect(r.waqfRevenue).toBe(148750);
-    expect(r.availableAmount).toBe(148750); // no corpus manual
-    expect(r.remainingBalance).toBe(148750); // no distributions
+    expect(r.availableAmount).toBe(148750);
+    expect(r.remainingBalance).toBe(148750);
   });
 
   it('correctly groups income by source', () => {
@@ -112,13 +110,13 @@ describe('Integration: Saved account with full deductions', () => {
     fiscal_year: '1446-1447',
     total_income: 200000,
     total_expenses: 30000,
-    net_after_expenses: 180000, // 200000 + 10000(prev) - 30000
+    net_after_expenses: 180000,
     vat_amount: 10000,
     net_after_vat: 170000,
     zakat_amount: 5000,
-    admin_share: 16500, // 10% of (200000 - 30000 - 5000 = 165000)
-    waqif_share: 8250,  // 5% of 165000
-    waqf_revenue: 140250, // (170000 - 5000) - 16500 - 8250
+    admin_share: 16500,
+    waqif_share: 8250,
+    waqf_revenue: 140250,
     waqf_corpus_previous: 10000,
     waqf_corpus_manual: 20000,
     distributions_amount: 50000,
@@ -130,38 +128,24 @@ describe('Integration: Saved account with full deductions', () => {
       accounts: [account],
       settings: null,
       fiscalYearLabel: '1446-1447',
+      fiscalYearStatus: 'closed',
     });
 
-    // Step 1: Totals
     expect(r.totalIncome).toBe(200000);
     expect(r.totalExpenses).toBe(30000);
-
-    // Step 2: Grand total includes carry-forward
-    expect(r.grandTotal).toBe(210000); // 200000 + 10000
-
-    // Step 3: From saved account
+    expect(r.grandTotal).toBe(210000);
     expect(r.netAfterExpenses).toBe(180000);
     expect(r.vatAmount).toBe(10000);
     expect(r.netAfterVat).toBe(170000);
-
-    // Step 4: Zakat
     expect(r.zakatAmount).toBe(5000);
-    expect(r.netAfterZakat).toBe(165000); // 170000 - 5000
-
-    // Step 5: Shares (from saved account)
+    expect(r.netAfterZakat).toBe(165000);
     expect(r.adminShare).toBe(16500);
     expect(r.waqifShare).toBe(8250);
-
-    // Step 6: Waqf revenue
     expect(r.waqfRevenue).toBe(140250);
-
-    // Step 7: Corpus manual deduction
     expect(r.waqfCorpusManual).toBe(20000);
-    expect(r.availableAmount).toBe(120250); // 140250 - 20000
-
-    // Step 8: Distributions
+    expect(r.availableAmount).toBe(120250);
     expect(r.distributionsAmount).toBe(50000);
-    expect(r.remainingBalance).toBe(70250); // 120250 - 50000
+    expect(r.remainingBalance).toBe(70250);
   });
 
   it('share base excludes carry-forward (uses income only)', () => {
@@ -170,9 +154,9 @@ describe('Integration: Saved account with full deductions', () => {
       accounts: [account],
       settings: null,
       fiscalYearLabel: '1446-1447',
+      fiscalYearStatus: 'closed',
     });
 
-    // shareBase = totalIncome - totalExpenses - zakat = 200000 - 30000 - 5000
     expect(r.shareBase).toBe(165000);
   });
 });
@@ -185,12 +169,11 @@ describe('Integration: Custom admin/waqif percentages', () => {
     const expenses = [mkExpense('صيانة', 10000)];
     const settings = { admin_share_percentage: '15', waqif_share_percentage: '8' };
 
-    const r = compute({ income, expenses, accounts: [], settings });
+    const r = compute({ income, expenses, accounts: [], settings, forceClosedMode: true });
 
-    // shareBase = 100000 - 10000 = 90000
-    expect(r.adminShare).toBe(13500); // 15% of 90000
-    expect(r.waqifShare).toBe(7200);  // 8% of 90000
-    expect(r.waqfRevenue).toBe(90000 - 13500 - 7200); // 69300
+    expect(r.adminShare).toBe(13500);
+    expect(r.waqifShare).toBe(7200);
+    expect(r.waqfRevenue).toBe(90000 - 13500 - 7200);
   });
 });
 
@@ -198,7 +181,6 @@ describe('Integration: Custom admin/waqif percentages', () => {
 
 describe('Integration: Carry-forward between fiscal years', () => {
   it('waqf_corpus_manual from year 1 becomes waqf_corpus_previous in year 2', () => {
-    // Year 1: admin sets corpus_manual = 25000
     const year1Account = mkAccount({
       fiscal_year: '1445-1446',
       waqf_revenue: 100000,
@@ -210,14 +192,14 @@ describe('Integration: Carry-forward between fiscal years', () => {
       accounts: [year1Account],
       settings: null,
       fiscalYearLabel: '1445-1446',
+      fiscalYearStatus: 'closed',
     });
     expect(r1.waqfCorpusManual).toBe(25000);
-    expect(r1.availableAmount).toBe(75000); // 100000 - 25000
+    expect(r1.availableAmount).toBe(75000);
 
-    // Year 2: that 25000 appears as waqf_corpus_previous
     const year2Account = mkAccount({
       fiscal_year: '1446-1447',
-      waqf_corpus_previous: 25000, // carried from year 1
+      waqf_corpus_previous: 25000,
       net_after_expenses: 195000,
       net_after_vat: 195000,
       admin_share: 17000,
@@ -232,10 +214,11 @@ describe('Integration: Carry-forward between fiscal years', () => {
       accounts: [year2Account],
       settings: null,
       fiscalYearLabel: '1446-1447',
+      fiscalYearStatus: 'closed',
     });
 
     expect(r2.waqfCorpusPrevious).toBe(25000);
-    expect(r2.grandTotal).toBe(195000); // 170000 + 25000
+    expect(r2.grandTotal).toBe(195000);
   });
 });
 
@@ -262,12 +245,15 @@ describe('Integration: VAT handling in expense grouping', () => {
 describe('Integration: Zero income year', () => {
   it('handles a year with only expenses and no income', () => {
     const expenses = [mkExpense('صيانة', 5000)];
-    const r = compute({ income: [], expenses, accounts: [], settings: null });
+    const r = compute({ income: [], expenses, accounts: [], settings: null, forceClosedMode: true });
 
     expect(r.totalIncome).toBe(0);
     expect(r.totalExpenses).toBe(5000);
     expect(r.netAfterExpenses).toBe(-5000);
-    expect(r.adminShare).toBe(-500); // 10% of -5000
-    expect(r.waqfRevenue).toBe(-4250); // -5000 - (-500) - (-250)
+    // shareBase clamped to 0
+    expect(r.shareBase).toBe(0);
+    expect(r.adminShare).toBe(0);
+    // waqfRevenue = netAfterZakat - 0 - 0 = -5000
+    expect(r.waqfRevenue).toBe(-5000);
   });
 });

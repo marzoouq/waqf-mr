@@ -35,7 +35,6 @@ describe("ProtectedRoute", () => {
       </MemoryRouter>
     );
     expect(screen.queryByText("محتوى")).not.toBeInTheDocument();
-    // Loader should be present (animate-spin class)
     expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
@@ -83,7 +82,7 @@ describe("ProtectedRoute", () => {
     expect(screen.getByTestId("navigate")).toHaveAttribute("data-to", "/unauthorized");
   });
 
-  it("shows verification message when loading is done but role is null", () => {
+  it("shows verification spinner when loading is done but role is null", () => {
     mockUseAuth.mockReturnValue({ user: { id: "1" }, role: null, loading: false, signOut: vi.fn() });
     render(
       <MemoryRouter>
@@ -92,9 +91,10 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    // loading=false + role=null → shows verification spinner with sign out button
+    // loading=false + role=null → shows verification spinner
     expect(screen.getByText('جاري التحقق من الصلاحيات...')).toBeInTheDocument();
-    expect(screen.getByText('تسجيل الخروج')).toBeInTheDocument();
+    // Sign out button appears after 5s timeout, not immediately
+    expect(screen.queryByText('تسجيل الخروج')).not.toBeInTheDocument();
   });
 
   it("shows loading spinner when role is loading", () => {
@@ -106,7 +106,6 @@ describe("ProtectedRoute", () => {
         </ProtectedRoute>
       </MemoryRouter>
     );
-    // loading=true → spinner (handled by the first loading check)
     expect(document.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
