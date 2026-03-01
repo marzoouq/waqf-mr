@@ -37,7 +37,7 @@ const ReportsPage = () => {
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
-    incomeBySource, expensesByType,
+    incomeBySource, expensesByType, expensesByTypeExcludingVat,
     isLoading,
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
@@ -46,7 +46,7 @@ const ReportsPage = () => {
   const netRevenue = netAfterZakat;
 
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
-  const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
+  const expenseTypeData = Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }));
 
   // Beneficiary distributions
   // G2 fix: حساب الحصة كنسبة تناسبية من مجموع النسب (متوافق مع MySharePage)

@@ -115,10 +115,13 @@ export function allocateContractToFiscalYears(
  * A date falls in a FY if: fy.start_date <= date < fy.end_date (or <= for last day)
  */
 function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear | null {
-  for (const fy of sortedFYs) {
+  for (let i = 0; i < sortedFYs.length; i++) {
+    const fy = sortedFYs[i];
     const fyStart = new Date(fy.start_date);
     const fyEnd = new Date(fy.end_date);
-    if (date >= fyStart && date <= fyEnd) {
+    // بداية شاملة، نهاية حصرية — إلا لآخر سنة مالية (شاملة)
+    const isLast = i === sortedFYs.length - 1;
+    if (date >= fyStart && (isLast ? date <= fyEnd : date < fyEnd)) {
       return fy;
     }
   }
@@ -126,11 +129,17 @@ function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear 
 }
 
 function getPaymentCount(contract: ContractInfo): number {
-  if (contract.payment_type === 'monthly') return 12;
-  if (contract.payment_type === 'quarterly') return 4;
-  if (contract.payment_type === 'semi_annual') return 2;
-  if (contract.payment_type === 'annual') return 1;
+  const months = monthsBetween(new Date(contract.start_date), new Date(contract.end_date));
+  if (contract.payment_type === 'monthly') return Math.max(1, months);
+  if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
+  if (contract.payment_type === 'semi_annual') return Math.max(1, Math.ceil(months / 6));
+  if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
   return contract.payment_count || 1;
+}
+
+/** Calculate whole months between two dates */
+function monthsBetween(a: Date, b: Date): number {
+  return (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
 }
 
 function getPaymentAmount(contract: ContractInfo): number {

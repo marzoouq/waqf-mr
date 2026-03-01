@@ -43,6 +43,21 @@ export interface FinancialResult {
  *   → رقبة الوقف المرحّلة رأس مال أصيل يذهب كاملاً لريع الوقف
  * - `waqfRevenue` = netAfterZakat − adminShare − waqifShare
  *   → يشمل تلقائياً وفر الضريبة ورقبة الوقف المرحّلة
+ *
+ * **توزيع حصص المستفيدين:**
+ * ```
+ * إجمالي الدخل + رقبة الوقف المرحّلة
+ *   − المصروفات
+ *   − الضريبة (VAT)
+ *   − الزكاة
+ *   − حصة الناظر (10% من shareBase)
+ *   − حصة الواقف (5% من shareBase)
+ *   = ريع الوقف (waqfRevenue)
+ *   − رقبة الوقف اليدوية
+ *   = المبلغ المتاح للتوزيع (availableAmount)
+ * ```
+ * لا توجد نسبة ثابتة للمستفيدين — الدخل قد يُستهلك بالكامل كمصروفات.
+ * المبلغ المتاح يُوزَّع تناسبياً: حصة المستفيد = availableAmount × (نسبته / مجموع النسب).
  */
 export const calculateFinancials = (params: FinancialParams): FinancialResult => {
   const {
