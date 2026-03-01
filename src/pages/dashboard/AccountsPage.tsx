@@ -34,7 +34,7 @@ const AccountsPage = () => {
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             {page.isClosed && (
               <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-                <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
+                <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية إدارية
               </span>
             )}
             <ExportMenu onExportPdf={page.handleExportPdf} />

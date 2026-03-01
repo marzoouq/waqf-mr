@@ -26,7 +26,6 @@ import {
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
-  const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
