@@ -97,7 +97,6 @@ export type Database = {
           total_income: number
           updated_at: string
           vat_amount: number
-          waqf_capital: number
           waqf_corpus_manual: number
           waqf_corpus_previous: number
           waqf_revenue: number
@@ -117,7 +116,6 @@ export type Database = {
           total_income?: number
           updated_at?: string
           vat_amount?: number
-          waqf_capital?: number
           waqf_corpus_manual?: number
           waqf_corpus_previous?: number
           waqf_revenue?: number
@@ -137,7 +135,6 @@ export type Database = {
           total_income?: number
           updated_at?: string
           vat_amount?: number
-          waqf_capital?: number
           waqf_corpus_manual?: number
           waqf_corpus_previous?: number
           waqf_revenue?: number
