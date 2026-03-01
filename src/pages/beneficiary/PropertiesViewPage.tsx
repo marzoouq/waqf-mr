@@ -18,7 +18,7 @@ import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, Doo
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
@@ -28,13 +28,16 @@ const PropertiesViewPage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
 
   if (noPublishedYears) {
     return <DashboardLayout><div className="p-4 md:p-6"><NoPublishedYearsNotice /></div></DashboardLayout>;
+  }
+
+  if (isLoading) {
+    return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
   }
 
   if (isError) {
@@ -88,7 +91,7 @@ const PropertiesViewPage = () => {
           const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
           const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
           const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
-          const netIncome = contractualRevenue - totalExpensesAll;
+          const netIncome = activeIncome - totalExpensesAll;
 
           const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
           const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
@@ -218,16 +221,18 @@ const PropertiesViewPage = () => {
               const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
               // الشهري محسوب حسب نوع الدفع
-              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
+              const monthlyRent = activeContracts.reduce((sum, c) => {
                 const rent = Number(c.rent_amount);
                 if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
+                if (c.payment_type === 'quarterly') return sum + rent / 4;
+                if (c.payment_type === 'semi_annual') return sum + rent / 6;
                 if (c.payment_type === 'multi') return sum + (Number(c.payment_amount) || rent / (c.payment_count || 1));
-                return sum + rent / 12;
+                return sum + rent / 12; // annual or default
               }, 0);
 
               const propExpenses = expenses.filter(e => e.property_id === property.id);
               const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-              const netIncome = contractualRevenue - totalExpenses;
+              const netIncome = activeAnnualRent - totalExpenses;
 
               const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
               const progressColor = occupancy >= 80 ? '[&>div]:bg-success' : occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';

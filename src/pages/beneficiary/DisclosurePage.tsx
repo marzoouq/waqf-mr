@@ -78,7 +78,7 @@ const DisclosurePage = () => {
 
   // Distributions for comprehensive report
   const { data: distributions = [] } = useQuery({
-    queryKey: ['my-distributions-disclosure', currentBeneficiary?.id],
+    queryKey: ['my-distributions', currentBeneficiary?.id],
     queryFn: async () => {
       if (!currentBeneficiary?.id) return [];
       const { data, error } = await supabase
@@ -109,7 +109,7 @@ const DisclosurePage = () => {
       await generateDisclosurePDF({
         fiscalYear: gregorianFiscalYear,
         beneficiaryName: currentBeneficiary?.name || '',
-        sharePercentage: 0,
+        sharePercentage: currentBeneficiary?.share_percentage || 0,
         myShare,
         totalIncome,
         totalExpenses,
@@ -137,7 +137,7 @@ const DisclosurePage = () => {
         vatAmount,
         netAfterVat,
         zakatAmount,
-        netAfterZakat: netAfterVat - zakatAmount,
+        netAfterZakat,
         adminShare,
         waqifShare,
         waqfRevenue,
@@ -156,7 +156,7 @@ const DisclosurePage = () => {
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
-          fiscalYear: (d as any).account?.fiscal_year || '-',
+          fiscalYear: (d as { account?: { fiscal_year?: string } }).account?.fiscal_year || '-',
           amount: Number(d.amount),
           status: d.status,
         })),
@@ -311,7 +311,7 @@ const DisclosurePage = () => {
                 ))}
                 <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
                   <span>الإجمالي</span>
-                  <span>{contracts.reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</span>
+                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</span>
                 </div>
               </div>
             ) : (
@@ -343,8 +343,8 @@ const DisclosurePage = () => {
                     ))}
                     <TableRow className="bg-muted/30 font-bold">
                       <TableCell colSpan={2}>الإجمالي</TableCell>
-                      <TableCell>{contracts.reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</TableCell>
-                      <TableCell>{Math.round(contracts.reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString()} ر.س</TableCell>
                       <TableCell />
                     </TableRow>
                   </TableBody>
