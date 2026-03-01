@@ -79,7 +79,8 @@ const AccountsCollectionTable = ({
                 const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                 const editPaid = editData?.paidMonths ?? item.paidMonths;
                 const editTotal = editRent * editPaid;
-                const editArrears = (editRent * item.expectedPayments) - editTotal;
+                // N-08 fix: clamp arrears to zero to prevent negative display
+                const editArrears = Math.max(0, (editRent * item.expectedPayments) - editTotal);
 
                 return (
                   <TableRow key={item.index}>

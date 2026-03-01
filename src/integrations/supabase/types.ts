@@ -1249,6 +1249,14 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
+      close_fiscal_year: {
+        Args: {
+          p_account_data: Json
+          p_fiscal_year_id: string
+          p_waqf_corpus_manual: number
+        }
+        Returns: Json
+      }
       cron_archive_old_access_logs: { Args: never; Returns: undefined }
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
