@@ -189,9 +189,10 @@ const ReportsPage = () => {
       },
       {
         category: 'اتساق معادلة الحصص',
-        status: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? 'سليم' : 'ملاحظة',
-        details: 'تمت مقارنة مجموع الحصص مع صافي ما بعد الزكاة للتحقق من سلامة الحساب.',
-        score: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? '10/10' : '5/10',
+        // J-08 fix: skip check for active years where shares are 0
+        status: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? 'سليم' : 'ملاحظة',
+        details: !isYearClosed ? 'السنة نشطة — لم تُحسب الحصص بعد.' : 'تمت مقارنة مجموع الحصص مع صافي ما بعد الزكاة للتحقق من سلامة الحساب.',
+        score: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? '10/10' : '5/10',
       },
     ],
     securityFindings: [
@@ -393,6 +394,13 @@ const ReportsPage = () => {
                           <td className="py-2 px-4 font-medium text-destructive">-{item.value.toLocaleString()}</td>
                         </tr>
                       ))}
+                      {/* J-05 fix: show VAT as separate expense line so items + VAT = totalExpenses */}
+                      {vatAmount > 0 && (
+                        <tr className="border-b">
+                          <td className="py-2 px-4 pr-8 text-muted-foreground">  ضريبة القيمة المضافة</td>
+                          <td className="py-2 px-4 font-medium text-destructive">-{vatAmount.toLocaleString()}</td>
+                        </tr>
+                      )}
                       <tr className="border-b-2 border-destructive bg-destructive/10">
                         <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
                         <td className="py-3 px-4 font-bold text-destructive">-{totalExpenses.toLocaleString()}</td>
