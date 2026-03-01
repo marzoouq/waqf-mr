@@ -208,10 +208,10 @@ async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): 
   for (const row of data ?? []) map[row.key] = row.value;
 
   return {
-    waqf_name: map.waqf_name || 'وقف مرزوق بن علي الثبيتي',
-    waqf_deed_number: map.waqf_deed_number || '411209707',
-    waqf_court: map.waqf_court || 'محكمة الأحوال الشخصية بالطائف',
-    waqf_admin: map.waqf_admin || 'عبدالله بن مرزوق بن علي الثبيتي',
+    waqf_name: map.waqf_name || 'غير محدد',
+    waqf_deed_number: map.waqf_deed_number || 'غير محدد',
+    waqf_court: map.waqf_court || 'غير محدد',
+    waqf_admin: map.waqf_admin || 'غير محدد',
   };
 }
 

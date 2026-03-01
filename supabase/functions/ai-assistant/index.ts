@@ -221,7 +221,17 @@ async function fetchWaqfData(
       }
     }
 
-    // 2. الحسابات المالية (ملخص) — للأدمن/المحاسب فقط التفاصيل الكاملة
+    // 2. جلب نسب الناظر والواقف الفعلية من الإعدادات
+    const { data: pctSettings } = await client
+      .from("app_settings")
+      .select("key, value")
+      .in("key", ["admin_share_percentage", "waqif_share_percentage"]);
+    const pctMap: Record<string, string> = {};
+    for (const r of pctSettings ?? []) pctMap[r.key] = r.value;
+    const adminPct = pctMap["admin_share_percentage"] || "10";
+    const waqifPct = pctMap["waqif_share_percentage"] || "5";
+
+    // 3. الحسابات المالية (ملخص) — للأدمن/المحاسب فقط التفاصيل الكاملة
     const { data: accounts } = await client
       .from("accounts")
       .select("*")
@@ -238,8 +248,8 @@ async function fetchWaqfData(
           sections.push(`- صافي بعد المصروفات: ${Number(acc.net_after_expenses).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- الزكاة: ${Number(acc.zakat_amount).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- الضريبة: ${Number(acc.vat_amount).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- حصة الناظر (10%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- حصة الواقف (5%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- حصة الناظر (${adminPct}%): ${Number(acc.admin_share).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- حصة الواقف (${waqifPct}%): ${Number(acc.waqif_share).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- رقبة الوقف المرحلة: ${Number(acc.waqf_corpus_previous).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- رقبة الوقف اليدوية: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
