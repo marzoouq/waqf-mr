@@ -10,7 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-const AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-assistant`;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 type ChatMode = 'chat' | 'analysis' | 'report';
@@ -54,6 +55,12 @@ const AiAssistant = () => {
   const send = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
+
+    if (!AI_URL) {
+      setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '❌ خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.' }]);
+      setInput('');
+      return;
+    }
 
     abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
