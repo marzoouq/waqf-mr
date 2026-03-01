@@ -110,7 +110,6 @@ export const useComputedFinancials = ({
       const storedZakat = Number(currentAccount.zakat_amount || 0);
       // H3 fix: use stored values for shareBase in closed years to match stored adminShare
       const storedAdminShare = Number(currentAccount.admin_share);
-      const storedWaqifShare = Number(currentAccount.waqif_share);
       return {
         grandTotal,
         netAfterExpenses: Number(currentAccount.net_after_expenses),

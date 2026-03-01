@@ -109,7 +109,7 @@ const AccountsCollectionTable = ({
                         <Input
                           type="number"
                           min={0}
-                          max={12}
+                          max={item.expectedPayments}
                           value={editData?.paidMonths ?? 0}
                           onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
                           className="h-8 w-16"
