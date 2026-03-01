@@ -55,14 +55,20 @@ const DistributeDialog = ({
     enabled: open,
   });
 
-  // جلب الفروق المرحّلة النشطة من سنوات سابقة
+  // جلب الفروق المرحّلة النشطة المرتبطة بسنوات سابقة (تُخصم عند التوزيع)
+  // نفلتر بـ to_fiscal_year_id = fiscalYearId (أو null = لم تُحدد سنة وجهة بعد)
   const { data: activeCarryforwards = [] } = useQuery({
-    queryKey: ['advance_carryforward', 'active_all'],
+    queryKey: ['advance_carryforward', 'active_for_distribution', fiscalYearId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      let query = (supabase as any)
         .from('advance_carryforward')
         .select('beneficiary_id, amount')
         .eq('status', 'active');
+      // جلب الترحيلات التي وجهتها السنة الحالية أو لم تُحدد لها وجهة بعد
+      if (fiscalYearId) {
+        query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as { beneficiary_id: string; amount: number }[];
     },
