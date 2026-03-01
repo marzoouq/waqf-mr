@@ -316,10 +316,11 @@ const FiscalYearManagementTab = () => {
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
-                          <AlertDialogHeader>
+                        <AlertDialogHeader>
                             <AlertDialogTitle>إقفال السنة المالية</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              هل أنت متأكد من إقفال "{fy.label}"؟ لن تتمكن من تعديل بياناتها بعد الإقفال إلا عبر طلب خاص.
+                            <AlertDialogDescription className="space-y-2">
+                              <p>هل أنت متأكد من إقفال "{fy.label}"؟ لن تتمكن من تعديل بياناتها بعد الإقفال إلا عبر طلب خاص.</p>
+                              <p className="text-destructive font-medium">⚠ تنبيه: يُفضّل إقفال السنة من صفحة "الحسابات الختامية" لضمان حفظ لقطة الأرقام النهائية تلقائياً. الإقفال من هنا يغير الحالة فقط بدون حفظ لقطة.</p>
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter className="gap-2">

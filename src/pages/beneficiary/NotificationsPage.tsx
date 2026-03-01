@@ -22,6 +22,10 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
   message: { label: 'رسالة', icon: Mail, color: 'text-accent-foreground', bg: 'bg-accent/10' },
   warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10' },
   contract: { label: 'عقود', icon: FileText, color: 'text-info', bg: 'bg-info/10' },
+  system: { label: 'نظام', icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/30' },
+  distribution: { label: 'توزيع', icon: Wallet, color: 'text-primary', bg: 'bg-primary/10' },
+  success: { label: 'نجاح', icon: CheckCheck, color: 'text-success', bg: 'bg-success/10' },
+  error: { label: 'خطأ', icon: AlertCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
 };
 
 const NotificationsPage = () => {
