@@ -54,9 +54,11 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     netAfterVat: 77000,
     adminShare: 7700,
     waqifShare: 3850,
-    waqfRevenue: 65450,
+    // G11 fix: waqfRevenue = netAfterVat - zakatAmount - adminShare - waqifShare
+    // = 77000 - 1500 - 7700 - 3850 = 63950
+    waqfRevenue: 63950,
     waqfCorpusManual: 5000,
-    availableAmount: 60000,
+    availableAmount: 58950,
     zakatAmount: 1500,
     incomeBySource: { 'إيجار': 80000, 'متأخرات': 20000 },
     expensesByTypeExcludingVat: { 'كهرباء': 10000, 'صيانة': 10000 },

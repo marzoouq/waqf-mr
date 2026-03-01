@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
-import { useTenantPayments } from '@/hooks/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { Badge } from '@/components/ui/badge';
 import { differenceInMonths } from 'date-fns';
 
@@ -35,9 +35,12 @@ const AdminDashboard = () => {
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  const { data: allContracts = [] } = useContractsByFiscalYear('all');
+  // G4 fix: عند fiscalYearId='all' نستخدم contracts مباشرة بدل طلب مكرر
+  const { data: allContractsRaw = [] } = useContractsByFiscalYear(fiscalYearId === 'all' ? '__skip__' : 'all');
+  const allContracts = fiscalYearId === 'all' ? contracts : allContractsRaw;
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
-  const { data: tenantPayments = [], isLoading: paymentsLoading } = useTenantPayments();
+  // G3 fix: استخدام payment_invoices بدلاً من tenantPayments القديم
+  const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
 
   // Detect orphaned contracts (no fiscal year assigned)
   const orphanedContracts = useMemo(() => allContracts.filter(c => !c.fiscal_year_id), [allContracts]);
@@ -55,62 +58,31 @@ const AdminDashboard = () => {
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading;
 
-  // Income/expenses are already filtered by fiscal year via the hook
-  const filteredIncome = income;
-  const filteredExpenses = expenses;
+  // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
   // Contracts are already filtered server-side by useContractsByFiscalYear
   const fyContracts = contracts;
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
-  // Collection summary: compute on-time vs late for active contracts
+  // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
   const collectionSummary = useMemo(() => {
     const activeContracts = fyContracts.filter(c => c.status === 'active');
     let onTime = 0;
     let late = 0;
 
     activeContracts.forEach(contract => {
-      const startDate = new Date(contract.start_date);
-      const endDate = new Date(contract.end_date);
-      const now = new Date();
-      const clampedNow = now < endDate ? now : endDate;
-      const paymentType = contract.payment_type || 'annual';
+      const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
+      if (contractInvoices.length === 0) return; // no invoices generated yet
 
-      const totalMonths = Math.max(0, differenceInMonths(clampedNow, startDate));
+      const dueInvoices = contractInvoices.filter(inv => new Date(inv.due_date) <= new Date());
+      if (dueInvoices.length === 0) return; // no payments due yet
 
-      // Convert elapsed months into expected payments based on payment type
-      let expectedPayments = 0;
-      if (paymentType === 'monthly') {
-        expectedPayments = totalMonths;
-      } else if (paymentType === 'quarterly') {
-        expectedPayments = Math.floor(totalMonths / 3);
-      } else if (paymentType === 'semi_annual') {
-        expectedPayments = Math.floor(totalMonths / 6);
-      } else {
-        expectedPayments = Math.floor(totalMonths / 12);
-      }
-
-      const payment = tenantPayments.find(p => p.contract_id === contract.id);
-      const paidMonths = payment?.paid_months ?? 0;
-
-      // Convert paid_months (always in months) to the same unit as expectedPayments
-      let paidInPaymentUnits = paidMonths;
-      if (paymentType === 'quarterly') {
-        paidInPaymentUnits = Math.floor(paidMonths / 3);
-      } else if (paymentType === 'semi_annual') {
-        paidInPaymentUnits = Math.floor(paidMonths / 6);
-      } else if (paymentType === 'annual') {
-        paidInPaymentUnits = Math.floor(paidMonths / 12);
-      }
-
-      // N2 fix: skip contracts where no payment is yet due
-      if (expectedPayments === 0) return;
-
-      if (paidInPaymentUnits >= expectedPayments) {
-        onTime++;
-      } else {
+      const unpaidDue = dueInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
+      if (unpaidDue.length > 0) {
         late++;
+      } else {
+        onTime++;
       }
     });
 
@@ -118,7 +90,7 @@ const AdminDashboard = () => {
     const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
 
     return { onTime, late, total, percentage };
-  }, [fyContracts, tenantPayments]);
+  }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
@@ -138,14 +110,14 @@ const AdminDashboard = () => {
   // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
     const months: Record<string, { income: number; expenses: number }> = {};
-    filteredIncome.forEach(item => {
+    income.forEach(item => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
         months[month].income += Number(item.amount);
       }
     });
-    filteredExpenses.forEach(item => {
+    expenses.forEach(item => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
@@ -159,17 +131,17 @@ const AdminDashboard = () => {
         income: data.income,
         expenses: data.expenses,
       }));
-  }, [filteredIncome, filteredExpenses]);
+  }, [income, expenses]);
 
   // Aggregate real expense distribution (filtered by fiscal year)
   const expenseTypes = useMemo(() => {
     const types: Record<string, number> = {};
-    filteredExpenses.forEach(item => {
+    expenses.forEach(item => {
       const type = item.expense_type || 'أخرى';
       types[type] = (types[type] || 0) + Number(item.amount);
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
-  }, [filteredExpenses]);
+  }, [expenses]);
 
   // Use CSS custom property HSL values for themed chart colors
   const COLORS = [

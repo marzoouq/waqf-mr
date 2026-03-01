@@ -62,7 +62,18 @@ const ContractsViewPage = () => {
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
           <h1 className="text-2xl font-bold text-foreground">العقود</h1>
-          <NoPublishedYearsNotice />
+          <Card className="shadow-sm border-destructive/30 bg-destructive/5">
+            <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
+              <AlertCircle className="w-12 h-12 text-destructive" />
+              <h2 className="text-lg font-bold text-foreground">حدث خطأ أثناء تحميل العقود</h2>
+              <p className="text-sm text-muted-foreground text-center max-w-md">
+                تعذر جلب بيانات العقود. يرجى التحقق من الاتصال والمحاولة مرة أخرى.
+              </p>
+              <Button onClick={() => refetch()} variant="outline" className="gap-2">
+                <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     );
