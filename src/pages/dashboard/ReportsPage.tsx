@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+// N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ const ReportsPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  const reportRef = useRef<HTMLDivElement>(null);
+  // reportRef removed (N10 — was unused)
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 
@@ -42,7 +42,8 @@ const ReportsPage = () => {
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
   const beneficiariesShare = availableAmount;
-  const netRevenue = netAfterExpenses;
+  // N6 fix: "صافي الريع" should reflect after zakat, not just after expenses
+  const netRevenue = netAfterZakat;
 
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
   const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
@@ -115,7 +116,8 @@ const ReportsPage = () => {
       occupancy = 0;
     }
 
-    const annualRent = propContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+    // N9 fix: only include active contracts in annualRent
+    const annualRent = propContracts.filter(c => isSpecificYear || c.status === 'active').reduce((sum, c) => sum + Number(c.rent_amount), 0);
     const propExp = expenses.filter(e => e.property_id === property.id);
     const totalPropExpenses = propExp.reduce((sum, e) => sum + Number(e.amount), 0);
     const netIncome = annualRent - totalPropExpenses;
@@ -216,7 +218,7 @@ const ReportsPage = () => {
 
   return (
     <DashboardLayout>
-       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6" ref={reportRef}>
+       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden animate-slide-up">
           <div className="min-w-0">

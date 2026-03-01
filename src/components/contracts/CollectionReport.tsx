@@ -56,9 +56,14 @@ function getExpectedPaymentsFallback(contract: Contract): number {
     : contract.payment_type === 'annual' ? 1
     : (contract.payment_count || 1);
 
+  // N3 fix: cap at actual contract duration, not hardcoded 12
+  const contractDurationMonths = Math.max(1, Math.round(
+    (end.getTime() - start.getTime()) / (1000 * 3600 * 24 * 30.44)
+  ));
+
   if (contract.payment_type === 'monthly') {
     const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-    return Math.min(Math.max(0, months), 12);
+    return Math.min(Math.max(0, months), contractDurationMonths);
   }
 
   if (contract.payment_type === 'annual') {
@@ -179,7 +184,9 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
     }
     setSendingAlerts(true);
     try {
-      await supabase.rpc('cron_check_late_payments' as never);
+      // N7 fix: check RPC error properly
+      const { error } = await supabase.rpc('cron_check_late_payments' as never);
+      if (error) throw error;
       toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
     } catch {
       toast.error('حدث خطأ أثناء إرسال التنبيهات');
