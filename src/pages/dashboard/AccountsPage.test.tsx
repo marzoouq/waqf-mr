@@ -9,33 +9,14 @@ vi.mock('@/components/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
-vi.mock('@/hooks/useAccounts', () => ({
-  useAccounts: () => ({ data: [], isLoading: false }),
-  useCreateAccount: () => ({ mutateAsync: vi.fn() }),
-  useDeleteAccount: () => ({ mutateAsync: vi.fn() }),
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ user: { id: 'u1' }, role: 'admin', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/useIncome', () => ({
-  useIncomeByFiscalYear: () => ({
-    data: [
-      { amount: 500000, source: 'إيجارات', date: '2024-01-01' },
-      { amount: 200000, source: 'أخرى', date: '2024-02-01' },
-    ],
-  }),
-}));
-
-vi.mock('@/hooks/useExpenses', () => ({
-  useExpensesByFiscalYear: () => ({
-    data: [
-      { amount: 50000, expense_type: 'صيانة', date: '2024-01-15' },
-      { amount: 30000, expense_type: 'كهرباء', date: '2024-02-15' },
-    ],
-  }),
-}));
-
-vi.mock('@/hooks/useContracts', () => ({
-  useContracts: () => ({
-    data: [
+vi.mock('@/hooks/useAccountsPage', () => ({
+  useAccountsPage: vi.fn(() => ({
+    accounts: [],
+    contracts: [
       {
         id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد محمد',
         rent_amount: 120000, start_date: '2024-01-01', end_date: '2025-01-01',
@@ -44,53 +25,100 @@ vi.mock('@/hooks/useContracts', () => ({
         fiscal_year_id: 'fy1',
       },
     ],
-  }),
-  useUpdateContract: () => ({ mutateAsync: vi.fn() }),
-  useDeleteContract: () => ({ mutateAsync: vi.fn() }),
-}));
-
-vi.mock('@/hooks/useBeneficiaries', () => ({
-  useBeneficiaries: () => ({
-    data: [
+    income: [
+      { amount: 500000, source: 'إيجارات', date: '2024-01-01' },
+      { amount: 200000, source: 'أخرى', date: '2024-02-01' },
+    ],
+    expenses: [
+      { amount: 50000, expense_type: 'صيانة', date: '2024-01-15' },
+      { amount: 30000, expense_type: 'كهرباء', date: '2024-02-15' },
+    ],
+    beneficiaries: [
       { id: 'b1', name: 'محمد', share_percentage: 50 },
       { id: 'b2', name: 'خالد', share_percentage: 50 },
     ],
-  }),
-}));
-
-vi.mock('@/hooks/useTenantPayments', () => ({
-  useTenantPayments: () => ({ data: [] }),
-  useUpsertTenantPayment: () => ({ mutateAsync: vi.fn() }),
-}));
-
-vi.mock('@/hooks/useUnits', () => ({
-  useAllUnits: () => ({ data: [] }),
-}));
-
-vi.mock('@/hooks/useProperties', () => ({
-  useProperties: () => ({ data: [] }),
-}));
-
-vi.mock('@/hooks/useAppSettings', () => ({
-  useAppSettings: () => ({ data: { admin_share_percentage: '10', waqif_share_percentage: '5' } }),
-}));
-
-vi.mock('@/hooks/useFiscalYears', () => ({
-  useActiveFiscalYear: () => ({
-    data: { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
-    fiscalYears: [{ id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' }],
-  }),
-  useFiscalYears: () => ({ data: [] }),
-}));
-
-vi.mock('@/contexts/FiscalYearContext', () => ({
-  useFiscalYear: vi.fn(() => ({
-    fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
-    fiscalYear: { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+    isLoading: false,
+    totalIncome: 700000,
+    totalExpenses: 80000,
+    adminPercent: 10,
+    waqifPercent: 5,
+    zakatAmount: 0,
+    waqfCorpusManual: 0,
+    waqfCorpusPrevious: 0,
+    manualVat: 0,
+    manualDistributions: 0,
+    netAfterExpenses: 620000,
+    netAfterVat: 620000,
+    netAfterZakat: 620000,
+    grandTotal: 620000,
+    adminShare: 62000,
+    waqifShare: 31000,
+    waqfRevenue: 527000,
+    availableAmount: 527000,
+    remainingBalance: 527000,
+    calculatedVat: 0,
+    commercialRent: 0,
+    incomeBySource: { 'إيجارات': 500000, 'أخرى': 200000 },
+    expensesByType: { 'صيانة': 50000, 'كهرباء': 30000 },
+    totalAnnualRent: 120000,
+    totalPaymentPerPeriod: 120000,
+    collectionData: [{
+      index: 1, tenantName: 'أحمد محمد', paymentPerPeriod: 120000,
+      expectedPayments: 1, paidMonths: 0, totalCollected: 0, arrears: 120000,
+      status: 'متأخر', notes: '',
+    }],
+    totalCollectedAll: 0,
+    totalArrearsAll: 120000,
+    totalPaidMonths: 0,
+    totalExpectedPayments: 1,
+    totalBeneficiaryPercentage: 100,
+    selectedFY: { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
+    isClosed: false,
+    handleCreateAccount: vi.fn(),
+    handleAdminPercentChange: vi.fn(),
+    handleWaqifPercentChange: vi.fn(),
+    handleFiscalYearChange: vi.fn(),
+    setZakatAmount: vi.fn(),
+    setWaqfCorpusManual: vi.fn(),
+    setManualVat: vi.fn(),
+    setManualDistributions: vi.fn(),
+    setWaqfCorpusPrevious: vi.fn(),
+    editingIndex: null,
+    editData: null,
+    setEditingIndex: vi.fn(),
+    setEditData: vi.fn(),
+    handleEditRow: vi.fn(),
+    handleSaveEdit: vi.fn(),
+    contractEditOpen: false,
+    setContractEditOpen: vi.fn(),
+    editingContractData: null,
+    setEditingContractData: vi.fn(),
+    deleteTarget: null,
+    setDeleteTarget: vi.fn(),
+    handleDeleteConfirm: vi.fn(),
+    handleEditContract: vi.fn(),
+    handleDeleteContract: vi.fn(),
+    statusLabel: vi.fn((s: string) => s),
+    getPaymentPerPeriod: vi.fn(() => 120000),
+    getExpectedPayments: vi.fn(() => 1),
+    closeYearOpen: false,
+    setCloseYearOpen: vi.fn(),
+    isClosingYear: false,
+    handleCloseYear: vi.fn(),
+    allUnits: [],
+    properties: [],
+    orphanedContracts: [],
+    paymentInvoices: [],
     fiscalYears: [{ id: 'fy1', label: '2024-2025', status: 'active' }],
-    isClosed: false, isLoading: false,
+    allocationMap: new Map(),
+    vatPercentage: 15,
+    residentialVatExempt: true,
+    role: 'admin',
   })),
-  FiscalYearProvider: ({ children }: any) => children,
+}));
+
+vi.mock('@/components/FiscalYearSelector', () => ({
+  default: () => <div data-testid="fiscal-year-selector">FY Selector</div>,
 }));
 
 vi.mock('@/hooks/usePdfWaqfInfo', () => ({
@@ -99,21 +127,6 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({
 
 vi.mock('@/utils/notifications', () => ({
   notifyAllBeneficiaries: vi.fn(),
-}));
-
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: () => ({
-      upsert: () => ({ error: null }),
-      update: () => ({ eq: () => ({ error: null }) }),
-      insert: () => ({ select: () => ({ single: () => ({ data: { id: 'new' }, error: null }) }) }),
-      select: () => ({ eq: () => ({ maybeSingle: () => ({ data: null }) }) }),
-    }),
-  },
-}));
-
-vi.mock('@/components/FiscalYearSelector', () => ({
-  default: () => <div data-testid="fiscal-year-selector">FY Selector</div>,
 }));
 
 const renderPage = () => {
