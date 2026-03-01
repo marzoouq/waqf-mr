@@ -122,7 +122,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      let resolvedEmail = loginEmail;
+      let resolvedEmail = normalizeArabicDigits(loginEmail);
 
       if (loginMethod === 'national_id') {
         if (!nationalId) {
@@ -202,7 +202,7 @@ const Auth = () => {
       return;
     }
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword);
+    const { error } = await signUp(normalizeArabicDigits(signupEmail), signupPassword);
     setIsLoading(false);
     if (error) {
       toast.error(getSafeErrorMessage(error));
@@ -401,7 +401,7 @@ const Auth = () => {
                   onClick={async () => {
                     if (!resetEmail) { toast.error('يرجى إدخال البريد الإلكتروني'); return; }
                     setIsLoading(true);
-                    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                    const { error } = await supabase.auth.resetPasswordForEmail(normalizeArabicDigits(resetEmail), {
                       redirectTo: `${window.location.origin}/reset-password`,
                     });
                     setIsLoading(false);

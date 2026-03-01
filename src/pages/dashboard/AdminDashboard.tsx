@@ -19,6 +19,16 @@ import { useTenantPayments } from '@/hooks/useTenantPayments';
 import { Badge } from '@/components/ui/badge';
 import { differenceInMonths } from 'date-fns';
 
+const ARABIC_MONTHS: Record<string, string> = {
+  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
+  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
+  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
+};
+const formatArabicMonth = (month: string) => {
+  const parts = month.split('-');
+  return ARABIC_MONTHS[parts[1]] || month;
+};
+
 const AdminDashboard = () => {
   const { role } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
@@ -173,15 +183,7 @@ const AdminDashboard = () => {
     'hsl(var(--muted-foreground))',
   ];
 
-  const formatArabicMonth = (month: string) => {
-    const arabicMonths: Record<string, string> = {
-      '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-      '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-      '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-    };
-    const parts = month.split('-');
-    return arabicMonths[parts[1]] || month;
-  };
+  // formatArabicMonth moved to module level (PERF-01)
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 

@@ -25,6 +25,16 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { differenceInMonths } from 'date-fns';
 
+const ARABIC_MONTHS: Record<string, string> = {
+  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
+  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
+  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
+};
+const formatArabicMonth = (month: string) => {
+  const parts = month.split('-');
+  return ARABIC_MONTHS[parts[1]] || month;
+};
+
 const WaqifDashboard = () => {
   const navigate = useNavigate();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
@@ -101,11 +111,7 @@ const WaqifDashboard = () => {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
   }, [income, expenses]);
 
-  const formatArabicMonth = (month: string) => {
-    const m: Record<string, string> = { '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل', '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس', '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر' };
-    const parts = month.split('-');
-    return m[parts[1]] || month;
-  };
+  // formatArabicMonth moved to module level (PERF-01)
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
 

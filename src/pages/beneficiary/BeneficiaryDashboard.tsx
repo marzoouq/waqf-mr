@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
@@ -30,7 +30,7 @@ const BeneficiaryDashboard = () => {
   );
 
   // ── Derived financials (computed only when data is valid) ──
-  const currentBeneficiary = benError ? undefined : beneficiaries.find(b => b.user_id === user?.id);
+  const currentBeneficiary = useMemo(() => benError ? undefined : beneficiaries.find(b => b.user_id === user?.id), [beneficiaries, user?.id, benError]);
   const safeAvailable = Number(availableAmount) || 0;
   const beneficiariesShare = safeAvailable;
   const myShare = currentBeneficiary ? (safeAvailable * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
