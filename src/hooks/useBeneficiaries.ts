@@ -53,9 +53,9 @@ export const useBeneficiariesDecrypted = () => {
       if (error) {
         // fallback to regular query if RPC fails
         logger.warn('فك التشفير غير متاح، عرض البيانات المشفرة:', error.message);
-        const { data: fallback, error: fbError } = await supabase
+      const { data: fallback, error: fbError } = await supabase
           .from('beneficiaries')
-          .select('*')
+          .select('id, name, share_percentage, email, phone, notes, user_id, created_at, updated_at')
           .order('name', { ascending: true })
           .limit(500);
         if (fbError) throw fbError;
