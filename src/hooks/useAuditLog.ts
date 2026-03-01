@@ -30,6 +30,7 @@ const OPERATION_NAMES_AR: Record<string, string> = {
   UPDATE: 'تعديل',
   DELETE: 'حذف',
   REOPEN: 'إعادة فتح',
+  CLOSE: 'إقفال',
 };
 
 export const getTableNameAr = (name: string) => TABLE_NAMES_AR[name] || name;

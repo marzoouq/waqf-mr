@@ -121,20 +121,16 @@ const FiscalYearManagementTab = () => {
     }
   };
 
-  // ── إقفال السنة فقط — لا إعادة فتح مباشرة (FIX C-5) ──────────────────────
+  // ── N-01 fix: إقفال السنة يوجّه للحسابات بدلاً من UPDATE مباشر ─────────────
   const handleClose = async (fy: FiscalYear) => {
     if (fy.status !== 'active') return;
-    setActionLoading(fy.id);
-    try {
-      const { error } = await supabase.from('fiscal_years').update({ status: 'closed' }).eq('id', fy.id);
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
-      toast.success(`تم إقفال السنة: ${fy.label}`);
-    } catch {
-      toast.error('حدث خطأ أثناء إقفال السنة');
-    } finally {
-      setActionLoading(null);
-    }
+    toast.warning('لإقفال السنة المالية بشكل صحيح مع حفظ الحساب الختامي وترحيل الرصيد، يرجى استخدام صفحة "الحسابات الختامية".', {
+      duration: 6000,
+      action: {
+        label: 'فتح الحسابات',
+        onClick: () => window.location.assign('/dashboard/accounts'),
+      },
+    });
   };
 
   // ── إعادة الفتح عبر RPC + سبب إلزامي (FIX C-5) ───────────────────────────
