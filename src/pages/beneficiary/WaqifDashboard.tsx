@@ -76,6 +76,8 @@ const WaqifDashboard = () => {
       else if (paymentType === 'quarterly') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 3));
       else if (paymentType === 'semi_annual') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 6));
       else expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 12));
+      // BUG-01 fix: skip contracts where no payment is yet due (same as AdminDashboard)
+      if (expectedPayments === 0) return;
       const payment = tenantPayments.find(p => p.contract_id === contract.id);
       const paidMonths = payment?.paid_months ?? 0;
       if (paidMonths >= expectedPayments) onTime++; else late++;

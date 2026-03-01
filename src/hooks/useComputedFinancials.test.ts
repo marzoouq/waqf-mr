@@ -152,16 +152,30 @@ describe('useComputedFinancials', () => {
       expect(r.totalIncome).toBe(50000);
     });
 
-    it('picks single account when no fiscalYearLabel provided', () => {
+    it('picks single account when fiscalYearId is specific (not "all")', () => {
+      const account = mkAccount({ fiscal_year_id: 'fy-123' });
+      const r = render({
+        income: [],
+        expenses: [],
+        accounts: [account],
+        settings: null,
+        fiscalYearId: 'fy-123',
+      });
+
+      expect(r.currentAccount).toBe(account);
+    });
+
+    it('does NOT auto-select single account when fiscalYearId is "all"', () => {
       const account = mkAccount();
       const r = render({
         income: [],
         expenses: [],
         accounts: [account],
         settings: null,
+        fiscalYearId: 'all',
       });
 
-      expect(r.currentAccount).toBe(account);
+      expect(r.currentAccount).toBeNull();
     });
 
     it('returns null when multiple accounts and no fiscalYearLabel', () => {

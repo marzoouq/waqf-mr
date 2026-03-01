@@ -47,7 +47,8 @@ export const useComputedFinancials = ({
     if (fiscalYearLabel) {
       return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
     }
-    if (accounts.length === 1) return accounts[0];
+    // BUG-03 fix: don't auto-select single account when viewing 'all' years
+    if (accounts.length === 1 && fiscalYearId && fiscalYearId !== 'all') return accounts[0];
     return null;
   }, [accounts, fiscalYearId, fiscalYearLabel]);
 
@@ -77,17 +78,19 @@ export const useComputedFinancials = ({
   const isClosed = forceClosedMode || fiscalYearStatus === 'closed';
 
   const financials = useMemo(() => {
-    if (currentAccount) {
+  if (currentAccount) {
       const grandTotal = totalIncome + waqfCorpusPrevious;
 
-      // If year is not closed and not forced, zero out shares
+      // BUG-02 fix: when year is not closed, compute from live data instead of stale account values
       if (!isClosed) {
-        const netAfterZakat = Number(currentAccount.net_after_vat) - zakatAmount;
+        const liveNetAfterExpenses = totalIncome - totalExpenses;
+        const liveNetAfterVat = liveNetAfterExpenses - vatAmount;
+        const liveNetAfterZakat = liveNetAfterVat - zakatAmount;
         return {
           grandTotal,
-          netAfterExpenses: Number(currentAccount.net_after_expenses),
-          netAfterVat: Number(currentAccount.net_after_vat),
-          netAfterZakat,
+          netAfterExpenses: liveNetAfterExpenses,
+          netAfterVat: liveNetAfterVat,
+          netAfterZakat: liveNetAfterZakat,
           shareBase: totalIncome - totalExpenses - zakatAmount,
           adminShare: 0,
           waqifShare: 0,

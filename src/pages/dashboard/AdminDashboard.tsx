@@ -32,15 +32,18 @@ const AdminDashboard = () => {
   // Detect orphaned contracts (no fiscal year assigned)
   const orphanedContracts = useMemo(() => allContracts.filter(c => !c.fiscal_year_id), [allContracts]);
 
+  // BUG-05 fix: useFinancialSummary moved below to include finLoading in isLoading
+
   const {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
+    isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
     fiscalYearStatus: fiscalYear?.status,
   });
 
-  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading;
+  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook
   const filteredIncome = income;
