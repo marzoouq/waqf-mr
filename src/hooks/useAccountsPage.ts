@@ -21,7 +21,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 /** Module-level helper: find account by fiscal year (UUID first, then label fallback) */
-function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
+export function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
   accts: T[],
   fy: { id: string; label: string } | null
 ): T | null {
