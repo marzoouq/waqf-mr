@@ -47,6 +47,19 @@ export const useAccountByFiscalYear = (
       }
       const { data, error } = await query;
       if (error) throw error;
+
+      // Fallback: إذا لم تُرجع نتائج بـ fiscal_year_id، نبحث بـ fiscal_year (النص)
+      if ((!data || data.length === 0) && fiscalYearId && fiscalYearLabel) {
+        const { data: fallbackData, error: fbError } = await supabase
+          .from('accounts')
+          .select('*')
+          .eq('fiscal_year', fiscalYearLabel)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (fbError) throw fbError;
+        return fallbackData ?? [];
+      }
+
       return data ?? [];
     },
   });
