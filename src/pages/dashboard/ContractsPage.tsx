@@ -53,7 +53,7 @@ const ContractsPage = () => {
   const handlePayment = (contract: Contract, delta: number) => {
     const current = paymentsMap.get(contract.id) ?? 0;
     const next = Math.max(0, current + delta);
-    const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+    const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
     const paymentAmount = Number(contract.rent_amount) / paymentCount;
     upsertPayment.mutate({
       contract_id: contract.id,
@@ -118,7 +118,7 @@ const ContractsPage = () => {
   };
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
-    const paymentCount = formData.payment_type === 'monthly' ? 12 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
+    const paymentCount = formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'quarterly' ? 4 : formData.payment_type === 'semi_annual' ? 2 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
 
     if (isEditing && editingContract) {
       const rentAmount = parseFloat(formData.rent_amount);
@@ -217,7 +217,7 @@ const ContractsPage = () => {
         const num = contract.contract_number;
         const match = num.match(/-R(\d+)$/);
         const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
-        const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+        const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
         const paymentAmount = Number(contract.rent_amount) / paymentCount;
 
         const newContract: Record<string, unknown> = {
@@ -253,7 +253,7 @@ const ContractsPage = () => {
     }
   };
 
-  const getPaymentTypeLabel = (type?: string) => type === 'monthly' ? 'شهري' : type === 'annual' ? 'سنوي' : 'متعدد';
+  const getPaymentTypeLabel = (type?: string) => type === 'monthly' ? 'شهري' : type === 'quarterly' ? 'ربعي' : type === 'semi_annual' ? 'نصف سنوي' : type === 'annual' ? 'سنوي' : 'متعدد';
 
   const filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
@@ -515,7 +515,7 @@ const ContractsPage = () => {
               <AlertDialogTitle>تجديد العقود المختارة ({selectedForRenewal.size})</AlertDialogTitle>
               <AlertDialogDescription asChild>
                 <div className="space-y-3">
-                  <p>سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ جديدة (من اليوم لمدة سنة) للعقود التالية:</p>
+                  <p>سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ تبدأ من تاريخ انتهاء العقد السابق وبنفس المدة للعقود التالية:</p>
                   <ul className="max-h-40 overflow-y-auto space-y-1 text-sm pr-2">
                     {expiredContracts.filter(c => selectedForRenewal.has(c.id)).map(c => (
                       <li key={c.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-0">

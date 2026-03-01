@@ -123,6 +123,8 @@ function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear 
 
 function getPaymentCount(contract: ContractInfo): number {
   if (contract.payment_type === 'monthly') return 12;
+  if (contract.payment_type === 'quarterly') return 4;
+  if (contract.payment_type === 'semi_annual') return 2;
   if (contract.payment_type === 'annual') return 1;
   return contract.payment_count || 1;
 }

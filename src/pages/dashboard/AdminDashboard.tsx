@@ -59,18 +59,20 @@ const AdminDashboard = () => {
 
     activeContracts.forEach(contract => {
       const startDate = new Date(contract.start_date);
+      const endDate = new Date(contract.end_date);
       const now = new Date();
+      const clampedNow = now < endDate ? now : endDate;
       const paymentType = contract.payment_type || 'annual';
 
       let expectedPayments = 0;
       if (paymentType === 'monthly') {
-        expectedPayments = Math.max(0, differenceInMonths(now, startDate));
+        expectedPayments = Math.max(0, differenceInMonths(clampedNow, startDate));
       } else if (paymentType === 'quarterly') {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 3));
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 3));
       } else if (paymentType === 'semi_annual') {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 6));
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 6));
       } else {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 12));
+        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 12));
       }
 
       const payment = tenantPayments.find(p => p.contract_id === contract.id);
@@ -98,9 +100,9 @@ const AdminDashboard = () => {
     { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
-    { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
-    { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
-    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
+    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
+    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
+    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
   ];
 
@@ -165,7 +167,7 @@ const AdminDashboard = () => {
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   const kpis = useMemo(() => {
-    const collectionRate = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
+    const collectionRate = contractualRevenue > 0 ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100)) : 0;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
