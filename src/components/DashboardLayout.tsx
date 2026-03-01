@@ -26,7 +26,7 @@ import SidebarContent from '@/components/Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
-import { supabase } from '@/integrations/supabase/client';
+
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
