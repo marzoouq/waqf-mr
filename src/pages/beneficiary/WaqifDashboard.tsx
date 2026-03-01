@@ -90,7 +90,12 @@ const WaqifDashboard = () => {
       if (expectedPayments === 0) return;
       const payment = tenantPayments.find(p => p.contract_id === contract.id);
       const paidMonths = payment?.paid_months ?? 0;
-      if (paidMonths >= expectedPayments) onTime++; else late++;
+      // تحويل الأشهر المدفوعة إلى وحدات الدفع (نفس منطق AdminDashboard)
+      let paidInPaymentUnits = paidMonths;
+      if (paymentType === 'quarterly') paidInPaymentUnits = Math.floor(paidMonths / 3);
+      else if (paymentType === 'semi_annual') paidInPaymentUnits = Math.floor(paidMonths / 6);
+      else if (paymentType === 'annual') paidInPaymentUnits = Math.floor(paidMonths / 12);
+      if (paidInPaymentUnits >= expectedPayments) onTime++; else late++;
     });
     const total = onTime + late;
     const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
