@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -161,9 +162,9 @@ const FinancialReportsPage = () => {
         {/* Subtitle */}
         <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 text-center">
           التحليل البياني للبيانات المالية — للأرقام التفصيلية راجع{' '}
-          <a href="/beneficiary/disclosure" className="text-sm text-primary hover:underline px-1">
+          <Link to="/beneficiary/disclosure" className="text-sm text-primary hover:underline px-1">
             صفحة الإفصاح السنوي
-          </a>
+          </Link>
         </p>
 
         {/* Charts Row 1 */}
