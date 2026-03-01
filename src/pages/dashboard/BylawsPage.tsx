@@ -288,6 +288,14 @@ const BylawsPage = () => {
           </div>
         </div>
 
+        {/* Warning if not published */}
+        {!isPublished && (
+          <div className="flex items-center gap-3 p-3 rounded-lg border border-warning/40 bg-warning/5 text-warning text-sm">
+            <Lock className="w-5 h-5 flex-shrink-0" />
+            <span>اللائحة التنظيمية <strong>محجوبة</strong> حالياً عن المستفيدين. قم بتفعيل النشر أدناه لإتاحتها.</span>
+          </div>
+        )}
+
         {/* Stats & Publish Control */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="p-4">

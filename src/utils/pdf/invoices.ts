@@ -29,6 +29,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       case 'paid': return 'مدفوعة';
       case 'pending': return 'معلّقة';
       case 'cancelled': return 'ملغاة';
+      case 'overdue': return 'متأخرة';
       default: return s;
     }
   };

@@ -22,7 +22,7 @@ const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placehold
 };
 
 const AiAssistant = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -39,6 +39,9 @@ const AiAssistant = () => {
   useEffect(() => {
     return () => abortControllerRef.current?.abort();
   }, []);
+
+  // المساعد الذكي متاح فقط للناظر والمحاسب
+  if (role !== 'admin' && role !== 'accountant') return null;
 
   const handleModeChange = (newMode: string) => {
     if (newMode === mode) return;

@@ -207,7 +207,7 @@ const Auth = () => {
     if (error) {
       toast.error(getSafeErrorMessage(error));
     } else {
-      toast.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني');
+      toast.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
     }
   };
 
