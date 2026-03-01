@@ -22,6 +22,8 @@ interface AccountsSummaryCardsProps {
   remainingBalance: number;
   /** Whether the fiscal year is closed — if false and forcePreview, shows estimate notice */
   isClosed?: boolean;
+  /** H11: whether default percentages are being used instead of configured ones */
+  usingFallbackPct?: boolean;
 }
 
 const AccountsSummaryCards = ({
@@ -29,7 +31,7 @@ const AccountsSummaryCards = ({
   netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, manualDistributions, remainingBalance,
-  isClosed = true,
+  isClosed = true, usingFallbackPct = false,
 }: AccountsSummaryCardsProps) => {
   const computedNetAfterZakat = netAfterZakat ?? (netAfterVat - zakatAmount);
   return (
@@ -46,6 +48,14 @@ const AccountsSummaryCards = ({
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               هذه أرقام تقديرية — يتم اعتمادها رسمياً عند إقفال السنة المالية
+            </AlertDescription>
+          </Alert>
+        )}
+        {usingFallbackPct && (
+          <Alert className="mb-4 border-warning/50 bg-warning/20 text-primary-foreground">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              تُستخدَم النسب الافتراضية (ناظر 10%، واقف 5%) — يمكنك تعديلها من إعدادات الحسابات
             </AlertDescription>
           </Alert>
         )}

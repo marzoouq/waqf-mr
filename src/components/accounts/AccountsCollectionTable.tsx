@@ -167,8 +167,8 @@ const AccountsCollectionTable = ({
                 <TableCell>الإجمالي</TableCell>
                 <TableCell>{contracts.length} مستأجر</TableCell>
                 <TableCell className="text-primary font-bold">{collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0).toLocaleString()} ريال</TableCell>
-                <TableCell className="text-center">{totalExpectedPayments}</TableCell>
-                <TableCell className="text-center">{totalPaidMonths}</TableCell>
+                <TableCell className="text-center text-muted-foreground">—</TableCell>
+                <TableCell className="text-center text-muted-foreground">—</TableCell>
                 <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>
                 <TableCell className="text-destructive font-bold">{totalArrearsAll.toLocaleString()} ريال</TableCell>
                 <TableCell></TableCell>
