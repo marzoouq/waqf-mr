@@ -35,6 +35,8 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
       }
 
       localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
+      // Flag real version change so PwaUpdateNotifier can show toast after reload
+      try { sessionStorage.setItem('pwa_just_updated', APP_CACHE_VERSION); } catch {}
       // Reload to pick up new assets
       window.location.reload();
       return;

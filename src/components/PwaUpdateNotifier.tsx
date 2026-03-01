@@ -62,29 +62,21 @@ const PwaUpdateNotifier = () => {
   const [showChangelog, setShowChangelog] = useState(false);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
-
-    let isFirstController = !navigator.serviceWorker.controller;
-
-    const onControllerChange = () => {
-      if (isFirstController) {
-        isFirstController = false;
-        return;
+    // Only show toast if main.tsx flagged a real version change
+    try {
+      const updated = sessionStorage.getItem('pwa_just_updated');
+      if (updated) {
+        sessionStorage.removeItem('pwa_just_updated');
+        toast.success("تم تحديث التطبيق بنجاح ✨", {
+          description: "اضغط لعرض سجل التحديثات",
+          duration: 6000,
+          action: {
+            label: "عرض التحديثات",
+            onClick: () => setShowChangelog(true),
+          },
+        });
       }
-      toast.success("تم تحديث التطبيق بنجاح ✨", {
-        description: "اضغط لعرض سجل التحديثات",
-        duration: 6000,
-        action: {
-          label: "عرض التحديثات",
-          onClick: () => setShowChangelog(true),
-        },
-      });
-    };
-
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
-    return () => {
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
-    };
+    } catch {}
   }, []);
 
   return (
