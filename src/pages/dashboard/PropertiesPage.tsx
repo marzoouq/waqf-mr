@@ -78,7 +78,7 @@ const PropertiesPage = () => {
     const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
     const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
     const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
-    const netIncome = contractualRevenue - totalExpensesAll;
+    const netIncome = activeIncome - totalExpensesAll;
 
     return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll, netIncome };
   }, [properties, allUnits, contracts, expenses]);

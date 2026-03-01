@@ -42,7 +42,7 @@ const MessagesPage = () => {
   };
 
   const handleCreateConv = async () => {
-    if (!user || !newConvBeneficiary) return;
+    if (!user || !newConvBeneficiary || role !== 'admin') return;
     const conv = await createConversation.mutateAsync({
       type: 'chat',
       subject: newConvSubject || 'محادثة جديدة',

@@ -76,9 +76,12 @@ const MySharePage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
   const beneficiariesShare = availableAmount;
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
 
   const myShare = currentBeneficiary
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
+    ? (totalBeneficiaryPercentage > 0
+        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
+        : 0)
     : 0;
 
   const filteredDistributions = currentAccount
