@@ -237,7 +237,7 @@ const WaqfSettingsTab = () => {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
-        await supabase.from('app_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', field.key);
+        await supabase.from('app_settings').upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       }
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
@@ -375,7 +375,10 @@ const AppearanceTab = () => {
   const appearance = getJsonSetting('appearance_settings', defaults);
   const [form, setForm] = useState(appearance);
 
-  useEffect(() => { setForm(appearance); }, [appearance]);
+  useEffect(() => {
+    const next = JSON.stringify(appearance);
+    setForm((prev: typeof appearance) => JSON.stringify(prev) === next ? prev : appearance);
+  }, [appearance]);
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
