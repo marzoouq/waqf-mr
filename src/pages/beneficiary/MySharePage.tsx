@@ -84,9 +84,12 @@ const MySharePage = () => {
         : 0)
     : 0;
 
+  // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
   const filteredDistributions = currentAccount
     ? distributions.filter(d => d.account_id === currentAccount.id)
-    : distributions;
+    : (fiscalYearId && fiscalYearId !== 'all'
+        ? distributions.filter(d => (d as { fiscal_year_id?: string }).fiscal_year_id === fiscalYearId)
+        : distributions);
 
   const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')
@@ -133,6 +136,11 @@ const MySharePage = () => {
       const net = Math.max(0, rawNet);
       const deficit = rawNet < 0 ? Math.abs(rawNet) : 0;
 
+      // F7: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
+      const afterAdvances = Math.max(0, shareAmount - advances);
+      const actualCarryforward = Math.min(carryforward, afterAdvances);
+      const actualDeficit = carryforward > afterAdvances ? carryforward - afterAdvances : 0;
+
       await generateDistributionsPDF({
         fiscalYearLabel: selectedFY?.label || '',
         availableAmount: beneficiariesShare,
@@ -141,9 +149,9 @@ const MySharePage = () => {
           share_percentage: currentBeneficiary.share_percentage,
           share_amount: shareAmount,
           advances_paid: advances,
-          carryforward_deducted: Math.min(carryforward, shareAmount - advances > 0 ? shareAmount - advances : 0),
+          carryforward_deducted: actualCarryforward,
           net_amount: net,
-          deficit,
+          deficit: deficit + actualDeficit,
         }],
       }, pdfWaqfInfo);
       toast.success('تم تحميل تقرير التوزيعات بنجاح');
@@ -228,6 +236,17 @@ const MySharePage = () => {
     const s = map[status] || map.pending;
     return <Badge className={`${s.cls} hover:${s.cls}`}>{s.label}</Badge>;
   };
+
+  // F4: عرض skeleton أثناء التحميل
+  if (finLoading || distLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6">
+          <DashboardSkeleton />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (noPublishedYears) {
     return (

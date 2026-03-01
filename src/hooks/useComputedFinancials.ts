@@ -55,6 +55,7 @@ export const useComputedFinancials = ({
   const {
     adminPct, waqifPct, zakatAmount, vatAmount,
     waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
+    usingFallbackPct,
   } = useMemo(() => {
     const adminPctRaw = settings?.admin_share_percentage
       ? parseFloat(settings.admin_share_percentage) : NaN;
@@ -62,6 +63,8 @@ export const useComputedFinancials = ({
     const waqifPctRaw = settings?.waqif_share_percentage
       ? parseFloat(settings.waqif_share_percentage) : NaN;
     const _waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
+    // F5: تتبع استخدام القيم الافتراضية
+    const _usingFallback = !Number.isFinite(adminPctRaw) || !Number.isFinite(waqifPctRaw);
     const _zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
     const _vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
     const _waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
@@ -71,6 +74,7 @@ export const useComputedFinancials = ({
       adminPct: _adminPct, waqifPct: _waqifPct, zakatAmount: _zakatAmount,
       vatAmount: _vatAmount, waqfCorpusPrevious: _waqfCorpusPrevious,
       waqfCorpusManual: _waqfCorpusManual, distributionsAmount: _distributionsAmount,
+      usingFallbackPct: _usingFallback,
     };
   }, [settings, currentAccount]);
 
@@ -153,6 +157,7 @@ export const useComputedFinancials = ({
   return {
     currentAccount,
     isAccountMissing,
+    usingFallbackPct,
     adminPct,
     waqifPct,
     totalIncome,

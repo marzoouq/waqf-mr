@@ -34,7 +34,15 @@ export interface FinancialResult {
 
 /**
  * Core financial hierarchy calculation.
- * أساس حساب الحصص = الدخل فقط - المصروفات - الزكاة (بدون رقبة الوقف وبدون الضريبة)
+ *
+ * **F1/F9 — by design (Islamic Waqf accounting):**
+ * - `shareBase` = totalIncome − totalExpenses − zakatAmount
+ *   → حصة الناظر والواقف تُحسب من الدخل فقط بعد خصم المصروفات والزكاة
+ *   → الضريبة (VAT) لا تُخصم من أساس الحصص لأنها ليست مصروفاً تشغيلياً
+ * - `waqfCorpusPrevious` يُضاف إلى `grandTotal` لكن لا يدخل في `shareBase`
+ *   → رقبة الوقف المرحّلة رأس مال أصيل يذهب كاملاً لريع الوقف
+ * - `waqfRevenue` = netAfterZakat − adminShare − waqifShare
+ *   → يشمل تلقائياً وفر الضريبة ورقبة الوقف المرحّلة
  */
 export const calculateFinancials = (params: FinancialParams): FinancialResult => {
   const {

@@ -77,10 +77,11 @@ const PropertiesPage = () => {
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
     const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
     const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
-    const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
-    const netIncome = activeIncome - totalExpensesAll;
+    // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
+    const propertyExpenses = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
+    const netIncome = activeIncome - propertyExpenses;
 
-    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll, netIncome };
+    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: propertyExpenses, netIncome };
   }, [properties, allUnits, contracts, expenses]);
 
   const resetForm = () => {

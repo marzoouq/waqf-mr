@@ -95,9 +95,12 @@ const DisclosurePage = () => {
     enabled: !!currentBeneficiary?.id,
   });
 
+  // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
   const filteredDistributions = currentAccount
     ? distributions.filter(d => d.account_id === currentAccount.id)
-    : distributions;
+    : (fiscalYearId && fiscalYearId !== 'all'
+        ? distributions.filter(d => (d as { fiscal_year_id?: string }).fiscal_year_id === fiscalYearId)
+        : distributions);
 
   const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')

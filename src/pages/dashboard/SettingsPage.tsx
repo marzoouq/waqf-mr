@@ -218,12 +218,14 @@ const WaqfSettingsTab = () => {
     if (settings) setFormData({ ...settings });
   }, [settings]);
 
+  // F8: السماح بالقيمة الفارغة (تُعامل كصفر) وتحسين رسالة الخطأ
   const validatePercentage = (key: string, label: string, value: string): boolean => {
     if (!key.endsWith('_percentage')) return true;
     if (key === 'fiscal_year') return true;
+    if (value.trim() === '' || value.trim() === '0') return true; // السماح بالفارغ/الصفر
     const num = parseFloat(value);
     if (!Number.isFinite(num) || num < 0 || num > 100) {
-      toast.error(`${label}: يجب إدخال رقم صحيح بين 0 و 100`);
+      toast.error(`${label}: يجب إدخال رقم بين 0 و 100`);
       return false;
     }
     return true;
@@ -233,15 +235,35 @@ const WaqfSettingsTab = () => {
     setSaving(true);
     try {
       const allFields = [...waqfFields, ...financialFields];
+
+      // F12: التحقق من مجموع النسب
+      const adminVal = parseFloat(formData['admin_share_percentage'] || '0') || 0;
+      const waqifVal = parseFloat(formData['waqif_share_percentage'] || '0') || 0;
+      if (adminVal + waqifVal > 100) {
+        toast.error('مجموع نسبة الناظر والواقف يتجاوز 100%');
+        setSaving(false);
+        return;
+      }
+
+      // F3: جمع كل البيانات وإرسالها مع التحقق من الأخطاء
+      const failedFields: string[] = [];
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
-        await supabase.from('app_settings').upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+        const { error } = await supabase.from('app_settings').upsert(
+          { key: field.key, value, updated_at: new Date().toISOString() },
+          { onConflict: 'key' },
+        );
+        if (error) failedFields.push(field.label);
       }
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
-      toast.success('تم حفظ البيانات بنجاح');
+      if (failedFields.length > 0) {
+        toast.error(`فشل حفظ: ${failedFields.join('، ')}`);
+      } else {
+        toast.success('تم حفظ البيانات بنجاح');
+      }
     } catch { toast.error('حدث خطأ أثناء الحفظ'); } finally { setSaving(false); }
   };
 
