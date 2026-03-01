@@ -25,17 +25,21 @@ const ContractsViewPage = () => {
   const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
 
+  const now = new Date();
+  const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+  const isExpiringSoon = (c: { status: string; end_date: string }) =>
+    c.status === 'active' && new Date(c.end_date) <= in90Days;
+
   const stats = useMemo(() => {
     if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0 };
-    const now = new Date();
-    const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
     const active = contracts.filter(c => c.status === 'active');
     return {
       total: contracts.length,
       active: active.length,
       expired: contracts.filter(c => c.status === 'expired').length,
       totalRent: active.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
-      expiringSoon: active.filter(c => new Date(c.end_date) <= in90Days).length,
+      expiringSoon: active.filter(c => isExpiringSoon(c)).length,
     };
   }, [contracts]);
 
@@ -142,7 +146,14 @@ const ContractsViewPage = () => {
                         <p className="font-bold text-foreground">{contract.contract_number}</p>
                         <p className="text-sm text-muted-foreground">{contract.tenant_name}</p>
                       </div>
-                      <Badge variant={st.variant}>{st.label}</Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant={st.variant}>{st.label}</Badge>
+                        {isExpiringSoon(contract) && (
+                          <Badge variant="outline" className="text-warning border-warning text-[10px]">
+                            <AlertTriangle className="w-3 h-3 ml-1" />ينتهي قريباً
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     {property && (
                       <p className="text-sm text-muted-foreground">العقار: {property.property_number}</p>
@@ -192,7 +203,14 @@ const ContractsViewPage = () => {
                         <TableCell>{formatDate(contract.start_date)}</TableCell>
                         <TableCell>{formatDate(contract.end_date)}</TableCell>
                         <TableCell>
-                          <Badge variant={st.variant}>{st.label}</Badge>
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant={st.variant}>{st.label}</Badge>
+                            {isExpiringSoon(contract) && (
+                              <Badge variant="outline" className="text-warning border-warning text-[10px]">
+                                <AlertTriangle className="w-3 h-3 ml-1" />قريب
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
