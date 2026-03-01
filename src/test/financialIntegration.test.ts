@@ -32,7 +32,7 @@ const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'account
   admin_share: 0,
   waqif_share: 0,
   waqf_revenue: 0,
-  waqf_capital: 0,
+  
   vat_amount: 0,
   zakat_amount: 0,
   distributions_amount: 0,

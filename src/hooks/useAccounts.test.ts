@@ -47,7 +47,7 @@ const sampleAccount = {
   admin_share: 15500,
   waqif_share: 7750,
   waqf_revenue: 131750,
-  waqf_capital: 0,
+  
   waqf_corpus_previous: 0,
   waqf_corpus_manual: 0,
   distributions_amount: 0,

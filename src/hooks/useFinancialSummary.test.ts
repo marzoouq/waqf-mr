@@ -44,7 +44,7 @@ const storedAccount = {
   distributions_amount: 1_024_426.89,
   net_after_expenses: 1_368_656.98,
   net_after_vat: 1_368_656.98,
-  waqf_capital: 0,
+  
   created_at: '',
   updated_at: '',
 };

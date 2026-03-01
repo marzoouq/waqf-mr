@@ -312,7 +312,6 @@ export function useAccountsPage() {
     waqf_revenue: waqfRevenue,
     vat_amount: manualVat,
     distributions_amount: manualDistributions,
-    waqf_capital: waqfCorpusManual,
     net_after_expenses: netAfterExpenses,
     net_after_vat: netAfterVat,
     zakat_amount: zakatAmount,
