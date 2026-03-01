@@ -28,7 +28,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
 
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
-    if (!numAmount || numAmount <= 0) return;
+    if (!numAmount || numAmount <= 0 || numAmount > maxAdvance) return;
     await create.mutateAsync({
       beneficiary_id: beneficiaryId,
       fiscal_year_id: fiscalYearId,

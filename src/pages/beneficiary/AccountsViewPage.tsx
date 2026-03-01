@@ -41,6 +41,8 @@ const AccountsViewPage = () => {
     availableAmount,
     incomeBySource,
     expensesByType,
+    expensesByTypeExcludingVat,
+    remainingBalance,
     isLoading: finLoading,
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
@@ -53,6 +55,17 @@ const AccountsViewPage = () => {
         ? availableAmount * Number(currentBeneficiary.share_percentage) / totalBeneficiaryPercentage
         : 0)
     : 0;
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (finError) {
     return (
@@ -70,17 +83,6 @@ const AccountsViewPage = () => {
 
   if (finLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
   }
 
   if (isAccountMissing) {
@@ -115,7 +117,7 @@ const AccountsViewPage = () => {
                 await generateAccountsPDF({
                   contracts: [],
                   incomeBySource,
-                  expensesByType,
+                  expensesByType: expensesByTypeExcludingVat,
                   totalIncome,
                   totalExpenses,
                   netRevenue: netAfterZakat,
@@ -135,7 +137,7 @@ const AccountsViewPage = () => {
                   waqfCapital: waqfCorpusManual,
                   distributionsAmount,
                   availableAmount,
-                  remainingBalance: availableAmount - distributionsAmount,
+                  remainingBalance,
                 }, pdfWaqfInfo);
                 toast.success('تم تصدير الحسابات الختامية بنجاح');
               } catch {
