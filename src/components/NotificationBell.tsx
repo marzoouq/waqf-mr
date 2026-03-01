@@ -24,11 +24,11 @@ const typeColors: Record<string, string> = {
 };
 
 const NotificationBell = () => {
-  const { data: notifications, unreadCount, markAsRead, markAllAsRead, deleteOne, deleteRead } = useNotifications();
+  const { data: allNotifications, filteredData: notifications, filteredUnreadCount: unreadCount, markAsRead, markAllAsRead, deleteOne, deleteRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
-  const readCount = notifications?.filter((n) => n.is_read).length || 0;
+  const readCount = allNotifications?.filter((n) => n.is_read).length || 0;
 
   const handleNotifClick = (notif: { id: string; is_read: boolean; link?: string | null }) => {
     if (!notif.is_read) markAsRead.mutate(notif.id);

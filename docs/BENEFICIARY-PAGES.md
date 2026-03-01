@@ -91,7 +91,7 @@ const myShare = currentBeneficiary
 
 ### 2. صفحة حصتي من الريع (`MySharePage.tsx`)
 
-**المسار**: `/beneficiary/share`
+**المسار**: `/beneficiary/my-share`
 
 **الدور**: عرض ملخص حصة المستفيد مع تفاصيل التوزيعات.
 
@@ -122,7 +122,7 @@ const { data: distributions } = useQuery({
 
 ### 3. صفحة التقارير المالية (`FinancialReportsPage.tsx`)
 
-**المسار**: `/beneficiary/reports`
+**المسار**: `/beneficiary/financial-reports`
 
 **الدور**: تحليل بصري بالرسوم البيانية.
 
