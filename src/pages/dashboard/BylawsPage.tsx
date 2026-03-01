@@ -138,7 +138,7 @@ const BylawsPage = () => {
   const [deleteItem, setDeleteItem] = useState<BylawEntry | null>(null);
   const [newBylaw, setNewBylaw] = useState({ part_title: '', chapter_title: '', content: '', part_number: 0 });
 
-  const isPublished = settings?.bylaws_published !== 'false';
+  const isPublished = settings?.bylaws_published === 'true';
 
   const allBylaws = useMemo(() => bylaws ?? [], [bylaws]);
 

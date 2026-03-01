@@ -120,7 +120,7 @@ const InvoicesPage = () => {
         property_id: formData.property_id || null, contract_id: formData.contract_id || null,
         description: formData.description || null, status: formData.status,
       };
-      if (!editingInvoice && activeFYId) invoiceData.fiscal_year_id = activeFYId;
+      if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
       if (selectedFile) {
         if (editingInvoice?.file_path) await supabase.storage.from('invoices').remove([editingInvoice.file_path]);

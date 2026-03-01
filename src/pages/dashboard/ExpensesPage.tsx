@@ -59,8 +59,8 @@ const ExpensesPage = () => {
       expense_type: formData.expense_type, amount: parseFloat(formData.amount), date: formData.date,
       property_id: formData.property_id || undefined, description: formData.description || undefined,
     };
-    if (!editingExpense && activeFYId) {
-      expenseData.fiscal_year_id = activeFYId;
+    if (!editingExpense && fiscalYear?.id) {
+      expenseData.fiscal_year_id = fiscalYear.id;
     }
     if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
     setIsOpen(false);
