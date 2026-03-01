@@ -138,7 +138,12 @@ export const useComputedFinancials = ({
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
   const expensesByTypeExcludingVat = useMemo(() => {
-    const filtered = expenses.filter(e => e.description !== 'ضريبة القيمة المضافة المحصلة من الهيئة');
+    const vatKeywords = ['ضريبة القيمة المضافة', 'ضريبة', 'vat'];
+    const filtered = expenses.filter(e => {
+      const desc = (e.description || '').trim().toLowerCase();
+      const type = (e.expense_type || '').trim().toLowerCase();
+      return !vatKeywords.some(kw => desc.includes(kw) || type.includes(kw));
+    });
     return groupExpensesByType(filtered);
   }, [expenses]);
 
