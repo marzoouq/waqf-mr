@@ -33,13 +33,16 @@ const BeneficiariesPage = () => {
   const updateBeneficiary = useUpdateBeneficiary();
   const deleteBeneficiary = useDeleteBeneficiary();
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const { data: users = [] } = useQuery({
     queryKey: ['beneficiary-users'],
     staleTime: 60_000,
+    enabled: isOpen,
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-        body: { action: 'list_users', per_page: 100 },
+        body: { action: 'list_users' },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
@@ -48,8 +51,6 @@ const BeneficiariesPage = () => {
         .map((u: { id: string; email?: string }) => ({ id: u.id, email: u.email || u.id }));
     },
   });
-
-  const [isOpen, setIsOpen] = useState(false);
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
