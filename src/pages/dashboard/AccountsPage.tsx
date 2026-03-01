@@ -203,6 +203,11 @@ const AccountsPage = () => {
           isClosing={page.isClosingYear}
           fyLabel={page.selectedFY?.label}
           waqfCorpusManual={page.waqfCorpusManual}
+          totalIncome={page.totalIncome}
+          totalExpenses={page.totalExpenses}
+          netAfterExpenses={page.netAfterExpenses}
+          availableAmount={page.availableAmount}
+          distributionsAmount={page.manualDistributions}
         />
       </div>
     </DashboardLayout>
