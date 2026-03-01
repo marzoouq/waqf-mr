@@ -191,9 +191,13 @@ export function useAccountsPage() {
     return false;
   };
 
+  // N-06 fix: use allocated amount for current FY instead of full rent_amount
   const commercialRent = contracts
     .filter(c => isCommercialContract(c))
-    .reduce((sum, c) => sum + Number(c.rent_amount), 0);
+    .reduce((sum, c) => {
+      const allocation = allocationMap.get(c.id);
+      return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+    }, 0);
   const calculatedVat = commercialRent * (vatPercentage / 100);
 
   // AccountsPage always shows shares (forceClosedMode) so admin can preview before closing
@@ -213,14 +217,16 @@ export function useAccountsPage() {
     return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
   }, 0);
 
-  const getPaymentPerPeriod = (contract: typeof contracts[0]) => {
+  // N-10 fix: memoize helpers that depend on allocationMap
+  const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {
     const rent = Number(contract.rent_amount);
-    if (contract.payment_amount) return Number(contract.payment_amount);
+    // L-08 fix: respect payment_amount = 0
+    if (contract.payment_amount != null) return Number(contract.payment_amount);
     const count = contract.payment_count || 1;
     return rent / count;
-  };
+  }, []);
 
-  const getExpectedPayments = (contract: typeof contracts[0]) => {
+  const getExpectedPayments = useCallback((contract: typeof contracts[0]) => {
     // If allocation exists for this FY, use allocated payments
     const allocation = allocationMap.get(contract.id);
     if (allocation) return allocation.allocated_payments;
@@ -234,7 +240,7 @@ export function useAccountsPage() {
     if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
     if (contract.payment_type === 'multi') return contract.payment_count || 1;
     return 1;
-  };
+  }, [allocationMap]);
 
   const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
 
@@ -243,9 +249,10 @@ export function useAccountsPage() {
     return acc;
   }, {} as Record<string, typeof tenantPayments[0]>), [tenantPayments]);
 
-  // Editing state for collection table
+  // Editing state for collection table — N-04 fix: store contractId
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editData, setEditData] = useState<{
+    contractId: string;
     tenantName: string;
     monthlyRent: number;
     paidMonths: number;
@@ -269,7 +276,7 @@ export function useAccountsPage() {
   const collectionData = useMemo(() => contracts.map((contract, index) => {
     const paymentInfo = paymentMap[contract.id];
     const expectedPayments = getExpectedPayments(contract);
-    const paidMonths = paymentInfo ? paymentInfo.paid_months : 0; // H1 fix: default to 0, not expectedPayments
+    const paidMonths = paymentInfo ? paymentInfo.paid_months : 0;
     const paymentPerPeriod = getPaymentPerPeriod(contract);
     const totalCollected = paymentPerPeriod * paidMonths;
     const arrears = paymentPerPeriod * expectedPayments - totalCollected;
@@ -284,8 +291,7 @@ export function useAccountsPage() {
       status: arrears <= 0 ? 'مكتمل' : 'متأخر',
       notes: paymentInfo?.notes || '',
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [contracts, paymentMap, allocationMap]);
+  }), [contracts, paymentMap, getExpectedPayments, getPaymentPerPeriod]);
 
   const totalCollectedAll = collectionData.reduce((sum, d) => sum + d.totalCollected, 0);
   const totalArrearsAll = collectionData.reduce((sum, d) => sum + d.arrears, 0);
@@ -333,6 +339,8 @@ export function useAccountsPage() {
     }
   };
 
+  // N-01 fix: atomic year closing via RPC (handles account upsert, FY close, next FY creation, seed account)
+  // N-02 fix: date overlap resolved in RPC (next start = end_date + 1 day)
   const handleCloseYear = async () => {
     if (!selectedFY || selectedFY.status === 'closed') return;
     if (role !== 'admin') {
@@ -341,83 +349,19 @@ export function useAccountsPage() {
     }
     setIsClosingYear(true);
     try {
-      // التحقق من عدم وجود حساب ختامي مكرر لنفس السنة
-      const { data: existingAccount } = await supabase
-        .from('accounts')
-        .select('id')
-        .eq('fiscal_year_id', selectedFY.id)
-        .maybeSingle();
-      if (existingAccount) {
-        // تحديث الحساب الموجود بدلاً من إنشاء مكرر
-        await updateAccount.mutateAsync({ id: existingAccount.id, ...buildAccountData() });
-      } else {
-        await createAccount.mutateAsync(buildAccountData());
-      }
-
-      const { error: closeErr } = await supabase
-        .from('fiscal_years')
-        .update({ status: 'closed' })
-        .eq('id', selectedFY.id);
-      if (closeErr) throw closeErr;
-
-      const nextStartDate = selectedFY.end_date;
-      const nextEndYear = new Date(selectedFY.end_date);
-      nextEndYear.setFullYear(nextEndYear.getFullYear() + 1);
-      const nextEndDate = nextEndYear.toISOString().split('T')[0];
-
-      const startYear = new Date(selectedFY.end_date).getFullYear();
-      const endYear = nextEndYear.getFullYear();
-      const nextLabel = `${startYear}-${endYear}`;
-
-      const { data: existingNext } = await supabase
-        .from('fiscal_years')
-        .select('id')
-        .eq('start_date', nextStartDate)
-        .maybeSingle();
-
-      let nextFYId = existingNext?.id;
-
-      if (!nextFYId) {
-        const { data: newFY, error: createErr } = await supabase
-          .from('fiscal_years')
-          .insert({ label: nextLabel, start_date: nextStartDate, end_date: nextEndDate, status: 'active', published: false })
-          .select('id')
-          .single();
-        if (createErr) throw createErr;
-        nextFYId = newFY.id;
-      }
-
-      if (nextFYId) {
-        // التحقق من عدم وجود حساب للسنة الجديدة مسبقاً
-        const { data: existingSeedAccount } = await supabase
-          .from('accounts')
-          .select('id')
-          .eq('fiscal_year_id', nextFYId)
-          .maybeSingle();
-        if (existingSeedAccount) {
-          // الحساب موجود مسبقاً — تحديث رقبة الوقف المرحّلة فقط
-          await supabase.from('accounts').update({ waqf_corpus_previous: waqfCorpusManual }).eq('id', existingSeedAccount.id);
-        } else {
-        const { error: seedErr } = await supabase.from('accounts').insert({
-          fiscal_year: nextLabel,
-          fiscal_year_id: nextFYId,
-          waqf_corpus_previous: waqfCorpusManual,
-          total_income: 0, total_expenses: 0, admin_share: 0, waqif_share: 0,
-          waqf_revenue: 0, vat_amount: 0, distributions_amount: 0,
-          waqf_capital: 0, net_after_expenses: 0, net_after_vat: 0,
-          zakat_amount: 0, waqf_corpus_manual: 0,
-        });
-        if (seedErr) {
-          toast.error('تحذير: فشل إنشاء حساب السنة الجديدة تلقائياً');
-        }
-        }
-      }
+      const accountData = buildAccountData();
+      const { data: result, error } = await supabase.rpc('close_fiscal_year', {
+        p_fiscal_year_id: selectedFY.id,
+        p_account_data: JSON.parse(JSON.stringify(accountData)),
+        p_waqf_corpus_manual: waqfCorpusManual,
+      });
+      if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['contracts'] }); // H4 fix
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
       queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
       queryClient.invalidateQueries({ queryKey: ['payment_invoices'] });
 
@@ -427,8 +371,8 @@ export function useAccountsPage() {
         'info', '/beneficiary/accounts',
       );
 
-      // H9 fix: warn admin that new year needs publishing
-      toast.success(`تم إقفال السنة المالية ${selectedFY.label} وترحيل الرصيد بنجاح`);
+      const rpcResult = result as { closed_label?: string; next_label?: string } | null;
+      toast.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || selectedFY.label} وترحيل الرصيد بنجاح`);
       toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
@@ -450,8 +394,10 @@ export function useAccountsPage() {
 
   const handleStartEdit = (index: number) => {
     const item = collectionData[index];
+    const contract = contracts[index];
     setEditingIndex(index);
     setEditData({
+      contractId: contract.id, // N-04 fix: store contract ID
       tenantName: item.tenantName,
       monthlyRent: item.paymentPerPeriod,
       paidMonths: item.paidMonths,
@@ -464,9 +410,11 @@ export function useAccountsPage() {
     setEditData(null);
   };
 
-  const handleSaveEdit = async (index: number) => {
+  const handleSaveEdit = async (_index: number) => {
     if (!editData) return;
-    const contract = contracts[index];
+    // N-04 fix: find contract by stored ID instead of array index
+    const contract = contracts.find(c => c.id === editData.contractId);
+    if (!contract) { toast.error('العقد غير موجود'); return; }
     try {
       // H2 fix: only update payment_amount (per-period), never recalculate rent_amount
       // rent_amount is the total contract value across all years — must not be overwritten
