@@ -64,21 +64,34 @@ const AdminDashboard = () => {
       const clampedNow = now < endDate ? now : endDate;
       const paymentType = contract.payment_type || 'annual';
 
+      const totalMonths = Math.max(0, differenceInMonths(clampedNow, startDate));
+
+      // Convert elapsed months into expected payments based on payment type
       let expectedPayments = 0;
       if (paymentType === 'monthly') {
-        expectedPayments = Math.max(0, differenceInMonths(clampedNow, startDate));
+        expectedPayments = totalMonths;
       } else if (paymentType === 'quarterly') {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 3));
+        expectedPayments = Math.floor(totalMonths / 3);
       } else if (paymentType === 'semi_annual') {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 6));
+        expectedPayments = Math.floor(totalMonths / 6);
       } else {
-        expectedPayments = Math.max(0, Math.floor(differenceInMonths(clampedNow, startDate) / 12));
+        expectedPayments = Math.floor(totalMonths / 12);
       }
 
       const payment = tenantPayments.find(p => p.contract_id === contract.id);
       const paidMonths = payment?.paid_months ?? 0;
 
-      if (paidMonths >= expectedPayments) {
+      // Convert paid_months (always in months) to the same unit as expectedPayments
+      let paidInPaymentUnits = paidMonths;
+      if (paymentType === 'quarterly') {
+        paidInPaymentUnits = Math.floor(paidMonths / 3);
+      } else if (paymentType === 'semi_annual') {
+        paidInPaymentUnits = Math.floor(paidMonths / 6);
+      } else if (paymentType === 'annual') {
+        paidInPaymentUnits = Math.floor(paidMonths / 12);
+      }
+
+      if (paidInPaymentUnits >= expectedPayments) {
         onTime++;
       } else {
         late++;

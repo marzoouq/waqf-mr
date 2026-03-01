@@ -132,10 +132,6 @@ const BeneficiaryDashboard = () => {
     );
   }
 
-  if (isLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
   if (noPublishedYears) {
     return (
       <DashboardLayout>
@@ -157,6 +153,10 @@ const BeneficiaryDashboard = () => {
         </div>
       </DashboardLayout>
     );
+  }
+
+  if (isLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
   return (
@@ -205,7 +205,11 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">حصتي من الريع</p>
-                  <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                  {fiscalYear?.status !== 'closed' ? (
+                    <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
+                  ) : (
+                    <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -220,7 +224,11 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">إجمالي ريع الوقف</p>
-                  <p className="text-lg sm:text-xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
+                  {fiscalYear?.status !== 'closed' ? (
+                    <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
+                  ) : (
+                    <p className="text-lg sm:text-xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
+                  )}
                 </div>
               </div>
             </CardContent>

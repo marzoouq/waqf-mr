@@ -102,7 +102,7 @@ const MySharePage = () => {
         myShare,
         totalReceived,
         pendingAmount,
-        netRevenue: netAfterVat,
+        netRevenue: netAfterZakat,
         adminShare,
         waqifShare,
         beneficiariesShare,
@@ -226,6 +226,17 @@ const MySharePage = () => {
     return <Badge className={`${s.cls} hover:${s.cls}`}>{s.label}</Badge>;
   };
 
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (finError) {
     return (
       <DashboardLayout>
@@ -235,21 +246,6 @@ const MySharePage = () => {
           <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (finLoading || distLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
-          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );
