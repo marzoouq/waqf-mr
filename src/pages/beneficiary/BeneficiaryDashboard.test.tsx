@@ -49,20 +49,29 @@ describe('BeneficiaryDashboard', () => {
     expect(screen.getByText('محمد أحمد')).toBeInTheDocument();
   });
 
-  it('shows beneficiary share info', () => {
+  it('shows "calculated after closure" for active year', () => {
     renderWithRouter(<BeneficiaryDashboard />);
-    // Share is shown as amount, not percentage
-    expect(screen.getByText(/10,000/)).toBeInTheDocument();
+    // Active year → cards show placeholder text instead of amounts
+    const placeholders = screen.getAllByText('تُحسب عند الإقفال');
+    expect(placeholders.length).toBe(2); // my share + total revenue
   });
 
-  it('calculates my share correctly (10% of 100000)', () => {
+  it('shows share amounts when year is closed', async () => {
+    const { useFiscalYear } = await import('@/contexts/FiscalYearContext');
+    vi.mocked(useFiscalYear).mockReturnValue({
+      fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
+      fiscalYear: { id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' },
+      fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' }],
+      isClosed: true, isLoading: false, noPublishedYears: false,
+    } as any);
     renderWithRouter(<BeneficiaryDashboard />);
     expect(screen.getByText(/10,000/)).toBeInTheDocument();
-  });
-
-  it('shows total waqf revenue', () => {
-    renderWithRouter(<BeneficiaryDashboard />);
     expect(screen.getByText(/100,000/)).toBeInTheDocument();
+  });
+
+  it('shows total waqf revenue label', () => {
+    renderWithRouter(<BeneficiaryDashboard />);
+    expect(screen.getByText('إجمالي ريع الوقف')).toBeInTheDocument();
   });
 
   it('renders quick links', () => {
