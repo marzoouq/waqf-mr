@@ -56,6 +56,19 @@
 
 ---
 
+## الأدوار والصلاحيات
+
+| الدور | الوصف | الصلاحيات الرئيسية |
+|-------|-------|-------------------|
+| `admin` (ناظر) | مدير الوقف بصلاحيات كاملة | جميع الصفحات + إقفال السنة + إدارة المستخدمين + الإعدادات |
+| `accountant` (محاسب) | محاسب بصلاحيات تشغيلية | جميع صفحات الناظر **عدا** إدارة المستخدمين والإعدادات وإقفال السنة المالية |
+| `beneficiary` (مستفيد) | مستفيد من الوقف (عرض فقط) | الإفصاح، حصتي، التقارير، الحسابات، الترحيلات |
+| `waqif` (واقف) | الواقف (عرض فقط) | العقارات، العقود، التقارير، الحسابات |
+
+> **ملاحظة أمنية:** المحاسب يملك صلاحية القراءة والكتابة على البيانات المالية (الدخل، المصروفات، الحسابات) لكنه **لا يستطيع** إقفال السنة المالية أو الوصول لإعدادات النظام أو إدارة المستخدمين.
+
+---
+
 ## خريطة المسارات (27 مسار)
 
 ### مسارات عامة
@@ -63,38 +76,44 @@
 |--------|-------|
 | `/` | الصفحة الرئيسية |
 | `/auth` | تسجيل الدخول |
-| `/privacy-policy` | سياسة الخصوصية |
-| `/terms-of-use` | شروط الاستخدام |
+| `/privacy` | سياسة الخصوصية |
+| `/terms` | شروط الاستخدام |
 | `/unauthorized` | صفحة عدم الصلاحية |
 
-### مسارات الناظر (`/dashboard/*`)
-| المسار | الوصف |
-|--------|-------|
-| `/dashboard` | لوحة التحكم الرئيسية |
-| `/dashboard/properties` | إدارة العقارات |
-| `/dashboard/contracts` | إدارة العقود |
-| `/dashboard/income` | إدارة الإيرادات |
-| `/dashboard/expenses` | إدارة المصروفات |
-| `/dashboard/beneficiaries` | إدارة المستفيدين |
-| `/dashboard/accounts` | الحسابات الختامية |
-| `/dashboard/reports` | التقارير |
-| `/dashboard/invoices` | الفواتير والمستندات |
-| `/dashboard/messages` | الرسائل |
-| `/dashboard/settings` | الإعدادات |
-| `/dashboard/users` | إدارة المستخدمين |
-| `/dashboard/audit-log` | سجل المراجعة |
+### مسارات الناظر والمحاسب (`/dashboard/*`)
+| المسار | الأدوار | الوصف |
+|--------|---------|-------|
+| `/dashboard` | admin, accountant | لوحة التحكم الرئيسية |
+| `/dashboard/properties` | admin, accountant | إدارة العقارات |
+| `/dashboard/contracts` | admin, accountant | إدارة العقود |
+| `/dashboard/income` | admin, accountant | إدارة الإيرادات |
+| `/dashboard/expenses` | admin, accountant | إدارة المصروفات |
+| `/dashboard/beneficiaries` | admin, accountant | إدارة المستفيدين |
+| `/dashboard/accounts` | admin, accountant | الحسابات الختامية (الإقفال: admin فقط) |
+| `/dashboard/reports` | admin, accountant | التقارير |
+| `/dashboard/invoices` | admin, accountant | الفواتير والمستندات |
+| `/dashboard/messages` | admin, accountant | الرسائل |
+| `/dashboard/settings` | admin فقط | الإعدادات |
+| `/dashboard/users` | admin فقط | إدارة المستخدمين |
+| `/dashboard/audit-log` | admin, accountant | سجل المراجعة |
+| `/dashboard/bylaws` | admin, accountant | اللائحة التنظيمية |
 
-### مسارات المستفيد (`/beneficiary/*`)
-| المسار | الوصف |
-|--------|-------|
-| `/beneficiary` | لوحة المستفيد |
-| `/beneficiary/disclosure` | الإفصاح السنوي |
-| `/beneficiary/my-share` | حصتي من الريع |
-| `/beneficiary/financial-reports` | التقارير المالية |
-| `/beneficiary/accounts` | عرض الحسابات |
-| `/beneficiary/invoices` | عرض الفواتير |
-| `/beneficiary/messages` | الرسائل |
-| `/beneficiary/notifications` | الإشعارات |
+### مسارات المستفيد والواقف (`/beneficiary/*`)
+| المسار | الأدوار | الوصف |
+|--------|---------|-------|
+| `/beneficiary` | beneficiary, waqif | لوحة المستفيد/الواقف |
+| `/beneficiary/properties` | beneficiary, waqif | عرض العقارات |
+| `/beneficiary/contracts` | beneficiary, waqif | عرض العقود |
+| `/beneficiary/disclosure` | beneficiary | الإفصاح السنوي |
+| `/beneficiary/my-share` | beneficiary | حصتي من الريع |
+| `/beneficiary/carryforward` | admin, beneficiary, waqif | الترحيلات والخصومات |
+| `/beneficiary/financial-reports` | beneficiary, waqif | التقارير المالية |
+| `/beneficiary/accounts` | beneficiary, waqif | عرض الحسابات |
+| `/beneficiary/invoices` | beneficiary, waqif | عرض الفواتير |
+| `/beneficiary/messages` | beneficiary | المراسلات |
+| `/beneficiary/notifications` | beneficiary, waqif | الإشعارات |
+| `/beneficiary/bylaws` | beneficiary, waqif | اللائحة التنظيمية |
+| `/beneficiary/settings` | beneficiary, waqif | الإعدادات الشخصية |
 
 ---
 

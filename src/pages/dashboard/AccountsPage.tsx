@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Lock } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
+import { useAuth } from '@/contexts/AuthContext';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
 import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
@@ -18,7 +19,7 @@ import AccountsDialogs from '@/components/accounts/AccountsDialogs';
 import CloseYearDialog from '@/components/accounts/CloseYearDialog';
 
 const AccountsPage = () => {
-  
+  const { role } = useAuth();
   const page = useAccountsPage();
 
   return (
@@ -41,7 +42,7 @@ const AccountsPage = () => {
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>
             </Button>
-            {page.selectedFY && page.selectedFY.status === 'active' && (
+            {role === 'admin' && page.selectedFY && page.selectedFY.status === 'active' && (
               <Button variant="destructive" size="sm" onClick={() => page.setCloseYearOpen(true)} className="gap-2">
                 <Lock className="w-4 h-4" />
                 <span className="hidden sm:inline">إقفال السنة</span>
