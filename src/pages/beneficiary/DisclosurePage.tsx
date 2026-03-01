@@ -113,7 +113,7 @@ const DisclosurePage = () => {
         myShare,
         totalIncome,
         totalExpenses,
-        netRevenue: netAfterVat,
+        netRevenue: netAfterZakat,
         adminShare,
         waqifShare,
         beneficiariesShare,
