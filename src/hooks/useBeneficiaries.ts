@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { createCrudFactory } from './useCrudFactory';
 import { Beneficiary } from '@/types/database';
 import { notifyAdmins } from '@/utils/notifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 const beneficiariesCrud = createCrudFactory<'beneficiaries', Beneficiary>({
   table: 'beneficiaries',
@@ -39,9 +40,13 @@ export const useDeleteBeneficiary = beneficiariesCrud.useDelete;
 
 /** هوك لفك تشفير البيانات الحساسة — متاح للناظر والمحاسب فقط */
 export const useBeneficiariesDecrypted = () => {
+  const { role } = useAuth();
+  const isAuthorized = role === 'admin' || role === 'accountant';
   return useQuery({
     queryKey: ['beneficiaries-decrypted'],
+    enabled: isAuthorized,
     queryFn: async () => {
+      if (!isAuthorized) return [];
       const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
         p_beneficiary_id: null,
       });
@@ -65,6 +70,7 @@ export const useBeneficiariesDecrypted = () => {
 export const useBeneficiariesSafe = () => {
   return useQuery({
     queryKey: ['beneficiaries-safe'],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('beneficiaries_safe')
