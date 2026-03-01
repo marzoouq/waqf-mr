@@ -31,7 +31,7 @@ const AccountsSummaryCards = ({
   netAfterExpenses, manualVat, netAfterVat, zakatAmount, netAfterZakat,
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, manualDistributions, remainingBalance,
-  isClosed = true, usingFallbackPct = false,
+  isClosed = false, usingFallbackPct = false, // L-05 fix: default to false
 }: AccountsSummaryCardsProps) => {
   const computedNetAfterZakat = netAfterZakat ?? (netAfterVat - zakatAmount);
   return (

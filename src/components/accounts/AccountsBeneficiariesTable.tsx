@@ -67,7 +67,7 @@ const AccountsBeneficiariesTable = ({
                     <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
                     <TableCell className="text-primary font-medium">
                       {(totalBeneficiaryPercentage > 0
-                        ? manualDistributions * Number(b.share_percentage) / totalBeneficiaryPercentage
+                        ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
                         : 0
                       ).toLocaleString()}
                     </TableCell>
