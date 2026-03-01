@@ -37,11 +37,16 @@ export const useDistributeShares = () => {
 
   return useMutation({
     mutationFn: async ({ account_id, fiscal_year_id, distributions, total_distributed }: DistributeParams) => {
+      // M-06 fix: تحويل undefined → null صريحاً بدل JSON.parse(JSON.stringify)
+      const sanitized = distributions.map(d => ({
+        ...d,
+        beneficiary_user_id: d.beneficiary_user_id ?? null,
+      }));
       const { data, error } = await supabase.rpc('execute_distribution', {
         p_account_id: account_id,
         p_fiscal_year_id: fiscal_year_id || null,
         p_total_distributed: total_distributed,
-        p_distributions: JSON.parse(JSON.stringify(distributions)),
+        p_distributions: sanitized,
       });
       if (error) throw error;
       return data as { success: boolean; with_share: number; with_deficit: number };
@@ -53,8 +58,8 @@ export const useDistributeShares = () => {
       toast.success(msg);
     },
     onError: () => {
+      // M-09 fix: لا حاجة لـ invalidateAll — العملية ذرية ولم تُغير شيئاً
       toast.error('فشل تنفيذ التوزيع — لم يتم تعديل أي بيانات (عملية ذرية)');
-      invalidateAll();
     },
   });
 };

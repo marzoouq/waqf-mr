@@ -38,7 +38,7 @@ export interface AdvanceCarryforward {
 export const useAdvanceRequests = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', fiscalYearId ?? 'all'],
-    staleTime: 60_000,
+    staleTime: 10_000, // M-08 fix: 10 ثوانٍ بدل دقيقة — عمليات مالية حساسة
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')
@@ -61,7 +61,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 export const useMyAdvanceRequests = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'my', beneficiaryId],
-    staleTime: 60_000,
+    staleTime: 10_000,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
@@ -83,7 +83,7 @@ export const useMyAdvanceRequests = (beneficiaryId?: string) => {
 export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'paid_total', beneficiaryId, fiscalYearId],
-    staleTime: 60_000,
+    staleTime: 10_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
@@ -103,22 +103,25 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
 };
 
 /**
- * جلب الفروق المرحّلة النشطة لمستفيد (من كل السنوات)
- * ملاحظة: يتم جلب كل الترحيلات النشطة بغض النظر عن السنة المالية — لأن الترحيل النشط
- * يُخصم من أقرب توزيع مستقبلي بغض النظر عن مصدره.
- * المعامل fiscalYearId يُستخدم فقط في queryKey لإعادة الجلب عند تغيير السنة.
+ * M-02 fix: جلب الفروق المرحّلة النشطة لمستفيد — تُفلتر بالسنة المالية المستهدفة (to_fiscal_year_id)
+ * لضمان التوافق مع منطق DistributeDialog الذي يخصم بنفس الفلتر.
  */
-export const useCarryforwardBalance = (beneficiaryId?: string, _fiscalYearId?: string) => {
+export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['advance_carryforward', 'balance', beneficiaryId],
-    staleTime: 60_000,
+    queryKey: ['advance_carryforward', 'balance', beneficiaryId, fiscalYearId],
+    staleTime: 10_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
-      const query = supabase
+      let query = supabase
         .from('advance_carryforward')
         .select('amount')
         .eq('beneficiary_id', beneficiaryId)
         .eq('status', 'active');
+
+      // M-02 fix: فلترة بالسنة المستهدفة أو الترحيلات بدون سنة محددة
+      if (fiscalYearId) {
+        query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
+      }
 
       const { data, error } = await query.limit(200);
       if (error) throw error;
@@ -134,7 +137,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, _fiscalYearId?: s
 export const useMyCarryforwards = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'my', beneficiaryId],
-    staleTime: 60_000,
+    staleTime: 10_000,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
@@ -151,19 +154,21 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
 };
 
 /**
- * جلب كل المرحّلات النشطة (للناظر) لسنة مالية محددة
+ * M-01 fix: جلب كل المرحّلات النشطة (للناظر) — يُفلتر بـ to_fiscal_year_id
+ * ليتطابق مع منطق الخصم في DistributeDialog
  */
 export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'all', fiscalYearId],
-    staleTime: 60_000,
+    staleTime: 10_000,
     queryFn: async () => {
       let query = supabase
         .from('advance_carryforward')
         .select('*, beneficiary:beneficiaries(id, name)')
         .eq('status', 'active');
       if (fiscalYearId) {
-        query = query.eq('from_fiscal_year_id', fiscalYearId);
+        // M-01 fix: استخدام to_fiscal_year_id بدل from_fiscal_year_id
+        query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
       }
       const { data, error } = await query.limit(500);
       if (error) throw error;
@@ -243,7 +248,12 @@ export const useUpdateAdvanceStatus = () => {
       if (!data?.length) throw new Error('لا يمكن تغيير الحالة — ربما تم تعديلها مسبقاً');
     },
     onSuccess: (_, vars) => {
+      // M-04 fix: invalidate carryforward and accounts too
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
+      qc.invalidateQueries({ queryKey: ['advance_carryforward'] });
+      if (vars.status === 'paid') {
+        qc.invalidateQueries({ queryKey: ['accounts'] });
+      }
       const msgs: Record<string, string> = {
         approved: 'تمت الموافقة على طلب السلفة',
         rejected: 'تم رفض طلب السلفة',
