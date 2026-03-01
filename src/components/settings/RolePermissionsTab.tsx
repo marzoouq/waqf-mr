@@ -19,8 +19,9 @@ const DEFAULT_PERMISSIONS: RolePerms = {
     reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
   },
   waqif: {
-    properties: true, contracts: true, disclosure: true,
+    properties: true, contracts: true, disclosure: false,
     reports: true, accounts: true, bylaws: true,
+    notifications: true,
   },
 };
 
@@ -39,6 +40,7 @@ const SECTIONS: { key: string; label: string; roles: string[] }[] = [
   { key: 'share', label: 'حصتي من الريع', roles: ['beneficiary'] },
   { key: 'messages', label: 'المراسلات', roles: ['accountant', 'beneficiary'] },
   { key: 'audit_log', label: 'سجل المراجعة', roles: ['accountant'] },
+  { key: 'notifications', label: 'سجل الإشعارات', roles: ['beneficiary', 'waqif'] },
 ];
 
 const ROLES = [
