@@ -23,7 +23,7 @@ const InvoicesViewPage = () => {
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
+  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -65,6 +65,17 @@ const InvoicesViewPage = () => {
     }
   };
 
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (isError) {
     return (
       <DashboardLayout>
@@ -74,17 +85,6 @@ const InvoicesViewPage = () => {
           <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
-          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );

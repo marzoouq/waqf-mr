@@ -241,6 +241,14 @@ const BeneficiaryDashboard = () => {
           </Card>
         </div>
 
+        {/* ═══ Unclosed year notice ═══ */}
+        {fiscalYear && fiscalYear.status !== 'closed' && (
+          <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
+            <AlertCircle className="w-4 h-4 text-warning shrink-0" />
+            <span>الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية.</span>
+          </div>
+        )}
+
         {/* ═══ Quick Links ═══ */}
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
