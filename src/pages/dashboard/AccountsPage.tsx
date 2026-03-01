@@ -3,7 +3,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Plus, Lock } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
@@ -19,7 +18,7 @@ import AccountsDialogs from '@/components/accounts/AccountsDialogs';
 import CloseYearDialog from '@/components/accounts/CloseYearDialog';
 
 const AccountsPage = () => {
-  const pdfWaqfInfo = usePdfWaqfInfo();
+  
   const page = useAccountsPage();
 
   return (

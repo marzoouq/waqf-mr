@@ -214,7 +214,6 @@ const PropertiesPage = () => {
               const monthlyRent = allPropertyContracts.reduce((sum, c) => {
                 const rent = Number(c.rent_amount);
                 if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
-                if (c.payment_type === 'multi') return sum + (Number(c.payment_amount) || rent / (c.payment_count || 1));
                 return sum + rent / 12;
               }, 0);
 
