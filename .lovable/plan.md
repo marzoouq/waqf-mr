@@ -1,39 +1,22 @@
 
 
-# اصلاح استعلام المستخدمين في صفحة المستفيدين
+# تشغيل جميع الاختبارات
 
-## المشكلة الحالية
-صفحة `BeneficiariesPage.tsx` تستدعي Edge Function `admin-manage-users` مع `list_users` لجلب قائمة المستخدمين فقط لملء قائمة "ربط بحساب مستخدم" في نموذج الإضافة/التعديل. هذا يسبب:
+## الهدف
+تشغيل جميع اختبارات Vitest الموجودة في المشروع للتحقق من سلامة الكود بعد التعديلات الأخيرة.
 
-1. **استدعاء Edge Function غير ضروري** في كل تحميل للصفحة (حتى لو لم يفتح النموذج)
-2. **تمرير `per_page: 100`** بينما Edge Function تتجاهله وتستخدم `perPage: 50` ثابتة - مما يعني احتمال فقدان مستخدمين
-3. **استدعاء `getSession()` يدوياً** بدلاً من استخدام النمط الموجود في المشروع
+## الاختبارات المتوفرة
+المشروع يحتوي على اختبارات متعددة تغطي:
 
-## الحل المقترح
+- **Hooks**: useAccounts, useBeneficiaries, useContracts, useExpenses, useIncome, useInvoices, useProperties, useUnits, وغيرها
+- **Components**: DashboardLayout, ErrorBoundary, ExportMenu, Sidebar, TablePagination, وغيرها
+- **Pages**: AdminDashboard, AccountsPage, BeneficiariesPage, ContractsPage, وصفحات المستفيدين
+- **Utils**: accountsCalculations, maskData, notifications, pdf/core
+- **Contexts**: AuthContext, FiscalYearContext
+- **Security**: roles-security, guardSignupSecurity, edgeFunctionAuth
 
-### الملف: `src/pages/dashboard/BeneficiariesPage.tsx`
-
-1. **تأخير استعلام المستخدمين** ليعمل فقط عند فتح نموذج الإضافة/التعديل (`enabled: isOpen`)
-2. **إصلاح الترقيم**: جلب كل الصفحات بشكل تكراري إذا كان هناك `nextPage`، أو الاكتفاء بالصفحة الأولى (50 مستخدم كافية لمعظم الحالات)
-3. **إزالة `per_page` غير المستخدم** من body الطلب
-4. **استخدام بيانات `role` المرجعة مباشرة** من `list_users` (وهذا موجود فعلاً - الفلترة بـ `u.role === 'beneficiary'` تعمل بشكل صحيح)
-
-### التغييرات التقنية
-
-```text
-قبل:
-- useQuery يعمل دائماً عند تحميل الصفحة
-- يمرر per_page: 100 (يُتجاهل من Edge Function)
-- يستدعي getSession() يدوياً
-
-بعد:
-- useQuery يعمل فقط عند فتح النموذج (enabled: isOpen)
-- يزيل per_page الزائد
-- يبقي على نفس آلية الاستدعاء مع تحسين الكفاءة
-```
-
-### النتيجة
-- تقليل استدعاءات Edge Function عند تصفح الصفحة بدون فتح النموذج
-- كود أنظف بدون معاملات غير مستخدمة
-- لا تغيير في السلوك الوظيفي
+## الخطوات
+1. تشغيل `npx vitest run` لتنفيذ جميع الاختبارات
+2. مراجعة النتائج والتأكد من نجاح جميع الاختبارات
+3. في حالة وجود اختبارات فاشلة، تحليل السبب وإصلاحه
 
