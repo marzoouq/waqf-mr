@@ -8,13 +8,15 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 initThemeFromStorage();
 
 // ─── Suppress benign forwardRef warnings (React 18 StrictMode dev artifact) ───
-const origConsoleError = console.error;
-console.error = (...args: unknown[]) => {
-  if (typeof args[0] === 'string' && args[0].includes('Function components cannot be given refs')) {
-    return;
-  }
-  origConsoleError.apply(console, args);
-};
+if (import.meta.env.DEV) {
+  const origConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === 'string' && args[0].includes('Function components cannot be given refs')) {
+      return;
+    }
+    origConsoleError.apply(console, args);
+  };
+}
 
 // ─── PWA: Purge ALL stale caches on version change ───
 const APP_CACHE_VERSION = 'v-' + (import.meta.env.VITE_BUILD_TIME || Date.now());
