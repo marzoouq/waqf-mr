@@ -49,9 +49,11 @@ const ReportsPage = () => {
   const expenseTypeData = Object.entries(expensesByType).map(([name, value]) => ({ name, value }));
 
   // Beneficiary distributions
+  // G2 fix: حساب الحصة كنسبة تناسبية من مجموع النسب (متوافق مع MySharePage)
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
   const distributionData = beneficiaries.map((b) => ({
     name: b.name,
-    amount: (beneficiariesShare * b.share_percentage) / 100,
+    amount: totalBeneficiaryPercentage > 0 ? (beneficiariesShare * b.share_percentage) / totalBeneficiaryPercentage : 0,
     percentage: b.share_percentage,
   }));
 

@@ -34,7 +34,7 @@ const Auth = () => {
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const { signIn, signUp, signOut, user, role, loading } = useAuth();
+  const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
   const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
