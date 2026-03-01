@@ -294,7 +294,7 @@ describe('useComputedFinancials', () => {
 
       expect(r.adminShare).toBe(0);
       expect(r.waqifShare).toBe(0);
-      expect(r.waqfRevenue).toBe(r.netAfterZakat);
+      expect(r.waqfRevenue).toBe(0);
     });
 
     it('falls back to default 10% admin when setting is invalid text', () => {

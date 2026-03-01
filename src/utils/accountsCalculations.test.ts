@@ -97,7 +97,7 @@ describe('calculateFinancials – التسلسل المالي الهرمي', () 
     expect(r.netAfterExpenses).toBe(100_000);
     expect(r.adminShare).toBe(0);
     expect(r.waqifShare).toBe(0);
-    expect(r.waqfRevenue).toBe(r.netAfterZakat);
+    expect(r.waqfRevenue).toBe(0);
     expect(r.availableAmount).toBe(0);
     expect(r.remainingBalance).toBe(0);
   });
