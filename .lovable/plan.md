@@ -1,63 +1,42 @@
 
 
-# مراجعة شاملة: هل النسب ثابتة وهل جميع الملاحظات صحيحة؟
+# إصلاح عدم ظهور البيانات في بيئة الإنتاج
 
----
+## المشكلة الجذرية
 
-## نتيجة التحقق
+في بيئة الإنتاج (Live)، جدول الحسابات الختامية (`accounts`) يحتوي على سجلين لكن عمود `fiscal_year_id` فارغ (NULL) في كليهما:
+- حساب 2024-2025: `fiscal_year_id = NULL`
+- حساب 2025-2026: `fiscal_year_id = NULL`
 
-بعد مراجعة الكود الفعلي مقابل الوثائق والتقارير، هذا ما وجدته:
+بينما في بيئة التطوير (Test) نفس الحسابات مربوطة بشكل صحيح بالسنوات المالية.
 
-### النسب في التطبيق الرئيسي: ديناميكية (صحيحة)
+عندما يختار المستفيد سنة مالية، الكود يبحث عن حسابات بـ `fiscal_year_id = UUID` لكن لا يجد شيئاً لأن القيمة فارغة في الإنتاج.
 
-التطبيق يخزن النسب في `app_settings` كمفاتيح `admin_share_percentage` و `waqif_share_percentage` ويقرأها ديناميكيا في:
-- `useComputedFinancials.ts` - يحسب الحصص بالنسب المخزنة (افتراضي 10% و 5% فقط عند عدم وجود قيمة)
-- `useAccountsPage.ts` - يعرض ويعدل النسب
-- `SettingsPage.tsx` - يسمح بتغيير النسب من الإعدادات
+## الحل (خطوتان)
 
-### المشاكل المؤكدة (3 مشاكل حقيقية)
+### الخطوة 1: إصلاح البيانات في الإنتاج (يدوي)
+يجب تشغيل استعلام SQL في بيئة الإنتاج لربط الحسابات بالسنوات المالية:
 
-#### 1. نسب ثابتة كنص في المساعد الذكي (متوسطة)
-**الملف:** `supabase/functions/ai-assistant/index.ts` السطر 241-242
+```sql
+UPDATE accounts a
+SET fiscal_year_id = fy.id
+FROM fiscal_years fy
+WHERE a.fiscal_year = fy.label
+  AND a.fiscal_year_id IS NULL;
+```
 
-المساعد يعرض النص: `"حصة الناظر (10%)"` و `"حصة الواقف (5%)"` كنص ثابت. الارقام الفعلية (`acc.admin_share`) صحيحة لانها من قاعدة البيانات، لكن النسبة المكتوبة بين الاقواس ثابتة.
+هذا الاستعلام يربط كل حساب بالسنة المالية المقابلة بناءً على حقل `fiscal_year` (النص).
 
-**الاصلاح:** جلب `admin_share_percentage` و `waqif_share_percentage` من جدول `app_settings` في دالة بناء السياق، واستخدام القيم الفعلية في النص.
+### الخطوة 2: حماية مستقبلية في الكود
+تعديل `useAccountByFiscalYear` في `src/hooks/useAccounts.ts` ليبحث أيضاً بحقل `fiscal_year` (النص) كخطة بديلة عند عدم وجود نتائج بـ `fiscal_year_id`. هذا يمنع تكرار المشكلة إذا أُضيفت حسابات جديدة بدون ربطها.
 
-#### 2. بيانات وقف حقيقية كـ fallback في فاتورة PDF (متوسطة)
-**الملف:** `supabase/functions/generate-invoice-pdf/index.ts` السطور 211-214
+### التفاصيل التقنية
 
-اذا فشل جلب الاعدادات، تُطبع الفاتورة باسم وقف ورقم صك ومحكمة حقيقية مضمنة في الكود. هذا خطر اذا تغيرت البيانات او اعيد استخدام النظام.
+**الملف:** `src/hooks/useAccounts.ts`
 
-**الاصلاح:** استبدال القيم الافتراضية بنص عام ("غير محدد") او رفض انشاء الفاتورة عند عدم توفر البيانات.
+تعديل دالة `queryFn` في `useAccountByFiscalYear` لتضيف fallback:
+- أولاً: البحث بـ `fiscal_year_id`
+- إذا لم تُرجع نتائج والـ `fiscalYearLabel` متوفر: البحث بـ `fiscal_year` (النص)
 
-#### 3. import غير مستخدم في DashboardLayout (منخفضة)
-**الملف:** `src/components/DashboardLayout.tsx` السطر 29
-
-`import { supabase }` موجود لكن غير مستخدم في اي مكان بالملف. تاكدت بالبحث عن `supabase.` في الملف ولم اجد اي استخدام.
-
-**الاصلاح:** حذف سطر الاستيراد.
-
----
-
-## التفاصيل التقنية
-
-### تعديل 1: المساعد الذكي
-في `supabase/functions/ai-assistant/index.ts`:
-- اضافة جلب مفتاحي `admin_share_percentage` و `waqif_share_percentage` من `app_settings` ضمن دالة بناء السياق
-- تغيير السطر 241 من `حصة الناظر (10%)` الى `حصة الناظر (${adminPct}%)`
-- تغيير السطر 242 من `حصة الواقف (5%)` الى `حصة الواقف (${waqifPct}%)`
-
-### تعديل 2: فاتورة PDF
-في `supabase/functions/generate-invoice-pdf/index.ts`:
-- تغيير السطور 211-214 لاستخدام `'غير محدد'` بدل البيانات الحقيقية كقيم افتراضية
-
-### تعديل 3: DashboardLayout
-في `src/components/DashboardLayout.tsx`:
-- حذف السطر 29 (`import { supabase }`)
-
-### الملفات المتاثرة:
-1. `supabase/functions/ai-assistant/index.ts`
-2. `supabase/functions/generate-invoice-pdf/index.ts`
-3. `src/components/DashboardLayout.tsx`
+هذا يضمن عمل التطبيق حتى لو لم يُربط `fiscal_year_id` بعد.
 
