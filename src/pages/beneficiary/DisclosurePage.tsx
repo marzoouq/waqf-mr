@@ -65,8 +65,11 @@ const DisclosurePage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
   const myShare = currentBeneficiary
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
+    ? (totalBeneficiaryPercentage > 0
+        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
+        : 0)
     : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';

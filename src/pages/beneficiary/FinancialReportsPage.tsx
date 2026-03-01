@@ -58,8 +58,11 @@ const FinancialReportsPage = () => {
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
   const myShare = currentBeneficiary
-    ? (beneficiariesShare * currentBeneficiary.share_percentage) / 100
+    ? (totalBeneficiaryPercentage > 0
+        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
+        : 0)
     : 0;
 
   const incomeVsExpenses = [
@@ -107,7 +110,9 @@ const FinancialReportsPage = () => {
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
           percentage: Number(b.share_percentage),
-          amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
+          amount: totalBeneficiaryPercentage > 0
+            ? beneficiariesShare * Number(b.share_percentage) / totalBeneficiaryPercentage
+            : 0,
         })),
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
