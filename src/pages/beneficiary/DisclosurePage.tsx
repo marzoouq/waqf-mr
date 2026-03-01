@@ -48,6 +48,8 @@ const DisclosurePage = () => {
     vatAmount,
     zakatAmount,
     waqfCorpusManual,
+    waqfCorpusPrevious,
+    grandTotal,
     netAfterExpenses,
     netAfterVat,
     netAfterZakat,
@@ -238,7 +240,7 @@ const DisclosurePage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className={`grid grid-cols-1 gap-3 sm:gap-4 ${waqfCorpusPrevious > 0 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'}`}>
           <Card className="shadow-sm bg-success/10 border-success/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3 sm:gap-4">
@@ -252,6 +254,22 @@ const DisclosurePage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {waqfCorpusPrevious > 0 && (
+            <Card className="shadow-sm bg-info/10 border-info/20">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground">مبلغ مرحّل من العام السابق</p>
+                    <p className="text-lg sm:text-2xl font-bold text-info truncate">+{waqfCorpusPrevious.toLocaleString()} ر.س</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="shadow-sm bg-destructive/10 border-destructive/20">
             <CardContent className="p-4 sm:p-6">
@@ -406,6 +424,18 @@ const DisclosurePage = () => {
 
               {/* Full Financial Sequence */}
               <div className="border-t-2 pt-4 space-y-3">
+                {waqfCorpusPrevious > 0 && (
+                  <>
+                    <div className="flex justify-between items-center py-2 text-info">
+                      <span>(+) رقبة الوقف المرحّلة من العام السابق</span>
+                      <span>+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="font-bold">الإجمالي الشامل</span>
+                      <span className="font-bold text-lg">{grandTotal.toLocaleString()} ر.س</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between items-center py-2">
                   <span className="font-bold">الصافي بعد المصاريف</span>
                   <span className="font-bold text-lg">{netAfterExpenses.toLocaleString()} ر.س</span>
