@@ -152,10 +152,12 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                <Suspense fallback={null}>
+                  <SecurityGuard />
+                </Suspense>
                 <DeferredRender>
                   <Suspense fallback={null}>
                     <AiAssistant />
-                    <SecurityGuard />
                     <PwaUpdateNotifier />
                   </Suspense>
                 </DeferredRender>

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
 interface TenantPayment {
@@ -61,7 +62,7 @@ export const useUpsertTenantPayment = () => {
       toast.success('تم حفظ بيانات التحصيل');
     },
     onError: (error: Error) => {
-      console.error('Tenant payment error:', error.message);
+      logger.error('Tenant payment error:', error.message);
       toast.error('خطأ في حفظ بيانات التحصيل');
     },
   });

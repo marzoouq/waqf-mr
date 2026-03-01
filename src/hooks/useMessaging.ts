@@ -32,7 +32,7 @@ export const useConversations = (type?: string) => {
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
       })
       .subscribe();
-    return () => { channel.unsubscribe().then(() => supabase.removeChannel(channel)); };
+    return () => { supabase.removeChannel(channel); };
   }, [user, queryClient]);
 
   return query;
@@ -67,7 +67,7 @@ export const useMessages = (conversationId: string | null) => {
         queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
       })
       .subscribe();
-    return () => { channel.unsubscribe().then(() => supabase.removeChannel(channel)); };
+    return () => { supabase.removeChannel(channel); };
   }, [user, conversationId, queryClient]);
 
   return query;
