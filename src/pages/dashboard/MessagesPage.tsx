@@ -17,7 +17,7 @@ import { ar } from 'date-fns/locale';
 
 const MessagesPage = () => {
   const { user, role } = useAuth();
-  const { data: conversations = [] } = useConversations('chat');
+  const { data: conversations = [] } = useConversations();
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
@@ -132,7 +132,7 @@ const MessagesPage = () => {
                     {messages.map((msg) => {
                       const isMe = msg.sender_id === user?.id;
                       return (
-                        <div key={msg.id} className={cn('flex', isMe ? 'justify-start' : 'justify-end')}>
+                        <div key={msg.id} className={cn('flex', isMe ? 'justify-end' : 'justify-start')}>
                           <div className={cn(
                             'max-w-[75%] rounded-xl px-4 py-2 text-sm',
                             isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'

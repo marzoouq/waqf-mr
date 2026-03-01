@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { Bell, BellRing, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter, Trash2, BellOff, X, AlertCircle, RefreshCw } from 'lucide-react';
+import { Bell, BellRing, CheckCheck, Mail, Wallet, Info, AlertTriangle, Filter, Trash2, BellOff, X, AlertCircle, RefreshCw, FileText } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,6 +21,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
   payment: { label: 'مالي', icon: Wallet, color: 'text-success', bg: 'bg-success/10' },
   message: { label: 'رسالة', icon: Mail, color: 'text-accent-foreground', bg: 'bg-accent/10' },
   warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10' },
+  contract: { label: 'عقود', icon: FileText, color: 'text-info', bg: 'bg-info/10' },
 };
 
 const NotificationsPage = () => {

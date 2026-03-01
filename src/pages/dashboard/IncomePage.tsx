@@ -56,8 +56,8 @@ const IncomePage = () => {
       source: formData.source, amount: parseFloat(formData.amount), date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
-    if (!editingIncome && activeFYId) {
-      incomeData.fiscal_year_id = activeFYId;
+    if (!editingIncome && fiscalYear?.id) {
+      incomeData.fiscal_year_id = fiscalYear.id;
     }
     if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
     setIsOpen(false);

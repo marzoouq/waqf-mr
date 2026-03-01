@@ -90,7 +90,8 @@ const PropertiesViewPage = () => {
           // المؤشرات المالية
           const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
           const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
-          const totalExpensesAll = expenses.reduce((s, e) => s + Number(e.amount), 0);
+          const propExpensesAll = expenses.filter(e => e.property_id);
+          const totalExpensesAll = propExpensesAll.reduce((s, e) => s + Number(e.amount), 0);
           const netIncome = activeIncome - totalExpensesAll;
 
           const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;

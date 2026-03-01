@@ -75,6 +75,11 @@ const AccountsBeneficiariesTable = ({
                 ))}
               </TableBody>
             </Table>
+            {totalBeneficiaryPercentage > 0 && totalBeneficiaryPercentage !== 100 && (
+              <div className="mt-2 px-3 py-2 bg-warning/10 border border-warning/30 rounded-md text-xs text-warning flex items-center gap-1">
+                ⚠ مجموع نسب المستفيدين ({totalBeneficiaryPercentage}%) لا يساوي 100% — التوزيع يتم بشكل تناسبي
+              </div>
+            )}
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي التوزيع</span>
               <span className="font-bold text-primary">
