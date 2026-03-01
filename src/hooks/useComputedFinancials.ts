@@ -108,7 +108,10 @@ export const useComputedFinancials = ({
       const storedNetAfterVat = Number(currentAccount.net_after_vat);
       const storedZakat = Number(currentAccount.zakat_amount || 0);
       // H3 fix: use stored values for shareBase in closed years to match stored adminShare
+      // K-08 fix: consistent variable naming for stored values
       const storedAdminShare = Number(currentAccount.admin_share);
+      const storedWaqifShare = Number(currentAccount.waqif_share);
+      const storedWaqfRevenue = Number(currentAccount.waqf_revenue);
       return {
         grandTotal,
         netAfterExpenses: Number(currentAccount.net_after_expenses),
@@ -116,11 +119,10 @@ export const useComputedFinancials = ({
         netAfterZakat: storedNetAfterVat - storedZakat,
         shareBase: Number(currentAccount.total_income) - Number(currentAccount.total_expenses) - storedZakat,
         adminShare: storedAdminShare,
-        waqifShare: Number(currentAccount.waqif_share),
-        waqfRevenue: Number(currentAccount.waqf_revenue),
-        availableAmount: Number(currentAccount.waqf_revenue) - waqfCorpusManual,
-        remainingBalance:
-          Number(currentAccount.waqf_revenue) - waqfCorpusManual - distributionsAmount,
+        waqifShare: storedWaqifShare,
+        waqfRevenue: storedWaqfRevenue,
+        availableAmount: storedWaqfRevenue - waqfCorpusManual,
+        remainingBalance: storedWaqfRevenue - waqfCorpusManual - distributionsAmount,
       };
     }
     return calculateFinancials({
