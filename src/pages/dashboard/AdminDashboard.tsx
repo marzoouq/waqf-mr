@@ -91,6 +91,9 @@ const AdminDashboard = () => {
         paidInPaymentUnits = Math.floor(paidMonths / 12);
       }
 
+      // N2 fix: skip contracts where no payment is yet due
+      if (expectedPayments === 0) return;
+
       if (paidInPaymentUnits >= expectedPayments) {
         onTime++;
       } else {

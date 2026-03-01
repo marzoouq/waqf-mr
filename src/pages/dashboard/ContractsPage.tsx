@@ -52,8 +52,9 @@ const ContractsPage = () => {
 
   const handlePayment = (contract: Contract, delta: number) => {
     const current = paymentsMap.get(contract.id) ?? 0;
-    const next = Math.max(0, current + delta);
     const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+    // N4 fix: cap at max payment count
+    const next = Math.max(0, Math.min(paymentCount, current + delta));
     const paymentAmount = Number(contract.rent_amount) / paymentCount;
     upsertPayment.mutate({
       contract_id: contract.id,
