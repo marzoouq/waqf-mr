@@ -376,6 +376,16 @@ export function useAccountsPage() {
       }
 
       if (nextFYId) {
+        // التحقق من عدم وجود حساب للسنة الجديدة مسبقاً
+        const { data: existingSeedAccount } = await supabase
+          .from('accounts')
+          .select('id')
+          .eq('fiscal_year_id', nextFYId)
+          .maybeSingle();
+        if (existingSeedAccount) {
+          // الحساب موجود مسبقاً — تحديث رقبة الوقف المرحّلة فقط
+          await supabase.from('accounts').update({ waqf_corpus_previous: waqfCorpusManual }).eq('id', existingSeedAccount.id);
+        } else {
         const { error: seedErr } = await supabase.from('accounts').insert({
           fiscal_year: nextLabel,
           fiscal_year_id: nextFYId,
@@ -387,6 +397,7 @@ export function useAccountsPage() {
         });
         if (seedErr) {
           toast.error('تحذير: فشل إنشاء حساب السنة الجديدة تلقائياً');
+        }
         }
       }
 

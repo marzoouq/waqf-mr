@@ -34,7 +34,7 @@ const ContractsViewPage = () => {
       total: contracts.length,
       active: active.length,
       expired: contracts.filter(c => c.status === 'expired').length,
-      totalRent: contracts.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
+      totalRent: active.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
       expiringSoon: active.filter(c => new Date(c.end_date) <= in90Days).length,
     };
   }, [contracts]);
@@ -42,22 +42,18 @@ const ContractsViewPage = () => {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => n.toLocaleString('ar-SA') + ' ر.س';
 
-  if (isError) {
+  if (noPublishedYears) {
     return (
       <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold text-foreground">حدث خطأ في تحميل العقود</h2>
-          <p className="text-muted-foreground">يرجى المحاولة مرة أخرى</p>
-          <Button onClick={() => refetch()} variant="outline" className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
+        <div className="p-4 md:p-6 space-y-6">
+          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (noPublishedYears) {
+  if (isError) {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">

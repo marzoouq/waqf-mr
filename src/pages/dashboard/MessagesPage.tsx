@@ -87,7 +87,7 @@ const MessagesPage = () => {
               {conversations.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground text-sm">
                   <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  لا توجد محادثات
+                  {role === 'admin' ? 'لا توجد محادثات' : 'لا توجد محادثات حالياً. سيقوم ناظر الوقف ببدء المحادثة عند الحاجة.'}
                 </div>
               ) : (
                 conversations.map((conv) => (
