@@ -224,8 +224,14 @@ export function useAccountsPage() {
     // If allocation exists for this FY, use allocated payments
     const allocation = allocationMap.get(contract.id);
     if (allocation) return allocation.allocated_payments;
-    // Fallback to full contract payments
-    if (contract.payment_type === 'monthly') return 12;
+    // Fallback: compute from contract duration
+    const start = new Date(contract.start_date);
+    const end = new Date(contract.end_date);
+    const months = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+    if (contract.payment_type === 'monthly') return months;
+    if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
+    if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
+    if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
     if (contract.payment_type === 'multi') return contract.payment_count || 1;
     return 1;
   };
