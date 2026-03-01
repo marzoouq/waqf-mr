@@ -129,18 +129,22 @@ export function useAccountsPage() {
   }, [accounts, selectedFY?.id, selectedFY?.label]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // H8 fix: stable ref for mutateAsync to prevent debounce resets
+  const updateSettingRef = useRef(appSettings.updateSetting.mutateAsync);
+  updateSettingRef.current = appSettings.updateSetting.mutateAsync;
+
   const saveSetting = useCallback(async (key: string, value: string) => {
     if (saveSettingTimeouts.current[key]) clearTimeout(saveSettingTimeouts.current[key]);
     saveSettingTimeouts.current[key] = setTimeout(async () => {
       try {
-        await appSettings.updateSetting.mutateAsync({ key, value });
+        await updateSettingRef.current({ key, value });
         toast.success('تم حفظ الإعداد');
       } catch (err) {
         console.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
         toast.error('خطأ في حفظ الإعداد');
       }
     }, 500);
-  }, [appSettings.updateSetting]);
+  }, []); // stable — no dependencies
 
   const handleAdminPercentChange = (val: string) => {
     const num = parseFloat(val);
@@ -258,7 +262,7 @@ export function useAccountsPage() {
   const collectionData = useMemo(() => contracts.map((contract, index) => {
     const paymentInfo = paymentMap[contract.id];
     const expectedPayments = getExpectedPayments(contract);
-    const paidMonths = paymentInfo ? paymentInfo.paid_months : expectedPayments;
+    const paidMonths = paymentInfo ? paymentInfo.paid_months : 0; // H1 fix: default to 0, not expectedPayments
     const paymentPerPeriod = getPaymentPerPeriod(contract);
     const totalCollected = paymentPerPeriod * paidMonths;
     const arrears = paymentPerPeriod * expectedPayments - totalCollected;
@@ -405,6 +409,9 @@ export function useAccountsPage() {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] }); // H4 fix
+      queryClient.invalidateQueries({ queryKey: ['tenant_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payment_invoices'] });
 
       notifyAllBeneficiaries(
         'إقفال السنة المالية',
@@ -412,7 +419,9 @@ export function useAccountsPage() {
         'info', '/beneficiary/accounts',
       );
 
+      // H9 fix: warn admin that new year needs publishing
       toast.success(`تم إقفال السنة المالية ${selectedFY.label} وترحيل الرصيد بنجاح`);
+      toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
       console.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
@@ -451,15 +460,15 @@ export function useAccountsPage() {
     if (!editData) return;
     const contract = contracts[index];
     try {
-      const expectedPmts = getExpectedPayments(contract);
-      const newAnnual = editData.monthlyRent * expectedPmts;
+      // H2 fix: only update payment_amount (per-period), never recalculate rent_amount
+      // rent_amount is the total contract value across all years — must not be overwritten
       await updateContract.mutateAsync({
         id: contract.id,
         tenant_name: editData.tenantName,
-        rent_amount: newAnnual,
         payment_amount: editData.monthlyRent,
       });
 
+      const expectedPmts = getExpectedPayments(contract);
       await upsertPayment.mutateAsync({
         contract_id: contract.id,
         paid_months: editData.paidMonths,

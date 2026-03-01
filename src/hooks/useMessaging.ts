@@ -26,8 +26,10 @@ export const useConversations = (type?: string) => {
 
   useEffect(() => {
     if (!user) return;
+    // H7 fix: unique channel name per type to avoid conflicts when called twice
+    const channelName = `conversations-${user.id}-${type || 'all'}`;
     const channel = supabase
-      .channel(`conversations-${user.id}`)
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
       })
@@ -56,7 +58,7 @@ export const useMessages = (conversationId: string | null) => {
       return (data || []) as Message[];
     },
     enabled: !!user && !!conversationId,
-    staleTime: 30_000,
+    staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness
   });
 
   useEffect(() => {
@@ -88,8 +90,8 @@ export const useSendMessage = () => {
       if (error) throw error;
       await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
 
-      // If admin sends a message, notify the beneficiary participant
-      if (role === 'admin') {
+      // H6 fix: notify beneficiary when admin OR accountant sends a message
+      if (role === 'admin' || role === 'accountant') {
         try {
           const { data: conv } = await supabase
             .from('conversations')

@@ -108,13 +108,16 @@ export const useComputedFinancials = ({
       // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
       const storedNetAfterVat = Number(currentAccount.net_after_vat);
       const storedZakat = Number(currentAccount.zakat_amount || 0);
+      // H3 fix: use stored values for shareBase in closed years to match stored adminShare
+      const storedAdminShare = Number(currentAccount.admin_share);
+      const storedWaqifShare = Number(currentAccount.waqif_share);
       return {
         grandTotal,
         netAfterExpenses: Number(currentAccount.net_after_expenses),
         netAfterVat: storedNetAfterVat,
         netAfterZakat: storedNetAfterVat - storedZakat,
-        shareBase: totalIncome - totalExpenses - zakatAmount,
-        adminShare: Number(currentAccount.admin_share),
+        shareBase: Number(currentAccount.total_income) - Number(currentAccount.total_expenses) - storedZakat,
+        adminShare: storedAdminShare,
         waqifShare: Number(currentAccount.waqif_share),
         waqfRevenue: Number(currentAccount.waqf_revenue),
         availableAmount: Number(currentAccount.waqf_revenue) - waqfCorpusManual,
@@ -143,7 +146,8 @@ export const useComputedFinancials = ({
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
   const expensesByTypeExcludingVat = useMemo(() => {
-    const vatKeywords = ['ضريبة القيمة المضافة', 'ضريبة', 'vat'];
+    // H5 fix: use exact VAT keywords only — 'ضريبة' alone is too broad
+    const vatKeywords = ['ضريبة القيمة المضافة', 'vat', 'ضريبة قيمة مضافة'];
     const filtered = expenses.filter(e => {
       const desc = (e.description || '').trim().toLowerCase();
       const type = (e.expense_type || '').trim().toLowerCase();
