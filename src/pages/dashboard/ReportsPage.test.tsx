@@ -59,6 +59,8 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     availableAmount: 40800, remainingBalance: 40800,
     incomeBySource: { 'إيجارات': 70000, 'أخرى': 10000 },
     expensesByType: { 'صيانة': 15000, 'كهرباء': 5000 },
+    expensesByTypeExcludingVat: { 'صيانة': 15000, 'كهرباء': 5000 },
+    isLoading: false, isError: false, isAccountMissing: false,
   })),
 }));
 

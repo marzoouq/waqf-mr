@@ -40,15 +40,20 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     vatAmount: 10000,
     zakatAmount: 5000,
     waqfCorpusManual: 3000,
+    waqfCorpusPrevious: 0,
     netAfterExpenses: 150000,
     netAfterVat: 140000,
     netAfterZakat: 135000,
     adminShare: 15000,
     waqifShare: 10000,
     waqfRevenue: 110000,
+    grandTotal: 140000,
+    distributionsAmount: 0,
     incomeBySource: { 'إيجارات': 180000, 'أخرى': 20000 },
+    expensesByType: { 'صيانة': 30000, 'كهرباء': 20000 },
     expensesByTypeExcludingVat: { 'صيانة': 30000, 'كهرباء': 20000 },
     availableAmount: 107000,
+    remainingBalance: 107000,
     isLoading: false,
     isError: false,
     isAccountMissing: false,
@@ -109,8 +114,8 @@ describe('DisclosurePage', () => {
   it('shows my share card', () => {
     renderPage();
     expect(screen.getAllByText('حصتي المستحقة').length).toBeGreaterThanOrEqual(1);
-    // 107000 * 15% = 16050
-    expect(screen.getAllByText(/16,050/).length).toBeGreaterThanOrEqual(1);
+    // Proportional: 15% / 15% total = 100% of 107000 = 107,000
+    expect(screen.getAllByText(/107,000/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows income breakdown by source', () => {

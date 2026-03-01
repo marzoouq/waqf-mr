@@ -80,6 +80,13 @@ vi.mock('@/hooks/useTenantPayments', () => ({
   })),
 }));
 
+vi.mock('@/hooks/usePaymentInvoices', () => ({
+  usePaymentInvoices: vi.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
+}));
+
 vi.mock('@/hooks/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     income: [{ id: 'i1', amount: 30000, date: '2024-03-15', source: 'إيجار' }],
@@ -90,6 +97,21 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     adminShare: 2500,
     waqifShare: 2500,
     waqfRevenue: 20000,
+    netAfterExpenses: 25000,
+    netAfterVat: 25000,
+    netAfterZakat: 25000,
+    vatAmount: 0,
+    zakatAmount: 0,
+    waqfCorpusPrevious: 0,
+    waqfCorpusManual: 0,
+    distributionsAmount: 0,
+    grandTotal: 25000,
+    availableAmount: 20000,
+    remainingBalance: 20000,
+    incomeBySource: { 'إيجار': 30000 },
+    expensesByType: { 'صيانة': 5000 },
+    expensesByTypeExcludingVat: { 'صيانة': 5000 },
+    isLoading: false, isError: false, isAccountMissing: false,
   })),
 }));
 
