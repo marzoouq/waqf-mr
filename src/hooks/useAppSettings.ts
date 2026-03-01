@@ -27,6 +27,9 @@ export const useAppSettings = () => {
       return settings;
     },
     staleTime: 1000 * 60 * 5,
+    retry: 2,
+    retryDelay: 1500,
+    gcTime: 1000 * 60 * 30,
   });
 
   const updateSetting = useMutation({
