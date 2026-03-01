@@ -1,63 +1,60 @@
 
 
-# خطة إصلاح الأخطاء المتبقية (3 نقاط)
+# تقرير التحقق النهائي والإصلاحات المتبقية
 
-## نظرة عامة
-بقي خطأان لم يُصلحا + ملاحظة UX جانبية من تصفير القيم في السنوات غير المغلقة.
+## نتيجة الفحص
 
----
+تقريرك يستند إلى commits قديمة (`757c13eb`). بعد فحص الكود الحالي، معظم المشكلات المذكورة **تم إصلاحها بالفعل**:
 
-## 1. BUG-21 — منع استعلام الفواتير عند عدم وجود سنوات منشورة
+| المشكلة | الحالة الفعلية |
+|---------|---------------|
+| BUG-08: `waqfRevenue = netAfterZakat` | تم الاصلاح - السطر 94 يقول `waqfRevenue: 0` |
+| نص حوار التجديد الجماعي | تم الاصلاح - يقول "من تاريخ انتهاء العقد السابق وبنفس المدة" |
+| بطاقات الحصص "0 ر.س" | تم الاصلاح - تعرض "تُحسب عند الإقفال" |
+| دعم `quarterly`/`semi_annual` في الواجهة | تم الاصلاح - في ContractsPage وAdminDashboard وcontractAllocation |
 
-**الملف:** `src/pages/beneficiary/InvoicesViewPage.tsx` سطر 26
+## المشكلة المتبقية الوحيدة
 
-**التغيير:** نقل فحص `noPublishedYears` قبل `isError`، واضافة شرط لمنع الاستعلام غير الضروري.
+### دالة SQL `cron_check_late_payments` لا تدعم `quarterly`/`semi_annual`
 
-لا يمكن اضافة `enabled` مباشرة لأن `useInvoicesByFiscalYear` هو hook مشترك يُستخدم في 4 صفحات. الحل الأنظف: عند `noPublishedYears`، تمرير `fiscalYearId = '__none__'` بدلاً من القيمة الفعلية — الـ hook يحتوي بالفعل على `enabled: fiscalYearId !== '__none__'` مما يمنع تنفيذ الاستعلام.
+الدالة الحالية تعالج 3 حالات فقط:
+- `monthly` = حساب شهري
+- `annual` = دفعة واحدة
+- `ELSE` = حساب نسبي بناء على `payment_count`
 
-```text
-قبل: useInvoicesByFiscalYear(fiscalYearId)
-بعد: useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId)
-```
+المشكلة: عقد بنوع `quarterly` (4 دفعات) او `semi_annual` (دفعتان) يسقط في الفرع `ELSE` الذي يعتمد على `payment_count`. اذا كان `payment_count = 1` (القيمة الافتراضية)، تُحسب الدفعات المتوقعة بشكل خاطئ.
 
-بالإضافة لنقل فحص `noPublishedYears` ليكون قبل `isError` في ترتيب الـ early returns.
+### الاصلاح
 
----
-
-## 2. BUG-13 — تصفية السنوات المنشورة فقط في CarryforwardHistoryPage
-
-**الملف:** `src/pages/beneficiary/CarryforwardHistoryPage.tsx`
-
-**التغيير:** اضافة `.eq('published', true)` لاستعلام `fiscal_years` وتحديث `queryKey` ليعكس الفلتر.
+تحديث دالة `cron_check_late_payments` لاضافة فرعين صريحين:
 
 ```text
-قبل: .select('id, label').order(...)
-بعد: .select('id, label').eq('published', true).order(...)
-
-queryKey: ['fiscal_years_published_all']
+monthly = حساب شهري (كما هو)
+quarterly = totalMonths / 3، حد اقصى 4
+semi_annual = totalMonths / 6، حد اقصى 2
+annual = دفعة واحدة (كما هو)
+ELSE = حساب نسبي (كما هو)
 ```
 
-رغم ان RLS يحمي البيانات المالية، الا ان اسماء السنوات المسودة (labels) لا يجب ان تظهر للمستفيد.
+هذا يتطلب migration واحدة لاستبدال الدالة.
 
 ---
 
-## 3. ملاحظة BUG-08 — تحسين UX عند السنوات غير المغلقة
+## بخصوص `.env` و `.gitignore`
 
-**الملف:** `src/pages/beneficiary/BeneficiaryDashboard.tsx`
+ملف `.env` يُدار تلقائيا من Lovable Cloud ويحتوي فقط على مفاتيح عامة (anon key). هذه المفاتيح مصممة للاستخدام في الواجهة الامامية وليست سرية. حماية المشروع تعتمد على سياسات RLS المطبقة (24 جدول محمي). لا يوجد خطر امني فعلي.
 
-عند `waqfRevenue = 0` و `availableAmount = 0` في السنة غير المغلقة، البطاقات المالية تعرض أصفار بلا تفسير. الحل: اضافة شريط تنبيه خفيف اسفل البطاقات عندما تكون السنة المختارة غير مقفلة، يقول: "الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية".
+## بخصوص `net_after_zakat`
 
-يتطلب فحص حالة السنة المالية الحالية — يمكن الحصول عليها من `useFiscalYear` context أو من `useFinancialSummary`.
+هذا تصميم مقصود: القيمة تُحسب ديناميكيا من `net_after_vat - zakat_amount` المحفوظتين في جدول `accounts`. اضافة عمود اضافي يُنشئ مخاطر عدم اتساق البيانات بدون فائدة حقيقية.
 
 ---
 
-## ملخص الملفات المتأثرة
+## ملخص التنفيذ
 
 | الملف | التعديل |
 |-------|---------|
-| `src/pages/beneficiary/InvoicesViewPage.tsx` | تمرير `'__none__'` عند `noPublishedYears` + اعادة ترتيب early returns |
-| `src/pages/beneficiary/CarryforwardHistoryPage.tsx` | اضافة `.eq('published', true)` + تحديث queryKey |
-| `src/pages/beneficiary/BeneficiaryDashboard.tsx` | اضافة شريط تنبيه للسنوات غير المقفلة |
+| Migration SQL جديدة | تحديث `cron_check_late_payments` لدعم `quarterly` و `semi_annual` |
 
-**الإجمالي:** 3 ملفات، 3 تعديلات
+**الاجمالي:** migration واحدة فقط
 
