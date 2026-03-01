@@ -10,7 +10,8 @@ import { useAppSettings } from '@/hooks/useAppSettings';
  * Now accepts optional fiscalYearLabel for server-side account filtering.
  */
 export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: string) => {
-  const fyFilter = fiscalYearId || 'all';
+  // INT-01 fix: '__none__' is truthy, so explicit check needed
+  const fyFilter = (!fiscalYearId || fiscalYearId === '__none__') ? 'all' : fiscalYearId;
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
   const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(fiscalYearLabel, fiscalYearId);
