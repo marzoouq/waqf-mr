@@ -47,8 +47,7 @@ export const useComputedFinancials = ({
     if (fiscalYearLabel) {
       return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
     }
-    // BUG-03 fix: don't auto-select single account when viewing 'all' years
-    if (accounts.length === 1 && fiscalYearId && fiscalYearId !== 'all') return accounts[0];
+    // J-09 fix: removed dead BUG-03 code — byId already handles specific FY lookup above
     return null;
   }, [accounts, fiscalYearId, fiscalYearLabel]);
 
@@ -96,7 +95,7 @@ export const useComputedFinancials = ({
           netAfterExpenses: liveNetAfterExpenses,
           netAfterVat: liveNetAfterVat,
           netAfterZakat: liveNetAfterZakat,
-          shareBase: totalIncome - totalExpenses - zakatAmount,
+          shareBase: Math.max(0, totalIncome - totalExpenses - zakatAmount), // J-07 fix
           adminShare: 0,
           waqifShare: 0,
           waqfRevenue: 0,
