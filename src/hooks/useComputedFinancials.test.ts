@@ -294,7 +294,8 @@ describe('useComputedFinancials', () => {
 
       expect(r.adminShare).toBe(0);
       expect(r.waqifShare).toBe(0);
-      expect(r.waqfRevenue).toBe(0);
+      // 0% admin + 0% waqif → all net goes to beneficiaries
+      expect(r.waqfRevenue).toBe(r.netAfterZakat);
     });
 
     it('falls back to default 10% admin when setting is invalid text', () => {
