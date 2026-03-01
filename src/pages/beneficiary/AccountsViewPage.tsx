@@ -31,6 +31,7 @@ const AccountsViewPage = () => {
     vatAmount,
     netAfterVat,
     zakatAmount,
+    netAfterZakat,
     adminShare,
     waqifShare,
     waqfRevenue,
@@ -114,7 +115,7 @@ const AccountsViewPage = () => {
                   expensesByType,
                   totalIncome,
                   totalExpenses,
-                  netRevenue: netAfterVat - zakatAmount,
+                  netRevenue: netAfterZakat,
                   adminShare,
                   waqifShare,
                   waqfRevenue,
@@ -161,7 +162,7 @@ const AccountsViewPage = () => {
               </div>
               <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-[10px] sm:text-sm text-primary-foreground/90">الصافي بعد الزكاة</p>
-                <p className="text-sm sm:text-xl font-bold truncate">{(netAfterVat - zakatAmount).toLocaleString()}</p>
+                <p className="text-sm sm:text-xl font-bold truncate">{netAfterZakat.toLocaleString()}</p>
               </div>
               <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg">
                 <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصة الناظر</p>
