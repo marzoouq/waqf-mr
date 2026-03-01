@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,14 +75,17 @@ const ExpensesPage = () => {
 
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
 
-  const expenseInvoiceMap = new Map<string, number>();
-  allInvoices.forEach((inv) => {
-    if (inv.expense_id) {
-      expenseInvoiceMap.set(inv.expense_id, (expenseInvoiceMap.get(inv.expense_id) || 0) + 1);
-    }
-  });
-  const documentedCount = expenses.filter((e) => expenseInvoiceMap.has(e.id)).length;
-  const documentationRate = expenses.length > 0 ? Math.round((documentedCount / expenses.length) * 100) : 0;
+  const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(() => {
+    const map = new Map<string, number>();
+    allInvoices.forEach((inv) => {
+      if (inv.expense_id) {
+        map.set(inv.expense_id, (map.get(inv.expense_id) || 0) + 1);
+      }
+    });
+    const documented = expenses.filter((e) => map.has(e.id)).length;
+    const rate = expenses.length > 0 ? Math.round((documented / expenses.length) * 100) : 0;
+    return { expenseInvoiceMap: map, documentedCount: documented, documentationRate: rate };
+  }, [allInvoices, expenses]);
 
   const filteredExpenses = expenses.filter((item) => {
     if (!searchQuery) return true;
@@ -103,7 +106,7 @@ const ExpensesPage = () => {
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
-              properties={properties} onSubmit={handleSubmit} onReset={resetForm}
+              properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isClosed}
             />
           </div>
         </div>
@@ -151,8 +154,8 @@ const ExpensesPage = () => {
                             <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })}><Trash2 className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -209,8 +212,8 @@ const ExpensesPage = () => {
                           <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive" disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

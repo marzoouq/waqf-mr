@@ -1,11 +1,11 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { BarChart3, CalendarRange, Download, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
 import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import ExportMenu from '@/components/ExportMenu';
@@ -236,14 +236,14 @@ const ReportsPage = () => {
                 vatAmount,
                 netAfterVat,
                 zakatAmount,
-                netAfterZakat: netAfterVat - zakatAmount,
+                netAfterZakat,
                 adminShare,
                 waqifShare,
                 waqfRevenue,
                 waqfCorpusManual,
                 availableAmount,
                 distributionsAmount,
-                remainingBalance: availableAmount - distributionsAmount,
+                remainingBalance,
                 incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
                 expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
                 beneficiaries: distributionData.map(d => ({

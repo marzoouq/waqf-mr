@@ -30,12 +30,13 @@ interface ExpenseFormDialogProps {
   properties: Property[];
   onSubmit: (e: React.FormEvent) => void;
   onReset: () => void;
+  disabled?: boolean;
 }
 
-const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties, onSubmit, onReset }: ExpenseFormDialogProps) => {
+const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties, onSubmit, onReset, disabled }: ExpenseFormDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) onReset(); }}>
-      <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={disabled}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>{isEditing ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
