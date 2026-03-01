@@ -131,12 +131,12 @@ const DistributeDialog = ({
       const totalDeductions = advances + carryforward;
       const rawNet = shareAmount - totalDeductions;
       const net = Math.max(0, Math.round(rawNet * 100) / 100);
+      // L-02 fix: deficit is simply the negative portion of rawNet — no double counting
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
       // G3 fix: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
       const afterAdvances = Math.max(0, shareAmount - advances);
       const actualCarryforward = Math.min(carryforward, afterAdvances);
-      const actualDeficit = (carryforward > afterAdvances) ? (carryforward - afterAdvances) : 0;
 
       return {
         beneficiary_id: b.id,
@@ -147,7 +147,7 @@ const DistributeDialog = ({
         advances_paid: advances,
         carryforward_deducted: Math.round(actualCarryforward * 100) / 100,
         net_amount: net,
-        deficit: Math.round((deficit + actualDeficit) * 100) / 100,
+        deficit,
       };
     });
   }, [beneficiaries, availableAmount, advancesByBeneficiary, carryforwardByBeneficiary]);

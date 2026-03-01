@@ -564,6 +564,9 @@ export function useAccountsPage() {
 
   const currentAccount = findAccountByFY(accounts, selectedFY);
 
+  // L-04 fix: detect if using fallback percentages
+  const usingFallbackPct = !appSettings.data?.['admin_share_percentage'] || !appSettings.data?.['waqif_share_percentage'];
+
   return {
     // Data
     accounts, contracts, beneficiaries, income, expenses, isLoading,
@@ -571,6 +574,7 @@ export function useAccountsPage() {
     // Settings
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
     manualVat, manualDistributions, calculatedVat, commercialRent, vatPercentage,
+    usingFallbackPct,
     // Financials
     totalIncome, totalExpenses, grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue, availableAmount, remainingBalance,

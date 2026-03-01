@@ -32,7 +32,7 @@ const AccountsDistributionTable = ({
   adminPercent, adminShare, waqifPercent, waqifShare,
   waqfRevenue, waqfCorpusManual, availableAmount,
   manualDistributions, remainingBalance,
-  isClosed = true,
+  isClosed = false, // L-05 fix: default to false (safer — shows warning by default)
 }: AccountsDistributionTableProps) => {
   return (
     <Card className="shadow-sm">

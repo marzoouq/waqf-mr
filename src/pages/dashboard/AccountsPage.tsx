@@ -102,6 +102,7 @@ const AccountsPage = () => {
           manualDistributions={page.manualDistributions}
           remainingBalance={page.remainingBalance}
           isClosed={page.isClosed}
+          usingFallbackPct={page.usingFallbackPct}
         />
         )}
 
