@@ -458,6 +458,9 @@ const Auth = () => {
                         className="h-11"
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 text-center leading-relaxed">
+                      سيتم إنشاء حسابك كـ<strong>مستفيد</strong> ويحتاج تفعيل من ناظر الوقف قبل استخدامه.
+                    </p>
                     <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
                       {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
                     </Button>

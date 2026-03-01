@@ -499,7 +499,7 @@ export function useAccountsPage() {
       expensesByType,
       totalIncome,
       totalExpenses,
-      netRevenue: netAfterVat,
+      netRevenue: netAfterZakat,
       adminShare,
       waqifShare,
       waqfRevenue,
