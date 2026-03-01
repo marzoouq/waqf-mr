@@ -16,10 +16,10 @@ const expensesCrud = createCrudFactory<'expenses', Expense>({
   select: '*, property:properties(*)',
   orderBy: 'date',
   label: 'المصروف',
-  onCreateSuccess: (data) => {
+  onCreateSuccess: () => {
     notifyAllBeneficiaries(
       'مصروف جديد',
-      `تم تسجيل مصروف جديد (${data.expense_type}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
+      'تم تسجيل مصروف جديد في الوقف',
       'info',
       '/beneficiary/disclosure',
     );
