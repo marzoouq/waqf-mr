@@ -253,7 +253,7 @@ async function fetchWaqfData(
           sections.push(`- ريع الوقف للتوزيع: ${Number(acc.waqf_revenue).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- رقبة الوقف المرحلة: ${Number(acc.waqf_corpus_previous).toLocaleString("ar-SA")} ر.س`);
           sections.push(`- رقبة الوقف اليدوية: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
-          sections.push(`- رأس مال الوقف: ${Number(acc.waqf_capital).toLocaleString("ar-SA")} ر.س`);
+          sections.push(`- رأس مال الوقف: ${Number(acc.waqf_corpus_manual).toLocaleString("ar-SA")} ر.س`);
         }
       } else {
         // المستفيد/الواقف: ملخص عام فقط بدون تفاصيل حساسة

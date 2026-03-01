@@ -32,7 +32,7 @@ interface AccountsCollectionTableProps {
   setEditData: React.Dispatch<React.SetStateAction<EditData | null>>;
   onStartEdit: (index: number) => void;
   onCancelEdit: () => void;
-  onSaveEdit: (index: number) => void;
+  onSaveEdit: () => void;
   totalExpectedPayments: number;
   totalPaidMonths: number;
   totalCollectedAll: number;
@@ -146,7 +146,7 @@ const AccountsCollectionTable = ({
                     <TableCell>
                       {isEditing ? (
                         <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => onSaveEdit(idx)} disabled={isUpdatePending || isUpsertPending}>
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => onSaveEdit()} disabled={isUpdatePending || isUpsertPending}>
                             <Check className="w-4 h-4" />
                           </Button>
                           <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit}>

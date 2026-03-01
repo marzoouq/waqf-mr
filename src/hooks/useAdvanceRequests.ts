@@ -44,7 +44,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
       .from('advance_requests')
         .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id)')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
@@ -69,7 +69,7 @@ export const useMyAdvanceRequests = (beneficiaryId?: string) => {
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return (data ?? []) as unknown as AdvanceRequest[];
     },
@@ -145,7 +145,7 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
         .select('*')
         .eq('beneficiary_id', beneficiaryId)
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return (data ?? []) as unknown as AdvanceCarryforward[];
     },
