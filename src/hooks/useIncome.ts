@@ -16,10 +16,10 @@ const incomeCrud = createCrudFactory<'income', Income>({
   select: '*, property:properties(*)',
   orderBy: 'date',
   label: 'الدخل',
-  onCreateSuccess: (data) => {
+  onCreateSuccess: () => {
     notifyAllBeneficiaries(
       'دخل جديد',
-      `تم تسجيل دخل جديد (${data.source}) بمبلغ ${Number(data.amount).toLocaleString('ar-SA')} ريال`,
+      'تم تسجيل دخل جديد في الوقف',
       'info',
       '/beneficiary/disclosure',
     );

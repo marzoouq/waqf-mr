@@ -98,7 +98,7 @@ const FinancialReportsPage = () => {
         fiscalYear,
         totalIncome,
         totalExpenses,
-        netRevenue: netAfterVat,
+        netRevenue: netAfterVat - zakatAmount,
         adminShare,
         waqifShare,
         waqfRevenue: beneficiariesShare,
@@ -106,7 +106,7 @@ const FinancialReportsPage = () => {
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: beneficiaries.map(b => ({
           name: b.name,
-          percentage: 0,
+          percentage: Number(b.share_percentage),
           amount: (beneficiariesShare * Number(b.share_percentage)) / 100,
         })),
       }, pdfWaqfInfo);

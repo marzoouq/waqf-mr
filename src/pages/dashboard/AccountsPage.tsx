@@ -92,6 +92,7 @@ const AccountsPage = () => {
           manualVat={page.manualVat}
           netAfterVat={page.netAfterVat}
           zakatAmount={page.zakatAmount}
+          netAfterZakat={page.netAfterZakat}
           adminPercent={page.adminPercent}
           adminShare={page.adminShare}
           waqifPercent={page.waqifPercent}
