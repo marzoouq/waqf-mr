@@ -4,7 +4,6 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useProperties } from '@/hooks/useProperties';
@@ -27,7 +26,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { differenceInMonths } from 'date-fns';
 
 const WaqifDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const {
@@ -51,7 +49,7 @@ const WaqifDashboard = () => {
 
   /* ── KPIs ── */
   const kpis = useMemo(() => {
-    const collectionRate = contractualRevenue > 0 ? Math.round((totalIncome / contractualRevenue) * 100) : 0;
+    const collectionRate = contractualRevenue > 0 ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100)) : 0;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
@@ -69,13 +67,15 @@ const WaqifDashboard = () => {
     let onTime = 0, late = 0;
     activeContracts.forEach(contract => {
       const startDate = new Date(contract.start_date);
-      const now = new Date();
+      const endDate = new Date(contract.end_date);
+      const currentDate = new Date();
+      const effectiveEnd = currentDate < endDate ? currentDate : endDate;
       const paymentType = contract.payment_type || 'annual';
       let expectedPayments = 0;
-      if (paymentType === 'monthly') expectedPayments = Math.max(0, differenceInMonths(now, startDate));
-      else if (paymentType === 'quarterly') expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 3));
-      else if (paymentType === 'semi_annual') expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 6));
-      else expectedPayments = Math.max(0, Math.floor(differenceInMonths(now, startDate) / 12));
+      if (paymentType === 'monthly') expectedPayments = Math.max(0, differenceInMonths(effectiveEnd, startDate));
+      else if (paymentType === 'quarterly') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 3));
+      else if (paymentType === 'semi_annual') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 6));
+      else expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 12));
       const payment = tenantPayments.find(p => p.contract_id === contract.id);
       const paidMonths = payment?.paid_months ?? 0;
       if (paidMonths >= expectedPayments) onTime++; else late++;
@@ -187,7 +187,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'ريع الوقف', value: `${Number(availableAmount || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'ريع الوقف', value: `${Number(waqfRevenue || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
@@ -237,7 +237,7 @@ const WaqifDashboard = () => {
                 { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
                 { label: 'حصة الناظر', value: adminShare, cls: 'text-muted-foreground' },
                 { label: 'حصة الواقف', value: waqifShare, cls: 'text-secondary' },
-                { label: 'ريع المستفيدين', value: waqfRevenue, cls: 'font-bold text-lg' },
+                { label: 'ريع المستفيدين', value: availableAmount, cls: 'font-bold text-lg' },
               ].map((row, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 4 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>

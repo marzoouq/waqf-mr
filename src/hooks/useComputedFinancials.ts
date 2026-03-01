@@ -91,7 +91,7 @@ export const useComputedFinancials = ({
           shareBase: totalIncome - totalExpenses - zakatAmount,
           adminShare: 0,
           waqifShare: 0,
-          waqfRevenue: netAfterZakat,
+          waqfRevenue: 0,
           availableAmount: 0,
           remainingBalance: 0,
         };

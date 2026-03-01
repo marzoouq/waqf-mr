@@ -20,9 +20,9 @@ const BylawsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [search, setSearch] = useState('');
 
-  const isPublished = settings?.bylaws_published !== 'false';
+  const isPublished = settings?.bylaws_published === 'true';
 
-  const allVisible = (bylaws || []).filter((b) => b.is_visible);
+  const allVisible = useMemo(() => (bylaws || []).filter((b) => b.is_visible), [bylaws]);
 
   const visibleBylaws = useMemo(() => {
     if (!search.trim()) return allVisible;

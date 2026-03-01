@@ -35,6 +35,7 @@ const MySharePage = () => {
     totalIncome,
     totalExpenses,
     netAfterVat,
+    netAfterZakat,
     adminShare,
     waqifShare,
     waqfRevenue,
@@ -173,7 +174,7 @@ const MySharePage = () => {
         vatAmount,
         netAfterVat,
         zakatAmount,
-        netAfterZakat: netAfterVat - zakatAmount,
+        netAfterZakat,
         adminShare,
         waqifShare,
         waqfRevenue,
@@ -192,7 +193,7 @@ const MySharePage = () => {
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
-          fiscalYear: (d as any).account?.fiscal_year || '-',
+          fiscalYear: (d as { account?: { fiscal_year?: string } }).account?.fiscal_year || '-',
           amount: Number(d.amount),
           status: d.status,
         })),
@@ -239,18 +240,6 @@ const MySharePage = () => {
     );
   }
 
-  if (!currentBeneficiary && !finLoading) {
-    return (
-      <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <UserX className="w-16 h-16 text-muted-foreground" />
-          <h2 className="text-xl font-bold">لم يتم العثور على سجل المستفيد</h2>
-          <p className="text-muted-foreground text-center">حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   if (finLoading || distLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
@@ -261,6 +250,18 @@ const MySharePage = () => {
         <div className="p-4 sm:p-6 space-y-5">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">حصتي من الريع</h1>
           <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!currentBeneficiary) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <UserX className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-bold">لم يتم العثور على سجل المستفيد</h2>
+          <p className="text-muted-foreground text-center">حسابك غير مرتبط بسجل مستفيد. يرجى التواصل مع ناظر الوقف.</p>
         </div>
       </DashboardLayout>
     );

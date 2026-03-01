@@ -10,13 +10,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/useAdvanceRequests';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
-import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet } from 'lucide-react';
+import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CarryforwardHistoryPage = () => {
   const { user } = useAuth();
 
   // جلب بيانات المستفيد
-  const { data: beneficiary, isLoading: loadingBen } = useQuery({
+  const { data: beneficiary, isLoading: loadingBen, isError: benError } = useQuery({
     queryKey: ['my-beneficiary', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -59,6 +60,20 @@ const CarryforwardHistoryPage = () => {
 
   if (loadingBen || loadingCF || loadingAdv) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
+  if (benError) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertTriangle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <Button onClick={() => window.location.reload()} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (!beneficiary) {
