@@ -412,7 +412,7 @@ export function useAccountsPage() {
     setEditData(null);
   };
 
-  const handleSaveEdit = async (_index: number) => {
+  const handleSaveEdit = async () => {
     if (!editData) return;
     // N-04 fix: find contract by stored ID instead of array index
     const contract = contracts.find(c => c.id === editData.contractId);
