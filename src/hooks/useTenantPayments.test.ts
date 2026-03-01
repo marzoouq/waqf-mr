@@ -4,15 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 const mockSelect = vi.fn();
-const mockUpsert = vi.fn();
-const mockMaybeSingle = vi.fn();
+const mockRpc = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn((table: string) => ({
       select: mockSelect,
-      upsert: mockUpsert,
     })),
+    rpc: mockRpc,
   },
 }));
 
@@ -37,63 +36,33 @@ beforeEach(() => {
   vi.clearAllMocks();
 
   // Default: select returns payments list (for useTenantPayments query)
-  mockSelect.mockResolvedValue({ data: samplePayments, error: null });
-
-  // For useUpsertTenantPayment: supabase.from().select().eq().maybeSingle() then upsert().select().single()
-  // We need to mock the chain properly based on how the actual code works:
-  // Step 1: supabase.from('tenant_payments').select('paid_months').eq('contract_id', ...).maybeSingle()
-  // Step 2: supabase.from('tenant_payments').upsert(...).select().single()
-
-  const mockFromFn = vi.mocked(supabase.from);
-  mockFromFn.mockImplementation((table: string) => {
-    return {
-      select: vi.fn().mockReturnValue({
-        // For the initial query: .select('paid_months').eq().maybeSingle()
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: { paid_months: 0 }, error: null }),
-        }),
-        // For after upsert: .select().single()  
-        single: vi.fn().mockResolvedValue({ data: samplePayments[0], error: null }),
-      }),
-      upsert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: samplePayments[0], error: null }),
-        }),
-      }),
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    } as any;
+  mockSelect.mockReturnValue({
+    limit: vi.fn().mockResolvedValue({ data: samplePayments, error: null }),
   });
+
+  // Default: rpc resolves successfully
+  mockRpc.mockResolvedValue({ data: { success: true }, error: null });
 });
 
 describe('useTenantPayments', () => {
   it('fetches all tenant payments', async () => {
-    // Override for simple select with .limit() chain
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({ data: samplePayments, error: null }),
-      }),
-    } as any);
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(samplePayments);
   });
 
   it('handles fetch error', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'network error' } }),
-      }),
-    } as any);
+    mockSelect.mockReturnValue({
+      limit: vi.fn().mockResolvedValue({ data: null, error: { message: 'network error' } }),
+    });
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
   it('returns empty array when no payments exist', async () => {
-    vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
-    } as any);
+    mockSelect.mockReturnValue({
+      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+    });
     const { result } = renderHook(() => useTenantPayments(), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([]);
@@ -101,47 +70,44 @@ describe('useTenantPayments', () => {
 });
 
 describe('useUpsertTenantPayment', () => {
-  it('upserts payment and shows success toast', async () => {
+  it('upserts payment via RPC and shows success toast', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 8 });
+    expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
+      p_contract_id: 'c-1',
+      p_paid_months: 8,
+    }));
     expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل');
   });
 
   it('passes notes as null when not provided', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 3 });
-    // Verify upsert was called on supabase.from('tenant_payments')
-    expect(supabase.from).toHaveBeenCalledWith('tenant_payments');
+    expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
+      p_notes: null,
+    }));
   });
 
   it('passes notes when provided', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 12, notes: 'مسدد' });
+    expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
+      p_notes: 'مسدد',
+    }));
     expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل');
   });
 
-  it('uses onConflict: contract_id for upsert', async () => {
+  it('calls upsert_tenant_payment RPC', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 1 });
-    expect(toast.success).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.any(Object));
   });
 
-  it('shows error toast on upsert failure', async () => {
-    vi.mocked(supabase.from).mockImplementation(() => ({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-      upsert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: null, error: { message: 'rls denied' } }),
-        }),
-      }),
-    } as any));
+  it('shows error toast on RPC failure', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'rls denied' } });
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await expect(result.current.mutateAsync({ contract_id: 'c-1', paid_months: 5 })).rejects.toThrow();
-    expect(toast.error).toHaveBeenCalledWith('خطأ في حفظ بيانات التحصيل: rls denied');
+    expect(toast.error).toHaveBeenCalledWith('خطأ في حفظ بيانات التحصيل');
   });
 
   it('handles zero paid_months', async () => {

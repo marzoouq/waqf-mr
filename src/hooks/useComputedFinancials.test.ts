@@ -75,32 +75,30 @@ describe('useComputedFinancials', () => {
     });
   });
 
-  // ─── Dynamic calculation (no saved account) ───
+  // ─── Dynamic calculation (no saved account) with forceClosedMode ───
   describe('dynamic calculation (no saved account)', () => {
     it('calculates with default percentages (10% admin, 5% waqif)', () => {
       const income = [mkIncome({ amount: 100000 })];
       const expenses = [mkExpense({ amount: 20000 })];
-      const r = render({ income, expenses, accounts: [], settings: null });
+      const r = render({ income, expenses, accounts: [], settings: null, forceClosedMode: true });
 
       expect(r.totalIncome).toBe(100000);
       expect(r.totalExpenses).toBe(20000);
-      expect(r.grandTotal).toBe(100000); // no waqfCorpusPrevious
+      expect(r.grandTotal).toBe(100000);
       expect(r.netAfterExpenses).toBe(80000);
-      // shareBase = 100000 - 20000 - 0(zakat) = 80000
       expect(r.shareBase).toBe(80000);
-      expect(r.adminShare).toBe(8000); // 10%
-      expect(r.waqifShare).toBe(4000); // 5%
+      expect(r.adminShare).toBe(8000);
+      expect(r.waqifShare).toBe(4000);
     });
 
     it('uses custom admin/waqif percentages from settings', () => {
       const income = [mkIncome({ amount: 100000 })];
       const expenses = [mkExpense({ amount: 20000 })];
       const settings = { admin_share_percentage: '15', waqif_share_percentage: '8' };
-      const r = render({ income, expenses, accounts: [], settings });
+      const r = render({ income, expenses, accounts: [], settings, forceClosedMode: true });
 
-      // shareBase = 80000
-      expect(r.adminShare).toBe(12000); // 15%
-      expect(r.waqifShare).toBe(6400);  // 8%
+      expect(r.adminShare).toBe(12000);
+      expect(r.waqifShare).toBe(6400);
     });
 
     it('handles multiple income sources and expense types', () => {
@@ -124,7 +122,7 @@ describe('useComputedFinancials', () => {
 
   // ─── Saved account (currentAccount) ───
   describe('saved account', () => {
-    it('uses saved account values when fiscal year label matches', () => {
+    it('uses saved account values when fiscal year label matches (closed year)', () => {
       const account = mkAccount({ fiscal_year: '1446-1447', waqf_revenue: 60000 });
       const r = render({
         income: [mkIncome({ amount: 100000 })],
@@ -132,10 +130,11 @@ describe('useComputedFinancials', () => {
         accounts: [account],
         settings: null,
         fiscalYearLabel: '1446-1447',
+        fiscalYearStatus: 'closed',
       });
 
       expect(r.currentAccount).toBe(account);
-      expect(r.adminShare).toBe(7500); // from account, not calculated
+      expect(r.adminShare).toBe(7500);
       expect(r.waqfRevenue).toBe(60000);
     });
 
@@ -150,7 +149,6 @@ describe('useComputedFinancials', () => {
       });
 
       expect(r.currentAccount).toBeNull();
-      // Falls back to dynamic calculation
       expect(r.totalIncome).toBe(50000);
     });
 
@@ -193,12 +191,13 @@ describe('useComputedFinancials', () => {
         accounts: [account],
         settings: null,
         fiscalYearLabel: '1446-1447',
+        fiscalYearStatus: 'closed',
       });
 
       expect(r.vatAmount).toBe(5000);
       expect(r.zakatAmount).toBe(2000);
       expect(r.netAfterVat).toBe(75000);
-      expect(r.netAfterZakat).toBe(73000); // 75000 - 2000
+      expect(r.netAfterZakat).toBe(73000);
     });
 
     it('handles waqf corpus previous (grandTotal includes it)', () => {
@@ -209,10 +208,11 @@ describe('useComputedFinancials', () => {
         accounts: [account],
         settings: null,
         fiscalYearLabel: '1446-1447',
+        fiscalYearStatus: 'closed',
       });
 
       expect(r.waqfCorpusPrevious).toBe(10000);
-      expect(r.grandTotal).toBe(110000); // 100000 + 10000
+      expect(r.grandTotal).toBe(110000);
     });
 
     it('deducts waqf corpus manual from available amount', () => {
@@ -223,10 +223,11 @@ describe('useComputedFinancials', () => {
         accounts: [account],
         settings: null,
         fiscalYearLabel: '1446-1447',
+        fiscalYearStatus: 'closed',
       });
 
       expect(r.waqfCorpusManual).toBe(15000);
-      expect(r.availableAmount).toBe(45000); // 60000 - 15000
+      expect(r.availableAmount).toBe(45000);
     });
 
     it('deducts distributions from remaining balance', () => {
@@ -241,11 +242,12 @@ describe('useComputedFinancials', () => {
         accounts: [account],
         settings: null,
         fiscalYearLabel: '1446-1447',
+        fiscalYearStatus: 'closed',
       });
 
       expect(r.distributionsAmount).toBe(20000);
-      expect(r.availableAmount).toBe(50000);  // 60000 - 10000
-      expect(r.remainingBalance).toBe(30000); // 50000 - 20000
+      expect(r.availableAmount).toBe(50000);
+      expect(r.remainingBalance).toBe(30000);
     });
   });
 
@@ -273,36 +275,35 @@ describe('useComputedFinancials', () => {
 
   // ─── Edge: negative values ───
   describe('edge cases', () => {
-    it('handles expenses exceeding income (negative net)', () => {
+    it('handles expenses exceeding income (negative net) — shareBase clamped to 0', () => {
       const income = [mkIncome({ amount: 10000 })];
       const expenses = [mkExpense({ amount: 50000 })];
-      const r = render({ income, expenses, accounts: [], settings: null });
+      const r = render({ income, expenses, accounts: [], settings: null, forceClosedMode: true });
 
       expect(r.netAfterExpenses).toBe(-40000);
-      expect(r.shareBase).toBe(-40000);
-      // Negative shares
-      expect(r.adminShare).toBe(-4000);
+      // shareBase = Math.max(0, 10000 - 50000) = 0
+      expect(r.shareBase).toBe(0);
+      expect(r.adminShare).toBe(0);
     });
 
     it('handles zero percentages', () => {
       const settings = { admin_share_percentage: '0', waqif_share_percentage: '0' };
       const income = [mkIncome({ amount: 100000 })];
       const expenses = [mkExpense({ amount: 20000 })];
-      const r = render({ income, expenses, accounts: [], settings });
+      const r = render({ income, expenses, accounts: [], settings, forceClosedMode: true });
 
       expect(r.adminShare).toBe(0);
       expect(r.waqifShare).toBe(0);
-      // All revenue goes to waqf
       expect(r.waqfRevenue).toBe(r.netAfterZakat);
     });
 
     it('falls back to default 10% admin when setting is invalid text', () => {
       const settings = { admin_share_percentage: 'abc', waqif_share_percentage: '' };
-      const r = render({ income: [mkIncome({ amount: 100000 })], expenses: [], accounts: [], settings });
+      const r = render({ income: [mkIncome({ amount: 100000 })], expenses: [], accounts: [], settings, forceClosedMode: true });
 
-      expect(r.adminPct).toBe(10); // fallback default
-      expect(r.waqifPct).toBe(5);  // fallback default
-      expect(r.adminShare).toBe(10000); // 10% of 100000
+      expect(r.adminPct).toBe(10);
+      expect(r.waqifPct).toBe(5);
+      expect(r.adminShare).toBe(10000);
     });
 
     it('falls back to default when setting is Infinity', () => {
@@ -325,7 +326,6 @@ describe('useComputedFinancials', () => {
       const income = [mkIncome({ source: '' })];
       const r = render({ income, expenses: [], accounts: [], settings: null });
 
-      // groupIncomeBySource uses item.source || 'غير محدد'
       expect(r.incomeBySource).toEqual({ 'غير محدد': 10000 });
     });
   });

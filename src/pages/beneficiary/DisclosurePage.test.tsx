@@ -26,7 +26,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
     fiscalYearId: 'fy1', setFiscalYearId: vi.fn(),
     fiscalYear: { id: 'fy1', label: '1446-1447', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
-    isClosed: false, isLoading: false,
+    isClosed: false, isLoading: false, noPublishedYears: false,
   })),
   FiscalYearProvider: ({ children }: any) => children,
 }));
@@ -49,7 +49,26 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     incomeBySource: { 'إيجارات': 180000, 'أخرى': 20000 },
     expensesByTypeExcludingVat: { 'صيانة': 30000, 'كهرباء': 20000 },
     availableAmount: 107000,
+    isLoading: false,
+    isError: false,
+    isAccountMissing: false,
   })),
+}));
+
+vi.mock('@/hooks/useContracts', () => ({
+  useContractsByFiscalYear: vi.fn(() => ({
+    data: [
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'محمد', rent_amount: 50000, status: 'active' },
+    ],
+    isLoading: false,
+  })),
+}));
+
+vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu">تصدير</button> }));
+vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
+vi.mock('@/utils/pdf', () => ({
+  generateDisclosurePDF: vi.fn().mockResolvedValue(undefined),
+  generateComprehensiveBeneficiaryPDF: vi.fn().mockResolvedValue(undefined),
 }));
 
 import DisclosurePage from './DisclosurePage';
@@ -69,9 +88,10 @@ describe('DisclosurePage', () => {
     expect(screen.getByText('الإفصاح السنوي')).toBeInTheDocument();
   });
 
-  it('shows fiscal year', () => {
+  it('shows fiscal year in Gregorian format', () => {
     renderPage();
-    expect(screen.getAllByText(/1446-1447/).length).toBeGreaterThanOrEqual(1);
+    // Gregorian format: day/month/year — from start_date and end_date
+    expect(screen.getByText(/2024/)).toBeInTheDocument();
   });
 
   it('shows total income card', () => {
@@ -120,7 +140,6 @@ describe('DisclosurePage', () => {
   it('shows beneficiary name and share percentage', () => {
     renderPage();
     expect(screen.getByText('أحمد علي')).toBeInTheDocument();
-    // Share percentage is no longer displayed in the disclosure page
   });
 
   it('shows zakat and waqf corpus when > 0', () => {

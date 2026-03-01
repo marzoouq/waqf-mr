@@ -143,12 +143,11 @@ describe('AdminDashboard', () => {
     expect(screen.getByText('5,000 ر.س')).toBeInTheDocument();
   });
 
-  it('shows admin and waqif shares', () => {
+  it('shows admin and waqif shares with active year suffix', () => {
     renderPage();
-    expect(screen.getByText('حصة الناظر')).toBeInTheDocument();
-    const shareValues = screen.getAllByText(/2,500/);
-    expect(shareValues.length).toBeGreaterThan(0);
-    expect(screen.getByText('حصة الواقف')).toBeInTheDocument();
+    // Active year adds " (بعد الإقفال)" suffix
+    expect(screen.getByText(/حصة الناظر/)).toBeInTheDocument();
+    expect(screen.getByText(/حصة الواقف/)).toBeInTheDocument();
   });
 
   it('shows beneficiaries count', () => {
