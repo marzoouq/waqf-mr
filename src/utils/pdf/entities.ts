@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { maskBankAccount, maskNationalId } from '@/utils/maskData';
 import {
   PdfWaqfInfo, UnitPdfRow, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
@@ -95,16 +96,17 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'الاسم', 'النسبة %', 'الهاتف', 'البريد', 'الحساب البنكي']],
+    head: [['#', 'الاسم', 'النسبة %', 'الهاتف', 'البريد', 'الحساب البنكي', 'رقم الهوية']],
     body: beneficiaries.map((b, i) => [
       i + 1,
       b.name,
       `${Number(b.share_percentage).toFixed(6)}%`,
       b.phone || '-',
       b.email || '-',
-      b.bank_account || '-',
+      b.bank_account ? maskBankAccount(b.bank_account) : '-',
+      b.national_id ? maskNationalId(b.national_id) : '-',
     ]),
-    foot: [['', 'الإجمالي', `${total.toFixed(6)}%`, '', '', '']],
+    foot: [['', 'الإجمالي', `${total.toFixed(6)}%`, '', '', '', '']],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),
