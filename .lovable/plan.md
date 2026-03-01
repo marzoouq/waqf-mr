@@ -1,95 +1,122 @@
 
+# خطة إصلاح المشاكل المتبقية (18-33)
 
-# خطة إصلاح المشاكل المتبقية قبل النشر
-
-بعد مراجعة شاملة لكامل الكود الحالي والوثائق، تبيّن أن الغالبية العظمى من المشاكل المذكورة في التقرير **تم إصلاحها فعلا** في التعديلات السابقة أو أنها **ليست مشاكل حقيقية**.
-
----
-
-## نتائج المراجعة: ما تم إصلاحه بالفعل (21 من 26)
-
-| المشكلة | الحالة | الدليل في الكود |
-|---------|--------|-----------------|
-| BUG-01 (WaqifDashboard expectedPayments) | مُصلح | سطر 79: `if (expectedPayments === 0) return;` |
-| BUG-02 (useComputedFinancials !isClosed) | مُصلح | سطر 84-100: يحسب من البيانات الحية |
-| BUG-03 (accounts.length===1 مع 'all') | مُصلح | سطر 51: يفحص `fiscalYearId !== 'all'` |
-| BUG-04 (myShare من availableAmount) | تصميم صحيح | حسب الوثيقة: `availableAmount = waqfRevenue - corpus` هو المبلغ الفعلي القابل للتوزيع |
-| BUG-05 (AdminDashboard finLoading) | مُصلح | سطر 46: `finLoading` مشمول |
-| BUG-06 (\_\_none\_\_ filter) | مُصلح | سطر 14: فحص صريح لـ `__none__` |
-| BUG-07 (contractAllocation mutation) | ليس خطأ | كل تكرار يُنشئ `new Date(start)` جديد |
-| BUG-08 (paymentCount===1) | تصميم صحيح | العقد السنوي = دفعة واحدة |
-| BUG-09 (Auth redirect بعد signOut) | ليس خطأ | useEffect يتابع `role` بشكل صحيح |
-| BUG-11 (printShareReport) | تابع لـ BUG-04 | BUG-04 صحيح، إذن BUG-11 غير موجود |
-| BUG-12 (CORS للشعار) | غير مؤثر | الشعار يُحمّل من نفس النطاق |
-| BUG-13 (ProtectedRoute showSignOut) | تصميم مقصود | آلية أمان احتياطية عند تأخر الدور |
-| BUG-15 (AI\_URL undefined) | غير مؤثر | `VITE_SUPABASE_URL` دائما موجود في Lovable Cloud |
-| BUG-16 (AiAssistant abort) | مُصلح | سطر 128: `finally { setIsLoading(false) }` |
-| BUG-17 (useMessaging unsubscribe) | مُصلح | سطور 35,70: `supabase.removeChannel(channel)` مباشرة |
-| BUG-18 (XSS في الرسائل) | غير مؤثر | React يمنع XSS تلقائيا + RLS على الجدول |
-| BUG-19 (useWebAuthn isLoading) | مُصلح | سطور 100-102, 155-157: `finally { setIsLoading(false) }` |
-| BUG-20 (localStorage في SSR) | غير مؤثر | المشروع SPA ولن يُنقل لـ SSR |
-| BUG-21 (useCrudFactory null) | ليس خطأ | `if (error) throw error` يمنع الحالة |
-| BUG-22 (isNonAdmin بدون useMemo) | غير مؤثر | مقارنة سلسلتين نصيتين، تكلفة صفرية |
-| BUG-26 (waqfCorpusPrevious في الحساب) | تصميم صحيح | حسب وثيقة `waqf-corpus-carry-forward` |
+بعد فحص الكود الفعلي، تبيّن أن المشكلة #19 (زر إقفال السنة) **تم إصلاحها بالفعل** في التحديث السابق (سطر 45: `role === 'admin' &&`). المتبقي 15 مشكلة حقيقية تحتاج إصلاح.
 
 ---
 
-## التوافق بين الكود والوثائق
+## المشاكل الحرجة (3)
 
-| البند في الوثيقة | ما يقوله الكود | النتيجة |
-|------------------|----------------|---------|
-| "تُعطل أزرار التعديل عند isClosed" (سطر 217) | IncomePage + ExpensesPage: `disabled={isClosed}` | متوافق |
-| "shareBase = إيرادات - مصروفات - زكاة" (سطر 98) | `accountsCalculations.ts` سطر 50 | متوافق |
-| "waqfRevenue = netAfterZakat - adminShare - waqifShare" (سطر 129) | `accountsCalculations.ts` سطر 62 | متوافق |
-| "السنة النشطة: حساب ديناميكي" (سطر 294) | `useComputedFinancials` سطر 84-100 | متوافق |
-| "السنة المقفلة: قراءة من accounts" (سطر 295) | `useComputedFinancials` سطر 103-115 | متوافق |
+### 1. اتجاه الرسائل معكوس في RTL (#18)
+**الملفات:** `BeneficiaryMessagesPage.tsx` سطر 173 + `MessagesPage.tsx` سطر 135
 
----
+الحالي: `isMe ? 'justify-start' : 'justify-end'` -- عكس المطلوب في واجهة عربية.
 
-## المشاكل الحقيقية المتبقية (3 فقط)
+**الإصلاح:** قلب الاتجاه: `isMe ? 'justify-end' : 'justify-start'`
 
-### 1. BUG-10: `normalizeArabicDigits` لا تُطبّق على البريد الالكتروني
-**الملف:** `src/pages/Auth.tsx`
+### 2. PDF الحسابات يُرسل `netAfterVat` بدلاً من `netAfterZakat` (#20)
+**الملف:** `AccountsViewPage.tsx` سطر 117
 
-عند استخدام لوحة مفاتيح عربية، قد يُدخل المستخدم ارقاما عربية (مثل `user@example.com` بأرقام ٠-٩) في حقل البريد الالكتروني. الدالة `normalizeArabicDigits` موجودة ومُطبّقة على `nationalId` فقط.
+**الإصلاح:** تغيير `netRevenue: netAfterVat` الى `netRevenue: netAfterZakat` (المتغير متاح من `useFinancialSummary`)
 
-**الاصلاح:** تطبيق `normalizeArabicDigits` على `loginEmail` و `signupEmail` و `resetEmail` قبل ارسالها.
+### 3. دخل يُنشأ بدون `fiscal_year_id` على سنة مغلقة (#21 + #32)
+**الملف:** `IncomePage.tsx` سطر 59
 
-### 2. PERF-01: `formatArabicMonth` مُعرّفة داخل المكوّن
-**الملفات:** `AdminDashboard.tsx` سطر 176 + `WaqifDashboard.tsx` سطر 104
-
-الدالة تُنشئ كائن `Record` جديد في كل render وتُمرّر كـ `tickFormatter` لـ Recharts، مما يُسبب اعادة رسم المحور بلا حاجة.
-
-**الاصلاح:** نقل الدالة وكائن الاشهر خارج المكوّن كـ module-level constant.
-
-### 3. PERF-02: `currentBeneficiary` بدون `useMemo`
-**الملف:** `BeneficiaryDashboard.tsx` سطر 33
-
-`beneficiaries.find(...)` يُعاد تنفيذه كل render (بما فيه كل 60 ثانية بسبب الساعة الحية).
-
-**الاصلاح:** تغليف بـ `useMemo([beneficiaries, user?.id, benError])`.
+**الإصلاح:** ربط `fiscal_year_id` بالسنة المختارة دائما (نشطة او مقفلة)، مع الاعتماد على حماية `disabled={isClosed}` الموجودة فعلا على الازرار لمنع الاضافة على سنة مقفلة. تغيير الشرط من `activeFYId` الى `fiscalYear?.id`.
 
 ---
 
-## خطة التنفيذ
+## المشاكل المتوسطة (5)
 
-### الملف 1: `src/pages/Auth.tsx`
-- تطبيق `normalizeArabicDigits` على `loginEmail` في `handleSignIn` (سطر 125)
-- تطبيق `normalizeArabicDigits` على `signupEmail` في `handleSignUp` (سطر 205)
-- تطبيق `normalizeArabicDigits` على `resetEmail` عند الارسال (سطر 404)
+### 4. حصص المستفيدين محسوبة بمعادلة غير دقيقة (#22)
+**الملف:** `AccountsBeneficiariesTable.tsx` سطر 69-71
 
-### الملف 2: `src/pages/dashboard/AdminDashboard.tsx`
-- نقل `formatArabicMonth` و `arabicMonths` خارج المكوّن (قبل سطر 22)
+الحالي يقسم على `totalBeneficiaryPercentage` مما يضخم الحصص اذا كان المجموع اقل من 100%.
 
-### الملف 3: `src/pages/beneficiary/WaqifDashboard.tsx`
-- نقل `formatArabicMonth` و كائن الاشهر خارج المكوّن (قبل سطر 28)
+**الإصلاح:** هذا السلوك **مقصود تصميميا** -- التوزيع النسبي يعني ان المبلغ الموزّع يُقسم بين المستفيدين الموجودين فقط. لكن سنضيف تنبيها واضحا اذا كان مجموع النسب لا يساوي 100%.
 
-### الملف 4: `src/pages/beneficiary/BeneficiaryDashboard.tsx`
-- تغليف `currentBeneficiary` بـ `useMemo`
+### 5. `percentage: 0` في PDF التقارير المالية (#23)
+**الملف:** `FinancialReportsPage.tsx` سطر 109
+
+**الإصلاح:** تغيير `percentage: 0` الى `percentage: Number(b.share_percentage)`
+
+### 6. اشعار الدخل يكشف مبالغ تشغيلية (#25)
+**الملف:** `useIncome.ts` سطر 19-26
+
+**الإصلاح:** تحويل الاشعار لنص عام بدون المبلغ: `"تم تسجيل دخل جديد"` بدون تفاصيل المبلغ.
+
+### 7. مصروفات كل العقارات تُطرح من عقار واحد (#26)
+**الملف:** `PropertiesViewPage.tsx` سطر 93
+
+**الإصلاح:** فلترة المصروفات حسب `property_id` للعقار المحدد بدلا من جمع الكل.
+
+### 8. نوع `contract` مفقود من `typeConfig` (#30)
+**الملف:** `NotificationsPage.tsx` سطر 19-24
+
+**الإصلاح:** اضافة `contract: { label: 'عقود', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' }`
 
 ---
 
-## الخلاصة
+## المشاكل البسيطة (7)
 
-من اصل 26 مشكلة في التقرير: **21 تم اصلاحها بالفعل او ليست مشاكل حقيقية**، و**3 تحسينات بسيطة متبقية** (لا تؤثر على صحة البيانات، فقط اداء وتوافق مع لوحات المفاتيح العربية). المشروع جاهز للنشر بعد هذه التحسينات الثلاثة.
+### 9. الناظر لا يرى تذاكر الدعم (#29)
+**الملف:** `MessagesPage.tsx` سطر 20
 
+**الإصلاح:** ازالة فلتر `'chat'` من `useConversations()` ليرى الناظر جميع انواع المحادثات، مع اضافة تبويبات او مؤشر للنوع.
+
+### 10. `AccountsViewPage` يعرض `netAfterVat` كبطاقة رئيسية (#33)
+**الملف:** `AccountsViewPage.tsx` سطر 162-165
+
+**الإصلاح:** تغيير البطاقة لتعرض `netAfterZakat` بعنوان "الصافي بعد الزكاة".
+
+### 11. `BetaBanner` يقسم الكلاسات بطريقة هشة (#28)
+**الملف:** `BetaBanner.tsx` سطر 19
+
+**الإصلاح:** تعريف `BANNER_COLOR_CLASSES` ككائن يحتوي `bg` و `hover` منفصلين بدلا من سلسلة نصية واحدة.
+
+### 12. ترحيلات تُخصم دفعة واحدة (#24)
+**الملف:** `DistributeDialog.tsx`
+
+**الإصلاح:** اضافة تعليق توثيقي وعرض تفاصيل الخصومات للناظر في حوار التوزيع (سنة المصدر + المبلغ).
+
+### 13. `AccountsSummaryCards` لا يتلقى `netAfterZakat` (#27)
+**الملف:** `AccountsPage.tsx`
+
+**الإصلاح:** تمرير `netAfterZakat` كـ prop منفصل واستخدامه في البطاقات بدلا من الحساب الداخلي.
+
+### 14. `useAccountsPage` يجلب جميع العقود (#31)
+هذا تحسين اداء، لكن التغيير قد يكسر منطق التخصيص (`allocationMap`). سيُترك كملاحظة تحسينية مستقبلية لانه لا يؤثر على صحة البيانات.
+
+### 15. رسالة ترحيب الواقف الميتة (#14)
+**الملف:** `AdminDashboard.tsx`
+
+تم التحقق ان الكود المتعلق بالواقف ازيل في التحديث السابق. لا حاجة لاصلاح اضافي.
+
+---
+
+## ملخص الملفات المتأثرة
+
+| الملف | المشاكل |
+|-------|---------|
+| `BeneficiaryMessagesPage.tsx` | #18 |
+| `MessagesPage.tsx` | #18, #29 |
+| `AccountsViewPage.tsx` | #20, #33 |
+| `IncomePage.tsx` | #21 |
+| `AccountsBeneficiariesTable.tsx` | #22 |
+| `FinancialReportsPage.tsx` | #23 |
+| `useIncome.ts` | #25 |
+| `PropertiesViewPage.tsx` | #26 |
+| `NotificationsPage.tsx` | #30 |
+| `BetaBanner.tsx` | #28 |
+| `DistributeDialog.tsx` | #24 |
+| `AccountsPage.tsx` + `AccountsSummaryCards.tsx` | #27 |
+
+---
+
+## ترتيب التنفيذ
+
+1. **الحرجة اولا:** اتجاه الرسائل، PDF، fiscal_year_id
+2. **المتوسطة:** النسب، الاشعارات، المصروفات، typeConfig
+3. **البسيطة:** الباقي
+
+اجمالي التعديلات: ~12 ملف، ~50 سطر تغيير فعلي.
