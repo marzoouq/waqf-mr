@@ -13,9 +13,11 @@ interface AdvanceRequestDialogProps {
   estimatedShare: number;
   paidAdvances: number;
   carryforwardBalance?: number;
+  /** When true, the fiscal year is still active (shares not finalized) */
+  isFiscalYearActive?: boolean;
 }
 
-const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0 }: AdvanceRequestDialogProps) => {
+const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false }: AdvanceRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
@@ -44,7 +46,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" disabled={isFiscalYearActive}>
           <Banknote className="w-4 h-4" />
           طلب سلفة
         </Button>

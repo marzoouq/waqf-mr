@@ -104,11 +104,12 @@ const DEFAULT_ROLE_PERMS: Record<string, Record<string, boolean>> = {
   beneficiary: {
     properties: true, contracts: true, disclosure: true, share: true,
     reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
+    notifications: true,
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
     reports: true, accounts: true, bylaws: true,
-    share: false,
+    share: false, notifications: true,
   },
 };
 
@@ -146,11 +147,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     '/beneficiary/contracts': 'contracts',
     '/beneficiary/disclosure': 'disclosure',
     '/beneficiary/my-share': 'share',
+    '/beneficiary/carryforward': 'share',
     '/beneficiary/financial-reports': 'reports',
     '/beneficiary/accounts': 'accounts',
     '/beneficiary/invoices': 'invoices',
     '/beneficiary/bylaws': 'bylaws',
     '/beneficiary/messages': 'messages',
+    '/beneficiary/notifications': 'notifications',
   };
 
   // Routes accountant can never access

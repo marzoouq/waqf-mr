@@ -100,11 +100,14 @@ export const useComputedFinancials = ({
         };
       }
 
+      // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
+      const storedNetAfterVat = Number(currentAccount.net_after_vat);
+      const storedZakat = Number(currentAccount.zakat_amount || 0);
       return {
         grandTotal,
         netAfterExpenses: Number(currentAccount.net_after_expenses),
-        netAfterVat: Number(currentAccount.net_after_vat),
-        netAfterZakat: Number(currentAccount.net_after_vat) - zakatAmount,
+        netAfterVat: storedNetAfterVat,
+        netAfterZakat: storedNetAfterVat - storedZakat,
         shareBase: totalIncome - totalExpenses - zakatAmount,
         adminShare: Number(currentAccount.admin_share),
         waqifShare: Number(currentAccount.waqif_share),
