@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   children: ReactNode;
@@ -24,6 +25,19 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught:', error, errorInfo);
+
+    // H-10 fix: report to server via logAccessEvent RPC
+    try {
+      supabase.rpc('log_access_event', {
+        p_event_type: 'client_error',
+        p_target_path: typeof window !== 'undefined' ? window.location.pathname : null,
+        p_metadata: {
+          error_name: error.name,
+          error_message: error.message,
+          component_stack: errorInfo.componentStack?.slice(0, 500),
+        },
+      }).then(() => { /* reported */ }, () => { /* silent */ });
+    } catch { /* silent — don't break the error boundary */ }
   }
 
   handleReset = () => {

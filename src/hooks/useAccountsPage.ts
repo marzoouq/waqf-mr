@@ -80,9 +80,11 @@ export function useAccountsPage() {
   }, [allContracts, fiscalYearId, fiscalYears]);
 
   const contracts = useMemo(() => {
-    if (!fiscalYearId || fiscalYearId === 'all') return allContracts;
+    // H-02 fix: exclude cancelled contracts from financial calculations
+    const activeContracts = allContracts.filter(c => c.status !== 'cancelled');
+    if (!fiscalYearId || fiscalYearId === 'all') return activeContracts;
     // Include contracts that have dynamic allocations for this FY OR are directly assigned to it
-    return allContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocationMap.has(c.id));
+    return activeContracts.filter(c => c.fiscal_year_id === fiscalYearId || allocationMap.has(c.id));
   }, [allContracts, fiscalYearId, allocationMap]);
 
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId);
