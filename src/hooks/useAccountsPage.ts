@@ -265,6 +265,7 @@ export function useAccountsPage() {
   // Delete confirmation
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string; name: string } | null>(null);
 
+  // K-07 fix: include allocationMap & fiscalYears in deps so collectionData refreshes with getExpectedPayments
   const collectionData = useMemo(() => contracts.map((contract, index) => {
     const paymentInfo = paymentMap[contract.id];
     const expectedPayments = getExpectedPayments(contract);
@@ -283,7 +284,8 @@ export function useAccountsPage() {
       status: arrears <= 0 ? 'مكتمل' : 'متأخر',
       notes: paymentInfo?.notes || '',
     };
-  }), [contracts, paymentMap]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [contracts, paymentMap, allocationMap]);
 
   const totalCollectedAll = collectionData.reduce((sum, d) => sum + d.totalCollected, 0);
   const totalArrearsAll = collectionData.reduce((sum, d) => sum + d.arrears, 0);
