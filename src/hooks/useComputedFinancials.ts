@@ -87,7 +87,8 @@ export const useComputedFinancials = ({
 
       // BUG-02 fix: when year is not closed, compute from live data instead of stale account values
       if (!isClosed) {
-        const liveNetAfterExpenses = totalIncome - totalExpenses;
+        // G1 fix: netAfterExpenses يجب أن يشمل waqfCorpusPrevious لتتناسق مع grandTotal
+        const liveNetAfterExpenses = grandTotal - totalExpenses;
         const liveNetAfterVat = liveNetAfterExpenses - vatAmount;
         const liveNetAfterZakat = liveNetAfterVat - zakatAmount;
         return {

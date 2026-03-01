@@ -144,13 +144,15 @@ const ReportsPage = () => {
     { totalUnits: 0, annualRent: 0, totalExpenses: 0, netIncome: 0 }
   );
 
+  // G4: إضافة فحص حالة السنة — الحصص = 0 في السنوات النشطة فلا يُقارن
+  const isYearClosed = fiscalYear?.status === 'closed';
   const auditChecks = [
     { key: 'account', ok: !!currentAccount },
     { key: 'incomeData', ok: income.length > 0 },
     { key: 'expenseData', ok: expenses.length > 0 },
     { key: 'contractsData', ok: contracts.length > 0 },
     { key: 'distributionConsistency', ok: availableAmount >= distributionsAmount },
-    { key: 'shareConsistency', ok: Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 },
+    { key: 'shareConsistency', ok: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 },
   ];
 
   const issuesFound = auditChecks.filter(c => !c.ok).length;

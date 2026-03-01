@@ -43,7 +43,8 @@ const DistributeDialog = ({
   const { data: paidAdvances = [] } = useQuery({
     queryKey: ['advance_requests', 'paid_all', fiscalYearId],
     queryFn: async () => {
-      let query = (supabase as any)
+      // G2 fix: إزالة as any واستخدام النوع الصحيح
+      let query = supabase
         .from('advance_requests')
         .select('beneficiary_id, amount')
         .eq('status', 'paid');
@@ -60,7 +61,8 @@ const DistributeDialog = ({
   const { data: activeCarryforwards = [] } = useQuery({
     queryKey: ['advance_carryforward', 'active_for_distribution', fiscalYearId],
     queryFn: async () => {
-      let query = (supabase as any)
+      // G2 fix: إزالة as any واستخدام النوع الصحيح
+      let query = supabase
         .from('advance_carryforward')
         .select('beneficiary_id, amount')
         .eq('status', 'active');
@@ -131,6 +133,11 @@ const DistributeDialog = ({
       const net = Math.max(0, Math.round(rawNet * 100) / 100);
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
+      // G3 fix: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
+      const afterAdvances = Math.max(0, shareAmount - advances);
+      const actualCarryforward = Math.min(carryforward, afterAdvances);
+      const actualDeficit = (carryforward > afterAdvances) ? (carryforward - afterAdvances) : 0;
+
       return {
         beneficiary_id: b.id,
         beneficiary_name: b.name,
@@ -138,9 +145,9 @@ const DistributeDialog = ({
         share_percentage: b.share_percentage,
         share_amount: shareAmount,
         advances_paid: advances,
-        carryforward_deducted: Math.min(carryforward, shareAmount - advances > 0 ? Math.round((shareAmount - advances) * 100) / 100 : 0),
+        carryforward_deducted: Math.round(actualCarryforward * 100) / 100,
         net_amount: net,
-        deficit,
+        deficit: Math.round((deficit + actualDeficit) * 100) / 100,
       };
     });
   }, [beneficiaries, availableAmount, advancesByBeneficiary, carryforwardByBeneficiary]);
@@ -199,7 +206,7 @@ const DistributeDialog = ({
                   </TableCell>
                   <TableCell>
                     {d.carryforward_deducted > 0 ? (
-                      <Badge variant="outline" className="text-orange-600">-{d.carryforward_deducted.toLocaleString()}</Badge>
+                      <Badge variant="outline" className="text-warning">-{d.carryforward_deducted.toLocaleString()}</Badge>
                     ) : '—'}
                   </TableCell>
                   <TableCell>
@@ -233,7 +240,7 @@ const DistributeDialog = ({
             </div>
           )}
           {totalCarryforward > 0 && (
-            <div className="flex justify-between text-orange-600">
+            <div className="flex justify-between text-warning">
               <span>إجمالي المرحّل المخصوم (من سنوات سابقة)</span>
               <span className="font-bold">-{totalCarryforward.toLocaleString()} ر.س</span>
             </div>
