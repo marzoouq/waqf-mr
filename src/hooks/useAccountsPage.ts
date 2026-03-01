@@ -3,7 +3,7 @@
  * Extracted from AccountsPage.tsx for modularity
  */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContracts, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
@@ -16,6 +16,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import { computeTotals, calculateFinancials, groupIncomeBySource, groupExpensesByType } from '@/utils/accountsCalculations';
 import { notifyAllBeneficiaries } from '@/utils/notifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -35,6 +36,7 @@ export function findAccountByFY<T extends { fiscal_year_id?: string | null; fisc
 }
 
 export function useAccountsPage() {
+  const { role } = useAuth();
   const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
   const { data: allContracts = [] } = useContracts();
@@ -44,6 +46,7 @@ export function useAccountsPage() {
   const { data: properties = [] } = useProperties();
   const appSettings = useAppSettings();
   const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
   const deleteAccount = useDeleteAccount();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
@@ -320,9 +323,24 @@ export function useAccountsPage() {
 
   const handleCloseYear = async () => {
     if (!selectedFY || selectedFY.status === 'closed') return;
+    if (role !== 'admin') {
+      toast.error('فقط الناظر يمكنه إقفال السنة المالية');
+      return;
+    }
     setIsClosingYear(true);
     try {
-      await createAccount.mutateAsync(buildAccountData());
+      // التحقق من عدم وجود حساب ختامي مكرر لنفس السنة
+      const { data: existingAccount } = await supabase
+        .from('accounts')
+        .select('id')
+        .eq('fiscal_year_id', selectedFY.id)
+        .maybeSingle();
+      if (existingAccount) {
+        // تحديث الحساب الموجود بدلاً من إنشاء مكرر
+        await updateAccount.mutateAsync({ id: existingAccount.id, ...buildAccountData() });
+      } else {
+        await createAccount.mutateAsync(buildAccountData());
+      }
 
       const { error: closeErr } = await supabase
         .from('fiscal_years')
@@ -350,7 +368,7 @@ export function useAccountsPage() {
       if (!nextFYId) {
         const { data: newFY, error: createErr } = await supabase
           .from('fiscal_years')
-          .insert({ label: nextLabel, start_date: nextStartDate, end_date: nextEndDate, status: 'active' })
+          .insert({ label: nextLabel, start_date: nextStartDate, end_date: nextEndDate, status: 'active', published: false })
           .select('id')
           .single();
         if (createErr) throw createErr;

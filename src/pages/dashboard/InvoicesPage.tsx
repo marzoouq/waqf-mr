@@ -29,7 +29,6 @@ import {
 const InvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const activeFYId = fiscalYear?.status === 'active' ? fiscalYear.id : undefined;
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading } = useInvoicesByFiscalYear(fiscalYearId);
