@@ -108,9 +108,9 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
  * يُخصم من أقرب توزيع مستقبلي بغض النظر عن مصدره.
  * المعامل fiscalYearId يُستخدم فقط في queryKey لإعادة الجلب عند تغيير السنة.
  */
-export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
+export const useCarryforwardBalance = (beneficiaryId?: string, _fiscalYearId?: string) => {
   return useQuery({
-    queryKey: ['advance_carryforward', beneficiaryId, fiscalYearId],
+    queryKey: ['advance_carryforward', 'balance', beneficiaryId],
     staleTime: 60_000,
     queryFn: async () => {
       if (!beneficiaryId) return 0;

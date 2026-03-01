@@ -192,7 +192,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <SelectItem value="paid">مسددة ({summary.paid})</SelectItem>
           </SelectContent>
         </Select>
-        {!isClosed && (
+        {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
           <Button variant="outline" size="sm" className="gap-2" onClick={() => generateAll.mutate()} disabled={generateAll.isPending}>
             <Zap className="w-4 h-4" />
             {generateAll.isPending ? 'جاري التوليد...' : 'توليد فواتير جميع العقود'}
