@@ -3,14 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useAdvanceRequests, useUpdateAdvanceStatus } from '@/hooks/useAdvanceRequests';
+import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock } from 'lucide-react';
 
-const statusMap: Record<string, { label: string; color: string; icon: any }> = {
+const statusMap: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'قيد المراجعة', color: 'bg-warning/20 text-warning', icon: Clock },
   approved: { label: 'معتمد', color: 'bg-blue-500/20 text-blue-600', icon: CheckCircle },
   paid: { label: 'مصروف', color: 'bg-success/20 text-success', icon: Banknote },
@@ -19,31 +18,38 @@ const statusMap: Record<string, { label: string; color: string; icon: any }> = {
 
 const AdvanceRequestsTab = () => {
   const { fiscalYearId } = useFiscalYear();
-  const { data: requests = [], isLoading } = useAdvanceRequests(fiscalYearId);
+  // M-05 fix: لا تمرر 'all' كـ UUID — حوّلها إلى undefined
+  const fyId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : undefined;
+  const { data: requests = [], isLoading } = useAdvanceRequests(fyId);
   const updateStatus = useUpdateAdvanceStatus();
   
   const [rejectionReason, setRejectionReason] = useState('');
-
   const [rejectTarget, setRejectTarget] = useState<{ id: string; userId?: string; amount?: number } | null>(null);
 
-  const handleApprove = (req: any) => updateStatus.mutate({
+  // M-07 fix: استخدام AdvanceRequest بدل any
+  const handleApprove = (req: AdvanceRequest) => updateStatus.mutate({
     id: req.id, status: 'approved',
-    beneficiary_user_id: req.beneficiary?.user_id, amount: req.amount,
-  } as any);
+    beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
+  });
 
-  const handlePaid = (req: any) => updateStatus.mutate({
+  const handlePaid = (req: AdvanceRequest) => updateStatus.mutate({
     id: req.id, status: 'paid',
-    beneficiary_user_id: req.beneficiary?.user_id, amount: req.amount,
-  } as any);
+    beneficiary_user_id: req.beneficiary?.user_id ?? undefined, amount: req.amount,
+  });
 
-  const handleReject = () => {
+  // M-03 fix: استخدام mutateAsync مع await — الـ dialog يبقى مفتوحاً عند الفشل
+  const handleReject = async () => {
     if (!rejectTarget) return;
-    updateStatus.mutate({
-      id: rejectTarget.id, status: 'rejected', rejection_reason: rejectionReason,
-      beneficiary_user_id: rejectTarget.userId, amount: rejectTarget.amount,
-    } as any);
-    setRejectTarget(null);
-    setRejectionReason('');
+    try {
+      await updateStatus.mutateAsync({
+        id: rejectTarget.id, status: 'rejected', rejection_reason: rejectionReason,
+        beneficiary_user_id: rejectTarget.userId, amount: rejectTarget.amount,
+      });
+      setRejectTarget(null);
+      setRejectionReason('');
+    } catch {
+      // Toast يظهر من onError — الـ dialog يبقى مفتوحاً للمحاولة مرة أخرى
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -124,7 +130,7 @@ const AdvanceRequestsTab = () => {
           <Textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="سبب الرفض..." />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectTarget(null)}>إلغاء</Button>
-            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim()}>تأكيد الرفض</Button>
+            <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim() || updateStatus.isPending}>تأكيد الرفض</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
