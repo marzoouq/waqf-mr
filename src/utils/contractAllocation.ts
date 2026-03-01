@@ -44,14 +44,18 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
     // Monthly or multi: payments due each period after start
     for (let i = 0; i < paymentCount; i++) {
       const due = new Date(start);
-      if (contract.payment_type === 'monthly') {
-        due.setMonth(due.getMonth() + i + 1);
-      } else {
-        // Multi-payment: evenly spaced
-        const totalDays = daysBetween(start, new Date(contract.end_date));
-        const interval = totalDays / paymentCount;
-        due.setDate(due.getDate() + Math.round(interval * (i + 1)));
-      }
+    if (contract.payment_type === 'monthly') {
+      due.setMonth(due.getMonth() + i + 1);
+    } else if (contract.payment_type === 'quarterly') {
+      due.setMonth(due.getMonth() + (i + 1) * 3);
+    } else if (contract.payment_type === 'semi_annual') {
+      due.setMonth(due.getMonth() + (i + 1) * 6);
+    } else {
+      // Multi-payment: evenly spaced
+      const totalDays = daysBetween(start, new Date(contract.end_date));
+      const interval = totalDays / paymentCount;
+      due.setDate(due.getDate() + Math.round(interval * (i + 1)));
+    }
       dates.push(toISODate(due));
     }
   }
