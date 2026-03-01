@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import type { AppRole } from '@/types/database';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
-import ExportMenu from '@/components/ExportMenu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -30,12 +28,15 @@ const BeneficiaryDashboard = () => {
     fyReady ? fiscalYear?.label : undefined,
     { fiscalYearStatus: fiscalYear?.status },
   );
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+
+  // ── Derived financials (computed only when data is valid) ──
+  const currentBeneficiary = benError ? undefined : beneficiaries.find(b => b.user_id === user?.id);
   const safeAvailable = Number(availableAmount) || 0;
   const beneficiariesShare = safeAvailable;
   const myShare = currentBeneficiary ? (safeAvailable * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
 
-  const isLoading = authLoading || benLoading || fyLoading || (!fyReady ? false : finLoading);
+  // ── Include notifLoading to prevent FOUC ──
+  const isLoading = authLoading || benLoading || fyLoading || notifLoading || (!fyReady ? false : finLoading);
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -58,8 +59,10 @@ const BeneficiaryDashboard = () => {
   const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
   /* ── Fiscal year progress ── */
+  const isClosed = fiscalYear?.status === 'closed';
   const fyProgress = (() => {
     if (!fiscalYear) return { percent: 0, daysLeft: 0 };
+    if (isClosed) return { percent: 100, daysLeft: 0 };
     const start = new Date(fiscalYear.start_date).getTime();
     const end = new Date(fiscalYear.end_date).getTime();
     const total = end - start;
@@ -80,9 +83,18 @@ const BeneficiaryDashboard = () => {
   const fetchDistributions = useCallback(() => {
     const id = beneficiaryIdRef.current;
     if (!id) return;
-    supabase.from('distributions').select('*').eq('beneficiary_id', id)
-      .order('date', { ascending: false }).limit(3)
-      .then(({ data }) => { if (data) setDistributions(data); });
+    supabase.from('distributions')
+      .select('id, amount, date, status')
+      .eq('beneficiary_id', id)
+      .order('date', { ascending: false })
+      .limit(3)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to fetch distributions:', error.message);
+          return;
+        }
+        if (data) setDistributions(data);
+      });
   }, []);
 
   useEffect(() => {
@@ -118,6 +130,7 @@ const BeneficiaryDashboard = () => {
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
 
+  // ── Error guard (after all hooks, before render) ──
   if (benError) {
     return (
       <DashboardLayout>
@@ -144,7 +157,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : 'مستفيد')}</h1>
                 </div>
               </div>
             </CardContent>
@@ -174,7 +187,7 @@ const BeneficiaryDashboard = () => {
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
-                    {currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : role === 'admin' ? 'الناظر' : 'مستفيد')}
+                    {currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : 'مستفيد')}
                   </h1>
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
                 </div>
@@ -189,11 +202,6 @@ const BeneficiaryDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* ExportMenu only — fiscal year selector is in DashboardLayout top bar */}
-        <div className="flex items-center justify-end gap-2">
-          <ExportMenu hidePdf />
-        </div>
-
         {/* ═══ Stats row ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* My share amount */}
@@ -205,7 +213,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">حصتي من الريع</p>
-                  {fiscalYear?.status !== 'closed' ? (
+                  {!isClosed ? (
                     <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
                   ) : (
                     <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
@@ -224,7 +232,7 @@ const BeneficiaryDashboard = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">إجمالي ريع الوقف</p>
-                  {fiscalYear?.status !== 'closed' ? (
+                  {!isClosed ? (
                     <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
                   ) : (
                     <p className="text-lg sm:text-xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
@@ -244,13 +252,15 @@ const BeneficiaryDashboard = () => {
               <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${fyProgress.percent}%` }} />
               </div>
-              <p className="text-[11px] text-muted-foreground text-center">متبقي {fyProgress.daysLeft} يوم</p>
+              <p className="text-[11px] text-muted-foreground text-center">
+                {isClosed ? 'مُقفلة' : `متبقي ${fyProgress.daysLeft} يوم`}
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* ═══ Unclosed year notice ═══ */}
-        {fiscalYear && fiscalYear.status !== 'closed' && (
+        {fiscalYear && !isClosed && (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/5 text-sm text-muted-foreground">
             <AlertCircle className="w-4 h-4 text-warning shrink-0" />
             <span>الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية.</span>
