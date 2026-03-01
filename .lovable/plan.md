@@ -1,122 +1,98 @@
 
-# خطة إصلاح المشاكل المتبقية (18-33)
 
-بعد فحص الكود الفعلي، تبيّن أن المشكلة #19 (زر إقفال السنة) **تم إصلاحها بالفعل** في التحديث السابق (سطر 45: `role === 'admin' &&`). المتبقي 15 مشكلة حقيقية تحتاج إصلاح.
+# خطة إصلاح المشاكل الجديدة المكتشفة
 
----
-
-## المشاكل الحرجة (3)
-
-### 1. اتجاه الرسائل معكوس في RTL (#18)
-**الملفات:** `BeneficiaryMessagesPage.tsx` سطر 173 + `MessagesPage.tsx` سطر 135
-
-الحالي: `isMe ? 'justify-start' : 'justify-end'` -- عكس المطلوب في واجهة عربية.
-
-**الإصلاح:** قلب الاتجاه: `isMe ? 'justify-end' : 'justify-start'`
-
-### 2. PDF الحسابات يُرسل `netAfterVat` بدلاً من `netAfterZakat` (#20)
-**الملف:** `AccountsViewPage.tsx` سطر 117
-
-**الإصلاح:** تغيير `netRevenue: netAfterVat` الى `netRevenue: netAfterZakat` (المتغير متاح من `useFinancialSummary`)
-
-### 3. دخل يُنشأ بدون `fiscal_year_id` على سنة مغلقة (#21 + #32)
-**الملف:** `IncomePage.tsx` سطر 59
-
-**الإصلاح:** ربط `fiscal_year_id` بالسنة المختارة دائما (نشطة او مقفلة)، مع الاعتماد على حماية `disabled={isClosed}` الموجودة فعلا على الازرار لمنع الاضافة على سنة مقفلة. تغيير الشرط من `activeFYId` الى `fiscalYear?.id`.
+بعد فحص الكود الفعلي، تبين أن عدة مشاكل من التقرير تم إصلاحها بالفعل في الجولات السابقة (اتجاه الرسائل، نوع contract في الإشعارات، فلتر المحادثات، زر الإقفال). المتبقي 8 مشاكل حقيقية تحتاج إصلاح.
 
 ---
 
-## المشاكل المتوسطة (5)
+## المشاكل الحرجة (2)
 
-### 4. حصص المستفيدين محسوبة بمعادلة غير دقيقة (#22)
-**الملف:** `AccountsBeneficiariesTable.tsx` سطر 69-71
+### 1. المحاسب يستطيع إقفال السنة عبر API مباشرة (ثغرة RLS)
+**الملف:** قاعدة البيانات - سياسة RLS على جدول `fiscal_years`
 
-الحالي يقسم على `totalBeneficiaryPercentage` مما يضخم الحصص اذا كان المجموع اقل من 100%.
+السياسة الحالية `"Accountants can manage fiscal_years"` تستخدم `FOR ALL` مما يمنح المحاسب صلاحية UPDATE (تغيير status الى closed). الواجهة تمنعه لكن API call مباشر يسمح بذلك.
 
-**الإصلاح:** هذا السلوك **مقصود تصميميا** -- التوزيع النسبي يعني ان المبلغ الموزّع يُقسم بين المستفيدين الموجودين فقط. لكن سنضيف تنبيها واضحا اذا كان مجموع النسب لا يساوي 100%.
+**الإصلاح:** تعديل سياسة RLS للمحاسب على `fiscal_years` لتقييدها بـ SELECT و INSERT فقط (بدون UPDATE/DELETE). اضافة سياسات منفصلة:
+- `SELECT`: المحاسب يمكنه عرض السنوات
+- `INSERT`: المحاسب يمكنه انشاء سنوات (اذا مسموح)
+- `UPDATE/DELETE`: الناظر فقط
 
-### 5. `percentage: 0` في PDF التقارير المالية (#23)
-**الملف:** `FinancialReportsPage.tsx` سطر 109
+### 2. PDF الفواتير لا يدعم حالة 'overdue'
+**الملف:** `src/utils/pdf/invoices.ts` سطر 27-33
 
-**الإصلاح:** تغيير `percentage: 0` الى `percentage: Number(b.share_percentage)`
+دالة `statusLabel` تعالج `paid`, `pending`, `cancelled` فقط. حالة `overdue` تظهر بالانجليزية في وثيقة PDF عربية.
 
-### 6. اشعار الدخل يكشف مبالغ تشغيلية (#25)
-**الملف:** `useIncome.ts` سطر 19-26
-
-**الإصلاح:** تحويل الاشعار لنص عام بدون المبلغ: `"تم تسجيل دخل جديد"` بدون تفاصيل المبلغ.
-
-### 7. مصروفات كل العقارات تُطرح من عقار واحد (#26)
-**الملف:** `PropertiesViewPage.tsx` سطر 93
-
-**الإصلاح:** فلترة المصروفات حسب `property_id` للعقار المحدد بدلا من جمع الكل.
-
-### 8. نوع `contract` مفقود من `typeConfig` (#30)
-**الملف:** `NotificationsPage.tsx` سطر 19-24
-
-**الإصلاح:** اضافة `contract: { label: 'عقود', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' }`
+**الإصلاح:** اضافة `case 'overdue': return 'متأخرة';` في switch statement.
 
 ---
 
-## المشاكل البسيطة (7)
+## المشاكل المتوسطة (3)
 
-### 9. الناظر لا يرى تذاكر الدعم (#29)
-**الملف:** `MessagesPage.tsx` سطر 20
+### 3. NotificationBell يعرض اشعارات غير مفلترة
+**الملف:** `src/components/NotificationBell.tsx` سطر 27
 
-**الإصلاح:** ازالة فلتر `'chat'` من `useConversations()` ليرى الناظر جميع انواع المحادثات، مع اضافة تبويبات او مؤشر للنوع.
+يستخدم `data: notifications` و `unreadCount` (غير مفلتر) بينما `NotificationsPage` يستخدم `filteredData` و `filteredUnreadCount`.
 
-### 10. `AccountsViewPage` يعرض `netAfterVat` كبطاقة رئيسية (#33)
-**الملف:** `AccountsViewPage.tsx` سطر 162-165
+**الإصلاح:** تغيير السطر 27 لاستخدام:
+```
+const { filteredData: notifications, filteredUnreadCount: unreadCount, ... } = useNotifications();
+```
+مع الابقاء على `data` فقط لحساب `readCount` (للحذف).
 
-**الإصلاح:** تغيير البطاقة لتعرض `netAfterZakat` بعنوان "الصافي بعد الزكاة".
+### 4. صفحة التسجيل لا توضح ان الحساب سيكون "مستفيد"
+**الملف:** `src/pages/Auth.tsx`
 
-### 11. `BetaBanner` يقسم الكلاسات بطريقة هشة (#28)
-**الملف:** `BetaBanner.tsx` سطر 19
+عند التسجيل العام، لا توجد رسالة توضح ان الحساب سيُنشأ بدور "مستفيد" ويحتاج تفعيل من الناظر.
 
-**الإصلاح:** تعريف `BANNER_COLOR_CLASSES` ككائن يحتوي `bg` و `hover` منفصلين بدلا من سلسلة نصية واحدة.
+**الإصلاح:** اضافة نص توضيحي اسفل نموذج التسجيل: "سيتم انشاء حسابك كمستفيد. يحتاج الحساب تفعيل من ناظر الوقف."
 
-### 12. ترحيلات تُخصم دفعة واحدة (#24)
-**الملف:** `DistributeDialog.tsx`
+### 5. المساعد الذكي يظهر لجميع الادوار
+**الملف:** `src/components/DashboardLayout.tsx`
 
-**الإصلاح:** اضافة تعليق توثيقي وعرض تفاصيل الخصومات للناظر في حوار التوزيع (سنة المصدر + المبلغ).
+المساعد الذكي ظاهر لكل المستخدمين. البيانات محمية عبر Edge Function (عزل البيانات حسب الدور موجود في `ai-assistant/index.ts`) لكن يُفضل تقييد الظهور.
 
-### 13. `AccountsSummaryCards` لا يتلقى `netAfterZakat` (#27)
-**الملف:** `AccountsPage.tsx`
-
-**الإصلاح:** تمرير `netAfterZakat` كـ prop منفصل واستخدامه في البطاقات بدلا من الحساب الداخلي.
-
-### 14. `useAccountsPage` يجلب جميع العقود (#31)
-هذا تحسين اداء، لكن التغيير قد يكسر منطق التخصيص (`allocationMap`). سيُترك كملاحظة تحسينية مستقبلية لانه لا يؤثر على صحة البيانات.
-
-### 15. رسالة ترحيب الواقف الميتة (#14)
-**الملف:** `AdminDashboard.tsx`
-
-تم التحقق ان الكود المتعلق بالواقف ازيل في التحديث السابق. لا حاجة لاصلاح اضافي.
+**الإصلاح:** التحقق من ان عزل البيانات في Edge Function يعمل بشكل صحيح (موجود بالفعل حسب memory). اضافة شرط دور في DashboardLayout لاظهار المساعد فقط لـ admin و accountant. المستفيد والواقف لا يرونه.
 
 ---
 
-## ملخص الملفات المتأثرة
+## المشاكل البسيطة (3)
 
-| الملف | المشاكل |
-|-------|---------|
-| `BeneficiaryMessagesPage.tsx` | #18 |
-| `MessagesPage.tsx` | #18, #29 |
-| `AccountsViewPage.tsx` | #20, #33 |
-| `IncomePage.tsx` | #21 |
-| `AccountsBeneficiariesTable.tsx` | #22 |
-| `FinancialReportsPage.tsx` | #23 |
-| `useIncome.ts` | #25 |
-| `PropertiesViewPage.tsx` | #26 |
-| `NotificationsPage.tsx` | #30 |
-| `BetaBanner.tsx` | #28 |
-| `DistributeDialog.tsx` | #24 |
-| `AccountsPage.tsx` + `AccountsSummaryCards.tsx` | #27 |
+### 6. تصحيح مسارات الوثائق
+**الملف:** `docs/BENEFICIARY-PAGES.md`
+
+- `/beneficiary/share` يجب ان يكون `/beneficiary/my-share`
+- `/beneficiary/reports` يجب ان يكون `/beneficiary/financial-reports`
+
+### 7. README.md لا يذكر دور المحاسب
+**الملف:** `README.md`
+
+**الإصلاح:** اضافة سطر المحاسب (accountant) في جدول الادوار.
+
+### 8. BylawsPage - تحذير اذا اللائحة غير منشورة
+**الملف:** `src/pages/dashboard/BylawsPage.tsx`
+
+**الإصلاح:** اضافة تحذير بسيط في اعلى الصفحة اذا كان `bylaws_published !== 'true'` ينبه الناظر ان اللائحة غير منشورة للمستفيدين.
+
+---
+
+## ملاحظات حول مشاكل تم التحقق من اصلاحها
+
+| المشكلة | الحالة |
+|---------|--------|
+| اتجاه الرسائل RTL | تم الاصلاح (justify-end لـ isMe) |
+| نوع contract في NotificationsPage | تم الاصلاح (سطر 24) |
+| فلتر chat في MessagesPage | تم الاصلاح (useConversations بدون فلتر) |
+| زر اقفال السنة للمحاسب | تم الاصلاح (role === 'admin') |
+| PropertyUnitsDialog التحقق من التواريخ | موجود بالفعل (سطر 169 يتحقق) |
 
 ---
 
 ## ترتيب التنفيذ
 
-1. **الحرجة اولا:** اتجاه الرسائل، PDF، fiscal_year_id
-2. **المتوسطة:** النسب، الاشعارات، المصروفات، typeConfig
-3. **البسيطة:** الباقي
+1. **اولا - الامني:** تعديل RLS للمحاسب على fiscal_years (migration)
+2. **ثانيا - الكود:** PDF overdue + NotificationBell + Auth message + AI restriction
+3. **ثالثا - الوثائق:** تصحيح المسارات + README + تحذير اللائحة
 
-اجمالي التعديلات: ~12 ملف، ~50 سطر تغيير فعلي.
+اجمالي: ~1 migration + ~7 ملفات كود + ~2 ملفات وثائق
+
