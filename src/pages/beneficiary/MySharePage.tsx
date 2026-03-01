@@ -60,7 +60,8 @@ const MySharePage = () => {
         .from('distributions')
         .select('*, account:accounts(*)')
         .eq('beneficiary_id', currentBeneficiary.id)
-        .order('date', { ascending: false });
+        .order('date', { ascending: false })
+        .limit(200); // O-04 fix: prevent unbounded query
 
       if (error) throw error;
       return data;
@@ -134,12 +135,12 @@ const MySharePage = () => {
       const totalDeductions = advances + carryforward;
       const rawNet = shareAmount - totalDeductions;
       const net = Math.max(0, rawNet);
-      const deficit = rawNet < 0 ? Math.abs(rawNet) : 0;
+      // O-01 fix: deficit is simply the negative portion of rawNet — no double counting (matching L-02 fix in DistributeDialog)
+      const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
       // F7: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
       const afterAdvances = Math.max(0, shareAmount - advances);
       const actualCarryforward = Math.min(carryforward, afterAdvances);
-      const actualDeficit = carryforward > afterAdvances ? carryforward - afterAdvances : 0;
 
       await generateDistributionsPDF({
         fiscalYearLabel: selectedFY?.label || '',
@@ -149,9 +150,9 @@ const MySharePage = () => {
           share_percentage: currentBeneficiary.share_percentage,
           share_amount: shareAmount,
           advances_paid: advances,
-          carryforward_deducted: actualCarryforward,
+          carryforward_deducted: Math.round(actualCarryforward * 100) / 100,
           net_amount: net,
-          deficit: deficit + actualDeficit,
+          deficit,
         }],
       }, pdfWaqfInfo);
       toast.success('تم تحميل تقرير التوزيعات بنجاح');

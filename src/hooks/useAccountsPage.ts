@@ -67,7 +67,7 @@ export function useAccountsPage() {
           rent_amount: Number(c.rent_amount),
           payment_type: c.payment_type,
           payment_count: c.payment_count,
-          payment_amount: c.payment_amount ? Number(c.payment_amount) : undefined,
+          payment_amount: c.payment_amount != null ? Number(c.payment_amount) : undefined, // O-02 fix: respect payment_amount=0
         },
         fiscalYears
       );
