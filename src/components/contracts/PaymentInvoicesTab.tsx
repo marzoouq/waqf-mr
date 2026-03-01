@@ -47,17 +47,18 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const pending = invoices.filter(i => i.status === 'pending').length;
     const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
     const totalAmount = invoices.reduce((s, i) => s + Number(i.amount || 0), 0);
-    const paidAmount = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.paid_amount || i.amount || 0), 0);
+    const paidAmount = invoices.filter(i => i.status === 'paid' || i.status === 'partially_paid').reduce((s, i) => s + Number(i.paid_amount || (i.status === 'paid' ? i.amount : 0) || 0), 0);
     const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.amount || 0), 0);
     const collectionRate = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
-    return { total, paid, overdue, pending, totalAmount, paidAmount, overdueAmount, collectionRate };
+    return { total, paid, overdue, pending, partiallyPaid, totalAmount, paidAmount, overdueAmount, collectionRate };
   }, [invoices]);
 
   const filtered = useMemo(() => {
     let result = invoices;
     if (filter === 'paid') result = result.filter(i => i.status === 'paid');
     else if (filter === 'overdue') result = result.filter(i => i.status === 'overdue');
-    else if (filter === 'pending') result = result.filter(i => i.status === 'pending' || i.status === 'partially_paid');
+    else if (filter === 'pending') result = result.filter(i => i.status === 'pending');
+    else if (filter === 'partially_paid') result = result.filter(i => i.status === 'partially_paid');
 
     if (search) {
       const q = search.toLowerCase();
@@ -190,6 +191,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <SelectItem value="pending">قيد الانتظار ({summary.pending})</SelectItem>
             <SelectItem value="overdue">متأخرة ({summary.overdue})</SelectItem>
             <SelectItem value="paid">مسددة ({summary.paid})</SelectItem>
+            {summary.partiallyPaid > 0 && (
+              <SelectItem value="partially_paid">مسددة جزئياً ({summary.partiallyPaid})</SelectItem>
+            )}
           </SelectContent>
         </Select>
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
