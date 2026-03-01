@@ -26,7 +26,7 @@ interface PaymentInvoicesTabProps {
   isClosed: boolean;
 }
 
-type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue';
+type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
 
 export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentInvoicesTabProps) {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
@@ -45,6 +45,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const paid = invoices.filter(i => i.status === 'paid').length;
     const overdue = invoices.filter(i => i.status === 'overdue').length;
     const pending = invoices.filter(i => i.status === 'pending').length;
+    const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
     const totalAmount = invoices.reduce((s, i) => s + Number(i.amount || 0), 0);
     const paidAmount = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.paid_amount || i.amount || 0), 0);
     const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.amount || 0), 0);
@@ -56,7 +57,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     let result = invoices;
     if (filter === 'paid') result = result.filter(i => i.status === 'paid');
     else if (filter === 'overdue') result = result.filter(i => i.status === 'overdue');
-    else if (filter === 'pending') result = result.filter(i => i.status === 'pending');
+    else if (filter === 'pending') result = result.filter(i => i.status === 'pending' || i.status === 'partially_paid');
 
     if (search) {
       const q = search.toLowerCase();

@@ -104,7 +104,7 @@ const FinancialReportsPage = () => {
         netRevenue: netAfterZakat,
         adminShare,
         waqifShare,
-        waqfRevenue: beneficiariesShare,
+        waqfRevenue,
         expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: beneficiaries.map(b => ({
@@ -120,6 +120,17 @@ const FinancialReportsPage = () => {
       toast.error('حدث خطأ أثناء تصدير PDF');
     }
   };
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
+          <NoPublishedYearsNotice />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (isError) {
     return (
@@ -137,17 +148,6 @@ const FinancialReportsPage = () => {
 
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
-  }
-
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">التقارير المالية</h1>
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
   }
 
   return (

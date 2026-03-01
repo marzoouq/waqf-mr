@@ -295,7 +295,7 @@ const MySharePage = () => {
           <div className="flex items-center gap-2 shrink-0">
             {currentBeneficiary && (
               <AdvanceRequestDialog
-                beneficiaryId={currentBeneficiary.id}
+                beneficiaryId={currentBeneficiary?.id || ''}
                 fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
                 estimatedShare={myShare}
                 paidAdvances={paidAdvancesTotal}
