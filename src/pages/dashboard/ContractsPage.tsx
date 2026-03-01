@@ -134,9 +134,15 @@ const ContractsPage = () => {
       return;
     }
 
-    // Get active fiscal year
-    const { data: activeFY } = await supabase
-      .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+    // Use selected fiscal year from context, fallback to active FY
+    const contextFYId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : null;
+    let activeFYId = contextFYId;
+    if (!activeFYId) {
+      const { data: activeFY } = await supabase
+        .from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
+      activeFYId = activeFY?.id || null;
+    }
+    const activeFY = activeFYId ? { id: activeFYId } : null;
 
     const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 

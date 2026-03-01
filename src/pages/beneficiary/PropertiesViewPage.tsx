@@ -350,10 +350,12 @@ const PropertiesViewPage = () => {
                       </div>
                     )}
 
-                    <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
-                      <DoorOpen className="w-3.5 h-3.5" />
-                      <span>اضغط لعرض الوحدات ({propertyUnits.length})</span>
-                    </div>
+                    {propertyUnits.length > 0 && (
+                      <div className="border-t pt-2 mt-1 flex items-center gap-2 text-xs text-primary">
+                        <DoorOpen className="w-3.5 h-3.5" />
+                        <span>اضغط لعرض الوحدات ({propertyUnits.length})</span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
