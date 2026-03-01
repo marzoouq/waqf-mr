@@ -1,88 +1,63 @@
 
 
-# خطة إصلاح — لوحة التحكم وصفحة العقود (6 إصلاحات مؤكدة)
+# خطة إصلاح الأخطاء المتبقية (3 نقاط)
 
-## نتيجة التحقق
-
-بعد فحص الكود سطراً بسطر:
-
-| # | الوصف | الحكم |
-|---|-------|-------|
-| 1 | نص حوار التجديد الجماعي "من اليوم لمدة سنة" بينما الكود يبدأ من `oldEnd` | مؤكد - تضليل في الواجهة |
-| 2 | بطاقتا حصة الناظر والواقف تعرضان "0 ر.س (بعد الإقفال)" في السنة النشطة | مؤكد - UX مربك |
-| 3 | `collectionSummary` في AdminDashboard لا يراعي `end_date` العقد | مؤكد - نفس BUG-17 المُصلح في WaqifDashboard |
-| 4 | `collectionRate` في KPI قد يتجاوز 100% | مؤكد - نفس BUG-16 |
-| 5 | `.env` غير موجود في `.gitignore` | غير مشكلة: ملف مُدار تلقائياً من Lovable Cloud يحتوي مفاتيح عامة فقط |
-| 6 | `net_after_zakat` غير محفوظ في قاعدة البيانات | تصميم مقصود: يُحسب ديناميكياً من `net_after_vat - zakat_amount` |
-| 7 | `payment_type` تعارض بين الصفحات | مؤكد - `ContractsPage` لا يدعم `quarterly`/`semi_annual` |
-| 8 | BUG-08 (`waqfRevenue = netAfterZakat`) | تم إصلاحه بالفعل (سطر 94: `waqfRevenue: 0`) |
+## نظرة عامة
+بقي خطأان لم يُصلحا + ملاحظة UX جانبية من تصفير القيم في السنوات غير المغلقة.
 
 ---
 
-## الإصلاحات المطلوبة
+## 1. BUG-21 — منع استعلام الفواتير عند عدم وجود سنوات منشورة
 
-### 1. تصحيح نص حوار التجديد الجماعي
-**الملف:** `src/pages/dashboard/ContractsPage.tsx` سطر 518
+**الملف:** `src/pages/beneficiary/InvoicesViewPage.tsx` سطر 26
 
-تغيير النص من:
-`"سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ جديدة (من اليوم لمدة سنة)"`
-الى:
-`"سيتم إنشاء عقود جديدة بنفس البيانات مع تواريخ تبدأ من تاريخ انتهاء العقد السابق وبنفس المدة"`
+**التغيير:** نقل فحص `noPublishedYears` قبل `isError`، واضافة شرط لمنع الاستعلام غير الضروري.
 
-### 2. تحسين عرض بطاقات الحصص في السنة النشطة
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطور 101-103
+لا يمكن اضافة `enabled` مباشرة لأن `useInvoicesByFiscalYear` هو hook مشترك يُستخدم في 4 صفحات. الحل الأنظف: عند `noPublishedYears`، تمرير `fiscalYearId = '__none__'` بدلاً من القيمة الفعلية — الـ hook يحتوي بالفعل على `enabled: fiscalYearId !== '__none__'` مما يمنع تنفيذ الاستعلام.
 
-عند `isYearActive = true`:
-- تغيير القيمة المعروضة من `"0 ر.س"` الى `"تُحسب عند الإقفال"`
-- ابقاء البطاقات ظاهرة لكن بأسلوب مختلف (نص توضيحي بدل رقم صفر)
-
-### 3. اضافة clamp بـ `end_date` لحساب `expectedPayments` في AdminDashboard
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطور 60-74
-
-نفس الاصلاح المُطبَّق على `WaqifDashboard`:
-- استخدام `Math.min(now, endDate)` بدلاً من `now` في حساب `differenceInMonths`
-- هذا يمنع اعتبار العقود القديمة "متأخرة" بعد انتهائها
-
-### 4. تقييد `collectionRate` في KPI عند 100%
-**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطر 168
-
-تغيير:
-`Math.round((totalIncome / contractualRevenue) * 100)`
-الى:
-`Math.min(100, Math.round((totalIncome / contractualRevenue) * 100))`
-
-### 5. توحيد منطق `paymentCount` بين الصفحات
-**الملف:** `src/pages/dashboard/ContractsPage.tsx` سطور 56, 121, 220
-
-اضافة دعم `quarterly` و `semi_annual` في حساب `paymentCount`:
 ```text
-monthly = 12
-quarterly = 4
-semi_annual = 2
-annual = 1
-multi = payment_count
+قبل: useInvoicesByFiscalYear(fiscalYearId)
+بعد: useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId)
 ```
 
-هذا يُطبَّق في 3 مواضع:
-- `handlePayment` (سطر 56)
-- `handleFormSubmit` (سطر 121)
-- `handleBulkRenew` (سطر 220)
+بالإضافة لنقل فحص `noPublishedYears` ليكون قبل `isError` في ترتيب الـ early returns.
 
-### 6. توحيد `getPaymentTypeLabel` ليشمل الأنواع الجديدة
-**الملف:** `src/pages/dashboard/ContractsPage.tsx` سطر 256
+---
 
-اضافة:
-- `quarterly` = "ربعي"
-- `semi_annual` = "نصف سنوي"
+## 2. BUG-13 — تصفية السنوات المنشورة فقط في CarryforwardHistoryPage
+
+**الملف:** `src/pages/beneficiary/CarryforwardHistoryPage.tsx`
+
+**التغيير:** اضافة `.eq('published', true)` لاستعلام `fiscal_years` وتحديث `queryKey` ليعكس الفلتر.
+
+```text
+قبل: .select('id, label').order(...)
+بعد: .select('id, label').eq('published', true).order(...)
+
+queryKey: ['fiscal_years_published_all']
+```
+
+رغم ان RLS يحمي البيانات المالية، الا ان اسماء السنوات المسودة (labels) لا يجب ان تظهر للمستفيد.
+
+---
+
+## 3. ملاحظة BUG-08 — تحسين UX عند السنوات غير المغلقة
+
+**الملف:** `src/pages/beneficiary/BeneficiaryDashboard.tsx`
+
+عند `waqfRevenue = 0` و `availableAmount = 0` في السنة غير المغلقة، البطاقات المالية تعرض أصفار بلا تفسير. الحل: اضافة شريط تنبيه خفيف اسفل البطاقات عندما تكون السنة المختارة غير مقفلة، يقول: "الأرقام النهائية (حصص الريع والتوزيعات) ستتوفر بعد إقفال السنة المالية".
+
+يتطلب فحص حالة السنة المالية الحالية — يمكن الحصول عليها من `useFiscalYear` context أو من `useFinancialSummary`.
 
 ---
 
 ## ملخص الملفات المتأثرة
 
-| الملف | عدد التعديلات |
-|-------|--------------|
-| `src/pages/dashboard/AdminDashboard.tsx` | 3 |
-| `src/pages/dashboard/ContractsPage.tsx` | 4 |
+| الملف | التعديل |
+|-------|---------|
+| `src/pages/beneficiary/InvoicesViewPage.tsx` | تمرير `'__none__'` عند `noPublishedYears` + اعادة ترتيب early returns |
+| `src/pages/beneficiary/CarryforwardHistoryPage.tsx` | اضافة `.eq('published', true)` + تحديث queryKey |
+| `src/pages/beneficiary/BeneficiaryDashboard.tsx` | اضافة شريط تنبيه للسنوات غير المقفلة |
 
-**الإجمالي:** 2 ملف، 7 تعديل
+**الإجمالي:** 3 ملفات، 3 تعديلات
 
