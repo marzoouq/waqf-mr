@@ -50,9 +50,24 @@ export const loadArabicFont = async (doc: jsPDF) => {
   }
 };
 
+// M-06 fix: validate logoUrl before fetching — only allow relative paths or same-origin URLs
+const isValidLogoUrl = (url: string): boolean => {
+  if (url.startsWith('/')) return true; // relative path
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.origin === window.location.origin;
+  } catch {
+    return false;
+  }
+};
+
 // Load logo as base64 data URL for embedding in PDF
 export const loadLogoBase64 = async (url: string): Promise<string | null> => {
   try {
+    if (!isValidLogoUrl(url)) {
+      logger.warn('Blocked external logo URL in PDF generation:', url);
+      return null;
+    }
     const res = await fetch(url);
     if (!res.ok) return null;
     const blob = await res.blob();

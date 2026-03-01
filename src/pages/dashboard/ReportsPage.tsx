@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +90,8 @@ const ReportsPage = () => {
 
   // ─── Property Performance Data ──────────────────────────────────────
   const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
-  const propertyPerformance = properties.map((property) => {
+  // M-11 fix: memoize property performance to avoid recomputation on every render
+  const propertyPerformance = useMemo(() => properties.map((property) => {
     const propertyUnits = allUnits.filter(u => u.property_id === property.id);
     const totalUnitsCount = propertyUnits.length;
 
@@ -134,9 +136,9 @@ const ReportsPage = () => {
       totalExpenses: totalPropExpenses,
       netIncome,
     };
-  }).sort((a, b) => b.netIncome - a.netIncome);
+  }).sort((a, b) => b.netIncome - a.netIncome), [properties, allUnits, contracts, expenses, isSpecificYear]);
 
-  const perfTotals = propertyPerformance.reduce(
+  const perfTotals = useMemo(() => propertyPerformance.reduce(
     (acc, p) => ({
       totalUnits: acc.totalUnits + p.totalUnits,
       annualRent: acc.annualRent + p.annualRent,
@@ -144,7 +146,7 @@ const ReportsPage = () => {
       netIncome: acc.netIncome + p.netIncome,
     }),
     { totalUnits: 0, annualRent: 0, totalExpenses: 0, netIncome: 0 }
-  );
+  ), [propertyPerformance]);
 
   // G4: إضافة فحص حالة السنة — الحصص = 0 في السنوات النشطة فلا يُقارن
   const isYearClosed = fiscalYear?.status === 'closed';

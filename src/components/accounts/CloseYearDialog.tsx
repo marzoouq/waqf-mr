@@ -10,15 +10,44 @@ interface CloseYearDialogProps {
   isClosing: boolean;
   fyLabel?: string;
   waqfCorpusManual: number;
+  /** M-01: financial summary data for confirmation display */
+  totalIncome?: number;
+  totalExpenses?: number;
+  netAfterExpenses?: number;
+  availableAmount?: number;
+  distributionsAmount?: number;
 }
 
-const CloseYearDialog = ({ open, onOpenChange, onConfirm, isClosing, fyLabel, waqfCorpusManual }: CloseYearDialogProps) => (
+const SummaryRow = ({ label, value, className }: { label: string; value: number; className?: string }) => (
+  <li className="flex justify-between text-sm">
+    <span>{label}</span>
+    <span className={className || 'font-medium'}>{value.toLocaleString()} ر.س</span>
+  </li>
+);
+
+const CloseYearDialog = ({
+  open, onOpenChange, onConfirm, isClosing, fyLabel, waqfCorpusManual,
+  totalIncome = 0, totalExpenses = 0, netAfterExpenses = 0,
+  availableAmount = 0, distributionsAmount = 0,
+}: CloseYearDialogProps) => (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>تأكيد إقفال السنة المالية</AlertDialogTitle>
         <AlertDialogDescription asChild>
-          <div className="space-y-2 text-sm text-muted-foreground">
+          <div className="space-y-3 text-sm text-muted-foreground">
+            {/* M-01: Financial summary before confirmation */}
+            {(totalIncome > 0 || totalExpenses > 0) && (
+              <ul className="space-y-1.5 rounded-md border p-3 bg-muted/30">
+                <SummaryRow label="إجمالي الدخل" value={totalIncome} className="font-medium text-success" />
+                <SummaryRow label="إجمالي المصروفات" value={totalExpenses} className="font-medium text-destructive" />
+                <SummaryRow label="صافي بعد المصروفات" value={netAfterExpenses} />
+                <SummaryRow label="المتاح للتوزيع" value={availableAmount} className="font-medium text-primary" />
+                {distributionsAmount > 0 && (
+                  <SummaryRow label="الموزَّع فعلياً" value={distributionsAmount} />
+                )}
+              </ul>
+            )}
             <p>سيتم تنفيذ الخطوات التالية عند تأكيد الإقفال:</p>
             <ul className="list-disc list-inside space-y-1 mr-2">
               <li>حفظ الحساب الختامي النهائي وأرشفة جميع البيانات للسنة <strong className="text-foreground">{fyLabel}</strong></li>
