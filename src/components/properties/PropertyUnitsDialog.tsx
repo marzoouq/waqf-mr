@@ -355,6 +355,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         unit_number: u.unit_number, unit_type: u.unit_type, status: u.status,
                         tenant_name: tenant?.name || null, start_date: tenant?.start_date || null, end_date: tenant?.end_date || null,
                         rent_amount: tenant?.rent_amount || null, paid_months: tenant ? getPaymentInfo(tenant.contract_id) : 0,
+                        payment_type: tenant?.payment_type, payment_count: tenant?.payment_count,
                       };
                     });
                     generateUnitsPDF(property.property_number, property.location, pdfRows, pdfWaqfInfo);

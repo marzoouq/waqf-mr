@@ -240,4 +240,6 @@ export interface UnitPdfRow {
   end_date: string | null;
   rent_amount: number | null;
   paid_months: number;
+  payment_type?: string;
+  payment_count?: number;
 }

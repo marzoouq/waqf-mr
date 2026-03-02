@@ -48,7 +48,7 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
       due.setMonth(due.getMonth() + i + 1);
     } else if (contract.payment_type === 'quarterly') {
       due.setMonth(due.getMonth() + (i + 1) * 3);
-    } else if (contract.payment_type === 'semi_annual') {
+    } else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') {
       due.setMonth(due.getMonth() + (i + 1) * 6);
     } else {
       // Multi-payment: evenly spaced
@@ -132,7 +132,7 @@ function getPaymentCount(contract: ContractInfo): number {
   const months = monthsBetween(new Date(contract.start_date), new Date(contract.end_date));
   if (contract.payment_type === 'monthly') return Math.max(1, months);
   if (contract.payment_type === 'quarterly') return Math.max(1, Math.ceil(months / 3));
-  if (contract.payment_type === 'semi_annual') return Math.max(1, Math.ceil(months / 6));
+  if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') return Math.max(1, Math.ceil(months / 6));
   if (contract.payment_type === 'annual') return Math.max(1, Math.ceil(months / 12));
   return contract.payment_count || 1;
 }

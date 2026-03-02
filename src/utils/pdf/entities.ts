@@ -160,7 +160,7 @@ export const generateUnitsPDF = async (
       u.end_date || '-',
       u.rent_amount ? `${monthly.toLocaleString()}` : '-',
       u.rent_amount ? `${annual.toLocaleString()}` : '-',
-      u.tenant_name ? `${u.paid_months}/12` : '-',
+      u.tenant_name ? `${u.paid_months}/${u.payment_type === 'monthly' ? 12 : u.payment_type === 'quarterly' ? 4 : (u.payment_type === 'semi_annual' || u.payment_type === 'semi-annual') ? 2 : u.payment_type === 'annual' ? 1 : u.payment_count || 12}` : '-',
     ];
   });
 
