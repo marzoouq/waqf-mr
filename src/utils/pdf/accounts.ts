@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 /* ───── تقرير توزيع الحصص ───── */
 export const generateDistributionsPDF = async (data: {
@@ -57,7 +58,7 @@ export const generateDistributionsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 80) + 10;
+  let y = getLastAutoTableY(doc, 80) + 10;
 
   // جدول التوزيع التفصيلي
   doc.setFont(fontFamily, 'bold');
@@ -157,7 +158,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90) + 10;
+  let y = getLastAutoTableY(doc, 90) + 10;
 
   // Income
   doc.setFont(fontFamily, 'bold');
@@ -174,7 +175,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 140) + 10;
+  y = getLastAutoTableY(doc, 140) + 10;
 
   // Expenses
   doc.setFont(fontFamily, 'bold');
@@ -190,7 +191,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 190) + 10;
+  y = getLastAutoTableY(doc, 190) + 10;
 
   // Distribution - Full hierarchical sequence
   const corpusPrev = data.waqfCorpusPrevious || 0;
@@ -241,7 +242,7 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 240) + 10;
+  y = getLastAutoTableY(doc, 240) + 10;
 
   // Beneficiaries
   const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);

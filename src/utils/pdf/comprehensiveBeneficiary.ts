@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;
@@ -45,8 +46,7 @@ export interface ComprehensiveBeneficiaryData {
   }>;
 }
 
-const getLastAutoTableY = (doc: jsPDF): number =>
-  ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90);
+// Use centralized getLastAutoTableY from pdfHelpers
 
 const ensureSpace = (doc: jsPDF, needed: number, fontFamily: string, waqfInfo?: PdfWaqfInfo): number => {
   const pageH = doc.internal.pageSize.height;

@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addFooter, addHeaderToAllPages,
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 export interface ForensicAuditCategory {
   category: string;
@@ -134,7 +135,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
     },
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 40)) + 10;
+  y = getLastAutoTableY(doc, y + 40) + 10;
 
   // ─── Security Findings Table ───
   if (y > 220) {
@@ -177,7 +178,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
     },
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 40)) + 12;
+  y = getLastAutoTableY(doc, y + 40) + 12;
 
   // ─── Digital Signature Section ───
   if (y > 230) {

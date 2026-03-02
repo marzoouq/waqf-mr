@@ -10,7 +10,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useAllUnits } from '@/hooks/useUnits';
-import { useTenantPayments } from '@/hooks/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import DashboardLayout from '@/components/DashboardLayout';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
@@ -23,7 +23,7 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { differenceInMonths } from 'date-fns';
+// differenceInMonths no longer needed — collection uses payment_invoices
 
 const ARABIC_MONTHS: Record<string, string> = {
   '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
@@ -48,7 +48,7 @@ const WaqifDashboard = () => {
   const { data: contracts = [], isLoading: contLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allBeneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
   const { data: allUnits = [] } = useAllUnits();
-  const { data: tenantPayments = [] } = useTenantPayments();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
 
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
 
@@ -71,35 +71,21 @@ const WaqifDashboard = () => {
     ];
   }, [contractualRevenue, totalIncome, totalExpenses, allUnits, activeContracts.length]);
 
-  /* ── Collection summary ── */
+  /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
     let onTime = 0, late = 0;
     activeContracts.forEach(contract => {
-      const startDate = new Date(contract.start_date);
-      const endDate = new Date(contract.end_date);
-      const currentDate = new Date();
-      const effectiveEnd = currentDate < endDate ? currentDate : endDate;
-      const paymentType = contract.payment_type || 'annual';
-      let expectedPayments = 0;
-      if (paymentType === 'monthly') expectedPayments = Math.max(0, differenceInMonths(effectiveEnd, startDate));
-      else if (paymentType === 'quarterly') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 3));
-      else if (paymentType === 'semi_annual') expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 6));
-      else expectedPayments = Math.max(0, Math.floor(differenceInMonths(effectiveEnd, startDate) / 12));
-      // BUG-01 fix: skip contracts where no payment is yet due (same as AdminDashboard)
-      if (expectedPayments === 0) return;
-      const payment = tenantPayments.find(p => p.contract_id === contract.id);
-      const paidMonths = payment?.paid_months ?? 0;
-      // تحويل الأشهر المدفوعة إلى وحدات الدفع (نفس منطق AdminDashboard)
-      let paidInPaymentUnits = paidMonths;
-      if (paymentType === 'quarterly') paidInPaymentUnits = Math.floor(paidMonths / 3);
-      else if (paymentType === 'semi_annual') paidInPaymentUnits = Math.floor(paidMonths / 6);
-      else if (paymentType === 'annual') paidInPaymentUnits = Math.floor(paidMonths / 12);
-      if (paidInPaymentUnits >= expectedPayments) onTime++; else late++;
+      const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
+      if (contractInvoices.length === 0) return;
+      const dueInvoices = contractInvoices.filter(inv => new Date(inv.due_date) <= new Date());
+      if (dueInvoices.length === 0) return;
+      const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
+      if (paidCount >= dueInvoices.length) onTime++; else late++;
     });
     const total = onTime + late;
     const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
     return { onTime, late, total, percentage };
-  }, [activeContracts, tenantPayments]);
+  }, [activeContracts, paymentInvoices]);
 
   /* ── Monthly chart data ── */
   const monthlyData = useMemo(() => {

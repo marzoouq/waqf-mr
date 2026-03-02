@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 export interface YearComparisonPdfData {
   year1Label: string;
@@ -53,7 +54,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     ...baseTableStyles(f),
   });
 
-  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 88) + 12;
+  let y = getLastAutoTableY(doc, 88) + 12;
 
   // 2. Monthly comparison table
   doc.setFont(f, 'bold');
@@ -93,7 +94,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     columnStyles: { 0: { cellWidth: 22 } },
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 188) + 12;
+  y = getLastAutoTableY(doc, 188) + 12;
 
   // 3. Expenses by type - Year 1
   doc.setFont(f, 'bold');
@@ -116,7 +117,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       ...footStyles(TABLE_HEAD_RED, f),
       ...baseTableStyles(f),
     });
-    y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? (y + 38)) + 12;
+    y = getLastAutoTableY(doc, y + 38) + 12;
   }
 
   // 4. Expenses by type - Year 2

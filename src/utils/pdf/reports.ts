@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 interface ReportData {
   fiscalYear: string;
@@ -58,7 +59,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  const finalY = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 100;
+  const finalY = getLastAutoTableY(doc, 100);
 
   doc.setFontSize(14);
   doc.setFont(fontFamily, 'bold');
@@ -197,7 +198,7 @@ export const generateAnnualDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 138) + 12;
+  let y = getLastAutoTableY(doc, 138) + 12;
 
   // 2. Income by source
   doc.setFont(fontFamily, 'bold');
@@ -214,7 +215,7 @@ export const generateAnnualDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 188) + 12;
+  y = getLastAutoTableY(doc, 188) + 12;
 
   // 3. Expenses by type
   doc.setFont(fontFamily, 'bold');
@@ -230,7 +231,7 @@ export const generateAnnualDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 238) + 12;
+  y = getLastAutoTableY(doc, 238) + 12;
 
   // 4. Beneficiary distributions
   const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
