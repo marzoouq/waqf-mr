@@ -285,19 +285,33 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: "المستخدم غير موجود" }), { status: 400, headers: cors });
       }
 
+      // إنشاء الجلسة server-side مباشرة بدلاً من إرسال hashed_token للعميل
       const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email: userData.user.email,
       });
 
-      if (linkError || !linkData) {
+      if (linkError || !linkData?.properties?.hashed_token) {
         return new Response(JSON.stringify({ error: "فشل إنشاء جلسة" }), { status: 500, headers: cors });
       }
 
-      // إزالة email من الاستجابة — الـ client يحتاج token_hash فقط
+      // التحقق من الـ OTP server-side وإنشاء الجلسة
+      const { data: sessionData, error: sessionError } = await admin.auth.verifyOtp({
+        token_hash: linkData.properties.hashed_token,
+        type: "magiclink",
+      });
+
+      if (sessionError || !sessionData?.session) {
+        console.error("Server-side OTP verification failed");
+        return new Response(JSON.stringify({ error: "فشل إنشاء جلسة" }), { status: 500, headers: cors });
+      }
+
+      // إرسال الجلسة مباشرة — لا يتم كشف hashed_token للعميل أبداً
       return new Response(JSON.stringify({
         verified: true,
-        token_hash: linkData.properties.hashed_token,
+        access_token: sessionData.session.access_token,
+        refresh_token: sessionData.session.refresh_token,
+        expires_in: sessionData.session.expires_in,
       }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
