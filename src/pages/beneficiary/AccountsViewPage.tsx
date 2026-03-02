@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 const AccountsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -48,12 +49,10 @@ const AccountsViewPage = () => {
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
 
-  const myShare = currentBeneficiary
-    ? (totalBeneficiaryPercentage > 0
-        ? availableAmount * Number(currentBeneficiary.share_percentage) / totalBeneficiaryPercentage
-        : 0)
+  const myShare = currentBeneficiary && totalBenPct > 0
+    ? availableAmount * Number(currentBeneficiary.share_percentage) / totalBenPct
     : 0;
 
   if (noPublishedYears) {
@@ -170,16 +169,12 @@ const AccountsViewPage = () => {
                 <p className="text-sm sm:text-xl font-bold truncate">{netAfterZakat.toLocaleString()}</p>
               </div>
               <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصة الناظر</p>
-                <p className="text-sm sm:text-xl font-bold truncate">{adminShare.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-sm text-primary-foreground/90">الإجمالي القابل للتوزيع</p>
+                <p className="text-sm sm:text-xl font-bold truncate">{availableAmount.toLocaleString()}</p>
               </div>
-              <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصة الواقف</p>
-                <p className="text-sm sm:text-xl font-bold truncate">{waqifShare.toLocaleString()}</p>
-              </div>
-              <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg">
-                <p className="text-[10px] sm:text-sm text-primary-foreground/90">ريع الوقف</p>
-                <p className="text-sm sm:text-xl font-bold truncate">{waqfRevenue.toLocaleString()}</p>
+              <div className="text-center p-3 sm:p-4 bg-primary-foreground/10 rounded-lg col-span-2">
+                <p className="text-[10px] sm:text-sm text-primary-foreground/90">حصتي المستحقة</p>
+                <p className="text-sm sm:text-xl font-bold truncate">{myShare.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
