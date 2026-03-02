@@ -5,25 +5,7 @@ import { Save, RotateCcw, Shield } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-
-type RolePerms = Record<string, Record<string, boolean>>;
-
-const DEFAULT_PERMISSIONS: RolePerms = {
-  accountant: {
-    properties: true, contracts: true, income: true, expenses: true,
-    beneficiaries: true, reports: true, accounts: true, invoices: true,
-    bylaws: true, messages: true, audit_log: true,
-  },
-  beneficiary: {
-    properties: true, contracts: true, disclosure: true, share: true,
-    reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
-  },
-  waqif: {
-    properties: true, contracts: true, disclosure: false,
-    reports: true, accounts: true, bylaws: true,
-    notifications: true,
-  },
-};
+import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
 
 // All sections with labels and which roles can potentially have them
 const SECTIONS: { key: string; label: string; roles: string[] }[] = [
@@ -51,15 +33,15 @@ const ROLES = [
 
 const RolePermissionsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const saved = getJsonSetting<RolePerms>('role_permissions', DEFAULT_PERMISSIONS);
-  const [perms, setPerms] = useState<RolePerms>(DEFAULT_PERMISSIONS);
+  const saved = getJsonSetting<RolePerms>('role_permissions', DEFAULT_ROLE_PERMS);
+  const [perms, setPerms] = useState<RolePerms>(DEFAULT_ROLE_PERMS);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     // Merge saved with defaults to handle new sections
     const merged: RolePerms = {};
     for (const role of ROLES) {
-      merged[role.key] = { ...DEFAULT_PERMISSIONS[role.key], ...saved[role.key] };
+      merged[role.key] = { ...DEFAULT_ROLE_PERMS[role.key], ...saved[role.key] };
     }
     setPerms(merged);
   }, [saved]);
@@ -81,7 +63,7 @@ const RolePermissionsTab = () => {
   };
 
   const handleReset = () => {
-    setPerms(DEFAULT_PERMISSIONS);
+    setPerms(DEFAULT_ROLE_PERMS);
     toast.info('تم استعادة الإعدادات الافتراضية - اضغط حفظ للتطبيق');
   };
 

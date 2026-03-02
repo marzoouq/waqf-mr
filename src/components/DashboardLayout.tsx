@@ -26,6 +26,7 @@ import SidebarContent from '@/components/Sidebar';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 
 
 interface DashboardLayoutProps {
@@ -94,24 +95,6 @@ const SHOW_ALL_ROUTES = [
   '/dashboard/invoices',
   '/dashboard/audit-log',
 ];
-
-const DEFAULT_ROLE_PERMS: Record<string, Record<string, boolean>> = {
-  accountant: {
-    properties: true, contracts: true, income: true, expenses: true,
-    beneficiaries: true, reports: true, accounts: true, invoices: true,
-    bylaws: true, messages: true, audit_log: true,
-  },
-  beneficiary: {
-    properties: true, contracts: true, disclosure: true, share: true,
-    reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
-    notifications: true,
-  },
-  waqif: {
-    properties: true, contracts: true, disclosure: false,
-    reports: true, accounts: true, bylaws: true,
-    share: false, notifications: true,
-  },
-};
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
