@@ -17,6 +17,17 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    version: "2.5.0",
+    date: "٢ مارس ٢٠٢٦",
+    changes: [
+      { type: "fix", text: "إصلاح عرض البيانات الشخصية للمحاسب (الهوية/البنك) بدون تقنيع" },
+      { type: "fix", text: "إصلاح حساب السلف بمجموع النسب التناسبي بدل القسمة على 100" },
+      { type: "fix", text: "إصلاح تنبيهات التأخر للعقود المنتهية" },
+      { type: "feature", text: "نظام الفواتير: فلاتر النوع والحالة وعرض بطاقات للجوال" },
+      { type: "improvement", text: "تحديث شامل للتوثيق وإضافة النطاق المخصص waqf-wise.net" },
+    ],
+  },
+  {
     version: "2.4.0",
     date: "٢١ فبراير ٢٠٢٦",
     changes: [
