@@ -121,7 +121,7 @@ export const generateAccountsPDF = async (data: {
   beneficiaries: Array<{ name: string; share_percentage: number }>;
   vatAmount?: number;
   distributionsAmount?: number;
-  waqfCapital?: number;
+  waqfCorpusManual?: number;
   zakatAmount?: number;
   netAfterZakat?: number;
   waqfCorpusPrevious?: number;
@@ -201,7 +201,7 @@ export const generateAccountsPDF = async (data: {
   const netAfterVat = data.netAfterVat ?? (netAfterExp - (data.vatAmount || 0));
   const zakatAmt = data.zakatAmount || 0;
   const netAfterZakatVal = data.netAfterZakat || (netAfterVat - zakatAmt);
-  const avail = data.availableAmount ?? (data.waqfRevenue - (data.waqfCapital || 0));
+  const avail = data.availableAmount ?? (data.waqfRevenue - (data.waqfCorpusManual || 0));
   const remaining = data.remainingBalance ?? (avail - (data.distributionsAmount || 0));
 
   const distributionRows: string[][] = [];
@@ -225,7 +225,7 @@ export const generateAccountsPDF = async (data: {
     [`الباقي بعد حصة الناظر`, `${(netAfterZakatVal - data.adminShare).toLocaleString()}`],
     ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
     ['ريع الوقف (الإجمالي القابل للتوزيع)', data.waqfRevenue.toLocaleString()],
-    ['(-) رقبة الوقف للعام الحالي', `(${(data.waqfCapital || 0).toLocaleString()})`],
+    ['(-) رقبة الوقف للعام الحالي', `(${(data.waqfCorpusManual || 0).toLocaleString()})`],
     ['المبلغ المتاح', avail.toLocaleString()],
     ['(-) التوزيعات', `(${(data.distributionsAmount || 0).toLocaleString()})`],
     ['الرصيد المتبقي', remaining.toLocaleString()],
