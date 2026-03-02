@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     // ─── جلب البيانات الحقيقية من قاعدة البيانات ───
-    const dataContext = await fetchWaqfData(serviceClient, userRole, userData.user.id);
+    const dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
 
     // بناء system prompt حسب الدور
     const isAdmin = userRole === "admin" || userRole === "accountant";
@@ -308,7 +308,8 @@ async function fetchWaqfData(
 
     // 5. ملخص الدخل حسب المصدر (آخر سنة مالية)
     const activeFY = fiscalYears?.find(fy => fy.status === "active");
-    if (activeFY) {
+    // للمستفيد/الواقف: لا نعرض بيانات السنة غير المنشورة
+    if (activeFY && (isAdmin || activeFY.published)) {
       const { data: income } = await client
         .from("income")
         .select("source, amount, date")
