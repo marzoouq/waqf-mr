@@ -1,104 +1,27 @@
 
+# خطة إصلاح المشاكل — الحالة النهائية
 
-# خطة إصلاح المشاكل المكتشفة في تقرير التدقيق
+## ✅ جميع المهام مُكتملة
 
-## تحليل التقرير
+| المهمة | الحالة | ملاحظات |
+|--------|--------|---------|
+| 1. نقل تخصيصات العقود إلى RPC ذري | ✅ مُكتمل | `upsert_contract_allocations` RPC |
+| 2. إخفاء حصة الناظر/الواقف من WaqifDashboard | ✅ مُكتمل | التسلسل المالي يعرض دخل/مصروفات/قابل للتوزيع فقط |
+| 3. استخدام getSafeErrorMessage | ✅ مُكتمل | BeneficiarySettingsPage |
+| 4. تحقق رقم الهوية وIBAN | ✅ مُكتمل | validation + maxLength في BeneficiaryFormDialog |
+| 5. توحيد lastAutoTable typing | ✅ مُكتمل | `getLastAutoTableY` في pdfHelpers.ts |
+| 6. إصلاح عرض الخصومات في DisclosurePage | ✅ مُكتمل | فصل الخصومات الإدارية عن احتياطي رقبة الوقف |
 
-بعد مراجعة الكود والتحقق من كل نقطة، هنا تصنيف المشاكل وخطة الإصلاح:
+## إصلاحات إضافية من تقرير التدقيق
 
----
-
-## المهام المطلوبة (مرتبة حسب الأولوية)
-
-### المهمة 1: نقل تخصيصات العقود إلى RPC ذري (حرجة)
-
-**المشكلة رقم 1:** في `useContractAllocations.ts` يتم حذف التخصيصات القديمة ثم إدراج الجديدة بدون transaction. إذا نجح الحذف وفشل الإدراج تُفقد البيانات نهائياً.
-
-**الإصلاح:**
-- إنشاء دالة RPC `upsert_contract_allocations(p_contract_id uuid, p_allocations jsonb)` تنفذ الحذف والإدراج في transaction واحد
-- تحديث `useContractAllocations.ts` لاستدعاء الـ RPC بدل العمليتين المنفصلتين
-
----
-
-### المهمة 2: إخفاء حصة الناظر والواقف من WaqifDashboard
-
-**المشكلة رقم 5:** `WaqifDashboard.tsx` (سطر 251-252) يعرض حصة الناظر وحصة الواقف في التسلسل المالي. هذا يتعارض مع الإصلاحات السابقة لإخفاء هذه البيانات من واجهات المستفيدين.
-
-**الإصلاح:**
-- إزالة سطري "حصة الناظر" و"حصة الواقف" من التسلسل المالي في WaqifDashboard
-- استبدال بطاقة "ريع الوقف" (سطر 203) ببطاقة "القابل للتوزيع"
-- تحديث منطق التحصيل لاستخدام `payment_invoices` بدل `tenantPayments` القديم (المشكلة رقم 5)
-
----
-
-### المهمة 3: استخدام getSafeErrorMessage في BeneficiarySettingsPage
-
-**المشكلة رقم 7:** `err.message` يُعرض مباشرة للمستخدم مما قد يكشف رسائل Supabase الداخلية.
-
-**الإصلاح:**
-- استبدال `err?.message` بـ `getSafeErrorMessage(err)` في سطر 133
-- إزالة `catch (err: any)` واستبدالها بـ `catch (err: unknown)`
-
----
-
-### المهمة 4: إضافة تحقق من رقم الهوية وIBAN في BeneficiaryFormDialog
-
-**المشكلة رقم 4:** لا يوجد تحقق من صيغة رقم الهوية (10 أرقام) أو IBAN السعودي في واجهة المستخدم.
-
-**الإصلاح:**
-- إضافة `maxLength` و `pattern` لحقل رقم الهوية (10 أرقام)
-- إضافة تحقق من صيغة IBAN السعودي (SA + 22 رقم/حرف)
-- إضافة `maxLength` لجميع الحقول النصية (الاسم: 100، الملاحظات: 500)
-- عرض رسائل خطأ واضحة عند الإدخال الخاطئ
-
----
-
-### المهمة 5: توحيد `lastAutoTable` typing في ملفات PDF
-
-**المشكلة رقم 3:** استخدام `as any` و `as unknown as {...}` متكرر في 8 ملفات PDF.
-
-**الإصلاح:**
-- إنشاء type declaration واحد أو دالة مساعدة `getLastTableY(doc)` موحدة (موجودة بالفعل في `comprehensiveBeneficiary.ts` سطر 48)
-- توحيد جميع الملفات لاستخدام هذه الدالة بدل تكرار الـ casting
-- تحويل `as any` الوحيد في `paymentInvoice.ts` إلى نفس النمط
-
----
-
-### المهمة 6: إصلاح عرض "الخصومات الإدارية" في DisclosurePage
-
-**المشكلة رقم 13:** دمج `adminShare + waqifShare + waqfCorpusManual` تحت مسمى "خصومات إدارية وتشغيلية" مُضلل لأن رقبة الوقف ليست خصماً إدارياً.
-
-**الإصلاح:**
-- فصل الخصومات إلى سطرين: "خصومات إدارية" (`adminShare + waqifShare`) و"احتياطي رقبة الوقف" (`waqfCorpusManual`)
-- أو عرض المبلغ الإجمالي مع تسمية أدق: "خصومات إدارية واحتياطيات"
-
----
-
-## ملاحظات على النقاط الأخرى
-
-| المشكلة | الحالة | السبب |
-|---------|--------|-------|
-| رقم 2: enum بدون accountant | **ليست مشكلة** — الـ migrations تُطبق بالتسلسل، فـ accountant يُضاف قبل استخدامه |
-| رقم 6: `__skip__` في AdminDashboard | **منخفضة الأولوية** — حل عملي يعمل بشكل صحيح |
-| رقم 8: حد 500 رسالة | **منخفضة** — نادراً ما تصل المحادثات لهذا العدد في نظام وقف |
-| رقم 9: toast global state | **ليست مشكلة** — هذا نمط shadcn/ui الرسمي، ولا يوجد SSR |
-| رقم 10: ResetPassword | **منخفضة** — الـ fallback بالـ hash يغطي الحالة |
-| رقم 12: FiscalYearContext | **محمي بـ RLS** — البيانات لن تظهر حتى لو تم الوصول |
-| رقم 15: changelog ثابت | **تحسين مستقبلي** — لا يؤثر على الوظائف |
-| رقم 16: عدم وجود Zod | **تحسين مستقبلي** — التحقق اليدوي كافٍ حالياً |
-| رقم 17: waqif يذهب لـ /beneficiary | **مقصود** — الواقف يستخدم WaqifDashboard الذي يُعرض تحت `/beneficiary` مع فحص الدور |
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| SQL Migration جديد | دالة `upsert_contract_allocations` |
-| `useContractAllocations.ts` | استدعاء RPC بدل delete+insert |
-| `WaqifDashboard.tsx` | إخفاء حصص الناظر/الواقف + تحديث منطق التحصيل |
-| `BeneficiarySettingsPage.tsx` | استخدام `getSafeErrorMessage` |
-| `BeneficiaryFormDialog.tsx` | إضافة validation وmaxLength |
-| `paymentInvoice.ts` | توحيد lastAutoTable typing |
-| `DisclosurePage.tsx` | تحسين عرض الخصومات |
-
+| الإصلاح | الحالة |
+|---------|--------|
+| WebAuthn token_hash — إنشاء جلسة server-side | ✅ مُكتمل |
+| accounts RESTRICTIVE RLS policy | ✅ مُكتمل |
+| beneficiaries — إزالة وصول الواقف | ✅ مُكتمل |
+| PDF toast عند فشل الخطوط | ✅ مُكتمل |
+| WebAuthn isEnabled من DB | ✅ مُكتمل |
+| cron_check_late_payments حماية الدور | ✅ مُكتمل |
+| DEFAULT_ROLE_PERMS مركزي | ✅ مُكتمل |
+| FiscalYear type موحد | ✅ مُكتمل |
+| DATABASE.md محدث | ✅ مُكتمل |
