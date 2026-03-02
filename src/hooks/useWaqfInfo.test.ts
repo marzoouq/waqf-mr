@@ -1,15 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        data: [] as any[],
-        error: null,
-      })),
+      select: vi.fn(() => Promise.resolve({ data: [] as any[], error: null })),
     })),
   },
 }));
@@ -22,6 +19,10 @@ const createWrapper = () => {
     React.createElement(QueryClientProvider, { client: qc }, children);
 };
 
+beforeEach(() => {
+  vi.resetModules();
+});
+
 describe('useWaqfInfo', () => {
   it('returns waqf info from app settings', async () => {
     const mockData = [
@@ -30,14 +31,13 @@ describe('useWaqfInfo', () => {
       { key: 'waqf_admin', value: 'ناظر' },
     ];
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn(() => ({ data: mockData, error: null })),
+      select: vi.fn(() => Promise.resolve({ data: mockData, error: null })),
     } as any);
 
     const { useWaqfInfo } = await import('./useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
-    // Wait for query to settle
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -60,13 +60,13 @@ describe('useWaqfInfo', () => {
 
   it('returns empty strings when settings is empty', async () => {
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn(() => ({ data: [], error: null })),
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
     } as any);
 
     const { useWaqfInfo } = await import('./useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -77,15 +77,20 @@ describe('useWaqfInfo', () => {
   it('passes through error', async () => {
     const err = new Error('fail');
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn(() => ({ data: null, error: err })),
+      select: vi.fn(() => Promise.resolve({ data: null, error: err })),
     } as any);
 
-    const { useWaqfInfo } = await import('./useAppSettings');
-    const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
+    // Override retry to 0 so error surfaces immediately
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(QueryClientProvider, { client: qc }, children);
 
-    await vi.waitFor(() => {
+    const { useWaqfInfo } = await import('./useAppSettings');
+    const { result } = renderHook(() => useWaqfInfo(), { wrapper });
+
+    await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-    });
+    }, { timeout: 5000 });
 
     expect(result.current.error).toBeTruthy();
   });
