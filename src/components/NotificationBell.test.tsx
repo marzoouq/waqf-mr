@@ -13,7 +13,9 @@ const baseMock = {
 vi.mock('@/hooks/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     data: [],
+    filteredData: [],
     unreadCount: 0,
+    filteredUnreadCount: 0,
     ...baseMock,
   })),
   TONE_OPTIONS: [
@@ -51,19 +53,19 @@ describe('NotificationBell', () => {
   });
 
   it('shows unread count badge', () => {
-    mockedUseNotifications.mockReturnValue({ data: [], unreadCount: 5, ...baseMock } as any);
+    mockedUseNotifications.mockReturnValue({ data: [], filteredData: [], unreadCount: 5, filteredUnreadCount: 5, ...baseMock } as any);
     renderBell();
     expect(screen.getByText('5')).toBeInTheDocument();
   });
 
   it('shows 9+ when unread count exceeds 9', () => {
-    mockedUseNotifications.mockReturnValue({ data: [], unreadCount: 15, ...baseMock } as any);
+    mockedUseNotifications.mockReturnValue({ data: [], filteredData: [], unreadCount: 15, filteredUnreadCount: 15, ...baseMock } as any);
     renderBell();
     expect(screen.getByText('9+')).toBeInTheDocument();
   });
 
   it('shows empty message when popover opened with no notifications', async () => {
-    mockedUseNotifications.mockReturnValue({ data: [], unreadCount: 0, ...baseMock } as any);
+    mockedUseNotifications.mockReturnValue({ data: [], filteredData: [], unreadCount: 0, filteredUnreadCount: 0, ...baseMock } as any);
     renderBell();
     fireEvent.click(screen.getByRole('button'));
     expect(await screen.findByText('لا توجد إشعارات')).toBeInTheDocument();

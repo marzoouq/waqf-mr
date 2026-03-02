@@ -31,6 +31,7 @@ describe('AccountsBeneficiariesTable', () => {
         beneficiaries={beneficiaries}
         manualDistributions={10000}
         totalBeneficiaryPercentage={100}
+        availableAmount={10000}
       />,
     );
     expect(screen.getByText('أحمد')).toBeInTheDocument();
@@ -39,7 +40,6 @@ describe('AccountsBeneficiariesTable', () => {
 
   it('handles zero totalBeneficiaryPercentage without division error', () => {
     const beneficiaries = makeBeneficiaries(3);
-    // Should NOT throw — division by zero protection
     expect(() =>
       render(
         <AccountsBeneficiariesTable
@@ -68,6 +68,7 @@ describe('AccountsBeneficiariesTable', () => {
         beneficiaries={beneficiaries}
         manualDistributions={distributions}
         totalBeneficiaryPercentage={totalPct}
+        availableAmount={distributions}
       />,
     );
 
@@ -88,7 +89,7 @@ describe('AccountsBeneficiariesTable', () => {
     expect(screen.getByText('12,345 ريال')).toBeInTheDocument();
   });
 
-  it('formats share_percentage to 6 decimal places', () => {
+  it('formats share_percentage to 2 decimal places', () => {
     const beneficiaries = [
       { id: 'b1', name: 'فهد', share_percentage: 7.142857 },
     ];
