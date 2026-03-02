@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { supabase } from '@/integrations/supabase/client';
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import DashboardLayout from '@/components/DashboardLayout';
 import { toast } from 'sonner';
 import { User, Lock, Bell, Eye, EyeOff, Loader2, Shield, Palette, AlertCircle, RefreshCw, Volume2, Play } from 'lucide-react';
@@ -129,8 +130,8 @@ const BeneficiarySettingsPage = () => {
       toast.success('تم تغيير كلمة المرور بنجاح');
       setPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      toast.error(err?.message || 'حدث خطأ أثناء تغيير كلمة المرور');
+    } catch (err: unknown) {
+      toast.error(getSafeErrorMessage(err));
     } finally {
       setPasswordLoading(false);
     }

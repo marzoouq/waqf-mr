@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 export interface PaymentInvoicePdfData {
   invoiceNumber: string;
@@ -82,7 +83,7 @@ export const generatePaymentInvoicePDF = async (
   });
 
   // ملاحظة أسفل الجدول
-  const finalY = (doc as any).lastAutoTable?.finalY || startY + 120;
+  const finalY = getLastAutoTableY(doc, startY + 120);
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);

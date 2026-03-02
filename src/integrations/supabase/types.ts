@@ -1352,6 +1352,10 @@ export type Database = {
         Args: { p_invoice_id: string }
         Returns: Json
       }
+      upsert_contract_allocations: {
+        Args: { p_allocations: Json; p_contract_id: string }
+        Returns: undefined
+      }
       upsert_tenant_payment: {
         Args: {
           p_contract_id: string
