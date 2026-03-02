@@ -3,8 +3,10 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
-const mockSelect = vi.fn();
-const mockRpc = vi.fn();
+const { mockSelect, mockRpc } = vi.hoisted(() => ({
+  mockSelect: vi.fn(),
+  mockRpc: vi.fn(),
+}));
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
