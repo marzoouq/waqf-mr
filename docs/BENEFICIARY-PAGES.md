@@ -41,9 +41,10 @@
 
 ### حساب حصة المستفيد الفردي
 ```
-حصة المستفيد = (ريع الوقف ─ استقطاع رقبة الوقف) × نسبة حصته ÷ 100
-             = availableAmount × share_percentage / 100
+حصة المستفيد = (ريع الوقف ─ استقطاع رقبة الوقف) × نسبة حصته ÷ مجموع النسب
+             = availableAmount × share_percentage / totalBeneficiaryPercentage
 ```
+> **ملاحظة:** يُستخدم `totalBeneficiaryPercentage` (مجموع نسب جميع المستفيدين) بدلاً من 100 لضمان التوزيع التناسبي الصحيح حتى لو لم يبلغ المجموع 100%.
 
 ### قواعد التوزيع الشرعية
 - **الزوجات** مجتمعات: الثُمن (1/8 = 12.5%)
@@ -79,9 +80,9 @@
 // جلب بيانات المستفيد الحالي
 const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
-// حساب حصته من المبلغ القابل للتوزيع
+// حساب حصته من المبلغ القابل للتوزيع (تناسبي)
 const myShare = currentBeneficiary 
-  ? availableAmount * (currentBeneficiary.share_percentage / 100) 
+  ? availableAmount * (currentBeneficiary.share_percentage / totalBeneficiaryPercentage) 
   : 0;
 ```
 

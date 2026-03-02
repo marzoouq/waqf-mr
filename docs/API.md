@@ -1,6 +1,6 @@
 <div dir="rtl">
 
-# توثيق الوظائف الخلفية (Edge Functions) — 8 وظائف
+# توثيق الوظائف الخلفية (Edge Functions) — 9 وظائف
 
 جميع الوظائف تعمل على Lovable Cloud وتُستدعى عبر:
 ```typescript
@@ -221,6 +221,63 @@ const { data } = await supabase.functions.invoke('generate-invoice-pdf', {
 });
 // الاستجابة: ملف PDF (binary)
 ```
+
+---
+
+## 8. `webauthn` — المصادقة البيومترية
+
+**الوصف**: وظيفة للتسجيل والتحقق عبر WebAuthn (بصمة الإصبع / Face ID). تدير التحديات (`challenges`) وبيانات الاعتماد (`credentials`).
+
+**المصادقة**: يتطلب JWT صالح.
+
+### العمليات المتاحة:
+
+#### `register-options` — خيارات التسجيل
+```typescript
+const { data } = await supabase.functions.invoke('webauthn', {
+  body: { action: 'register-options' }
+});
+// الاستجابة: { challenge, rp, user, pubKeyCredParams, ... }
+```
+
+#### `register-verify` — التحقق من التسجيل
+```typescript
+const { data } = await supabase.functions.invoke('webauthn', {
+  body: { action: 'register-verify', credential: { ... }, deviceName: 'هاتفي' }
+});
+```
+
+#### `authenticate-options` — خيارات المصادقة
+```typescript
+const { data } = await supabase.functions.invoke('webauthn', {
+  body: { action: 'authenticate-options' }
+});
+```
+
+#### `authenticate-verify` — التحقق من المصادقة
+```typescript
+const { data } = await supabase.functions.invoke('webauthn', {
+  body: { action: 'authenticate-verify', credential: { ... } }
+});
+```
+
+---
+
+## 9. `auth-email-hook` — قوالب البريد المخصصة
+
+**الوصف**: Hook يعالج أحداث البريد الإلكتروني للمصادقة (تأكيد التسجيل، استعادة كلمة المرور، رابط سحري، دعوة، تغيير البريد، إعادة المصادقة) ويُرسل رسائل بتصميم مخصص عبر React Email.
+
+**المصادقة**: يُستدعى تلقائياً من نظام المصادقة (ليس وظيفة عامة).
+
+**القوالب المتاحة** (في `supabase/functions/_shared/email-templates/`):
+| القالب | الوصف |
+|--------|-------|
+| `signup.tsx` | تأكيد التسجيل |
+| `recovery.tsx` | استعادة كلمة المرور |
+| `magic-link.tsx` | رابط تسجيل الدخول السحري |
+| `invite.tsx` | دعوة مستخدم جديد |
+| `email-change.tsx` | تأكيد تغيير البريد |
+| `reauthentication.tsx` | إعادة المصادقة |
 
 ---
 
