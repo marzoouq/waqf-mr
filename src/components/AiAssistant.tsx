@@ -41,8 +41,8 @@ const AiAssistant = () => {
     return () => abortControllerRef.current?.abort();
   }, []);
 
-  // المساعد الذكي متاح فقط للناظر والمحاسب
-  if (role !== 'admin' && role !== 'accountant') return null;
+  // المساعد الذكي متاح لجميع الأدوار المسجلة
+  if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
 
   const handleModeChange = (newMode: string) => {
     if (newMode === mode) return;
