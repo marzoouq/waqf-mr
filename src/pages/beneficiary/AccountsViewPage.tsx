@@ -133,7 +133,7 @@ const AccountsViewPage = () => {
                   grandTotal,
                   netAfterExpenses,
                   netAfterVat,
-                  waqfCapital: waqfCorpusManual,
+                  waqfCorpusManual,
                   distributionsAmount,
                   availableAmount,
                   remainingBalance,

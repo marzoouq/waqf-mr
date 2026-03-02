@@ -501,7 +501,7 @@ export function useAccountsPage() {
       beneficiaries,
       vatAmount: manualVat,
       distributionsAmount: manualDistributions,
-      waqfCapital: waqfCorpusManual,
+      waqfCorpusManual,
       zakatAmount,
       netAfterZakat,
       waqfCorpusPrevious,
