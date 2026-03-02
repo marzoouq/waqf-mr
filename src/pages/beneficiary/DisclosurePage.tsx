@@ -18,6 +18,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
@@ -65,13 +66,11 @@ const DisclosurePage = () => {
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
 
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
-  const myShare = currentBeneficiary
-    ? (totalBeneficiaryPercentage > 0
-        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
-        : 0)
+  const myShare = currentBeneficiary && totalBenPct > 0
+    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
     : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
@@ -460,24 +459,10 @@ const DisclosurePage = () => {
                     </div>
                   </>
                 )}
-                <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>(-) حصة الناظر</span>
-                  <span>-{adminShare.toLocaleString()} ر.س</span>
+                <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                  <span>(-) خصومات إدارية وتشغيلية</span>
+                  <span>-{(adminShare + waqifShare + waqfCorpusManual).toLocaleString()} ر.س</span>
                 </div>
-                <div className="flex justify-between items-center py-2 text-muted-foreground">
-                  <span>(-) حصة الواقف</span>
-                  <span>-{waqifShare.toLocaleString()} ر.س</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="font-bold">ريع الوقف</span>
-                  <span className="font-bold">{waqfRevenue.toLocaleString()} ر.س</span>
-                </div>
-                {waqfCorpusManual > 0 && (
-                  <div className="flex justify-between items-center py-2 text-muted-foreground">
-                    <span>(-) رقبة الوقف</span>
-                    <span>-{waqfCorpusManual.toLocaleString()} ر.س</span>
-                  </div>
-                )}
                 <div className="flex justify-between items-center py-2 font-bold">
                   <span>الإجمالي القابل للتوزيع</span>
                   <span>{beneficiariesShare.toLocaleString()} ر.س</span>

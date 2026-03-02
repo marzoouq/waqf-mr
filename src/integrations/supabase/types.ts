@@ -1292,6 +1292,7 @@ export type Database = {
       }
       get_pii_key: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
+      get_total_beneficiary_percentage: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

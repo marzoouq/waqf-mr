@@ -185,15 +185,10 @@ export const generateComprehensiveBeneficiaryPDF = async (
     );
   }
 
-  sequenceRows.push(
-    ['(-) حصة الناظر', `(${data.adminShare.toLocaleString()})`],
-    ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
-    ['ريع الوقف', data.waqfRevenue.toLocaleString()],
-  );
-
-  if (data.waqfCorpusManual > 0) {
+  const totalDeductions = data.adminShare + data.waqifShare + data.waqfCorpusManual;
+  if (totalDeductions > 0) {
     sequenceRows.push(
-      ['(-) رقبة الوقف', `(${data.waqfCorpusManual.toLocaleString()})`],
+      ['(-) خصومات إدارية وتشغيلية', `(${totalDeductions.toLocaleString()})`],
     );
   }
 

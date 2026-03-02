@@ -13,6 +13,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 const COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -56,13 +57,11 @@ const FinancialReportsPage = () => {
     isError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
-  const myShare = currentBeneficiary
-    ? (totalBeneficiaryPercentage > 0
-        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
-        : 0)
+  const myShare = currentBeneficiary && totalBenPct > 0
+    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
     : 0;
 
   const incomeVsExpenses = [
@@ -74,9 +73,8 @@ const FinancialReportsPage = () => {
   const incomePieData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
 
   const distributionData = [
-    { name: 'المستفيدين', value: beneficiariesShare, fill: 'hsl(var(--info))' },
-    { name: 'الناظر', value: adminShare, fill: 'hsl(var(--warning))' },
-    { name: 'الواقف', value: waqifShare, fill: 'hsl(var(--chart-4))' },
+    { name: 'حصتي', value: myShare, fill: 'hsl(var(--primary))' },
+    { name: 'باقي المستفيدين', value: Math.max(0, beneficiariesShare - myShare), fill: 'hsl(var(--info))' },
   ];
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
@@ -102,18 +100,16 @@ const FinancialReportsPage = () => {
         totalIncome,
         totalExpenses,
         netRevenue: netAfterZakat,
-        adminShare,
-        waqifShare,
-        waqfRevenue,
+        adminShare: 0,
+        waqifShare: 0,
+        waqfRevenue: beneficiariesShare,
         expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
-        beneficiaries: beneficiaries.map(b => ({
-          name: b.name,
-          percentage: Number(b.share_percentage),
-          amount: totalBeneficiaryPercentage > 0
-            ? beneficiariesShare * Number(b.share_percentage) / totalBeneficiaryPercentage
-            : 0,
-        })),
+        beneficiaries: currentBeneficiary ? [{
+          name: currentBeneficiary.name,
+          percentage: Number(currentBeneficiary.share_percentage),
+          amount: myShare,
+        }] : [],
       }, pdfWaqfInfo);
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {
@@ -197,7 +193,7 @@ const FinancialReportsPage = () => {
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm sm:text-base">توزيع الريع</CardTitle>
+              <CardTitle className="text-sm sm:text-base">حصتي من الريع</CardTitle>
             </CardHeader>
             <CardContent className="px-2 sm:px-6">
               {distributionData.some(d => d.value > 0) ? (
