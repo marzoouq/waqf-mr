@@ -20,6 +20,7 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -76,13 +77,11 @@ const MySharePage = () => {
   const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const beneficiariesShare = availableAmount;
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
 
-  const myShare = currentBeneficiary
-    ? (totalBeneficiaryPercentage > 0
-        ? beneficiariesShare * currentBeneficiary.share_percentage / totalBeneficiaryPercentage
-        : 0)
+  const myShare = currentBeneficiary && totalBenPct > 0
+    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
     : 0;
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي

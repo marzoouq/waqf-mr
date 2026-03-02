@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 const BeneficiaryDashboard = () => {
   const { user, role, loading: authLoading } = useAuth();
@@ -29,14 +30,17 @@ const BeneficiaryDashboard = () => {
     { fiscalYearStatus: fiscalYear?.status },
   );
 
+  const { data: totalBenPct = 0, isLoading: pctLoading } = useTotalBeneficiaryPercentage();
+
   // ── Derived financials (computed only when data is valid) ──
   const currentBeneficiary = useMemo(() => benError ? undefined : beneficiaries.find(b => b.user_id === user?.id), [beneficiaries, user?.id, benError]);
   const safeAvailable = Number(availableAmount) || 0;
-  const beneficiariesShare = safeAvailable;
-  const myShare = currentBeneficiary ? (safeAvailable * (currentBeneficiary.share_percentage ?? 0)) / 100 : 0;
+  const myShare = currentBeneficiary && totalBenPct > 0
+    ? safeAvailable * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
+    : 0;
 
   // ── Include notifLoading to prevent FOUC ──
-  const isLoading = authLoading || benLoading || fyLoading || notifLoading || (!fyReady ? false : finLoading);
+  const isLoading = authLoading || benLoading || fyLoading || notifLoading || pctLoading || (!fyReady ? false : finLoading);
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -223,20 +227,18 @@ const BeneficiaryDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Total waqf revenue */}
+          {/* Total received */}
           <Card className="shadow-sm">
             <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-accent-foreground" />
+                <div className="w-11 h-11 bg-success/10 rounded-xl flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 text-success" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">إجمالي ريع الوقف</p>
-                  {!isClosed ? (
-                    <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
-                  ) : (
-                    <p className="text-lg sm:text-xl font-bold truncate">{beneficiariesShare.toLocaleString()} ر.س</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">إجمالي المستلم</p>
+                  <p className="text-lg sm:text-xl font-bold truncate">
+                    {distributions.filter(d => d.status === 'paid').reduce((s, d) => s + Number(d.amount), 0).toLocaleString()} ر.س
+                  </p>
                 </div>
               </div>
             </CardContent>
