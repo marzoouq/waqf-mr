@@ -40,24 +40,18 @@ export const useUpsertContractAllocations = () => {
       if (allocations.length === 0) return;
       const contractId = allocations[0].contract_id;
       const rows = allocations.map(a => ({
-        contract_id: a.contract_id,
         fiscal_year_id: a.fiscal_year_id,
         period_start: a.period_start,
         period_end: a.period_end,
         allocated_payments: a.allocated_payments,
         allocated_amount: a.allocated_amount,
       }));
-      // O-03 fix: use upsert instead of delete+insert to avoid non-atomic data loss
-      // First delete old allocations, then insert new ones — wrapped in error handling
-      const { error: delError } = await fromAllocations().delete().eq('contract_id', contractId);
-      if (delError) throw delError;
-      const { error: insError } = await fromAllocations().insert(rows);
-      if (insError) {
-        // Attempt to restore by logging — the data is already gone unfortunately
-        // TODO: Move to an RPC for true atomicity
-        console.error('O-03: Insert failed after delete — contract allocations lost for', contractId);
-        throw insError;
-      }
+      // Atomic RPC: delete + insert in a single transaction
+      const { error } = await supabase.rpc('upsert_contract_allocations', {
+        p_contract_id: contractId,
+        p_allocations: JSON.parse(JSON.stringify(rows)),
+      });
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contract_fiscal_allocations'] });

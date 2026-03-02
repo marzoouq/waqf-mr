@@ -40,7 +40,6 @@ const WaqifDashboard = () => {
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const {
     totalIncome, totalExpenses, availableAmount,
-    adminShare, waqifShare, waqfRevenue,
     income, expenses, beneficiaries,
     incomeBySource, expensesByTypeExcludingVat,
     isLoading: finLoading,
@@ -200,7 +199,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'ريع الوقف', value: `${Number(waqfRevenue || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'القابل للتوزيع', value: `${Number(availableAmount || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
@@ -248,11 +247,9 @@ const WaqifDashboard = () => {
               {[
                 { label: 'إجمالي الدخل', value: totalIncome, cls: 'text-primary' },
                 { label: 'إجمالي المصروفات', value: totalExpenses, cls: 'text-destructive' },
-                { label: 'حصة الناظر', value: adminShare, cls: 'text-muted-foreground' },
-                { label: 'حصة الواقف', value: waqifShare, cls: 'text-secondary' },
                 { label: 'الريع القابل للتوزيع', value: availableAmount, cls: 'font-bold text-lg' },
               ].map((row, i) => (
-                <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 4 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
+                <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>
                   <span className={`font-bold ${row.cls}`}>{Number(row.value || 0).toLocaleString()} ر.س</span>
                 </div>

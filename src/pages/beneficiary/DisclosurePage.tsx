@@ -460,9 +460,15 @@ const DisclosurePage = () => {
                   </>
                 )}
                 <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
-                  <span>(-) خصومات إدارية وتشغيلية</span>
-                  <span>-{(adminShare + waqifShare + waqfCorpusManual).toLocaleString()} ر.س</span>
+                  <span>(-) خصومات إدارية</span>
+                  <span>-{(adminShare + waqifShare).toLocaleString()} ر.س</span>
                 </div>
+                {waqfCorpusManual > 0 && (
+                  <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                    <span>(-) احتياطي رقبة الوقف</span>
+                    <span>-{waqfCorpusManual.toLocaleString()} ر.س</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2 font-bold">
                   <span>الإجمالي القابل للتوزيع</span>
                   <span>{beneficiariesShare.toLocaleString()} ر.س</span>
