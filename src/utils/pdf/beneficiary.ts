@@ -5,6 +5,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles,
 } from './core';
+import { getLastAutoTableY } from './pdfHelpers';
 
 export const generateMySharePDF = async (data: {
   beneficiaryName: string;
@@ -51,7 +52,7 @@ export const generateMySharePDF = async (data: {
   });
 
   if (data.distributions.length > 0) {
-    const finalY = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 105) + 15;
+    const finalY = getLastAutoTableY(doc, 105) + 15;
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(14);
     doc.text('سجل التوزيعات', 105, finalY, { align: 'center' });
@@ -117,7 +118,7 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 90) + 10;
+  let y = getLastAutoTableY(doc, 90) + 10;
 
   // Expenses
   autoTable(doc, {
@@ -132,7 +133,7 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 150) + 10;
+  y = getLastAutoTableY(doc, 150) + 10;
 
   // Distribution
   autoTable(doc, {
