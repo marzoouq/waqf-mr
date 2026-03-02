@@ -1,70 +1,66 @@
 
-# خطة إصلاح المشاكل المتبقية الحقيقية
+الملخص قبل التنفيذ:
+راجعت الملفات الفعلية داخل المشروع الحالي، والنسخة الموجودة هنا تحتوي بالفعل على إصلاحات للمشكلتين #2 و#3، وكذلك تعديل مهم في #1 (تمرير `userClient` إلى `fetchWaqfData`). بما أن تقريرك مبني على `main` في GitHub، فالأرجح أن هناك فرقًا بين نسخة المستودع ونسخة المشروع الحالية. لذلك سأتعامل مع الطلب كـ PR “حسم نهائي” يضمن توحيد `main` مع الحالة الآمنة الحالية + منع رجوع الخطأ مستقبلًا.
 
-بعد فحص كل الملفات المذكورة في التقرير، تبين أن معظم المشاكل (7 من 9) مُصلحة مسبقا. المشاكل الحقيقية المتبقية هي 3 فقط:
+الأهداف:
+1) إغلاق ثغرة المساعد الذكي نهائيًا (#1)  
+2) تثبيت إصلاح عرض الدفعات في PDF (#2)  
+3) تثبيت دعم `semi-annual` و`semi_annual` (#3)  
+4) إضافة اختبارات/تحقق تمنع أي تراجع لاحق
 
----
+خطة التنفيذ المقترحة (PR واحد):
 
-## المشكلة 1 -- CRITICAL: ai-assistant يستخدم serviceClient ويتجاوز RLS
+1. توحيد مصدر الحقيقة للنسخة المستهدفة
+- مقارنة `main` مع ملفات المشروع الحالية في:
+  - `supabase/functions/ai-assistant/index.ts`
+  - `src/utils/pdf/entities.ts`
+  - `src/utils/pdf/core.ts`
+  - `src/components/properties/PropertyUnitsDialog.tsx`
+  - `src/utils/contractAllocation.ts`
+- إذا كان `main` متأخرًا، يتم نقل نفس التعديلات الحالية حرفيًا إلى `main` بدون تغييرات إضافية.
 
-**الملف:** `supabase/functions/ai-assistant/index.ts` السطر 88
+2. تأمين المساعد الذكي (الأولوية القصوى)
+- التأكد أن `fetchWaqfData` يُستدعى عبر `userClient` فقط (وليس `serviceClient`).
+- إبقاء `serviceClient` محصورًا في العمليات الإدارية فقط (مثل rate limit/role lookup).
+- تثبيت منطق عدم إظهار بيانات السنة النشطة إذا كانت غير منشورة لغير الإداريين:
+  - الشرط الحالي: `if (activeFY && (isAdmin || activeFY.published))`
+- مراجعة كل استعلام داخل `fetchWaqfData` للتأكد أنه يمر عبر العميل المرتبط بالمستخدم.
 
-**المشكلة:** `fetchWaqfData(serviceClient, ...)` يتجاوز كل سياسات RLS. مستفيد يسال المساعد الذكي عن الدخل فيحصل على بيانات السنوات غير المنشورة.
+3. تثبيت إصلاح PDF للدفعات
+- الحفاظ على تمرير `payment_type` و`payment_count` من `PropertyUnitsDialog`.
+- الحفاظ على حقول `UnitPdfRow` الموسعة في `pdf/core.ts`.
+- الحفاظ على الحساب الديناميكي للمقام في `pdf/entities.ts` بدل `/12` الثابت.
 
-**الاصلاح:**
-1. استبدال `serviceClient` بـ `userClient` في استدعاء `fetchWaqfData` (السطر 88)
-2. اضافة فلتر `published` على استعلامات `accounts` و `income` و `expenses` داخل `fetchWaqfData` عندما يكون المستخدم غير admin/accountant
-3. ابقاء `serviceClient` فقط للعمليات الادارية (rate_limit, user_roles)
+4. توحيد ترميز نوع الدفع نصف السنوي
+- تثبيت دعم القيمتين في `contractAllocation.ts`:
+  - `semi_annual`
+  - `semi-annual`
+- المراجعة في موضعي:
+  - توليد تواريخ الاستحقاق
+  - حساب عدد الدفعات
 
-**التفاصيل:**
-- السطر 88: تغيير `fetchWaqfData(serviceClient, ...)` الى `fetchWaqfData(userClient, ...)`
-- داخل `fetchWaqfData` (السطر 235-268): اضافة فلتر للسنوات المنشورة عند جلب accounts لغير الادمن
-- السطور 310-360: اضافة شرط `activeFY.published` قبل جلب income/expenses لغير الادمن
+5. اختبارات تحقق قبل الإغلاق
+- تحقق وظيفي للمساعد الذكي:
+  - مستخدم مستفيد: سؤال عن الدخل/المصروفات في سنة غير منشورة يجب ألا يعرض بيانات غير مصرح بها.
+  - مستخدم إداري: تبقى الرؤية الكاملة كما هي.
+- تحقق واجهة PDF:
+  - عقد ربعي يظهر `x/4`
+  - نصف سنوي يظهر `x/2`
+  - سنوي يظهر `x/1`
+- تحقق من `contractAllocation` لعقود مخزنة بصيغتي `semi_annual` و`semi-annual`.
 
----
+معايير القبول (Definition of Done):
+- لا يوجد أي استدعاء بيانات داخل سياق المساعد الذكي يعتمد على `serviceClient` لعرض البيانات للمستخدم.
+- المستفيد لا يستطيع استخراج بيانات سنة غير منشورة عبر المساعد الذكي.
+- تقرير الوحدات PDF لا يعرض `/12` بشكل ثابت إلا إذا كانت الحالة الافتراضية فعلًا.
+- عقود `semi-annual` لا تقع في مسار fallback الخاطئ.
+- مرور اختبارات التحقق وعدم ظهور regressions في المسارات الحالية.
 
-## المشكلة 2 -- MEDIUM: PDF paid_months/12 ثابت
+المخاطر المتوقعة وكيف نعالجها:
+- اختلاف بيئة `main` عن بيئة المشروع الحالية:
+  - الحل: PR مطابق للتعديلات المثبتة هنا + فحص diff نهائي قبل الدمج.
+- تراجع مستقبلي في الأمان عند تعديل المساعد:
+  - الحل: إضافة اختبار/سيناريو تحقق أمني مرتبط بدور المستخدم وحالة نشر السنة.
 
-**الملف:** `src/utils/pdf/entities.ts` السطر 163
-
-**المشكلة:** `${u.paid_months}/12` يعرض 12 دائما حتى للعقود الربعية (4 دفعات) او السنوية (1 دفعة).
-
-**الاصلاح:**
-- حساب عدد الدفعات الفعلي بناء على `payment_type` من بيانات العقد
-- عرض `paid_months/actual_count` بدلا من `/12` الثابت
-
----
-
-## المشكلة 3 -- LOW: semi_annual vs semi-annual تناقض ترميز
-
-**الملف:** `src/utils/contractAllocation.ts` السطر 135
-
-**المشكلة:** الكود يتحقق من `semi_annual` فقط (underscore)، لكن بعض العقود قد تكون محفوظة بـ `semi-annual` (hyphen).
-
-**الاصلاح:**
-- اضافة التحقق من كلا الصيغتين في `getPaymentCount` و `generatePaymentDueDates`
-
----
-
-## ترتيب التنفيذ
-
-1. اصلاح ai-assistant (الاهم -- ثغرة امنية حقيقية)
-2. اصلاح PDF paid_months
-3. اصلاح semi_annual/semi-annual
-
-## القسم التقني
-
-### الملفات المتاثرة:
-- `supabase/functions/ai-assistant/index.ts` -- تعديل استدعاء fetchWaqfData + اضافة فلاتر النشر
-- `src/utils/pdf/entities.ts` -- تعديل حساب عدد الدفعات
-- `src/utils/contractAllocation.ts` -- اضافة دعم semi-annual بجانب semi_annual
-
-### ملاحظة عن المشاكل "المفتوحة" في التقرير:
-المشاكل التالية تم التحقق من اصلاحها مسبقا ولا تحتاج عملا:
-- WebAuthn token_hash: مُصلح (server-side session)
-- PDF fallback صامت: مُصلح (toast.error موجود)
-- isEnabled localStorage: مُصلح (DB sync موجود)
-- useBeneficiaries fallback: محمي بـ isAuthorized
-- accounts RESTRICTIVE RLS: موجود في DB
-- distributions RESTRICTIVE RLS: موجود في DB
-- DEFAULT_ROLE_PERMS: موحد في rolePermissions.ts
+النتيجة المتوقعة:
+PR واحد صغير ومباشر يغلق الملف نهائيًا: أمان المساعد الذكي، دقة تقرير PDF، واتساق ترميز أنواع الدفع، مع تثبيت حماية ضد التراجع.
