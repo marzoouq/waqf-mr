@@ -1,67 +1,63 @@
 
+# خطة إصلاح تشفير بيانات المستفيدين
 
-# خطة إصلاح المشاكل المتبقية
+## المشكلة
+مفتاح التشفير `pii_encryption_key` موجود في الإنتاج (64 حرف)، والدوال (`encrypt_beneficiary_pii`, `encrypt_pii`, `decrypt_pii`, `get_pii_key`) موجودة ايضاً. لكن **الـ trigger المسؤول عن تشغيل التشفير تلقائياً غير موجود** على جدول `beneficiaries` في الإنتاج.
 
-## الملخص
+النتيجة: أرقام الهوية الوطنية (14 مستفيد) محفوظة كنص صريح بطول 10 أرقام بدون تشفير.
 
-من 5 مشاكل أُبلغ عنها، مشكلة واحدة حقيقية حرجة + مشكلة تجميلية:
+## السبب الجذري
+عملية النشر (pg_dump schema sync) نقلت الدوال لكنها **لم تنقل الـ trigger** من بيئة التطوير إلى الإنتاج.
 
-| # | المشكلة | الحالة | الإجراء |
-|---|---------|--------|---------|
-| 1 | `pii_encryption_key` مفقود في الإنتاج | حقيقية حرجة | يحتاج إصلاح فوري |
-| 2 | `shareBase` يتجاهل `waqfCorpusPrevious` | تصميم مقصود موثق | لا حاجة لتغيير |
-| 3 | `ai-assistant` يستخدم `serviceClient` | مُصلح (سطر 88: `userClient`) | لا حاجة لتغيير |
-| 4 | `waqfCapital` اسم قديم في PDF | عدم اتساق تجميلي | تحسين اختياري |
-| 5 | `paid_months/12` ثابت | مُصلح (سطر 163: مقام ديناميكي) | لا حاجة لتغيير |
+## خطة الإصلاح
 
----
+### الخطوة 1: إنشاء migration جديدة
+إنشاء migration تقوم بـ:
 
-## المشكلة #1: مفتاح التشفير مفقود في الإنتاج (حرجة)
-
-**الوضع الحالي:**
-- بيئة الاختبار: المفتاح موجود (طول 31 حرف)
-- بيئة الإنتاج: المفتاح **غير موجود** -- دالة `encrypt_beneficiary_pii` تُرجع البيانات بدون تشفير
-
-**الإصلاح:**
-- إضافة migration تُدرج مفتاح تشفير عشوائي آمن في `app_settings` إذا لم يكن موجوداً:
+1. **إنشاء الـ trigger** (مع `CREATE OR REPLACE` / `DROP IF EXISTS` لتجنب الأخطاء):
 ```sql
-INSERT INTO public.app_settings (key, value, updated_at)
-VALUES ('pii_encryption_key', encode(gen_random_bytes(32), 'hex'), now())
-ON CONFLICT (key) DO NOTHING;
+DROP TRIGGER IF EXISTS encrypt_beneficiary_pii_trigger ON public.beneficiaries;
+CREATE TRIGGER encrypt_beneficiary_pii_trigger
+BEFORE INSERT OR UPDATE ON public.beneficiaries
+FOR EACH ROW
+EXECUTE FUNCTION public.encrypt_beneficiary_pii();
 ```
-- عند النشر، ستُطبَّق هذه الـ migration على الإنتاج وتُنشئ المفتاح تلقائياً
-- البيانات الحالية غير المشفرة ستُشفَّر تلقائياً عند أول تعديل عبر trigger `encrypt_beneficiary_pii`
 
-**ملاحظة مهمة:** إذا كان هناك بيانات موجودة بالفعل في الإنتاج بدون تشفير، يمكن إضافة خطوة لتشفير البيانات الحالية دفعة واحدة.
+2. **تشفير البيانات الحالية** دفعة واحدة:
+```sql
+-- تعطيل الـ trigger مؤقتاً لتجنب التشفير المزدوج
+ALTER TABLE public.beneficiaries DISABLE TRIGGER encrypt_beneficiary_pii_trigger;
 
----
+-- تشفير national_id و bank_account لكل مستفيد
+UPDATE public.beneficiaries
+SET 
+  national_id = CASE 
+    WHEN national_id IS NOT NULL AND national_id != '' AND LENGTH(national_id) < 50
+    THEN encode(pgp_sym_encrypt(national_id, (SELECT value FROM app_settings WHERE key = 'pii_encryption_key')), 'base64')
+    ELSE national_id
+  END,
+  bank_account = CASE
+    WHEN bank_account IS NOT NULL AND bank_account != '' AND LENGTH(bank_account) < 50  
+    THEN encode(pgp_sym_encrypt(bank_account, (SELECT value FROM app_settings WHERE key = 'pii_encryption_key')), 'base64')
+    ELSE bank_account
+  END
+WHERE (national_id IS NOT NULL AND national_id != '' AND LENGTH(national_id) < 50)
+   OR (bank_account IS NOT NULL AND bank_account != '' AND LENGTH(bank_account) < 50);
 
-## المشكلة #4: توحيد اسم `waqfCapital` (تحسين اختياري)
+-- إعادة تفعيل الـ trigger
+ALTER TABLE public.beneficiaries ENABLE TRIGGER encrypt_beneficiary_pii_trigger;
+```
 
-**الوضع الحالي:**
-- الكود يستخدم `waqfCorpusManual` في كل مكان
-- PDF accounts يستخدم `waqfCapital` كاسم بديل في الواجهة
-- يعمل بشكل صحيح حالياً لأن القيمة تُمرَّر دائماً
+الشرط `LENGTH < 50` يضمن عدم تشفير بيانات مشفرة سابقاً (النص المشفر أطول بكثير من 10-24 حرف).
 
-**الإصلاح:**
-- تغيير `waqfCapital` الى `waqfCorpusManual` في `src/utils/pdf/accounts.ts` لتوحيد المسميات
-- تحديث أي مراجع أخرى تستخدم الاسم القديم
+### الخطوة 2: التحقق بعد التطبيق
+بعد تنفيذ الـ migration:
+- التأكد من أن `LENGTH(national_id)` أصبح اكبر بكثير من 10 (مشفر base64)
+- التأكد من أن `get_beneficiary_decrypted(NULL)` تُرجع الأرقام الأصلية بشكل صحيح
+- التأكد من وجود الـ trigger في `information_schema.triggers`
 
----
-
-## لماذا BUG #2 ليست مشكلة؟
-
-الكود يحتوي على توثيق صريح يشرح أن هذا **تصميم مقصود** وفق المحاسبة الإسلامية للأوقاف:
-
-- `shareBase` = الدخل - المصروفات - الزكاة (بدون رقبة الوقف المرحّلة)
-- رقبة الوقف المرحّلة هي رأس مال أصيل يذهب بالكامل لريع الوقف
-- حصة الناظر والواقف تُحسب فقط من الدخل الفعلي بعد خصم المصروفات والزكاة
-
----
-
-## خطوات التنفيذ
-
-1. إنشاء migration لإدراج `pii_encryption_key` في `app_settings` (مع `ON CONFLICT DO NOTHING`)
-2. توحيد اسم `waqfCapital` الى `waqfCorpusManual` في `pdf/accounts.ts`
-3. النشر لتطبيق التغييرات على الإنتاج
-
+### ملخص التغييرات
+| الملف | التغيير |
+|---|---|
+| `supabase/migrations/[new].sql` | إنشاء trigger + تشفير البيانات الحالية |
+| لا تغييرات في الكود | الكود يستخدم `get_beneficiary_decrypted` بالفعل |
