@@ -185,7 +185,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
     setSendingAlerts(true);
     try {
       // N7 fix: check RPC error properly
-      const { error } = await supabase.rpc('cron_check_late_payments' as never);
+      const { error } = await (supabase.rpc as Function)('cron_check_late_payments');
       if (error) throw error;
       toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
     } catch {
