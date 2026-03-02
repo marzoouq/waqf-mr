@@ -3,16 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/lib/logger';
+import type { FiscalYear } from '@/types/database';
 
-export interface FiscalYear {
-  id: string;
-  label: string;
-  start_date: string;
-  end_date: string;
-  status: 'active' | 'closed';
-  published: boolean;
-  created_at: string;
-}
+export type { FiscalYear };
 
 export const useFiscalYears = () => {
   const { user } = useAuth();

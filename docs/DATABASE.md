@@ -125,7 +125,6 @@ erDiagram
         numeric distributions_amount
         numeric net_after_expenses
         numeric net_after_vat
-        numeric waqf_capital
     }
 
     distributions {
@@ -364,7 +363,6 @@ erDiagram
 | `distributions_amount` | numeric | إجمالي التوزيعات |
 | `net_after_expenses` | numeric | صافي الدخل بعد المصروفات |
 | `net_after_vat` | numeric | صافي الدخل بعد الضريبة |
-| `waqf_capital` | numeric | رأس مال الوقف |
 
 ### 8. `beneficiaries` — المستفيدين
 | العمود | النوع | وصف |
@@ -557,7 +555,7 @@ erDiagram
 | `income` | جميع الأدوار | الناظر فقط |
 | `expenses` | جميع الأدوار | الناظر فقط |
 | `accounts` | جميع الأدوار | الناظر فقط |
-| `beneficiaries` | المستفيد يرى بياناته + الناظر | الناظر فقط |
+| `beneficiaries` | المستفيد يرى بياناته + الناظر/المحاسب | الناظر فقط |
 | `distributions` | المستفيد يرى توزيعاته + الناظر والواقف | الناظر فقط |
 | `invoices` | جميع الأدوار | الناظر فقط |
 | `fiscal_years` | جميع الأدوار | الناظر فقط |
@@ -588,7 +586,7 @@ erDiagram
 
 ---
 
-## الدوال المخزنة (Functions) — 21 دالة
+## الدوال المخزنة (Functions) — 25 دالة
 
 | الدالة | الوصف | الصلاحية |
 |--------|-------|----------|
@@ -596,14 +594,14 @@ erDiagram
 | `notify_admins(title, message, type?, link?)` | إرسال إشعار لجميع المسؤولين | SECURITY DEFINER — `authenticated` فقط |
 | `notify_all_beneficiaries(title, message, type?, link?)` | إرسال إشعار لجميع المستفيدين | SECURITY DEFINER — `authenticated` فقط |
 | `audit_trigger_func()` | تسجيل التغييرات في سجل المراجعة | SECURITY DEFINER |
-| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة (يسمح للأدمن) | SECURITY DEFINER |
+| `prevent_closed_fiscal_year_modification()` | منع تعديل السنة المالية المقفلة (يسمح للأدمن/المحاسب) | SECURITY DEFINER |
 | `log_access_event(event_type, email?, user_id?, ...)` | تسجيل أحداث الوصول بأمان | SECURITY DEFINER |
 | `update_updated_at_column()` | تحديث حقل `updated_at` تلقائياً | عادية |
 | `get_public_stats()` | إحصائيات عامة للصفحة الرئيسية | SECURITY DEFINER |
 | `execute_distribution(p_account_id, ...)` | تنفيذ توزيع الحصص مع تسوية السلف | SECURITY DEFINER — الناظر/المحاسب |
 | `reopen_fiscal_year(p_fiscal_year_id, p_reason)` | إعادة فتح سنة مالية مقفلة | SECURITY DEFINER — الناظر فقط |
 | `reorder_bylaws(items)` | إعادة ترتيب بنود اللائحة | SECURITY DEFINER — الناظر فقط |
-| `is_fiscal_year_accessible(p_fiscal_year_id)` | التحقق من إمكانية وصول المستخدم للسنة المالية | SECURITY DEFINER |
+| `is_fiscal_year_accessible(p_fiscal_year_id)` | التحقق من إمكانية وصول المستخدم للسنة المالية. يُرجع `false` للسجلات بدون `fiscal_year_id` (NULL) للأدوار غير الإدارية | SECURITY DEFINER |
 | `encrypt_pii(p_value)` | تشفير بيانات حساسة | SECURITY DEFINER |
 | `decrypt_pii(p_encrypted)` | فك تشفير بيانات حساسة (الناظر/المحاسب فقط) | SECURITY DEFINER |
 | `get_beneficiary_decrypted(p_beneficiary_id)` | جلب بيانات مستفيد مفكوكة التشفير | SECURITY DEFINER — الناظر/المحاسب |
@@ -612,8 +610,12 @@ erDiagram
 | `cleanup_expired_challenges()` | حذف تحديات WebAuthn المنتهية | SECURITY DEFINER |
 | `cron_archive_old_access_logs()` | أرشفة سجلات الوصول القديمة (أكثر من 6 أشهر) | SECURITY DEFINER |
 | `cron_auto_expire_contracts()` | انتهاء العقود المنتهية تلقائياً | SECURITY DEFINER |
-| `cron_check_contract_expiry()` | تنبيه العقود القريبة من الانتهاء (30 يوم). الأدمن يتلقى تفاصيل كاملة (`msg`)، المستفيدون يتلقون رسالة عامة (`ben_msg`) بدون أسماء مستأجرين | SECURITY DEFINER |
+| `cron_check_contract_expiry()` | تنبيه العقود القريبة من الانتهاء (30 يوم). الأدمن يتلقى تفاصيل كاملة، المستفيدون يتلقون رسالة عامة بدون أسماء مستأجرين | SECURITY DEFINER |
 | `cron_cleanup_old_notifications()` | حذف الإشعارات المقروءة القديمة (أكثر من 90 يوم) | SECURITY DEFINER |
+| `cron_check_late_payments()` | تنبيه الدفعات المتأخرة — الناظر/المحاسب أو cron فقط | SECURITY DEFINER |
+| `close_fiscal_year(p_fiscal_year_id, p_account_data, p_waqf_corpus_manual)` | إقفال السنة المالية وإنشاء حساب ختامي وسنة جديدة | SECURITY DEFINER — الناظر فقط |
+| `upsert_contract_allocations(p_contract_id, p_allocations)` | تخصيص العقود عبر السنوات المالية ذرياً (حذف + إدراج في transaction واحد) | SECURITY DEFINER — الناظر/المحاسب |
+| `get_total_beneficiary_percentage()` | جلب مجموع نسب حصص المستفيدين | SECURITY DEFINER |
 
 ### قيود `log_access_event` الأمنية:
 - المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
