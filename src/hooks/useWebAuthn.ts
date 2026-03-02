@@ -16,7 +16,25 @@ export function useWebAuthn() {
 
   useEffect(() => {
     setIsSupported(browserSupportsWebAuthn());
-    setIsEnabled(localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true');
+    // التحقق الأولي من localStorage ثم من DB
+    const localEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
+    setIsEnabled(localEnabled);
+    
+    // التحقق من DB لضمان التزامن عبر الأجهزة/المتصفحات
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { count } = await supabase
+        .from('webauthn_credentials')
+        .select('id', { count: 'exact', head: true });
+      const dbEnabled = (count ?? 0) > 0;
+      setIsEnabled(dbEnabled);
+      if (dbEnabled) {
+        localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+      } else {
+        localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
+      }
+    })();
   }, []);
 
   // جلب بيانات الاعتماد المسجلة
@@ -129,14 +147,14 @@ export function useWebAuthn() {
         return false;
       }
 
-      // 4. تسجيل الدخول باستخدام OTP من الرابط السحري
-      if (result.token_hash) {
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: result.token_hash,
-          type: 'magiclink',
+      // 4. تعيين الجلسة من الاستجابة مباشرة (الجلسة تُنشأ server-side)
+      if (result.access_token && result.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: result.access_token,
+          refresh_token: result.refresh_token,
         });
 
-        if (otpError) {
+        if (sessionError) {
           toast.error('فشل في إنشاء الجلسة');
           return false;
         }
