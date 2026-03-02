@@ -264,12 +264,44 @@ erDiagram
         integer sort_order
     }
 
+    payment_invoices {
+        uuid id PK
+        uuid contract_id FK
+        uuid fiscal_year_id FK "nullable"
+        text invoice_number
+        integer payment_number
+        date due_date
+        numeric amount
+        text status
+        date paid_date "nullable"
+        numeric paid_amount "nullable"
+        text notes "nullable"
+    }
+
+    contract_fiscal_allocations {
+        uuid id PK
+        uuid contract_id FK
+        uuid fiscal_year_id FK
+        date period_start
+        date period_end
+        numeric allocated_payments
+        numeric allocated_amount
+    }
+
+    rate_limits {
+        text key PK
+        integer count
+        timestamptz window_start
+    }
+
     properties ||--o{ units : "تحتوي"
     properties ||--o{ contracts : "مرتبطة"
     units ||--o{ contracts : "مؤجرة"
     contracts ||--o{ income : "تولّد"
     contracts ||--o{ invoices : "لها فواتير"
     contracts ||--|| tenant_payments : "دفعات"
+    contracts ||--o{ payment_invoices : "فواتير دفعات"
+    contracts ||--o{ contract_fiscal_allocations : "تخصيص"
     properties ||--o{ income : "دخل"
     properties ||--o{ expenses : "مصروفات"
     expenses ||--o{ invoices : "فاتورة مصروف"
@@ -280,6 +312,8 @@ erDiagram
     fiscal_years ||--o{ distributions : "سنة مالية"
     fiscal_years ||--o{ advance_requests : "سنة مالية"
     fiscal_years ||--o{ advance_carryforward : "من سنة"
+    fiscal_years ||--o{ payment_invoices : "سنة مالية"
+    fiscal_years ||--o{ contract_fiscal_allocations : "سنة مالية"
     accounts ||--o{ distributions : "توزيعات"
     beneficiaries ||--o{ distributions : "يستلم"
     beneficiaries ||--o{ advance_requests : "طلبات سلف"
@@ -291,7 +325,7 @@ erDiagram
 
 ---
 
-## الجداول والأعمدة (24 جدول/عرض)
+## الجداول والأعمدة (28 جدول/عرض)
 
 ### 1. `user_roles` — أدوار المستخدمين
 | العمود | النوع | وصف |
@@ -538,7 +572,40 @@ erDiagram
 | `device_name` | text | اسم الجهاز (اختياري) |
 
 ### عرض `beneficiaries_safe` — عرض آمن للمستفيدين
-> عرض (View) يُخفي البيانات الحساسة (الهوية، البنك، الهاتف، البريد) ويستخدم `security_invoker=on` لوراثة سياسات RLS من جدول `beneficiaries`.
+> عرض (View) يُخفي البيانات الحساسة (الهوية، البنك، الهاتف، البريد) عن الأدوار غير المصرح لها. **الناظر والمحاسب** يريان البيانات الكاملة بدون تقنيع. يستخدم `security_invoker=on` لوراثة سياسات RLS من جدول `beneficiaries`.
+
+### 25. `payment_invoices` — فواتير الدفعات
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `contract_id` | UUID | العقد المرتبط |
+| `fiscal_year_id` | UUID | السنة المالية (اختياري) |
+| `invoice_number` | text | رقم الفاتورة |
+| `payment_number` | integer | رقم الدفعة |
+| `due_date` | date | تاريخ الاستحقاق |
+| `amount` | numeric | المبلغ |
+| `status` | text | الحالة: pending / paid / overdue |
+| `paid_date` | date | تاريخ الدفع (اختياري) |
+| `paid_amount` | numeric | المبلغ المدفوع (اختياري) |
+| `notes` | text | ملاحظات (اختياري) |
+
+> UNIQUE constraint على `(contract_id, payment_number, fiscal_year_id)`.
+
+### 26. `contract_fiscal_allocations` — تخصيص العقود عبر السنوات المالية
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `contract_id` | UUID | العقد |
+| `fiscal_year_id` | UUID | السنة المالية |
+| `period_start` | date | بداية فترة التخصيص |
+| `period_end` | date | نهاية فترة التخصيص |
+| `allocated_payments` | numeric | عدد الدفعات المخصصة |
+| `allocated_amount` | numeric | المبلغ المخصص |
+
+### 27. `rate_limits` — حدود معدل الطلبات
+| العمود | النوع | وصف |
+|--------|-------|------|
+| `key` | text | مفتاح التعريف (PK) |
+| `count` | integer | عدد الطلبات |
+| `window_start` | timestamptz | بداية نافذة الحساب |
 
 ---
 
@@ -586,7 +653,7 @@ erDiagram
 
 ---
 
-## الدوال المخزنة (Functions) — 25 دالة
+## الدوال المخزنة (Functions) — 32 دالة
 
 | الدالة | الوصف | الصلاحية |
 |--------|-------|----------|
@@ -612,10 +679,21 @@ erDiagram
 | `cron_auto_expire_contracts()` | انتهاء العقود المنتهية تلقائياً | SECURITY DEFINER |
 | `cron_check_contract_expiry()` | تنبيه العقود القريبة من الانتهاء (30 يوم). الأدمن يتلقى تفاصيل كاملة، المستفيدون يتلقون رسالة عامة بدون أسماء مستأجرين | SECURITY DEFINER |
 | `cron_cleanup_old_notifications()` | حذف الإشعارات المقروءة القديمة (أكثر من 90 يوم) | SECURITY DEFINER |
-| `cron_check_late_payments()` | تنبيه الدفعات المتأخرة — الناظر/المحاسب أو cron فقط | SECURITY DEFINER |
+| `cron_check_late_payments()` | تنبيه الدفعات المتأخرة — محمي بسقف `end_date` للعقد | SECURITY DEFINER |
 | `close_fiscal_year(p_fiscal_year_id, p_account_data, p_waqf_corpus_manual)` | إقفال السنة المالية وإنشاء حساب ختامي وسنة جديدة | SECURITY DEFINER — الناظر فقط |
 | `upsert_contract_allocations(p_contract_id, p_allocations)` | تخصيص العقود عبر السنوات المالية ذرياً (حذف + إدراج في transaction واحد) | SECURITY DEFINER — الناظر/المحاسب |
 | `get_total_beneficiary_percentage()` | جلب مجموع نسب حصص المستفيدين | SECURITY DEFINER |
+| `generate_contract_invoices(p_contract_id)` | توليد فواتير دفعات العقد تلقائياً | SECURITY DEFINER |
+| `generate_all_active_invoices()` | توليد فواتير جميع العقود النشطة | SECURITY DEFINER |
+| `validate_advance_request_amount()` | التحقق من صحة مبلغ طلب السلفة (حساب تناسبي بمجموع النسب الفعلي) | SECURITY DEFINER — trigger |
+| `encrypt_beneficiary_pii()` | تشفير بيانات المستفيد الحساسة تلقائياً عند الإدخال/التعديل | SECURITY DEFINER — trigger |
+| `pay_invoice_and_record_collection(p_invoice_id, p_paid_amount?)` | دفع فاتورة وتسجيل التحصيل ذرياً | SECURITY DEFINER |
+| `unpay_invoice_and_revert_collection(p_invoice_id)` | إلغاء دفع فاتورة وعكس التحصيل | SECURITY DEFINER |
+| `upsert_tenant_payment(p_contract_id, ...)` | إنشاء/تحديث سجل دفعات المستأجر مع تسجيل الدخل | SECURITY DEFINER |
+| `check_rate_limit(p_key, p_limit, p_window_seconds)` | فحص حد معدل الطلبات | SECURITY DEFINER |
+| `cron_update_overdue_invoices()` | تحديث حالة الفواتير المتأخرة تلقائياً | SECURITY DEFINER |
+| `sync_unit_status_on_contract_change()` | مزامنة حالة الوحدة (شاغرة/مؤجرة) عند تغيير العقد | SECURITY DEFINER — trigger |
+| `enforce_single_active_fy()` | منع وجود أكثر من سنة مالية نشطة واحدة | SECURITY DEFINER — trigger |
 
 ### قيود `log_access_event` الأمنية:
 - المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
