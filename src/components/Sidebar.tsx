@@ -36,7 +36,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center flex-shrink-0 shadow-gold">
             <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
-          <span className={cn('font-display font-bold text-lg text-sidebar-foreground', !sidebarOpen && 'lg:hidden')}>
+          <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground', !sidebarOpen && 'lg:hidden')}>
             إدارة الوقف
           </span>
         </div>

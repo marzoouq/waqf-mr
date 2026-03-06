@@ -455,8 +455,8 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle>آخر العقود</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
+          <CardContent className="overflow-x-auto">
+            <Table className="min-w-[400px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">رقم العقد</TableHead>
