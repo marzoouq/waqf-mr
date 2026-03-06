@@ -383,7 +383,7 @@ const Auth = () => {
             <>
               <span className="text-lg font-medium text-destructive">لم يتم التعرف على صلاحياتك</span>
               <span className="text-sm text-muted-foreground">تواصل مع الناظر أو حاول مرة أخرى</span>
-              <Button variant="outline" onClick={async () => { await signOut(); }}>
+              <Button variant="outline" onClick={async () => { await signOut(); window.location.reload(); }}>
                 تسجيل الخروج
               </Button>
             </>
