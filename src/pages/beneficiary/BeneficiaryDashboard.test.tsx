@@ -57,6 +57,10 @@ vi.mock('@/integrations/supabase/client', () => ({
       }),
     }),
     rpc: () => Promise.resolve({ data: 0, error: null }),
+    channel: () => ({
+      on: () => ({ subscribe: () => ({ unsubscribe: vi.fn() }) }),
+    }),
+    removeChannel: vi.fn(),
   },
 }));
 
