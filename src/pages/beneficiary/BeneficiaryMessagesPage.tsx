@@ -96,7 +96,7 @@ const BeneficiaryMessagesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 h-[calc(100vh-theme(spacing.14))] lg:h-screen flex flex-col">
+      <div className="p-4 md:p-6 h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-display text-2xl font-bold">المراسلات</h1>
           <div className="flex gap-2">
