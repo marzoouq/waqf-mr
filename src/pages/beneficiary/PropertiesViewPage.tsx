@@ -10,14 +10,13 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import { Building2, MapPin, Maximize2, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
+import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 
 const PropertiesViewPage = () => {

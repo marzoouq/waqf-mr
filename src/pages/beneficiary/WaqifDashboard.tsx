@@ -42,8 +42,8 @@ const WaqifDashboard = () => {
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const {
     totalIncome, totalExpenses, availableAmount,
-    income, expenses, beneficiaries,
-    incomeBySource, expensesByTypeExcludingVat,
+    income, expenses,
+    expensesByTypeExcludingVat,
     isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const { data: properties = [], isLoading: propLoading } = useProperties();

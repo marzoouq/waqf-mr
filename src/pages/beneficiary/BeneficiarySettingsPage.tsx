@@ -322,7 +322,7 @@ const BeneficiarySettingsPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-<div>
+                  <div>
                     <p className="font-medium text-sm">إشعارات الرسائل</p>
                     <p className="text-xs text-muted-foreground">تنبيهات الرسائل الجديدة</p>
                   </div>
