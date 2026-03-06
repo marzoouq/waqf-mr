@@ -281,7 +281,8 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      <Table>
+                      <div className="overflow-x-auto">
+                      <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
                             <TableHead className="text-right w-10"></TableHead>
