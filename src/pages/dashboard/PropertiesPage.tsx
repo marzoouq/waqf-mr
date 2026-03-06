@@ -231,8 +231,8 @@ const PropertiesPage = () => {
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg">{property.property_number}</CardTitle>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)}><Edit className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)} aria-label="تعديل العقار"><Edit className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive" aria-label="حذف العقار"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </div>
                 </CardHeader>

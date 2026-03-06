@@ -362,7 +362,7 @@ const InvoicesPage = () => {
                     onEdit={isClosed ? undefined : handleEdit}
                     onDelete={isClosed ? undefined : (item) => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
                     extraActions={(item) => item.file_path ? (
-                      <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })}>
+                      <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setViewerFile({ path: item.file_path!, name: item.file_name })} aria-label="عرض الملف">
                         <Eye className="w-4 h-4" />
                       </Button>
                     ) : null}
@@ -399,8 +399,8 @@ const InvoicesPage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

@@ -326,7 +326,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
                         <div><span className="text-muted-foreground text-xs">الدفعات</span>
                           <div className="flex items-center gap-1">
                             <p className="font-medium">{row.paid}/{row.paymentCount}</p>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }}>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }} aria-label="تعديل الدفعات">
                               <Pencil className="w-3 h-3" />
                             </Button>
                           </div>
@@ -376,7 +376,7 @@ export default function CollectionReport({ contracts, paymentsMap, isLoading, fi
                             <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
                               {row.paid}/{row.paymentCount}
                             </span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }} aria-label="تعديل الدفعات">
                               <Pencil className="w-3 h-3" />
                             </Button>
                           </div>
