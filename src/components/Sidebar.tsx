@@ -96,6 +96,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
           return linkContent;
         })}
+       </TooltipProvider>
       </nav>
 
       {/* User Info */}
