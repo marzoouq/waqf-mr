@@ -221,15 +221,9 @@ Deno.serve(async (req: Request) => {
           .single();
         challengeRow = data;
       } else {
-        // Fallback للتوافق مع العملاء القدامى
-        const { data } = await admin
-          .from("webauthn_challenges")
-          .select("id, challenge")
-          .eq("type", "authentication")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-        challengeRow = data;
+        // Fallback removed: challenge_id is always provided by the client.
+        // Rejecting requests without it prevents cross-user challenge retrieval.
+        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
       }
 
       if (!challengeRow) {

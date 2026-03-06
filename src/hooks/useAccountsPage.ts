@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 /** Module-level helper: find account by fiscal year (UUID first, then label fallback) */
 export function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
@@ -142,7 +143,7 @@ export function useAccountsPage() {
         await updateSettingRef.current({ key, value });
         toast.success('تم حفظ الإعداد');
       } catch (err) {
-        console.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
+        logger.error('خطأ في حفظ الإعداد:', err instanceof Error ? err.message : err);
         toast.error('خطأ في حفظ الإعداد');
       }
     }, 500);
@@ -335,7 +336,7 @@ export function useAccountsPage() {
         );
       }
     } catch (err) {
-      console.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
+      logger.error('خطأ في حفظ الحسابات:', err instanceof Error ? err.message : err);
       toast.error('خطأ في حفظ الحسابات');
     }
   };
@@ -377,7 +378,7 @@ export function useAccountsPage() {
       toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
-      console.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
+      logger.error('خطأ في إقفال السنة:', err instanceof Error ? err.message : err);
       toast.error('خطأ في إقفال السنة المالية');
     } finally {
       setIsClosingYear(false);

@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { type CellHookData } from 'jspdf-autotable';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
@@ -203,7 +203,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GOLD, f),
     ...baseTableStyles(f),
-    didParseCell: (hookData: any) => {
+    didParseCell: (hookData: CellHookData) => {
       if (hookData.section === 'body') {
         const lastIdx = sequenceRows.length - 1;
         if (hookData.row.index === lastIdx) {
@@ -232,7 +232,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, f),
     ...baseTableStyles(f),
-    didParseCell: (hookData: any) => {
+    didParseCell: (hookData: CellHookData) => {
       if (hookData.section === 'body' && hookData.row.index === 1) {
         hookData.cell.styles.fontStyle = 'bold';
         hookData.cell.styles.fillColor = [235, 252, 235];

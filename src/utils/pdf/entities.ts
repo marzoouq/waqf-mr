@@ -138,7 +138,7 @@ export const generateUnitsPDF = async (
   doc.setFont(fontFamily, 'normal');
   doc.text(`الموقع: ${propertyLocation}`, doc.internal.pageSize.width / 2, startY + 14, { align: 'center' });
 
-  const statusLabel = (s: string) => s;
+  // statusLabel removed — unit status is already in Arabic
 
   let totalMonthly = 0;
   let totalAnnual = 0;
@@ -154,7 +154,7 @@ export const generateUnitsPDF = async (
       i + 1,
       u.unit_number,
       u.unit_type,
-      statusLabel(u.status),
+      u.status,
       u.tenant_name || '-',
       u.start_date || '-',
       u.end_date || '-',

@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { type CellHookData } from 'jspdf-autotable';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
@@ -93,7 +93,7 @@ export const generateDistributionsPDF = async (data: {
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
-    didParseCell: (hookData: any) => {
+    didParseCell: (hookData: CellHookData) => {
       if (hookData.section === 'body') {
         const deficit = data.distributions[hookData.row.index]?.deficit ?? 0;
         if (deficit > 0) {
