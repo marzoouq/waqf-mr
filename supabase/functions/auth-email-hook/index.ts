@@ -137,7 +137,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   // Verify signature + timestamp, then parse payload.
-  let payload: any
+  let payload: { type?: string; user?: Record<string, unknown>; run_id?: string; [key: string]: unknown }
   let run_id = ''
   try {
     const verified = await verifyWebhookRequest({
