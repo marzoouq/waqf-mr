@@ -414,6 +414,12 @@ const Auth = () => {
       <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-3xl" />
 
       <div className="w-full max-w-md relative z-10">
+        {isOffline && (
+          <div className="mb-3 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>لا يوجد اتصال بالإنترنت — تحقق من الشبكة وحاول مرة أخرى</span>
+          </div>
+        )}
         <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-sm bg-card/95">
           <CardHeader className="text-center space-y-5 pb-2">
             {/* Logo with glow */}
