@@ -1,34 +1,31 @@
 
-# إضافة المساعد الذكي للوحة المستفيد
 
-## التغيير المطلوب
+# خطة: إصلاح شامل لمنظومة تسجيل الخروج
 
-تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
+## المشاكل الحقيقية والإصلاحات
 
-### إزالة قيد الأدوار (سطر 45)
+### 1. `src/App.tsx` — تصدير `queryClient` ليكون قابلاً للاستيراد
+- السطر 87: تحويل `const queryClient` إلى `export const queryClient` ليُستورد في AuthContext
 
-**الحالي:**
-```typescript
-if (role !== 'admin' && role !== 'accountant') return null;
-```
+### 2. `src/contexts/AuthContext.tsx` — إصلاح `signOut()` بالكامل
+- استيراد `queryClient` من `@/App`
+- إضافة `try/catch/finally` حول `supabase.auth.signOut()`
+- إضافة `queryClient.clear()` لتنظيف cache البيانات
+- إضافة `localStorage.removeItem('waqf_selected_fiscal_year')` و `localStorage.removeItem('sidebar-open')`
+- الحالة المحلية (`setRoleWithRef(null)`) تتم في `finally` لضمان التنفيذ حتى لو فشلت الشبكة
 
-**الجديد:**
-```typescript
-if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
-```
+### 3. `src/components/DashboardLayout.tsx` — توحيد آلية الخروج
+- `handleSignOut` (اليدوي): استبدال `navigate('/auth')` بـ `window.location.href = '/auth'` لضمان hard reload وتنظيف كامل — متسق مع الخروج التلقائي
+- أو بديل: إبقاء `navigate` لأن `queryClient.clear()` أصبح يُنفذ في `signOut()` الآن — كلا الخيارين آمن بعد الإصلاح #2
 
-هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
+### 4. `src/pages/Auth.tsx` — إضافة توجيه بعد الخروج من صفحة انتظار الدور
+- السطر 386: تغيير `onClick` ليضيف `window.location.reload()` بعد `signOut()` لإعادة رسم الصفحة بحالة `user=null`
 
----
+### 5. `src/components/Sidebar.tsx` — لا تغيير مطلوب
+- `AlertDialogAction` يُغلق الـ dialog تلقائياً بعد الضغط — الضغط المزدوج غير ممكن عملياً لأن الـ dialog يختفي فوراً
 
-## لماذا هذا كافٍ؟
+## الملفات المتأثرة: 3 ملفات
+- `src/App.tsx` — إضافة `export` لـ queryClient
+- `src/contexts/AuthContext.tsx` — إصلاح signOut الشامل
+- `src/pages/Auth.tsx` — إضافة reload بعد signOut في زر انتظار الدور
 
-- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
-  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
-  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
-  - تقدم system prompt مخصص لغير الإداريين
-- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
-
-## الأمان
-
-لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
