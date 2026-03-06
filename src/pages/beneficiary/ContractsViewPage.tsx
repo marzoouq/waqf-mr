@@ -5,6 +5,7 @@ import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMemo, useCallback } from 'react';
+import { generateContractsPDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { toast } from 'sonner';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },
@@ -24,6 +28,7 @@ const ContractsViewPage = () => {
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   const now = useMemo(() => new Date(), []);
   const in90Days = useMemo(() => new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000), [now]);
@@ -85,7 +90,27 @@ const ContractsViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+          <ExportMenu onExportPdf={async () => {
+            try {
+              await generateContractsPDF(
+                (contracts ?? []).map(c => ({
+                  contract_number: c.contract_number,
+                  tenant_name: c.tenant_name,
+                  start_date: c.start_date,
+                  end_date: c.end_date,
+                  rent_amount: c.rent_amount,
+                  status: c.status,
+                })),
+                pdfWaqfInfo
+              );
+              toast.success('تم تصدير العقود بنجاح');
+            } catch {
+              toast.error('حدث خطأ أثناء تصدير PDF');
+            }
+          }} />
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
