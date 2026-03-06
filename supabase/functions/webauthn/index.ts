@@ -78,7 +78,7 @@ Deno.serve(async (req: Request) => {
         .select("credential_id")
         .eq("user_id", user.id);
 
-      const excludeCredentials = (existing || []).map((c: any) => ({
+      const excludeCredentials = (existing || []).map((c: { credential_id: string }) => ({
         id: c.credential_id,
         type: "public-key" as const,
       }));
@@ -132,16 +132,7 @@ Deno.serve(async (req: Request) => {
           .single();
         challengeRow = data;
       } else {
-        // Fallback للتوافق مع العملاء القدامى
-        const { data } = await admin
-          .from("webauthn_challenges")
-          .select("challenge")
-          .eq("user_id", user.id)
-          .eq("type", "registration")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-        challengeRow = data;
+        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
       }
 
       if (!challengeRow) {
