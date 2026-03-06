@@ -317,13 +317,15 @@ const MySharePage = () => {
             <p className="text-muted-foreground mt-1 text-sm">تفاصيل حصتك من ريع الوقف</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {currentBeneficiary && (
+            {advancesEnabled && currentBeneficiary && (
               <AdvanceRequestDialog
                 beneficiaryId={currentBeneficiary?.id || ''}
                 fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
                 estimatedShare={myShare}
                 paidAdvances={paidAdvancesTotal}
                 carryforwardBalance={carryforwardBalance}
+                minAmount={advanceSettings.min_amount}
+                maxPercentage={advanceSettings.max_percentage}
               />
             )}
             <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
