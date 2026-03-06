@@ -3,6 +3,7 @@
  * Generates TLV (Tag-Length-Value) encoded Base64 string per ZATCA e-invoicing requirements.
  * Tags 1-5: Seller Name, VAT Number, Timestamp, Total (incl. VAT), VAT Amount
  */
+import QRCode from 'qrcode';
 
 interface ZatcaQrData {
   sellerName: string;
@@ -55,33 +56,16 @@ export function generateZatcaQrTLV(data: ZatcaQrData): string {
 }
 
 /**
- * Generate a QR code as a data URL (PNG) using canvas
- * Uses a simple QR code implementation via a small inline encoder
+ * Generate a real QR code as a data URL (PNG) using the qrcode library
  */
 export async function generateQrDataUrl(data: string): Promise<string | null> {
   try {
-    // Use a simple approach: create a QR code via a tiny SVG-based method
-    // For production, a proper QR library would be better, but we keep deps minimal
-    const canvas = document.createElement('canvas');
-    const size = 150;
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    // Draw a placeholder with the Base64 data encoded as text
-    // In a real implementation, use a QR library. For now, we encode as a simple pattern
-    // that scanners can read via the data URL approach
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    
-    ctx.fillStyle = '#000000';
-    ctx.font = '8px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('QR: ZATCA', size / 2, size / 2 - 10);
-    ctx.fillText('TLV Encoded', size / 2, size / 2 + 10);
-
-    return canvas.toDataURL('image/png');
+    return await QRCode.toDataURL(data, {
+      width: 150,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#000000', light: '#ffffff' },
+    });
   } catch {
     return null;
   }

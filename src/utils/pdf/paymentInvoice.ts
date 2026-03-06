@@ -7,7 +7,7 @@ import {
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
-import { generateZatcaQrTLV } from '@/utils/zatcaQr';
+import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
 
 export interface PaymentInvoicePdfData {
   id: string;
@@ -119,18 +119,26 @@ export const generatePaymentInvoicePDF = async (
       vatAmount: vatAmount,
     });
 
-    doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`TLV: ${tlvBase64.substring(0, 60)}...`, 105, finalY + 8, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
+    // Generate real QR code image
+    const qrDataUrl = await generateQrDataUrl(tlvBase64);
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, 'PNG', 82.5, finalY + 2, 45, 45);
+    } else {
+      // Fallback: show TLV text if QR generation fails
+      doc.setFont(fontFamily, 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`TLV: ${tlvBase64.substring(0, 60)}...`, 105, finalY + 8, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+    }
   }
 
-  // ملاحظة أسفل الجدول
+  // ملاحظة أسفل الجدول (adjust Y based on whether QR was added)
+  const noteY = (isVatApplicable && waqfInfo?.vatNumber) ? finalY + 52 : finalY + 16;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, finalY + 16, { align: 'center' });
+  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, noteY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 
   addFooter(doc, fontFamily, waqfInfo);
