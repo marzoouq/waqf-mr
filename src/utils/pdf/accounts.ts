@@ -93,7 +93,7 @@ export const generateDistributionsPDF = async (data: {
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
-    didParseCell: (hookData: { section: string; row: { index: number }; cell: { styles: Record<string, unknown> } }) => {
+    didParseCell: (hookData: { section: string; row: { index: number }; cell: { styles: { fillColor?: number[] | string; fontStyle?: string } } }) => {
       if (hookData.section === 'body') {
         const deficit = data.distributions[hookData.row.index]?.deficit ?? 0;
         if (deficit > 0) {
