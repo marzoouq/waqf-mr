@@ -99,16 +99,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
       {/* User Info */}
       <div className="p-4 border-t border-sidebar-border">
-        {!sidebarOpen && (
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <div className="hidden lg:flex items-center justify-center mb-3">
-                <LogOut className="w-5 h-5 text-sidebar-foreground/60" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="left">{user?.email}</TooltipContent>
-          </Tooltip>
-        )}
+        <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
+          <p className="truncate">{user?.email}</p>
+          <p className="text-xs text-sidebar-primary mt-1">
+            {ROLE_LABELS[role || ''] || role}
+          </p>
+        </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             {!sidebarOpen ? (
