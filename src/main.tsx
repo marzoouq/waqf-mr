@@ -7,11 +7,16 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 // Apply saved theme before render
 initThemeFromStorage();
 
-// ─── Suppress benign forwardRef warnings (React 18 StrictMode dev artifact) ───
+// ─── Suppress benign forwardRef warnings ───
+// React 18 StrictMode double-renders trigger "Function components cannot be given refs"
+// for third-party libs (cmdk, Radix). Safe to silence; does NOT hide real errors.
 if (import.meta.env.DEV) {
   const origConsoleError = console.error;
   console.error = (...args: unknown[]) => {
-    if (typeof args[0] === 'string' && args[0].includes('Function components cannot be given refs')) {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('Function components cannot be given refs')
+    ) {
       return;
     }
     origConsoleError.apply(console, args);
