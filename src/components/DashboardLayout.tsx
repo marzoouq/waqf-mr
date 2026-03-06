@@ -109,35 +109,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
-  // Map admin routes to permission keys
-  const adminRoutePermKeys: Record<string, string> = {
-    '/dashboard/properties': 'properties',
-    '/dashboard/contracts': 'contracts',
-    '/dashboard/income': 'income',
-    '/dashboard/expenses': 'expenses',
-    '/dashboard/beneficiaries': 'beneficiaries',
-    '/dashboard/reports': 'reports',
-    '/dashboard/accounts': 'accounts',
-    '/dashboard/invoices': 'invoices',
-    '/dashboard/bylaws': 'bylaws',
-    '/dashboard/messages': 'messages',
-    '/dashboard/audit-log': 'audit_log',
-  };
-
-  // Map beneficiary routes to permission keys
-  const beneficiaryRoutePermKeys: Record<string, string> = {
-    '/beneficiary/properties': 'properties',
-    '/beneficiary/contracts': 'contracts',
-    '/beneficiary/disclosure': 'disclosure',
-    '/beneficiary/my-share': 'share',
-    '/beneficiary/carryforward': 'share',
-    '/beneficiary/financial-reports': 'reports',
-    '/beneficiary/accounts': 'accounts',
-    '/beneficiary/invoices': 'invoices',
-    '/beneficiary/bylaws': 'bylaws',
-    '/beneficiary/messages': 'messages',
-    '/beneficiary/notifications': 'notifications',
-  };
+  // Route permission maps are static constants (moved outside for performance)
 
   // Routes accountant can never access
   const accountantExcludedRoutes = ['/dashboard/users', '/dashboard/settings'];
