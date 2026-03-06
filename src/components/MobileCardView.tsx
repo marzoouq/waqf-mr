@@ -33,7 +33,31 @@ function MobileCardView<T>({
   onEdit,
   onDelete,
   extraActions,
+  isLoading,
+  skeletonCount = 3,
 }: MobileCardViewProps<T>) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 md:hidden">
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <Card key={i} className="shadow-sm">
+            <CardContent className="p-4 space-y-3">
+              <Skeleton className="h-5 w-2/3" />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <div key={j}>
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3 md:hidden">
       {items.map((item) => (
