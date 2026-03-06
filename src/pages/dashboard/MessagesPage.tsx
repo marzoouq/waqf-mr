@@ -64,7 +64,7 @@ const MessagesPage = () => {
 
   return (
     <DashboardLayout>
-       <div className="p-3 sm:p-4 md:p-6 h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] flex flex-col">
+       <div className="p-3 sm:p-4 md:p-6 h-[calc(100dvh-11.5rem)] lg:h-[calc(100dvh-4rem)] flex flex-col">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <h1 className="font-display text-xl sm:text-2xl font-bold">المراسلات</h1>
           {role === 'admin' && (
