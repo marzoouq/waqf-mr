@@ -62,6 +62,7 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
+    usingFallbackPct,
     isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
     fiscalYearStatus: fiscalYear?.status,
@@ -196,6 +197,20 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* Fallback Percentages Warning */}
+        {usingFallbackPct && (
+          <Alert className="animate-fade-in">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>
+              <Link to="/dashboard/accounts">
+                <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Orphaned Contracts Warning */}
         {orphanedContracts.length > 0 && (
