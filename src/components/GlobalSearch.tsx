@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { cn } from '@/lib/utils';
 
 interface SearchResult {
@@ -29,6 +30,7 @@ const TYPE_CONFIG = {
 
 const GlobalSearch = () => {
   const { role } = useAuth();
+  const { fiscalYearId } = useFiscalYear();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -62,7 +64,8 @@ const GlobalSearch = () => {
         .from('properties')
         .select('id, property_number, property_type, location')
         .or(`property_number.ilike.${pattern},location.ilike.${pattern},property_type.ilike.${pattern}`)
-        .limit(5);
+        .limit(5)
+        .abortSignal(controller.signal);
 
       if (props) {
         for (const p of props) {
@@ -76,18 +79,26 @@ const GlobalSearch = () => {
         }
       }
 
-      // Search contracts
-      const { data: contracts } = await supabase
+      // Search contracts — hide tenant_name from non-admin, filter by fiscal_year
+      let contractsQuery = supabase
         .from('contracts')
-        .select('id, contract_number, tenant_name, status')
+        .select('id, contract_number, tenant_name, status, fiscal_year_id')
         .or(`contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`)
         .limit(5);
+
+      // Filter by fiscal year if a specific one is selected
+      if (fiscalYearId && fiscalYearId !== '__none__') {
+        contractsQuery = contractsQuery.eq('fiscal_year_id', fiscalYearId);
+      }
+
+      const { data: contracts } = await contractsQuery.abortSignal(controller.signal);
 
       if (contracts) {
         for (const c of contracts) {
           searchResults.push({
             id: c.id,
             title: `عقد ${c.contract_number}`,
+            // إخفاء اسم المستأجر من غير الناظر/المحاسب
             subtitle: isAdmin ? c.tenant_name : `حالة: ${c.status}`,
             type: 'contract',
             path: `${basePath}/contracts`,
@@ -95,13 +106,14 @@ const GlobalSearch = () => {
         }
       }
 
-      // Search beneficiaries (admin only)
+      // Search beneficiaries & expenses (admin/accountant only)
       if (isAdmin) {
         const { data: bens } = await supabase
           .from('beneficiaries')
           .select('id, name, share_percentage')
           .ilike('name', pattern)
-          .limit(5);
+          .limit(5)
+          .abortSignal(controller.signal);
 
         if (bens) {
           for (const b of bens) {
@@ -116,11 +128,17 @@ const GlobalSearch = () => {
         }
 
         // Search expenses
-        const { data: exps } = await supabase
+        let expensesQuery = supabase
           .from('expenses')
-          .select('id, expense_type, description, amount')
+          .select('id, expense_type, description, amount, fiscal_year_id')
           .or(`expense_type.ilike.${pattern},description.ilike.${pattern}`)
           .limit(5);
+
+        if (fiscalYearId && fiscalYearId !== '__none__') {
+          expensesQuery = expensesQuery.eq('fiscal_year_id', fiscalYearId);
+        }
+
+        const { data: exps } = await expensesQuery.abortSignal(controller.signal);
 
         if (exps) {
           for (const e of exps) {
@@ -143,7 +161,7 @@ const GlobalSearch = () => {
     } finally {
       if (!controller.signal.aborted) setIsLoading(false);
     }
-  }, [basePath, isAdmin]);
+  }, [basePath, isAdmin, fiscalYearId]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
