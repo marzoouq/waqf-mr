@@ -4,7 +4,7 @@ import { loadAmiriFonts } from '@/utils/loadAmiriFonts';
 const PrintHeader = () => {
   useEffect(() => { loadAmiriFonts(); }, []);
   const { data: waqfInfo } = useWaqfInfo();
-  const waqfName = waqfInfo?.waqf_name || 'وقف مرزوق بن علي الثبيتي';
+  const waqfName = waqfInfo?.waqf_name || 'الوقف';
   const waqfAdmin = waqfInfo?.waqf_admin || '';
   const deedNumber = waqfInfo?.waqf_deed_number || '';
   const deedDate = waqfInfo?.waqf_deed_date || '';
