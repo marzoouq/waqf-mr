@@ -75,10 +75,15 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
+      // تحديث الجلسة لضمان صلاحية الـ token
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !currentUser) {
+        throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      }
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       if (!token) {
-        throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+        throw new Error('انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً');
       }
 
       const resp = await fetch(AI_URL, {
