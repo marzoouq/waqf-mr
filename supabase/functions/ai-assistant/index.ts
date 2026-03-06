@@ -334,7 +334,8 @@ async function fetchWaqfData(
       const { data: expenses } = await client
         .from("expenses")
         .select("expense_type, amount, date")
-        .eq("fiscal_year_id", activeFY.id);
+        .eq("fiscal_year_id", activeFY.id)
+        .limit(100);
 
       if (expenses?.length) {
         const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
