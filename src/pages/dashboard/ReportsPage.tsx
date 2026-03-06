@@ -64,12 +64,6 @@ const ReportsPage = () => {
     percentage: b.share_percentage,
   }));
 
-  const COLORS = [
-    'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
-    'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
-    'hsl(var(--accent))', 'hsl(var(--chart-4))',
-  ];
-
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   // handlePrint removed - ExportMenu handles it
