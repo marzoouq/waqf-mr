@@ -1,36 +1,34 @@
 
+# إضافة المساعد الذكي للوحة المستفيد
 
-# خطة: تحسين صفحة إدارة المستخدمين على الجوال
+## التغيير المطلوب
 
-## الحالة الفعلية
+تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
 
-بعد فحص الكود، تبيّن أن **بطاقات الجوال موجودة بالفعل** (سطر 361-460) مع `md:hidden`، والجدول موجود مع `hidden md:block`.
+### إزالة قيد الأدوار (سطر 45)
 
-## التحسينات المتبقية فعلاً
-
-| التحسين | الحالة |
-|---------|--------|
-| بطاقات جوال | ✅ **موجودة بالفعل** |
-| Desktop skeleton | ❌ نص بسيط بدلاً من `TableSkeleton` (سطر 356) |
-| الجدول `hidden md:block` | ✅ موجود |
-
-## التغيير الوحيد المطلوب
-
-### `src/pages/dashboard/UserManagementPage.tsx` — سطر 356
-
-استبدال:
-```tsx
-<p className="text-center py-8 text-muted-foreground hidden md:block">جاري التحميل...</p>
+**الحالي:**
+```typescript
+if (role !== 'admin' && role !== 'accountant') return null;
 ```
 
-بـ:
-```tsx
-<div className="hidden md:block">
-  <TableSkeleton rows={4} cols={5} />
-</div>
+**الجديد:**
+```typescript
+if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
 ```
 
-مع استيراد `TableSkeleton` من `@/components/SkeletonLoaders`.
+هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
 
-### ملف واحد يتغير، تغيير بسيط (سطرين)
+---
 
+## لماذا هذا كافٍ؟
+
+- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
+  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
+  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
+  - تقدم system prompt مخصص لغير الإداريين
+- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
+
+## الأمان
+
+لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
