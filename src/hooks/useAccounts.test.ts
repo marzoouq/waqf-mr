@@ -10,7 +10,7 @@ const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
 const mockEq = vi.fn();
-const mockSingle = vi.fn();
+const mockMaybeSingle = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -61,10 +61,10 @@ beforeEach(() => {
   mockSelect.mockReturnValue({ order: mockOrder });
   mockOrder.mockReturnValue({ limit: mockLimit });
   mockLimit.mockResolvedValue({ data: [sampleAccount], error: null });
-  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
-  mockSingle.mockResolvedValue({ data: sampleAccount, error: null });
+  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
+  mockMaybeSingle.mockResolvedValue({ data: sampleAccount, error: null });
   mockUpdate.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
+  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   mockDelete.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 });
 

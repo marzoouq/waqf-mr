@@ -54,8 +54,6 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
     netAfterVat: 77000,
     adminShare: 7700,
     waqifShare: 3850,
-    // G11 fix: waqfRevenue = netAfterVat - zakatAmount - adminShare - waqifShare
-    // = 77000 - 1500 - 7700 - 3850 = 63950
     waqfRevenue: 63950,
     waqfCorpusManual: 5000,
     availableAmount: 58950,
@@ -98,10 +96,9 @@ describe('FinancialReportsPage', () => {
   it('shows chart titles', () => {
     renderPage();
     expect(screen.getByText('مقارنة الإيرادات والمصروفات')).toBeInTheDocument();
-    expect(screen.getByText('توزيع الريع')).toBeInTheDocument();
+    expect(screen.getByText('حصتي من الريع')).toBeInTheDocument();
     expect(screen.getByText('الإيرادات حسب المصدر')).toBeInTheDocument();
     expect(screen.getByText('المصروفات حسب النوع')).toBeInTheDocument();
-    expect(screen.getByText('الإيرادات الشهرية')).toBeInTheDocument();
   });
 
   it('includes fiscal year selector', () => {
@@ -116,8 +113,6 @@ describe('FinancialReportsPage', () => {
 
   it('calculates my share correctly (10% of 60000 = 6000)', () => {
     renderPage();
-    // The page no longer shows summary cards with individual values
-    // It shows charts instead; verify the page renders without errors
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
   });
 });

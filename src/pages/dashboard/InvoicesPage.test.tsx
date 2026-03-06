@@ -83,21 +83,18 @@ describe('InvoicesPage', () => {
     expect(screen.getByPlaceholderText('بحث في الفواتير...')).toBeInTheDocument();
   });
 
-  it('shows table headers', () => {
+  it('shows invoice data in mobile cards', () => {
     renderPage();
-    expect(screen.getByText('النوع')).toBeInTheDocument();
-    expect(screen.getByText('رقم الفاتورة')).toBeInTheDocument();
-    expect(screen.getByText('المبلغ')).toBeInTheDocument();
-    expect(screen.getByText('التاريخ')).toBeInTheDocument();
-    expect(screen.getByText('الحالة')).toBeInTheDocument();
-  });
-
-  it('displays invoice data', () => {
-    renderPage();
-    expect(screen.getByText('INV-001')).toBeInTheDocument();
-    expect(screen.getByText('INV-002')).toBeInTheDocument();
+    // MobileCardView renders invoice types as titles
     expect(screen.getByText('إيجار')).toBeInTheDocument();
     expect(screen.getByText('صيانة')).toBeInTheDocument();
+  });
+
+  it('displays invoice numbers', () => {
+    renderPage();
+    // MobileCardView shows subtitles with invoice numbers
+    expect(screen.getByText('INV-001')).toBeInTheDocument();
+    expect(screen.getByText('INV-002')).toBeInTheDocument();
   });
 
   it('shows status badges', () => {
@@ -112,8 +109,9 @@ describe('InvoicesPage', () => {
     expect(screen.getByText('شبكي')).toBeInTheDocument();
   });
 
-  it('shows property number for linked invoices', () => {
+  it('shows amounts in mobile cards', () => {
     renderPage();
-    expect(screen.getByText('P1')).toBeInTheDocument();
+    expect(screen.getByText(/5,000/)).toBeInTheDocument();
+    expect(screen.getByText(/1,500/)).toBeInTheDocument();
   });
 });

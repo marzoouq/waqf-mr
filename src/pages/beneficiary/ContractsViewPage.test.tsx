@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
@@ -62,11 +63,19 @@ vi.mock('@/hooks/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
+vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import ContractsViewPage from './ContractsViewPage';
 
-const renderPage = () => render(<MemoryRouter><ContractsViewPage /></MemoryRouter>);
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><ContractsViewPage /></MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('ContractsViewPage', () => {
   it('يعرض عنوان الصفحة', () => {
@@ -84,7 +93,6 @@ describe('ContractsViewPage', () => {
 
   it('يعرض إجمالي العقود = 2', () => {
     renderPage();
-    // Find the stat card with total count
     const totalCards = screen.getAllByText('2');
     expect(totalCards.length).toBeGreaterThanOrEqual(1);
   });

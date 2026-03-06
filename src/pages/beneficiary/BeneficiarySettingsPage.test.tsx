@@ -81,7 +81,8 @@ describe('BeneficiarySettingsPage', () => {
 
   it('يعرض الهوية مخفية', () => {
     renderPage();
-    expect(screen.getByDisplayValue('****7890')).toBeInTheDocument();
+    // national_id is now fully masked as ********
+    expect(screen.getByDisplayValue('********')).toBeInTheDocument();
   });
 
   it('يعرض رسالة القراءة فقط', () => {
@@ -104,7 +105,6 @@ describe('BeneficiarySettingsPage', () => {
       data: [], isLoading: true, isError: false,
     });
     render(<MemoryRouter><BeneficiarySettingsPage /></MemoryRouter>);
-    // TableSkeleton renders
     expect(screen.queryByText('الإعدادات')).not.toBeInTheDocument();
   });
 });

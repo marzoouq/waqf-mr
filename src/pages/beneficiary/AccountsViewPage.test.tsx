@@ -101,9 +101,10 @@ describe('AccountsViewPage', () => {
 
   it('shows financial summary values', () => {
     renderPage();
-    expect(screen.getByText('حصة الناظر')).toBeInTheDocument();
-    expect(screen.getByText('حصة الواقف')).toBeInTheDocument();
-    expect(screen.getByText('ريع الوقف')).toBeInTheDocument();
+    // The page shows these labels in the summary grid
+    expect(screen.getByText('الصافي بعد الزكاة')).toBeInTheDocument();
+    expect(screen.getByText('الإجمالي القابل للتوزيع')).toBeInTheDocument();
+    expect(screen.getAllByText(/حصتي المستحقة/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows link to disclosure page', () => {

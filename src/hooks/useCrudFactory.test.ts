@@ -11,7 +11,7 @@ const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
 const mockEq = vi.fn();
-const mockSingle = vi.fn();
+const mockMaybeSingle = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -47,12 +47,12 @@ beforeEach(() => {
   mockSelect.mockReturnValue({ order: mockOrder });
   mockOrder.mockReturnValue({ limit: mockLimit });
   mockLimit.mockResolvedValue({ data: sampleRows, error: null });
-  // Default chain for insert
-  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
-  mockSingle.mockResolvedValue({ data: sampleRows[0], error: null });
+  // Default chain for insert — code calls .insert().select().maybeSingle()
+  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
+  mockMaybeSingle.mockResolvedValue({ data: sampleRows[0], error: null });
   // Default chain for update
   mockUpdate.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
+  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   // Default chain for delete
   mockDelete.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 });
@@ -82,7 +82,7 @@ describe('createCrudFactory', () => {
     });
 
     it('shows error toast on failure', async () => {
-      mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: null, error: { message: 'err' } }) }) });
+      mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: 'err' } }) }) });
       const { result } = renderHook(() => factory.useCreate(), { wrapper: wrapper() });
       await expect(result.current.mutateAsync({} as any)).rejects.toThrow();
       expect(toast.error).toHaveBeenCalledWith('حدث خطأ أثناء إضافة العقار');
