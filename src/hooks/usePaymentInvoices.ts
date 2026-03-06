@@ -98,6 +98,7 @@ export const useMarkInvoicePaid = () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
+      qc.invalidateQueries({ queryKey: ['contracts'] });
       toast.success('تم تسديد الفاتورة وتسجيل التحصيل');
     },
     onError: () => toast.error('فشل تسديد الفاتورة'),
@@ -118,6 +119,7 @@ export const useMarkInvoiceUnpaid = () => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
       qc.invalidateQueries({ queryKey: ['tenant_payments'] });
       qc.invalidateQueries({ queryKey: ['income'] });
+      qc.invalidateQueries({ queryKey: ['contracts'] });
       toast.success('تم إلغاء التسديد والتراجع عن التحصيل');
     },
     onError: () => toast.error('فشل إلغاء التسديد'),

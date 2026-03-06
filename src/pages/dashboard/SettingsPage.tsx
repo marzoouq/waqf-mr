@@ -613,6 +613,7 @@ const SecurityTab = () => {
               <SelectItem value="5">5 دقائق</SelectItem>
               <SelectItem value="15">15 دقيقة</SelectItem>
               <SelectItem value="30">30 دقيقة</SelectItem>
+              <SelectItem value="60">60 دقيقة</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -636,8 +637,34 @@ const SettingsPage = () => {
             <p className="text-muted-foreground mt-1 text-sm">إدارة جميع إعدادات النظام من مكان واحد</p>
           </div>
         </div>
-        <Tabs defaultValue="waqf" dir="rtl">
-          <TabsList className="w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
+        <Tabs defaultValue="waqf" dir="rtl" onValueChange={(v) => setActiveSettingsTab(v)} value={activeSettingsTab}>
+          {/* Mobile: Select dropdown */}
+          <div className="md:hidden mb-4">
+            <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="اختر القسم..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="waqf">بيانات الوقف</SelectItem>
+                <SelectItem value="landing">الواجهة الرئيسية</SelectItem>
+                <SelectItem value="sections">الأقسام</SelectItem>
+                <SelectItem value="menu">القائمة</SelectItem>
+                <SelectItem value="beneficiary">واجهة المستفيد</SelectItem>
+                <SelectItem value="appearance">المظهر</SelectItem>
+                <SelectItem value="fiscal">السنوات المالية</SelectItem>
+                <SelectItem value="notifications">الإشعارات</SelectItem>
+                <SelectItem value="bulk-notify">إشعارات جماعية</SelectItem>
+                <SelectItem value="export">تصدير البيانات</SelectItem>
+                <SelectItem value="banner">شريط التنبيه</SelectItem>
+                <SelectItem value="role-permissions">صلاحيات الأدوار</SelectItem>
+                <SelectItem value="biometric">البصمة</SelectItem>
+                <SelectItem value="advances">السُلف</SelectItem>
+                <SelectItem value="security">الأمان</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Desktop: TabsList */}
+          <TabsList className="hidden md:flex w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
             <TabsTrigger value="waqf" className="gap-1.5 text-xs md:text-sm">
               <Building2 className="w-4 h-4" />
               بيانات الوقف

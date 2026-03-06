@@ -177,6 +177,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  // Fix: إغلاق القائمة الجانبية تلقائياً عند تغيير المسار
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   // ─── Interactive swipe (rAF-based, no re-renders during drag) ───
   const SIDEBAR_W = 256;
   const CLOSE_THRESHOLD = 80;
@@ -348,7 +353,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         >
           <Menu className="w-6 h-6" />
         </Button>
-        <span className="font-arabic font-bold text-lg text-sidebar-foreground">{ROUTE_TITLES[location.pathname] || 'إدارة الوقف'}</span>
+        <div className="flex flex-col items-center">
+          <span className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{ROUTE_TITLES[location.pathname] || 'إدارة الوقف'}</span>
+          {fiscalYear && (
+            <span className="text-[10px] text-sidebar-foreground/70 leading-none">{fiscalYear.label}</span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
             <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
