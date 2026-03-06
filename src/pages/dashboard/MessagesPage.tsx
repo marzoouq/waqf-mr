@@ -118,7 +118,7 @@ const MessagesPage = () => {
             {selectedConv ? (
               <>
                 <div className="p-3 border-b border-border flex items-center gap-3">
-                  <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConv(null)}>
+                  <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConv(null)} aria-label="رجوع">
                     <ArrowLeft className="w-5 h-5" />
                   </Button>
                   <div>

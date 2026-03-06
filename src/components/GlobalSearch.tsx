@@ -203,6 +203,7 @@ const GlobalSearch = () => {
             size="icon"
             className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6"
             onClick={() => { setQuery(''); setResults([]); }}
+            aria-label="مسح البحث"
           >
             <X className="w-3 h-3" />
           </Button>
