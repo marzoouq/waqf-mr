@@ -233,7 +233,7 @@ const MySharePage = () => {
       paid: { label: 'مصروف', cls: 'bg-success/20 text-success' },
       rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive' },
     };
-    const s = map[status] || map.pending;
+    const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground' };
     return <Badge className={`${s.cls} hover:${s.cls}`}>{s.label}</Badge>;
   };
 
