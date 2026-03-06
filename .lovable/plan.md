@@ -1,34 +1,30 @@
 
-# إضافة المساعد الذكي للوحة المستفيد
 
-## التغيير المطلوب
+# خطة: استبدال نصوص التحميل بـ Skeleton Loaders في 5 صفحات
 
-تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
+## التغييرات
 
-### إزالة قيد الأدوار (سطر 45)
+كل صفحة تحتاج تغيير سطر واحد — استبدال `<div className="text-center py-12"><p>جاري التحميل...</p></div>` بمكون Skeleton مناسب من `@/components/SkeletonLoaders`.
 
-**الحالي:**
-```typescript
-if (role !== 'admin' && role !== 'accountant') return null;
-```
+### 1. `PropertiesPage.tsx` (سطر 179)
+- العقارات تُعرض كـ cards في grid → استخدام `StatsGridSkeleton count={6}`
+- إضافة استيراد `StatsGridSkeleton`
 
-**الجديد:**
-```typescript
-if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
-```
+### 2. `ExpensesPage.tsx` (سطر 131)
+- جدول مصروفات → استخدام `TableSkeleton rows={5} cols={5}`
+- إضافة استيراد `TableSkeleton`
 
-هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
+### 3. `InvoicesPage.tsx` (سطر 342)
+- جدول فواتير → استخدام `TableSkeleton rows={5} cols={5}`
+- إضافة استيراد `TableSkeleton`
 
----
+### 4. `ContractsPage.tsx` (سطر 349)
+- جدول عقود → استخدام `TableSkeleton rows={5} cols={6}`
+- إضافة استيراد `TableSkeleton`
 
-## لماذا هذا كافٍ؟
+### 5. `AuditLogPage.tsx` (سطر 281)
+- جدول سجلات → استخدام `TableSkeleton rows={5} cols={4}`
+- إضافة استيراد `TableSkeleton`
 
-- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
-  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
-  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
-  - تقدم system prompt مخصص لغير الإداريين
-- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
+## الملفات المتأثرة: 5 ملفات، تغيير بسيط في كل منها (إضافة استيراد + استبدال سطر واحد)
 
-## الأمان
-
-لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
