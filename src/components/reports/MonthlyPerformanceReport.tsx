@@ -18,6 +18,8 @@ const MONTH_NAMES = [
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
 
+const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerformanceReportProps) => {
   const monthlyData = useMemo(() => {
     const monthMap = new Map<string, { income: number; expenses: number; month: number; year: number }>();
@@ -72,7 +74,6 @@ const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerfo
   const avgMonthlyIncome = monthlyData.length > 0 ? totals.income / monthlyData.length : 0;
   const avgMonthlyExpenses = monthlyData.length > 0 ? totals.expenses / monthlyData.length : 0;
 
-  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   if (monthlyData.length === 0) {
     return (

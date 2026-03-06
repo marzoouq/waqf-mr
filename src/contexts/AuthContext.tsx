@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       // Safety net: fetchRole (via onAuthStateChange) will set loading=false,
       // but if it doesn't fire within 5s, force it to prevent infinite loading
-      setTimeout(() => setLoading(false), 5000);
+      setTimeout(() => setLoading(false), 3000);
     }
     return { error };
   };

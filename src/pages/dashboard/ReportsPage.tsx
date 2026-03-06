@@ -27,6 +27,8 @@ const REPORT_COLORS = [
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
 
+const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
@@ -64,7 +66,6 @@ const ReportsPage = () => {
     percentage: b.share_percentage,
   }));
 
-  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   // handlePrint removed - ExportMenu handles it
 
