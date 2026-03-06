@@ -388,6 +388,7 @@ const MySharePage = () => {
             </CardContent>
           </Card>
 
+          {advancesEnabled && (
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -401,6 +402,7 @@ const MySharePage = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* تنبيه الفروق المرحّلة */}
@@ -503,7 +505,7 @@ const MySharePage = () => {
         </Card>
 
         {/* سجل السُلف */}
-        {myAdvances.length > 0 && (
+        {advancesEnabled && myAdvances.length > 0 && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
