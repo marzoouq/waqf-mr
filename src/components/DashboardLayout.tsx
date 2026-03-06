@@ -292,23 +292,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarOpen && (
+      {/* Mobile Sidebar Overlay — dynamic opacity */}
+      {(mobileSidebarOpen || edgeDrag > 0) && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-50 lg:hidden"
+          style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Mobile */}
+      {/* Sidebar - Mobile — follows finger */}
       <aside
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 transition-transform duration-300 lg:hidden',
-          mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
+          isDragging.current || isEdgeSwiping.current ? '' : 'transition-transform duration-300'
         )}
+        style={{ transform: `translateX(${sidebarTranslateX}px)` }}
       >
         <SidebarContent
           links={links}
@@ -336,11 +338,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className={cn(
-        'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
-        'pt-14 pb-16 lg:pt-0 lg:pb-0',
-        sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
-      )}>
+      <main
+        onTouchStart={handleMainTouchStart}
+        onTouchMove={handleMainTouchMove}
+        onTouchEnd={handleMainTouchEnd}
+        className={cn(
+          'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
+          'pt-14 pb-16 lg:pt-0 lg:pb-0',
+          sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
+        )}
+      >
         {/* Print-only Header */}
         <PrintHeader />
         <div className="hidden lg:flex items-center justify-between">
