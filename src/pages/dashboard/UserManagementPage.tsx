@@ -337,74 +337,95 @@ const UserManagementPage = () => {
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
             {isLoading ? (
-              <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p>
+              <>
+                {/* Mobile skeleton */}
+                <div className="space-y-3 p-4 md:hidden">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Card key={i} className="shadow-sm">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="h-5 w-2/3 rounded bg-muted animate-pulse" />
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="h-4 w-20 rounded bg-muted animate-pulse" />
+                          <div className="h-4 w-16 rounded bg-muted animate-pulse" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                {/* Desktop skeleton */}
+                <p className="text-center py-8 text-muted-foreground hidden md:block">جاري التحميل...</p>
+              </>
             ) : (
-              <div className="overflow-x-auto">
-              <Table className="min-w-[700px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                    <TableHead className="text-right">الدور</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">آخر دخول</TableHead>
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile cards */}
+                <div className="space-y-3 p-4 md:hidden">
                   {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell dir="ltr">
-                        <span className="flex items-center gap-1">
-                          {user.email}
-                          {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
-                          {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
-                            <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
-                          )}
-                        </span>
-                      </TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell>
-                        {user.email_confirmed_at ? (
-                          <Badge className="bg-success/20 text-success gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            مفعل
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-destructive/20 text-destructive gap-1">
-                            <XCircle className="w-3 h-3" />
-                            غير مفعل
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {user.last_sign_in_at
-                          ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
-                          : 'لم يسجل دخول'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 flex-wrap">
-                          {/* BUG-4 fix: تعطيل فقط الزر الخاص بالمستخدم قيد التنفيذ */}
+                    <Card key={user.id} className="shadow-sm">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm" dir="ltr">{user.email}</span>
+                              {isSelf(user.id) && <Badge variant="outline" className="text-[10px]">أنت</Badge>}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {getRoleBadge(user.role)}
+                              {user.email_confirmed_at ? (
+                                <Badge className="bg-success/20 text-success gap-1 text-[10px]">
+                                  <CheckCircle className="w-3 h-3" />
+                                  مفعل
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-destructive/20 text-destructive gap-1 text-[10px]">
+                                  <XCircle className="w-3 h-3" />
+                                  غير مفعل
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">آخر دخول</p>
+                            <p className="text-sm font-medium">
+                              {user.last_sign_in_at
+                                ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                                : 'لم يسجل دخول'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground">تاريخ الإنشاء</p>
+                            <p className="text-sm font-medium">
+                              {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-1 flex-wrap pt-1 border-t">
                           {!user.email_confirmed_at && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1 text-xs"
+                              className="gap-1 text-xs h-8"
                               onClick={() => confirmEmail.mutate(user.id)}
                               disabled={pendingConfirmId === user.id}
+                              aria-label={`تفعيل بريد ${user.email}`}
                             >
                               <CheckCircle className="w-3 h-3" />
-                              {pendingConfirmId === user.id ? 'جاري التفعيل...' : 'تفعيل'}
+                              {pendingConfirmId === user.id ? 'جاري...' : 'تفعيل'}
                             </Button>
                           )}
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1 text-xs"
+                            className="gap-1 text-xs h-8"
                             onClick={() => {
                               setEditingUser(user);
                               setEditEmail(user.email);
                               setEditRole(user.role || '');
                             }}
+                            aria-label={`تعديل ${user.email}`}
                           >
                             <Edit className="w-3 h-3" />
                             تعديل
@@ -412,30 +433,127 @@ const UserManagementPage = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1 text-xs"
+                            className="gap-1 text-xs h-8"
                             onClick={() => setPasswordDialog(user.id)}
+                            aria-label={`تغيير كلمة مرور ${user.email}`}
                           >
                             <Key className="w-3 h-3" />
                             كلمة المرور
                           </Button>
-                          {/* BUG-5 fix: إخفاء زر الحذف للناظر نفسه */}
                           {!isSelf(user.id) && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1 text-xs text-destructive hover:text-destructive"
+                              className="gap-1 text-xs h-8 text-destructive hover:text-destructive"
                               onClick={() => setDeleteUserId(user.id)}
+                              aria-label={`حذف ${user.email}`}
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </CardContent>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
-              </div>
+                </div>
+
+                {/* Desktop table */}
+                <div className="overflow-x-auto hidden md:block">
+                <Table className="min-w-[700px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                      <TableHead className="text-right">الدور</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">آخر دخول</TableHead>
+                      <TableHead className="text-right">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell dir="ltr">
+                          <span className="flex items-center gap-1">
+                            {user.email}
+                            {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                            {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
+                              <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
+                            )}
+                          </span>
+                        </TableCell>
+                        <TableCell>{getRoleBadge(user.role)}</TableCell>
+                        <TableCell>
+                          {user.email_confirmed_at ? (
+                            <Badge className="bg-success/20 text-success gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              مفعل
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-destructive/20 text-destructive gap-1">
+                              <XCircle className="w-3 h-3" />
+                              غير مفعل
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {user.last_sign_in_at
+                            ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                            : 'لم يسجل دخول'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {!user.email_confirmed_at && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-xs"
+                                onClick={() => confirmEmail.mutate(user.id)}
+                                disabled={pendingConfirmId === user.id}
+                              >
+                                <CheckCircle className="w-3 h-3" />
+                                {pendingConfirmId === user.id ? 'جاري التفعيل...' : 'تفعيل'}
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs"
+                              onClick={() => {
+                                setEditingUser(user);
+                                setEditEmail(user.email);
+                                setEditRole(user.role || '');
+                              }}
+                            >
+                              <Edit className="w-3 h-3" />
+                              تعديل
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1 text-xs"
+                              onClick={() => setPasswordDialog(user.id)}
+                            >
+                              <Key className="w-3 h-3" />
+                              كلمة المرور
+                            </Button>
+                            {!isSelf(user.id) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1 text-xs text-destructive hover:text-destructive"
+                                onClick={() => setDeleteUserId(user.id)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                </div>
+              </>
             )}
 
             {/* Pagination */}
