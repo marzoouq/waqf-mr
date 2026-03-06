@@ -7,6 +7,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
 import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import ExportMenu from '@/components/ExportMenu';
