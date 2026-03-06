@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -21,6 +21,7 @@ import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, use
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -78,6 +79,9 @@ const MySharePage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+  const { getJsonSetting } = useAppSettings();
+  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
+  const advancesEnabled = advanceSettings.enabled;
   const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary && totalBenPct > 0
@@ -227,14 +231,15 @@ const MySharePage = () => {
   };
 
   const getAdvanceStatusBadge = (status: string) => {
-    const map: Record<string, { label: string; cls: string }> = {
-      pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning' },
-      approved: { label: 'معتمد', cls: 'bg-info/20 text-info' },
-      paid: { label: 'مصروف', cls: 'bg-success/20 text-success' },
-      rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive' },
+    const map: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
+      pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning', icon: Clock },
+      approved: { label: 'معتمد', cls: 'bg-blue-500/20 text-blue-600', icon: CheckCircle },
+      paid: { label: 'مصروف', cls: 'bg-success/20 text-success', icon: Banknote },
+      rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive', icon: XCircle },
     };
-    const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground' };
-    return <Badge className={`${s.cls} hover:${s.cls}`}>{s.label}</Badge>;
+    const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground', icon: Clock };
+    const Icon = s.icon;
+    return <Badge className={`${s.cls} hover:${s.cls}`}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
   };
 
   // F4: عرض skeleton أثناء التحميل
