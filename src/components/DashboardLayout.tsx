@@ -144,38 +144,70 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // ─── Interactive swipe-to-close (sidebar follows finger) ───
-  const SIDEBAR_W = 256; // w-64 = 256px
+  // ─── Interactive swipe (rAF-based, no re-renders during drag) ───
+  const SIDEBAR_W = 256;
   const CLOSE_THRESHOLD = 80;
-  const [dragOffset, setDragOffset] = useState(0); // px shifted right
+  const sidebarRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef(0);
   const isDragging = useRef(false);
   const sidebarTouchStartX = useRef(0);
+  const rafId = useRef(0);
+
+  const applyTransform = useCallback((offset: number, total: number) => {
+    cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(() => {
+      if (sidebarRef.current) {
+        sidebarRef.current.style.transform = `translateX(${offset}px)`;
+        sidebarRef.current.style.willChange = 'transform';
+      }
+      if (overlayRef.current) {
+        const progress = Math.max(0, 1 - offset / total);
+        overlayRef.current.style.opacity = String(progress * 0.5);
+        overlayRef.current.style.willChange = 'opacity';
+      }
+    });
+  }, []);
+
+  const clearInlineStyles = useCallback(() => {
+    cancelAnimationFrame(rafId.current);
+    if (sidebarRef.current) {
+      sidebarRef.current.style.transform = '';
+      sidebarRef.current.style.willChange = '';
+    }
+    if (overlayRef.current) {
+      overlayRef.current.style.opacity = '';
+      overlayRef.current.style.willChange = '';
+    }
+  }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     sidebarTouchStartX.current = e.touches[0].clientX;
     isDragging.current = true;
-    setDragOffset(0);
+    dragOffsetRef.current = 0;
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    const delta = e.touches[0].clientX - sidebarTouchStartX.current;
-    // RTL: positive delta = swiping right = closing
-    setDragOffset(Math.max(0, delta));
-  }, []);
+    const delta = Math.max(0, e.touches[0].clientX - sidebarTouchStartX.current);
+    dragOffsetRef.current = delta;
+    applyTransform(delta, SIDEBAR_W);
+  }, [applyTransform]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    if (dragOffset > CLOSE_THRESHOLD) {
+    clearInlineStyles();
+    if (dragOffsetRef.current > CLOSE_THRESHOLD) {
+      navigator.vibrate?.(15);
       setMobileSidebarOpen(false);
     }
-    setDragOffset(0);
-  }, [dragOffset]);
+    dragOffsetRef.current = 0;
+  }, [clearInlineStyles]);
 
-  // ─── Edge swipe-to-open from right edge ───
+  // ─── Edge swipe-to-open from right edge (rAF-based) ───
   const edgeStartX = useRef(0);
-  const [edgeDrag, setEdgeDrag] = useState(0); // how far pulled from right edge
+  const edgeDragRef = useRef(0);
   const isEdgeSwiping = useRef(false);
 
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
@@ -183,36 +215,33 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
       edgeStartX.current = x;
       isEdgeSwiping.current = true;
-      setEdgeDrag(0);
+      edgeDragRef.current = 0;
     }
   }, [mobileSidebarOpen]);
 
   const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isEdgeSwiping.current) return;
-    const delta = edgeStartX.current - e.touches[0].clientX; // positive = swiping left (opening in RTL)
-    setEdgeDrag(Math.max(0, Math.min(SIDEBAR_W, delta)));
-  }, []);
+    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0].clientX));
+    edgeDragRef.current = delta;
+    applyTransform(SIDEBAR_W - delta, SIDEBAR_W);
+  }, [applyTransform]);
 
   const handleMainTouchEnd = useCallback(() => {
     if (!isEdgeSwiping.current) return;
     isEdgeSwiping.current = false;
-    if (edgeDrag > CLOSE_THRESHOLD) {
+    clearInlineStyles();
+    if (edgeDragRef.current > CLOSE_THRESHOLD) {
+      navigator.vibrate?.(15);
       setMobileSidebarOpen(true);
     }
-    setEdgeDrag(0);
-  }, [edgeDrag]);
+    edgeDragRef.current = 0;
+  }, [clearInlineStyles]);
 
-  // Compute overlay opacity based on drag state
-  const overlayOpacity = mobileSidebarOpen
-    ? Math.max(0, 1 - dragOffset / SIDEBAR_W) * 0.5
-    : (edgeDrag / SIDEBAR_W) * 0.5;
+  // Compute overlay opacity for non-dragging states
+  const overlayOpacity = mobileSidebarOpen ? 0.5 : 0;
 
-  // Compute sidebar translateX
-  const sidebarTranslateX = mobileSidebarOpen
-    ? dragOffset // shift right while closing
-    : edgeDrag > 0
-      ? SIDEBAR_W - edgeDrag // partially visible from right
-      : SIDEBAR_W; // fully hidden (translate-x-full)
+  // Compute sidebar translateX for non-dragging states
+  const sidebarTranslateX = mobileSidebarOpen ? 0 : SIDEBAR_W;
   const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
@@ -292,24 +321,24 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay — dynamic opacity */}
-      {(mobileSidebarOpen || edgeDrag > 0) && (
-        <div
-          className="fixed inset-0 z-50 lg:hidden"
-          style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile Sidebar Overlay — rAF updates opacity during drag */}
+      <div
+        ref={overlayRef}
+        className={cn(
+          'fixed inset-0 z-50 lg:hidden',
+          mobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'
+        )}
+        style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}
+        onClick={() => setMobileSidebarOpen(false)}
+      />
 
       {/* Sidebar - Mobile — follows finger */}
       <aside
+        ref={sidebarRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={cn(
-          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
-          isDragging.current || isEdgeSwiping.current ? '' : 'transition-transform duration-300'
-        )}
+        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
         style={{ transform: `translateX(${sidebarTranslateX}px)` }}
       >
         <SidebarContent
