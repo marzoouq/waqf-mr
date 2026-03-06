@@ -9,7 +9,7 @@ const Unauthorized = () => {
   const homePath =
     role === 'admin' || role === 'accountant' ? '/dashboard'
     : role === 'beneficiary' ? '/beneficiary'
-    : role === 'waqif' ? '/waqif'
+    : role === 'waqif' ? '/beneficiary'
     : '/';
 
   return (

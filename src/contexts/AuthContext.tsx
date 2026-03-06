@@ -208,6 +208,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       queryClient.clear();
       localStorage.removeItem('waqf_selected_fiscal_year');
       localStorage.removeItem('sidebar-open');
+      localStorage.removeItem('pwa_last_seen_version');
+      localStorage.removeItem('waqf_theme_color');
+      localStorage.removeItem('waqf_biometric_enabled');
+      localStorage.removeItem('waqf_notification_tone');
     }
   };
 

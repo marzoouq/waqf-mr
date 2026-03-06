@@ -23,9 +23,14 @@ export const logger = {
     } else {
       console.error('[App Error]');
       // Record client error in access_log for monitoring
+      const errObj = args.find(a => a instanceof Error) as Error | undefined;
       getLogAccess().then(log => log({
         event_type: 'client_error',
-        metadata: { message: String(args[0] ?? '').substring(0, 500) },
+        metadata: {
+          message: String(args[0] ?? '').substring(0, 500),
+          stack: errObj?.stack?.substring(0, 1000),
+          error_name: errObj?.name,
+        },
       })).catch(() => {});
     }
   },
