@@ -1,65 +1,34 @@
 
+# إضافة المساعد الذكي للوحة المستفيد
 
-# خطة: إصلاح تسجيل الخروج + عنوان الهيدر الديناميكي
+## التغيير المطلوب
 
-## مشكلة تسجيل الخروج — التحليل
+تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
 
-`handleSignOut` يستدعي `signOut()` فقط (سطر 282-284) بدون أي تنقل صريح. المفترض أن `ProtectedRoute` يعيد التوجيه عندما يصبح `user = null`، لكن:
-- على الجوال: `AlertDialog` داخل Sidebar (`z-[60]`) قد يبقى مفتوحاً ويمنع إعادة التوجيه
-- `handleIdleLogout` يستخدم `window.location.href = '/auth?reason=idle'` — أي أنه يعمل لأنه يتنقل صراحة
-- `handleSignOut` لا يفعل ذلك — يعتمد فقط على React state change
+### إزالة قيد الأدوار (سطر 45)
 
-## التغييرات المطلوبة
-
-### 1. `src/components/DashboardLayout.tsx`
-
-**إصلاح تسجيل الخروج** — إضافة `useNavigate` وتنقل صريح بعد `signOut()`:
-```tsx
-const handleSignOut = async () => {
-  setMobileSidebarOpen(false); // أغلق القائمة الجانبية أولاً
-  await signOut();
-  navigate('/auth', { replace: true });
-};
+**الحالي:**
+```typescript
+if (role !== 'admin' && role !== 'accountant') return null;
 ```
 
-**عنوان الهيدر الديناميكي** — إضافة خريطة عناوين واستبدال النص الثابت:
-```tsx
-// خريطة مسارات → عناوين (مستوى الوحدة)
-const ROUTE_TITLES: Record<string, string> = {
-  '/dashboard': 'الرئيسية',
-  '/dashboard/properties': 'العقارات',
-  '/dashboard/contracts': 'العقود',
-  '/dashboard/income': 'الدخل',
-  '/dashboard/expenses': 'المصروفات',
-  '/dashboard/beneficiaries': 'المستفيدين',
-  '/dashboard/reports': 'التقارير',
-  '/dashboard/accounts': 'الحسابات',
-  '/dashboard/users': 'إدارة المستخدمين',
-  '/dashboard/settings': 'الإعدادات',
-  '/dashboard/messages': 'المراسلات',
-  '/dashboard/invoices': 'الفواتير',
-  '/dashboard/audit-log': 'سجل المراجعة',
-  '/dashboard/bylaws': 'اللائحة التنظيمية',
-  '/beneficiary': 'الرئيسية',
-  '/beneficiary/my-share': 'حصتي من الريع',
-  // ... باقي المسارات
-};
+**الجديد:**
+```typescript
+if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
 ```
 
-ثم في الهيدر الجوال (سطر 313):
-```tsx
-<span className="...">
-  {ROUTE_TITLES[location.pathname] || 'إدارة الوقف'}
-</span>
-```
+هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
 
-### 2. `src/contexts/AuthContext.tsx`
+---
 
-لا تغيير — `signOut` يبقى كما هو (مسؤولية التنقل على المكون المستدعي).
+## لماذا هذا كافٍ؟
 
-### ملف واحد يتغير: `DashboardLayout.tsx`
-- إضافة `useNavigate` في الاستيراد
-- إضافة `ROUTE_TITLES` ثابت خارج الـ component
-- تعديل `handleSignOut` ليغلق القائمة ثم ينتقل
-- استبدال النص الثابت في الهيدر بعنوان ديناميكي
+- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
+  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
+  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
+  - تقدم system prompt مخصص لغير الإداريين
+- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
 
+## الأمان
+
+لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.

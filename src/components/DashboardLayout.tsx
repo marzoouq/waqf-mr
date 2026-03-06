@@ -2,7 +2,7 @@
  * التخطيط العام للوحة التحكم (DashboardLayout)
  * يوفر الشريط الجانبي (قابل للطي) مع التنقل الديناميكي حسب دور المستخدم.
  */
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -128,10 +128,42 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 // Routes accountant can never access
 const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings'];
 
+// Dynamic mobile header titles
+const ROUTE_TITLES: Record<string, string> = {
+  '/dashboard': 'الرئيسية',
+  '/dashboard/properties': 'العقارات',
+  '/dashboard/contracts': 'العقود',
+  '/dashboard/income': 'الدخل',
+  '/dashboard/expenses': 'المصروفات',
+  '/dashboard/beneficiaries': 'المستفيدين',
+  '/dashboard/reports': 'التقارير',
+  '/dashboard/accounts': 'الحسابات',
+  '/dashboard/users': 'إدارة المستخدمين',
+  '/dashboard/settings': 'الإعدادات',
+  '/dashboard/messages': 'المراسلات',
+  '/dashboard/invoices': 'الفواتير',
+  '/dashboard/audit-log': 'سجل المراجعة',
+  '/dashboard/bylaws': 'اللائحة التنظيمية',
+  '/beneficiary': 'الرئيسية',
+  '/beneficiary/properties': 'العقارات',
+  '/beneficiary/contracts': 'العقود',
+  '/beneficiary/disclosure': 'الإفصاح السنوي',
+  '/beneficiary/my-share': 'حصتي من الريع',
+  '/beneficiary/carryforward': 'الترحيلات والخصومات',
+  '/beneficiary/financial-reports': 'التقارير المالية',
+  '/beneficiary/accounts': 'الحسابات الختامية',
+  '/beneficiary/messages': 'المراسلات',
+  '/beneficiary/notifications': 'سجل الإشعارات',
+  '/beneficiary/invoices': 'الفواتير',
+  '/beneficiary/bylaws': 'اللائحة التنظيمية',
+  '/beneficiary/settings': 'الإعدادات',
+};
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
+  const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
@@ -280,7 +312,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [role, rolePermissions, menuLabels]);
 
   const handleSignOut = async () => {
+    setMobileSidebarOpen(false);
     await signOut();
+    navigate('/auth', { replace: true });
   };
 
   // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
@@ -310,7 +344,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         >
           <Menu className="w-6 h-6" />
         </Button>
-        <span className="font-arabic font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
+        <span className="font-arabic font-bold text-lg text-sidebar-foreground">{ROUTE_TITLES[location.pathname] || 'إدارة الوقف'}</span>
         <div className="flex items-center gap-1">
           <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
             <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
