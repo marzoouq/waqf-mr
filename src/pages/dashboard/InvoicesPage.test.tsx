@@ -50,6 +50,11 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({})),
 }));
 
+vi.mock('@/hooks/useAppSettings', () => ({
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
+  useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
+}));
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: { storage: { from: () => ({ remove: vi.fn(), download: vi.fn() }) } },
 }));

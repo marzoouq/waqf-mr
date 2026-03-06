@@ -44,7 +44,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 vi.mock('@/hooks/useFinancialSummary', () => ({
   useFinancialSummary: () => ({
     totalIncome: 100000, totalExpenses: 20000, availableAmount: 80000,
-    income: [], expenses: [], expensesByTypeExcludingVat: [],
+    income: [], expenses: [], expensesByTypeExcludingVat: {},
     isLoading: false,
   }),
 }));
@@ -69,6 +69,11 @@ vi.mock('@/hooks/usePaymentInvoices', () => ({
   usePaymentInvoices: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
+vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no years</div> }));
+vi.mock('@/components/ExportMenu', () => ({ default: () => null }));
+
 describe('WaqifDashboard', () => {
   it('renders financial summary cards', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -83,6 +88,6 @@ describe('WaqifDashboard', () => {
     );
 
     // Should show key financial info
-    expect(screen.getByText(/إجمالي الإيرادات/i)).toBeInTheDocument();
+    expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
   });
 });

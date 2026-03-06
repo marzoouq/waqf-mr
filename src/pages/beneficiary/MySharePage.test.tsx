@@ -53,6 +53,10 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }))
 vi.mock('@/hooks/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
 }));
+vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+  useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
+}));
+
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no years</div> }));

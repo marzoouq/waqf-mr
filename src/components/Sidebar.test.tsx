@@ -9,6 +9,11 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { email: 'admin@test.com' }, role: 'admin' }),
 }));
 
+vi.mock('@/hooks/useAppSettings', () => ({
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
+  useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
+}));
+
 vi.mock('@/constants', () => ({
   ROLE_LABELS: { admin: 'ناظر الوقف', beneficiary: 'مستفيد' },
 }));

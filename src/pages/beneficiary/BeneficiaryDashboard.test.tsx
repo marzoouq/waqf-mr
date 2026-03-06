@@ -37,6 +37,17 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({ availableAmount: 100000, isLoading: false, isError: false })),
 }));
 
+vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+  useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
+}));
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: () => ({ select: () => ({ eq: () => ({ order: () => ({ data: [], error: null }) }) }) }),
+    rpc: () => Promise.resolve({ data: 0, error: null }),
+  },
+}));
+
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import BeneficiaryDashboard from './BeneficiaryDashboard';
