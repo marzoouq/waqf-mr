@@ -109,15 +109,15 @@ const AdminDashboard = () => {
   const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
 
   const stats = [
-    { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
-    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary' },
-    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
-    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
-    { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
-    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
-    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
-    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
-    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
+    { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
+    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
+    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
+    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/income' },
+    { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses' },
+    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
   ];
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
@@ -234,19 +234,21 @@ const AdminDashboard = () => {
         {isLoading ? <StatsGridSkeleton /> : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="shadow-sm hover:shadow-md transition-shadow animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-              <CardContent className="p-3 sm:p-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
-                    <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
+            <Link key={index} to={stat.link} className="block">
+              <Card className="shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                <CardContent className="p-3 sm:p-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
+                      <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
+                    </div>
+                    <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
+                      <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
+                    </div>
                   </div>
-                  <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
-                    <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
         )}
