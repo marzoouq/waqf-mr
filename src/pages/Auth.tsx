@@ -132,6 +132,13 @@ const Auth = () => {
           return;
         }
 
+        // Check if currently locked out
+        if (nidLockedUntil && Date.now() < nidLockedUntil) {
+          const secs = Math.ceil((nidLockedUntil - Date.now()) / 1000);
+          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
+          return;
+        }
+
         // تحويل الأرقام العربية/الفارسية تلقائياً
         const cleanId = normalizeArabicDigits(nationalId);
 
@@ -145,12 +152,26 @@ const Auth = () => {
           body: { national_id: cleanId }
         });
 
+        // Handle rate limiting (429)
+        if (lookupError && data?.remaining === 0) {
+          const retryAfter = data?.retry_after || 120;
+          setNidLockedUntil(Date.now() + retryAfter * 1000);
+          setNidAttemptsRemaining(0);
+          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
+          return;
+        }
+
+        // Update remaining attempts from response
+        if (data?.remaining !== undefined) {
+          setNidAttemptsRemaining(data.remaining);
+        }
+
         if (lookupError) {
           toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
           return;
         }
         if (!data?.found || !data?.email) {
-          toast.error('رقم الهوية غير مسجل في النظام');
+          toast.error('رقم الهوية غير مسجل في النظام. تأكد من صحة الرقم أو تواصل مع ناظر الوقف.');
           return;
         }
         // استخدام البريد الحقيقي المرجع من قاعدة البيانات
@@ -169,7 +190,13 @@ const Auth = () => {
 
       const { error } = await signIn(resolvedEmail, loginPassword);
       if (error) {
-        toast.error(getSafeErrorMessage(error));
+        // Distinguish password error from other errors for better UX
+        const errMsg = error.message?.toLowerCase() || '';
+        if (loginMethod === 'national_id' && errMsg.includes('invalid login credentials')) {
+          toast.error('كلمة المرور غير صحيحة. تأكد من كلمة المرور أو استخدم "نسيت كلمة المرور".');
+        } else {
+          toast.error(getSafeErrorMessage(error));
+        }
         logAccessEvent({
           event_type: 'login_failed',
           email: loginMethod === 'national_id' ? null : resolvedEmail,
