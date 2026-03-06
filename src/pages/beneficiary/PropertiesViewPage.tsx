@@ -31,6 +31,42 @@ const PropertiesViewPage = () => {
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
 
+  const getUnitsForProperty = (propertyId: string) =>
+    units?.filter(u => u.property_id === propertyId) ?? [];
+
+  const totalUnits = units?.length ?? 0;
+
+  const rentedUnitIds = new Set(
+    (contracts ?? []).filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id)
+  );
+  const wholePropertyIds = new Set(
+    (contracts ?? []).filter(c => (isSpecificYear || c.status === 'active') && c.property_id && !c.unit_id).map(c => c.property_id)
+  );
+  const occupiedUnits = units?.filter(u =>
+    rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
+  ).length ?? 0;
+
+  const propertiesWithoutUnitsNoContract = (properties ?? []).filter(p => {
+    const pUnits = units?.filter(u => u.property_id === p.id) ?? [];
+    return pUnits.length === 0 && !wholePropertyIds.has(p.id);
+  }).length;
+
+  const summaryData = useMemo(() => {
+    const totalProperties = properties?.length ?? 0;
+    const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
+    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + Number(c.rent_amount), 0);
+    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+    const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
+    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + Number(e.amount), 0);
+    const netIncome = activeIncome - totalExpensesAll;
+    const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+    const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
+    const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+    return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
+  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses]);
+
+  const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
+
   if (noPublishedYears) {
     return <DashboardLayout><div className="p-4 md:p-6"><NoPublishedYearsNotice /></div></DashboardLayout>;
   }
@@ -53,44 +89,6 @@ const PropertiesViewPage = () => {
       </DashboardLayout>
     );
   }
-
-  const getUnitsForProperty = (propertyId: string) =>
-    units?.filter(u => u.property_id === propertyId) ?? [];
-
-  const totalUnits = units?.length ?? 0;
-
-  // حساب الإشغال من العقود المفلترة بالسنة المالية (بدلاً من حالة الوحدة الثابتة)
-  const rentedUnitIds = new Set(
-    contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id)
-  );
-  const wholePropertyIds = new Set(
-    contracts.filter(c => (isSpecificYear || c.status === 'active') && c.property_id && !c.unit_id).map(c => c.property_id)
-  );
-  const occupiedUnits = units?.filter(u =>
-    rentedUnitIds.has(u.id) || wholePropertyIds.has(u.property_id)
-  ).length ?? 0;
-
-  // حساب العقارات بدون وحدات وبدون عقود (شاغرة)
-  const propertiesWithoutUnitsNoContract = (properties ?? []).filter(p => {
-    const pUnits = units?.filter(u => u.property_id === p.id) ?? [];
-    return pUnits.length === 0 && !wholePropertyIds.has(p.id);
-  }).length;
-
-  const summaryData = useMemo(() => {
-    const totalProperties = properties?.length ?? 0;
-    const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
-    const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
-    const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
-    const propExpensesAll = expenses.filter(e => e.property_id);
-    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + Number(e.amount), 0);
-    const netIncome = activeIncome - totalExpensesAll;
-    const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
-    const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
-    const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
-    return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
-  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses]);
-
-  const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
 
   return (
     <DashboardLayout>
