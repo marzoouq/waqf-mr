@@ -144,24 +144,75 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Swipe-to-close for mobile sidebar (RTL: swipe right = close)
-  const touchStartX = useRef<number>(0);
-  const touchDeltaX = useRef<number>(0);
+  // ─── Interactive swipe-to-close (sidebar follows finger) ───
+  const SIDEBAR_W = 256; // w-64 = 256px
+  const CLOSE_THRESHOLD = 80;
+  const [dragOffset, setDragOffset] = useState(0); // px shifted right
+  const isDragging = useRef(false);
+  const sidebarTouchStartX = useRef(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchDeltaX.current = 0;
+    sidebarTouchStartX.current = e.touches[0].clientX;
+    isDragging.current = true;
+    setDragOffset(0);
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+    if (!isDragging.current) return;
+    const delta = e.touches[0].clientX - sidebarTouchStartX.current;
+    // RTL: positive delta = swiping right = closing
+    setDragOffset(Math.max(0, delta));
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (touchDeltaX.current > 60) {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    if (dragOffset > CLOSE_THRESHOLD) {
       setMobileSidebarOpen(false);
     }
+    setDragOffset(0);
+  }, [dragOffset]);
+
+  // ─── Edge swipe-to-open from right edge ───
+  const edgeStartX = useRef(0);
+  const [edgeDrag, setEdgeDrag] = useState(0); // how far pulled from right edge
+  const isEdgeSwiping = useRef(false);
+
+  const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
+    const x = e.touches[0].clientX;
+    if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
+      edgeStartX.current = x;
+      isEdgeSwiping.current = true;
+      setEdgeDrag(0);
+    }
+  }, [mobileSidebarOpen]);
+
+  const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isEdgeSwiping.current) return;
+    const delta = edgeStartX.current - e.touches[0].clientX; // positive = swiping left (opening in RTL)
+    setEdgeDrag(Math.max(0, Math.min(SIDEBAR_W, delta)));
   }, []);
+
+  const handleMainTouchEnd = useCallback(() => {
+    if (!isEdgeSwiping.current) return;
+    isEdgeSwiping.current = false;
+    if (edgeDrag > CLOSE_THRESHOLD) {
+      setMobileSidebarOpen(true);
+    }
+    setEdgeDrag(0);
+  }, [edgeDrag]);
+
+  // Compute overlay opacity based on drag state
+  const overlayOpacity = mobileSidebarOpen
+    ? Math.max(0, 1 - dragOffset / SIDEBAR_W) * 0.5
+    : (edgeDrag / SIDEBAR_W) * 0.5;
+
+  // Compute sidebar translateX
+  const sidebarTranslateX = mobileSidebarOpen
+    ? dragOffset // shift right while closing
+    : edgeDrag > 0
+      ? SIDEBAR_W - edgeDrag // partially visible from right
+      : SIDEBAR_W; // fully hidden (translate-x-full)
   const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
@@ -241,23 +292,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarOpen && (
+      {/* Mobile Sidebar Overlay — dynamic opacity */}
+      {(mobileSidebarOpen || edgeDrag > 0) && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-50 lg:hidden"
+          style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Mobile */}
+      {/* Sidebar - Mobile — follows finger */}
       <aside
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 transition-transform duration-300 lg:hidden',
-          mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
+          isDragging.current || isEdgeSwiping.current ? '' : 'transition-transform duration-300'
         )}
+        style={{ transform: `translateX(${sidebarTranslateX}px)` }}
       >
         <SidebarContent
           links={links}
@@ -285,11 +338,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className={cn(
-        'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
-        'pt-14 pb-16 lg:pt-0 lg:pb-0',
-        sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
-      )}>
+      <main
+        onTouchStart={handleMainTouchStart}
+        onTouchMove={handleMainTouchMove}
+        onTouchEnd={handleMainTouchEnd}
+        className={cn(
+          'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
+          'pt-14 pb-16 lg:pt-0 lg:pb-0',
+          sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
+        )}
+      >
         {/* Print-only Header */}
         <PrintHeader />
         <div className="hidden lg:flex items-center justify-between">
