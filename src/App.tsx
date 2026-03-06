@@ -151,10 +151,14 @@ function App() {
                   </Suspense>
                 </ErrorBoundary>
                 <ErrorBoundary>
+                  <Suspense fallback={null}>
+                    <PwaUpdateNotifier />
+                  </Suspense>
+                </ErrorBoundary>
+                <ErrorBoundary>
                   <DeferredRender>
                     <Suspense fallback={null}>
                       <AiAssistant />
-                      <PwaUpdateNotifier />
                     </Suspense>
                   </DeferredRender>
                 </ErrorBoundary>
