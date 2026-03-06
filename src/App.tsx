@@ -69,12 +69,15 @@ function PageLoader() {
 function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode; delay?: number }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    const id = window.requestIdleCallback
-      ? window.requestIdleCallback(() => setReady(true), { timeout: delay })
-      : window.setTimeout(() => setReady(true), delay);
+    let timerId: number;
+    if (window.requestIdleCallback) {
+      timerId = window.requestIdleCallback(() => setReady(true), { timeout: delay });
+    } else {
+      timerId = window.setTimeout(() => setReady(true), delay) as unknown as number;
+    }
     return () => {
-      if (window.cancelIdleCallback) window.cancelIdleCallback(id as number);
-      else window.clearTimeout(id as number);
+      if (window.cancelIdleCallback) window.cancelIdleCallback(timerId);
+      else window.clearTimeout(timerId);
     };
   }, [delay]);
   if (!ready) return null;
@@ -131,7 +134,7 @@ function App() {
                     <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
-                    <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BeneficiaryDashboard /></ProtectedRoute>} />
+                    <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
                     <Route path="/waqif" element={<ProtectedRoute allowedRoles={['admin', 'waqif']}><WaqifDashboard /></ProtectedRoute>} />
                     <Route path="/beneficiary/properties" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><PropertiesViewPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/contracts" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><ContractsViewPage /></ProtectedRoute>} />
