@@ -9,6 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
@@ -61,9 +62,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+       <TooltipProvider delayDuration={0}>
         {links.map((link) => {
           const isActive = location.pathname === link.to;
-          return (
+          const linkContent = (
             <Link
               key={link.to}
               to={link.to}
@@ -80,7 +82,21 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
             </Link>
           );
+
+          if (!sidebarOpen) {
+            return (
+              <Tooltip key={link.to} delayDuration={0}>
+                <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                <TooltipContent side="left" className="hidden lg:block">
+                  {link.label}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return linkContent;
         })}
+       </TooltipProvider>
       </nav>
 
       {/* User Info */}
@@ -91,32 +107,46 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             {ROLE_LABELS[role || ''] || role}
           </p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive',
-                !sidebarOpen && 'lg:px-0'
+        <TooltipProvider delayDuration={0}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              {!sidebarOpen ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive lg:px-0"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span className="lg:hidden mr-2">تسجيل الخروج</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="hidden lg:block">تسجيل الخروج</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="mr-2">تسجيل الخروج</span>
+                </Button>
               )}
-            >
-              <LogOut className="w-5 h-5" />
-              <span className={cn('mr-2', !sidebarOpen && 'lg:hidden')}>تسجيل الخروج</span>
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
-              <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={onSignOut} className="bg-destructive hover:bg-destructive/90">
-                تسجيل الخروج
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+                <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="gap-2">
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={onSignOut} className="bg-destructive hover:bg-destructive/90">
+                  تسجيل الخروج
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TooltipProvider>
       </div>
     </>
   );
