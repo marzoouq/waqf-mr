@@ -55,7 +55,11 @@ const DataExportTab = () => {
   const handleExport = async (table: ExportableTable, label: string) => {
     setExporting(table);
     try {
-      const { data, error } = await supabase.from(table).select('*').limit(5000);
+      // استبعاد الحقول المشفرة (PII) من تصدير المستفيدين
+      const selectFields = table === 'beneficiaries'
+        ? 'id, name, email, phone, share_percentage, notes, created_at, updated_at'
+        : '*';
+      const { data, error } = await supabase.from(table).select(selectFields).limit(5000);
       if (error) throw error;
       if (!data || data.length === 0) {
         toast.info(`لا توجد بيانات في جدول ${label}`);
@@ -75,17 +79,25 @@ const DataExportTab = () => {
 
   const handleExportAll = async () => {
     setExporting('all');
+    const failedTables: string[] = [];
     try {
       for (const table of tables) {
-        const { data, error } = await supabase.from(table.key).select('*').limit(5000);
-        if (error) { continue; }
+        const selectFields = table.key === 'beneficiaries'
+          ? 'id, name, email, phone, share_percentage, notes, created_at, updated_at'
+          : '*';
+        const { data, error } = await supabase.from(table.key).select(selectFields).limit(5000);
+        if (error) { failedTables.push(table.label); continue; }
         if (data && data.length > 0) {
           const csv = convertToCSV(data as Record<string, unknown>[]);
           const date = new Date().toISOString().slice(0, 10);
           downloadCSV(csv, `${table.key}_${date}.csv`);
         }
       }
-      toast.success('تم تصدير جميع البيانات بنجاح');
+      if (failedTables.length > 0) {
+        toast.warning(`تعذر تصدير: ${failedTables.join('، ')}`);
+      } else {
+        toast.success('تم تصدير جميع البيانات بنجاح');
+      }
     } catch {
       toast.error('حدث خطأ أثناء التصدير الشامل');
     } finally {
