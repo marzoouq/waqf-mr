@@ -84,7 +84,7 @@ function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode;
   return <>{children}</>;
 }
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,

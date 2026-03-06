@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { queryClient } from '@/App';
 
 interface AuthContextType {
   user: User | null;
@@ -198,8 +199,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setRoleWithRef(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      logger.error('[Auth] signOut error (continuing cleanup):', err);
+    } finally {
+      setRoleWithRef(null);
+      queryClient.clear();
+      localStorage.removeItem('waqf_selected_fiscal_year');
+      localStorage.removeItem('sidebar-open');
+    }
   };
 
   const refreshRole = async () => {
