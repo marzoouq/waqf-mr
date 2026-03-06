@@ -230,7 +230,10 @@ const ReportsPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden animate-slide-up">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير</h1>
+              {fiscalYear && <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge>}
+            </div>
             <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض التقارير والإحصائيات</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
