@@ -99,24 +99,40 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
       {/* User Info */}
       <div className="p-4 border-t border-sidebar-border">
-        <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
-          <p className="truncate">{user?.email}</p>
-          <p className="text-xs text-sidebar-primary mt-1">
-            {ROLE_LABELS[role || ''] || role}
-          </p>
-        </div>
+        {!sidebarOpen && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div className="hidden lg:flex items-center justify-center mb-3">
+                <LogOut className="w-5 h-5 text-sidebar-foreground/60" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="left">{user?.email}</TooltipContent>
+          </Tooltip>
+        )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive',
-                !sidebarOpen && 'lg:px-0'
-              )}
-            >
-              <LogOut className="w-5 h-5" />
-              <span className={cn('mr-2', !sidebarOpen && 'lg:hidden')}>تسجيل الخروج</span>
-            </Button>
+            {!sidebarOpen ? (
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive lg:px-0"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="lg:hidden mr-2">تسجيل الخروج</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="hidden lg:block">تسجيل الخروج</TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="ghost"
+                className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="mr-2">تسجيل الخروج</span>
+              </Button>
+            )}
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
