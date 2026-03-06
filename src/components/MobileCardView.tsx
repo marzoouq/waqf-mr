@@ -77,7 +77,7 @@ function MobileCardView<T>({
               <div className="flex gap-1 shrink-0">
                 {extraActions?.(item)}
                 {onEdit && (
-                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} aria-label="تعديل">
                     <Edit className="w-4 h-4" />
                   </Button>
                 )}
