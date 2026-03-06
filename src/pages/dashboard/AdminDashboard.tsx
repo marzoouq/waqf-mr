@@ -161,7 +161,8 @@ const AdminDashboard = () => {
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   const kpis = useMemo(() => {
-    const collectionRate = contractualRevenue > 0 ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100)) : 0;
+    // Use invoice-based collection rate for accuracy (matches CollectionReport)
+    const collectionRate = collectionSummary.percentage;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
@@ -174,7 +175,7 @@ const AdminDashboard = () => {
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
     ];
-  }, [contractualRevenue, totalIncome, totalExpenses, allUnits, activeContractsCount]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue]);
 
   return (
     <DashboardLayout>
