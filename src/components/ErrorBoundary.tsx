@@ -42,7 +42,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null });
-    window.location.href = '/';
+    // Try soft recovery first; if re-render fails, getDerivedStateFromError will catch it again
   };
 
   render() {
