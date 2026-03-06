@@ -17,6 +17,18 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    version: "2.6.0",
+    date: "٦ مارس ٢٠٢٦",
+    changes: [
+      { type: "feature", text: "إضافة اسم المستفيد في إشعار طلب السلفة" },
+      { type: "improvement", text: "تخزين مؤقت ذكي لبيانات API عند انقطاع الإنترنت (NetworkFirst)" },
+      { type: "improvement", text: "زيادة مدة الاحتفاظ بالكاش للبيانات المالية (30 دقيقة)" },
+      { type: "improvement", text: "تسجيل أخطاء العميل تلقائياً في سجل المراقبة" },
+      { type: "fix", text: "توحيد النطاق للنشر (waqf-wise.net) في جميع الملفات" },
+      { type: "fix", text: "حماية ErrorBoundary منفصلة للمكونات الثانوية" },
+    ],
+  },
+  {
     version: "2.5.0",
     date: "٢ مارس ٢٠٢٦",
     changes: [
