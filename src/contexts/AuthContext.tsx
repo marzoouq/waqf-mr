@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { queryClient } from '@/App';
+import { queryClient } from '@/lib/queryClient';
 
 interface AuthContextType {
   user: User | null;
