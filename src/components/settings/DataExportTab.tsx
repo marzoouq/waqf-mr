@@ -49,24 +49,37 @@ function downloadCSV(csv: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** جلب بيانات الجدول مع استبعاد PII المشفر من المستفيدين */
+async function fetchTableData(table: ExportableTable) {
+  if (table === 'beneficiaries') {
+    // استبعاد national_id و bank_account المشفرة
+    const { data, error } = await supabase
+      .from('beneficiaries')
+      .select('id,name,email,phone,share_percentage,notes,created_at,updated_at')
+      .limit(5000);
+    return { data: data as unknown as Record<string, unknown>[] | null, error };
+  }
+  const { data, error } = await supabase.from(table).select('*').limit(5000);
+  return { data: data as unknown as Record<string, unknown>[] | null, error };
+}
+
 const DataExportTab = () => {
   const [exporting, setExporting] = useState<string | null>(null);
 
   const handleExport = async (table: ExportableTable, label: string) => {
     setExporting(table);
     try {
-      const { data, error } = await supabase.from(table).select('*').limit(5000);
+      const { data, error } = await fetchTableData(table);
       if (error) throw error;
       if (!data || data.length === 0) {
         toast.info(`لا توجد بيانات في جدول ${label}`);
         return;
       }
-      const csv = convertToCSV(data as Record<string, unknown>[]);
+      const csv = convertToCSV(data);
       const date = new Date().toISOString().slice(0, 10);
       downloadCSV(csv, `${table}_${date}.csv`);
       toast.success(`تم تصدير ${data.length} سجل من ${label}`);
-    } catch (err) {
-      // Export error — toast handles user notification
+    } catch {
       toast.error(`حدث خطأ أثناء تصدير ${label}`);
     } finally {
       setExporting(null);
@@ -75,17 +88,22 @@ const DataExportTab = () => {
 
   const handleExportAll = async () => {
     setExporting('all');
+    const failedTables: string[] = [];
     try {
       for (const table of tables) {
-        const { data, error } = await supabase.from(table.key).select('*').limit(5000);
-        if (error) { continue; }
+        const { data, error } = await fetchTableData(table.key);
+        if (error) { failedTables.push(table.label); continue; }
         if (data && data.length > 0) {
-          const csv = convertToCSV(data as Record<string, unknown>[]);
+          const csv = convertToCSV(data);
           const date = new Date().toISOString().slice(0, 10);
           downloadCSV(csv, `${table.key}_${date}.csv`);
         }
       }
-      toast.success('تم تصدير جميع البيانات بنجاح');
+      if (failedTables.length > 0) {
+        toast.warning(`تعذر تصدير: ${failedTables.join('، ')}`);
+      } else {
+        toast.success('تم تصدير جميع البيانات بنجاح');
+      }
     } catch {
       toast.error('حدث خطأ أثناء التصدير الشامل');
     } finally {

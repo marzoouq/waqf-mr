@@ -37,11 +37,16 @@ const GlobalSearch = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const abortRef = useRef<AbortController>();
 
   const isAdmin = role === 'admin' || role === 'accountant';
   const basePath = isAdmin ? '/dashboard' : '/beneficiary';
 
   const search = useCallback(async (term: string) => {
+    // إلغاء أي طلب بحث سابق لمنع race condition
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     if (term.length < 2) {
       setResults([]);
       return;
@@ -83,7 +88,7 @@ const GlobalSearch = () => {
           searchResults.push({
             id: c.id,
             title: `عقد ${c.contract_number}`,
-            subtitle: c.tenant_name,
+            subtitle: isAdmin ? c.tenant_name : `حالة: ${c.status}`,
             type: 'contract',
             path: `${basePath}/contracts`,
           });
@@ -130,11 +135,13 @@ const GlobalSearch = () => {
         }
       }
 
+      // تجاهل النتائج إذا تم إلغاء الطلب
+      if (controller.signal.aborted) return;
       setResults(searchResults);
     } catch {
-      // Fail silently
+      // Fail silently (includes aborted requests)
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) setIsLoading(false);
     }
   }, [basePath, isAdmin]);
 

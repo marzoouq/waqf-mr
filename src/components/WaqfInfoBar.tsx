@@ -96,7 +96,7 @@ const WaqfInfoBar = () => {
           .upload(path, logoFile, { upsert: true });
         if (uploadErr) throw uploadErr;
         const { data: urlData } = supabase.storage.from('waqf-assets').getPublicUrl(path);
-        logoUrl = urlData.publicUrl;
+        logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       }
 
       // Save logo URL
