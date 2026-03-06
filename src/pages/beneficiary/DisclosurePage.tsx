@@ -57,6 +57,8 @@ const DisclosurePage = () => {
     netAfterZakat,
     adminShare,
     waqifShare,
+    adminPct,
+    waqifPct,
     waqfRevenue,
     incomeBySource,
     expensesByTypeExcludingVat,
@@ -459,8 +461,12 @@ const DisclosurePage = () => {
                   </>
                 )}
                 <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
-                  <span>(-) خصومات إدارية</span>
-                  <span>-{(adminShare + waqifShare).toLocaleString()} ر.س</span>
+                  <span>(-) حصة الناظر ({adminPct}%)</span>
+                  <span>-{adminShare.toLocaleString()} ر.س</span>
+                </div>
+                <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                  <span>(-) حصة الواقف ({waqifPct}%)</span>
+                  <span>-{waqifShare.toLocaleString()} ر.س</span>
                 </div>
                 {waqfCorpusManual > 0 && (
                   <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
