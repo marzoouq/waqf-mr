@@ -435,6 +435,7 @@ const UserManagementPage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
 
             {/* Pagination */}
