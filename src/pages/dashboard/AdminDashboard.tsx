@@ -17,7 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { Badge } from '@/components/ui/badge';
-import { differenceInMonths } from 'date-fns';
+
 
 const ARABIC_MONTHS: Record<string, string> = {
   '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
@@ -28,6 +28,17 @@ const formatArabicMonth = (month: string) => {
   const parts = month.split('-');
   return ARABIC_MONTHS[parts[1]] || month;
 };
+
+const COLORS = [
+  'hsl(var(--primary))',
+  'hsl(var(--secondary))',
+  'hsl(var(--info))',
+  'hsl(var(--success))',
+  'hsl(var(--destructive))',
+  'hsl(var(--warning))',
+  'hsl(var(--accent-foreground))',
+  'hsl(var(--muted-foreground))',
+];
 
 const AdminDashboard = () => {
   const { role } = useAuth();
@@ -143,24 +154,15 @@ const AdminDashboard = () => {
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
-  // Use CSS custom property HSL values for themed chart colors
-  const COLORS = [
-    'hsl(var(--primary))',
-    'hsl(var(--secondary))',
-    'hsl(var(--info))',
-    'hsl(var(--success))',
-    'hsl(var(--destructive))',
-    'hsl(var(--warning))',
-    'hsl(var(--accent-foreground))',
-    'hsl(var(--muted-foreground))',
-  ];
+  // COLORS moved to module level for stable reference
 
   // formatArabicMonth moved to module level (PERF-01)
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   const kpis = useMemo(() => {
-    const collectionRate = contractualRevenue > 0 ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100)) : 0;
+    // Use invoice-based collection rate for accuracy (matches CollectionReport)
+    const collectionRate = collectionSummary.percentage;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
@@ -173,7 +175,7 @@ const AdminDashboard = () => {
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
     ];
-  }, [contractualRevenue, totalIncome, totalExpenses, allUnits, activeContractsCount]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue]);
 
   return (
     <DashboardLayout>
