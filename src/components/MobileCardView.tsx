@@ -82,7 +82,7 @@ function MobileCardView<T>({
                   </Button>
                 )}
                 {onDelete && (
-                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete(item)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete(item)} aria-label="حذف">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
