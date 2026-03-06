@@ -88,7 +88,8 @@ export const useSendMessage = () => {
         content: trimmed,
       });
       if (error) throw error;
-      await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+      const { error: updateError } = await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+      if (updateError) logger.warn('Failed to update conversation timestamp:', updateError.message);
 
       // H6 fix: notify beneficiary when admin OR accountant sends a message
       if (role === 'admin' || role === 'accountant') {

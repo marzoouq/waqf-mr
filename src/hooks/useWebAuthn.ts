@@ -110,8 +110,8 @@ export function useWebAuthn() {
       return true;
     } catch (err: unknown) {
       const name = err instanceof DOMException || err instanceof Error ? err.name : '';
-      const message = err instanceof Error ? err.message : 'خطأ غير معروف';
-      logger.error('WebAuthn registration error:', err);
+      const errMessage = err instanceof Error ? err.message : 'خطأ غير معروف';
+      logger.error('WebAuthn registration error:', errMessage, err);
       if (name === 'NotAllowedError') {
         toast.error('تم إلغاء عملية البصمة من قبل المستخدم');
       } else if (name === 'SecurityError') {
