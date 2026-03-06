@@ -22,7 +22,7 @@ if (import.meta.env.DEV) {
 }
 
 // ─── PWA: Purge ALL stale caches on version change ───
-const APP_CACHE_VERSION = 'v-' + (import.meta.env.VITE_BUILD_TIME || Date.now());
+const APP_CACHE_VERSION = import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
 
 (async () => {
@@ -32,13 +32,20 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
       const names = await caches.keys();
       await Promise.all(names.map(n => caches.delete(n)));
 
+      // Update SW instead of unregister to maintain offline support
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map(r => r.unregister()));
+        await Promise.all(registrations.map(r => r.update()));
       }
 
       localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
-      try { sessionStorage.setItem('pwa_just_updated', APP_CACHE_VERSION); } catch {}
+      // Use localStorage with timestamp so toast survives tab close
+      try {
+        localStorage.setItem('pwa_just_updated', JSON.stringify({
+          version: APP_CACHE_VERSION,
+          ts: Date.now(),
+        }));
+      } catch {}
       window.location.reload();
       return;
     }

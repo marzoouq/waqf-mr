@@ -81,23 +81,51 @@ const typeLabel = {
   improvement: "تحسين",
 };
 
+/** Compare semver strings, returns >0 if a > b */
+function compareSemver(a: string, b: string): number {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+  }
+  return 0;
+}
+
+const LAST_SEEN_KEY = 'pwa_last_seen_version';
+const UPDATE_FLAG_KEY = 'pwa_just_updated';
+const UPDATE_TTL = 10 * 60 * 1000; // 10 minutes
+
 const PwaUpdateNotifier = () => {
   const [showChangelog, setShowChangelog] = useState(false);
+  const [newEntries, setNewEntries] = useState<ChangelogEntry[]>(changelog);
 
   useEffect(() => {
-    // Only show toast if main.tsx flagged a real version change
     try {
-      const updated = sessionStorage.getItem('pwa_just_updated');
-      if (updated) {
-        sessionStorage.removeItem('pwa_just_updated');
-        toast.success("تم تحديث التطبيق بنجاح ✨", {
-          description: "اضغط لعرض سجل التحديثات",
-          duration: 6000,
-          action: {
-            label: "عرض التحديثات",
-            onClick: () => setShowChangelog(true),
-          },
-        });
+      const raw = localStorage.getItem(UPDATE_FLAG_KEY);
+      if (raw) {
+        localStorage.removeItem(UPDATE_FLAG_KEY);
+        const { ts } = JSON.parse(raw);
+        // Only show if the update happened within the last 10 minutes
+        if (Date.now() - ts < UPDATE_TTL) {
+          // Filter changelog to show only new entries since last seen version
+          const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || '0.0.0';
+          const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
+          setNewEntries(filtered.length > 0 ? filtered : [changelog[0]]);
+
+          toast.success("تم تحديث التطبيق بنجاح ✨", {
+            description: "اضغط لعرض سجل التحديثات",
+            duration: 6000,
+            action: {
+              label: "عرض التحديثات",
+              onClick: () => setShowChangelog(true),
+            },
+          });
+
+          // Mark current version as seen
+          if (changelog[0]) {
+            localStorage.setItem(LAST_SEEN_KEY, changelog[0].version);
+          }
+        }
       }
     } catch {}
   }, []);
@@ -113,7 +141,7 @@ const PwaUpdateNotifier = () => {
         </DialogHeader>
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-6 pe-3">
-            {changelog.map((entry) => (
+            {newEntries.map((entry) => (
               <div key={entry.version}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-foreground">

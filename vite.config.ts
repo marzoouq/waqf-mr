@@ -3,11 +3,12 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import pkg from "./package.json";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   define: {
-    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(Date.now().toString()),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
   server: {
     host: "::",
