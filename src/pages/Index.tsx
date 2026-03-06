@@ -5,6 +5,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 import type { LandingPageContent } from '@/components/settings/LandingPageTab';
@@ -28,13 +29,6 @@ const Index = () => {
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
 
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [stats, setStats] = useState([
-    { label: 'عقار مُدار', value: '0' },
-    { label: 'مستفيد', value: '0' },
-    { label: 'تقرير سنوي', value: '0' },
-  ]);
-
   useEffect(() => {
     if (!loading && user) {
       if (role === 'admin' || role === 'accountant') {
@@ -47,28 +41,27 @@ const Index = () => {
     }
   }, [user, role, loading, navigate]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const fetchStats = async () => {
-      try {
-        const { data, error } = await supabase.rpc('get_public_stats');
-        if (!cancelled && !error && data) {
-          const d = data as { properties: number; beneficiaries: number; fiscal_years: number };
-          setStats([
-            { label: 'عقار مُدار', value: String(d.properties ?? 0) },
-            { label: 'مستفيد', value: String(d.beneficiaries ?? 0) },
-            { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
-          ]);
-        }
-      } catch {
-        // صمت عند انقطاع الشبكة
-      } finally {
-        if (!cancelled) setStatsLoading(false);
-      }
-    };
-    fetchStats();
-    return () => { cancelled = true; };
-  }, []);
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['public-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_public_stats');
+      if (error) throw error;
+      const d = data as { properties: number; beneficiaries: number; fiscal_years: number };
+      return [
+        { label: 'عقار مُدار', value: String(d.properties ?? 0) },
+        { label: 'مستفيد', value: String(d.beneficiaries ?? 0) },
+        { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
+      ];
+    },
+    staleTime: 5 * 60 * 1000, // cache 5 minutes to reduce DB load
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const stats = statsData ?? [
+    { label: 'عقار مُدار', value: '0' },
+    { label: 'مستفيد', value: '0' },
+    { label: 'تقرير سنوي', value: '0' },
+  ];
 
   const features = [
     { icon: Building2, title: 'إدارة العقارات', description: 'تسجيل ومتابعة جميع عقارات الوقف وتفاصيلها' },

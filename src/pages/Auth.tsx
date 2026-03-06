@@ -404,7 +404,7 @@ const Auth = () => {
           نسيت كلمة المرور؟
         </Button>
       </div>
-      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
+      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading || loading}>
         {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
       </Button>
 
