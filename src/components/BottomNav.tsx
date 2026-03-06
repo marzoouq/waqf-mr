@@ -69,7 +69,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
                 active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              <link.icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} />
+              <link.icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} aria-hidden="true" />
               <span className="text-[10px] font-medium leading-none">{link.label}</span>
             </Link>
           );

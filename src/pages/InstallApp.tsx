@@ -16,7 +16,8 @@ const InstallApp = () => {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setIsIOS(isIOSDevice);
 
     if (window.matchMedia('(display-mode: standalone)').matches) {

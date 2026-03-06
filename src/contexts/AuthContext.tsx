@@ -212,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('waqf_theme_color');
       localStorage.removeItem('waqf_biometric_enabled');
       localStorage.removeItem('waqf_notification_tone');
+      try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
     }
   };
 

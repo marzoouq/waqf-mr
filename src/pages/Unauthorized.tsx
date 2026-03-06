@@ -13,7 +13,7 @@ const Unauthorized = () => {
     : '/';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div dir="rtl" className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center max-w-md">
         <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <ShieldX className="w-10 h-10 text-destructive" />
