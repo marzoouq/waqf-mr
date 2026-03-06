@@ -17,3 +17,9 @@ project_id = "nuzdeamtujezrsxbvpfi"
     verify_jwt = false
   [functions.webauthn]
     verify_jwt = false
+  [functions.zatca-api]
+    verify_jwt = false
+  [functions.zatca-signer]
+    verify_jwt = false
+  [functions.zatca-xml-generator]
+    verify_jwt = false
