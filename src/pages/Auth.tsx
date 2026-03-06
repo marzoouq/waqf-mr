@@ -33,7 +33,16 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
-  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(null);
+  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('nidLockedUntil');
+      if (stored) {
+        const val = Number(stored);
+        return val > Date.now() ? val : null;
+      }
+    } catch { /* silent */ }
+    return null;
+  });
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();

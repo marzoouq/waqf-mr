@@ -1,8 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ShieldX, Home } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Unauthorized = () => {
+  const { role } = useAuth();
+
+  const homePath =
+    role === 'admin' || role === 'accountant' ? '/dashboard'
+    : role === 'beneficiary' ? '/beneficiary'
+    : role === 'waqif' ? '/waqif'
+    : '/';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center max-w-md">
@@ -13,7 +22,7 @@ const Unauthorized = () => {
         <p className="text-muted-foreground mb-8">
           عذراً، ليس لديك صلاحية للوصول إلى هذه الصفحة
         </p>
-        <Link to="/">
+        <Link to={homePath}>
           <Button className="gradient-primary gap-2">
             <Home className="w-4 h-4" />
             العودة للرئيسية

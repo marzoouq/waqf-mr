@@ -75,11 +75,18 @@ export const useIdleTimeout = ({
       document.addEventListener(event, handler, { passive: true });
     }
 
+    // Page Visibility: reset timer when tab becomes visible again
+    const visibilityHandler = () => {
+      if (document.visibilityState === 'visible') resetTimer();
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+
     return () => {
       clearTimers();
       for (const event of IDLE_EVENTS) {
         document.removeEventListener(event, handler);
       }
+      document.removeEventListener('visibilitychange', visibilityHandler);
     };
   }, [resetTimer, clearTimers]);
 
