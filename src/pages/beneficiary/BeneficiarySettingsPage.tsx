@@ -137,8 +137,9 @@ const BeneficiarySettingsPage = () => {
     }
   };
 
+  // national_id مشفر في DB — نعرض قناع ثابت بدل slice من النص المشفر
   const maskedId = currentBeneficiary?.national_id
-    ? '****' + (currentBeneficiary.national_id as string).slice(-4)
+    ? '********'
     : '—';
 
   if (benError) {
