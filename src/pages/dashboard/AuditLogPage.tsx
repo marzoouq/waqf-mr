@@ -339,6 +339,7 @@ const AuditLogPage = () => {
                           })}
                         </TableBody>
                       </Table>
+                      </div>
                       <TablePagination
                         currentPage={currentPage}
                         totalItems={filtered.length}
