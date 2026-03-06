@@ -58,21 +58,6 @@ const WaqifDashboard = () => {
   const expiredContracts = contracts.filter(c => c.status === 'expired');
   const contractualRevenue = activeContracts.reduce((s, c) => s + Number(c.rent_amount), 0);
 
-  /* ── KPIs ── */
-  const kpis = useMemo(() => {
-    const collectionRate = collectionSummary.percentage;
-    const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
-    const totalUnitsCount = allUnits.length;
-    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
-    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
-
-    return [
-      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-    ];
-  }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, activeContracts.length]);
-
   /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
     let onTime = 0, late = 0;
@@ -88,6 +73,21 @@ const WaqifDashboard = () => {
     const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
     return { onTime, late, total, percentage };
   }, [activeContracts, paymentInvoices]);
+
+  /* ── KPIs ── */
+  const kpis = useMemo(() => {
+    const collectionRate = collectionSummary.percentage;
+    const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
+    const totalUnitsCount = allUnits.length;
+    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
+    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+
+    return [
+      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+    ];
+  }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, activeContracts.length]);
 
   /* ── Monthly chart data ── */
   const monthlyData = useMemo(() => {
