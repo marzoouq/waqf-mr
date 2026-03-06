@@ -508,6 +508,9 @@ Deno.serve(async (req) => {
           date: invoice.date,
           description: invoice.description,
           status: invoice.status,
+          vat_rate: invoice.vat_rate ?? 0,
+          vat_amount: invoice.vat_amount ?? 0,
+          amount_excluding_vat: invoice.amount_excluding_vat ?? null,
         }, waqfSettings);
 
         const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
@@ -517,7 +520,7 @@ Deno.serve(async (req) => {
           .from("invoices")
           .upload(storagePath, pdfBytes, {
             contentType: "application/pdf",
-            upsert: true,
+            upsert: false,
           });
 
         if (uploadError) throw uploadError;
