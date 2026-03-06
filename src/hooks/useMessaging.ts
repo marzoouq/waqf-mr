@@ -21,7 +21,7 @@ export const useConversations = (type?: string) => {
       return (data || []) as Conversation[];
     },
     enabled: !!user,
-    staleTime: 5_000, // N-3 fix: match messages staleTime for responsive chat
+    staleTime: 30_000, // BUG-8 fix: conversations list relies on Realtime for updates
   });
 
   useEffect(() => {

@@ -157,6 +157,11 @@ const Auth = () => {
           return;
         }
 
+        if (!loginPassword) {
+          toast.error('يرجى إدخال كلمة المرور');
+          return;
+        }
+
         // تحويل الأرقام العربية/الفارسية تلقائياً
         const cleanId = normalizeArabicDigits(nationalId);
 
@@ -166,18 +171,29 @@ const Auth = () => {
           return;
         }
 
+        // Server-side auth: send password to edge function, never expose email
         const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-          body: { national_id: cleanId }
+          body: { national_id: cleanId, password: loginPassword }
         });
 
-        // Handle rate limiting (429)
-        if (lookupError && data?.remaining === 0) {
-          const retryAfter = data?.retry_after || 120;
-          const lockTime = Date.now() + retryAfter * 1000;
-          setNidLockedUntil(lockTime);
-          try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
-          setNidAttemptsRemaining(0);
-          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
+        // Handle rate limiting (429) — BUG-7 fix: check error message OR data
+        if (lookupError) {
+          // supabase.functions.invoke puts 429 body in error, data may be null
+          const errorBody = typeof lookupError === 'object' && lookupError !== null
+            ? (lookupError as Record<string, unknown>)
+            : null;
+          const errMessage = errorBody?.message || lookupError?.message || '';
+          
+          if (String(errMessage).includes('تم تجاوز حد المحاولات') || data?.remaining === 0) {
+            const retryAfter = data?.retry_after || 120;
+            const lockTime = Date.now() + retryAfter * 1000;
+            setNidLockedUntil(lockTime);
+            try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
+            setNidAttemptsRemaining(0);
+            toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
+            return;
+          }
+          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
           return;
         }
 
@@ -186,16 +202,46 @@ const Auth = () => {
           setNidAttemptsRemaining(data.remaining);
         }
 
-        if (lookupError) {
-          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
-          return;
-        }
-        if (!data?.found || !data?.email) {
+        if (!data?.found) {
           toast.error('رقم الهوية غير مسجل في النظام. تأكد من صحة الرقم أو تواصل مع ناظر الوقف.');
           return;
         }
-        // استخدام البريد الحقيقي المرجع من قاعدة البيانات
-        resolvedEmail = data.email;
+
+        // Check for auth error from server-side login
+        if (data?.auth_error) {
+          toast.error(data.auth_error);
+          logAccessEvent({
+            event_type: 'login_failed',
+            metadata: { error_message: 'nid_auth_error', login_method: 'national_id' },
+          });
+          return;
+        }
+
+        // If session returned from server-side auth, set it directly
+        if (data?.session?.access_token && data?.session?.refresh_token) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+          if (sessionError) {
+            toast.error('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+            logAccessEvent({
+              event_type: 'login_failed',
+              metadata: { error_message: 'session_set_error', login_method: 'national_id' },
+            });
+          } else {
+            toast.success('تم تسجيل الدخول بنجاح');
+            logAccessEvent({
+              event_type: 'login_success',
+              metadata: { login_method: 'national_id' },
+            });
+          }
+          return;
+        }
+
+        // Fallback: shouldn't reach here with new flow
+        toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+        return;
       } else {
         if (!resolvedEmail) {
           toast.error('يرجى إدخال البريد الإلكتروني');
@@ -210,16 +256,10 @@ const Auth = () => {
 
       const { error } = await signIn(resolvedEmail, loginPassword);
       if (error) {
-        // Distinguish password error from other errors for better UX
-        const errMsg = error.message?.toLowerCase() || '';
-        if (loginMethod === 'national_id' && errMsg.includes('invalid login credentials')) {
-          toast.error('كلمة المرور غير صحيحة. تأكد من كلمة المرور أو استخدم "نسيت كلمة المرور".');
-        } else {
-          toast.error(getSafeErrorMessage(error));
-        }
+        toast.error(getSafeErrorMessage(error));
         logAccessEvent({
           event_type: 'login_failed',
-          email: loginMethod === 'national_id' ? null : resolvedEmail,
+          email: resolvedEmail,
           metadata: { error_message: 'login_error', login_method: loginMethod },
         });
       } else {
@@ -227,13 +267,12 @@ const Auth = () => {
         supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
           logAccessEvent({
             event_type: 'login_success',
-            email: loginMethod === 'national_id' ? null : resolvedEmail,
+            email: resolvedEmail,
             user_id: currentUser?.id,
           });
         }).catch(() => { /* silent */ });
       }
     } catch (err) {
-      // handleSignIn error — toast handles user notification
       toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
