@@ -31,6 +31,13 @@ export function useWebAuthn() {
       setIsEnabled(dbEnabled);
       if (dbEnabled) {
         localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
+        // جلب بيانات الاعتماد تلقائياً
+        const { data: creds } = await supabase
+          .from('webauthn_credentials')
+          .select('id, device_name, created_at')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (creds) setCredentials(creds);
       } else {
         localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
       }
