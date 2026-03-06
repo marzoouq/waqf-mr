@@ -163,6 +163,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
+  const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
