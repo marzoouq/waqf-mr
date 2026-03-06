@@ -176,6 +176,10 @@ const DisclosurePage = () => {
     }
   };
 
+  if (finLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
   if (finError) {
     return (
       <DashboardLayout>
@@ -188,10 +192,6 @@ const DisclosurePage = () => {
         </div>
       </DashboardLayout>
     );
-  }
-
-  if (finLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
   if (noPublishedYears) {
