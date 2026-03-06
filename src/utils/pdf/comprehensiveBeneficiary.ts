@@ -20,6 +20,8 @@ export interface ComprehensiveBeneficiaryData {
   netAfterZakat: number;
   adminShare: number;
   waqifShare: number;
+  adminPct?: number;
+  waqifPct?: number;
   waqfRevenue: number;
   waqfCorpusManual: number;
   availableAmount: number;
@@ -185,10 +187,19 @@ export const generateComprehensiveBeneficiaryPDF = async (
     );
   }
 
-  const totalDeductions = data.adminShare + data.waqifShare + data.waqfCorpusManual;
-  if (totalDeductions > 0) {
+  if (data.adminShare > 0) {
     sequenceRows.push(
-      ['(-) خصومات إدارية وتشغيلية', `(${totalDeductions.toLocaleString()})`],
+      [`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `(${data.adminShare.toLocaleString()})`],
+    );
+  }
+  if (data.waqifShare > 0) {
+    sequenceRows.push(
+      [`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `(${data.waqifShare.toLocaleString()})`],
+    );
+  }
+  if (data.waqfCorpusManual > 0) {
+    sequenceRows.push(
+      ['(-) رقبة الوقف للعام الحالي', `(${data.waqfCorpusManual.toLocaleString()})`],
     );
   }
 
