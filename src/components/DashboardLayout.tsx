@@ -23,6 +23,7 @@ import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
 import SidebarContent from '@/components/Sidebar';
+import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
