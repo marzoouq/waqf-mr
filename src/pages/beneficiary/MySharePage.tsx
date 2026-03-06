@@ -516,27 +516,36 @@ const MySharePage = () => {
             <CardContent>
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
-                {myAdvances.map(adv => (
-                  <div key={adv.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
-                      {getAdvanceStatusBadge(adv.status)}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <p className="text-muted-foreground">التاريخ</p>
-                        <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                {myAdvances.map(adv => {
+                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-blue-500' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
+                  return (
+                    <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
+                        {getAdvanceStatusBadge(adv.status)}
                       </div>
-                      <div>
-                        <p className="text-muted-foreground">السبب</p>
-                        <p className="font-medium truncate">{adv.reason || '—'}</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">التاريخ</p>
+                          <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">السبب</p>
+                          <p className="font-medium truncate">{adv.reason || '—'}</p>
+                        </div>
                       </div>
+                      {adv.status === 'paid' && adv.paid_at && (
+                        <p className="text-xs text-success">تاريخ الصرف: {new Date(adv.paid_at).toLocaleDateString('ar-SA')}</p>
+                      )}
+                      {adv.status === 'rejected' && adv.rejection_reason && (
+                        <div className="flex items-start gap-1.5 p-2 bg-destructive/5 rounded text-xs text-destructive">
+                          <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <span>{adv.rejection_reason}</span>
+                        </div>
+                      )}
                     </div>
-                    {adv.status === 'rejected' && adv.rejection_reason && (
-                      <p className="text-xs text-destructive">{adv.rejection_reason}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {/* Desktop table */}
               <div className="overflow-x-auto hidden md:block">
