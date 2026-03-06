@@ -87,8 +87,8 @@ const GlobalSearch = () => {
         .limit(5);
 
       // Filter by fiscal year if a specific one is selected
-      if (selectedFiscalYearId && selectedFiscalYearId !== '__none__') {
-        contractsQuery = contractsQuery.eq('fiscal_year_id', selectedFiscalYearId);
+      if (fiscalYearId && fiscalYearId !== '__none__') {
+        contractsQuery = contractsQuery.eq('fiscal_year_id', fiscalYearId);
       }
 
       const { data: contracts } = await contractsQuery.abortSignal(controller.signal);
@@ -134,8 +134,8 @@ const GlobalSearch = () => {
           .or(`expense_type.ilike.${pattern},description.ilike.${pattern}`)
           .limit(5);
 
-        if (selectedFiscalYearId && selectedFiscalYearId !== '__none__') {
-          expensesQuery = expensesQuery.eq('fiscal_year_id', selectedFiscalYearId);
+        if (fiscalYearId && fiscalYearId !== '__none__') {
+          expensesQuery = expensesQuery.eq('fiscal_year_id', fiscalYearId);
         }
 
         const { data: exps } = await expensesQuery.abortSignal(controller.signal);
@@ -161,7 +161,7 @@ const GlobalSearch = () => {
     } finally {
       if (!controller.signal.aborted) setIsLoading(false);
     }
-  }, [basePath, isAdmin, selectedFiscalYearId]);
+  }, [basePath, isAdmin, fiscalYearId]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
