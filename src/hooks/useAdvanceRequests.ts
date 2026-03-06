@@ -190,14 +190,21 @@ export const useCreateAdvanceRequest = () => {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      // جلب اسم المستفيد لاستخدامه في الإشعار
+      const { data: ben } = await supabase
+        .from('beneficiaries')
+        .select('name')
+        .eq('id', req.beneficiary_id)
+        .single();
+      return { ...data, _beneficiaryName: ben?.name ?? null };
     },
-    onSuccess: (_, vars) => {
+    onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });
       toast.success('تم إرسال طلب السلفة بنجاح');
+      const name = result._beneficiaryName || 'مستفيد';
       notifyAdmins(
         'طلب سلفة جديد',
-        `طلب سلفة جديد بمبلغ ${Number(vars.amount).toLocaleString()} ر.س`,
+        `طلب سلفة جديد من ${name} بمبلغ ${Number(vars.amount).toLocaleString()} ر.س`,
         'info',
         '/dashboard/beneficiaries',
       );
