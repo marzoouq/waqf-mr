@@ -1,59 +1,52 @@
 
 
-# خطة: إضافة Secrets لـ ZATCA والتحقق من صفحة الإدارة
+# خطة: إصلاحات نهائية + اختبارات + تسجيل Edge Functions في config.toml
 
-## الوضع الحالي
+## نتائج التحقق
 
-- **صفحة `ZatcaManagementPage.tsx`** موجودة (376 سطر) وتعمل بالكامل مع 3 تبويبات (فواتير، شهادات، سلسلة التوقيع)
-- **Edge Functions** الثلاثة (`zatca-xml-generator`, `zatca-signer`, `zatca-api`) مُنشأة وجاهزة
-- **Secrets المتوفرة حالياً**: `LOVABLE_API_KEY` و `PII_ENCRYPTION_KEY` فقط — لا يوجد أي secret متعلق بـ ZATCA
+| البند | النتيجة |
+|-------|---------|
+| Edge Function `generate-invoice-pdf` — إغلاق `}` | **تم إصلاحه** ✅ (سطر 476) |
+| `paymentInvoice.ts` — upsert fallback | **تم إصلاحه** ✅ (سطر 168-174) |
+| مسار `/waqif` في Routes | **موجود** ✅ (سطر 132) |
+| مسار `/beneficiary/carryforward` | **موجود** ✅ (سطر 144) |
+| `ZatcaManagementPage` + route `/dashboard/zatca` | **موجود** ✅ (سطر 128) |
+| `config.toml` — تسجيل ZATCA Edge Functions | **مفقود** — `zatca-api`, `zatca-signer`, `zatca-xml-generator` غير مسجلة |
 
-## المطلوب
+## المهام المطلوبة
 
-### 1. إضافة 3 Secrets لـ ZATCA
+### 1. تسجيل Edge Functions الثلاثة في `config.toml`
 
-هذه القيم السرية يجب تخزينها بشكل آمن عبر Lovable Cloud:
+الدوال `zatca-api`, `zatca-signer`, `zatca-xml-generator` موجودة كملفات لكنها **غير مسجلة** في `config.toml`. بدون التسجيل، لن يتم نشرها. سنضيف:
 
-| Secret | الوصف | القيمة الافتراضية للاختبار |
-|--------|-------|--------------------------|
-| `ZATCA_API_URL` | رابط بوابة فاتورة | `https://gw-fatoora.zatca.gov.sa` |
-| `ZATCA_PRIVATE_KEY` | المفتاح الخاص ECDSA (PEM) | يُولَّد محلياً بـ OpenSSL |
-| `ZATCA_OTP` | رمز التحقق لمرة واحدة | يُستخرج من بوابة فاتورة |
-
-**طريقة الإضافة:**
-يمكنك إضافة هذه القيم السرية من خلال Lovable Cloud → Secrets. اتبع الخطوات:
-
-1. افتح إعدادات المشروع → Cloud → Secrets
-2. أضف كل secret باسمه وقيمته
-3. Secrets تُنشر تلقائياً مع Edge Functions
-
-### 2. التحقق من صفحة ZATCA
-
-الصفحة تعمل بشكل صحيح من ناحية الكود — تعرض:
-- **بطاقات ملخص** (عدد الفواتير حسب الحالة + حالة الشهادة)
-- **تبويب الفواتير** مع فلتر `zatca_status` وأزرار إرسال
-- **تبويب الشهادات** مع زر CSR
-- **تبويب سلسلة التوقيع** (ICV + Hash)
-
-لكن الوصول يتطلب **تسجيل دخول كناظر (admin)** في المعاينة أولاً.
-
-## خطوات التنفيذ
-
-لا توجد تغييرات على الكود مطلوبة — الكود جاهز بالفعل للتعامل مع هذه الـ Secrets. ما تحتاجه فعلياً:
-
-1. **أضف الـ Secrets** عبر واجهة Lovable Cloud
-2. **سجّل دخولك كناظر** في المعاينة للتحقق من صفحة `/dashboard/zatca`
-3. **اختبر زر "إنشاء CSR"** — في وضع التطوير (بدون `ZATCA_API_URL`) سيُنشئ شهادة تجريبية
-
-### ملاحظة مهمة حول `ZATCA_OTP`
-
-رمز OTP صالح **لساعة واحدة فقط** ولعملية واحدة. لا تضفه إلا عندما تكون جاهزاً للتسجيل الفعلي في بوابة فاتورة.
-
-### توليد المفتاح الخاص
-
-لتوليد `ZATCA_PRIVATE_KEY` بصيغة ECDSA:
+```toml
+[functions.zatca-api]
+  verify_jwt = false
+[functions.zatca-signer]
+  verify_jwt = false
+[functions.zatca-xml-generator]
+  verify_jwt = false
 ```
-openssl ecparam -name secp256k1 -genkey -noout -out zatca-private.pem
+
+### 2. إضافة اختبارات وحدة للمكونات الجديدة
+
+**ملفات الاختبار:**
+
+- `src/pages/dashboard/ZatcaManagementPage.test.tsx` — render + tabs display
+- `src/pages/beneficiary/WaqifDashboard.test.tsx` — render + charts
+- `src/utils/zatcaQr.test.ts` — TLV encoding + QR generation
+
+### 3. تشفير `private_key` في `zatca_certificates`
+
+إضافة trigger مشابه لـ `encrypt_beneficiary_pii` لتشفير `private_key` قبل الحفظ باستخدام `pgp_sym_encrypt`. يتطلب migration جديدة.
+
+## ترتيب التنفيذ
+
+```text
+1. تحديث config.toml (إضافة 3 functions)
+2. إنشاء اختبارات ZatcaManagementPage
+3. إنشاء اختبارات WaqifDashboard
+4. إنشاء اختبارات zatcaQr
+5. Migration لتشفير private_key
 ```
-ثم انسخ محتوى الملف كاملاً كقيمة للـ Secret.
 
