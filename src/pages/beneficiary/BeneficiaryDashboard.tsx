@@ -135,7 +135,11 @@ const BeneficiaryDashboard = () => {
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ];
 
-  // ── Error guard (after all hooks, before render) ──
+  // ── Guards: loading first, then error, then noPublishedYears ──
+  if (isLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
+
   if (benError) {
     return (
       <DashboardLayout>
@@ -171,10 +175,6 @@ const BeneficiaryDashboard = () => {
         </div>
       </DashboardLayout>
     );
-  }
-
-  if (isLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
   return (
@@ -236,7 +236,7 @@ const BeneficiaryDashboard = () => {
                   <TrendingUp className="w-5 h-5 text-success" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">إجمالي المستلم</p>
+                  <p className="text-xs text-muted-foreground">آخر التوزيعات</p>
                   <p className="text-lg sm:text-xl font-bold truncate">
                     {distributions.filter(d => d.status === 'paid').reduce((s, d) => s + Number(d.amount), 0).toLocaleString()} ر.س
                   </p>

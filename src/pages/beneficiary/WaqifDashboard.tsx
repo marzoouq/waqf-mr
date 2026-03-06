@@ -20,6 +20,8 @@ import {
   Building2, FileText, Users, TrendingUp, TrendingDown, Wallet, BarChart3, BookOpen,
   Sun, Moon, Calendar, Clock, Gauge, CheckCircle, AlertTriangle,
 } from 'lucide-react';
+
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -103,7 +105,7 @@ const WaqifDashboard = () => {
 
   // formatArabicMonth moved to module level (PERF-01)
 
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
+  // COLORS moved to module level (see top of file)
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
