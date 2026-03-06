@@ -6,8 +6,11 @@ import {
   baseTableStyles, headStyles,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { supabase } from '@/integrations/supabase/client';
+import { generateZatcaQrTLV } from '@/utils/zatcaQr';
 
 export interface PaymentInvoicePdfData {
+  id: string;
   invoiceNumber: string;
   contractNumber: string;
   tenantName: string;
@@ -20,6 +23,8 @@ export interface PaymentInvoicePdfData {
   paidDate?: string | null;
   paidAmount?: number | null;
   notes?: string | null;
+  vatRate?: number;
+  vatAmount?: number;
 }
 
 const statusLabel = (s: string) => {
@@ -35,7 +40,7 @@ const statusLabel = (s: string) => {
 export const generatePaymentInvoicePDF = async (
   invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
-) => {
+): Promise<string | null> => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
@@ -45,7 +50,13 @@ export const generatePaymentInvoicePDF = async (
   // عنوان الفاتورة
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('فاتورة دفعة مستحقة', 105, startY + 5, { align: 'center' });
+
+  const vatRate = invoice.vatRate ?? 0;
+  const vatAmount = invoice.vatAmount ?? 0;
+  const isVatApplicable = vatRate > 0;
+
+  const title = isVatApplicable ? 'فاتورة ضريبية مبسّطة' : 'فاتورة دفعة مستحقة';
+  doc.text(title, 105, startY + 5, { align: 'center' });
 
   // جدول بيانات الفاتورة (label / value)
   const rows: string[][] = [
@@ -54,10 +65,24 @@ export const generatePaymentInvoicePDF = async (
     ['المستأجر', invoice.tenantName],
     ['العقار', invoice.propertyNumber],
     ['رقم الدفعة', `${invoice.paymentNumber} من ${invoice.totalPayments}`],
-    ['المبلغ', `${Number(invoice.amount).toLocaleString()} ر.س`],
-    ['تاريخ الاستحقاق', invoice.dueDate],
-    ['الحالة', statusLabel(invoice.status)],
   ];
+
+  // VAT conditional rows
+  if (isVatApplicable) {
+    const amountExVat = invoice.amount - vatAmount;
+    rows.push(['المبلغ قبل الضريبة', `${Number(amountExVat).toLocaleString()} ر.س`]);
+    rows.push([`ضريبة القيمة المضافة (${vatRate}%)`, `${Number(vatAmount).toLocaleString()} ر.س`]);
+    rows.push(['الإجمالي شاملاً الضريبة', `${Number(invoice.amount).toLocaleString()} ر.س`]);
+  } else {
+    rows.push(['المبلغ', `${Number(invoice.amount).toLocaleString()} ر.س`]);
+  }
+
+  rows.push(['تاريخ الاستحقاق', invoice.dueDate]);
+  rows.push(['الحالة', statusLabel(invoice.status)]);
+
+  if (!isVatApplicable) {
+    rows.push(['ضريبة القيمة المضافة', 'معفاة من ضريبة القيمة المضافة']);
+  }
 
   if (invoice.paidDate) {
     rows.push(['تاريخ السداد', invoice.paidDate]);
@@ -82,14 +107,74 @@ export const generatePaymentInvoicePDF = async (
     },
   });
 
-  // ملاحظة أسفل الجدول
   const finalY = getLastAutoTableY(doc, startY + 120);
+
+  // QR Code TLV for VAT invoices
+  if (isVatApplicable && waqfInfo?.vatNumber) {
+    const tlvBase64 = generateZatcaQrTLV({
+      sellerName: waqfInfo.waqfName || '',
+      vatNumber: waqfInfo.vatNumber,
+      timestamp: new Date().toISOString(),
+      totalWithVat: invoice.amount,
+      vatAmount: vatAmount,
+    });
+
+    doc.setFont(fontFamily, 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`TLV: ${tlvBase64.substring(0, 60)}...`, 105, finalY + 8, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+  }
+
+  // ملاحظة أسفل الجدول
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, finalY + 10, { align: 'center' });
+  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, finalY + 16, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 
   addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`invoice-${invoice.invoiceNumber}.pdf`);
+
+  // Upload to Storage instead of local save
+  try {
+    const pdfBlob = doc.output('blob');
+    const storagePath = `payment-invoices/${invoice.invoiceNumber}.pdf`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('invoices')
+      .upload(storagePath, pdfBlob, {
+        contentType: 'application/pdf',
+        upsert: false,
+      });
+
+    // If file already exists (upsert: false), try with timestamp suffix
+    if (uploadError?.message?.includes('already exists') || uploadError?.message?.includes('Duplicate')) {
+      const timestampPath = `payment-invoices/${invoice.invoiceNumber}-${Date.now()}.pdf`;
+      await supabase.storage
+        .from('invoices')
+        .upload(timestampPath, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: false,
+        });
+
+      // Update file_path in DB
+      await supabase
+        .from('payment_invoices')
+        .update({ file_path: timestampPath })
+        .eq('id', invoice.id);
+    } else if (!uploadError) {
+      // Update file_path in DB
+      await supabase
+        .from('payment_invoices')
+        .update({ file_path: storagePath })
+        .eq('id', invoice.id);
+    }
+
+    // Return blob URL for immediate viewing
+    return URL.createObjectURL(pdfBlob);
+  } catch {
+    // Fallback: save locally if storage upload fails
+    doc.save(`invoice-${invoice.invoiceNumber}.pdf`);
+    return null;
+  }
 };

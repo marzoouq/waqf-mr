@@ -13,33 +13,40 @@ export interface PdfWaqfInfo {
   vatNumber?: string;
 }
 
-// Helper to load and register Amiri Arabic font
+// Module-level font cache to avoid re-fetching on every PDF generation
+let fontCache: { regular: string; bold: string } | null = null;
+
+const toBase64 = (buf: ArrayBuffer) => {
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
+// Helper to load and register Amiri Arabic font (with caching)
 export const loadArabicFont = async (doc: jsPDF) => {
   try {
-    const [regularRes, boldRes] = await Promise.all([
-      fetch('/fonts/Amiri-Regular.ttf'),
-      fetch('/fonts/Amiri-Bold.ttf'),
-    ]);
+    if (!fontCache) {
+      const [regularRes, boldRes] = await Promise.all([
+        fetch('/fonts/Amiri-Regular.ttf'),
+        fetch('/fonts/Amiri-Bold.ttf'),
+      ]);
 
-    const regularBuf = await regularRes.arrayBuffer();
-    const boldBuf = await boldRes.arrayBuffer();
+      const regularBuf = await regularRes.arrayBuffer();
+      const boldBuf = await boldRes.arrayBuffer();
 
-    const toBase64 = (buf: ArrayBuffer) => {
-      const bytes = new Uint8Array(buf);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    };
+      fontCache = {
+        regular: toBase64(regularBuf),
+        bold: toBase64(boldBuf),
+      };
+    }
 
-    const regularBase64 = toBase64(regularBuf);
-    const boldBase64 = toBase64(boldBuf);
-
-    doc.addFileToVFS('Amiri-Regular.ttf', regularBase64);
+    doc.addFileToVFS('Amiri-Regular.ttf', fontCache.regular);
     doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal', 'Identity-H');
 
-    doc.addFileToVFS('Amiri-Bold.ttf', boldBase64);
+    doc.addFileToVFS('Amiri-Bold.ttf', fontCache.bold);
     doc.addFont('Amiri-Bold.ttf', 'Amiri', 'bold', 'Identity-H');
 
     doc.setFont('Amiri');
@@ -53,12 +60,14 @@ export const loadArabicFont = async (doc: jsPDF) => {
   }
 };
 
-// M-06 fix: validate logoUrl before fetching — only allow relative paths or same-origin URLs
+// M-06 fix: validate logoUrl before fetching — allow relative paths, same-origin, and Supabase Storage URLs
 const isValidLogoUrl = (url: string): boolean => {
   if (url.startsWith('/')) return true; // relative path
   try {
-    const parsed = new URL(url, window.location.origin);
-    return parsed.origin === window.location.origin;
+    const parsed = new URL(url);
+    if (parsed.origin === window.location.origin) return true;
+    if (parsed.hostname.endsWith('.supabase.co')) return true;
+    return false;
   } catch {
     return false;
   }

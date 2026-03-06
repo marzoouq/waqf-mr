@@ -78,6 +78,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
   const handleDownloadPdf = (inv: PaymentInvoice) => {
     generatePaymentInvoicePDF({
+      id: inv.id,
       invoiceNumber: inv.invoice_number,
       contractNumber: inv.contract?.contract_number || '-',
       tenantName: inv.contract?.tenant_name || '-',
@@ -90,6 +91,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       paidDate: inv.paid_date,
       paidAmount: inv.paid_amount,
       notes: inv.notes,
+      vatRate: inv.vat_rate ?? 0,
+      vatAmount: inv.vat_amount ?? 0,
     }, waqfInfo);
   };
 
