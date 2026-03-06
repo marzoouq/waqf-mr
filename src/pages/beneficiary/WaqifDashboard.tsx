@@ -2,6 +2,9 @@
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -22,9 +25,6 @@ import {
 } from 'lucide-react';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 
 const ARABIC_MONTHS: Record<string, string> = {

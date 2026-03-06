@@ -1,3 +1,7 @@
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/DashboardLayout';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,8 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote } from 'lucide-react';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
-import { useAppSettings } from '@/hooks/useAppSettings';
-import { lazy, Suspense } from 'react';
+import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
 const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
@@ -21,11 +24,6 @@ const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSetting
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
-import { useWaqfInfo } from '@/hooks/useAppSettings';
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 
 // === Logo Management Component ===
 const LogoManager = () => {
@@ -248,16 +246,18 @@ const WaqfSettingsTab = () => {
 
       // F3: جمع كل البيانات وإرسالها مع التحقق من الأخطاء
       const failedFields: string[] = [];
+      // Validate all fields first before sending
+      const now = new Date().toISOString();
+      const rows: { key: string; value: string; updated_at: string }[] = [];
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
-        const { error } = await supabase.from('app_settings').upsert(
-          { key: field.key, value, updated_at: new Date().toISOString() },
-          { onConflict: 'key' },
-        );
-        if (error) failedFields.push(field.label);
+        rows.push({ key: field.key, value, updated_at: now });
       }
+      // Single batch upsert instead of 11 sequential requests
+      const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
+      if (error) failedFields.push('بعض الحقول');
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       if (failedFields.length > 0) {

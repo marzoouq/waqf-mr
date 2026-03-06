@@ -157,6 +157,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficiary/invoices': 'الفواتير',
   '/beneficiary/bylaws': 'اللائحة التنظيمية',
   '/beneficiary/settings': 'الإعدادات',
+  '/waqif': 'لوحة الواقف',
 };
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
