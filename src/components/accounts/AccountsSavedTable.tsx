@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Wallet, Trash2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Account {
   id: string;
@@ -27,8 +28,10 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">جاري التحميل...</p>
+          <div className="space-y-3 p-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
           </div>
         ) : accounts.length === 0 ? (
           <div className="py-12 text-center">
@@ -36,6 +39,7 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
             <p className="text-muted-foreground">لا توجد حسابات ختامية مسجلة</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <Table className="min-w-[750px]">
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -66,6 +70,7 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

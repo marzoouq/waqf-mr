@@ -22,7 +22,8 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
           <p className="text-center text-muted-foreground py-8">لا توجد إيرادات مسجلة</p>
         ) : (
           <>
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[350px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">المصدر</TableHead>
@@ -38,6 +39,7 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
                 ))}
               </TableBody>
             </Table>
+            </div>
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي الإيرادات</span>
               <span className="font-bold text-success">+{totalIncome.toLocaleString()} ريال</span>

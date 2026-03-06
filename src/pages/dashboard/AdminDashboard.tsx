@@ -28,6 +28,7 @@ const formatArabicMonth = (month: string) => {
   const parts = month.split('-');
   return ARABIC_MONTHS[parts[1]] || month;
 };
+const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -159,7 +160,7 @@ const AdminDashboard = () => {
 
   // formatArabicMonth moved to module level (PERF-01)
 
-  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+  // tooltipStyle moved to module level (PERF — BUG-02 fix)
 
   const kpis = useMemo(() => {
     // Use invoice-based collection rate for accuracy (matches CollectionReport)

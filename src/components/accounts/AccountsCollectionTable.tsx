@@ -59,6 +59,7 @@ const AccountsCollectionTable = ({
         {contracts.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
         ) : (
+          <div className="overflow-x-auto">
           <Table className="min-w-[850px]">
             <TableHeader>
               <TableRow className="bg-muted/50">

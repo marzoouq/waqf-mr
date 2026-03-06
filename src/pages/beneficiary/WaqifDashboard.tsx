@@ -60,7 +60,7 @@ const WaqifDashboard = () => {
 
   /* ── KPIs ── */
   const kpis = useMemo(() => {
-    const collectionRate = contractualRevenue > 0 ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100)) : 0;
+    const collectionRate = collectionSummary.percentage;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
@@ -71,7 +71,7 @@ const WaqifDashboard = () => {
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
     ];
-  }, [contractualRevenue, totalIncome, totalExpenses, allUnits, activeContracts.length]);
+  }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, activeContracts.length]);
 
   /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
