@@ -157,8 +157,8 @@ const MessagesPage = () => {
                     maxLength={5000}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                   />
-                  <Button onClick={handleSend} disabled={!newMessage.trim() || sendMessage.isPending} size="icon">
-                    <Send className="w-4 h-4" />
+                  <Button onClick={handleSend} disabled={!newMessage.trim() || sendMessage.isPending} size="icon" aria-label="إرسال الرسالة">
+                    {sendMessage.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
               </>
