@@ -25,6 +25,8 @@ const MONTH_NAMES = [
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
 
+const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   const map = new Map<number, number>();
   for (const item of items) {
@@ -115,7 +117,6 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: 
     ? ((yearTotals.year2.net - yearTotals.year1.net) / Math.abs(yearTotals.year1.net) * 100)
     : 0;
 
-  const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
   const handleExportPDF = async () => {
     const MONTH_LABELS = MONTH_NAMES;
