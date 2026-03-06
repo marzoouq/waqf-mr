@@ -300,8 +300,8 @@ const ContractsPage = () => {
         <Tabs defaultValue="contracts" className="space-y-4">
           <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
-            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" />فواتير الدفعات</TabsTrigger>
-            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
+            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" /><span className="hidden sm:inline">فواتير الدفعات</span><span className="sm:hidden">الفواتير</span></TabsTrigger>
+            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" /><span className="hidden sm:inline">تقرير التحصيل</span><span className="sm:hidden">التحصيل</span></TabsTrigger>
           </TabsList>
 
           <TabsContent value="contracts" className="space-y-5">

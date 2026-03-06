@@ -18,7 +18,7 @@ const FiscalYearSelector: React.FC<FiscalYearSelectorProps> = ({ value, onChange
     <div className="flex items-center gap-2">
       <Calendar className="w-4 h-4 text-muted-foreground" />
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[200px]">
+        <SelectTrigger className="w-[140px] sm:w-[200px]">
           <SelectValue placeholder="السنة المالية" />
         </SelectTrigger>
         <SelectContent>
@@ -29,6 +29,9 @@ const FiscalYearSelector: React.FC<FiscalYearSelectorProps> = ({ value, onChange
                 {fy.label}
                 {fy.status === 'active' && (
                   <Badge variant="default" className="text-[10px] px-1.5 py-0">نشطة</Badge>
+                )}
+                {fy.status === 'closed' && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">مقفلة</Badge>
                 )}
               </span>
             </SelectItem>

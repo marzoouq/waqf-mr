@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
@@ -27,6 +28,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 }) => {
   const { user, role } = useAuth();
   const location = useLocation();
+  const { data: waqfInfo } = useWaqfInfo();
 
   return (
     <>
@@ -36,8 +38,8 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center flex-shrink-0 shadow-gold">
             <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
-          <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground', !sidebarOpen && 'lg:hidden')}>
-            إدارة الوقف
+          <span className={cn('font-arabic font-bold text-lg text-sidebar-foreground truncate max-w-[150px]', !sidebarOpen && 'lg:hidden')}>
+            {waqfInfo?.waqf_name || 'إدارة الوقف'}
           </span>
         </div>
         {/* Desktop toggle */}

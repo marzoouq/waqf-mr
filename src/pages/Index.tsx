@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
@@ -27,10 +28,11 @@ const Index = () => {
   const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
   const { data: waqfInfo } = useWaqfInfo();
 
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState([
-    { label: 'عقار مُدار', value: '...' },
-    { label: 'مستفيد', value: '...' },
-    { label: 'تقرير سنوي', value: '...' },
+    { label: 'عقار مُدار', value: '0' },
+    { label: 'مستفيد', value: '0' },
+    { label: 'تقرير سنوي', value: '0' },
   ]);
 
   useEffect(() => {
@@ -57,9 +59,10 @@ const Index = () => {
             { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
           ]);
         }
-        // عند الفشل (انقطاع شبكة مثلاً) تبقى القيم الافتراضية '...'
       } catch {
         // صمت عند انقطاع الشبكة
+      } finally {
+        setStatsLoading(false);
       }
     };
     fetchStats();
@@ -165,7 +168,11 @@ const Index = () => {
             <div className="mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">{stat.value}</div>
+                  {statsLoading ? (
+                    <Skeleton className="h-10 w-16 mx-auto mb-1 bg-white/20" />
+                  ) : (
+                    <div className="text-3xl md:text-4xl font-bold text-gradient-gold font-display">{stat.value}</div>
+                  )}
                   <div className="text-sm text-white/70 mt-1">{stat.label}</div>
                 </div>
               ))}

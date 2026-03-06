@@ -175,7 +175,7 @@ const BeneficiarySettingsPage = () => {
         </div>
 
         <Tabs defaultValue="account" dir="rtl" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5 h-auto">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1">
             <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm py-2">
               <User className="w-4 h-4 hidden sm:block" />
               الحساب

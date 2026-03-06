@@ -433,13 +433,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
         <div className="lg:hidden">
           <WaqfInfoBar />
-          <div className="flex items-center gap-2 px-3 py-1.5 print:hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 print:hidden flex-wrap">
             <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
             {isClosed && (
                <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30">
                 <Lock className="w-3 h-3" /> مقفلة
               </span>
             )}
+            <GlobalSearch />
           </div>
         </div>
         {(role === 'admin' || role === 'accountant') && <BetaBanner />}

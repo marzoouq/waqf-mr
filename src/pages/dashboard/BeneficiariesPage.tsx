@@ -137,7 +137,7 @@ const BeneficiariesPage = () => {
         </div>
 
         <Tabs defaultValue="beneficiaries" dir="rtl">
-          <TabsList>
+          <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="beneficiaries">المستفيدون</TabsTrigger>
             <TabsTrigger value="advances">طلبات السُلف</TabsTrigger>
           </TabsList>
