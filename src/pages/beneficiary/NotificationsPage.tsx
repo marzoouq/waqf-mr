@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,7 @@ const NotificationsPage = () => {
   };
 
   // Group notifications by date
-  const groupedNotifications = filtered.reduce((groups, n) => {
+  const groupedNotifications = useMemo(() => filtered.reduce((groups, n) => {
     const date = new Date(n.created_at);
     const today = new Date();
     const yesterday = new Date(today);
@@ -78,7 +78,7 @@ const NotificationsPage = () => {
     if (!groups[key]) groups[key] = [];
     groups[key].push(n);
     return groups;
-  }, {} as Record<string, typeof notifications>);
+  }, {} as Record<string, typeof notifications>), [filtered]);
 
   if (isError) {
     return (
