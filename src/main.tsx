@@ -8,8 +8,6 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 initThemeFromStorage();
 
 // ─── Suppress benign forwardRef warnings ───
-// React 18 StrictMode double-renders trigger "Function components cannot be given refs"
-// for third-party libs (cmdk, Radix). Safe to silence; does NOT hide real errors.
 if (import.meta.env.DEV) {
   const origConsoleError = console.error;
   console.error = (...args: unknown[]) => {
@@ -31,20 +29,16 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
   try {
     const stored = localStorage.getItem(CACHE_VERSION_KEY);
     if (stored && stored !== APP_CACHE_VERSION) {
-      // Version changed — wipe ALL caches including workbox-precache
       const names = await caches.keys();
       await Promise.all(names.map(n => caches.delete(n)));
 
-      // Unregister old Service Workers to force fresh install
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map(r => r.unregister()));
       }
 
       localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
-      // Flag real version change so PwaUpdateNotifier can show toast after reload
       try { sessionStorage.setItem('pwa_just_updated', APP_CACHE_VERSION); } catch {}
-      // Reload to pick up new assets
       window.location.reload();
       return;
     }
@@ -54,7 +48,10 @@ const CACHE_VERSION_KEY = 'pwa_cache_version';
   }
 })();
 
-createRoot(document.getElementById("root")!).render(
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error("Root element #root not found in DOM");
+
+createRoot(rootEl).render(
   <StrictMode>
     <App />
   </StrictMode>
