@@ -542,7 +542,7 @@ const NotificationsTab = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => previewTone(selectedTone, VOLUME_OPTIONS.find(v => v.id === volume)?.gain)} aria-label="تشغيل النغمة">
                 <Play className="w-3.5 h-3.5" />
               </Button>
             </div>

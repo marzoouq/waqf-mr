@@ -384,9 +384,9 @@ const ContractsPage = () => {
                             <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-success hover:text-success/80" onClick={() => handleRenew(contract)} title="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })}><Trash2 className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-success hover:text-success/80" onClick={() => handleRenew(contract)} title="تجديد العقد" aria-label="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -406,9 +406,9 @@ const ContractsPage = () => {
                             return (
                               <div className="space-y-1.5">
                                 <div className="flex items-center gap-2">
-                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
+                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending} aria-label="إنقاص دفعة"><Minus className="w-3 h-3" /></Button>
                                   <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
+                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending} aria-label="إضافة دفعة"><Plus className="w-3 h-3" /></Button>
                                 </div>
                                 <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                               </div>
@@ -462,9 +462,9 @@ const ContractsPage = () => {
                               return (
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-1">
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending}><Minus className="w-3 h-3" /></Button>
+                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending} aria-label="إنقاص دفعة"><Minus className="w-3 h-3" /></Button>
                                     <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending}><Plus className="w-3 h-3" /></Button>
+                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending} aria-label="إضافة دفعة"><Plus className="w-3 h-3" /></Button>
                                   </div>
                                   <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                                 </div>
@@ -475,10 +475,10 @@ const ContractsPage = () => {
                           <TableCell>
                             <div className="flex gap-1">
                               <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)}><RefreshCw className="w-4 h-4" /></Button>
+                                <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)} aria-label="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
                               </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)}><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive" aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>
