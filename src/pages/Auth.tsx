@@ -32,6 +32,8 @@ const Auth = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
+  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(null);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
