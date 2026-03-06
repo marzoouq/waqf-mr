@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Loader2, CheckCircle, XCircle, Banknote, Clock } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle } from 'lucide-react';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const statusMap: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'قيد المراجعة', color: 'bg-warning/20 text-warning', icon: Clock },
@@ -18,10 +19,11 @@ const statusMap: Record<string, { label: string; color: string; icon: typeof Clo
 
 const AdvanceRequestsTab = () => {
   const { fiscalYearId } = useFiscalYear();
-  // M-05 fix: لا تمرر 'all' كـ UUID — حوّلها إلى undefined
   const fyId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : undefined;
   const { data: requests = [], isLoading } = useAdvanceRequests(fyId);
   const updateStatus = useUpdateAdvanceStatus();
+  const { getJsonSetting } = useAppSettings();
+  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
   
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectTarget, setRejectTarget] = useState<{ id: string; userId?: string; amount?: number } | null>(null);
@@ -65,6 +67,17 @@ const AdvanceRequestsTab = () => {
           <Banknote className="w-5 h-5" />
           طلبات السُلف
         </CardTitle>
+        {!advanceSettings.enabled && (
+          <div className="flex items-center gap-2 mt-2 p-2 bg-warning/10 border border-warning/20 rounded text-sm text-warning">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>طلبات السُلف معطّلة حالياً — المستفيدون لا يستطيعون تقديم طلبات جديدة</span>
+          </div>
+        )}
+        {advanceSettings.enabled && (
+          <p className="text-xs text-muted-foreground mt-1">
+            الحد الأدنى: {advanceSettings.min_amount.toLocaleString()} ر.س | الحد الأقصى: {advanceSettings.max_percentage}% من الحصة
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         {isLoading ? (

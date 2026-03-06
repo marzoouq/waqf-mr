@@ -15,16 +15,18 @@ interface AdvanceRequestDialogProps {
   carryforwardBalance?: number;
   /** When true, the fiscal year is still active (shares not finalized) */
   isFiscalYearActive?: boolean;
+  minAmount?: number;
+  maxPercentage?: number;
 }
 
-const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false }: AdvanceRequestDialogProps) => {
+const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, paidAdvances, carryforwardBalance = 0, isFiscalYearActive = false, minAmount = 0, maxPercentage = 50 }: AdvanceRequestDialogProps) => {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const create = useCreateAdvanceRequest();
 
   const effectiveShare = Math.max(0, estimatedShare - carryforwardBalance);
-  const maxAdvance = Math.max(0, (effectiveShare * 0.5) - paidAdvances);
+  const maxAdvance = Math.max(0, (effectiveShare * (maxPercentage / 100)) - paidAdvances);
 
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
@@ -42,6 +44,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
 
   const numAmount = parseFloat(amount) || 0;
   const isOverLimit = numAmount > maxAdvance;
+  const isBelowMin = numAmount > 0 && numAmount < minAmount;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -54,8 +57,8 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
       <DialogContent>
         <DialogHeader>
           <DialogTitle>طلب سلفة من الحصة</DialogTitle>
-          <DialogDescription>
-            يمكنك طلب سلفة مقدمة من حصتك (بحد أقصى 50% من الحصة الصافية)
+        <DialogDescription>
+            يمكنك طلب سلفة مقدمة من حصتك (بحد أقصى {maxPercentage}% من الحصة الصافية)
           </DialogDescription>
         </DialogHeader>
 
@@ -107,6 +110,9 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
             {isOverLimit && (
               <p className="text-xs text-destructive">المبلغ يتجاوز الحد الأقصى المسموح</p>
             )}
+            {isBelowMin && (
+              <p className="text-xs text-destructive">الحد الأدنى للسلفة {minAmount.toLocaleString()} ر.س</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -119,7 +125,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
           <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
           <Button
             onClick={handleSubmit}
-            disabled={create.isPending || numAmount <= 0 || isOverLimit || maxAdvance <= 0}
+            disabled={create.isPending || numAmount <= 0 || isOverLimit || isBelowMin || maxAdvance <= 0}
           >
             {create.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
             إرسال الطلب

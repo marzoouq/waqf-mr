@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote } from 'lucide-react';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { lazy, Suspense } from 'react';
@@ -20,6 +20,7 @@ const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustom
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
+const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 import { useWaqfInfo } from '@/hooks/useAppSettings';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -689,6 +690,10 @@ const SettingsPage = () => {
               <Fingerprint className="w-4 h-4" />
               البصمة
             </TabsTrigger>
+            <TabsTrigger value="advances" className="gap-1.5 text-xs md:text-sm">
+              <Banknote className="w-4 h-4" />
+              السُلف
+            </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
               الأمان
@@ -707,6 +712,7 @@ const SettingsPage = () => {
           <TabsContent value="banner"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BannerSettingsTab /></Suspense></TabsContent>
           <TabsContent value="role-permissions"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><RolePermissionsTab /></Suspense></TabsContent>
           <TabsContent value="biometric"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BiometricSettings /></Suspense></TabsContent>
+          <TabsContent value="advances"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>

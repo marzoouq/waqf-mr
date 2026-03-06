@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -21,6 +21,7 @@ import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, use
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -78,6 +79,9 @@ const MySharePage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
 
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+  const { getJsonSetting } = useAppSettings();
+  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
+  const advancesEnabled = advanceSettings.enabled;
   const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary && totalBenPct > 0
@@ -227,14 +231,15 @@ const MySharePage = () => {
   };
 
   const getAdvanceStatusBadge = (status: string) => {
-    const map: Record<string, { label: string; cls: string }> = {
-      pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning' },
-      approved: { label: 'معتمد', cls: 'bg-info/20 text-info' },
-      paid: { label: 'مصروف', cls: 'bg-success/20 text-success' },
-      rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive' },
+    const map: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
+      pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning', icon: Clock },
+      approved: { label: 'معتمد', cls: 'bg-blue-500/20 text-blue-600', icon: CheckCircle },
+      paid: { label: 'مصروف', cls: 'bg-success/20 text-success', icon: Banknote },
+      rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive', icon: XCircle },
     };
-    const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground' };
-    return <Badge className={`${s.cls} hover:${s.cls}`}>{s.label}</Badge>;
+    const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground', icon: Clock };
+    const Icon = s.icon;
+    return <Badge className={`${s.cls} hover:${s.cls}`}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
   };
 
   // F4: عرض skeleton أثناء التحميل
@@ -312,13 +317,15 @@ const MySharePage = () => {
             <p className="text-muted-foreground mt-1 text-sm">تفاصيل حصتك من ريع الوقف</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {currentBeneficiary && (
+            {advancesEnabled && currentBeneficiary && (
               <AdvanceRequestDialog
                 beneficiaryId={currentBeneficiary?.id || ''}
                 fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
                 estimatedShare={myShare}
                 paidAdvances={paidAdvancesTotal}
                 carryforwardBalance={carryforwardBalance}
+                minAmount={advanceSettings.min_amount}
+                maxPercentage={advanceSettings.max_percentage}
               />
             )}
             <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
@@ -381,6 +388,7 @@ const MySharePage = () => {
             </CardContent>
           </Card>
 
+          {advancesEnabled && (
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -394,6 +402,7 @@ const MySharePage = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* تنبيه الفروق المرحّلة */}
@@ -496,7 +505,7 @@ const MySharePage = () => {
         </Card>
 
         {/* سجل السُلف */}
-        {myAdvances.length > 0 && (
+        {advancesEnabled && myAdvances.length > 0 && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -507,27 +516,36 @@ const MySharePage = () => {
             <CardContent>
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
-                {myAdvances.map(adv => (
-                  <div key={adv.id} className="border rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
-                      {getAdvanceStatusBadge(adv.status)}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <p className="text-muted-foreground">التاريخ</p>
-                        <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                {myAdvances.map(adv => {
+                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-blue-500' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
+                  return (
+                    <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
+                        {getAdvanceStatusBadge(adv.status)}
                       </div>
-                      <div>
-                        <p className="text-muted-foreground">السبب</p>
-                        <p className="font-medium truncate">{adv.reason || '—'}</p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">التاريخ</p>
+                          <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">السبب</p>
+                          <p className="font-medium truncate">{adv.reason || '—'}</p>
+                        </div>
                       </div>
+                      {adv.status === 'paid' && adv.paid_at && (
+                        <p className="text-xs text-success">تاريخ الصرف: {new Date(adv.paid_at).toLocaleDateString('ar-SA')}</p>
+                      )}
+                      {adv.status === 'rejected' && adv.rejection_reason && (
+                        <div className="flex items-start gap-1.5 p-2 bg-destructive/5 rounded text-xs text-destructive">
+                          <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                          <span>{adv.rejection_reason}</span>
+                        </div>
+                      )}
                     </div>
-                    {adv.status === 'rejected' && adv.rejection_reason && (
-                      <p className="text-xs text-destructive">{adv.rejection_reason}</p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {/* Desktop table */}
               <div className="overflow-x-auto hidden md:block">
