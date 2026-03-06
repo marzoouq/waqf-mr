@@ -128,6 +128,37 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 // Routes accountant can never access
 const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings'];
 
+// Dynamic mobile header titles
+const ROUTE_TITLES: Record<string, string> = {
+  '/dashboard': 'الرئيسية',
+  '/dashboard/properties': 'العقارات',
+  '/dashboard/contracts': 'العقود',
+  '/dashboard/income': 'الدخل',
+  '/dashboard/expenses': 'المصروفات',
+  '/dashboard/beneficiaries': 'المستفيدين',
+  '/dashboard/reports': 'التقارير',
+  '/dashboard/accounts': 'الحسابات',
+  '/dashboard/users': 'إدارة المستخدمين',
+  '/dashboard/settings': 'الإعدادات',
+  '/dashboard/messages': 'المراسلات',
+  '/dashboard/invoices': 'الفواتير',
+  '/dashboard/audit-log': 'سجل المراجعة',
+  '/dashboard/bylaws': 'اللائحة التنظيمية',
+  '/beneficiary': 'الرئيسية',
+  '/beneficiary/properties': 'العقارات',
+  '/beneficiary/contracts': 'العقود',
+  '/beneficiary/disclosure': 'الإفصاح السنوي',
+  '/beneficiary/my-share': 'حصتي من الريع',
+  '/beneficiary/carryforward': 'الترحيلات والخصومات',
+  '/beneficiary/financial-reports': 'التقارير المالية',
+  '/beneficiary/accounts': 'الحسابات الختامية',
+  '/beneficiary/messages': 'المراسلات',
+  '/beneficiary/notifications': 'سجل الإشعارات',
+  '/beneficiary/invoices': 'الفواتير',
+  '/beneficiary/bylaws': 'اللائحة التنظيمية',
+  '/beneficiary/settings': 'الإعدادات',
+};
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
