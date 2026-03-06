@@ -12,7 +12,7 @@ import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle,
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },
@@ -25,11 +25,14 @@ const ContractsViewPage = () => {
   const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
 
-  const now = new Date();
-  const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+  const now = useMemo(() => new Date(), []);
+  const in90Days = useMemo(() => new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000), [now]);
 
-  const isExpiringSoon = (c: { status: string; end_date: string }) =>
-    c.status === 'active' && new Date(c.end_date) <= in90Days;
+  const isExpiringSoon = useCallback(
+    (c: { status: string; end_date: string }) =>
+      c.status === 'active' && new Date(c.end_date) <= in90Days,
+    [in90Days],
+  );
 
   const stats = useMemo(() => {
     if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0 };
@@ -41,7 +44,7 @@ const ContractsViewPage = () => {
       totalRent: active.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
       expiringSoon: active.filter(c => isExpiringSoon(c)).length,
     };
-  }, [contracts]);
+  }, [contracts, isExpiringSoon]);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => n.toLocaleString('ar-SA') + ' ر.س';
