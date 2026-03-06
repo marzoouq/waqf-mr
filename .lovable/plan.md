@@ -1,26 +1,34 @@
 
+# إضافة المساعد الذكي للوحة المستفيد
 
-# خطة: إضافة aria-label في BeneficiaryCard.tsx
+## التغيير المطلوب
 
-## نتائج التحقق الجنائي
+تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
 
-### ✅ جميع الصفحات تحتوي على `<h1>` بالفعل:
-كل صفحة في التقرير المقدّم (AdminDashboard, PropertiesPage, ContractsPage, IncomePage, ExpensesPage, BeneficiariesPage, ReportsPage, AccountsPage, UserManagementPage, SettingsPage, MessagesPage, InvoicesPage, AuditLogPage, BylawsPage, MySharePage, DisclosurePage, FinancialReportsPage, etc.) تحتوي على `<h1>` واضح بنمط موحّد. **التقرير المقدّم مبني على معلومات قديمة.**
+### إزالة قيد الأدوار (سطر 45)
 
-### ❌ ما يحتاج إصلاح فعلاً:
+**الحالي:**
+```typescript
+if (role !== 'admin' && role !== 'accountant') return null;
+```
 
-## `BeneficiaryCard.tsx` — زران أيقونيان بدون `aria-label`
+**الجديد:**
+```typescript
+if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
+```
 
-سطر 27-28: زر التعديل وزر الحذف بدون `aria-label`:
+هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
 
-| الزر | aria-label المطلوب |
-|------|-------------------|
-| Edit (سطر 27) | `تعديل بيانات {beneficiary.name}` |
-| Trash2 (سطر 28) | `حذف {beneficiary.name}` |
+---
 
-## ملف واحد متأثر
+## لماذا هذا كافٍ؟
 
-| الملف | التغيير |
-|-------|---------|
-| `src/components/beneficiaries/BeneficiaryCard.tsx` | إضافة `aria-label` لزرَي التعديل والحذف |
+- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
+  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
+  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
+  - تقدم system prompt مخصص لغير الإداريين
+- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
 
+## الأمان
+
+لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
