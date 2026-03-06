@@ -159,16 +159,15 @@ export function useWebAuthn() {
         toast.error('لم يتم استلام بيانات الجلسة');
         return false;
       }
-      {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: result.access_token,
-          refresh_token: result.refresh_token,
-        });
 
-        if (sessionError) {
-          toast.error('فشل في إنشاء الجلسة');
-          return false;
-        }
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+
+      if (sessionError) {
+        toast.error('فشل في إنشاء الجلسة');
+        return false;
       }
 
       toast.success('تم تسجيل الدخول بالبصمة بنجاح');
