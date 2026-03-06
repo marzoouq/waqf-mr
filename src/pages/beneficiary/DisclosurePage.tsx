@@ -83,7 +83,7 @@ const DisclosurePage = () => {
 
   // Distributions for comprehensive report
   const { data: distributions = [] } = useQuery({
-    queryKey: ['my-distributions', currentBeneficiary?.id],
+    queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
     queryFn: async () => {
       if (!currentBeneficiary?.id) return [];
       const { data, error } = await supabase
@@ -180,21 +180,18 @@ const DisclosurePage = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (finError) {
+  if (noPublishedYears) {
     return (
       <DashboardLayout>
-        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-          <AlertCircle className="w-16 h-16 text-destructive" />
-          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={() => window.location.reload()} className="gap-2">
-            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
-          </Button>
+        <div className="p-4 sm:p-6 space-y-5">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
+          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (noPublishedYears) {
+  if (finError) {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
@@ -484,7 +481,7 @@ const DisclosurePage = () => {
                     <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة ({currentBeneficiary?.share_percentage ?? 0}%)</p>
                     <p className="font-bold text-xl sm:text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
                   </div>
-                  <div className="sm:text-left">
+                  <div className="sm:text-end">
                     <p className="text-xs sm:text-sm text-muted-foreground">الاسم</p>
                     <p className="font-bold text-sm sm:text-base">{currentBeneficiary?.name || 'غير مرتبط'}</p>
                   </div>

@@ -54,7 +54,7 @@ const MySharePage = () => {
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
-    queryKey: ['my-distributions', currentBeneficiary?.id],
+    queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
     queryFn: async () => {
       if (!currentBeneficiary?.id) return [];
       const { data, error } = await supabase

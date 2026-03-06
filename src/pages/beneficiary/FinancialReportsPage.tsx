@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart3, PieChart, TrendingUp, Building, AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -100,9 +100,9 @@ const FinancialReportsPage = () => {
         totalIncome,
         totalExpenses,
         netRevenue: netAfterZakat,
-        adminShare: 0,
-        waqifShare: 0,
-        waqfRevenue: beneficiariesShare,
+        adminShare,
+        waqifShare,
+        waqfRevenue,
         expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: currentBeneficiary ? [{
@@ -116,6 +116,10 @@ const FinancialReportsPage = () => {
       toast.error('حدث خطأ أثناء تصدير PDF');
     }
   };
+
+  if (isLoading) {
+    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
+  }
 
   if (noPublishedYears) {
     return (
@@ -134,16 +138,12 @@ const FinancialReportsPage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={() => window.location.href = '/beneficiary/financial-reports'} className="gap-2">
+          <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>
       </DashboardLayout>
     );
-  }
-
-  if (isLoading) {
-    return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
   return (
