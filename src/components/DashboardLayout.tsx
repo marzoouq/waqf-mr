@@ -312,7 +312,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [role, rolePermissions, menuLabels]);
 
   const handleSignOut = async () => {
+    setMobileSidebarOpen(false);
     await signOut();
+    navigate('/auth', { replace: true });
   };
 
   // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
@@ -342,7 +344,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         >
           <Menu className="w-6 h-6" />
         </Button>
-        <span className="font-arabic font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
+        <span className="font-arabic font-bold text-lg text-sidebar-foreground">{ROUTE_TITLES[location.pathname] || 'إدارة الوقف'}</span>
         <div className="flex items-center gap-1">
           <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
             <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
