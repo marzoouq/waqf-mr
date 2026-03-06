@@ -731,9 +731,37 @@ export type Database = {
           },
         ]
       }
+      invoice_chain: {
+        Row: {
+          created_at: string | null
+          icv: number
+          id: string
+          invoice_hash: string
+          invoice_id: string
+          previous_hash: string
+        }
+        Insert: {
+          created_at?: string | null
+          icv: number
+          id?: string
+          invoice_hash: string
+          invoice_id: string
+          previous_hash?: string
+        }
+        Update: {
+          created_at?: string | null
+          icv?: number
+          id?: string
+          invoice_hash?: string
+          invoice_id?: string
+          previous_hash?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
+          amount_excluding_vat: number | null
           contract_id: string | null
           created_at: string
           date: string
@@ -742,15 +770,23 @@ export type Database = {
           file_name: string | null
           file_path: string | null
           fiscal_year_id: string | null
+          icv: number | null
           id: string
+          invoice_hash: string | null
           invoice_number: string | null
           invoice_type: string
           property_id: string | null
           status: string
           updated_at: string
+          vat_amount: number
+          vat_rate: number
+          zatca_status: string | null
+          zatca_uuid: string | null
+          zatca_xml: string | null
         }
         Insert: {
           amount?: number
+          amount_excluding_vat?: number | null
           contract_id?: string | null
           created_at?: string
           date?: string
@@ -759,15 +795,23 @@ export type Database = {
           file_name?: string | null
           file_path?: string | null
           fiscal_year_id?: string | null
+          icv?: number | null
           id?: string
+          invoice_hash?: string | null
           invoice_number?: string | null
           invoice_type: string
           property_id?: string | null
           status?: string
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          zatca_status?: string | null
+          zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Update: {
           amount?: number
+          amount_excluding_vat?: number | null
           contract_id?: string | null
           created_at?: string
           date?: string
@@ -776,12 +820,19 @@ export type Database = {
           file_name?: string | null
           file_path?: string | null
           fiscal_year_id?: string | null
+          icv?: number | null
           id?: string
+          invoice_hash?: string | null
           invoice_number?: string | null
           invoice_type?: string
           property_id?: string | null
           status?: string
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          zatca_status?: string | null
+          zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Relationships: [
           {
@@ -888,6 +939,7 @@ export type Database = {
           contract_id: string
           created_at: string
           due_date: string
+          file_path: string | null
           fiscal_year_id: string | null
           id: string
           invoice_number: string
@@ -897,12 +949,17 @@ export type Database = {
           payment_number: number
           status: string
           updated_at: string
+          vat_amount: number
+          vat_rate: number
+          zatca_status: string | null
+          zatca_uuid: string | null
         }
         Insert: {
           amount?: number
           contract_id: string
           created_at?: string
           due_date: string
+          file_path?: string | null
           fiscal_year_id?: string | null
           id?: string
           invoice_number: string
@@ -912,12 +969,17 @@ export type Database = {
           payment_number?: number
           status?: string
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          zatca_status?: string | null
+          zatca_uuid?: string | null
         }
         Update: {
           amount?: number
           contract_id?: string
           created_at?: string
           due_date?: string
+          file_path?: string | null
           fiscal_year_id?: string | null
           id?: string
           invoice_number?: string
@@ -927,6 +989,10 @@ export type Database = {
           payment_number?: number
           status?: string
           updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+          zatca_status?: string | null
+          zatca_uuid?: string | null
         }
         Relationships: [
           {
@@ -1195,6 +1261,36 @@ export type Database = {
         }
         Relationships: []
       }
+      zatca_certificates: {
+        Row: {
+          certificate: string
+          certificate_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          private_key: string
+          request_id: string | null
+        }
+        Insert: {
+          certificate: string
+          certificate_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          private_key: string
+          request_id?: string | null
+        }
+        Update: {
+          certificate?: string
+          certificate_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          private_key?: string
+          request_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       beneficiaries_safe: {
@@ -1290,6 +1386,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_next_icv: { Args: never; Returns: number }
       get_pii_key: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }
       get_total_beneficiary_percentage: { Args: never; Returns: number }
