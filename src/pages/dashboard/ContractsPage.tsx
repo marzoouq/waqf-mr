@@ -12,6 +12,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
 import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import TablePagination from '@/components/TablePagination';
@@ -346,7 +347,7 @@ const ContractsPage = () => {
         <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+              <TableSkeleton rows={5} cols={6} />
             ) : filteredContracts.length === 0 ? (
               <div className="py-12 text-center">
                 <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
