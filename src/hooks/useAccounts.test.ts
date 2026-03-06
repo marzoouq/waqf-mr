@@ -61,10 +61,10 @@ beforeEach(() => {
   mockSelect.mockReturnValue({ order: mockOrder });
   mockOrder.mockReturnValue({ limit: mockLimit });
   mockLimit.mockResolvedValue({ data: [sampleAccount], error: null });
-  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
-  mockSingle.mockResolvedValue({ data: sampleAccount, error: null });
+  mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
+  mockMaybeSingle.mockResolvedValue({ data: sampleAccount, error: null });
   mockUpdate.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockSingle }) });
+  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   mockDelete.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 });
 
