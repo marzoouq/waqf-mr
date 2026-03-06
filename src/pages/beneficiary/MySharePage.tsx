@@ -549,6 +549,7 @@ const MySharePage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         )}
