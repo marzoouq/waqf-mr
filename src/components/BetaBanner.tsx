@@ -24,6 +24,8 @@ const BetaBanner = () => {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       className={`${isBottom ? "sticky bottom-0" : ""} z-[60] flex items-center justify-center gap-2 ${colors.bg} px-4 py-1.5 text-white text-sm font-medium shadow-md print:hidden`}
     >
       <FlaskConical className="h-4 w-4 shrink-0" />
