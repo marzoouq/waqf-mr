@@ -445,28 +445,52 @@ const MySharePage = () => {
                 <p className="text-muted-foreground">لا توجد توزيعات مسجلة بعد</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-              <Table className="min-w-[500px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">السنة المالية</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile cards */}
+                <div className="space-y-3 md:hidden">
                   {filteredDistributions.map((dist) => (
-                    <TableRow key={dist.id}>
-                      <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
-                      <TableCell className="font-bold">{Number(dist.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>{getStatusBadge(dist.status)}</TableCell>
-                    </TableRow>
+                    <div key={dist.id} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold">{Number(dist.amount).toLocaleString()} ر.س</span>
+                        {getStatusBadge(dist.status)}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">التاريخ</p>
+                          <p className="font-medium">{new Date(dist.date).toLocaleDateString('ar-SA')}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">السنة المالية</p>
+                          <p className="font-medium">{dist.account?.fiscal_year || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-              </div>
+                </div>
+                {/* Desktop table */}
+                <div className="overflow-x-auto hidden md:block">
+                  <Table className="min-w-[500px]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">السنة المالية</TableHead>
+                        <TableHead className="text-right">المبلغ</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredDistributions.map((dist) => (
+                        <TableRow key={dist.id}>
+                          <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
+                          <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
+                          <TableCell className="font-bold">{Number(dist.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell>{getStatusBadge(dist.status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -481,32 +505,57 @@ const MySharePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-              <Table className="min-w-[500px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">السبب</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {myAdvances.map(adv => (
-                    <TableRow key={adv.id}>
-                      <TableCell>{new Date(adv.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell className="font-bold">{Number(adv.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{adv.reason || '—'}</TableCell>
-                      <TableCell>
-                        {getAdvanceStatusBadge(adv.status)}
-                        {adv.status === 'rejected' && adv.rejection_reason && (
-                          <p className="text-xs text-muted-foreground mt-1">{adv.rejection_reason}</p>
-                        )}
-                      </TableCell>
+              {/* Mobile cards */}
+              <div className="space-y-3 md:hidden">
+                {myAdvances.map(adv => (
+                  <div key={adv.id} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
+                      {getAdvanceStatusBadge(adv.status)}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="text-muted-foreground">التاريخ</p>
+                        <p className="font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">السبب</p>
+                        <p className="font-medium truncate">{adv.reason || '—'}</p>
+                      </div>
+                    </div>
+                    {adv.status === 'rejected' && adv.rejection_reason && (
+                      <p className="text-xs text-destructive">{adv.rejection_reason}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Desktop table */}
+              <div className="overflow-x-auto hidden md:block">
+                <Table className="min-w-[500px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">التاريخ</TableHead>
+                      <TableHead className="text-right">المبلغ</TableHead>
+                      <TableHead className="text-right">السبب</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {myAdvances.map(adv => (
+                      <TableRow key={adv.id}>
+                        <TableCell>{new Date(adv.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                        <TableCell className="font-bold">{Number(adv.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{adv.reason || '—'}</TableCell>
+                        <TableCell>
+                          {getAdvanceStatusBadge(adv.status)}
+                          {adv.status === 'rejected' && adv.rejection_reason && (
+                            <p className="text-xs text-muted-foreground mt-1">{adv.rejection_reason}</p>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
@@ -522,33 +571,57 @@ const MySharePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-              <Table className="min-w-[500px]">
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">ملاحظات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {myCarryforwards.map(cf => (
-                    <TableRow key={cf.id}>
-                      <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                      <TableCell className="font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</TableCell>
-                      <TableCell>
-                        <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
-                          {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                        {cf.notes || '—'}
-                      </TableCell>
+              {/* Mobile cards */}
+              <div className="space-y-3 md:hidden">
+                {myCarryforwards.map(cf => (
+                  <div key={cf.id} className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</span>
+                      <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
+                        {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="text-muted-foreground">التاريخ</p>
+                        <p className="font-medium">{new Date(cf.created_at).toLocaleDateString('ar-SA')}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">ملاحظات</p>
+                        <p className="font-medium truncate">{cf.notes || '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop table */}
+              <div className="overflow-x-auto hidden md:block">
+                <Table className="min-w-[500px]">
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="text-right">التاريخ</TableHead>
+                      <TableHead className="text-right">المبلغ</TableHead>
+                      <TableHead className="text-right">الحالة</TableHead>
+                      <TableHead className="text-right">ملاحظات</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {myCarryforwards.map(cf => (
+                      <TableRow key={cf.id}>
+                        <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                        <TableCell className="font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell>
+                          <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
+                            {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                          {cf.notes || '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>

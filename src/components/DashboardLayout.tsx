@@ -11,7 +11,7 @@ import {
   Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
   ClipboardList, Calculator,
 } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
@@ -132,7 +132,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try { return localStorage.getItem('sidebar-open') === 'true'; }
+    catch { return false; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('sidebar-open', String(sidebarOpen)); }
+    catch { /* ignore */ }
+  }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { getJsonSetting } = useAppSettings();
 
