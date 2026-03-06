@@ -22,14 +22,21 @@ export function getSafeErrorMessage(error: unknown): string {
   if (msg.includes('network') || msg.includes('fetch')) {
     return 'خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت';
   }
-  if (msg.includes('not found')) {
+  if (msg.includes('not found') || msg.includes('pgrst116')) {
     return 'البيانات المطلوبة غير موجودة';
   }
-  if (msg.includes('forbidden') || msg.includes('unauthorized') || msg.includes('permission')) {
+  if (msg.includes('forbidden') || msg.includes('unauthorized') || msg.includes('permission')
+    || msg.includes('row-level security') || msg.includes('rls')) {
     return 'ليس لديك صلاحية لتنفيذ هذا الإجراء';
+  }
+  if (msg.includes('jwt expired') || msg.includes('invalid jwt') || msg.includes('pgrst301')) {
+    return 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى';
   }
   if (msg.includes('timeout')) {
     return 'انتهت مهلة الطلب. يرجى المحاولة لاحقاً';
+  }
+  if (msg.includes('foreign key') || msg.includes('violates foreign key')) {
+    return 'لا يمكن حذف هذا العنصر لارتباطه ببيانات أخرى';
   }
 
   // رسالة افتراضية آمنة — التفاصيل تبقى في logger فقط

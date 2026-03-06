@@ -30,6 +30,8 @@ export interface FinancialResult {
   waqfRevenue: number;
   availableAmount: number;
   remainingBalance: number;
+  /** true when availableAmount is negative (expenses exceed revenue) */
+  isDeficit: boolean;
 }
 
 /**
@@ -82,6 +84,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
       waqfRevenue: 0,
       availableAmount: 0,
       remainingBalance: 0,
+      isDeficit: false,
     };
   }
 
@@ -95,6 +98,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     shareBase, adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
+    isDeficit: availableAmount < 0 || remainingBalance < 0,
   };
 };
 

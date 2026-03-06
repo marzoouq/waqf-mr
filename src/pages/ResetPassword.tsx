@@ -54,7 +54,6 @@ const ResetPassword = () => {
       } else {
         setSuccess(true);
         toast.success('تم تغيير كلمة المرور بنجاح');
-        setTimeout(() => navigate('/auth'), 3000);
       }
     } catch {
       toast.error('حدث خطأ غير متوقع');
@@ -96,11 +95,13 @@ const ResetPassword = () => {
             </div>
             <CardTitle className="text-xl font-display">تم التغيير بنجاح</CardTitle>
             <CardDescription>
-              تم تغيير كلمة المرور بنجاح. سيتم توجيهك لصفحة تسجيل الدخول...
+              تم تغيير كلمة المرور بنجاح.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+            <Button className="w-full h-11 gradient-primary" onClick={() => navigate('/auth')}>
+              العودة لتسجيل الدخول
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -79,14 +79,15 @@ const Index = () => {
     { icon: Shield, title: 'أمان وخصوصية', description: 'حماية متقدمة للبيانات مع إدارة دقيقة للصلاحيات' },
   ];
 
+  const siteUrl = window.location.origin;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "وقف مرزوق بن علي الثبيتي",
     description: "نظام إلكتروني شامل لإدارة أوقاف مرزوق بن علي الثبيتي - إدارة العقارات والعقود والحسابات الختامية والإفصاحات السنوية",
-    url: "https://waqf-mr.lovable.app",
-    logo: "https://waqf-mr.lovable.app/favicon.ico",
-    foundingDate: "1446",
+    url: siteUrl,
+    logo: `${siteUrl}/favicon.ico`,
+    foundingDate: "2024",
     areaServed: { "@type": "Country", name: "SA" },
     knowsAbout: ["إدارة الأوقاف", "العقارات", "توزيع الريع", "الحسابات الختامية"],
   };
@@ -96,7 +97,7 @@ const Index = () => {
     "@type": "WebApplication",
     name: "نظام إدارة الوقف",
     description: "منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين",
-    url: "https://waqf-mr.lovable.app",
+    url: siteUrl,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     inLanguage: "ar",

@@ -40,9 +40,16 @@ class ErrorBoundary extends Component<Props, State> {
     } catch { /* silent — don't break the error boundary */ }
   }
 
+  private resetAttempts = 0;
+
   handleReset = () => {
+    this.resetAttempts++;
+    if (this.resetAttempts >= 2) {
+      // Soft recovery failed twice — hard redirect to prevent infinite loop
+      window.location.href = '/';
+      return;
+    }
     this.setState({ hasError: false, error: null });
-    // Try soft recovery first; if re-render fails, getDerivedStateFromError will catch it again
   };
 
   render() {
