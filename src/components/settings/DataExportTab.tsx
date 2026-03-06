@@ -57,7 +57,7 @@ const DataExportTab = () => {
     try {
       // استبعاد الحقول المشفرة (PII) من تصدير المستفيدين
       const selectFields = table === 'beneficiaries'
-        ? 'id, name, email, phone, share_percentage, notes, created_at, updated_at'
+        ? 'id,name,email,phone,share_percentage,notes,created_at,updated_at'
         : '*';
       const { data, error } = await supabase.from(table).select(selectFields).limit(5000);
       if (error) throw error;
@@ -83,7 +83,7 @@ const DataExportTab = () => {
     try {
       for (const table of tables) {
         const selectFields = table.key === 'beneficiaries'
-          ? 'id, name, email, phone, share_percentage, notes, created_at, updated_at'
+          ? 'id,name,email,phone,share_percentage,notes,created_at,updated_at'
           : '*';
         const { data, error } = await supabase.from(table.key).select(selectFields).limit(5000);
         if (error) { failedTables.push(table.label); continue; }
