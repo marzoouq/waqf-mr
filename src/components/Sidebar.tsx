@@ -137,7 +137,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 </Button>
               )}
             </AlertDialogTrigger>
-            <AlertDialogContent className="z-[60]">
+            <AlertDialogContent className="z-[70]" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
                 <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
