@@ -208,6 +208,39 @@ interface InvoiceData {
   amount_excluding_vat: number | null;
 }
 
+// ─── ZATCA TLV Encoding ─────────────────────────────────────────
+function encodeTLV(tag: number, value: string): Uint8Array {
+  const encoder = new TextEncoder();
+  const valueBytes = encoder.encode(value);
+  const tlv = new Uint8Array(2 + valueBytes.length);
+  tlv[0] = tag;
+  tlv[1] = valueBytes.length;
+  tlv.set(valueBytes, 2);
+  return tlv;
+}
+
+function generateZatcaQrTLV(sellerName: string, vatNumber: string, timestamp: string, totalWithVat: number, vatAmount: number): string {
+  const entries = [
+    encodeTLV(1, sellerName),
+    encodeTLV(2, vatNumber),
+    encodeTLV(3, timestamp),
+    encodeTLV(4, totalWithVat.toFixed(2)),
+    encodeTLV(5, vatAmount.toFixed(2)),
+  ];
+  const totalLength = entries.reduce((sum, e) => sum + e.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const entry of entries) {
+    result.set(entry, offset);
+    offset += entry.length;
+  }
+  let binary = '';
+  for (let i = 0; i < result.length; i++) {
+    binary += String.fromCharCode(result[i]);
+  }
+  return btoa(binary);
+}
+
 interface WaqfSettings {
   waqf_name: string;
   waqf_deed_number: string;
@@ -394,6 +427,40 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
     y -= rowH;
   }
 
+  // ── QR Code for VAT invoices ──
+  if (isVatInvoice && waqfSettings.vat_registration_number) {
+    try {
+      const tlvBase64 = generateZatcaQrTLV(
+        waqfSettings.waqf_name,
+        waqfSettings.vat_registration_number,
+        new Date().toISOString(),
+        invoice.amount,
+        invoice.vat_amount,
+      );
+
+      // Generate QR code as data URL, then extract PNG bytes
+      const qrDataUrl: string = await QRCode.toDataURL(tlvBase64, {
+        width: 150,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+      });
+      
+      // Extract base64 PNG from data URL
+      const base64Data = qrDataUrl.split(',')[1];
+      const qrBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const qrImage = await pdfDoc.embedPng(qrBytes);
+      
+      // Draw QR code centered
+      const qrSize = 80;
+      const qrX = (width - qrSize) / 2;
+      page.drawImage(qrImage, { x: qrX, y: y - qrSize - 5, width: qrSize, height: qrSize });
+      y -= qrSize + 15;
+    } catch (qrErr) {
+      console.error("QR generation failed:", qrErr instanceof Error ? qrErr.message : String(qrErr));
+      // Continue without QR if it fails
+    }
+  }
+
   // ── Bottom separator ──
   y -= 15;
   page.drawLine({ start: { x: margin + 10, y }, end: { x: width - margin - 10, y }, thickness: 1, color: gold });
@@ -406,7 +473,6 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   page.drawText(footerText, { x: width - margin - 15 - footerW, y, size: 9, font: amiri, color: medGray });
 
   return await pdfDoc.save();
-}
 
 // ─── HTTP Handler ────────────────────────────────────────────────
 
