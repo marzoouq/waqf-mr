@@ -327,6 +327,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <PrintFooter />
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
+
       {/* Idle Timeout Warning */}
       {session && (
         <IdleTimeoutWarning
