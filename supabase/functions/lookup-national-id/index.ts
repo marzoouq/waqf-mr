@@ -4,6 +4,14 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 const RATE_LIMIT = 5;
 const RATE_WINDOW_SECONDS = 120;
 
+/** Mask email: "user@example.com" → "u***@example.com" */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***@***";
+  const visible = local.slice(0, Math.max(1, Math.ceil(local.length * 0.3)));
+  return `${visible}***@${domain}`;
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -14,6 +22,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !serviceRoleKey) {
       return new Response(
@@ -74,7 +83,9 @@ Deno.serve(async (req) => {
     const usedCount = (currentCount?.count ?? 0) + 1;
     const remaining = Math.max(0, RATE_LIMIT - usedCount);
 
-    const { national_id: rawId } = await req.json();
+    const body = await req.json();
+    const rawId = body.national_id;
+    const password = body.password; // Optional: if provided, perform server-side auth
 
     // تحويل الأرقام العربية-الهندية والفارسية إلى لاتينية (Defense in Depth)
     const national_id = typeof rawId === "string"
@@ -121,19 +132,80 @@ Deno.serve(async (req) => {
       await new Promise(r => setTimeout(r, fixedDelay - elapsed));
     }
 
-    // Identical response structure for both found and not-found
+    // Not found — identical response structure
     if (!email) {
       return new Response(
-        JSON.stringify({ email: null, found: false, remaining }),
+        JSON.stringify({ found: false, masked_email: null, remaining }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // If password provided, perform server-side authentication
+    if (password && typeof password === "string" && password.length >= 8) {
+      try {
+        // Use Supabase Auth REST API directly for password auth
+        const authResponse = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": anonKey || serviceRoleKey,
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const authData = await authResponse.json();
+
+        if (!authResponse.ok) {
+          // Return generic error — don't reveal if email exists
+          const errMsg = authData?.error_description || authData?.msg || "";
+          const isInvalidCreds = errMsg.toLowerCase().includes("invalid login credentials");
+          return new Response(
+            JSON.stringify({
+              found: true,
+              masked_email: maskEmail(email),
+              remaining,
+              auth_error: isInvalidCreds
+                ? "كلمة المرور غير صحيحة"
+                : "فشل تسجيل الدخول",
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Auth success — return session tokens (NOT email)
+        return new Response(
+          JSON.stringify({
+            found: true,
+            masked_email: maskEmail(email),
+            remaining,
+            session: {
+              access_token: authData.access_token,
+              refresh_token: authData.refresh_token,
+            },
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (authErr) {
+        console.error("Auth error:", (authErr as Error).message);
+        return new Response(
+          JSON.stringify({
+            found: true,
+            masked_email: maskEmail(email),
+            remaining,
+            auth_error: "خطأ مؤقت في المصادقة",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // No password provided — return masked email only (never full email)
     return new Response(
-      JSON.stringify({ email, found: true, remaining }),
+      JSON.stringify({ found: true, masked_email: maskEmail(email), remaining }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
+    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: "خطأ في معالجة الطلب" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
