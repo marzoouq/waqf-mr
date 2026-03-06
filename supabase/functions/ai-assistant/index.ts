@@ -314,7 +314,8 @@ async function fetchWaqfData(
         .from("income")
         .select("source, amount, date")
         .eq("fiscal_year_id", activeFY.id)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false })
+        .limit(100);
 
       if (income?.length) {
         const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
@@ -333,7 +334,8 @@ async function fetchWaqfData(
       const { data: expenses } = await client
         .from("expenses")
         .select("expense_type, amount, date")
-        .eq("fiscal_year_id", activeFY.id);
+        .eq("fiscal_year_id", activeFY.id)
+        .limit(100);
 
       if (expenses?.length) {
         const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
