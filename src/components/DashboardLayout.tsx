@@ -68,6 +68,7 @@ const allAdminLinks = [
   { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
+  { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -144,6 +145,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/invoices': 'الفواتير',
   '/dashboard/audit-log': 'سجل المراجعة',
   '/dashboard/bylaws': 'اللائحة التنظيمية',
+  '/dashboard/zatca': 'إدارة ZATCA',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',

@@ -158,18 +158,20 @@ export const generatePaymentInvoicePDF = async (
     // If file already exists (upsert: false), try with timestamp suffix
     if (uploadError?.message?.includes('already exists') || uploadError?.message?.includes('Duplicate')) {
       const timestampPath = `payment-invoices/${invoice.invoiceNumber}-${Date.now()}.pdf`;
-      await supabase.storage
+      const { error: retryError } = await supabase.storage
         .from('invoices')
         .upload(timestampPath, pdfBlob, {
           contentType: 'application/pdf',
           upsert: false,
         });
 
-      // Update file_path in DB
-      await supabase
-        .from('payment_invoices')
-        .update({ file_path: timestampPath })
-        .eq('id', invoice.id);
+      // Update file_path in DB only if retry succeeded
+      if (!retryError) {
+        await supabase
+          .from('payment_invoices')
+          .update({ file_path: timestampPath })
+          .eq('id', invoice.id);
+      }
     } else if (!uploadError) {
       // Update file_path in DB
       await supabase

@@ -473,6 +473,7 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   page.drawText(footerText, { x: width - margin - 15 - footerW, y, size: 9, font: amiri, color: medGray });
 
   return await pdfDoc.save();
+}
 
 // ─── HTTP Handler ────────────────────────────────────────────────
 
