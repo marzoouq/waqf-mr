@@ -11,12 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/useAdvanceRequests';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
-import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw } from 'lucide-react';
+import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const CarryforwardHistoryPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // جلب بيانات المستفيد
   const { data: beneficiary, isLoading: loadingBen, isError: benError } = useQuery({
@@ -93,14 +95,20 @@ const CarryforwardHistoryPage = () => {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <ArrowDownUp className="w-6 h-6 text-primary" />
-              تاريخ الترحيلات والخصومات
-            </h1>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
+              <ArrowRight className="w-4 h-4" />
+              رجوع
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <ArrowDownUp className="w-6 h-6 text-primary" />
+                تاريخ الترحيلات والخصومات
+              </h1>
             <p className="text-sm text-muted-foreground mt-1">
               سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك
             </p>
+            </div>
           </div>
           <ExportMenu onExportPdf={() => {
             try {

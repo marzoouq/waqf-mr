@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { MessageSquare, Send, Plus, Users, ArrowLeft, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -119,7 +119,7 @@ const MessagesPage = () => {
               <>
                 <div className="p-3 border-b border-border flex items-center gap-3">
                   <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConv(null)} aria-label="رجوع">
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowRight className="w-5 h-5" />
                   </Button>
                   <div>
                     <p className="font-medium text-sm">{selectedConv.subject || 'محادثة'}</p>

@@ -35,7 +35,7 @@ export const useConversations = (type?: string) => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, queryClient]);
+  }, [user, queryClient, type]);
 
   return query;
 };
