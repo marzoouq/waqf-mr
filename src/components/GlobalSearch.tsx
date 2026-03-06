@@ -98,8 +98,8 @@ const GlobalSearch = () => {
           searchResults.push({
             id: c.id,
             title: `عقد ${c.contract_number}`,
-            // إخفاء اسم المستأجر من غير الناظر/المحاسب
-            subtitle: isAdmin ? c.tenant_name : `حالة: ${c.status}`,
+            // إظهار اسم المستأجر لجميع الأدوار حسب طلب الإفصاح
+            subtitle: c.tenant_name || `حالة: ${c.status}`,
             type: 'contract',
             path: `${basePath}/contracts`,
           });
