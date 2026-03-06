@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => ({
         name: 'نظام إدارة الوقف - وقف مرزوق بن علي الثبيتي',
         short_name: 'إدارة الوقف',
         description: 'منصة متكاملة لإدارة أملاك الوقف والعقارات والحسابات الختامية',
-        theme_color: '#1a365d',
+        theme_color: '#1a5c3a',
         background_color: '#faf8f5',
         display: 'standalone',
         dir: 'rtl',
