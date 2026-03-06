@@ -293,6 +293,11 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
     `الناظر: ${waqfSettings.waqf_admin}`,
   ];
 
+  // Add VAT registration number if available
+  if (waqfSettings.vat_registration_number) {
+    detailLines.push(`الرقم الضريبي: ${waqfSettings.vat_registration_number}`);
+  }
+
   for (const line of detailLines) {
     const shaped = processArabicText(line);
     const tw = amiri.widthOfTextAtSize(shaped, 11);
@@ -313,7 +318,9 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
 
   // ── Invoice title ──
   const invNum = invoice.invoice_number || "N/A";
-  const titleText = processArabicText("فاتورة");
+  const isVatInvoice = invoice.vat_rate > 0;
+  const titleLabel = isVatInvoice ? "فاتورة ضريبية مبسّطة" : "فاتورة";
+  const titleText = processArabicText(titleLabel);
   const titleW = amiriBold.widthOfTextAtSize(titleText, 18);
   const numW = helvetica.widthOfTextAtSize(` ${invNum}`, 16);
   const totalTitleW = titleW + numW;
@@ -333,11 +340,22 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   const rows: [string, string][] = [
     ["رقم الفاتورة", invNum],
     ["النوع", TYPE_AR[invoice.invoice_type] || invoice.invoice_type],
-    ["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })],
-    ["التاريخ", invoice.date],
-    ["الوصف", (() => { const d = invoice.description || "—"; return d.length > 47 ? d.substring(0, 47) + "..." : d; })()],
-    ["الحالة", STATUS_AR[invoice.status] || invoice.status],
   ];
+
+  // VAT conditional rows
+  if (isVatInvoice) {
+    const amountExVat = invoice.amount_excluding_vat ?? (invoice.amount - invoice.vat_amount);
+    rows.push(["المبلغ قبل الضريبة (ر.س)", amountExVat.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push([`ضريبة القيمة المضافة (${invoice.vat_rate}%)`, invoice.vat_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["الإجمالي شاملاً الضريبة (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+  } else {
+    rows.push(["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["ضريبة القيمة المضافة", "معفاة"]);
+  }
+
+  rows.push(["التاريخ", invoice.date]);
+  rows.push(["الوصف", (() => { const d = invoice.description || "—"; return d.length > 47 ? d.substring(0, 47) + "..." : d; })()]);
+  rows.push(["الحالة", STATUS_AR[invoice.status] || invoice.status]);
 
   // Table header
   page.drawRectangle({ x: tableX, y: y - rowH + 8, width: tableW, height: rowH, color: darkGreen });
