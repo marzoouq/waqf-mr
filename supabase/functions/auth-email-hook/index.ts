@@ -76,7 +76,7 @@ const SAMPLE_DATA: Record<string, object> = {
 // Preview endpoint handler - returns rendered HTML without sending email
 async function handlePreview(req: Request): Promise<Response> {
   const previewCorsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    ...getCorsHeaders(req),
     'Access-Control-Allow-Headers': 'authorization, content-type',
   }
 
