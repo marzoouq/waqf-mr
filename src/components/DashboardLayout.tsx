@@ -202,7 +202,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         >
           <Menu className="w-6 h-6" />
         </Button>
-        <span className="font-display font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
+        <span className="font-arabic font-bold text-lg text-sidebar-foreground">إدارة الوقف</span>
         <div className="flex items-center gap-1">
           <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
             <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">

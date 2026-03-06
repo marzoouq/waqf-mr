@@ -427,60 +427,60 @@ const DisclosurePage = () => {
               </div>
 
               {/* Full Financial Sequence */}
-              <div className="border-t-2 pt-4 space-y-3">
+              <div className="border-t-2 pt-4 space-y-2 sm:space-y-3">
                 {waqfCorpusPrevious > 0 && (
                   <>
-                    <div className="flex justify-between items-center py-2 text-info">
+                    <div className="flex justify-between items-center py-2 text-info text-sm sm:text-base">
                       <span>(+) رقبة الوقف المرحّلة من العام السابق</span>
-                      <span>+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
+                      <span className="whitespace-nowrap mr-2">+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
-                      <span className="font-bold">الإجمالي الشامل</span>
-                      <span className="font-bold text-lg">{grandTotal.toLocaleString()} ر.س</span>
+                      <span className="font-bold text-sm sm:text-base">الإجمالي الشامل</span>
+                      <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{grandTotal.toLocaleString()} ر.س</span>
                     </div>
                   </>
                 )}
                 <div className="flex justify-between items-center py-2">
-                  <span className="font-bold">الصافي بعد المصاريف</span>
-                  <span className="font-bold text-lg">{netAfterExpenses.toLocaleString()} ر.س</span>
+                  <span className="font-bold text-sm sm:text-base">الصافي بعد المصاريف</span>
+                  <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{netAfterExpenses.toLocaleString()} ر.س</span>
                 </div>
-                <div className="flex justify-between items-center py-2 text-destructive">
+                <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
                   <span>(-) ضريبة القيمة المضافة</span>
-                  <span>-{vatAmount.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{vatAmount.toLocaleString()} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="font-bold">الصافي بعد خصم الضريبة</span>
-                  <span className="font-bold text-primary text-lg">{netAfterVat.toLocaleString()} ر.س</span>
+                  <span className="font-bold text-sm sm:text-base">الصافي بعد خصم الضريبة</span>
+                  <span className="font-bold text-primary text-base sm:text-lg whitespace-nowrap mr-2">{netAfterVat.toLocaleString()} ر.س</span>
                 </div>
                 {zakatAmount > 0 && (
                   <>
-                    <div className="flex justify-between items-center py-2 text-destructive">
+                    <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
                       <span>(-) الزكاة</span>
-                      <span>-{zakatAmount.toLocaleString()} ر.س</span>
+                      <span className="whitespace-nowrap mr-2">-{zakatAmount.toLocaleString()} ر.س</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
-                      <span className="font-bold">الصافي بعد الزكاة</span>
-                      <span className="font-bold">{netAfterZakat.toLocaleString()} ر.س</span>
+                      <span className="font-bold text-sm sm:text-base">الصافي بعد الزكاة</span>
+                      <span className="font-bold whitespace-nowrap mr-2">{netAfterZakat.toLocaleString()} ر.س</span>
                     </div>
                   </>
                 )}
-                <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                   <span>(-) حصة الناظر ({adminPct}%)</span>
-                  <span>-{adminShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{adminShare.toLocaleString()} ر.س</span>
                 </div>
-                <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                   <span>(-) حصة الواقف ({waqifPct}%)</span>
-                  <span>-{waqifShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{waqifShare.toLocaleString()} ر.س</span>
                 </div>
                 {waqfCorpusManual > 0 && (
-                  <div className="flex justify-between items-center py-2 text-muted-foreground text-sm">
+                  <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                     <span>(-) احتياطي رقبة الوقف</span>
-                    <span>-{waqfCorpusManual.toLocaleString()} ر.س</span>
+                    <span className="whitespace-nowrap mr-2">-{waqfCorpusManual.toLocaleString()} ر.س</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center py-2 font-bold">
+                <div className="flex justify-between items-center py-2 font-bold text-sm sm:text-base">
                   <span>الإجمالي القابل للتوزيع</span>
-                  <span>{beneficiariesShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">{beneficiariesShare.toLocaleString()} ر.س</span>
                 </div>
               </div>
 

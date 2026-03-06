@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,6 +16,7 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -128,6 +129,7 @@ const AuditLogPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
+  const isMobile = useIsMobile();
   const waqfInfo = usePdfWaqfInfo();
 
   const { data: logs = [], isLoading } = useAuditLog({
@@ -281,7 +283,49 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      <div className="overflow-x-auto">
+                      {/* Mobile Cards */}
+                      <div className="block md:hidden space-y-3 p-3">
+                        {paginated.map(log => {
+                          const isExpanded = expandedRows.has(log.id);
+                          const summary = log.operation === 'INSERT'
+                            ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
+                            : log.operation === 'DELETE'
+                              ? `حذف سجل من ${getTableNameAr(log.table_name)}`
+                              : log.operation === 'REOPEN'
+                                ? `إعادة فتح ${getTableNameAr(log.table_name)}`
+                                : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
+                          return (
+                            <Card key={log.id} className="shadow-sm">
+                              <CardContent className="p-3 space-y-2" onClick={() => toggleRow(log.id)}>
+                                <div className="flex items-center justify-between">
+                                  <Badge className={operationColor(log.operation)} variant="outline">
+                                    {getOperationNameAr(log.operation)}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="font-medium">{getTableNameAr(log.table_name)}</span>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{summary}</p>
+                                {isExpanded && (
+                                  <div className="pt-2 border-t">
+                                    <DataDiff
+                                      oldData={log.old_data as Record<string, unknown> | null}
+                                      newData={log.new_data as Record<string, unknown> | null}
+                                      operation={log.operation}
+                                    />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                      {/* Desktop Table */}
+                      <div className="overflow-x-auto hidden md:block">
                       <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
