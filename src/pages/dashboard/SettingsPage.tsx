@@ -1,3 +1,7 @@
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/DashboardLayout';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,23 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote } from 'lucide-react';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
-import { useAppSettings } from '@/hooks/useAppSettings';
-import { lazy, Suspense } from 'react';
-
-const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
-const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
-const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalYearManagementTab'));
-const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
-const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
-const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
-const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
-const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
-const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
-import { useWaqfInfo } from '@/hooks/useAppSettings';
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 
 // === Logo Management Component ===
 const LogoManager = () => {
