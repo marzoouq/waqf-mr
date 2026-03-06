@@ -37,21 +37,21 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
 
   if (paymentCount === 1) {
     // L-01 fix: single payment (any type with 1 due date) — due at start + 1 month grace
-    const due = new Date(start);
-    due.setMonth(due.getMonth() + 1);
+    const due = safeAddMonths(start, 1);
     dates.push(toISODate(due));
   } else {
     // Monthly or multi: payments due each period after start
     for (let i = 0; i < paymentCount; i++) {
-      const due = new Date(start);
+      let due: Date;
       if (contract.payment_type === 'monthly') {
-        due.setMonth(due.getMonth() + i + 1);
+        due = safeAddMonths(start, i + 1);
       } else if (contract.payment_type === 'quarterly') {
-        due.setMonth(due.getMonth() + (i + 1) * 3);
+        due = safeAddMonths(start, (i + 1) * 3);
       } else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') {
-        due.setMonth(due.getMonth() + (i + 1) * 6);
+        due = safeAddMonths(start, (i + 1) * 6);
       } else {
         // Multi-payment: evenly spaced
+        due = new Date(start);
         const totalDays = daysBetween(start, new Date(contract.end_date));
         const interval = totalDays / paymentCount;
         due.setDate(due.getDate() + Math.round(interval * (i + 1)));
@@ -154,6 +154,20 @@ function daysBetween(a: Date, b: Date): number {
 
 function toISODate(d: Date): string {
   return d.toISOString().split('T')[0];
+}
+
+/**
+ * Safe month addition that clamps to end-of-month to prevent overflow.
+ * e.g., Jan 31 + 1 month = Feb 28 (not Mar 2)
+ */
+function safeAddMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  const targetMonth = result.getMonth() + months;
+  const day = result.getDate();
+  result.setMonth(targetMonth, 1); // set to 1st to avoid overflow
+  const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
+  result.setDate(Math.min(day, lastDay));
+  return result;
 }
 
 /**
