@@ -335,10 +335,11 @@ const UserManagementPage = () => {
               المستخدمون ({totalUsers})
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6">
             {isLoading ? (
               <p className="text-center py-8 text-muted-foreground">جاري التحميل...</p>
             ) : (
+              <div className="overflow-x-auto">
               <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
@@ -434,6 +435,7 @@ const UserManagementPage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
 
             {/* Pagination */}

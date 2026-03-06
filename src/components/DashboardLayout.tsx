@@ -11,7 +11,7 @@ import {
   Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
   ClipboardList, Calculator,
 } from 'lucide-react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
@@ -142,6 +142,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     catch { /* ignore */ }
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Swipe-to-close for mobile sidebar (RTL: swipe right = close)
+  const touchStartX = useRef<number>(0);
+  const touchDeltaX = useRef<number>(0);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchDeltaX.current > 60) {
+      setMobileSidebarOpen(false);
+    }
+  }, []);
   const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
@@ -231,6 +250,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar - Mobile */}
       <aside
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className={cn(
           'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 transition-transform duration-300 lg:hidden',
           mobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'
