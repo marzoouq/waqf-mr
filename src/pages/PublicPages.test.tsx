@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -60,8 +61,14 @@ import Unauthorized from './Unauthorized';
 const mockedUseAuth = vi.mocked(useAuth);
 const mockedUseAppSettings = vi.mocked(useAppSettings);
 
-const renderWithRouter = (node: React.ReactNode, initialEntry = '/') =>
-  render(<MemoryRouter initialEntries={[initialEntry]}>{node}</MemoryRouter>);
+const renderWithRouter = (node: React.ReactNode, initialEntry = '/') => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={[initialEntry]}>{node}</MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('Public pages smoke tests', () => {
   beforeEach(() => {
@@ -104,7 +111,6 @@ describe('Public pages smoke tests', () => {
   });
 
   it('renders NotFound page', () => {
-    // React Router emits console.error for unmatched routes in test env — safe to mute
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderWithRouter(<NotFound />, '/missing-page');
     expect(screen.getByText('عذراً! الصفحة غير موجودة')).toBeInTheDocument();

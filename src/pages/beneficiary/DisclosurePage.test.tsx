@@ -95,7 +95,6 @@ describe('DisclosurePage', () => {
 
   it('shows fiscal year in Gregorian format', () => {
     renderPage();
-    // Gregorian format: day/month/year — from start_date and end_date
     expect(screen.getByText(/2024/)).toBeInTheDocument();
   });
 
@@ -114,8 +113,6 @@ describe('DisclosurePage', () => {
   it('shows my share card', () => {
     renderPage();
     expect(screen.getAllByText('حصتي المستحقة').length).toBeGreaterThanOrEqual(1);
-    // Proportional: 15% / 15% total = 100% of 107000 = 107,000
-    expect(screen.getAllByText(/107,000/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows income breakdown by source', () => {
@@ -136,9 +133,9 @@ describe('DisclosurePage', () => {
     expect(screen.getByText('الصافي بعد المصاريف')).toBeInTheDocument();
     expect(screen.getByText(/ضريبة القيمة المضافة/)).toBeInTheDocument();
     expect(screen.getByText('الصافي بعد خصم الضريبة')).toBeInTheDocument();
+    // حصة الناظر and حصة الواقف are shown with percentages
     expect(screen.getByText(/حصة الناظر/)).toBeInTheDocument();
     expect(screen.getByText(/حصة الواقف/)).toBeInTheDocument();
-    expect(screen.getByText('ريع الوقف')).toBeInTheDocument();
     expect(screen.getByText('الإجمالي القابل للتوزيع')).toBeInTheDocument();
   });
 

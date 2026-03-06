@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
@@ -76,11 +77,19 @@ vi.mock('@/hooks/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
+vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import PropertiesViewPage from './PropertiesViewPage';
 
-const renderPage = () => render(<MemoryRouter><PropertiesViewPage /></MemoryRouter>);
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><PropertiesViewPage /></MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('PropertiesViewPage', () => {
   it('يعرض عنوان الصفحة', () => {
