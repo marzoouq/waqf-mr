@@ -30,7 +30,7 @@ const formatDate = (iso: string) => {
 const summarizeData = (data: Record<string, unknown> | null): string => {
   if (!data) return '—';
   const entries = Object.entries(data).filter(
-    ([k]) => !['id', 'created_at', 'updated_at'].includes(k),
+    ([k]) => !['id', 'created_at', 'updated_at', 'national_id', 'bank_account'].includes(k),
   );
   if (entries.length === 0) return '—';
   return entries
