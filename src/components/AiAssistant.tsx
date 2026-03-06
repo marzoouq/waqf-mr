@@ -149,7 +149,7 @@ const AiAssistant = () => {
       <Button
         onClick={() => setOpen(true)}
         className={cn(
-          'fixed bottom-4 left-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 transition-all duration-300 origin-bottom-left',
+          'fixed bottom-20 left-4 lg:bottom-4 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg gradient-primary hover:opacity-90 transition-all duration-300 origin-bottom-left',
           open ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
         )}
         size="icon"
@@ -159,7 +159,7 @@ const AiAssistant = () => {
 
       <div
         className={cn(
-          'fixed inset-0 sm:inset-auto sm:bottom-4 sm:left-4 z-50 sm:w-[400px] sm:h-[560px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden transition-all duration-300 origin-bottom-left',
+          'fixed inset-0 sm:inset-auto sm:bottom-20 sm:left-4 lg:sm:bottom-4 z-50 sm:w-[400px] sm:h-[560px] sm:rounded-2xl shadow-elegant border border-border bg-card flex flex-col overflow-hidden transition-all duration-300 origin-bottom-left',
           open ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
         )}
       >
