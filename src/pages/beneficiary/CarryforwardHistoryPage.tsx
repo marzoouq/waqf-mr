@@ -22,7 +22,7 @@ const CarryforwardHistoryPage = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       const { data } = await supabase
-        .from('beneficiaries')
+        .from('beneficiaries_safe')
         .select('id, name, share_percentage')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -56,7 +56,6 @@ const CarryforwardHistoryPage = () => {
   const paidAdvances = advances.filter(a => a.status === 'paid');
   const totalPaidAdvances = paidAdvances.reduce((s, a) => s + Number(a.amount), 0);
   const settledCF = carryforwards.filter(c => c.status === 'settled');
-  const activeCF = carryforwards.filter(c => c.status === 'active');
   const totalSettled = settledCF.reduce((s, c) => s + Number(c.amount), 0);
 
   if (loadingBen || loadingCF || loadingAdv) {
