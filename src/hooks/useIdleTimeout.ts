@@ -77,7 +77,19 @@ export const useIdleTimeout = ({
 
     // Page Visibility: reset timer when tab becomes visible again
     const visibilityHandler = () => {
-      if (document.visibilityState === 'visible') resetTimer();
+      if (document.visibilityState === 'visible') {
+        const elapsed = Date.now() - lastActivityRef.current;
+        if (elapsed >= timeout) {
+          // Idle time already exceeded — trigger logout immediately
+          if (!firedRef.current) {
+            firedRef.current = true;
+            clearTimers();
+            onIdleRef.current();
+          }
+        } else {
+          resetTimer();
+        }
+      }
     };
     document.addEventListener('visibilitychange', visibilityHandler);
 

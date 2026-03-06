@@ -5,7 +5,7 @@
  * إصلاح معماري: فصل جلب الدور عن onAuthStateChange لتجنب race condition
  * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
  */
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // إصلاح stale closure: roleRef يقرأ القيمة الحالية دائماً
   const roleRef = useRef<AppRole | null>(null);
 
-  const setRoleWithRef = (newRole: AppRole | null) => {
+  const setRoleWithRef = useCallback((newRole: AppRole | null) => {
     roleRef.current = newRole;
     setRole(newRole);
-  };
+  }, []);
 
   // === الخطوة 1: onAuthStateChange يحدّث user/session فقط (بدون await) ===
   useEffect(() => {
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const fetchId = ++roleFetchIdRef.current;
-    let timeoutId: ReturnType<typeof setTimeout>;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const fetchRole = async () => {
       const startTime = Date.now();

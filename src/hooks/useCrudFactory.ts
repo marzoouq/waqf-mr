@@ -86,9 +86,10 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           .from(table)
           .insert(payload as never)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        if (!data) throw new Error(`فشل إنشاء ${label} — لم يُعاد أي سجل`);
         return data as TData;
       },
       onSuccess: (data) => {

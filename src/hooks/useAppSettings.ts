@@ -56,9 +56,12 @@ export const useAppSettings = () => {
   };
 
   const updateJsonSetting = async (key: string, value: object) => {
-    // لا نضع toast.error هنا — useMutation.onError يتكفل بذلك (منع double toast)
-    await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
-    toast.success('تم حفظ الإعدادات بنجاح');
+    try {
+      await updateSetting.mutateAsync({ key, value: JSON.stringify(value) });
+      toast.success('تم حفظ الإعدادات بنجاح');
+    } catch {
+      // onError في useMutation يتكفل بعرض الخطأ — منع double toast
+    }
   };
 
   return { ...query, updateSetting, getJsonSetting, updateJsonSetting };
