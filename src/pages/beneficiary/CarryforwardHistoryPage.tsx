@@ -10,8 +10,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/useAdvanceRequests';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
+import ExportMenu from '@/components/ExportMenu';
 import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const CarryforwardHistoryPage = () => {
   const { user } = useAuth();
@@ -90,14 +92,24 @@ const CarryforwardHistoryPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <ArrowDownUp className="w-6 h-6 text-primary" />
-            تاريخ الترحيلات والخصومات
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك
-          </p>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <ArrowDownUp className="w-6 h-6 text-primary" />
+              تاريخ الترحيلات والخصومات
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك
+            </p>
+          </div>
+          <ExportMenu onExportPdf={() => {
+            try {
+              window.print();
+              toast.success('جاري الطباعة...');
+            } catch {
+              toast.error('حدث خطأ أثناء الطباعة');
+            }
+          }} />
         </div>
 
         {/* بطاقات ملخص */}

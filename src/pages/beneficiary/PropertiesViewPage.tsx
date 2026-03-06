@@ -9,6 +9,7 @@ import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -17,6 +18,9 @@ import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Rule
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import React, { useMemo, useState } from 'react';
+import { generatePropertiesPDF } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { toast } from 'sonner';
 
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
@@ -26,6 +30,7 @@ const PropertiesViewPage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const pdfWaqfInfo = usePdfWaqfInfo();
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
@@ -92,7 +97,26 @@ const PropertiesViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">العقارات</h1>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h1 className="text-2xl font-bold text-foreground">العقارات</h1>
+          <ExportMenu onExportPdf={async () => {
+            try {
+              await generatePropertiesPDF(
+                (properties ?? []).map(p => ({
+                  property_number: p.property_number,
+                  property_type: p.property_type,
+                  location: p.location,
+                  area: p.area,
+                  description: p.description,
+                })),
+                pdfWaqfInfo
+              );
+              toast.success('تم تصدير العقارات بنجاح');
+            } catch {
+              toast.error('حدث خطأ أثناء تصدير PDF');
+            }
+          }} />
+        </div>
 
         {/* بطاقات الملخص الإجمالية */}
         <div className="space-y-4 animate-slide-up">
