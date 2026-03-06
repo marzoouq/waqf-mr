@@ -216,7 +216,7 @@ interface WaqfSettings {
 }
 
 async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
-  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin'];
+  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin', 'vat_registration_number'];
   const { data } = await adminClient
     .from('app_settings')
     .select('key, value')
@@ -230,6 +230,7 @@ async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): 
     waqf_deed_number: map.waqf_deed_number || 'غير محدد',
     waqf_court: map.waqf_court || 'غير محدد',
     waqf_admin: map.waqf_admin || 'غير محدد',
+    vat_registration_number: map.vat_registration_number || '',
   };
 }
 
