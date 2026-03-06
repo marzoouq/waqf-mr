@@ -1,0 +1,1 @@
+SELECT cron.schedule('update-overdue-invoices-daily', '30 1 * * *', $$SELECT public.cron_update_overdue_invoices()$$);
