@@ -145,15 +145,19 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-                <Suspense fallback={null}>
-                  <SecurityGuard />
-                </Suspense>
-                <DeferredRender>
+                <ErrorBoundary>
                   <Suspense fallback={null}>
-                    <AiAssistant />
-                    <PwaUpdateNotifier />
+                    <SecurityGuard />
                   </Suspense>
-                </DeferredRender>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <DeferredRender>
+                    <Suspense fallback={null}>
+                      <AiAssistant />
+                      <PwaUpdateNotifier />
+                    </Suspense>
+                  </DeferredRender>
+                </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>
           </FiscalYearProvider>
