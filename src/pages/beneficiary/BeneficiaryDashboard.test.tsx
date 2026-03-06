@@ -43,7 +43,19 @@ vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: () => ({ select: () => ({ eq: () => ({ order: () => ({ data: [], error: null }) }) }) }),
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          order: () => ({
+            limit: () => Promise.resolve({ data: [], error: null }),
+            data: [], error: null,
+          }),
+          data: [], error: null,
+        }),
+        order: () => ({ data: [], error: null }),
+        data: [], error: null,
+      }),
+    }),
     rpc: () => Promise.resolve({ data: 0, error: null }),
   },
 }));

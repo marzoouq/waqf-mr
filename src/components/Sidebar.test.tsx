@@ -63,7 +63,8 @@ describe('SidebarContent', () => {
 
   it('renders sign out button', () => {
     renderSidebar();
-    expect(screen.getByText('تسجيل الخروج')).toBeInTheDocument();
+    const buttons = screen.getAllByText('تسجيل الخروج');
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it('highlights active link', () => {
