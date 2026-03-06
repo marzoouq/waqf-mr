@@ -21,6 +21,12 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPercentage } from '@/lib/utils';
 
+const REPORT_COLORS = [
+  'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
+  'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
+  'hsl(var(--accent))', 'hsl(var(--chart-4))',
+];
+
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
