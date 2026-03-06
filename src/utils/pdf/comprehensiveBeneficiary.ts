@@ -189,12 +189,12 @@ export const generateComprehensiveBeneficiaryPDF = async (
 
   if (data.adminShare > 0) {
     sequenceRows.push(
-      [`(-) حصة الناظر (${(data as any).adminPct ?? 10}%)`, `(${data.adminShare.toLocaleString()})`],
+      [`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `(${data.adminShare.toLocaleString()})`],
     );
   }
   if (data.waqifShare > 0) {
     sequenceRows.push(
-      [`(-) حصة الواقف (${(data as any).waqifPct ?? 5}%)`, `(${data.waqifShare.toLocaleString()})`],
+      [`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `(${data.waqifShare.toLocaleString()})`],
     );
   }
   if (data.waqfCorpusManual > 0) {
