@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useWebAuthn, isBiometricEnabled } from '@/hooks/useWebAuthn';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +32,8 @@ const Auth = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
+  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(null);
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
@@ -130,6 +132,13 @@ const Auth = () => {
           return;
         }
 
+        // Check if currently locked out
+        if (nidLockedUntil && Date.now() < nidLockedUntil) {
+          const secs = Math.ceil((nidLockedUntil - Date.now()) / 1000);
+          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
+          return;
+        }
+
         // تحويل الأرقام العربية/الفارسية تلقائياً
         const cleanId = normalizeArabicDigits(nationalId);
 
@@ -143,12 +152,26 @@ const Auth = () => {
           body: { national_id: cleanId }
         });
 
+        // Handle rate limiting (429)
+        if (lookupError && data?.remaining === 0) {
+          const retryAfter = data?.retry_after || 120;
+          setNidLockedUntil(Date.now() + retryAfter * 1000);
+          setNidAttemptsRemaining(0);
+          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
+          return;
+        }
+
+        // Update remaining attempts from response
+        if (data?.remaining !== undefined) {
+          setNidAttemptsRemaining(data.remaining);
+        }
+
         if (lookupError) {
           toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
           return;
         }
         if (!data?.found || !data?.email) {
-          toast.error('رقم الهوية غير مسجل في النظام');
+          toast.error('رقم الهوية غير مسجل في النظام. تأكد من صحة الرقم أو تواصل مع ناظر الوقف.');
           return;
         }
         // استخدام البريد الحقيقي المرجع من قاعدة البيانات
@@ -167,7 +190,13 @@ const Auth = () => {
 
       const { error } = await signIn(resolvedEmail, loginPassword);
       if (error) {
-        toast.error(getSafeErrorMessage(error));
+        // Distinguish password error from other errors for better UX
+        const errMsg = error.message?.toLowerCase() || '';
+        if (loginMethod === 'national_id' && errMsg.includes('invalid login credentials')) {
+          toast.error('كلمة المرور غير صحيحة. تأكد من كلمة المرور أو استخدم "نسيت كلمة المرور".');
+        } else {
+          toast.error(getSafeErrorMessage(error));
+        }
         logAccessEvent({
           event_type: 'login_failed',
           email: loginMethod === 'national_id' ? null : resolvedEmail,
@@ -273,6 +302,23 @@ const Auth = () => {
             dir="ltr"
             className="h-11"
           />
+          {/* عداد المحاولات المتبقية */}
+          {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
+            <div className={`flex items-center gap-1.5 text-xs mt-1 ${
+              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
+            }`}>
+              {nidAttemptsRemaining === 0 ? (
+                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              )}
+              <span>
+                {nidAttemptsRemaining === 0
+                  ? 'تم تجاوز حد المحاولات — يرجى الانتظار دقيقتين'
+                  : `المحاولات المتبقية: ${nidAttemptsRemaining}`}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

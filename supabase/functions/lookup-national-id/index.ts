@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-const RATE_LIMIT = 3;
-const RATE_WINDOW_SECONDS = 60;
+const RATE_LIMIT = 5;
+const RATE_WINDOW_SECONDS = 120;
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -30,6 +30,13 @@ Deno.serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
+    // Query current count before checking
+    const { data: currentCount } = await supabase
+      .from('rate_limits')
+      .select('count, window_start')
+      .eq('key', rateLimitKey)
+      .maybeSingle();
+
     const { data: isLimited, error: rlError } = await supabase.rpc('check_rate_limit', {
       p_key: rateLimitKey,
       p_limit: RATE_LIMIT,
@@ -46,11 +53,26 @@ Deno.serve(async (req) => {
     }
 
     if (isLimited) {
+      // Calculate seconds until window resets
+      let retryAfter = RATE_WINDOW_SECONDS;
+      if (currentCount?.window_start) {
+        const windowStart = new Date(currentCount.window_start).getTime();
+        const windowEnd = windowStart + RATE_WINDOW_SECONDS * 1000;
+        retryAfter = Math.max(1, Math.ceil((windowEnd - Date.now()) / 1000));
+      }
       return new Response(
-        JSON.stringify({ error: "تم تجاوز حد المحاولات، يرجى الانتظار دقيقة" }),
+        JSON.stringify({
+          error: "تم تجاوز حد المحاولات، يرجى الانتظار",
+          remaining: 0,
+          retry_after: retryAfter,
+        }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Calculate remaining attempts after this request
+    const usedCount = (currentCount?.count ?? 0) + 1;
+    const remaining = Math.max(0, RATE_LIMIT - usedCount);
 
     const { national_id: rawId } = await req.json();
 
@@ -65,7 +87,7 @@ Deno.serve(async (req) => {
     // Input validation: must be exactly 10 digits
     if (!national_id || typeof national_id !== "string" || !/^\d{10}$/.test(national_id)) {
       return new Response(
-        JSON.stringify({ error: "رقم الهوية يجب أن يكون 10 أرقام" }),
+        JSON.stringify({ error: "رقم الهوية يجب أن يكون 10 أرقام", remaining }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -102,13 +124,13 @@ Deno.serve(async (req) => {
     // Identical response structure for both found and not-found
     if (!email) {
       return new Response(
-        JSON.stringify({ email: null, found: false }),
+        JSON.stringify({ email: null, found: false, remaining }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ email, found: true }),
+      JSON.stringify({ email, found: true, remaining }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
