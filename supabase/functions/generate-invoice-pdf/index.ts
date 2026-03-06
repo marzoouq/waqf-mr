@@ -174,6 +174,20 @@ function processArabicText(text: string): string {
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
+// Module-level font cache to avoid re-fetching on every invoice
+let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
+
+async function getFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
+  if (!cachedFonts) {
+    const [regular, bold] = await Promise.all([
+      fetchFont("Amiri-Regular.ttf"),
+      fetchFont("Amiri-Bold.ttf"),
+    ]);
+    cachedFonts = { regular, bold };
+  }
+  return cachedFonts;
+}
+
 async function fetchFont(name: string): Promise<Uint8Array> {
   const url = `${FONT_BASE_URL}/${name}`;
   const res = await fetch(url);
@@ -188,6 +202,9 @@ interface InvoiceData {
   date: string;
   description: string | null;
   status: string;
+  vat_rate: number;
+  vat_amount: number;
+  amount_excluding_vat: number | null;
 }
 
 interface WaqfSettings {
@@ -195,10 +212,11 @@ interface WaqfSettings {
   waqf_deed_number: string;
   waqf_court: string;
   waqf_admin: string;
+  vat_registration_number: string;
 }
 
 async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
-  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin'];
+  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin', 'vat_registration_number'];
   const { data } = await adminClient
     .from('app_settings')
     .select('key, value')
@@ -212,6 +230,7 @@ async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): 
     waqf_deed_number: map.waqf_deed_number || 'غير محدد',
     waqf_court: map.waqf_court || 'غير محدد',
     waqf_admin: map.waqf_admin || 'غير محدد',
+    vat_registration_number: map.vat_registration_number || '',
   };
 }
 
@@ -219,14 +238,10 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
-  // Embed Amiri fonts
-  const [amiriRegularBytes, amiriBoldBytes] = await Promise.all([
-    fetchFont("Amiri-Regular.ttf"),
-    fetchFont("Amiri-Bold.ttf"),
-  ]);
-
-  const amiri = await pdfDoc.embedFont(amiriRegularBytes, { subset: true });
-  const amiriBold = await pdfDoc.embedFont(amiriBoldBytes, { subset: true });
+  // Use cached fonts
+  const fonts = await getFonts();
+  const amiri = await pdfDoc.embedFont(fonts.regular, { subset: true });
+  const amiriBold = await pdfDoc.embedFont(fonts.bold, { subset: true });
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   const page = pdfDoc.addPage([595, 842]); // A4
@@ -493,6 +508,9 @@ Deno.serve(async (req) => {
           date: invoice.date,
           description: invoice.description,
           status: invoice.status,
+          vat_rate: invoice.vat_rate ?? 0,
+          vat_amount: invoice.vat_amount ?? 0,
+          amount_excluding_vat: invoice.amount_excluding_vat ?? null,
         }, waqfSettings);
 
         const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
@@ -502,7 +520,7 @@ Deno.serve(async (req) => {
           .from("invoices")
           .upload(storagePath, pdfBytes, {
             contentType: "application/pdf",
-            upsert: true,
+            upsert: false,
           });
 
         if (uploadError) throw uploadError;

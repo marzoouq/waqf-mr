@@ -12,6 +12,7 @@ export interface WaqfInfo {
   waqf_nazara_date: string;
   waqf_court: string;
   waqf_logo_url: string;
+  vat_registration_number: string;
 }
 
 export const useAppSettings = () => {
@@ -84,6 +85,7 @@ export const useWaqfInfo = () => {
     waqf_nazara_date: settings?.waqf_nazara_date || '',
     waqf_court: settings?.waqf_court || '',
     waqf_logo_url: settings?.waqf_logo_url || '',
+    vat_registration_number: settings?.vat_registration_number || '',
   };
 
   return { data: info, isLoading, error };

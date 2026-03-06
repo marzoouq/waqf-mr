@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText } from 'lucide-react';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 
@@ -24,6 +24,7 @@ const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSetting
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
+const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
 
 // === Logo Management Component ===
 const LogoManager = () => {
@@ -660,6 +661,7 @@ const SettingsPage = () => {
                 <SelectItem value="role-permissions">صلاحيات الأدوار</SelectItem>
                 <SelectItem value="biometric">البصمة</SelectItem>
                 <SelectItem value="advances">السُلف</SelectItem>
+                <SelectItem value="zatca">الضريبة (ZATCA)</SelectItem>
                 <SelectItem value="security">الأمان</SelectItem>
               </SelectContent>
             </Select>
@@ -722,6 +724,10 @@ const SettingsPage = () => {
               <Banknote className="w-4 h-4" />
               السُلف
             </TabsTrigger>
+            <TabsTrigger value="zatca" className="gap-1.5 text-xs md:text-sm">
+              <FileText className="w-4 h-4" />
+              الضريبة
+            </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
               الأمان
@@ -741,6 +747,7 @@ const SettingsPage = () => {
           <TabsContent value="role-permissions"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><RolePermissionsTab /></Suspense></TabsContent>
           <TabsContent value="biometric"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BiometricSettings /></Suspense></TabsContent>
           <TabsContent value="advances"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><AdvanceSettingsTab /></Suspense></TabsContent>
+          <TabsContent value="zatca"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><ZatcaSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>

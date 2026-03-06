@@ -17,6 +17,11 @@ export interface PaymentInvoice {
   paid_date: string | null;
   paid_amount: number;
   notes: string | null;
+  vat_rate: number;
+  vat_amount: number;
+  zatca_uuid: string | null;
+  zatca_status: string;
+  file_path: string | null;
   created_at: string;
   updated_at: string;
   contract?: {
