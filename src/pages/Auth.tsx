@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint } from 'lucide-react';
+import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useWebAuthn, isBiometricEnabled } from '@/hooks/useWebAuthn';
 import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
 import { supabase } from '@/integrations/supabase/client';
