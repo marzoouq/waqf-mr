@@ -18,7 +18,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import React, { useMemo, useState } from 'react';
 
-
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
@@ -174,11 +173,7 @@ const PropertiesViewPage = () => {
           </Card>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
-          </div>
-        ) : !properties?.length ? (
+        {!properties?.length ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
