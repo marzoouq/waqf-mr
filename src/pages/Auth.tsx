@@ -33,7 +33,16 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
-  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(null);
+  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('nidLockedUntil');
+      if (stored) {
+        const val = Number(stored);
+        return val > Date.now() ? val : null;
+      }
+    } catch { /* silent */ }
+    return null;
+  });
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
@@ -164,7 +173,9 @@ const Auth = () => {
         // Handle rate limiting (429)
         if (lookupError && data?.remaining === 0) {
           const retryAfter = data?.retry_after || 120;
-          setNidLockedUntil(Date.now() + retryAfter * 1000);
+          const lockTime = Date.now() + retryAfter * 1000;
+          setNidLockedUntil(lockTime);
+          try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
           setNidAttemptsRemaining(0);
           toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
           return;

@@ -236,26 +236,33 @@ export const useNotifications = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
+  // Stable refs to avoid re-subscribing on callback/queryClient changes
+  const playSoundRef = useRef(playNotificationSound);
+  useEffect(() => { playSoundRef.current = playNotificationSound; }, [playNotificationSound]);
+  const qcRef = useRef(queryClient);
+  useEffect(() => { qcRef.current = queryClient; }, [queryClient]);
+
   // Realtime subscription with browser push notifications
   // إصلاح: اسم قناة فريد + فلترة server-side + dependency على user.id فقط
   useEffect(() => {
     if (!user) return;
     const channelName = `notifications-${user.id}`;
+    const userId = user.id;
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'notifications',
-        filter: `user_id=eq.${user.id}`,
+        filter: `user_id=eq.${userId}`,
       }, (payload) => {
-        queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
+        qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
         
         const newNotif = payload.new as Notification;
 
         // Play notification chime (if enabled)
         const soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false';
-        if (soundEnabled) playNotificationSound();
+        if (soundEnabled) playSoundRef.current();
 
         // Show browser push notification
         if ('Notification' in window && Notification.permission === 'granted') {
@@ -279,7 +286,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient, playNotificationSound]);
+  }, [user?.id]);
 
   return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

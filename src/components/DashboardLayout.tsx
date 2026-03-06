@@ -28,7 +28,7 @@ import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
-
+import { logAccessEvent } from '@/hooks/useAccessLog';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -313,6 +313,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleSignOut = async () => {
     setMobileSidebarOpen(false);
+    await logAccessEvent({ event_type: 'logout', user_id: user?.id });
     await signOut();
     navigate('/auth', { replace: true });
   };
@@ -322,9 +323,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const timeoutMs = (idleMinutesRaw ?? 15) * 60 * 1000;
 
   const handleIdleLogout = useCallback(async () => {
+    await logAccessEvent({ event_type: 'idle_logout', user_id: user?.id });
     await signOut();
     window.location.href = '/auth?reason=idle';
-  }, [signOut]);
+  }, [signOut, user?.id]);
 
   const { showWarning, remaining, stayActive } = useIdleTimeout({
     timeout: timeoutMs,

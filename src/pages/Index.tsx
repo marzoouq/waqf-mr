@@ -48,10 +48,11 @@ const Index = () => {
   }, [user, role, loading, navigate]);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchStats = async () => {
       try {
         const { data, error } = await supabase.rpc('get_public_stats');
-        if (!error && data) {
+        if (!cancelled && !error && data) {
           const d = data as { properties: number; beneficiaries: number; fiscal_years: number };
           setStats([
             { label: 'عقار مُدار', value: String(d.properties ?? 0) },
@@ -62,10 +63,11 @@ const Index = () => {
       } catch {
         // صمت عند انقطاع الشبكة
       } finally {
-        setStatsLoading(false);
+        if (!cancelled) setStatsLoading(false);
       }
     };
     fetchStats();
+    return () => { cancelled = true; };
   }, []);
 
   const features = [
