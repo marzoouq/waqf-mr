@@ -13,6 +13,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { getContractSpanInfo } from '@/utils/contractAllocation';
 import { Contract } from '@/types/database';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 import { Building2, CheckSquare, Info } from 'lucide-react';
 
 interface ContractFormDialogProps {
@@ -47,12 +48,15 @@ export interface ContractFormData {
   selected_unit_ids: string[];
   pricing_mode: PricingMode;
   rent_per_unit: Record<string, string>;
+  // VAT
+  vat_applicable: boolean;
 }
 
 export const emptyFormData: ContractFormData = {
   contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
   payment_type: 'annual', payment_count: '1',
   rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
+  vat_applicable: false,
 };
 
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
@@ -333,12 +337,43 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <Input type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
             </div>
           )}
+          {/* VAT Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+            <div className="space-y-0.5">
+              <Label htmlFor="vat-switch" className="text-sm font-medium">خاضع لضريبة القيمة المضافة (15%)</Label>
+              <p className="text-xs text-muted-foreground">تفعيل VAT على فواتير هذا العقد</p>
+            </div>
+            <Switch
+              id="vat-switch"
+              checked={formData.vat_applicable}
+              onCheckedChange={(checked) => setFormData({ ...formData, vat_applicable: checked })}
+            />
+          </div>
+
           {formData.rent_amount && !isMulti && (
-            <div className="p-3 rounded-lg bg-muted/50 text-sm">
-              <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
-              <span className="font-bold text-primary">
-                {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
-              </span>
+            <div className="p-3 rounded-lg bg-muted/50 text-sm space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">قيمة الدفعة الواحدة:</span>
+                <span className="font-bold text-primary">
+                  {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                </span>
+              </div>
+              {formData.vat_applicable && (
+                <>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">ضريبة القيمة المضافة (15%):</span>
+                    <span className="text-muted-foreground">
+                      {((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 0.15).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs border-t border-border pt-1 mt-1">
+                    <span className="font-medium">الإجمالي شاملاً الضريبة:</span>
+                    <span className="font-bold text-primary">
+                      {((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 1.15).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
