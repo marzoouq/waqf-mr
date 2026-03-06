@@ -39,9 +39,12 @@ export const useIdleTimeout = ({
     setShowWarning(false);
     clearTimers();
 
+    // Prevent negative/zero warning delay when timeout ≤ warningBefore
+    const safeWarningBefore = Math.min(warningBefore, timeout * 0.5);
+
     warningTimerRef.current = setTimeout(() => {
       setShowWarning(true);
-      setRemaining(Math.ceil(warningBefore / 1000));
+      setRemaining(Math.ceil(safeWarningBefore / 1000));
       countdownRef.current = setInterval(() => {
         const elapsed = Date.now() - lastActivityRef.current;
         const left = Math.max(0, Math.ceil((timeout - elapsed) / 1000));
@@ -52,7 +55,7 @@ export const useIdleTimeout = ({
           onIdleRef.current();
         }
       }, 1000);
-    }, timeout - warningBefore);
+    }, timeout - safeWarningBefore);
 
     timerRef.current = setTimeout(() => {
       if (!firedRef.current) {

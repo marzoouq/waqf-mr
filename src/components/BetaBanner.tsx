@@ -26,14 +26,14 @@ const BetaBanner = () => {
     <div
       role="status"
       aria-live="polite"
-      className={`${isBottom ? "sticky bottom-0" : ""} z-[60] flex items-center justify-center gap-2 ${colors.bg} px-4 py-1.5 text-white text-sm font-medium shadow-md print:hidden`}
+      className={`${isBottom ? "fixed bottom-0 left-0 right-0" : ""} z-[60] flex items-center justify-center gap-2 ${colors.bg} px-4 py-1.5 text-white text-sm font-medium shadow-md print:hidden`}
     >
       <FlaskConical className="h-4 w-4 shrink-0" />
       <span>{settings.text}</span>
       {settings.dismissible && (
         <button
           onClick={() => setDismissed(true)}
-          className={`mr-2 rounded p-0.5 ${colors.hover} transition-colors`}
+          className={`ms-2 rounded p-0.5 ${colors.hover} transition-colors`}
           aria-label="إغلاق"
         >
           <X className="h-3.5 w-3.5" />

@@ -49,7 +49,11 @@ export const useAppSettings = () => {
 
   const getJsonSetting = <T>(key: string, fallback: T): T => {
     try {
-      return query.data?.[key] ? JSON.parse(query.data[key]) : fallback;
+      const raw = query.data?.[key];
+      if (raw !== undefined && raw !== null) {
+        return JSON.parse(raw);
+      }
+      return fallback;
     } catch {
       return fallback;
     }
