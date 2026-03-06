@@ -145,6 +145,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/invoices': 'الفواتير',
   '/dashboard/audit-log': 'سجل المراجعة',
   '/dashboard/bylaws': 'اللائحة التنظيمية',
+  '/dashboard/zatca': 'إدارة ZATCA',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',

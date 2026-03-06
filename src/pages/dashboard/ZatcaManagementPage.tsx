@@ -137,14 +137,14 @@ function ZatcaManagementPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-4 text-center">
-              <CheckCircle className="w-8 h-8 mx-auto text-green-600 mb-2" />
+              <CheckCircle className="w-8 h-8 mx-auto text-primary mb-2" />
               <p className="text-2xl font-bold text-foreground">{submitted}</p>
               <p className="text-sm text-muted-foreground">مُرسلة / مُعتمدة</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
-              <Clock className="w-8 h-8 mx-auto text-yellow-600 mb-2" />
+              <Clock className="w-8 h-8 mx-auto text-accent-foreground mb-2" />
               <p className="text-2xl font-bold text-foreground">{pending}</p>
               <p className="text-sm text-muted-foreground">لم تُرسل</p>
             </CardContent>
@@ -282,7 +282,7 @@ function ZatcaManagementPage() {
                   <p className="text-muted-foreground text-center py-8">جارٍ التحميل...</p>
                 ) : certificates.length === 0 ? (
                   <div className="text-center py-8 space-y-3">
-                    <AlertTriangle className="w-12 h-12 mx-auto text-yellow-500" />
+                    <AlertTriangle className="w-12 h-12 mx-auto text-accent-foreground" />
                     <p className="text-muted-foreground">لا توجد شهادات مسجّلة</p>
                     <p className="text-sm text-muted-foreground">يجب التسجيل في بوابة فاتورة أولاً للحصول على CSID</p>
                     <Button
