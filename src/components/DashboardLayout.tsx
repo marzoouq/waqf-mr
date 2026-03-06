@@ -23,6 +23,7 @@ import FiscalYearSelector from '@/components/FiscalYearSelector';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { defaultMenuLabels, type MenuLabels } from '@/components/settings/MenuCustomizationTab';
 import SidebarContent from '@/components/Sidebar';
+import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
@@ -286,7 +287,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       {/* Main Content */}
       <main className={cn(
         'flex-1 transition-all duration-300 min-h-screen overflow-y-auto',
-        'pt-14 lg:pt-0',
+        'pt-14 pb-16 lg:pt-0 lg:pb-0',
         sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
       )}>
         {/* Print-only Header */}
@@ -325,6 +326,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         {/* Print-only Footer */}
         <PrintFooter />
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
 
       {/* Idle Timeout Warning */}
       {session && (
