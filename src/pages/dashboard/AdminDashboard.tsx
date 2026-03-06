@@ -109,15 +109,15 @@ const AdminDashboard = () => {
   const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
 
   const stats = [
-    { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary' },
-    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary' },
-    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
-    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success' },
-    { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive' },
-    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent' },
-    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary' },
-    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary' },
-    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted' },
+    { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
+    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
+    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
+    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/income' },
+    { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses' },
+    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
   ];
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
