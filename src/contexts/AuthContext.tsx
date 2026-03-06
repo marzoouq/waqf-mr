@@ -180,11 +180,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-    } else {
-      // Safety net: fetchRole (via onAuthStateChange) will set loading=false,
-      // but if it doesn't fire within 5s, force it to prevent infinite loading
-      setTimeout(() => setLoading(false), 3000);
     }
+    // fetchRole (triggered by onAuthStateChange) will set loading=false.
+    // fetchRole already has a 3s safety timeout — no need for a redundant setTimeout here.
     return { error };
   };
 

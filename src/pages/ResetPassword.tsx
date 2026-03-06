@@ -25,9 +25,15 @@ const ResetPassword = () => {
       }
     });
 
-    // Also check URL hash for type=recovery (fallback)
+    // Fallback: check URL hash for type=recovery (legacy implicit flow)
     const hash = window.location.hash;
     if (hash.includes('type=recovery')) {
+      setIsRecovery(true);
+    }
+
+    // BUG-6 fix: Also check query params for PKCE flow (Supabase v2+)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('type') === 'recovery') {
       setIsRecovery(true);
     }
 
