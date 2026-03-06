@@ -531,11 +531,11 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
                                     <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
-                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })}>
+                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
                                       <MinusIcon className="w-3 h-3" />
                                     </Button>
                                     <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
-                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending}
+                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
                                       onClick={() => {
                                         const rent = Number(tenant.rent_amount);
                                         const monthlyAmount = tenant.payment_type === 'monthly' ? (Number(tenant.payment_amount) || rent / 12)
@@ -571,8 +571,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)}><Edit className="w-3 h-3" /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)}><Trash2 className="w-3 h-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)} aria-label="تعديل الوحدة"><Edit className="w-3 h-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)} aria-label="حذف الوحدة"><Trash2 className="w-3 h-3" /></Button>
                               </div>
                             </TableCell>
                           </TableRow>

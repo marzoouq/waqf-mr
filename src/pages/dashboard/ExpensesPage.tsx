@@ -153,8 +153,8 @@ const ExpensesPage = () => {
                             <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -193,7 +193,7 @@ const ExpensesPage = () => {
                       <React.Fragment key={item.id}>
                         <TableRow className={isExpanded ? 'border-b-0' : ''}>
                           <TableCell className="p-1">
-                            <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)}>
+                            <Button variant="ghost" size="icon" className="w-6 h-6" onClick={() => setExpandedRow(isExpanded ? null : item.id)} aria-label={isExpanded ? 'طي' : 'توسيع'}>
                               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </Button>
                           </TableCell>
@@ -211,8 +211,8 @@ const ExpensesPage = () => {
                           <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive" disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

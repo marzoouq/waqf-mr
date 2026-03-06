@@ -57,10 +57,10 @@ const AccountsContractsTable = ({
                   <TableCell>{statusLabel(contract.status)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEditContract(contract)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEditContract(contract)} aria-label="تعديل العقد">
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDeleteContract(contract.id, `العقد ${contract.contract_number}`)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDeleteContract(contract.id, `العقد ${contract.contract_number}`)} aria-label="حذف العقد">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

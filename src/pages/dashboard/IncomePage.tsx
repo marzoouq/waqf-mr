@@ -191,8 +191,8 @@ const IncomePage = () => {
                           <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -223,8 +223,8 @@ const IncomePage = () => {
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed}><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isClosed}><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>

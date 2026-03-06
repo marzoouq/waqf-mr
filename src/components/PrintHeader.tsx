@@ -19,7 +19,7 @@ const PrintHeader = () => {
   });
 
   return (
-    <div className="hidden print:block mb-6 px-6 pt-6 print-header">
+    <div dir="rtl" className="hidden print:block mb-6 px-6 pt-6 print-header">
       {/* الإطار الذهبي العلوي */}
       <div className="border-2 border-secondary rounded-xl p-5" style={{ borderColor: 'hsl(43, 74%, 49%)' }}>
         <div className="flex items-center justify-between">

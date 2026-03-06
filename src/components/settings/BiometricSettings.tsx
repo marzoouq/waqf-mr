@@ -80,6 +80,7 @@ const BiometricSettings = () => {
                   size="icon"
                   className="h-8 w-8 text-destructive hover:text-destructive"
                   onClick={() => removeCredential(cred.id)}
+                  aria-label="حذف الجهاز"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

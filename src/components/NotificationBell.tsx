@@ -41,7 +41,7 @@ const NotificationBell = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-sidebar-foreground hover:bg-sidebar-accent/50">
+        <Button variant="ghost" size="icon" className="relative text-sidebar-foreground hover:bg-sidebar-accent/50" aria-label="الإشعارات">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -left-0.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-bold animate-pulse">
@@ -117,6 +117,7 @@ const NotificationBell = () => {
                       onClick={(e) => { e.stopPropagation(); deleteOne.mutate(notif.id); }}
                       className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-destructive/20 hover:text-destructive"
                       title="حذف"
+                      aria-label="حذف الإشعار"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
