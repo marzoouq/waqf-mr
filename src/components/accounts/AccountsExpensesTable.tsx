@@ -22,7 +22,8 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
           <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
         ) : (
           <>
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[350px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">النوع</TableHead>
@@ -38,6 +39,7 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
                 ))}
               </TableBody>
             </Table>
+            </div>
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي المصروفات</span>
               <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ريال</span>
