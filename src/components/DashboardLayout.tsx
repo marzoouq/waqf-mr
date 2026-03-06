@@ -124,6 +124,9 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
   '/beneficiary/notifications': 'notifications',
 };
 
+// Routes accountant can never access
+const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings'];
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
@@ -137,12 +140,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
-  const adminRoutePermKeys = ADMIN_ROUTE_PERM_KEYS;
-  const beneficiaryRoutePermKeys = BENEFICIARY_ROUTE_PERM_KEYS;
-
-  // Routes accountant can never access
-  const accountantExcludedRoutes = ['/dashboard/users', '/dashboard/settings'];
-
   const links = useMemo(() => {
     if (role === 'admin') {
       return allAdminLinks.map(link => {
@@ -154,9 +151,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     if (role === 'accountant') {
       const perms = rolePermissions.accountant || DEFAULT_ROLE_PERMS.accountant;
       return allAdminLinks
-        .filter(link => !accountantExcludedRoutes.includes(link.to))
+        .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
         .filter(link => {
-          const key = adminRoutePermKeys[link.to];
+          const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms[key] !== false;
         })
         .map(link => {
@@ -169,7 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
     const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
     return allBeneficiaryLinks.filter(link => {
-      const key = beneficiaryRoutePermKeys[link.to];
+      const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
       return !key || perms[key] !== false;
     });
   }, [role, rolePermissions, menuLabels]);
@@ -293,7 +290,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             )}
           </div>
         </div>
-        <BetaBanner />
+        {(role === 'admin' || role === 'accountant') && <BetaBanner />}
         {children}
         {/* Print-only Footer */}
         <PrintFooter />

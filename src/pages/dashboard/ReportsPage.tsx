@@ -21,6 +21,12 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPercentage } from '@/lib/utils';
 
+const REPORT_COLORS = [
+  'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
+  'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
+  'hsl(var(--accent))', 'hsl(var(--chart-4))',
+];
+
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
@@ -57,12 +63,6 @@ const ReportsPage = () => {
     amount: totalBeneficiaryPercentage > 0 ? (beneficiariesShare * b.share_percentage) / totalBeneficiaryPercentage : 0,
     percentage: b.share_percentage,
   }));
-
-  const COLORS = [
-    'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
-    'hsl(var(--warning))', 'hsl(var(--destructive))', 'hsl(var(--secondary))',
-    'hsl(var(--accent))', 'hsl(var(--chart-4))',
-  ];
 
   const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
@@ -479,7 +479,7 @@ const ReportsPage = () => {
                       <PieChart>
                         <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
                         </Pie>
                         <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
