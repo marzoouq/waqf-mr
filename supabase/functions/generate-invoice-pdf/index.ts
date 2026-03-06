@@ -174,6 +174,20 @@ function processArabicText(text: string): string {
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
+// Module-level font cache to avoid re-fetching on every invoice
+let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
+
+async function getFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
+  if (!cachedFonts) {
+    const [regular, bold] = await Promise.all([
+      fetchFont("Amiri-Regular.ttf"),
+      fetchFont("Amiri-Bold.ttf"),
+    ]);
+    cachedFonts = { regular, bold };
+  }
+  return cachedFonts;
+}
+
 async function fetchFont(name: string): Promise<Uint8Array> {
   const url = `${FONT_BASE_URL}/${name}`;
   const res = await fetch(url);
@@ -188,6 +202,9 @@ interface InvoiceData {
   date: string;
   description: string | null;
   status: string;
+  vat_rate: number;
+  vat_amount: number;
+  amount_excluding_vat: number | null;
 }
 
 interface WaqfSettings {
@@ -195,6 +212,7 @@ interface WaqfSettings {
   waqf_deed_number: string;
   waqf_court: string;
   waqf_admin: string;
+  vat_registration_number: string;
 }
 
 async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
