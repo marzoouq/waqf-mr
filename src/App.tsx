@@ -36,6 +36,7 @@ const MessagesPage = lazy(() => import("./pages/dashboard/MessagesPage"));
 const InvoicesPage = lazy(() => import("./pages/dashboard/InvoicesPage"));
 const AuditLogPage = lazy(() => import("./pages/dashboard/AuditLogPage"));
 const BylawsPage = lazy(() => import("./pages/dashboard/BylawsPage"));
+const ZatcaManagementPage = lazy(() => import("./pages/dashboard/ZatcaManagementPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazy(() => import("./pages/beneficiary/BeneficiaryDashboard"));
@@ -124,6 +125,7 @@ function App() {
                     {/* Admin Only */}
                     <Route path="/dashboard/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
                     <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
                     <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />

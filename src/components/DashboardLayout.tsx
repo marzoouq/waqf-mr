@@ -68,6 +68,7 @@ const allAdminLinks = [
   { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
+  { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
