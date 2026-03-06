@@ -62,6 +62,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+       <TooltipProvider delayDuration={0}>
         {links.map((link) => {
           const isActive = location.pathname === link.to;
           const linkContent = (
