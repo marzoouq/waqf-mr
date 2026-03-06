@@ -3,6 +3,11 @@ import { useEffect } from 'react';
 /**
  * SecurityGuard component - lightweight version
  * Prevents copying, selecting, dragging, and context menu on elements marked with data-sensitive attribute.
+ *
+ * ⚠️ Limitation: These protections are browser-level only. Users with access to
+ * DevTools (Console, Elements panel) can bypass all client-side protections.
+ * This is an inherent web platform limitation, not a bug. Server-side access
+ * controls (RLS policies, encrypted PII) are the real security layer.
  */
 const SecurityGuard = () => {
   useEffect(() => {

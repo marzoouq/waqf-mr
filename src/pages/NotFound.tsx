@@ -1,11 +1,15 @@
 import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { logger } from '@/lib/logger';
 
 const NotFound = () => {
   const location = useLocation();
+  const loggedPaths = useRef(new Set<string>());
 
   useEffect(() => {
+    // Rate limit: log each unique path only once per session
+    if (loggedPaths.current.has(location.pathname)) return;
+    loggedPaths.current.add(location.pathname);
     logger.warn("404: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
