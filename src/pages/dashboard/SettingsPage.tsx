@@ -690,6 +690,10 @@ const SettingsPage = () => {
               <Fingerprint className="w-4 h-4" />
               البصمة
             </TabsTrigger>
+            <TabsTrigger value="advances" className="gap-1.5 text-xs md:text-sm">
+              <Banknote className="w-4 h-4" />
+              السُلف
+            </TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
               <ShieldCheck className="w-4 h-4" />
               الأمان
@@ -708,6 +712,7 @@ const SettingsPage = () => {
           <TabsContent value="banner"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BannerSettingsTab /></Suspense></TabsContent>
           <TabsContent value="role-permissions"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><RolePermissionsTab /></Suspense></TabsContent>
           <TabsContent value="biometric"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BiometricSettings /></Suspense></TabsContent>
+          <TabsContent value="advances"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
         </Tabs>
       </div>
