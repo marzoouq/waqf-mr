@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { EXPENSE_TYPES } from '@/constants';
 
@@ -31,9 +32,15 @@ interface ExpenseFormDialogProps {
   onSubmit: (e: React.FormEvent) => void;
   onReset: () => void;
   disabled?: boolean;
+  vatEnabled?: boolean;
+  onVatChange?: (enabled: boolean) => void;
 }
 
-const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties, onSubmit, onReset, disabled }: ExpenseFormDialogProps) => {
+const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing, isPending, properties, onSubmit, onReset, disabled, vatEnabled = false, onVatChange }: ExpenseFormDialogProps) => {
+  const vatRate = vatEnabled ? 15 : 0;
+  const amount = parseFloat(formData.amount) || 0;
+  const vatAmount = amount * vatRate / 100;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) onReset(); }}>
       <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={disabled}><Plus className="w-4 h-4" />إضافة مصروف</Button></DialogTrigger>
@@ -48,6 +55,22 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
             </Select>
           </div>
           <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
+
+          {/* VAT Toggle */}
+          {onVatChange && (
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium">خاضعة لضريبة القيمة المضافة</Label>
+                {vatEnabled && amount > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    VAT {vatRate}%: {vatAmount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س — الإجمالي: {(amount + vatAmount).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                  </p>
+                )}
+              </div>
+              <Switch checked={vatEnabled} onCheckedChange={onVatChange} />
+            </div>
+          )}
+
           <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
             <Label>العقار (اختياري)</Label>
