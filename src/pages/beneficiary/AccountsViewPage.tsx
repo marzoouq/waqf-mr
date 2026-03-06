@@ -23,7 +23,7 @@ const AccountsViewPage = () => {
 
   const {
     beneficiaries,
-    currentAccount,
+    
     isAccountMissing,
     totalIncome,
     totalExpenses,
