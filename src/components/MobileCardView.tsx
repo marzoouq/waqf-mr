@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Edit, Trash2 } from 'lucide-react';
 
 export interface CardField {
@@ -18,6 +19,8 @@ interface MobileCardViewProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   extraActions?: (item: T) => React.ReactNode;
+  isLoading?: boolean;
+  skeletonCount?: number;
 }
 
 function MobileCardView<T>({
@@ -30,7 +33,31 @@ function MobileCardView<T>({
   onEdit,
   onDelete,
   extraActions,
+  isLoading,
+  skeletonCount = 3,
 }: MobileCardViewProps<T>) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 md:hidden">
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <Card key={i} className="shadow-sm">
+            <CardContent className="p-4 space-y-3">
+              <Skeleton className="h-5 w-2/3" />
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                {Array.from({ length: 4 }).map((_, j) => (
+                  <div key={j}>
+                    <Skeleton className="h-3 w-16 mb-1" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3 md:hidden">
       {items.map((item) => (
@@ -50,12 +77,12 @@ function MobileCardView<T>({
               <div className="flex gap-1 shrink-0">
                 {extraActions?.(item)}
                 {onEdit && (
-                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => onEdit(item)} aria-label="تعديل">
                     <Edit className="w-4 h-4" />
                   </Button>
                 )}
                 {onDelete && (
-                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete(item)}>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => onDelete(item)} aria-label="حذف">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}

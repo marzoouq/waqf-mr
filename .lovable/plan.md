@@ -1,23 +1,34 @@
 
+# إضافة المساعد الذكي للوحة المستفيد
 
-# خطة: تحسينات إمكانية الوصول + MobileCardView
+## التغيير المطلوب
 
-## القرار
-**التاريخ الهجري لن يُضاف** — النظام بالكامل يعمل بالتقويم الميلادي فقط (مع لاحقة 'م') لتوحيد التجربة ومنع الارتباك.
+تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
 
-## التغييرات المطلوبة (3 ملفات)
+### إزالة قيد الأدوار (سطر 45)
 
-### 1. `src/components/TablePagination.tsx`
-- إضافة `aria-label="الصفحة السابقة"` و `"الصفحة التالية"` لأزرار التنقل
-- إضافة `aria-label` لأزرار الأرقام
-- تغيير الحاوية إلى `flex-col sm:flex-row` مع `gap-2`
+**الحالي:**
+```typescript
+if (role !== 'admin' && role !== 'accountant') return null;
+```
 
-### 2. `src/pages/dashboard/MessagesPage.tsx`
-- إضافة `aria-label="إرسال الرسالة"` لزر الإرسال
-- إضافة `Loader2 animate-spin` أثناء `sendMessage.isPending`
+**الجديد:**
+```typescript
+if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
+```
 
-### 3. `src/components/MobileCardView.tsx`
-- إضافة `isLoading?: boolean` و `skeletonCount?: number` للـ props
-- عرض بطاقات Skeleton عند `isLoading`
-- إضافة `aria-label` لأزرار التعديل والحذف
+هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
 
+---
+
+## لماذا هذا كافٍ؟
+
+- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
+  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
+  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
+  - تقدم system prompt مخصص لغير الإداريين
+- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
+
+## الأمان
+
+لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.

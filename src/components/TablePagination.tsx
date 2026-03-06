@@ -16,7 +16,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
   const end = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3 border-t">
       <p className="text-sm text-muted-foreground">
         عرض {start} - {end} من {totalItems}
       </p>
@@ -27,6 +27,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
           className="h-8 w-8"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          aria-label="الصفحة السابقة"
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
@@ -47,6 +48,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => onPageChange(page)}
+                  aria-label={`صفحة ${page}`}
                 >
                   {page}
                 </Button>
@@ -59,6 +61,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
           className="h-8 w-8"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          aria-label="الصفحة التالية"
         >
           <ChevronLeft className="w-4 h-4" />
         </Button>
