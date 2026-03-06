@@ -173,7 +173,9 @@ const Auth = () => {
         // Handle rate limiting (429)
         if (lookupError && data?.remaining === 0) {
           const retryAfter = data?.retry_after || 120;
-          setNidLockedUntil(Date.now() + retryAfter * 1000);
+          const lockTime = Date.now() + retryAfter * 1000;
+          setNidLockedUntil(lockTime);
+          try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
           setNidAttemptsRemaining(0);
           toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
           return;
