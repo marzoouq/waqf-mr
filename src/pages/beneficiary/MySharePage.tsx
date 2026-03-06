@@ -445,7 +445,8 @@ const MySharePage = () => {
                 <p className="text-muted-foreground">لا توجد توزيعات مسجلة بعد</p>
               </div>
             ) : (
-              <Table>
+              <div className="overflow-x-auto">
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">التاريخ</TableHead>
@@ -465,6 +466,7 @@ const MySharePage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -479,7 +481,8 @@ const MySharePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto">
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">التاريخ</TableHead>
@@ -504,6 +507,7 @@ const MySharePage = () => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -518,7 +522,8 @@ const MySharePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto">
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right">التاريخ</TableHead>

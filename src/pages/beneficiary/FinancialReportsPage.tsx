@@ -64,18 +64,18 @@ const FinancialReportsPage = () => {
     ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
     : 0;
 
-  const incomeVsExpenses = [
+  const incomeVsExpenses = useMemo(() => [
     { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
     { name: 'المصروفات', value: totalExpenses, fill: 'hsl(var(--destructive))' },
-  ];
+  ], [totalIncome, totalExpenses]);
 
-  const expensesPieData = Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }));
-  const incomePieData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
+  const expensesPieData = useMemo(() => Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value })), [expensesByTypeExcludingVat]);
+  const incomePieData = useMemo(() => Object.entries(incomeBySource).map(([name, value]) => ({ name, value })), [incomeBySource]);
 
-  const distributionData = [
+  const distributionData = useMemo(() => [
     { name: 'حصتي', value: myShare, fill: 'hsl(var(--primary))' },
     { name: 'باقي المستفيدين', value: Math.max(0, beneficiariesShare - myShare), fill: 'hsl(var(--info))' },
-  ];
+  ], [myShare, beneficiariesShare]);
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 
