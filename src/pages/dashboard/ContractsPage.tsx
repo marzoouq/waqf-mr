@@ -101,7 +101,7 @@ const ContractsPage = () => {
       notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual',
       payment_count: (contract.payment_count || 1).toString(),
-      rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
+      rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
     });
     setEditingContract(null);
     setIsOpen(true);
@@ -114,7 +114,7 @@ const ContractsPage = () => {
       start_date: contract.start_date, end_date: contract.end_date, rent_amount: contract.rent_amount.toString(),
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
-      rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
+      rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
     });
     setIsOpen(true);
   };
