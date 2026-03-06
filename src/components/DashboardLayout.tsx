@@ -322,13 +322,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </div>
 
       {/* Mobile Sidebar Overlay — dynamic opacity */}
-      {(mobileSidebarOpen || edgeDrag > 0) && (
+      {mobileSidebarOpen && (
         <div
+          ref={overlayRef}
           className="fixed inset-0 z-50 lg:hidden"
           style={{ backgroundColor: `rgba(0,0,0,${overlayOpacity})` }}
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
+      {/* Edge swipe overlay (shown during edge drag even when sidebar closed) */}
+      <div
+        ref={!mobileSidebarOpen ? overlayRef : undefined}
+        className="fixed inset-0 z-50 lg:hidden pointer-events-none"
+        style={{ backgroundColor: 'rgba(0,0,0,0)', opacity: 0 }}
+      />
 
       {/* Sidebar - Mobile — follows finger */}
       <aside
