@@ -238,14 +238,10 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
-  // Embed Amiri fonts
-  const [amiriRegularBytes, amiriBoldBytes] = await Promise.all([
-    fetchFont("Amiri-Regular.ttf"),
-    fetchFont("Amiri-Bold.ttf"),
-  ]);
-
-  const amiri = await pdfDoc.embedFont(amiriRegularBytes, { subset: true });
-  const amiriBold = await pdfDoc.embedFont(amiriBoldBytes, { subset: true });
+  // Use cached fonts
+  const fonts = await getFonts();
+  const amiri = await pdfDoc.embedFont(fonts.regular, { subset: true });
+  const amiriBold = await pdfDoc.embedFont(fonts.bold, { subset: true });
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   const page = pdfDoc.addPage([595, 842]); // A4
