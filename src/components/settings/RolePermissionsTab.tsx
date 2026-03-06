@@ -18,7 +18,7 @@ const SECTIONS: { key: string; label: string; roles: string[] }[] = [
   { key: 'accounts', label: 'الحسابات', roles: ['accountant', 'beneficiary', 'waqif'] },
   { key: 'invoices', label: 'الفواتير', roles: ['accountant', 'beneficiary'] },
   { key: 'bylaws', label: 'اللائحة التنظيمية', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'disclosure', label: 'الإفصاح السنوي', roles: ['beneficiary', 'waqif'] },
+  { key: 'disclosure', label: 'الإفصاح السنوي', roles: ['beneficiary'] },
   { key: 'share', label: 'حصتي من الريع', roles: ['beneficiary'] },
   { key: 'messages', label: 'المراسلات', roles: ['accountant', 'beneficiary'] },
   { key: 'audit_log', label: 'سجل المراجعة', roles: ['accountant'] },

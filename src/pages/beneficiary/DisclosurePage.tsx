@@ -89,7 +89,8 @@ const DisclosurePage = () => {
         .from('distributions')
         .select('*, account:accounts(*)')
         .eq('beneficiary_id', currentBeneficiary.id)
-        .order('date', { ascending: false });
+      .order('date', { ascending: false })
+      .limit(200);
       if (error) throw error;
       return data;
     },
