@@ -97,7 +97,8 @@ describe('BeneficiaryDashboard', () => {
 
   it('shows share label', () => {
     renderWithRouter(<BeneficiaryDashboard />);
-    expect(screen.getByText('حصتي من الريع')).toBeInTheDocument();
+    const labels = screen.getAllByText('حصتي من الريع');
+    expect(labels.length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders quick links', () => {
