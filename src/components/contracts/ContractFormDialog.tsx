@@ -48,12 +48,15 @@ export interface ContractFormData {
   selected_unit_ids: string[];
   pricing_mode: PricingMode;
   rent_per_unit: Record<string, string>;
+  // VAT
+  vat_applicable: boolean;
 }
 
 export const emptyFormData: ContractFormData = {
   contract_number: '', property_id: '', unit_id: '', tenant_name: '', start_date: '', end_date: '', rent_amount: '', status: 'active', notes: '',
   payment_type: 'annual', payment_count: '1',
   rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
+  vat_applicable: false,
 };
 
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
