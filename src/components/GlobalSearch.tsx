@@ -30,7 +30,7 @@ const TYPE_CONFIG = {
 
 const GlobalSearch = () => {
   const { role } = useAuth();
-  const { selectedFiscalYearId } = useFiscalYear();
+  const { fiscalYearId } = useFiscalYear();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
