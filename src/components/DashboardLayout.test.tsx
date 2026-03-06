@@ -17,6 +17,7 @@ vi.mock('@/hooks/useAppSettings', () => ({
     getJsonSetting: vi.fn((_key: string, def: any) => def),
     isLoading: false,
   })),
+  useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
 }));
 
 vi.mock('@/components/WaqfInfoBar', () => ({ default: () => <div data-testid="waqf-info-bar" /> }));

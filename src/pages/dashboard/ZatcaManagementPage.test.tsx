@@ -39,11 +39,17 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+vi.mock('@/hooks/useAppSettings', () => ({
+  useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
+  useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
+}));
+
+vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+
 describe('ZatcaManagementPage', () => {
   it('renders without crashing (smoke test)', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     
-    // Dynamic import to avoid hoisting issues
     const { default: ZatcaManagementPage } = await import('./ZatcaManagementPage');
     
     render(
