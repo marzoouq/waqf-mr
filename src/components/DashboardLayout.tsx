@@ -222,6 +222,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current) return;
     const delta = Math.max(0, e.touches[0].clientX - sidebarTouchStartX.current);
+    if (delta < 10) return; // dead zone to prevent accidental drags during taps
     dragOffsetRef.current = delta;
     applyTransform(delta, SIDEBAR_W);
   }, [applyTransform]);

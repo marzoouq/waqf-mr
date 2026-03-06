@@ -104,7 +104,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       </nav>
 
       {/* User Info */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div
+        className="px-4 pt-4 pb-16 lg:pb-4 border-t border-sidebar-border"
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+      >
         <div className={cn('mb-3 text-sm text-sidebar-foreground/80', !sidebarOpen && 'lg:hidden')}>
           <p className="truncate">{user?.email}</p>
           <p className="text-xs text-sidebar-primary mt-1">
