@@ -10,6 +10,7 @@ export interface PdfWaqfInfo {
   deedNumber?: string;
   court?: string;
   logoUrl?: string;
+  vatNumber?: string;
 }
 
 // Helper to load and register Amiri Arabic font
@@ -120,6 +121,14 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
     doc.setFontSize(9);
     doc.text(deedParts.join('  -  '), pageW / 2, currentY + 2, { align: 'center' });
     currentY += 8;
+  }
+
+  // VAT registration number
+  if (waqfInfo.vatNumber) {
+    doc.setFont(fontFamily, 'normal');
+    doc.setFontSize(8);
+    doc.text(`الرقم الضريبي: ${waqfInfo.vatNumber}`, pageW / 2, currentY + 2, { align: 'center' });
+    currentY += 7;
   }
 
   // Gold separator line

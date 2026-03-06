@@ -21,6 +21,11 @@ export interface Invoice {
   file_name: string | null;
   status: string;
   fiscal_year_id: string | null;
+  vat_rate: number;
+  vat_amount: number;
+  amount_excluding_vat: number | null;
+  zatca_uuid: string | null;
+  zatca_status: string;
   created_at: string;
   updated_at: string;
   property?: { id: string; property_number: string; location: string } | null;

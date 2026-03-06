@@ -9,5 +9,6 @@ export const usePdfWaqfInfo = (): PdfWaqfInfo => {
     deedNumber: waqfInfo?.waqf_deed_number ? `صك رقم: ${waqfInfo.waqf_deed_number}` : undefined,
     court: waqfInfo?.waqf_court ? `المحكمة: ${waqfInfo.waqf_court}` : undefined,
     logoUrl: waqfInfo?.waqf_logo_url || undefined,
+    vatNumber: waqfInfo?.vat_registration_number || undefined,
   };
 };
