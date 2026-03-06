@@ -302,6 +302,23 @@ const Auth = () => {
             dir="ltr"
             className="h-11"
           />
+          {/* عداد المحاولات المتبقية */}
+          {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
+            <div className={`flex items-center gap-1.5 text-xs mt-1 ${
+              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
+            }`}>
+              {nidAttemptsRemaining === 0 ? (
+                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              )}
+              <span>
+                {nidAttemptsRemaining === 0
+                  ? 'تم تجاوز حد المحاولات — يرجى الانتظار دقيقتين'
+                  : `المحاولات المتبقية: ${nidAttemptsRemaining}`}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
