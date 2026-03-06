@@ -40,7 +40,7 @@ const Index = () => {
       if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'waqif') {
-        navigate('/waqif');
+        navigate('/beneficiary');
       } else if (role === 'beneficiary') {
         navigate('/beneficiary');
       }
