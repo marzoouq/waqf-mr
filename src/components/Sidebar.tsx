@@ -64,7 +64,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
         {links.map((link) => {
           const isActive = location.pathname === link.to;
-          return (
+          const linkContent = (
             <Link
               key={link.to}
               to={link.to}
@@ -81,6 +81,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
             </Link>
           );
+
+          if (!sidebarOpen) {
+            return (
+              <Tooltip key={link.to} delayDuration={0}>
+                <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                <TooltipContent side="left" className="hidden lg:block">
+                  {link.label}
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
+
+          return linkContent;
         })}
       </nav>
 
