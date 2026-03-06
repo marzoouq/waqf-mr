@@ -24,8 +24,8 @@ const BeneficiaryCard = ({ beneficiary, onEdit, onDelete }: BeneficiaryCardProps
             )}
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => onEdit(beneficiary)}><Edit className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="icon" onClick={() => onDelete(beneficiary.id, `المستفيد ${beneficiary.name}`)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" aria-label={`تعديل بيانات ${beneficiary.name}`} onClick={() => onEdit(beneficiary)}><Edit className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" aria-label={`حذف ${beneficiary.name}`} onClick={() => onDelete(beneficiary.id, `المستفيد ${beneficiary.name}`)} className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
           </div>
         </div>
       </CardHeader>
