@@ -246,16 +246,18 @@ const WaqfSettingsTab = () => {
 
       // F3: جمع كل البيانات وإرسالها مع التحقق من الأخطاء
       const failedFields: string[] = [];
+      // Validate all fields first before sending
+      const now = new Date().toISOString();
+      const rows: { key: string; value: string; updated_at: string }[] = [];
       for (const field of allFields) {
         const value = (formData[field.key] || '').trim();
         if (value.length > 500) { toast.error(`${field.label} طويل جداً`); setSaving(false); return; }
         if (!validatePercentage(field.key, field.label, value)) { setSaving(false); return; }
-        const { error } = await supabase.from('app_settings').upsert(
-          { key: field.key, value, updated_at: new Date().toISOString() },
-          { onConflict: 'key' },
-        );
-        if (error) failedFields.push(field.label);
+        rows.push({ key: field.key, value, updated_at: now });
       }
+      // Single batch upsert instead of 11 sequential requests
+      const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
+      if (error) failedFields.push('بعض الحقول');
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       if (failedFields.length > 0) {
