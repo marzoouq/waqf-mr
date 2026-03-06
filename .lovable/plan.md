@@ -1,34 +1,44 @@
 
-# إضافة المساعد الذكي للوحة المستفيد
 
-## التغيير المطلوب
+## التحليل الجنائي الحقيقي لمشكلة زر تسجيل الخروج
 
-تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
+### السبب الجذري الفعلي
 
-### إزالة قيد الأدوار (سطر 45)
+المشكلة ليست في أحداث اللمس (تم إصلاحها بالفعل). السبب الحقيقي هو **خطأ في بنية المكونات المتداخلة**.
 
-**الحالي:**
-```typescript
-if (role !== 'admin' && role !== 'accountant') return null;
+في `Sidebar.tsx` سطر 120-144، هذا هو الكود الحالي:
+
+```text
+AlertDialogTrigger (asChild)
+  └─ Tooltip              ← ❌ هذا ليس عنصر DOM
+       └─ TooltipTrigger (asChild)
+            └─ Button      ← الزر الفعلي
 ```
 
-**الجديد:**
-```typescript
-if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
+`AlertDialogTrigger` مع `asChild` يحاول دمج props (بما في ذلك `onClick`) على العنصر الأول المباشر. لكن العنصر المباشر هو `<Tooltip>` وهو **مكون React وليس عنصر DOM**، فلا يستطيع تمرير `onClick` أو `ref` إلى `<Button>` الفعلي.
+
+**المتغير `sidebarOpen` يبدأ بقيمة `false`** (من localStorage)، لذلك على الجوال يتم دائماً عرض الفرع الأول (مع Tooltip) بدلاً من الفرع البسيط (Button مباشرة).
+
+### الحل
+
+**ملف**: `src/components/Sidebar.tsx` — إعادة هيكلة زر الخروج
+
+1. **إزالة Tooltip من داخل AlertDialogTrigger**: على الجوال لا حاجة لـ tooltip أصلاً. نقل Tooltip ليكون خارج AlertDialog أو استخدام شرط يفصل بين الجوال وسطح المكتب.
+
+2. **الهيكل الصحيح**:
+```text
+الجوال (دائماً):
+  AlertDialogTrigger (asChild)
+    └─ Button  ← مباشرة، بدون Tooltip
+
+سطح المكتب (sidebar مطوي):
+  Tooltip
+    └─ TooltipTrigger (asChild)
+         └─ AlertDialogTrigger (asChild)
+              └─ Button
 ```
 
-هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
+3. **التنفيذ**: استخدام شرط واحد يعرض على الجوال دائماً `Button` مباشر داخل `AlertDialogTrigger`، وعلى سطح المكتب فقط عند طي الشريط يُغلّف بـ `Tooltip`. يتم ذلك عبر CSS classes (`lg:hidden` / `hidden lg:block`) أو شرط JavaScript.
 
----
+**لا تغييرات أخرى مطلوبة** — إصلاحات `stopPropagation` و dead zone السابقة صحيحة ومفيدة.
 
-## لماذا هذا كافٍ؟
-
-- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
-  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
-  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
-  - تقدم system prompt مخصص لغير الإداريين
-- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
-
-## الأمان
-
-لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
