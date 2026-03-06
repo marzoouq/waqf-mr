@@ -39,8 +39,8 @@ export const generateMySharePDF = async (data: {
     body: [
       ['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`],
       ['نسبتي من الريع', `${data.sharePercentage}%`],
-      ['(-) حصة الناظر (10%)', `${data.adminShare.toLocaleString()} ر.س`],
-      ['(-) حصة الواقف (5%)', `${data.waqifShare.toLocaleString()} ر.س`],
+      [`(-) حصة الناظر (${data.netRevenue > 0 ? Math.round(data.adminShare / data.netRevenue * 100) : 10}%)`, `${data.adminShare.toLocaleString()} ر.س`],
+      [`(-) حصة الواقف (${data.netRevenue > 0 ? Math.round(data.waqifShare / data.netRevenue * 100) : 5}%)`, `${data.waqifShare.toLocaleString()} ر.س`],
       ['صافي ريع المستفيدين', `${data.beneficiariesShare.toLocaleString()} ر.س`],
       ['حصتي المستحقة', `${data.myShare.toLocaleString()} ر.س`],
       ['المبالغ المستلمة', `${data.totalReceived.toLocaleString()} ر.س`],
@@ -141,8 +141,8 @@ export const generateDisclosurePDF = async (data: {
     head: [['البند', 'المبلغ (ر.س)']],
     body: [
       ['صافي الريع', data.netRevenue.toLocaleString()],
-      ['حصة الناظر (10%)', `-${data.adminShare.toLocaleString()}`],
-      ['حصة الواقف (5%)', `-${data.waqifShare.toLocaleString()}`],
+      [`حصة الناظر (${data.netRevenue > 0 ? Math.round(data.adminShare / data.netRevenue * 100) : 10}%)`, `-${data.adminShare.toLocaleString()}`],
+      [`حصة الواقف (${data.netRevenue > 0 ? Math.round(data.waqifShare / data.netRevenue * 100) : 5}%)`, `-${data.waqifShare.toLocaleString()}`],
       ['صافي ريع المستفيدين', data.beneficiariesShare.toLocaleString()],
       [{ content: 'حصتي المستحقة', styles: { fontStyle: 'bold' } }, { content: `${data.myShare.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' } }],
     ],
