@@ -314,7 +314,8 @@ async function fetchWaqfData(
         .from("income")
         .select("source, amount, date")
         .eq("fiscal_year_id", activeFY.id)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false })
+        .limit(100);
 
       if (income?.length) {
         const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
