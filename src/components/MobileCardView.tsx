@@ -19,6 +19,8 @@ interface MobileCardViewProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
   extraActions?: (item: T) => React.ReactNode;
+  isLoading?: boolean;
+  skeletonCount?: number;
 }
 
 function MobileCardView<T>({
