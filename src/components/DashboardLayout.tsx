@@ -339,13 +339,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar - Mobile — follows finger */}
       <aside
+        ref={sidebarRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={cn(
-          'fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden',
-          isDragging.current || isEdgeSwiping.current ? '' : 'transition-transform duration-300'
-        )}
+        className="fixed inset-y-0 right-0 z-50 flex flex-col gradient-hero shadow-elegant w-64 lg:hidden transition-transform duration-300"
         style={{ transform: `translateX(${sidebarTranslateX}px)` }}
       >
         <SidebarContent
