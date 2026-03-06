@@ -28,7 +28,7 @@ import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
-
+import { logAccessEvent } from '@/hooks/useAccessLog';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
