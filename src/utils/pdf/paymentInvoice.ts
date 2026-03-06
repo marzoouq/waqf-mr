@@ -133,11 +133,12 @@ export const generatePaymentInvoicePDF = async (
     }
   }
 
-  // ملاحظة أسفل الجدول
+  // ملاحظة أسفل الجدول (adjust Y based on whether QR was added)
+  const noteY = (isVatApplicable && waqfInfo?.vatNumber) ? finalY + 52 : finalY + 16;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, finalY + 16, { align: 'center' });
+  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, noteY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 
   addFooter(doc, fontFamily, waqfInfo);
