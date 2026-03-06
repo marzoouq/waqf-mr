@@ -1,34 +1,49 @@
 
-# إضافة المساعد الذكي للوحة المستفيد
 
-## التغيير المطلوب
+# خطة: إصلاح الخطأ البرمجي — Circular Import
 
-تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
+## المشكلة الجذرية
 
-### إزالة قيد الأدوار (سطر 45)
+في التعديل السابق (إصلاح منظومة الخروج)، تم تصدير `queryClient` من `App.tsx` واستيراده في `AuthContext.tsx`. هذا أنشأ **circular dependency**:
 
-**الحالي:**
-```typescript
-if (role !== 'admin' && role !== 'accountant') return null;
+```text
+App.tsx ──imports──▶ AuthContext.tsx ──imports──▶ App.tsx (دورة!)
 ```
 
-**الجديد:**
-```typescript
-if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
+عند تشغيل التطبيق:
+1. `App.tsx` يبدأ التحميل → يحتاج `AuthContext.tsx`
+2. `AuthContext.tsx` يبدأ التحميل → يحتاج `queryClient` من `App.tsx`
+3. لكن `App.tsx` لم ينتهِ بعد → `queryClient` = `undefined`
+4. التطبيق يتعطل على شاشة التحميل
+
+## الحل
+
+**نقل `queryClient` إلى ملف منفصل** `src/lib/queryClient.ts` لكسر الدورة:
+
+### 1. إنشاء `src/lib/queryClient.ts`
+```ts
+import { QueryClient } from '@tanstack/react-query';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 ```
 
-هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
+### 2. تعديل `src/App.tsx`
+- حذف تعريف `queryClient` واستيراده من `@/lib/queryClient`
+- حذف `export` الموجود
 
----
+### 3. تعديل `src/contexts/AuthContext.tsx`
+- تغيير الاستيراد من `@/App` إلى `@/lib/queryClient`
 
-## لماذا هذا كافٍ؟
+## الملفات المتأثرة: 3 ملفات
+- `src/lib/queryClient.ts` — ملف جديد
+- `src/App.tsx` — استيراد بدل تعريف
+- `src/contexts/AuthContext.tsx` — تغيير مسار الاستيراد
 
-- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
-  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
-  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
-  - تقدم system prompt مخصص لغير الإداريين
-- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
-
-## الأمان
-
-لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.
