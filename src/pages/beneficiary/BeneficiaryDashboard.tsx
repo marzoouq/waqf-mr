@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { logger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
@@ -94,7 +95,7 @@ const BeneficiaryDashboard = () => {
       .limit(3)
       .then(({ data, error }) => {
         if (error) {
-          console.error('Failed to fetch distributions:', error.message);
+          logger.error('Failed to fetch distributions:', error.message);
           return;
         }
         if (data) setDistributions(data);
