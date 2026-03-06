@@ -107,44 +107,46 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             {ROLE_LABELS[role || ''] || role}
           </p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            {!sidebarOpen ? (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive lg:px-0"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span className="lg:hidden mr-2">تسجيل الخروج</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="hidden lg:block">تسجيل الخروج</TooltipContent>
-              </Tooltip>
-            ) : (
-              <Button
-                variant="ghost"
-                className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="mr-2">تسجيل الخروج</span>
-              </Button>
-            )}
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
-              <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction onClick={onSignOut} className="bg-destructive hover:bg-destructive/90">
-                تسجيل الخروج
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <TooltipProvider delayDuration={0}>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              {!sidebarOpen ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive lg:px-0"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span className="lg:hidden mr-2">تسجيل الخروج</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="hidden lg:block">تسجيل الخروج</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="w-full text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="mr-2">تسجيل الخروج</span>
+                </Button>
+              )}
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
+                <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="gap-2">
+                <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                <AlertDialogAction onClick={onSignOut} className="bg-destructive hover:bg-destructive/90">
+                  تسجيل الخروج
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TooltipProvider>
       </div>
     </>
   );
