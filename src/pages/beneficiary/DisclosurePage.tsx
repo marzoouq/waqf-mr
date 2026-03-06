@@ -127,6 +127,8 @@ const DisclosurePage = () => {
         netRevenue: netAfterZakat,
         adminShare,
         waqifShare,
+        adminPct,
+        waqifPct,
         beneficiariesShare,
         incomeBySource,
         expensesByType: expensesByTypeExcludingVat,
