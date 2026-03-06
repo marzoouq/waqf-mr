@@ -40,6 +40,15 @@ const Auth = () => {
   const navigate = useNavigate();
   const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
   const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
 
   // PWA install prompt
   const [installPrompt, setInstallPrompt] = useState<(Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> }) | null>(null);
