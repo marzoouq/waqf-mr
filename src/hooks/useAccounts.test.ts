@@ -10,7 +10,7 @@ const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
 const mockDelete = vi.fn();
 const mockEq = vi.fn();
-const mockSingle = vi.fn();
+const mockMaybeSingle = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
