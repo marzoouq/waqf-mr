@@ -13,6 +13,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X, AlertTriangle } from 'lucide-react';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -339,7 +340,7 @@ const InvoicesPage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-0">
               {isLoading ? (
-                <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+                <TableSkeleton rows={5} cols={5} />
               ) : filteredInvoices.length === 0 ? (
                 <div className="py-12 text-center">
                   <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />

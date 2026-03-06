@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown } from 'lucide-react';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
 import TablePagination from '@/components/TablePagination';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import AccessLogTab from '@/components/audit/AccessLogTab';
 import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { generateAuditLogPDF } from '@/utils/pdf';
@@ -278,7 +279,7 @@ const AuditLogPage = () => {
               <Card>
                 <CardContent className="p-0">
                   {isLoading ? (
-                    <div className="p-8 text-center text-muted-foreground">جاري التحميل...</div>
+                    <TableSkeleton rows={5} cols={4} />
                   ) : filtered.length === 0 ? (
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (

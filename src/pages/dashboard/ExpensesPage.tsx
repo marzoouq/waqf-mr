@@ -8,6 +8,7 @@ import { useInvoicesByFiscalYear } from '@/hooks/useInvoices';
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -128,7 +129,7 @@ const ExpensesPage = () => {
         <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+              <TableSkeleton rows={5} cols={5} />
             ) : filteredExpenses.length === 0 ? (
               <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (

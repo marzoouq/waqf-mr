@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
+import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
 import { useAllUnits } from '@/hooks/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
@@ -176,7 +177,7 @@ const PropertiesPage = () => {
         <PropertySummaryCards summary={summary} isLoading={summaryLoading} />
 
         {isLoading ? (
-          <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+          <StatsGridSkeleton count={6} />
         ) : filteredProperties.length === 0 ? (
           <Card className="shadow-sm">
             <CardContent className="py-12 text-center">
