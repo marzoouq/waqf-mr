@@ -20,6 +20,8 @@ export interface ComprehensiveBeneficiaryData {
   netAfterZakat: number;
   adminShare: number;
   waqifShare: number;
+  adminPct?: number;
+  waqifPct?: number;
   waqfRevenue: number;
   waqfCorpusManual: number;
   availableAmount: number;

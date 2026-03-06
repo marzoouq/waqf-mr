@@ -153,6 +153,8 @@ const DisclosurePage = () => {
         netAfterZakat,
         adminShare,
         waqifShare,
+        adminPct,
+        waqifPct,
         waqfRevenue,
         waqfCorpusManual,
         availableAmount: beneficiariesShare,
