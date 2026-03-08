@@ -458,6 +458,25 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Year-over-Year Comparison */}
+        {allFiscalYears.length >= 2 && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ArrowUpDown className="w-5 h-5" />
+                مقارنة بين السنوات المالية
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <YearOverYearComparison
+                fiscalYears={allFiscalYears}
+                currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                waqfInfo={waqfInfo}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recent Activity */}
         <Card className="shadow-sm">
           <CardHeader>
