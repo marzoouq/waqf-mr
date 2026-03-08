@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -16,7 +16,10 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
+import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { Badge } from '@/components/ui/badge';
+import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 
 const ARABIC_MONTHS: Record<string, string> = {
@@ -44,6 +47,8 @@ const COLORS = [
 const AdminDashboard = () => {
   const { role } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { data: allFiscalYears = [] } = useFiscalYears();
+  const waqfInfo = usePdfWaqfInfo();
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
@@ -452,6 +457,25 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Year-over-Year Comparison */}
+        {allFiscalYears.length >= 2 && (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ArrowUpDown className="w-5 h-5" />
+                مقارنة بين السنوات المالية
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <YearOverYearComparison
+                fiscalYears={allFiscalYears}
+                currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                waqfInfo={waqfInfo}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recent Activity */}
         <Card className="shadow-sm">
