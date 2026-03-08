@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/~oauth/],
-        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
