@@ -27,6 +27,7 @@ const operationColor = (op: string) => {
     case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
     case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
     case 'REOPEN': return 'bg-info/15 text-info border-info/30';
+    case 'CLOSE': return 'bg-purple-500/15 text-purple-600 border-purple-500/30';
     default: return '';
   }
 };
@@ -133,10 +134,15 @@ const AuditLogPage = () => {
   const isMobile = useIsMobile();
   const waqfInfo = usePdfWaqfInfo();
 
-  const { data: logs = [], isLoading } = useAuditLog({
+  const { data: auditData, isLoading } = useAuditLog({
     tableName: tableFilter !== 'all' ? tableFilter : undefined,
     operation: opFilter !== 'all' ? opFilter : undefined,
+    page: currentPage,
+    pageSize: ITEMS_PER_PAGE,
   });
+
+  const logs = auditData?.logs ?? [];
+  const totalCount = auditData?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     if (!searchQuery) return logs;
@@ -148,10 +154,7 @@ const AuditLogPage = () => {
     );
   }, [logs, searchQuery]);
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(start, start + ITEMS_PER_PAGE);
-  }, [filtered, currentPage]);
+  const paginated = filtered;
 
   const todayCount = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -229,7 +232,7 @@ const AuditLogPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader>
-                  <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
+                  <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader>
@@ -271,6 +274,7 @@ const AuditLogPage = () => {
                     <SelectItem value="UPDATE">تعديل</SelectItem>
                     <SelectItem value="DELETE">حذف</SelectItem>
                     <SelectItem value="REOPEN">إعادة فتح</SelectItem>
+                    <SelectItem value="CLOSE">إقفال</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -387,7 +391,7 @@ const AuditLogPage = () => {
                       </div>
                       <TablePagination
                         currentPage={currentPage}
-                        totalItems={filtered.length}
+                        totalItems={totalCount}
                         itemsPerPage={ITEMS_PER_PAGE}
                         onPageChange={setCurrentPage}
                       />
