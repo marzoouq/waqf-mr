@@ -332,7 +332,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
   const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
-  const timeoutMs = (idleMinutesRaw ?? 15) * 60 * 1000;
+  const safeIdleMinutes = Math.max(1, Math.min(120, idleMinutesRaw ?? 15));
+  const timeoutMs = safeIdleMinutes * 60 * 1000;
 
   const handleIdleLogout = useCallback(async () => {
     await logAccessEvent({ event_type: 'idle_logout', user_id: user?.id });
@@ -472,7 +473,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
 
       {/* Idle Timeout Warning */}
-      {session && (
+      {user && (
         <IdleTimeoutWarning
           open={showWarning}
           remaining={remaining}

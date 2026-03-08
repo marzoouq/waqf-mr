@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 const IDLE_EVENTS: (keyof DocumentEventMap)[] = [
   'mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click',
+  'input', 'change', 'focus', 'wheel',
 ];
 
 interface UseIdleTimeoutOptions {

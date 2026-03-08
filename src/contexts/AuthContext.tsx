@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { queryClient } from '@/lib/queryClient';
+import { clearToasts } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -213,6 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('waqf_notification_tone');
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
+      clearToasts();
     }
   };
 
