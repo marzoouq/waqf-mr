@@ -139,6 +139,7 @@ const AuditLogPage = () => {
   const { data: auditData, isLoading } = useAuditLog({
     tableName: tableFilter !== 'all' ? tableFilter : undefined,
     operation: opFilter !== 'all' ? opFilter : undefined,
+    searchQuery: searchQuery || undefined,
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
   });
@@ -146,17 +147,7 @@ const AuditLogPage = () => {
   const logs = auditData?.logs ?? [];
   const totalCount = auditData?.totalCount ?? 0;
 
-  const filtered = useMemo(() => {
-    if (!searchQuery) return logs;
-    const q = searchQuery.toLowerCase();
-    return logs.filter(l =>
-      getTableNameAr(l.table_name).includes(q) ||
-      getOperationNameAr(l.operation).includes(q) ||
-      l.table_name.includes(q)
-    );
-  }, [logs, searchQuery]);
-
-  const paginated = filtered;
+  const paginated = logs;
 
   const { data: todayCount = 0 } = useQuery({
     queryKey: ['audit_log_today_count'],
