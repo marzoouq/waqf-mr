@@ -130,8 +130,8 @@ const IncomePage = () => {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+          </>}
+        />
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">
