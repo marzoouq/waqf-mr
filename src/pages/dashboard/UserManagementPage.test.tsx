@@ -67,24 +67,32 @@ describe('UserManagementPage', () => {
 
   it('displays users after loading', async () => {
     renderPage();
-    expect(await screen.findByText('admin@test.com')).toBeInTheDocument();
-    expect(screen.getByText('ben@test.com')).toBeInTheDocument();
-    expect(screen.getByText('waqif@test.com')).toBeInTheDocument();
+    // Wait for data to load by checking user count
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('admin@test.com').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('ben@test.com').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('waqif@test.com').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows role badges correctly', async () => {
     renderPage();
-    await screen.findByText('admin@test.com');
-    expect(screen.getAllByText('ناظر').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('مستفيد').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('واقف').length).toBeGreaterThanOrEqual(1);
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('ناظر').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('مستفيد').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('واقف').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows confirm button for unconfirmed user', async () => {
     renderPage();
-    await screen.findByText('ben@test.com');
-    expect(screen.getAllByText('غير مفعل').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('تفعيل').length).toBeGreaterThanOrEqual(1);
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('غير مفعل').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('تفعيل').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows user count in card title', async () => {
