@@ -25,18 +25,20 @@ export const useConversations = (type?: string) => {
     staleTime: 30_000, // BUG-8 fix: conversations list relies on Realtime for updates
   });
 
+  const queryClientRef = useRef(queryClient);
+  queryClientRef.current = queryClient;
+
   useEffect(() => {
     if (!user) return;
-    // H7 fix: unique channel name per type to avoid conflicts when called twice
     const channelName = `conversations-${user.id}-${type || 'all'}`;
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, queryClient, type]);
+  }, [user, type]);
 
   return query;
 };
@@ -62,16 +64,19 @@ export const useMessages = (conversationId: string | null) => {
     staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness
   });
 
+  const queryClientRef2 = useRef(queryClient);
+  queryClientRef2.current = queryClient;
+
   useEffect(() => {
     if (!user || !conversationId) return;
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-        queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+        queryClientRef2.current.invalidateQueries({ queryKey: ['messages', conversationId] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, conversationId, queryClient]);
+  }, [user, conversationId]);
 
   return query;
 };

@@ -183,4 +183,12 @@ function useToast() {
   };
 }
 
-export { useToast, toast };
+/** Clear all toasts and reset internal state — call on signOut */
+function clearToasts() {
+  toastTimeouts.forEach((t) => clearTimeout(t));
+  toastTimeouts.clear();
+  memoryState = { toasts: [] };
+  listeners.forEach((l) => l(memoryState));
+}
+
+export { useToast, toast, clearToasts };
