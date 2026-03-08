@@ -221,11 +221,11 @@ const UserManagementPage = () => {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستخدمين</h1>
-            <p className="text-muted-foreground mt-1 text-sm">إنشاء وتعديل حسابات المستخدمين وصلاحياتهم</p>
-          </div>
+        <PageHeaderCard
+          title="إدارة المستخدمين"
+          icon={Users}
+          description="إنشاء وتعديل حسابات المستخدمين وصلاحياتهم"
+          actions={
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary gap-2">

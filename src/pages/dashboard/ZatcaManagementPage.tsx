@@ -162,7 +162,11 @@ function ZatcaManagementPage() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
-        <h1 className="text-2xl font-bold text-foreground">إدارة ZATCA</h1>
+        <PageHeaderCard
+          title="إدارة ZATCA"
+          icon={ShieldCheck}
+          description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع"
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

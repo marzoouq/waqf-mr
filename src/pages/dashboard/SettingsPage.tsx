@@ -634,12 +634,11 @@ const SettingsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">الإعدادات العامة</h1>
-            <p className="text-muted-foreground mt-1 text-sm">إدارة جميع إعدادات النظام من مكان واحد</p>
-          </div>
-        </div>
+        <PageHeaderCard
+          title="الإعدادات العامة"
+          icon={Settings}
+          description="إدارة جميع إعدادات النظام من مكان واحد"
+        />
         <Tabs defaultValue="waqf" dir="rtl" onValueChange={(v) => setActiveSettingsTab(v)} value={activeSettingsTab}>
           {/* Mobile: Select dropdown */}
           <div className="md:hidden mb-4">
