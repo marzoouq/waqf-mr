@@ -144,5 +144,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 600,
+    sourcemap: 'hidden',
   },
 }));
