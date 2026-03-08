@@ -29,6 +29,7 @@ import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/useAccessLog';
+import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -171,6 +172,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
+  useRealtimeAlerts();
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
     catch { return false; }
