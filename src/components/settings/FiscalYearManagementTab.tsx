@@ -118,6 +118,7 @@ const FiscalYearManagementTab = () => {
       toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
     } finally {
       setActionLoading(null);
+      setCreating(false);
     }
   };
 

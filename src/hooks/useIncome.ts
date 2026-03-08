@@ -32,9 +32,14 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
     enabled: fiscalYearId !== '__none__',
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false }).limit(200);
+      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false });
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      // When filtering by specific fiscal year, fetch all records (no limit) for accurate financial calculations.
+      // When 'all', cap at 1000 to avoid excessive payloads.
+      if (fiscalYearId === 'all') {
+        query = query.limit(1000);
       }
       const { data, error } = await query;
       if (error) throw error;

@@ -315,7 +315,7 @@ async function fetchWaqfData(
         .select("source, amount, date")
         .eq("fiscal_year_id", activeFY.id)
         .order("date", { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (income?.length) {
         const totalIncome = income.reduce((s, i) => s + Number(i.amount), 0);
@@ -335,7 +335,7 @@ async function fetchWaqfData(
         .from("expenses")
         .select("expense_type, amount, date")
         .eq("fiscal_year_id", activeFY.id)
-        .limit(100);
+        .limit(500);
 
       if (expenses?.length) {
         const totalExp = expenses.reduce((s, e) => s + Number(e.amount), 0);
