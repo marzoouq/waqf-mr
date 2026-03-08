@@ -134,10 +134,15 @@ const AuditLogPage = () => {
   const isMobile = useIsMobile();
   const waqfInfo = usePdfWaqfInfo();
 
-  const { data: logs = [], isLoading } = useAuditLog({
+  const { data: auditData, isLoading } = useAuditLog({
     tableName: tableFilter !== 'all' ? tableFilter : undefined,
     operation: opFilter !== 'all' ? opFilter : undefined,
+    page: currentPage,
+    pageSize: ITEMS_PER_PAGE,
   });
+
+  const logs = auditData?.logs ?? [];
+  const totalCount = auditData?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     if (!searchQuery) return logs;
@@ -149,10 +154,7 @@ const AuditLogPage = () => {
     );
   }, [logs, searchQuery]);
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(start, start + ITEMS_PER_PAGE);
-  }, [filtered, currentPage]);
+  const paginated = filtered;
 
   const todayCount = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
