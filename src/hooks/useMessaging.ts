@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
@@ -123,16 +123,24 @@ export const useSendMessage = () => {
 
 export const useCreateConversation = () => {
   const queryClient = useQueryClient();
+  const pendingRef = useRef(false);
   return useMutation({
     mutationFn: async ({ type, subject, createdBy, participantId }: { type: string; subject?: string; createdBy: string; participantId?: string }) => {
-      const { data, error } = await supabase.from('conversations').insert({
-        type,
-        subject: subject || null,
-        created_by: createdBy,
-        participant_id: participantId || null,
-      }).select().single();
-      if (error) throw error;
-      return data as Conversation;
+      // Idempotency guard: prevent duplicate conversation creation on double-click
+      if (pendingRef.current) throw new Error('طلب قيد المعالجة');
+      pendingRef.current = true;
+      try {
+        const { data, error } = await supabase.from('conversations').insert({
+          type,
+          subject: subject || null,
+          created_by: createdBy,
+          participant_id: participantId || null,
+        }).select().single();
+        if (error) throw error;
+        return data as Conversation;
+      } finally {
+        pendingRef.current = false;
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conversations'] }),
   });
