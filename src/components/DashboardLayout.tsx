@@ -9,7 +9,7 @@ import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
-  ClipboardList, Calculator,
+  ClipboardList, Calculator, Headset,
 } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -69,6 +69,7 @@ const allAdminLinks = [
   { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
+  { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -85,6 +86,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
+  { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
@@ -146,6 +148,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/audit-log': 'سجل المراجعة',
   '/dashboard/bylaws': 'اللائحة التنظيمية',
   '/dashboard/zatca': 'إدارة ZATCA',
+  '/dashboard/support': 'الدعم الفني',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',
