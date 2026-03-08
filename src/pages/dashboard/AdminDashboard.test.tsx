@@ -29,6 +29,18 @@ vi.mock('@/hooks/useFiscalYears', () => ({
     fiscalYears: [{ id: 'fy-1', label: '1446-1447هـ' }],
     isLoading: false,
   })),
+  useFiscalYears: vi.fn(() => ({
+    data: [{ id: 'fy-1', label: '1446-1447هـ', status: 'active' }],
+    isLoading: false,
+  })),
+}));
+
+vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+  usePdfWaqfInfo: vi.fn(() => undefined),
+}));
+
+vi.mock('@/components/reports/YearOverYearComparison', () => ({
+  default: () => <div data-testid="year-comparison">YearOverYearComparison</div>,
 }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
