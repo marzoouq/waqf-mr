@@ -10,6 +10,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
