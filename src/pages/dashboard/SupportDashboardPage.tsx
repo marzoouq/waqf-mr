@@ -20,6 +20,7 @@ import {
   Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye,
   Search, Download, TrendingUp, TrendingDown, Activity, Star,
 } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {

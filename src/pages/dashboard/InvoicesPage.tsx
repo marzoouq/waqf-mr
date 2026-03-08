@@ -13,6 +13,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X, AlertTriangle } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';

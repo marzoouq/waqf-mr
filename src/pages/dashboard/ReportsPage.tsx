@@ -7,6 +7,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
 import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
 import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
@@ -228,14 +229,12 @@ const ReportsPage = () => {
   return (
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden animate-slide-up">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير</h1>
-              {fiscalYear && <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge>}
-            </div>
-            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض التقارير والإحصائيات</p>
+        <PageHeaderCard
+          title="التقارير"
+          icon={CalendarRange}
+          description="عرض التقارير والإحصائيات"
+          badge={fiscalYear ? <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge> : undefined}
+          actions={<>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button onClick={async () => {

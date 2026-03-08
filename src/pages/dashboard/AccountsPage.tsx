@@ -1,7 +1,8 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Lock } from 'lucide-react';
+import { Plus, Lock, Wallet } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
 import { useAuth } from '@/contexts/AuthContext';
