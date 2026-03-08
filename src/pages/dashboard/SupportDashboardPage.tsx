@@ -182,6 +182,14 @@ const SupportDashboardPage = () => {
     return `${Math.round(avg / 24)} يوم`;
   }, [tickets]);
 
+  // === متوسط التقييم ===
+  const avgRating = useMemo(() => {
+    const rated = tickets.filter(t => t.rating);
+    if (rated.length === 0) return null;
+    const total = rated.reduce((sum, t) => sum + (t.rating ?? 0), 0);
+    return { avg: (total / rated.length).toFixed(1), count: rated.length };
+  }, [tickets]);
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
