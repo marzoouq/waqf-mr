@@ -652,6 +652,24 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
           </div>
         )}
 
+        {/* تقييم المستفيد */}
+        {ticket.rating && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">تقييم المستفيد:</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">({ticket.rating}/5)</span>
+            </div>
+            {ticket.rating_comment && (
+              <p className="text-sm text-muted-foreground mt-1">{ticket.rating_comment}</p>
+            )}
+          </div>
+        )}
+
         {/* الردود */}
         <ScrollArea className="flex-1 min-h-0 max-h-[300px]">
           <div className="space-y-3 p-1">
