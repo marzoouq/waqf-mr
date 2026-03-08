@@ -10,7 +10,7 @@ export type { FiscalYear };
 export const useFiscalYears = () => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ['fiscal_years', user?.id ?? 'anon'],
+    queryKey: ['fiscal_years'],
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase

@@ -3,18 +3,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useAppSettings } from "@/hooks/useAppSettings";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FlaskConical } from "lucide-react";
 import { BANNER_COLORS, DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
 
 const BannerSettingsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
-  const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
+  const rawSettings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
+  // FIX #8: Stabilize settings reference to avoid fragile deps
+  const settings = useMemo(() => rawSettings, [JSON.stringify(rawSettings)]);
   const [form, setForm] = useState<BannerSettings>(settings);
 
   useEffect(() => {
     setForm(settings);
-  }, [settings.enabled, settings.text, settings.color, settings.position, settings.dismissible]);
+  }, [settings]);
 
   const save = (patch: Partial<BannerSettings>) => {
     const updated = { ...form, ...patch };

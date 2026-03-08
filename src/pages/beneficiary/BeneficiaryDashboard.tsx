@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,34 +78,30 @@ const BeneficiaryDashboard = () => {
     return { percent, daysLeft };
   })();
 
-  /* ── Recent distributions (with Realtime) ── */
-  const [distributions, setDistributions] = useState<Array<{ id: string; amount: number; date: string; status: string }>>([]);
-  const beneficiaryIdRef = useRef(currentBeneficiary?.id);
+  /* ── Recent distributions via useQuery + Realtime ── */
+  const { data: distributions = [] } = useQuery({
+    queryKey: ['my-distributions-recent', currentBeneficiary?.id],
+    enabled: !!currentBeneficiary?.id,
+    staleTime: 10_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('distributions')
+        .select('id, amount, date, status')
+        .eq('beneficiary_id', currentBeneficiary!.id)
+        .order('date', { ascending: false })
+        .limit(3);
+      if (error) {
+        logger.error('Failed to fetch distributions:', error.message);
+        return [];
+      }
+      return data || [];
+    },
+  });
 
-  useEffect(() => {
-    beneficiaryIdRef.current = currentBeneficiary?.id;
-  }, [currentBeneficiary?.id]);
-
-  const fetchDistributions = useCallback(() => {
-    const id = beneficiaryIdRef.current;
-    if (!id) return;
-    supabase.from('distributions')
-      .select('id, amount, date, status')
-      .eq('beneficiary_id', id)
-      .order('date', { ascending: false })
-      .limit(3)
-      .then(({ data, error }) => {
-        if (error) {
-          logger.error('Failed to fetch distributions:', error.message);
-          return;
-        }
-        if (data) setDistributions(data);
-      });
-  }, []);
-
+  // Realtime invalidation for distributions
+  const queryClient = useQueryClient();
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
-    fetchDistributions();
 
     const channel = supabase
       .channel(`beneficiary-distributions-${currentBeneficiary.id}`)
@@ -114,14 +111,14 @@ const BeneficiaryDashboard = () => {
         table: 'distributions',
         filter: `beneficiary_id=eq.${currentBeneficiary.id}`,
       }, () => {
-        fetchDistributions();
+        queryClient.invalidateQueries({ queryKey: ['my-distributions-recent', currentBeneficiary.id] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentBeneficiary?.id, fetchDistributions]);
+  }, [currentBeneficiary?.id, queryClient]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
