@@ -172,8 +172,8 @@ const PropertiesPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+          </>}
+        />
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative max-w-md flex-1">
