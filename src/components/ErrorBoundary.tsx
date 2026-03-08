@@ -26,16 +26,21 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught:', error, errorInfo);
 
-    // H-10 fix: report to server via logAccessEvent RPC
+    // Report to server via logAccessEvent RPC + structured metadata
     try {
+      const metadata = {
+        error_name: error.name,
+        error_message: error.message,
+        component_stack: errorInfo.componentStack?.slice(0, 500),
+        url: typeof window !== 'undefined' ? window.location.href : null,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : null,
+        timestamp: new Date().toISOString(),
+      };
+
       supabase.rpc('log_access_event', {
         p_event_type: 'client_error',
         p_target_path: typeof window !== 'undefined' ? window.location.pathname : null,
-        p_metadata: {
-          error_name: error.name,
-          error_message: error.message,
-          component_stack: errorInfo.componentStack?.slice(0, 500),
-        },
+        p_metadata: metadata,
       }).then(() => { /* reported */ }, () => { /* silent */ });
     } catch { /* silent — don't break the error boundary */ }
   }
