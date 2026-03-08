@@ -315,33 +315,35 @@ const MySharePage = () => {
           title="حصتي من الريع"
           description="تفاصيل حصتك من ريع الوقف"
           icon={Wallet}
-          <div className="flex items-center gap-2 shrink-0">
-            {advancesEnabled && currentBeneficiary && (
-              <AdvanceRequestDialog
-                beneficiaryId={currentBeneficiary?.id || ''}
-                fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
-                estimatedShare={myShare}
-                paidAdvances={paidAdvancesTotal}
-                carryforwardBalance={carryforwardBalance}
-                minAmount={advanceSettings.min_amount}
-                maxPercentage={advanceSettings.max_percentage}
-              />
-            )}
-            <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
-              <FileDown className="w-4 h-4" />
-              تقرير التوزيع
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
-              <FileDown className="w-4 h-4" />
-              تقرير شامل
-            </Button>
-            <ExportMenu onExportPdf={handleDownloadPDF} />
-          </div>
-        </div>
+          actions={
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              {advancesEnabled && currentBeneficiary && (
+                <AdvanceRequestDialog
+                  beneficiaryId={currentBeneficiary?.id || ''}
+                  fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
+                  estimatedShare={myShare}
+                  paidAdvances={paidAdvancesTotal}
+                  carryforwardBalance={carryforwardBalance}
+                  minAmount={advanceSettings.min_amount}
+                  maxPercentage={advanceSettings.max_percentage}
+                />
+              )}
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
+                <Printer className="w-4 h-4" />
+                طباعة
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
+                <FileDown className="w-4 h-4" />
+                تقرير التوزيع
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
+                <FileDown className="w-4 h-4" />
+                تقرير شامل
+              </Button>
+              <ExportMenu onExportPdf={handleDownloadPDF} />
+            </div>
+          }
+        />
 
         {/* Share Summary - 4 cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

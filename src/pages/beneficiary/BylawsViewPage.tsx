@@ -91,23 +91,14 @@ const BylawsViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        {/* Professional Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 md:p-8">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-24 h-24 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2" />
-          <div className="relative flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
-                <Scale className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-                <p className="text-sm text-muted-foreground mt-1">لائحة تنظيم أعمال الوقف والنظارة • {visibleBylaws.length} بند</p>
-              </div>
-            </div>
+        <PageHeaderCard
+          title="اللائحة التنظيمية"
+          description={`لائحة تنظيم أعمال الوقف والنظارة • ${visibleBylaws.length} بند`}
+          icon={Scale}
+          actions={
             <ExportMenu onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)} />
-          </div>
-        </div>
+          }
+        />
 
         {/* Search */}
         <div className="relative">
