@@ -7,8 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
+
+const PAGE_SIZE = 20;
 
 const statusMap: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'قيد المراجعة', color: 'bg-warning/20 text-warning', icon: Clock },
@@ -20,6 +22,7 @@ const statusMap: Record<string, { label: string; color: string; icon: typeof Clo
 const AdvanceRequestsTab = () => {
   const { fiscalYearId } = useFiscalYear();
   const fyId = fiscalYearId && fiscalYearId !== 'all' ? fiscalYearId : undefined;
+  const [page, setPage] = useState(0);
   const { data: requests = [], isLoading } = useAdvanceRequests(fyId);
   const updateStatus = useUpdateAdvanceStatus();
   const { getJsonSetting } = useAppSettings();
@@ -27,6 +30,10 @@ const AdvanceRequestsTab = () => {
   
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectTarget, setRejectTarget] = useState<{ id: string; userId?: string; amount?: number } | null>(null);
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(requests.length / PAGE_SIZE));
+  const paginatedRequests = requests.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   // M-07 fix: استخدام AdvanceRequest بدل any
   const handleApprove = (req: AdvanceRequest) => updateStatus.mutate({
@@ -66,6 +73,9 @@ const AdvanceRequestsTab = () => {
         <CardTitle className="flex items-center gap-2">
           <Banknote className="w-5 h-5" />
           طلبات السُلف
+          {requests.length > 0 && (
+            <span className="text-sm font-normal text-muted-foreground">({requests.length})</span>
+          )}
         </CardTitle>
         {!advanceSettings.enabled && (
           <div className="flex items-center gap-2 mt-2 p-2 bg-warning/10 border border-warning/20 rounded text-sm text-warning">
@@ -85,51 +95,72 @@ const AdvanceRequestsTab = () => {
         ) : requests.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا توجد طلبات سُلف</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right">المستفيد</TableHead>
-                <TableHead className="text-right">المبلغ</TableHead>
-                <TableHead className="text-right">السبب</TableHead>
-                <TableHead className="text-right">التاريخ</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                <TableHead className="text-right">إجراء</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.map(req => (
-                <TableRow key={req.id}>
-                  <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
-                  <TableCell>{Number(req.amount).toLocaleString()} ر.س</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
-                  <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                  <TableCell>{getStatusBadge(req.status)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {req.status === 'pending' && (
-                        <>
-                          <Button size="sm" variant="outline" className="text-success" onClick={() => handleApprove(req)} disabled={updateStatus.isPending}>
-                            موافقة
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRejectTarget({ id: req.id, userId: req.beneficiary?.user_id ?? undefined, amount: req.amount })} disabled={updateStatus.isPending}>
-                            رفض
-                          </Button>
-                        </>
-                      )}
-                      {req.status === 'approved' && (
-                        <Button size="sm" onClick={() => handlePaid(req)} disabled={updateStatus.isPending}>
-                          تأكيد الصرف
-                        </Button>
-                      )}
-                      {req.status === 'rejected' && req.rejection_reason && (
-                        <span className="text-xs text-muted-foreground">{req.rejection_reason}</span>
-                      )}
-                    </div>
-                  </TableCell>
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right">المستفيد</TableHead>
+                  <TableHead className="text-right">المبلغ</TableHead>
+                  <TableHead className="text-right">السبب</TableHead>
+                  <TableHead className="text-right">التاريخ</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right">إجراء</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedRequests.map(req => (
+                  <TableRow key={req.id}>
+                    <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
+                    <TableCell>{Number(req.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
+                    <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                    <TableCell>{getStatusBadge(req.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {req.status === 'pending' && (
+                          <>
+                            <Button size="sm" variant="outline" className="text-success" onClick={() => handleApprove(req)} disabled={updateStatus.isPending}>
+                              موافقة
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRejectTarget({ id: req.id, userId: req.beneficiary?.user_id ?? undefined, amount: req.amount })} disabled={updateStatus.isPending}>
+                              رفض
+                            </Button>
+                          </>
+                        )}
+                        {req.status === 'approved' && (
+                          <Button size="sm" onClick={() => handlePaid(req)} disabled={updateStatus.isPending}>
+                            تأكيد الصرف
+                          </Button>
+                        )}
+                        {req.status === 'rejected' && req.rejection_reason && (
+                          <span className="text-xs text-muted-foreground">{req.rejection_reason}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 px-2">
+                <p className="text-sm text-muted-foreground">
+                  صفحة {page + 1} من {totalPages}
+                </p>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                    <ChevronRight className="w-4 h-4" />
+                    السابق
+                  </Button>
+                  <Button size="sm" variant="outline" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                    التالي
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 

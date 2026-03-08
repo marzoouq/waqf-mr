@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { reportPageLoadMetrics } from "./lib/performanceMonitor";
 import { initThemeFromStorage } from "./components/ThemeColorPicker";
 
 // Apply saved theme before render
@@ -63,3 +64,6 @@ createRoot(rootEl).render(
     <App />
   </StrictMode>
 );
+
+// مراقبة أداء التحميل
+reportPageLoadMetrics();
