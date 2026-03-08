@@ -60,7 +60,7 @@ const AccountsViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
+          <PageHeaderCard title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية" />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>

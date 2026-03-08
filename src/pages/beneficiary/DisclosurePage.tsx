@@ -191,7 +191,7 @@ const DisclosurePage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
+          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -202,7 +202,7 @@ const DisclosurePage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإفصاح السنوي</h1>
+          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
