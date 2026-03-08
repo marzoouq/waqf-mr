@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown } from 'lucide-react';
+import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -102,7 +102,7 @@ const Index = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main dir="rtl" className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }} />
       <header className="relative overflow-hidden gradient-hero min-h-[90vh] flex items-center" role="banner">
@@ -236,13 +236,18 @@ const Index = () => {
       </section>
       <footer className="bg-primary py-8 border-t border-primary-foreground/10" role="contentinfo">
         <div className="container mx-auto px-4 text-center space-y-3">
-          <div className="flex items-center justify-center gap-4 text-sm">
+          <div className="flex items-center justify-center gap-4 flex-wrap text-sm">
             <button onClick={() => navigate('/privacy')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
               سياسة الخصوصية
             </button>
             <span className="text-primary-foreground/30">|</span>
             <button onClick={() => navigate('/terms')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
               شروط الاستخدام
+            </button>
+            <span className="text-primary-foreground/30">|</span>
+            <button onClick={() => navigate('/install')} className="text-primary-foreground/70 hover:text-secondary transition-colors inline-flex items-center gap-1">
+              <Smartphone className="w-3.5 h-3.5" />
+              تثبيت التطبيق
             </button>
           </div>
           <p className="text-primary-foreground/60 text-sm">
