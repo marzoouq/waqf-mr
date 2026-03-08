@@ -65,7 +65,11 @@ export const useAuditLog = (filters?: {
         query = query.eq('operation', filters.operation);
       }
       if (filters?.searchQuery) {
-        query = query.or(`table_name.ilike.%${filters.searchQuery}%,operation.ilike.%${filters.searchQuery}%`);
+        // Sanitize: escape PostgREST special chars to prevent query manipulation
+        const safe = filters.searchQuery.replace(/[%_\\(),.*]/g, '');
+        if (safe.length > 0) {
+          query = query.or(`table_name.ilike.%${safe}%,operation.ilike.%${safe}%`);
+        }
       }
 
       const { data, error, count } = await query;
