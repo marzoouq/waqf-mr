@@ -16,7 +16,10 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
+import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { Badge } from '@/components/ui/badge';
+import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 
 const ARABIC_MONTHS: Record<string, string> = {
