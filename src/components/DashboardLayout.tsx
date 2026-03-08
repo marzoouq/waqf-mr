@@ -29,6 +29,7 @@ import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/useAccessLog';
+import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
