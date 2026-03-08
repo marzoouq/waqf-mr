@@ -91,8 +91,7 @@ const ContractsViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
+        <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
           <ExportMenu onExportPdf={async () => {
             try {
               await generateContractsPDF(
@@ -111,7 +110,7 @@ const ContractsViewPage = () => {
               toast.error('حدث خطأ أثناء تصدير PDF');
             }
           }} />
-        </div>
+        } />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
