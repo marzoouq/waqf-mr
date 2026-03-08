@@ -16,8 +16,9 @@ const mockAccounts = [
 
 describe('AccountsSavedTable', () => {
   it('يعرض رسالة التحميل', () => {
-    render(<AccountsSavedTable accounts={[]} isLoading={true} onDeleteAccount={vi.fn()} />);
-    expect(screen.getByText('جاري التحميل...')).toBeInTheDocument();
+    const { container } = render(<AccountsSavedTable accounts={[]} isLoading={true} onDeleteAccount={vi.fn()} />);
+    // Loading shows Skeleton placeholders
+    expect(container.querySelectorAll('[class*="animate-pulse"]').length).toBeGreaterThanOrEqual(1);
   });
 
   it('يعرض رسالة فارغة عند عدم وجود حسابات', () => {

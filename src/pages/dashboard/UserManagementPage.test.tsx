@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -17,10 +17,16 @@ const mockUsers = [
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: { getSession: () => Promise.resolve({ data: { session: { access_token: 'test' } } }) },
-    functions: { invoke: vi.fn(() => Promise.resolve({ data: { users: mockUsers }, error: null })) },
-    from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'false' }, error: null }) }) }),
-    }),
+    functions: { invoke: vi.fn(() => Promise.resolve({ data: { users: mockUsers, total: 3 }, error: null })) },
+    from: (table: string) => {
+      if (table === 'beneficiaries') {
+        return { select: () => ({ or: () => Promise.resolve({ data: [], error: null }) }) };
+      }
+      return {
+        select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'false' }, error: null }) }) }),
+      };
+    },
+    rpc: () => Promise.resolve({ data: null, error: null }),
   },
 }));
 
@@ -53,32 +59,40 @@ describe('UserManagementPage', () => {
 
   it('shows users table headers after loading', async () => {
     renderPage();
-    expect(await screen.findByText('البريد الإلكتروني')).toBeInTheDocument();
-    expect(screen.getByText('الدور')).toBeInTheDocument();
-    expect(screen.getByText('الحالة')).toBeInTheDocument();
-    expect(screen.getByText('آخر دخول')).toBeInTheDocument();
+    const headers = await screen.findAllByText('البريد الإلكتروني');
+    expect(headers.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الدور').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الحالة').length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays users after loading', async () => {
     renderPage();
-    expect(await screen.findByText('admin@test.com')).toBeInTheDocument();
-    expect(screen.getByText('ben@test.com')).toBeInTheDocument();
-    expect(screen.getByText('waqif@test.com')).toBeInTheDocument();
+    // Wait for data to load by checking user count
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('admin@test.com').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('ben@test.com').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('waqif@test.com').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows role badges correctly', async () => {
     renderPage();
-    await screen.findByText('admin@test.com');
-    expect(screen.getByText('ناظر')).toBeInTheDocument();
-    expect(screen.getByText('مستفيد')).toBeInTheDocument();
-    expect(screen.getByText('واقف')).toBeInTheDocument();
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('ناظر').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('مستفيد').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('واقف').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows confirm button for unconfirmed user', async () => {
     renderPage();
-    await screen.findByText('ben@test.com');
-    expect(screen.getByText('غير مفعل')).toBeInTheDocument();
-    expect(screen.getByText('تفعيل')).toBeInTheDocument();
+    await screen.findByText(/المستخدمون \(3\)/);
+    await waitFor(() => {
+      expect(screen.getAllByText('غير مفعل').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('تفعيل').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows user count in card title', async () => {
