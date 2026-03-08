@@ -110,15 +110,14 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
               properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isClosed}
             />
-          </div>
-        </div>
+          </>}
+        />
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">
