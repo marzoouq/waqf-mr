@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
+import { BarChart3 } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -150,11 +152,7 @@ const FinancialReportsPage = () => {
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">التقارير المالية</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض وتحليل البيانات المالية للوقف</p>
-          </div>
+        <PageHeaderCard title="التقارير المالية" icon={BarChart3} description="عرض وتحليل البيانات المالية للوقف" actions={
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <ExportMenu onExportPdf={handleDownloadPDF} />
           </div>
