@@ -16,6 +16,7 @@ import { z } from 'zod';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
 import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 
@@ -169,10 +170,11 @@ const BeneficiarySettingsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="animate-slide-up">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الإعدادات</h1>
-          <p className="text-muted-foreground mt-1 text-sm">إدارة حسابك وتفضيلاتك</p>
-        </div>
+        <PageHeaderCard
+          title="الإعدادات"
+          description="إدارة حسابك وتفضيلاتك"
+          icon={User}
+        />
 
         <Tabs defaultValue="account" dir="rtl" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1">

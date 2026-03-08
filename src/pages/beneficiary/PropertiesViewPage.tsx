@@ -21,6 +21,7 @@ import React, { useMemo, useState } from 'react';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
@@ -97,26 +98,30 @@ const PropertiesViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-2xl font-bold text-foreground">العقارات</h1>
-          <ExportMenu onExportPdf={async () => {
-            try {
-              await generatePropertiesPDF(
-                (properties ?? []).map(p => ({
-                  property_number: p.property_number,
-                  property_type: p.property_type,
-                  location: p.location,
-                  area: p.area,
-                  description: p.description,
-                })),
-                pdfWaqfInfo
-              );
-              toast.success('تم تصدير العقارات بنجاح');
-            } catch {
-              toast.error('حدث خطأ أثناء تصدير PDF');
-            }
-          }} />
-        </div>
+        <PageHeaderCard
+          title="العقارات"
+          description="عرض العقارات والوحدات والمؤشرات التشغيلية"
+          icon={Building2}
+          actions={
+            <ExportMenu onExportPdf={async () => {
+              try {
+                await generatePropertiesPDF(
+                  (properties ?? []).map(p => ({
+                    property_number: p.property_number,
+                    property_type: p.property_type,
+                    location: p.location,
+                    area: p.area,
+                    description: p.description,
+                  })),
+                  pdfWaqfInfo
+                );
+                toast.success('تم تصدير العقارات بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير PDF');
+              }
+            }} />
+          }
+        />
 
         {/* بطاقات الملخص الإجمالية */}
         <div className="space-y-4 animate-slide-up">

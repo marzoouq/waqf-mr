@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
   info: { label: 'معلومات', icon: Info, color: 'text-info', bg: 'bg-info/10' },
@@ -107,35 +108,28 @@ const NotificationsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-5">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Bell className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="font-display text-xl md:text-2xl font-bold">سجل الإشعارات</h1>
-              <p className="text-xs text-muted-foreground">
-                {notifications.length} إشعار • {unreadCount} غير مقروء
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {isSupported && permission !== 'granted' && (
-              <Button variant="outline" size="sm" onClick={handleEnablePush} className="gap-1.5">
-                <BellRing className="w-4 h-4" />
-                <span className="hidden sm:inline">تفعيل الإشعارات المنبثقة</span>
-                <span className="sm:hidden">تفعيل</span>
-              </Button>
-            )}
-            {isSupported && permission === 'granted' && (
-              <Badge variant="outline" className="gap-1 text-xs text-success border-success/30 bg-success/10">
-                <BellRing className="w-3 h-3" />
-                الإشعارات المنبثقة مفعّلة
-              </Badge>
-            )}
-          </div>
-        </div>
+        <PageHeaderCard
+          title="سجل الإشعارات"
+          description={`${notifications.length} إشعار • ${unreadCount} غير مقروء`}
+          icon={Bell}
+          actions={
+            <>
+              {isSupported && permission !== 'granted' && (
+                <Button variant="outline" size="sm" onClick={handleEnablePush} className="gap-1.5">
+                  <BellRing className="w-4 h-4" />
+                  <span className="hidden sm:inline">تفعيل الإشعارات المنبثقة</span>
+                  <span className="sm:hidden">تفعيل</span>
+                </Button>
+              )}
+              {isSupported && permission === 'granted' && (
+                <Badge variant="outline" className="gap-1 text-xs text-success border-success/30 bg-success/10">
+                  <BellRing className="w-3 h-3" />
+                  الإشعارات المنبثقة مفعّلة
+                </Badge>
+              )}
+            </>
+          }
+        />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

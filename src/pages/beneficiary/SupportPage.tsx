@@ -15,6 +15,7 @@ import {
   Headset, CheckCircle, Clock, Send, Loader2, MessageSquare, XCircle, ArrowUpCircle, Eye, Plus, Star,
 } from 'lucide-react';
 import { useState } from 'react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useAddTicketReply, useRateTicket, type SupportTicket,
@@ -36,21 +37,17 @@ const BeneficiarySupportPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
-              <Headset className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">الدعم الفني</h1>
-              <p className="text-sm text-muted-foreground">تقديم ومتابعة طلبات الدعم</p>
-            </div>
-          </div>
-          <Button onClick={() => setShowNewTicket(true)} className="gradient-primary">
-            <Plus className="w-4 h-4 ml-2" />
-            طلب دعم جديد
-          </Button>
-        </div>
+        <PageHeaderCard
+          title="الدعم الفني"
+          description="تقديم ومتابعة طلبات الدعم"
+          icon={Headset}
+          actions={
+            <Button onClick={() => setShowNewTicket(true)} className="gradient-primary">
+              <Plus className="w-4 h-4 ml-2" />
+              طلب دعم جديد
+            </Button>
+          }
+        />
 
         <Card>
           <CardHeader>

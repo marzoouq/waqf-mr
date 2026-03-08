@@ -22,6 +22,7 @@ import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialo
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -310,39 +311,39 @@ const MySharePage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">حصتي من الريع</h1>
-            <p className="text-muted-foreground mt-1 text-sm">تفاصيل حصتك من ريع الوقف</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {advancesEnabled && currentBeneficiary && (
-              <AdvanceRequestDialog
-                beneficiaryId={currentBeneficiary?.id || ''}
-                fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
-                estimatedShare={myShare}
-                paidAdvances={paidAdvancesTotal}
-                carryforwardBalance={carryforwardBalance}
-                minAmount={advanceSettings.min_amount}
-                maxPercentage={advanceSettings.max_percentage}
-              />
-            )}
-            <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
-              <Printer className="w-4 h-4" />
-              طباعة
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
-              <FileDown className="w-4 h-4" />
-              تقرير التوزيع
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
-              <FileDown className="w-4 h-4" />
-              تقرير شامل
-            </Button>
-            <ExportMenu onExportPdf={handleDownloadPDF} />
-          </div>
-        </div>
+        <PageHeaderCard
+          title="حصتي من الريع"
+          description="تفاصيل حصتك من ريع الوقف"
+          icon={Wallet}
+          actions={
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              {advancesEnabled && currentBeneficiary && (
+                <AdvanceRequestDialog
+                  beneficiaryId={currentBeneficiary?.id || ''}
+                  fiscalYearId={fiscalYearId === 'all' ? undefined : fiscalYearId}
+                  estimatedShare={myShare}
+                  paidAdvances={paidAdvancesTotal}
+                  carryforwardBalance={carryforwardBalance}
+                  minAmount={advanceSettings.min_amount}
+                  maxPercentage={advanceSettings.max_percentage}
+                />
+              )}
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
+                <Printer className="w-4 h-4" />
+                طباعة
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
+                <FileDown className="w-4 h-4" />
+                تقرير التوزيع
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
+                <FileDown className="w-4 h-4" />
+                تقرير شامل
+              </Button>
+              <ExportMenu onExportPdf={handleDownloadPDF} />
+            </div>
+          }
+        />
 
         {/* Share Summary - 4 cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
