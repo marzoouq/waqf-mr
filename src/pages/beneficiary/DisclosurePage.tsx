@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
@@ -228,20 +229,20 @@ const DisclosurePage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الإفصاح السنوي</h1>
-            <p className="text-muted-foreground mt-1 text-sm">السنة المالية: {gregorianFiscalYear}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadComprehensivePDF}>
-              <FileDown className="w-4 h-4" />
-              تقرير شامل
-            </Button>
-            <ExportMenu onExportPdf={handleDownloadPDF} />
-          </div>
-        </div>
+        <PageHeaderCard
+          title="الإفصاح السنوي"
+          description={`السنة المالية: ${gregorianFiscalYear}`}
+          icon={FileText}
+          actions={
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadComprehensivePDF}>
+                <FileDown className="w-4 h-4" />
+                تقرير شامل
+              </Button>
+              <ExportMenu onExportPdf={handleDownloadPDF} />
+            </div>
+          }
+        />
 
         {/* Summary Cards */}
         <div className={`grid grid-cols-1 gap-3 sm:gap-4 ${waqfCorpusPrevious > 0 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'}`}>

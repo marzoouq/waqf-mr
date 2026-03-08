@@ -17,6 +17,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import {
   DndContext,
   closestCenter,
@@ -263,19 +264,11 @@ const BylawsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        {/* Professional Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border p-6 md:p-8">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="relative flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
-                <Scale className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">اللائحة التنظيمية</h1>
-                <p className="text-sm text-muted-foreground mt-1">إدارة وتنظيم لائحة أعمال الوقف والنظارة</p>
-              </div>
-            </div>
+        <PageHeaderCard
+          title="اللائحة التنظيمية"
+          description="إدارة وتنظيم لائحة أعمال الوقف والنظارة"
+          icon={Scale}
+          actions={
             <div className="flex items-center gap-2">
               <Button onClick={() => setShowAddDialog(true)} variant="outline" className="gap-2">
                 <Plus className="w-4 h-4" />
@@ -285,8 +278,8 @@ const BylawsPage = () => {
                 onExportPdf={() => generateBylawsPDF(visibleBylaws, pdfWaqfInfo)}
               />
             </div>
-          </div>
-        </div>
+          }
+        />
 
         {/* Warning if not published */}
         {!isPublished && (

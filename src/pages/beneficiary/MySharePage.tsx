@@ -22,6 +22,7 @@ import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialo
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const MySharePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -310,12 +311,10 @@ const MySharePage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">حصتي من الريع</h1>
-            <p className="text-muted-foreground mt-1 text-sm">تفاصيل حصتك من ريع الوقف</p>
-          </div>
+        <PageHeaderCard
+          title="حصتي من الريع"
+          description="تفاصيل حصتك من ريع الوقف"
+          icon={Wallet}
           <div className="flex items-center gap-2 shrink-0">
             {advancesEnabled && currentBeneficiary && (
               <AdvanceRequestDialog

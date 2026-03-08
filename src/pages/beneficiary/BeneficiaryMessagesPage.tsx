@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const BeneficiaryMessagesPage = () => {
   const { user } = useAuth();
@@ -114,19 +115,23 @@ const BeneficiaryMessagesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-4rem)] flex flex-col">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="font-display text-2xl font-bold">المراسلات</h1>
-          <div className="flex gap-2">
-            <Button onClick={() => setChatDialogOpen(true)} variant="default" size="sm" className="gap-2">
-              <MessageSquare className="w-4 h-4" />
-              محادثة الناظر
-            </Button>
-            <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
-              <Headphones className="w-4 h-4" />
-              دعم فني
-            </Button>
-          </div>
-        </div>
+        <PageHeaderCard
+          title="المراسلات"
+          description="التواصل مع ناظر الوقف والدعم الفني"
+          icon={MessageSquare}
+          actions={
+            <div className="flex gap-2">
+              <Button onClick={() => setChatDialogOpen(true)} variant="default" size="sm" className="gap-2">
+                <MessageSquare className="w-4 h-4" />
+                محادثة الناظر
+              </Button>
+              <Button onClick={() => setSupportDialogOpen(true)} variant="outline" size="sm" className="gap-2">
+                <Headphones className="w-4 h-4" />
+                دعم فني
+              </Button>
+            </div>
+          }
+        />
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4">

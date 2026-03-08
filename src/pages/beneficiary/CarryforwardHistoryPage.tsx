@@ -15,6 +15,7 @@ import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, R
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import PageHeaderCard from '@/components/PageHeaderCard';
 
 const CarryforwardHistoryPage = () => {
   const { user } = useAuth();
@@ -94,31 +95,27 @@ const CarryforwardHistoryPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
-              <ArrowRight className="w-4 h-4" />
-              رجوع
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <ArrowDownUp className="w-6 h-6 text-primary" />
-                تاريخ الترحيلات والخصومات
-              </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك
-            </p>
+        <PageHeaderCard
+          title="تاريخ الترحيلات والخصومات"
+          description="سجل تفصيلي للسُلف المصروفة والفروق المرحّلة والمبالغ المخصومة من حصتك"
+          icon={ArrowDownUp}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1">
+                <ArrowRight className="w-4 h-4" />
+                رجوع
+              </Button>
+              <ExportMenu onExportPdf={() => {
+                try {
+                  window.print();
+                  toast.success('جاري الطباعة...');
+                } catch {
+                  toast.error('حدث خطأ أثناء الطباعة');
+                }
+              }} />
             </div>
-          </div>
-          <ExportMenu onExportPdf={() => {
-            try {
-              window.print();
-              toast.success('جاري الطباعة...');
-            } catch {
-              toast.error('حدث خطأ أثناء الطباعة');
-            }
-          }} />
-        </div>
+          }
+        />
 
         {/* بطاقات ملخص */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

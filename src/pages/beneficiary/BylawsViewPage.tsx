@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Search, X, Lock, ScrollText, Scale, AlertCircle, RefreshCw } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
