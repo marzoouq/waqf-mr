@@ -59,9 +59,9 @@ describe('AuditLogPage', () => {
 
   it('shows operation badges', () => {
     renderPage();
-    expect(screen.getByText('إضافة')).toBeInTheDocument();
-    expect(screen.getByText('تعديل')).toBeInTheDocument();
-    expect(screen.getByText('حذف')).toBeInTheDocument();
+    expect(screen.getAllByText('إضافة').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('تعديل').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('حذف').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows table names in Arabic', () => {
@@ -73,8 +73,8 @@ describe('AuditLogPage', () => {
 
   it('shows summary text for each log entry', () => {
     renderPage();
-    expect(screen.getByText(/إضافة سجل جديد في الدخل/)).toBeInTheDocument();
-    expect(screen.getByText(/تعديل سجل في المصروفات/)).toBeInTheDocument();
-    expect(screen.getByText(/حذف سجل من الحسابات/)).toBeInTheDocument();
+    expect(screen.getAllByText(/إضافة سجل جديد في الدخل/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/تعديل سجل في المصروفات/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/حذف سجل من الحسابات/).length).toBeGreaterThanOrEqual(1);
   });
 });

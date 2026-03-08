@@ -87,11 +87,11 @@ describe('useIdleTimeout', () => {
   it('countdown decrements remaining seconds', () => {
     const onIdle = vi.fn();
     const { result } = renderHook(() =>
-      useIdleTimeout({ timeout: 5_000, warningBefore: 3_000, onIdle }),
+      useIdleTimeout({ timeout: 6_000, warningBefore: 3_000, onIdle }),
     );
 
-    // Trigger warning at 2s
-    act(() => { vi.advanceTimersByTime(2_000); });
+    // safeWarningBefore = Math.min(3000, 6000*0.5) = 3000, warning fires at 3000ms
+    act(() => { vi.advanceTimersByTime(3_000); });
     expect(result.current.showWarning).toBe(true);
     expect(result.current.remaining).toBe(3);
 

@@ -17,9 +17,12 @@ const mockUsers = [
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: { getSession: () => Promise.resolve({ data: { session: { access_token: 'test' } } }) },
-    functions: { invoke: vi.fn(() => Promise.resolve({ data: { users: mockUsers }, error: null })) },
+    functions: { invoke: vi.fn(() => Promise.resolve({ data: { users: mockUsers, total: 3 }, error: null })) },
     from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'false' }, error: null }) }) }),
+      select: () => ({
+        eq: () => ({ maybeSingle: () => Promise.resolve({ data: { value: 'false' }, error: null }) }),
+        or: () => Promise.resolve({ data: [], error: null }),
+      }),
     }),
   },
 }));

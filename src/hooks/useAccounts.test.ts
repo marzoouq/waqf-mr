@@ -64,7 +64,7 @@ beforeEach(() => {
   mockInsert.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
   mockMaybeSingle.mockResolvedValue({ data: sampleAccount, error: null });
   mockUpdate.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ maybeSingle: mockMaybeSingle }) });
+  mockEq.mockReturnValue({ select: vi.fn().mockReturnValue({ single: mockMaybeSingle, maybeSingle: mockMaybeSingle }) });
   mockDelete.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
 });
 
