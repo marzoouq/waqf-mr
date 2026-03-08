@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Headset, Bug, BarChart3, AlertTriangle, CheckCircle, Clock, Send,
   Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye,
-  Search, Download, TrendingUp, TrendingDown, Activity,
+  Search, Download, TrendingUp, TrendingDown, Activity, Star,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -298,11 +298,12 @@ const SupportDashboardPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="text-right">الرقم</TableHead>
+                         <TableHead className="text-right">الرقم</TableHead>
                         <TableHead className="text-right">العنوان</TableHead>
                         <TableHead className="text-right">التصنيف</TableHead>
                         <TableHead className="text-right">الأولوية</TableHead>
                         <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">التقييم</TableHead>
                         <TableHead className="text-right">التاريخ</TableHead>
                         <TableHead className="text-right">إجراء</TableHead>
                       </TableRow>
@@ -322,6 +323,15 @@ const SupportDashboardPage = () => {
                               <Badge className={s.color}>
                                 <Icon className="w-3 h-3 ml-1" />{s.label}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {ticket.rating ? (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                  ))}
+                                </div>
+                              ) : <span className="text-xs text-muted-foreground">—</span>}
                             </TableCell>
                             <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
                             <TableCell>
