@@ -4,6 +4,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -187,22 +188,20 @@ const AdminDashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display text-foreground truncate">لوحة التحكم</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف'}
-              {fiscalYear && <span className="text-primary font-medium"> — {fiscalYear.label}</span>}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 print:hidden">
+        <PageHeaderCard
+          title="لوحة التحكم"
+          icon={Gauge}
+          description={
+            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف') +
+            (fiscalYear ? ` — ${fiscalYear.label}` : '')
+          }
+          actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">طباعة</span>
             </Button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Fallback Percentages Warning */}
         {usingFallbackPct && (

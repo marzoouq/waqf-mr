@@ -104,11 +104,11 @@ const ExpensesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المصروفات</h1>
-            <p className="text-muted-foreground mt-1 text-sm">تسجيل ومتابعة المصروفات</p>
-          </div>
+        <PageHeaderCard
+          title="إدارة المصروفات"
+          icon={TrendingDown}
+          description="تسجيل ومتابعة المصروفات"
+          actions={<>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <ExpenseFormDialog

@@ -11,6 +11,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
 import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Progress } from '@/components/ui/progress';
@@ -286,16 +287,15 @@ const ContractsPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة العقود</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض وإدارة عقود الإيجار</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <PageHeaderCard
+          title="إدارة العقود"
+          icon={FileText}
+          description="عرض وإدارة عقود الإيجار"
+          actions={<>
             <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} />
             <Button className="gradient-primary gap-2" onClick={() => { resetForm(); setIsOpen(true); }}><Plus className="w-4 h-4" />إضافة عقد</Button>
-          </div>
-        </div>
+          </>}
+        />
 
         <Tabs defaultValue="contracts" className="space-y-4">
           <TabsList className="grid w-full max-w-lg grid-cols-3">
