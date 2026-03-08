@@ -28,7 +28,8 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Cl
 };
 
 const BeneficiarySupportPage = () => {
-  const { data: tickets = [], isLoading } = useSupportTickets();
+  const { data, isLoading } = useSupportTickets();
+  const tickets = data?.tickets ?? [];
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
 

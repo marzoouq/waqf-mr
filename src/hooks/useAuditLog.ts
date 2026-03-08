@@ -39,6 +39,7 @@ export const getOperationNameAr = (op: string) => OPERATION_NAMES_AR[op] || op;
 export const useAuditLog = (filters?: {
   tableName?: string;
   operation?: string;
+  searchQuery?: string;
   page?: number;
   pageSize?: number;
 }) => {
@@ -46,7 +47,7 @@ export const useAuditLog = (filters?: {
   const pageSize = filters?.pageSize ?? 50;
 
   return useQuery({
-    queryKey: ['audit_log', filters?.tableName, filters?.operation, page, pageSize],
+    queryKey: ['audit_log', filters?.tableName, filters?.operation, filters?.searchQuery, page, pageSize],
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -62,6 +63,9 @@ export const useAuditLog = (filters?: {
       }
       if (filters?.operation) {
         query = query.eq('operation', filters.operation);
+      }
+      if (filters?.searchQuery) {
+        query = query.ilike('table_name', `%${filters.searchQuery}%`);
       }
 
       const { data, error, count } = await query;
