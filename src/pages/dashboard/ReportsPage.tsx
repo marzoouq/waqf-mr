@@ -235,8 +235,6 @@ const ReportsPage = () => {
           description="عرض التقارير والإحصائيات"
           badge={fiscalYear ? <Badge variant="secondary" className="text-xs">{fiscalYear.label}</Badge> : undefined}
           actions={<>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <Button onClick={async () => {
               const { generateAnnualDisclosurePDF } = await import('@/utils/pdf');
               await generateAnnualDisclosurePDF({
@@ -279,8 +277,8 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">الفحص الجنائي PDF</span>
             </Button>
             <ExportMenu onExportPdf={handleExportPDF} />
-          </div>
-        </div>
+          </>}
+        />
 
         {/* Summary Cards */}
         {isLoading ? (
