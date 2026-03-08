@@ -308,8 +308,9 @@ const UserManagementPage = () => {
                 </Button>
               </form>
             </DialogContent>
-          </Dialog>
-        </div>
+           </Dialog>
+          }
+        />
 
         {/* تنبيه المستفيدين بدون بريد أو بدون ربط */}
         {orphanedBeneficiaries.length > 0 && (
