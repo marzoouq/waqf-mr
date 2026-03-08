@@ -15,6 +15,7 @@ import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
@@ -143,12 +144,11 @@ const PropertiesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة العقارات</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض وإدارة جميع عقارات الوقف</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <PageHeaderCard
+          title="إدارة العقارات"
+          icon={Building2}
+          description="عرض وإدارة جميع عقارات الوقف"
+          actions={<>
             <ExportMenu onExportPdf={() => generatePropertiesPDF(properties, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
