@@ -169,33 +169,38 @@ export const useClientErrors = () => {
   });
 };
 
-/** إحصائيات الدعم الفني */
+/** إحصائيات الدعم الفني — FIX #7: استخدام COUNT بدلاً من جلب كل السجلات */
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
     staleTime: 30_000,
     queryFn: async () => {
-      const [ticketsRes, errorsRes] = await Promise.all([
-        fromTable('support_tickets').select('status, priority, created_at').limit(500),
-        supabase.from('access_log').select('id, created_at').eq('event_type', 'client_error').limit(500),
-      ]);
-      const tickets = (ticketsRes.data ?? []) as Array<{ status: string; priority: string; created_at: string }>;
-      const errors = (errorsRes.data ?? []) as Array<{ id: string; created_at: string }>;
-
       const now = new Date();
-      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [totalRes, openRes, inProgressRes, resolvedRes, highRes, tickets7dRes, errorsRes, errors24hRes, errors7dRes] = await Promise.all([
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }),
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }).in('priority', ['high', 'critical']),
+        fromTable('support_tickets').select('*', { count: 'exact', head: true }).gte('created_at', last7d),
+        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error'),
+        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last24h),
+        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last7d),
+      ]);
 
       return {
-        totalTickets: tickets.length,
-        openTickets: tickets.filter(t => t.status === 'open').length,
-        inProgressTickets: tickets.filter(t => t.status === 'in_progress').length,
-        resolvedTickets: tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length,
-        highPriorityTickets: tickets.filter(t => t.priority === 'high' || t.priority === 'critical').length,
-        totalErrors: errors.length,
-        errorsLast24h: errors.filter(e => new Date(e.created_at) > last24h).length,
-        errorsLast7d: errors.filter(e => new Date(e.created_at) > last7d).length,
-        ticketsLast7d: tickets.filter(t => new Date(t.created_at) > last7d).length,
+        totalTickets: totalRes.count ?? 0,
+        openTickets: openRes.count ?? 0,
+        inProgressTickets: inProgressRes.count ?? 0,
+        resolvedTickets: resolvedRes.count ?? 0,
+        highPriorityTickets: highRes.count ?? 0,
+        totalErrors: errorsRes.count ?? 0,
+        errorsLast24h: errors24hRes.count ?? 0,
+        errorsLast7d: errors7dRes.count ?? 0,
+        ticketsLast7d: tickets7dRes.count ?? 0,
       };
     },
   });
