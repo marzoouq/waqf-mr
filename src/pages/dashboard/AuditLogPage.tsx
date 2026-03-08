@@ -232,7 +232,7 @@ const AuditLogPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader>
-                  <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
+                  <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader>
