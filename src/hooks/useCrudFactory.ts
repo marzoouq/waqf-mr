@@ -82,9 +82,10 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async (payload: Insert<T>) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase generic factory requires runtime-only table resolution; call-site types remain enforced via Insert<T>
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as Record<string, unknown>)
+          .insert(payload as never)
           .select()
           .maybeSingle();
 
@@ -110,10 +111,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Same factory limitation as insert above
         const { data, error } = await supabase
           .from(table)
-          .update(payload as Record<string, unknown>)
-          .eq('id' as string & keyof Row<T>, id)
+          .update(payload as never)
+          .eq('id' as never, id)
           .select()
           .single();
 
@@ -138,10 +140,11 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async (id: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Same factory limitation
         const { error } = await supabase
           .from(table)
           .delete()
-          .eq('id' as string & keyof Row<T>, id);
+          .eq('id' as never, id);
 
         if (error) throw error;
       },
