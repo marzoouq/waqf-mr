@@ -66,7 +66,7 @@ const AiAssistant = () => {
     abortControllerRef.current = new AbortController();
 
     const userMsg: Msg = { role: 'user', content: trimmed };
-    const HISTORY_LIMIT = 30;
+    const HISTORY_LIMIT = 10;
     const allMessages = [...messages, userMsg].slice(-HISTORY_LIMIT);
     setMessages(allMessages);
     setInput('');

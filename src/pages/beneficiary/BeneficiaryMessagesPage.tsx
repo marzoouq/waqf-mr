@@ -38,6 +38,11 @@ const BeneficiaryMessagesPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Reset selectedConv when switching tabs
+  useEffect(() => {
+    setSelectedConv(null);
+  }, [activeTab]);
+
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
     await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
