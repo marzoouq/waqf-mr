@@ -11,6 +11,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generateIncomePDF } from '@/utils/pdf';
@@ -100,12 +101,11 @@ const IncomePage = () => {
   return (
     <DashboardLayout>
        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة الدخل</h1>
-            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">تسجيل ومتابعة مصادر الدخل</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <PageHeaderCard
+          title="إدارة الدخل"
+          icon={TrendingUp}
+          description="تسجيل ومتابعة مصادر الدخل"
+          actions={<>
             <ExportMenu onExportPdf={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
