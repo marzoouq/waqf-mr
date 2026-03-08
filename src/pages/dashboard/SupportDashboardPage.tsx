@@ -1,6 +1,7 @@
 /**
  * صفحة لوحة تحكم الدعم الفني — للناظر والمحاسب
  * تشمل: تذاكر الدعم، سجل الأخطاء التلقائية، إحصائيات الأداء
+ * v2.7: بحث نصي + تصدير CSV + فلترة تصنيف + إحصائيات متقدمة
  */
 import DashboardLayout from '@/components/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,17 +14,20 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import {
   Headset, Bug, BarChart3, AlertTriangle, CheckCircle, Clock, Send,
-  Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye
+  Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye,
+  Search, Download, TrendingUp, TrendingDown, Activity,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useUpdateTicketStatus, useAddTicketReply, useClientErrors,
   useSupportStats, type SupportTicket,
 } from '@/hooks/useSupportTickets';
+import { toast } from 'sonner';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },
@@ -47,15 +51,136 @@ const CATEGORY_MAP: Record<string, string> = {
   suggestion: 'اقتراح',
 };
 
+/** تصدير بيانات إلى CSV */
+function exportToCsv(filename: string, headers: string[], rows: string[][]) {
+  const BOM = '\uFEFF';
+  const csv = BOM + [headers.join(','), ...rows.map(r => r.map(c => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success(`تم تصدير ${rows.length} سجل`);
+}
+
 const SupportDashboardPage = () => {
   const { user, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: ticketsData, isLoading } = useSupportTickets(statusFilter);
   const tickets = ticketsData?.tickets ?? [];
   const { data: stats } = useSupportStats();
   const { data: errors = [] } = useClientErrors();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
+  const [errorSearch, setErrorSearch] = useState('');
+
+  // === فلترة التذاكر محلياً (بحث + تصنيف) ===
+  const filteredTickets = useMemo(() => {
+    let result = tickets;
+    if (categoryFilter !== 'all') {
+      result = result.filter(t => t.category === categoryFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(t =>
+        t.title.toLowerCase().includes(q) ||
+        t.ticket_number.toLowerCase().includes(q) ||
+        (t.description ?? '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [tickets, categoryFilter, searchQuery]);
+
+  // === فلترة الأخطاء ===
+  const filteredErrors = useMemo(() => {
+    if (!errorSearch.trim()) return errors;
+    const q = errorSearch.trim().toLowerCase();
+    return errors.filter(err => {
+      const meta = err.metadata as Record<string, string> | null;
+      return (
+        (err.target_path ?? '').toLowerCase().includes(q) ||
+        (meta?.error_name ?? '').toLowerCase().includes(q) ||
+        (meta?.error_message ?? '').toLowerCase().includes(q)
+      );
+    });
+  }, [errors, errorSearch]);
+
+  // === تصدير التذاكر ===
+  const handleExportTickets = useCallback(() => {
+    const headers = ['الرقم', 'العنوان', 'التصنيف', 'الأولوية', 'الحالة', 'التاريخ'];
+    const rows = filteredTickets.map(t => [
+      t.ticket_number,
+      t.title,
+      CATEGORY_MAP[t.category] || t.category,
+      PRIORITY_MAP[t.priority]?.label || t.priority,
+      STATUS_MAP[t.status]?.label || t.status,
+      new Date(t.created_at).toLocaleDateString('ar-SA'),
+    ]);
+    exportToCsv('support-tickets.csv', headers, rows);
+  }, [filteredTickets]);
+
+  // === تصدير الأخطاء ===
+  const handleExportErrors = useCallback(() => {
+    const headers = ['التاريخ', 'الصفحة', 'الخطأ', 'المتصفح'];
+    const rows = filteredErrors.map(err => {
+      const meta = err.metadata as Record<string, string> | null;
+      return [
+        new Date(err.created_at).toLocaleString('ar-SA'),
+        err.target_path ?? '',
+        `${meta?.error_name ?? ''}: ${meta?.error_message ?? ''}`,
+        (meta?.user_agent ?? '').slice(0, 80),
+      ];
+    });
+    exportToCsv('client-errors.csv', headers, rows);
+  }, [filteredErrors]);
+
+  // === إحصائيات التصنيف ===
+  const categoryStats = useMemo(() => {
+    const map: Record<string, number> = {};
+    tickets.forEach(t => {
+      map[t.category] = (map[t.category] || 0) + 1;
+    });
+    return Object.entries(map).map(([key, count]) => ({
+      key,
+      label: CATEGORY_MAP[key] || key,
+      count,
+      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+    }));
+  }, [tickets]);
+
+  // === إحصائيات الأولوية ===
+  const priorityStats = useMemo(() => {
+    const map: Record<string, number> = {};
+    tickets.forEach(t => {
+      map[t.priority] = (map[t.priority] || 0) + 1;
+    });
+    return Object.entries(map).map(([key, count]) => ({
+      key,
+      label: PRIORITY_MAP[key]?.label || key,
+      color: PRIORITY_MAP[key]?.color || '',
+      count,
+      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+    }));
+  }, [tickets]);
+
+  // === حساب متوسط وقت الحل (SLA بسيط) ===
+  const avgResolutionTime = useMemo(() => {
+    const resolved = tickets.filter(t => t.resolved_at);
+    if (resolved.length === 0) return null;
+    const totalHours = resolved.reduce((sum, t) => {
+      const created = new Date(t.created_at).getTime();
+      const resolvedAt = new Date(t.resolved_at!).getTime();
+      return sum + (resolvedAt - created) / (1000 * 60 * 60);
+    }, 0);
+    const avg = totalHours / resolved.length;
+    if (avg < 1) return `${Math.round(avg * 60)} دقيقة`;
+    if (avg < 24) return `${Math.round(avg)} ساعة`;
+    return `${Math.round(avg / 24)} يوم`;
+  }, [tickets]);
 
   return (
     <DashboardLayout>
@@ -79,11 +204,12 @@ const SupportDashboardPage = () => {
         </div>
 
         {/* بطاقات الإحصائيات */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
           <StatCard icon={ArrowUpCircle} label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
           <StatCard icon={Bug} label="أخطاء 24 ساعة" value={stats?.errorsLast24h ?? 0} color="text-destructive" />
           <StatCard icon={CheckCircle} label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
+          <StatCard icon={Activity} label="متوسط الحل" value={avgResolutionTime ?? '—'} color="text-primary" isText />
         </div>
 
         <Tabs defaultValue="tickets" className="space-y-4">
@@ -110,30 +236,64 @@ const SupportDashboardPage = () => {
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5" />
                     تذاكر الدعم
-                    <span className="text-sm font-normal text-muted-foreground">({tickets.length})</span>
+                    <span className="text-sm font-normal text-muted-foreground">({filteredTickets.length})</span>
                   </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-muted-foreground" />
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[140px]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* بحث */}
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
+                      <Input
+                        placeholder="بحث بالعنوان أو الرقم..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="pr-8 w-[180px]"
+                      />
+                    </div>
+                    {/* فلتر التصنيف */}
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">الكل</SelectItem>
-                        <SelectItem value="open">مفتوح</SelectItem>
-                        <SelectItem value="in_progress">قيد المعالجة</SelectItem>
-                        <SelectItem value="resolved">تم الحل</SelectItem>
-                        <SelectItem value="closed">مغلق</SelectItem>
+                        <SelectItem value="all">كل التصنيفات</SelectItem>
+                        <SelectItem value="general">عام</SelectItem>
+                        <SelectItem value="technical">تقني</SelectItem>
+                        <SelectItem value="financial">مالي</SelectItem>
+                        <SelectItem value="account">حساب</SelectItem>
+                        <SelectItem value="suggestion">اقتراح</SelectItem>
                       </SelectContent>
                     </Select>
+                    {/* فلتر الحالة */}
+                    <div className="flex items-center gap-1">
+                      <Filter className="w-4 h-4 text-muted-foreground" />
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">كل الحالات</SelectItem>
+                          <SelectItem value="open">مفتوح</SelectItem>
+                          <SelectItem value="in_progress">قيد المعالجة</SelectItem>
+                          <SelectItem value="resolved">تم الحل</SelectItem>
+                          <SelectItem value="closed">مغلق</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {/* تصدير */}
+                    <Button size="sm" variant="outline" onClick={handleExportTickets} disabled={filteredTickets.length === 0}>
+                      <Download className="w-4 h-4 ml-1" />
+                      تصدير
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin" /></div>
-                ) : tickets.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">لا توجد تذاكر</p>
+                ) : filteredTickets.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    {searchQuery || categoryFilter !== 'all' ? 'لا توجد تذاكر مطابقة للبحث' : 'لا توجد تذاكر'}
+                  </p>
                 ) : (
                   <Table>
                     <TableHeader>
@@ -148,7 +308,7 @@ const SupportDashboardPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tickets.map(ticket => {
+                      {filteredTickets.map(ticket => {
                         const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
                         const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
                         const Icon = s.icon;
@@ -184,17 +344,36 @@ const SupportDashboardPage = () => {
           <TabsContent value="errors">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bug className="w-5 h-5 text-destructive" />
-                  سجل الأخطاء التلقائية
-                  <span className="text-sm font-normal text-muted-foreground">({errors.length})</span>
-                </CardTitle>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="flex items-center gap-2">
+                    <Bug className="w-5 h-5 text-destructive" />
+                    سجل الأخطاء التلقائية
+                    <span className="text-sm font-normal text-muted-foreground">({filteredErrors.length})</span>
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
+                      <Input
+                        placeholder="بحث في الأخطاء..."
+                        value={errorSearch}
+                        onChange={e => setErrorSearch(e.target.value)}
+                        className="pr-8 w-[180px]"
+                      />
+                    </div>
+                    <Button size="sm" variant="outline" onClick={handleExportErrors} disabled={filteredErrors.length === 0}>
+                      <Download className="w-4 h-4 ml-1" />
+                      تصدير
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                {errors.length === 0 ? (
+                {filteredErrors.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle className="w-12 h-12 text-success mx-auto mb-2" />
-                    <p className="text-muted-foreground">لا توجد أخطاء مسجلة — التطبيق يعمل بشكل سليم</p>
+                    <p className="text-muted-foreground">
+                      {errorSearch ? 'لا توجد أخطاء مطابقة للبحث' : 'لا توجد أخطاء مسجلة — التطبيق يعمل بشكل سليم'}
+                    </p>
                   </div>
                 ) : (
                   <Table>
@@ -207,7 +386,7 @@ const SupportDashboardPage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {errors.map(err => {
+                      {filteredErrors.map(err => {
                         const meta = err.metadata as Record<string, string> | null;
                         return (
                           <TableRow key={err.id}>
@@ -231,12 +410,16 @@ const SupportDashboardPage = () => {
             </Card>
           </TabsContent>
 
-          {/* === تبويب الإحصائيات === */}
+          {/* === تبويب الإحصائيات المتقدمة === */}
           <TabsContent value="stats">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* ملخص التذاكر */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">ملخص التذاكر</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    ملخص التذاكر
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <StatRow label="إجمالي التذاكر" value={stats?.totalTickets ?? 0} />
@@ -245,11 +428,27 @@ const SupportDashboardPage = () => {
                   <StatRow label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
                   <StatRow label="أولوية عالية/حرجة" value={stats?.highPriorityTickets ?? 0} color="text-destructive" />
                   <StatRow label="تذاكر آخر 7 أيام" value={stats?.ticketsLast7d ?? 0} />
+                  {avgResolutionTime && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Activity className="w-3.5 h-3.5" />
+                          متوسط وقت الحل
+                        </span>
+                        <span className="font-bold text-primary">{avgResolutionTime}</span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* ملخص الأخطاء */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">ملخص الأخطاء</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Bug className="w-4 h-4" />
+                    ملخص الأخطاء
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <StatRow label="إجمالي الأخطاء المسجلة" value={stats?.totalErrors ?? 0} />
@@ -262,16 +461,82 @@ const SupportDashboardPage = () => {
                           <CheckCircle className="w-5 h-5 text-success" />
                           <span className="text-sm text-success">حالة النظام: سليم</span>
                         </>
-                      ) : (
+                      ) : (stats?.errorsLast24h ?? 0) <= 3 ? (
                         <>
                           <AlertTriangle className="w-5 h-5 text-warning" />
-                          <span className="text-sm text-warning">يوجد أخطاء تحتاج مراجعة</span>
+                          <span className="text-sm text-warning">يوجد أخطاء قليلة تحتاج مراجعة</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-5 h-5 text-destructive" />
+                          <span className="text-sm text-destructive">يوجد أخطاء متكررة — تحتاج تدخل فوري</span>
                         </>
                       )}
                     </div>
+                    {(stats?.errorsLast24h ?? 0) > 0 && (stats?.errorsLast7d ?? 0) > 0 && (
+                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                        {(stats?.errorsLast24h ?? 0) > ((stats?.errorsLast7d ?? 0) / 7) ? (
+                          <>
+                            <TrendingUp className="w-3 h-3 text-destructive" />
+                            <span>معدل الأخطاء في ارتفاع</span>
+                          </>
+                        ) : (
+                          <>
+                            <TrendingDown className="w-3 h-3 text-success" />
+                            <span>معدل الأخطاء في انخفاض</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
+
+              {/* توزيع التصنيفات */}
+              {categoryStats.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      توزيع التذاكر حسب التصنيف
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {categoryStats.map(cat => (
+                      <div key={cat.key} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{cat.label}</span>
+                          <span className="font-medium">{cat.count} ({cat.pct}%)</span>
+                        </div>
+                        <Progress value={cat.pct} className="h-2" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* توزيع الأولويات */}
+              {priorityStats.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      توزيع التذاكر حسب الأولوية
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {priorityStats.map(p => (
+                      <div key={p.key} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <Badge className={p.color}>{p.label}</Badge>
+                          <span className="font-medium">{p.count} ({p.pct}%)</span>
+                        </div>
+                        <Progress value={p.pct} className="h-2" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -294,13 +559,13 @@ const SupportDashboardPage = () => {
 
 // === مكونات مساعدة ===
 
-function StatCard({ icon: Icon, label, value, color }: { icon: typeof Clock; label: string; value: number; color: string }) {
+function StatCard({ icon: Icon, label, value, color, isText }: { icon: typeof Clock; label: string; value: number | string; color: string; isText?: boolean }) {
   return (
     <Card>
       <CardContent className="p-4 flex items-center gap-3">
         <Icon className={`w-8 h-8 ${color}`} />
         <div>
-          <p className="text-2xl font-bold">{value}</p>
+          <p className={`${isText ? 'text-lg' : 'text-2xl'} font-bold`}>{value}</p>
           <p className="text-xs text-muted-foreground">{label}</p>
         </div>
       </CardContent>
@@ -341,6 +606,11 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
   const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
   const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
 
+  // حساب عمر التذكرة
+  const ageMs = Date.now() - new Date(ticket.created_at).getTime();
+  const ageHours = ageMs / (1000 * 60 * 60);
+  const ageLabel = ageHours < 1 ? `${Math.round(ageHours * 60)} دقيقة` : ageHours < 24 ? `${Math.round(ageHours)} ساعة` : `${Math.round(ageHours / 24)} يوم`;
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" dir="rtl">
@@ -356,10 +626,20 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
           <Badge className={s.color}>{s.label}</Badge>
           <Badge className={p.color}>{p.label}</Badge>
           <Badge variant="outline">{CATEGORY_MAP[ticket.category] || ticket.category}</Badge>
+          <Badge variant="outline" className="text-xs">
+            <Clock className="w-3 h-3 ml-1" />
+            عمر التذكرة: {ageLabel}
+          </Badge>
         </div>
 
         {ticket.description && (
           <div className="bg-muted/50 rounded-md p-3 text-sm">{ticket.description}</div>
+        )}
+
+        {ticket.resolution_notes && (
+          <div className="bg-success/10 border border-success/20 rounded-md p-3 text-sm">
+            <span className="font-medium text-success">ملاحظات الحل:</span> {ticket.resolution_notes}
+          </div>
         )}
 
         {/* الردود */}
