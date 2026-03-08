@@ -60,7 +60,7 @@ const AccountsViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الحسابات الختامية</h1>
+          <PageHeaderCard title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية" />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -105,13 +105,11 @@ const AccountsViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الحسابات الختامية</h1>
-            <p className="text-muted-foreground mt-1 text-sm">ملخص الأرقام النهائية للحسابات الختامية</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+        <PageHeaderCard
+          title="الحسابات الختامية"
+          description="ملخص الأرقام النهائية للحسابات الختامية"
+          icon={Wallet}
+          actions={
             <ExportMenu onExportPdf={async () => {
               try {
                 await generateAccountsPDF({
@@ -144,8 +142,8 @@ const AccountsViewPage = () => {
                 toast.error('حدث خطأ أثناء تصدير PDF');
               }
             }} />
-          </div>
-        </div>
+          }
+        />
 
         {/* Summary */}
         <Card className="shadow-sm gradient-hero text-primary-foreground">

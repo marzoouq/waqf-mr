@@ -70,7 +70,7 @@ const InvoicesViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6 space-y-5">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display">الفواتير</h1>
+          <PageHeaderCard title="الفواتير" icon={FileText} description="عرض جميع فواتير الوقف" />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -94,15 +94,12 @@ const InvoicesViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الفواتير</h1>
-            <p className="text-muted-foreground mt-1 text-sm">عرض جميع فواتير الوقف</p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <ExportMenu onExportPdf={handleDownloadPDF} />
-          </div>
-        </div>
+        <PageHeaderCard
+          title="الفواتير"
+          description="عرض جميع فواتير الوقف"
+          icon={FileText}
+          actions={<ExportMenu onExportPdf={handleDownloadPDF} />}
+        />
 
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-end">
           <div className="flex gap-1 border rounded-lg p-1">
