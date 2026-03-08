@@ -233,7 +233,7 @@ const BeneficiaryDashboard = () => {
                   <TrendingUp className="w-5 h-5 text-success" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">آخر التوزيعات</p>
+                 <p className="text-xs text-muted-foreground">آخر التوزيعات (أحدث 3)</p>
                   <p className="text-lg sm:text-xl font-bold truncate">
                     {distributions.filter(d => d.status === 'paid').reduce((s, d) => s + Number(d.amount), 0).toLocaleString()} ر.س
                   </p>

@@ -57,7 +57,6 @@ export const useMessages = (conversationId: string | null) => {
         .limit(50);
       if (error) throw error;
       return ((data || []) as Message[]).reverse();
-      return (data || []) as Message[];
     },
     enabled: !!user && !!conversationId,
     staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness

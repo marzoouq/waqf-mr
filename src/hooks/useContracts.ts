@@ -31,7 +31,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
         .from('contracts')
         .select('*, property:properties(*), unit:units(*)')
         .order('start_date', { ascending: false })
-        .limit(500);
+        .limit(200);
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }

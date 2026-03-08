@@ -35,25 +35,31 @@ const ArchiveLogTab = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['access_log_archive', eventFilter],
+  // Server-side pagination with count (FIX B-02)
+  const { data: rawData, isLoading } = useQuery({
+    queryKey: ['access_log_archive', eventFilter, currentPage],
     queryFn: async () => {
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase
         .from('access_log_archive')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(500);
+        .range(from, from + ITEMS_PER_PAGE - 1);
 
       if (eventFilter !== 'all') {
         query = query.eq('event_type', eventFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data || []) as unknown as ArchiveLogEntry[];
+      return { logs: (data || []) as unknown as ArchiveLogEntry[], totalCount: count ?? 0 };
     },
   });
 
+  const logs = rawData?.logs ?? [];
+  const totalCount = rawData?.totalCount ?? 0;
+
+  // Client-side search on current page only (lightweight)
   const filtered = useMemo(() => {
     if (!searchQuery) return logs;
     const q = searchQuery.toLowerCase();
@@ -63,16 +69,6 @@ const ArchiveLogTab = () => {
       (l.device_info && l.device_info.toLowerCase().includes(q))
     );
   }, [logs, searchQuery]);
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(start, start + ITEMS_PER_PAGE);
-  }, [filtered, currentPage]);
-
-  const oldestLog = useMemo(() => {
-    if (logs.length === 0) return null;
-    return logs[logs.length - 1];
-  }, [logs]);
 
   return (
     <div className="space-y-6">
@@ -84,7 +80,7 @@ const ArchiveLogTab = () => {
               <Archive className="w-4 h-4" />إجمالي السجلات المؤرشفة
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
+          <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
@@ -101,12 +97,12 @@ const ArchiveLogTab = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Activity className="w-4 h-4" />أقدم سجل مؤرشف
+              <Activity className="w-4 h-4" />الصفحة الحالية
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm font-medium">
-              {oldestLog ? new Date(oldestLog.created_at).toLocaleString('ar-SA') : '—'}
+              {currentPage} من {Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE))}
             </p>
           </CardContent>
         </Card>
@@ -119,7 +115,7 @@ const ArchiveLogTab = () => {
           <Input
             placeholder="بحث بالبريد أو المسار..."
             value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            onChange={e => { setSearchQuery(e.target.value); }}
             className="pr-9"
           />
         </div>
@@ -160,7 +156,7 @@ const ArchiveLogTab = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginated.map(log => {
+                  {filtered.map(log => {
                     const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
                     const Icon = config.icon;
                     return (
@@ -185,7 +181,7 @@ const ArchiveLogTab = () => {
               </Table>
               <TablePagination
                 currentPage={currentPage}
-                totalItems={filtered.length}
+                totalItems={totalCount}
                 itemsPerPage={ITEMS_PER_PAGE}
                 onPageChange={setCurrentPage}
               />

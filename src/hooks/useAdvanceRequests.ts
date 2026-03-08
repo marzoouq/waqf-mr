@@ -190,13 +190,19 @@ export const useCreateAdvanceRequest = () => {
         .select()
         .single();
       if (error) throw error;
-      // جلب اسم المستفيد لاستخدامه في الإشعار
-      const { data: ben } = await supabase
-        .from('beneficiaries')
-        .select('name')
-        .eq('id', req.beneficiary_id)
-        .single();
-      return { ...data, _beneficiaryName: ben?.name ?? null };
+      // جلب اسم المستفيد لاستخدامه في الإشعار (FIX H-03: error handling)
+      let beneficiaryName: string | null = null;
+      try {
+        const { data: ben, error: benError } = await supabase
+          .from('beneficiaries')
+          .select('name')
+          .eq('id', req.beneficiary_id)
+          .single();
+        if (!benError && ben) beneficiaryName = ben.name;
+      } catch {
+        // Non-critical — notification will use fallback name
+      }
+      return { ...data, _beneficiaryName: beneficiaryName };
     },
     onSuccess: (result, vars) => {
       qc.invalidateQueries({ queryKey: ['advance_requests'] });

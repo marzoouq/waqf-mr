@@ -73,7 +73,7 @@ export const useInvoicesByFiscalYear = (fiscalYearId: string | 'all') => {
         .from('invoices')
         .select('*, property:properties(id, property_number, location), contract:contracts(id, contract_number, tenant_name)')
         .order('date', { ascending: false })
-        .limit(500);
+        .limit(200);
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
