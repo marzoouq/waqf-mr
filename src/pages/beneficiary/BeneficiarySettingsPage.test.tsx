@@ -35,7 +35,7 @@ vi.mock('@/hooks/useNotifications', () => ({
   TONE_OPTIONS: [{ id: 'default', label: 'افتراضي', file: '/sounds/default.mp3' }],
   NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
   NOTIFICATION_VOLUME_KEY: 'waqf_notification_volume',
-  VOLUME_OPTIONS: [{ value: 'medium', label: 'متوسط' }],
+  VOLUME_OPTIONS: [{ id: 'medium', label: 'متوسط', gain: 0.5 }],
   previewTone: vi.fn(),
 }));
 
