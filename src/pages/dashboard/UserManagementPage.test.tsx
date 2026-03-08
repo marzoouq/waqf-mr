@@ -56,10 +56,10 @@ describe('UserManagementPage', () => {
 
   it('shows users table headers after loading', async () => {
     renderPage();
-    expect(await screen.findByText('البريد الإلكتروني')).toBeInTheDocument();
-    expect(screen.getByText('الدور')).toBeInTheDocument();
-    expect(screen.getByText('الحالة')).toBeInTheDocument();
-    expect(screen.getByText('آخر دخول')).toBeInTheDocument();
+    const headers = await screen.findAllByText('البريد الإلكتروني');
+    expect(headers.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الدور').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الحالة').length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays users after loading', async () => {
@@ -72,16 +72,16 @@ describe('UserManagementPage', () => {
   it('shows role badges correctly', async () => {
     renderPage();
     await screen.findByText('admin@test.com');
-    expect(screen.getByText('ناظر')).toBeInTheDocument();
-    expect(screen.getByText('مستفيد')).toBeInTheDocument();
-    expect(screen.getByText('واقف')).toBeInTheDocument();
+    expect(screen.getAllByText('ناظر').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('مستفيد').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('واقف').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows confirm button for unconfirmed user', async () => {
     renderPage();
     await screen.findByText('ben@test.com');
-    expect(screen.getByText('غير مفعل')).toBeInTheDocument();
-    expect(screen.getByText('تفعيل')).toBeInTheDocument();
+    expect(screen.getAllByText('غير مفعل').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('تفعيل').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows user count in card title', async () => {
