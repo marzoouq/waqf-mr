@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
+import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { queryClient } from '@/lib/queryClient';
 
 interface AuthContextType {
@@ -211,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('waqf_biometric_enabled');
       localStorage.removeItem('waqf_notification_tone');
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
+      clearSlowQueries();
     }
   };
 
