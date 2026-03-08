@@ -148,6 +148,7 @@ const AuditLogPage = () => {
   const totalCount = auditData?.totalCount ?? 0;
 
   const paginated = logs;
+  const filtered = logs; // alias for export/empty-state checks
 
   const { data: todayCount = 0 } = useQuery({
     queryKey: ['audit_log_today_count'],
