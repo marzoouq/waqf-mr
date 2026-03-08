@@ -194,12 +194,11 @@ const InvoicesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة الفواتير</h1>
-            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">رفع وإدارة جميع أنواع الفواتير</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <PageHeaderCard
+          title="إدارة الفواتير"
+          icon={FileText}
+          description="رفع وإدارة جميع أنواع الفواتير"
+          actions={<>
             {(() => {
               const withoutFiles = invoices.filter(inv => !inv.file_path);
               return withoutFiles.length > 0 ? (
@@ -244,35 +243,28 @@ const InvoicesPage = () => {
                           <p className="text-xs text-muted-foreground mt-1">{selectedFile.name}</p>
                         </div>
                       ) : (
-                        <>
-                          <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
-                          <p className={`text-sm ${isDragging ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                            {isDragging ? 'أفلت الملف هنا' : selectedFile ? selectedFile.name : editingInvoice?.file_name ? `الملف الحالي: ${editingInvoice.file_name}` : 'اضغط لاختيار ملف أو اسحبه هنا'}
-                          </p>
-                        </>
+                        <div className="space-y-2">
+                          <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">اضغط أو اسحب ملف هنا</p>
+                          <p className="text-xs text-muted-foreground">صور (JPG, PNG) أو PDF — حد أقصى 5 ميجا</p>
+                        </div>
                       )}
-                      <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (!file) { setSelectedFile(null); return; } validateAndSetFile(file); }} />
                     </div>
-                    {fileError && <p className="text-sm text-destructive mt-1">{fileError}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>نوع الفاتورة *</Label>
-                    <Select value={formData.invoice_type} onValueChange={(v) => setFormData({ ...formData, invoice_type: v })}>
-                      <SelectTrigger><SelectValue placeholder="اختر النوع" /></SelectTrigger>
-                      <SelectContent>{Object.entries(INVOICE_TYPE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}</SelectContent>
-                    </Select>
+                    <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) validateAndSetFile(file); }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>رقم الفاتورة</Label><Input value={formData.invoice_number} onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })} placeholder="اختياري" /></div>
-                    <div className="space-y-2"><Label>المبلغ (ر.س)</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0" /></div>
+                    <div className="space-y-2"><Label>رقم الفاتورة</Label><Input value={formData.invoice_number} onChange={(e) => setFormData({ ...formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
+                    <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
                   </div>
-                  <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
-                  <div className="space-y-2">
-                    <Label>الحالة</Label>
-                    <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{Object.entries(INVOICE_STATUS_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}</SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
+                    <div className="space-y-2">
+                      <Label>نوع الفاتورة *</Label>
+                      <Select value={formData.invoice_type} onValueChange={(v) => setFormData({ ...formData, invoice_type: v })}>
+                        <SelectTrigger><SelectValue placeholder="اختر النوع" /></SelectTrigger>
+                        <SelectContent>{Object.entries(INVOICE_TYPE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>العقار (اختياري)</Label>
@@ -296,8 +288,8 @@ const InvoicesPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+          </>}
+        />
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">
