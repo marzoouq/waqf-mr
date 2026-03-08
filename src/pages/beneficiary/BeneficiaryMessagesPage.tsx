@@ -45,34 +45,46 @@ const BeneficiaryMessagesPage = () => {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
-    await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
-    setNewMessage('');
+    try {
+      await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
+      setNewMessage('');
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const handleNewSupport = async () => {
     if (!user) return;
-    const conv = await createConversation.mutateAsync({
-      type: 'support',
-      subject: supportSubject || 'طلب دعم فني',
-      createdBy: user.id,
-    });
-    setSelectedConv(conv);
-    setActiveTab('support');
-    setSupportDialogOpen(false);
-    setSupportSubject('');
+    try {
+      const conv = await createConversation.mutateAsync({
+        type: 'support',
+        subject: supportSubject || 'طلب دعم فني',
+        createdBy: user.id,
+      });
+      setSelectedConv(conv);
+      setActiveTab('support');
+      setSupportDialogOpen(false);
+      setSupportSubject('');
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const handleNewChat = async () => {
     if (!user) return;
-    const conv = await createConversation.mutateAsync({
-      type: 'chat',
-      subject: chatSubject || 'محادثة مع الناظر',
-      createdBy: user.id,
-    });
-    setSelectedConv(conv);
-    setActiveTab('chat');
-    setChatDialogOpen(false);
-    setChatSubject('');
+    try {
+      const conv = await createConversation.mutateAsync({
+        type: 'chat',
+        subject: chatSubject || 'محادثة مع الناظر',
+        createdBy: user.id,
+      });
+      setSelectedConv(conv);
+      setActiveTab('chat');
+      setChatDialogOpen(false);
+      setChatSubject('');
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   if (chatError) {

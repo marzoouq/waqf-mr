@@ -100,13 +100,17 @@ const PropertiesPage = () => {
       property_number: formData.property_number, property_type: formData.property_type,
       location: formData.location, area: parseFloat(formData.area), description: formData.description || undefined,
     };
-    if (editingProperty) {
-      await updateProperty.mutateAsync({ id: editingProperty.id, ...propertyData });
-    } else {
-      await createProperty.mutateAsync(propertyData);
+    try {
+      if (editingProperty) {
+        await updateProperty.mutateAsync({ id: editingProperty.id, ...propertyData });
+      } else {
+        await createProperty.mutateAsync(propertyData);
+      }
+      setIsOpen(false);
+      resetForm();
+    } catch {
+      // onError in the mutation already shows a toast
     }
-    setIsOpen(false);
-    resetForm();
   };
 
   const handleEdit = (property: Property, e: React.MouseEvent) => {
@@ -121,8 +125,12 @@ const PropertiesPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    await deleteProperty.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
+    try {
+      await deleteProperty.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const filteredProperties = properties.filter((p) => {

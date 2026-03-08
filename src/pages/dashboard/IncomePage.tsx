@@ -58,15 +58,23 @@ const IncomePage = () => {
     if (!editingIncome && fiscalYear?.id) {
       incomeData.fiscal_year_id = fiscalYear.id;
     }
-    if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
-    setIsOpen(false);
-    resetForm();
+    try {
+      if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
+      setIsOpen(false);
+      resetForm();
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    await deleteIncome.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
+    try {
+      await deleteIncome.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);

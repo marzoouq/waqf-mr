@@ -44,22 +44,30 @@ const MessagesPage = () => {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;
-    await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
-    setNewMessage('');
+    try {
+      await sendMessage.mutateAsync({ conversationId: selectedConv.id, content: newMessage, senderId: user.id });
+      setNewMessage('');
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const handleCreateConv = async () => {
     if (!user || !newConvBeneficiary || role !== 'admin') return;
-    const conv = await createConversation.mutateAsync({
-      type: 'chat',
-      subject: newConvSubject || 'محادثة جديدة',
-      createdBy: user.id,
-      participantId: newConvBeneficiary,
-    });
-    setSelectedConv(conv);
-    setNewConvOpen(false);
-    setNewConvSubject('');
-    setNewConvBeneficiary('');
+    try {
+      const conv = await createConversation.mutateAsync({
+        type: 'chat',
+        subject: newConvSubject || 'محادثة جديدة',
+        createdBy: user.id,
+        participantId: newConvBeneficiary,
+      });
+      setSelectedConv(conv);
+      setNewConvOpen(false);
+      setNewConvSubject('');
+      setNewConvBeneficiary('');
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const getBeneficiaryName = (id: string | null) => {

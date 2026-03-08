@@ -81,7 +81,7 @@ export const useTicketReplies = (ticketId?: string) => {
         .select('*')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })
-        .limit(100);
+        .limit(500); // Ticket replies rarely exceed this; prevents unbounded fetch
       if (error) throw error;
       return (data ?? []) as TicketReply[];
     },
