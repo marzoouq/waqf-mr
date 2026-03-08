@@ -65,7 +65,7 @@ export const useAuditLog = (filters?: {
         query = query.eq('operation', filters.operation);
       }
       if (filters?.searchQuery) {
-        query = query.ilike('table_name', `%${filters.searchQuery}%`);
+        query = query.or(`table_name.ilike.%${filters.searchQuery}%,operation.ilike.%${filters.searchQuery}%`);
       }
 
       const { data, error, count } = await query;

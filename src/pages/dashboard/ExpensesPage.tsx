@@ -62,15 +62,23 @@ const ExpensesPage = () => {
     if (!editingExpense && fiscalYear?.id) {
       expenseData.fiscal_year_id = fiscalYear.id;
     }
-    if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
-    setIsOpen(false);
-    resetForm();
+    try {
+      if (editingExpense) { await updateExpense.mutateAsync({ id: editingExpense.id, ...expenseData } as unknown as Parameters<typeof updateExpense.mutateAsync>[0]); } else { await createExpense.mutateAsync(expenseData as unknown as Parameters<typeof createExpense.mutateAsync>[0]); }
+      setIsOpen(false);
+      resetForm();
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    await deleteExpense.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
+    try {
+      await deleteExpense.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);

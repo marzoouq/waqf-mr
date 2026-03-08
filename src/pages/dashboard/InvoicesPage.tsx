@@ -160,8 +160,12 @@ const InvoicesPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    await deleteInvoice.mutateAsync({ id: deleteTarget.id, file_path: deleteTarget.file_path });
-    setDeleteTarget(null);
+    try {
+      await deleteInvoice.mutateAsync({ id: deleteTarget.id, file_path: deleteTarget.file_path });
+      setDeleteTarget(null);
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const filteredInvoices = useMemo(() => {

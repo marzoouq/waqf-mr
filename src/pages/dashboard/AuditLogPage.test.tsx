@@ -13,7 +13,7 @@ const mockLogs = [
 ];
 
 vi.mock('@/hooks/useAuditLog', () => ({
-  useAuditLog: vi.fn(() => ({ data: mockLogs, isLoading: false })),
+  useAuditLog: vi.fn(() => ({ data: { logs: mockLogs, totalCount: mockLogs.length }, isLoading: false })),
   getTableNameAr: (t: string) => {
     const map: Record<string, string> = { income: 'الدخل', expenses: 'المصروفات', accounts: 'الحسابات' };
     return map[t] || t;

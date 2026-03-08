@@ -68,16 +68,20 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
   const handleSubmit = async () => {
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0 || numAmount > maxAdvance) return;
-    await create.mutateAsync({
-      beneficiary_id: beneficiaryId,
-      fiscal_year_id: fiscalYearId,
-      amount: numAmount,
-      reason: reason || undefined,
-    });
-    setOpen(false);
-    setAmount('');
-    setReason('');
-    setServerData(null);
+    try {
+      await create.mutateAsync({
+        beneficiary_id: beneficiaryId,
+        fiscal_year_id: fiscalYearId,
+        amount: numAmount,
+        reason: reason || undefined,
+      });
+      setOpen(false);
+      setAmount('');
+      setReason('');
+      setServerData(null);
+    } catch {
+      // onError in the mutation already shows a toast
+    }
   };
 
   const numAmount = parseFloat(amount) || 0;
