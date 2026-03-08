@@ -41,6 +41,13 @@ export function getSlowQueries(): readonly PerfEntry[] {
 }
 
 /**
+ * يمسح سجل العمليات البطيئة — يُستدعى عند تسجيل الخروج لمنع تسرب بيانات بين المستخدمين
+ */
+export function clearSlowQueries(): void {
+  recentSlowQueries.length = 0;
+}
+
+/**
  * يقيس وقت تحميل الصفحة ويسجل التحذيرات
  */
 export function reportPageLoadMetrics(): void {

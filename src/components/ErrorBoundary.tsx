@@ -42,7 +42,15 @@ class ErrorBoundary extends Component<Props, State> {
         p_target_path: typeof window !== 'undefined' ? window.location.pathname : null,
         p_device_info: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
         p_metadata: metadata,
-      }).then(() => { /* reported */ }, () => { /* silent */ });
+      }).then(() => { /* reported */ }, () => {
+        // Supabase unavailable — persist locally as fallback
+        try {
+          const queue = JSON.parse(localStorage.getItem('error_log_queue') || '[]');
+          queue.push({ ...metadata, logged_at: new Date().toISOString() });
+          if (queue.length > 20) queue.shift();
+          localStorage.setItem('error_log_queue', JSON.stringify(queue));
+        } catch { /* storage full or unavailable */ }
+      });
     } catch { /* silent — don't break the error boundary */ }
   }
 

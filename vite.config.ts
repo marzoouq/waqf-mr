@@ -33,22 +33,6 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-stylesheets',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-webfonts',
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-            },
-          },
-          {
             urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
             handler: 'CacheFirst',
             options: {
@@ -78,8 +62,8 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'supabase-api',
               networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
-              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 }, // 5 minutes for financial data freshness
+              cacheableResponse: { statuses: [200] }, // exclude opaque (status 0) responses
             },
           },
           {
