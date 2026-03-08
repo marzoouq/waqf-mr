@@ -50,7 +50,8 @@ const CATEGORY_MAP: Record<string, string> = {
 const SupportDashboardPage = () => {
   const { user, role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
-  const { data: tickets = [], isLoading } = useSupportTickets(statusFilter);
+  const { data: ticketsData, isLoading } = useSupportTickets(statusFilter);
+  const tickets = ticketsData?.tickets ?? [];
   const { data: stats } = useSupportStats();
   const { data: errors = [] } = useClientErrors();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
