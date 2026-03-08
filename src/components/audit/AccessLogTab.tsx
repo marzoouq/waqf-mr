@@ -34,24 +34,28 @@ const AccessLogTab = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['access_log', eventFilter],
+  const { data: rawData, isLoading } = useQuery({
+    queryKey: ['access_log', eventFilter, currentPage],
     queryFn: async () => {
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase
         .from('access_log')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(500);
+        .range(from, from + ITEMS_PER_PAGE - 1);
 
       if (eventFilter !== 'all') {
         query = query.eq('event_type', eventFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data || []) as unknown as AccessLogEntry[];
+      return { logs: (data || []) as unknown as AccessLogEntry[], totalCount: count ?? 0 };
     },
   });
+
+  const logs = rawData?.logs ?? [];
+  const totalCount = rawData?.totalCount ?? 0;
 
   const filtered = useMemo(() => {
     if (!searchQuery) return logs;
@@ -63,20 +67,36 @@ const AccessLogTab = () => {
     );
   }, [logs, searchQuery]);
 
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(start, start + ITEMS_PER_PAGE);
-  }, [filtered, currentPage]);
+  // Server-side pagination — no client-side slicing needed
+  const paginated = filtered;
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const failedToday = useMemo(
-    () => logs.filter(l => l.event_type === 'login_failed' && l.created_at.startsWith(todayStr)).length,
-    [logs, todayStr]
-  );
-  const unauthorizedToday = useMemo(
-    () => logs.filter(l => l.event_type === 'unauthorized_access' && l.created_at.startsWith(todayStr)).length,
-    [logs, todayStr]
-  );
+  // Stats use separate lightweight COUNT queries
+  const { data: failedToday = 0 } = useQuery({
+    queryKey: ['access_log_failed_today'],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const { count } = await supabase
+        .from('access_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'login_failed')
+        .gte('created_at', todayStr);
+      return count ?? 0;
+    },
+  });
+  const { data: unauthorizedToday = 0 } = useQuery({
+    queryKey: ['access_log_unauthorized_today'],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const { count } = await supabase
+        .from('access_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_type', 'unauthorized_access')
+        .gte('created_at', todayStr);
+      return count ?? 0;
+    },
+  });
 
   return (
     <div className="space-y-6">
