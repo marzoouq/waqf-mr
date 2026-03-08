@@ -1,5 +1,5 @@
 /**
- * صفحة الدعم الفني للمستفيد — تقديم ومتابعة تذاكر الدعم
+ * صفحة الدعم الفني للمستفيد — تقديم ومتابعة تذاكر الدعم + تقييم الخدمة
  */
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,12 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Headset, CheckCircle, Clock, Send, Loader2, MessageSquare, XCircle, ArrowUpCircle, Eye, Plus,
+  Headset, CheckCircle, Clock, Send, Loader2, MessageSquare, XCircle, ArrowUpCircle, Eye, Plus, Star,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
-  useAddTicketReply, type SupportTicket,
+  useAddTicketReply, useRateTicket, type SupportTicket,
 } from '@/hooks/useSupportTickets';
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -75,6 +75,7 @@ const BeneficiarySupportPage = () => {
                     <TableHead className="text-right">الرقم</TableHead>
                     <TableHead className="text-right">العنوان</TableHead>
                     <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">التقييم</TableHead>
                     <TableHead className="text-right">التاريخ</TableHead>
                     <TableHead className="text-right">إجراء</TableHead>
                   </TableRow>
@@ -89,6 +90,19 @@ const BeneficiarySupportPage = () => {
                         <TableCell className="font-medium">{ticket.title}</TableCell>
                         <TableCell>
                           <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {ticket.rating ? (
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map(i => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                              ))}
+                            </div>
+                          ) : (ticket.status === 'resolved' || ticket.status === 'closed') ? (
+                            <span className="text-xs text-muted-foreground">بانتظار التقييم</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
                         <TableCell>
@@ -106,12 +120,10 @@ const BeneficiarySupportPage = () => {
         </Card>
       </div>
 
-      {/* تفاصيل التذكرة */}
       {selectedTicket && (
         <TicketViewDialog ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
       )}
 
-      {/* تذكرة جديدة */}
       <NewTicketDialog open={showNewTicket} onClose={() => setShowNewTicket(false)} />
     </DashboardLayout>
   );
@@ -120,7 +132,12 @@ const BeneficiarySupportPage = () => {
 function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose: () => void }) {
   const { data: replies = [], isLoading } = useTicketReplies(ticket.id);
   const addReply = useAddTicketReply();
+  const rateTicket = useRateTicket();
   const [replyContent, setReplyContent] = useState('');
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
 
   const handleSend = async () => {
     if (!replyContent.trim()) return;
@@ -128,7 +145,15 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
     setReplyContent('');
   };
 
+  const handleRate = async () => {
+    if (rating < 1) return;
+    await rateTicket.mutateAsync({ id: ticket.id, rating, rating_comment: ratingComment });
+    setShowRating(false);
+    onClose();
+  };
+
   const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+  const canRate = (ticket.status === 'resolved' || ticket.status === 'closed') && !ticket.rating;
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -151,6 +176,23 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
           </div>
         )}
 
+        {/* عرض التقييم الحالي */}
+        {ticket.rating && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">تقييمك:</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                ))}
+              </div>
+            </div>
+            {ticket.rating_comment && (
+              <p className="text-sm text-muted-foreground mt-1">{ticket.rating_comment}</p>
+            )}
+          </div>
+        )}
+
         <ScrollArea className="flex-1 min-h-0 max-h-[250px]">
           <div className="space-y-2 p-1">
             {isLoading ? (
@@ -170,6 +212,59 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
             <Button size="icon" onClick={handleSend} disabled={!replyContent.trim() || addReply.isPending}>
               <Send className="w-4 h-4" />
             </Button>
+          </div>
+        )}
+
+        {/* زر التقييم */}
+        {canRate && !showRating && (
+          <Button variant="outline" className="gap-2" onClick={() => setShowRating(true)}>
+            <Star className="w-4 h-4 text-amber-400" />
+            قيّم الخدمة
+          </Button>
+        )}
+
+        {/* نموذج التقييم */}
+        {showRating && (
+          <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+            <p className="text-sm font-medium text-center">كيف تقيّم جودة الدعم المقدم؟</p>
+            <div className="flex justify-center gap-1">
+              {[1, 2, 3, 4, 5].map(i => (
+                <button
+                  key={i}
+                  type="button"
+                  onMouseEnter={() => setHoverRating(i)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  onClick={() => setRating(i)}
+                  className="p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`w-8 h-8 transition-colors ${
+                      i <= (hoverRating || rating)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-muted-foreground/30'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            {rating > 0 && (
+              <p className="text-center text-sm text-muted-foreground">
+                {rating === 1 ? 'سيء' : rating === 2 ? 'مقبول' : rating === 3 ? 'جيد' : rating === 4 ? 'جيد جداً' : 'ممتاز'}
+              </p>
+            )}
+            <Textarea
+              placeholder="ملاحظات إضافية (اختياري)..."
+              value={ratingComment}
+              onChange={e => setRatingComment(e.target.value)}
+              className="min-h-[60px]"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setShowRating(false)}>إلغاء</Button>
+              <Button size="sm" className="gradient-primary gap-1" onClick={handleRate} disabled={rating < 1 || rateTicket.isPending}>
+                {rateTicket.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
+                إرسال التقييم
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>

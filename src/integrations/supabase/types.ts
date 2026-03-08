@@ -1106,6 +1106,8 @@ export type Database = {
           description: string
           id: string
           priority: string
+          rating: number | null
+          rating_comment: string | null
           resolution_notes: string | null
           resolved_at: string | null
           status: string
@@ -1121,6 +1123,8 @@ export type Database = {
           description?: string
           id?: string
           priority?: string
+          rating?: number | null
+          rating_comment?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string
@@ -1136,6 +1140,8 @@ export type Database = {
           description?: string
           id?: string
           priority?: string
+          rating?: number | null
+          rating_comment?: string | null
           resolution_notes?: string | null
           resolved_at?: string | null
           status?: string

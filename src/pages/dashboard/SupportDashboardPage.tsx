@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   Headset, Bug, BarChart3, AlertTriangle, CheckCircle, Clock, Send,
   Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye,
-  Search, Download, TrendingUp, TrendingDown, Activity,
+  Search, Download, TrendingUp, TrendingDown, Activity, Star,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -182,6 +182,14 @@ const SupportDashboardPage = () => {
     return `${Math.round(avg / 24)} يوم`;
   }, [tickets]);
 
+  // === متوسط التقييم ===
+  const avgRating = useMemo(() => {
+    const rated = tickets.filter(t => t.rating);
+    if (rated.length === 0) return null;
+    const total = rated.reduce((sum, t) => sum + (t.rating ?? 0), 0);
+    return { avg: (total / rated.length).toFixed(1), count: rated.length };
+  }, [tickets]);
+
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
@@ -204,12 +212,13 @@ const SupportDashboardPage = () => {
         </div>
 
         {/* بطاقات الإحصائيات */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
           <StatCard icon={ArrowUpCircle} label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
           <StatCard icon={Bug} label="أخطاء 24 ساعة" value={stats?.errorsLast24h ?? 0} color="text-destructive" />
           <StatCard icon={CheckCircle} label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
           <StatCard icon={Activity} label="متوسط الحل" value={avgResolutionTime ?? '—'} color="text-primary" isText />
+          <StatCard icon={Star} label="متوسط التقييم" value={avgRating ? `${avgRating.avg} ★` : '—'} color="text-amber-500" isText />
         </div>
 
         <Tabs defaultValue="tickets" className="space-y-4">
@@ -298,11 +307,12 @@ const SupportDashboardPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                        <TableHead className="text-right">الرقم</TableHead>
+                         <TableHead className="text-right">الرقم</TableHead>
                         <TableHead className="text-right">العنوان</TableHead>
                         <TableHead className="text-right">التصنيف</TableHead>
                         <TableHead className="text-right">الأولوية</TableHead>
                         <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">التقييم</TableHead>
                         <TableHead className="text-right">التاريخ</TableHead>
                         <TableHead className="text-right">إجراء</TableHead>
                       </TableRow>
@@ -322,6 +332,15 @@ const SupportDashboardPage = () => {
                               <Badge className={s.color}>
                                 <Icon className="w-3 h-3 ml-1" />{s.label}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {ticket.rating ? (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                  ))}
+                                </div>
+                              ) : <span className="text-xs text-muted-foreground">—</span>}
                             </TableCell>
                             <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
                             <TableCell>
@@ -436,6 +455,17 @@ const SupportDashboardPage = () => {
                           متوسط وقت الحل
                         </span>
                         <span className="font-bold text-primary">{avgResolutionTime}</span>
+                      </div>
+                    </div>
+                  )}
+                  {avgRating && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-amber-400" />
+                          متوسط تقييم الخدمة
+                        </span>
+                        <span className="font-bold text-amber-500">{avgRating.avg} ★ ({avgRating.count} تقييم)</span>
                       </div>
                     </div>
                   )}
@@ -639,6 +669,24 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
         {ticket.resolution_notes && (
           <div className="bg-success/10 border border-success/20 rounded-md p-3 text-sm">
             <span className="font-medium text-success">ملاحظات الحل:</span> {ticket.resolution_notes}
+          </div>
+        )}
+
+        {/* تقييم المستفيد */}
+        {ticket.rating && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">تقييم المستفيد:</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">({ticket.rating}/5)</span>
+            </div>
+            {ticket.rating_comment && (
+              <p className="text-sm text-muted-foreground mt-1">{ticket.rating_comment}</p>
+            )}
           </div>
         )}
 

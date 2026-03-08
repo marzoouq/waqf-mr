@@ -18,6 +18,8 @@ export interface SupportTicket {
   assigned_to: string | null;
   resolved_at: string | null;
   resolution_notes: string | null;
+  rating: number | null;
+  rating_comment: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -156,6 +158,27 @@ export const useAddTicketReply = () => {
       toast.success('تم إرسال الرد');
     },
     onError: () => toast.error('فشل إرسال الرد'),
+  });
+};
+
+/** تقييم تذكرة دعم (للمستفيد بعد الإغلاق/الحل) */
+export const useRateTicket = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, rating, rating_comment }: {
+      id: string; rating: number; rating_comment?: string;
+    }) => {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({ rating, rating_comment: rating_comment || null })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['support_tickets'] });
+      toast.success('شكراً لتقييمك!');
+    },
+    onError: () => toast.error('فشل إرسال التقييم'),
   });
 };
 
