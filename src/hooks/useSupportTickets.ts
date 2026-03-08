@@ -47,8 +47,8 @@ export const useSupportTickets = (statusFilter?: string) => {
     queryKey: ['support_tickets', statusFilter ?? 'all'],
     staleTime: 10_000,
     queryFn: async () => {
-      let query = supabase
-        .from('support_tickets' as string)
+      // Tables not yet in generated types — use typed client workaround
+      let query = (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> }).from('support_tickets')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(200);
