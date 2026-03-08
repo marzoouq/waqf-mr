@@ -47,6 +47,8 @@ const COLORS = [
 const AdminDashboard = () => {
   const { role } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const { data: allFiscalYears = [] } = useFiscalYears();
+  const waqfInfo = usePdfWaqfInfo();
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
