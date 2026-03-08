@@ -115,7 +115,7 @@ const ArchiveLogTab = () => {
           <Input
             placeholder="بحث بالبريد أو المسار..."
             value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); }}
+            onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="pr-9"
           />
         </div>

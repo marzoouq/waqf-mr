@@ -159,13 +159,17 @@ const DistributeDialog = ({
   const hasDeficit = totalDeficit > 0;
 
   const handleConfirm = async () => {
-    await distribute.mutateAsync({
-      account_id: accountId,
-      fiscal_year_id: fiscalYearId,
-      distributions,
-      total_distributed: totalNet + totalAdvances + totalCarryforward,
-    });
-    onOpenChange(false);
+    try {
+      await distribute.mutateAsync({
+        account_id: accountId,
+        fiscal_year_id: fiscalYearId,
+        distributions,
+        total_distributed: totalNet + totalAdvances + totalCarryforward,
+      });
+      onOpenChange(false);
+    } catch {
+      // onError in the mutation already shows a toast — just prevent unhandled rejection
+    }
   };
 
   return (

@@ -113,11 +113,11 @@ const FiscalYearManagementTab = () => {
       queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
       toast.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
       setNewFY({ label: '', start_date: '', end_date: '' });
-      setCreating(false);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
     } finally {
       setActionLoading(null);
+      setCreating(false);
     }
   };
 

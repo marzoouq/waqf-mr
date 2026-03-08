@@ -82,7 +82,7 @@ const BeneficiaryDashboard = () => {
   const { data: distributions = [] } = useQuery({
     queryKey: ['my-distributions-recent', currentBeneficiary?.id],
     enabled: !!currentBeneficiary?.id,
-    staleTime: 10_000,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('distributions')

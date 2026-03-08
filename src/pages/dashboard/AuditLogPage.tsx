@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
 import TablePagination from '@/components/TablePagination';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -156,10 +158,18 @@ const AuditLogPage = () => {
 
   const paginated = filtered;
 
-  const todayCount = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return logs.filter(l => l.created_at.startsWith(today)).length;
-  }, [logs]);
+  const { data: todayCount = 0 } = useQuery({
+    queryKey: ['audit_log_today_count'],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const { count } = await supabase
+        .from('audit_log')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', todayStr);
+      return count ?? 0;
+    },
+  });
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {

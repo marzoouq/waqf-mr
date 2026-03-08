@@ -30,10 +30,12 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
       let query = supabase
         .from('contracts')
         .select('*, property:properties(*), unit:units(*)')
-        .order('start_date', { ascending: false })
-        .limit(200);
+        .order('start_date', { ascending: false });
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      if (fiscalYearId === 'all') {
+        query = query.limit(1000);
       }
       const { data, error } = await query;
       if (error) throw error;
