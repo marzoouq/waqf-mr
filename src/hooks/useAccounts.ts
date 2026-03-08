@@ -39,7 +39,7 @@ export const useAccountByFiscalYear = (
         .from('accounts')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(100);
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       } else if (fiscalYearLabel) {
@@ -55,7 +55,7 @@ export const useAccountByFiscalYear = (
           .select('*')
           .eq('fiscal_year', fiscalYearLabel)
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(100);
         if (fbError) throw fbError;
         return fallbackData ?? [];
       }

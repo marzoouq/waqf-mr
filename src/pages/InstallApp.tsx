@@ -17,7 +17,7 @@ const InstallApp = () => {
 
   useEffect(() => {
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent)
-      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
     setIsIOS(isIOSDevice);
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
