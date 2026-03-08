@@ -92,7 +92,8 @@ const DisclosurePage = () => {
         .from('distributions')
         .select('*, account:accounts(*)')
         .eq('beneficiary_id', currentBeneficiary.id)
-      .order('date', { ascending: false });
+        .order('date', { ascending: false })
+        .limit(200);
       if (error) throw error;
       return data;
     },
@@ -170,7 +171,7 @@ const DisclosurePage = () => {
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
-          fiscalYear: (d as { account?: { fiscal_year?: string } }).account?.fiscal_year || '-',
+          fiscalYear: d.account?.fiscal_year || '-',
           amount: Number(d.amount),
           status: d.status,
         })),

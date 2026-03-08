@@ -92,7 +92,7 @@ const MySharePage = () => {
   const filteredDistributions = currentAccount
     ? distributions.filter(d => d.account_id === currentAccount.id)
     : (fiscalYearId && fiscalYearId !== 'all'
-        ? distributions.filter(d => (d as { fiscal_year_id?: string }).fiscal_year_id === fiscalYearId)
+        ? distributions.filter(d => d.fiscal_year_id === fiscalYearId)
         : distributions);
 
   const totalReceived = filteredDistributions
@@ -208,7 +208,7 @@ const MySharePage = () => {
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
-          fiscalYear: (d as { account?: { fiscal_year?: string } }).account?.fiscal_year || '-',
+          fiscalYear: d.account?.fiscal_year || '-',
           amount: Number(d.amount),
           status: d.status,
         })),
