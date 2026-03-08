@@ -116,13 +116,14 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Get active certificate
-      const { data: cert } = await admin.from("zatca_certificates").select("*").eq("is_active", true).limit(1).single();
-      if (!cert) {
-        return new Response(JSON.stringify({ error: "No active ZATCA certificate. Complete onboarding first." }), {
+      // Get active certificate with decrypted private key via RPC
+      const { data: certData, error: certErr } = await admin.rpc("get_active_zatca_certificate");
+      if (certErr || !certData || certData.error) {
+        return new Response(JSON.stringify({ error: certData?.error || "No active ZATCA certificate. Complete onboarding first." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const cert = certData;
 
       // Get invoice
       const { data: inv } = await admin.from(table).select("*").eq("id", invoice_id).single();

@@ -1455,6 +1455,7 @@ export type Database = {
         Args: { p_contract_id: string }
         Returns: number
       }
+      get_active_zatca_certificate: { Args: never; Returns: Json }
       get_beneficiary_decrypted: {
         Args: { p_beneficiary_id: string }
         Returns: {
