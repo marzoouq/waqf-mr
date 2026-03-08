@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
+import { logger } from '@/lib/logger';
 
 export type { Conversation, Message };
 
@@ -14,7 +15,7 @@ export const useConversations = (type?: string) => {
   const query = useQuery({
     queryKey: ['conversations', type],
     queryFn: async (): Promise<Conversation[]> => {
-      let q = supabase.from('conversations').select('*').order('updated_at', { ascending: false }).limit(500);
+      let q = supabase.from('conversations').select('*').order('updated_at', { ascending: false }).limit(100);
       if (type) q = q.eq('type', type);
       const { data, error } = await q;
       if (error) throw error;
@@ -52,9 +53,10 @@ export const useMessages = (conversationId: string | null) => {
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true })
-        .limit(500);
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
+      return ((data || []) as Message[]).reverse();
       return (data || []) as Message[];
     },
     enabled: !!user && !!conversationId,
@@ -89,7 +91,7 @@ export const useSendMessage = () => {
       });
       if (error) throw error;
       const { error: updateError } = await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
-      if (updateError) console.warn('Failed to update conversation timestamp:', updateError.message);
+      if (updateError) logger.warn('Failed to update conversation timestamp:', updateError.message);
 
       // H6 fix: notify beneficiary when admin OR accountant sends a message
       if (role === 'admin' || role === 'accountant') {

@@ -1469,6 +1469,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_max_advance_amount: {
+        Args: { p_beneficiary_id: string; p_fiscal_year_id: string }
+        Returns: Json
+      }
       get_next_icv: { Args: never; Returns: number }
       get_pii_key: { Args: never; Returns: string }
       get_public_stats: { Args: never; Returns: Json }

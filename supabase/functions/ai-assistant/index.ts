@@ -76,9 +76,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const safeMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
+    const safeMessages = messages.slice(-10).map((m: { role: string; content: string }) => ({
       role: m.role === "user" ? "user" : "assistant",
-      content: typeof m.content === "string" ? m.content.slice(0, 4000) : "",
+      content: typeof m.content === "string" ? m.content.slice(0, 2000) : "",
     }));
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
