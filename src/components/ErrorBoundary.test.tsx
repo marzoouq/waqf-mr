@@ -50,10 +50,12 @@ describe('ErrorBoundary', () => {
   });
 
   it('navigates to home on reset button click', async () => {
-    const originalHref = window.location.href;
+    // handleReset: first click resets state (soft recovery), child throws again.
+    // Second click triggers window.location.href = '/'
+    const mockHref = { href: 'http://localhost/' };
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { ...window.location, href: originalHref },
+      value: mockHref,
     });
 
     render(
@@ -62,6 +64,9 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
 
+    // First click: soft recovery attempt (resets state, child throws again)
+    await userEvent.click(screen.getByRole('button', { name: /العودة للصفحة الرئيسية/ }));
+    // Second click: hard redirect
     await userEvent.click(screen.getByRole('button', { name: /العودة للصفحة الرئيسية/ }));
     expect(window.location.href).toBe('/');
   });

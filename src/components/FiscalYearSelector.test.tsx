@@ -37,9 +37,9 @@ describe('FiscalYearSelector', () => {
     expect(screen.getByText('نشطة')).toBeInTheDocument();
   });
 
-  it('renders nothing while loading', () => {
+  it('renders skeleton while loading', () => {
     mockedUseFiscalYears.mockReturnValueOnce({ data: [], isLoading: true } as any);
     const { container } = render(<FiscalYearSelector value="all" onChange={vi.fn()} />);
-    expect(container.innerHTML).toBe('');
+    expect(container.querySelector('[class*="animate-pulse"]')).toBeInTheDocument();
   });
 });
