@@ -55,6 +55,8 @@ class ErrorBoundary extends Component<Props, State> {
       return;
     }
     this.setState({ hasError: false, error: null });
+    // إعادة ضبط العداد بعد 30 ثانية لتجنب الحظر الدائم
+    setTimeout(() => { this.resetAttempts = 0; }, 30_000);
   };
 
   render() {

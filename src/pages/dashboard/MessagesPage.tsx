@@ -32,9 +32,15 @@ const MessagesPage = () => {
 
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
 
+  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Reset scroll when switching conversations
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+  }, [selectedConv?.id]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConv || !user) return;

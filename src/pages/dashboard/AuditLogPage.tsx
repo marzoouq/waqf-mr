@@ -27,6 +27,7 @@ const operationColor = (op: string) => {
     case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
     case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
     case 'REOPEN': return 'bg-info/15 text-info border-info/30';
+    case 'CLOSE': return 'bg-purple-500/15 text-purple-600 border-purple-500/30';
     default: return '';
   }
 };
@@ -271,6 +272,7 @@ const AuditLogPage = () => {
                     <SelectItem value="UPDATE">تعديل</SelectItem>
                     <SelectItem value="DELETE">حذف</SelectItem>
                     <SelectItem value="REOPEN">إعادة فتح</SelectItem>
+                    <SelectItem value="CLOSE">إقفال</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
