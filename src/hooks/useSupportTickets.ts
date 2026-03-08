@@ -6,9 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fromTable = (table: string) => (supabase as any).from(table);
-
 export interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -44,22 +41,30 @@ export interface ClientError {
   email: string | null;
 }
 
-/** جلب جميع التذاكر (للناظر) أو تذاكر المستخدم */
-export const useSupportTickets = (statusFilter?: string) => {
+/** جلب التذاكر مع server-side pagination */
+export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20) => {
   return useQuery({
-    queryKey: ['support_tickets', statusFilter ?? 'all'],
+    queryKey: ['support_tickets', statusFilter ?? 'all', page, pageSize],
     staleTime: 10_000,
     queryFn: async () => {
-      let query = fromTable('support_tickets')
-        .select('*')
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
+        .from('support_tickets')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(200);
+        .range(from, to);
+
       if (statusFilter && statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data ?? []) as SupportTicket[];
+      return {
+        tickets: (data ?? []) as SupportTicket[],
+        totalCount: count ?? 0,
+      };
     },
   });
 };
@@ -71,7 +76,8 @@ export const useTicketReplies = (ticketId?: string) => {
     staleTime: 5_000,
     enabled: !!ticketId,
     queryFn: async () => {
-      const { data, error } = await fromTable('support_ticket_replies')
+      const { data, error } = await supabase
+        .from('support_ticket_replies')
         .select('*')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })
@@ -88,8 +94,9 @@ export const useCreateTicket = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (ticket: { title: string; description: string; category: string; priority: string }) => {
-      const { data, error } = await fromTable('support_tickets')
-        .insert({ ...ticket, created_by: user?.id })
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .insert({ ...ticket, created_by: user?.id ?? '' })
         .select()
         .single();
       if (error) throw error;
@@ -120,7 +127,7 @@ export const useUpdateTicketStatus = () => {
       if (resolution_notes) updates.resolution_notes = resolution_notes;
       if (assigned_to) updates.assigned_to = assigned_to;
       if (status === 'resolved' || status === 'closed') updates.resolved_at = new Date().toISOString();
-      const { error } = await fromTable('support_tickets').update(updates).eq('id', id);
+      const { error } = await supabase.from('support_tickets').update(updates).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -139,8 +146,9 @@ export const useAddTicketReply = () => {
     mutationFn: async ({ ticket_id, content, is_internal }: {
       ticket_id: string; content: string; is_internal?: boolean;
     }) => {
-      const { error } = await fromTable('support_ticket_replies')
-        .insert({ ticket_id, content, sender_id: user?.id, is_internal: is_internal ?? false });
+      const { error } = await supabase
+        .from('support_ticket_replies')
+        .insert({ ticket_id, content, sender_id: user?.id ?? '', is_internal: is_internal ?? false });
       if (error) throw error;
     },
     onSuccess: (_, vars) => {
@@ -169,7 +177,7 @@ export const useClientErrors = () => {
   });
 };
 
-/** إحصائيات الدعم الفني — FIX #7: استخدام COUNT بدلاً من جلب كل السجلات */
+/** إحصائيات الدعم الفني */
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
@@ -180,12 +188,12 @@ export const useSupportStats = () => {
       const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
       const [totalRes, openRes, inProgressRes, resolvedRes, highRes, tickets7dRes, errorsRes, errors24hRes, errors7dRes] = await Promise.all([
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }),
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }).in('priority', ['high', 'critical']),
-        fromTable('support_tickets').select('*', { count: 'exact', head: true }).gte('created_at', last7d),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).in('priority', ['high', 'critical']),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).gte('created_at', last7d),
         supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error'),
         supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last24h),
         supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last7d),
