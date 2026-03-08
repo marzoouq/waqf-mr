@@ -6,7 +6,7 @@
  */
 import { createCrudFactory } from './useCrudFactory';
 import { Income } from '@/types/database';
-import { notifyAllBeneficiaries } from '@/utils/notifications';
+// notifyAllBeneficiaries removed — notifications sent at distribution/close instead
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,14 +16,8 @@ const incomeCrud = createCrudFactory<'income', Income>({
   select: '*, property:properties(*)',
   orderBy: 'date',
   label: 'الدخل',
-  onCreateSuccess: () => {
-    notifyAllBeneficiaries(
-      'دخل جديد',
-      'تم تسجيل دخل جديد في الوقف',
-      'info',
-      '/beneficiary/disclosure',
-    );
-  },
+  // FIX #4: Removed automatic notifyAllBeneficiaries — was spamming beneficiaries on every single income entry.
+  // Notifications are sent at distribution/fiscal-year-close instead.
 });
 
 export const useIncome = incomeCrud.useList;
