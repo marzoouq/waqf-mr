@@ -153,10 +153,8 @@ const FinancialReportsPage = () => {
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
         <PageHeaderCard title="التقارير المالية" icon={BarChart3} description="عرض وتحليل البيانات المالية للوقف" actions={
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <ExportMenu onExportPdf={handleDownloadPDF} />
-          </div>
-        </div>
+          <ExportMenu onExportPdf={handleDownloadPDF} />
+        } />
 
         {/* Subtitle */}
         <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-3 text-center">
