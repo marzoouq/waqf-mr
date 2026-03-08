@@ -39,15 +39,23 @@ export const getOperationNameAr = (op: string) => OPERATION_NAMES_AR[op] || op;
 export const useAuditLog = (filters?: {
   tableName?: string;
   operation?: string;
+  page?: number;
+  pageSize?: number;
 }) => {
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 50;
+
   return useQuery({
-    queryKey: ['audit_log', filters],
+    queryKey: ['audit_log', filters?.tableName, filters?.operation, page, pageSize],
     queryFn: async () => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
       let query = supabase
         .from('audit_log')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(500);
+        .range(from, to);
 
       if (filters?.tableName) {
         query = query.eq('table_name', filters.tableName);
@@ -56,9 +64,12 @@ export const useAuditLog = (filters?: {
         query = query.eq('operation', filters.operation);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data || []) as AuditLogEntry[];
+      return {
+        logs: (data || []) as AuditLogEntry[],
+        totalCount: count ?? 0,
+      };
     },
     staleTime: 30_000,
   });
