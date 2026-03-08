@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle, RefreshCw } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -58,7 +59,7 @@ const ContractsViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
-          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" />
           <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
@@ -69,7 +70,7 @@ const ContractsViewPage = () => {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
-          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" />
           <Card className="shadow-sm border-destructive/30 bg-destructive/5">
             <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
               <AlertCircle className="w-12 h-12 text-destructive" />
@@ -90,8 +91,7 @@ const ContractsViewPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-2xl font-bold text-foreground">العقود</h1>
+        <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
           <ExportMenu onExportPdf={async () => {
             try {
               await generateContractsPDF(
@@ -110,7 +110,7 @@ const ContractsViewPage = () => {
               toast.error('حدث خطأ أثناء تصدير PDF');
             }
           }} />
-        </div>
+        } />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

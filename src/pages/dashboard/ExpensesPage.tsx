@@ -10,6 +10,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
@@ -104,20 +105,19 @@ const ExpensesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المصروفات</h1>
-            <p className="text-muted-foreground mt-1 text-sm">تسجيل ومتابعة المصروفات</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <PageHeaderCard
+          title="إدارة المصروفات"
+          icon={TrendingDown}
+          description="تسجيل ومتابعة المصروفات"
+          actions={<>
             <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
               properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isClosed}
             />
-          </div>
-        </div>
+          </>}
+        />
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">

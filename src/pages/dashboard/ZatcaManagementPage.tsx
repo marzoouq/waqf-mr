@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState } from 'react';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
@@ -161,7 +162,11 @@ function ZatcaManagementPage() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
-        <h1 className="text-2xl font-bold text-foreground">إدارة ZATCA</h1>
+        <PageHeaderCard
+          title="إدارة ZATCA"
+          icon={ShieldCheck}
+          description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع"
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

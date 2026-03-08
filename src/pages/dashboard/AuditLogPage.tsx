@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
@@ -195,22 +196,23 @@ const AuditLogPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-6 space-y-6">
-         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-           <div className="flex items-center gap-3 min-w-0">
-             <ShieldCheck className="w-7 h-7 text-primary shrink-0" />
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">سجل المراجعة</h1>
-           </div>
-           <Button
-             variant="outline"
-             size="sm"
-             onClick={handleExportPdf}
-             disabled={exporting || filtered.length === 0}
-             className="gap-2"
-           >
-             <FileDown className="w-4 h-4" />
-             {exporting ? 'جاري التصدير...' : 'تصدير PDF'}
-           </Button>
-         </div>
+         <PageHeaderCard
+           title="سجل المراجعة"
+           icon={ShieldCheck}
+           description="تتبع جميع العمليات والتغييرات على النظام"
+           actions={
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={handleExportPdf}
+               disabled={exporting || filtered.length === 0}
+               className="gap-2"
+             >
+               <FileDown className="w-4 h-4" />
+               {exporting ? 'جاري التصدير...' : 'تصدير PDF'}
+             </Button>
+           }
+         />
 
         <Tabs defaultValue="operations" dir="rtl">
           <TabsList className="mb-4">

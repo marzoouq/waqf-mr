@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
 import { Users, Percent, Search } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
@@ -121,20 +122,19 @@ const BeneficiariesPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستفيدين</h1>
-            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">عرض وإدارة المستفيدين من الوقف</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+        <PageHeaderCard
+          title="إدارة المستفيدين"
+          icon={Users}
+          description="عرض وإدارة المستفيدين من الوقف"
+          actions={<>
             <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} />
             <BeneficiaryFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingBeneficiary} isPending={createBeneficiary.isPending || updateBeneficiary.isPending}
               availableUsers={availableUsers} onSubmit={handleSubmit} onReset={resetForm}
             />
-          </div>
-        </div>
+          </>}
+        />
 
         <Tabs defaultValue="beneficiaries" dir="rtl">
           <TabsList className="w-full sm:w-auto">

@@ -20,6 +20,7 @@ import {
   Loader2, MessageSquare, XCircle, ArrowUpCircle, Filter, Eye,
   Search, Download, TrendingUp, TrendingDown, Activity, Star,
 } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -193,23 +194,17 @@ const SupportDashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6" dir="rtl">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
-              <Headset className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">مركز الدعم الفني</h1>
-              <p className="text-sm text-muted-foreground">إدارة التذاكر والأخطاء ومراقبة الأداء</p>
-            </div>
-          </div>
-          {role === 'admin' && (
+        <PageHeaderCard
+          title="مركز الدعم الفني"
+          icon={Headset}
+          description="إدارة التذاكر والأخطاء ومراقبة الأداء"
+          actions={role === 'admin' ? (
             <Button onClick={() => setShowNewTicket(true)} className="gradient-primary">
               <Headset className="w-4 h-4 ml-2" />
               تذكرة جديدة
             </Button>
-          )}
-        </div>
+          ) : undefined}
+        />
 
         {/* بطاقات الإحصائيات */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">

@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle } from 'lucide-react';
+import PageHeaderCard from '@/components/PageHeaderCard';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -220,11 +221,11 @@ const UserManagementPage = () => {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-slide-up">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">إدارة المستخدمين</h1>
-            <p className="text-muted-foreground mt-1 text-sm">إنشاء وتعديل حسابات المستخدمين وصلاحياتهم</p>
-          </div>
+        <PageHeaderCard
+          title="إدارة المستخدمين"
+          icon={Users}
+          description="إنشاء وتعديل حسابات المستخدمين وصلاحياتهم"
+          actions={
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-primary gap-2">
@@ -307,8 +308,9 @@ const UserManagementPage = () => {
                 </Button>
               </form>
             </DialogContent>
-          </Dialog>
-        </div>
+           </Dialog>
+          }
+        />
 
         {/* تنبيه المستفيدين بدون بريد أو بدون ربط */}
         {orphanedBeneficiaries.length > 0 && (
