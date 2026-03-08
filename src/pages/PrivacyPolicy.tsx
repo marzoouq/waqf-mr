@@ -1,9 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import LegalPageFooter from '@/components/LegalPageFooter';
 
 const PrivacyPolicy = () => {
-  const navigate = useNavigate();
 
   const sections = [
     {
@@ -45,7 +43,7 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <main className="min-h-screen bg-background">
+    <main dir="rtl" className="min-h-screen bg-background">
       {/* Header */}
       <div className="gradient-primary py-16">
         <div className="container mx-auto px-4 text-center">
@@ -76,18 +74,8 @@ const PrivacyPolicy = () => {
           ))}
         </div>
 
-        {/* Back button */}
-        <div className="mt-12 text-center">
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="gap-2 rounded-xl"
-          >
-            العودة للصفحة الرئيسية
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
       </div>
+      <LegalPageFooter />
     </main>
   );
 };
