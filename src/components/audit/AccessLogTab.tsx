@@ -108,7 +108,7 @@ const AccessLogTab = () => {
               <Activity className="w-4 h-4" />إجمالي الأحداث
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{logs.length}</p></CardContent>
+          <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card className="border-destructive/30">
           <CardHeader className="pb-2">
