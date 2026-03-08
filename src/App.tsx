@@ -37,6 +37,7 @@ const InvoicesPage = lazy(() => import("./pages/dashboard/InvoicesPage"));
 const AuditLogPage = lazy(() => import("./pages/dashboard/AuditLogPage"));
 const BylawsPage = lazy(() => import("./pages/dashboard/BylawsPage"));
 const ZatcaManagementPage = lazy(() => import("./pages/dashboard/ZatcaManagementPage"));
+const SupportDashboardPage = lazy(() => import("./pages/dashboard/SupportDashboardPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazy(() => import("./pages/beneficiary/BeneficiaryDashboard"));
@@ -53,6 +54,7 @@ const PropertiesViewPage = lazy(() => import("./pages/beneficiary/PropertiesView
 const ContractsViewPage = lazy(() => import("./pages/beneficiary/ContractsViewPage"));
 const CarryforwardHistoryPage = lazy(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
 const WaqifDashboard = lazy(() => import("./pages/beneficiary/WaqifDashboard"));
+const BeneficiarySupportPage = lazy(() => import("./pages/beneficiary/SupportPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
@@ -126,6 +128,7 @@ function App() {
                     <Route path="/dashboard/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
                     <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
                     <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/support" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><SupportDashboardPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
                     <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
@@ -142,6 +145,7 @@ function App() {
                     <Route path="/beneficiary/notifications" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><NotificationsPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
+                    <Route path="/beneficiary/support" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif', 'accountant']}><BeneficiarySupportPage /></ProtectedRoute>} />
 
                     {/* Catch-all Route */}
                     <Route path="*" element={<NotFound />} />
