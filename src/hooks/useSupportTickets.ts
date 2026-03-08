@@ -6,6 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fromTable = (table: string) => (supabase as any).from(table);
+
 export interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -47,8 +50,7 @@ export const useSupportTickets = (statusFilter?: string) => {
     queryKey: ['support_tickets', statusFilter ?? 'all'],
     staleTime: 10_000,
     queryFn: async () => {
-      // Tables not yet in generated types — use typed client workaround
-      let query = (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> }).from('support_tickets')
+      let query = fromTable('support_tickets')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(200);
@@ -57,7 +59,7 @@ export const useSupportTickets = (statusFilter?: string) => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as unknown as SupportTicket[];
+      return (data ?? []) as SupportTicket[];
     },
   });
 };
@@ -69,14 +71,13 @@ export const useTicketReplies = (ticketId?: string) => {
     staleTime: 5_000,
     enabled: !!ticketId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('support_ticket_replies' as string)
+      const { data, error } = await fromTable('support_ticket_replies')
         .select('*')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as unknown as TicketReply[];
+      return (data ?? []) as TicketReply[];
     },
   });
 };
@@ -87,19 +88,16 @@ export const useCreateTicket = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (ticket: { title: string; description: string; category: string; priority: string }) => {
-      const { data, error } = await supabase
-        .from('support_tickets' as string)
+      const { data, error } = await fromTable('support_tickets')
         .insert({ ...ticket, created_by: user?.id })
         .select()
         .single();
       if (error) throw error;
-      return data as unknown as SupportTicket;
+      return data as SupportTicket;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['support_tickets'] });
       toast.success('تم إنشاء التذكرة بنجاح');
-
-      // إشعار الناظر
       supabase.rpc('notify_admins', {
         p_title: 'تذكرة دعم فني جديدة',
         p_message: 'تم استلام تذكرة دعم فني جديدة تحتاج مراجعة',
@@ -122,10 +120,7 @@ export const useUpdateTicketStatus = () => {
       if (resolution_notes) updates.resolution_notes = resolution_notes;
       if (assigned_to) updates.assigned_to = assigned_to;
       if (status === 'resolved' || status === 'closed') updates.resolved_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('support_tickets' as string)
-        .update(updates)
-        .eq('id', id);
+      const { error } = await fromTable('support_tickets').update(updates).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -144,8 +139,7 @@ export const useAddTicketReply = () => {
     mutationFn: async ({ ticket_id, content, is_internal }: {
       ticket_id: string; content: string; is_internal?: boolean;
     }) => {
-      const { error } = await supabase
-        .from('support_ticket_replies' as string)
+      const { error } = await fromTable('support_ticket_replies')
         .insert({ ticket_id, content, sender_id: user?.id, is_internal: is_internal ?? false });
       if (error) throw error;
     },
@@ -182,7 +176,7 @@ export const useSupportStats = () => {
     staleTime: 30_000,
     queryFn: async () => {
       const [ticketsRes, errorsRes] = await Promise.all([
-        supabase.from('support_tickets' as string).select('status, priority, created_at').limit(500),
+        fromTable('support_tickets').select('status, priority, created_at').limit(500),
         supabase.from('access_log').select('id, created_at').eq('event_type', 'client_error').limit(500),
       ]);
       const tickets = (ticketsRes.data ?? []) as Array<{ status: string; priority: string; created_at: string }>;
