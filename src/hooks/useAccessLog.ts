@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 export const logAccessEvent = async (event: {
   event_type: 'login_failed' | 'login_success' | 'logout' | 'unauthorized_access' | 'idle_logout' | 'role_fetch' | 'client_error';
@@ -14,7 +15,7 @@ export const logAccessEvent = async (event: {
       p_user_id: event.user_id ?? null,
       p_target_path: event.target_path ?? null,
       p_device_info: navigator.userAgent?.substring(0, 500) ?? null,
-      p_metadata: (event.metadata ?? {}) as unknown as Record<string, never>,
+      p_metadata: (event.metadata ?? {}) as Json,
     });
   } catch {
     // Silent fail - don't block user flow for logging

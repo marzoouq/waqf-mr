@@ -84,7 +84,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async (payload: Insert<T>) => {
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as never)
+          .insert(payload as Record<string, unknown>)
           .select()
           .maybeSingle();
 
@@ -112,8 +112,8 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
         const { data, error } = await supabase
           .from(table)
-          .update(payload as never)
-          .eq('id' as never, id)
+          .update(payload as Record<string, unknown>)
+          .eq('id' as string & keyof Row<T>, id)
           .select()
           .single();
 
@@ -141,7 +141,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
         const { error } = await supabase
           .from(table)
           .delete()
-          .eq('id' as never, id);
+          .eq('id' as string & keyof Row<T>, id);
 
         if (error) throw error;
       },
