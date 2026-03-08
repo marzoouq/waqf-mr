@@ -94,7 +94,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
       if (fiscalYearId) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
-      const { data, error } = await query.limit(200);
+      const { data, error } = await query.limit(1000);
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
     },
@@ -123,7 +123,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
         query = query.or(`to_fiscal_year_id.eq.${fiscalYearId},to_fiscal_year_id.is.null`);
       }
 
-      const { data, error } = await query.limit(200);
+      const { data, error } = await query.limit(1000);
       if (error) throw error;
       return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
     },
