@@ -215,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
       clearToasts();
+    }
   };
 
   const refreshRole = async () => {
