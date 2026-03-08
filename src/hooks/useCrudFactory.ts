@@ -82,6 +82,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async (payload: Insert<T>) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase generic factory requires runtime-only table resolution; call-site types remain enforced via Insert<T>
         const { data, error } = await supabase
           .from(table)
           .insert(payload as never)
@@ -110,6 +111,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Same factory limitation as insert above
         const { data, error } = await supabase
           .from(table)
           .update(payload as never)
@@ -138,6 +140,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
 
     return useMutation({
       mutationFn: async (id: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Same factory limitation
         const { error } = await supabase
           .from(table)
           .delete()
