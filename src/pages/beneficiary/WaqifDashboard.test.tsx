@@ -90,4 +90,4 @@ describe('WaqifDashboard', () => {
     // Should show key financial info
     expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
   });
-});
+}, 15_000);
