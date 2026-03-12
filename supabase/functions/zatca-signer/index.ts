@@ -417,6 +417,92 @@ function generateZatcaQrTLV(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Certificate DER Parsing — Extract Signature + SubjectPublicKey
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Extract the signatureValue and subjectPublicKeyInfo from an X.509 DER certificate.
+ * - Tag 8 (certSignature): The raw signature bytes (last BitString in cert)
+ * - Tag 9 (certPublicKey): The SubjectPublicKeyInfo bytes from tbsCertificate
+ */
+function extractCertSignatureAndPublicKey(certDer: Uint8Array): { signature: Uint8Array; publicKey: Uint8Array } {
+  // ASN.1 DER reader
+  function readTlv(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
+    const tag = data[offset];
+    let lenOffset = offset + 1;
+    let length = data[lenOffset];
+    let valueOffset: number;
+    if (length & 0x80) {
+      const numBytes = length & 0x7f;
+      length = 0;
+      for (let i = 0; i < numBytes; i++) {
+        length = (length << 8) | data[lenOffset + 1 + i];
+      }
+      valueOffset = lenOffset + 1 + numBytes;
+    } else {
+      valueOffset = lenOffset + 1;
+    }
+    return { tag, length, valueOffset, totalLength: valueOffset - offset + length };
+  }
+
+  try {
+    // Certificate = SEQUENCE { tbsCertificate, signatureAlgorithm, signatureValue }
+    const cert = readTlv(certDer, 0); // outer SEQUENCE
+    let pos = cert.valueOffset;
+
+    // tbsCertificate (SEQUENCE)
+    const tbs = readTlv(certDer, pos);
+    const tbsEnd = tbs.valueOffset + tbs.length;
+    pos += tbs.totalLength;
+
+    // signatureAlgorithm (SEQUENCE) — skip
+    const sigAlg = readTlv(certDer, pos);
+    pos += sigAlg.totalLength;
+
+    // signatureValue (BIT STRING)
+    const sigBitString = readTlv(certDer, pos);
+    // Skip the first byte (unused bits indicator) of BitString
+    const signatureBytes = certDer.slice(sigBitString.valueOffset + 1, sigBitString.valueOffset + sigBitString.length);
+
+    // Now extract SubjectPublicKeyInfo from tbsCertificate
+    let tbsPos = tbs.valueOffset;
+
+    // Skip version [0] if present
+    let field = readTlv(certDer, tbsPos);
+    if (field.tag === 0xa0) { tbsPos += field.totalLength; field = readTlv(certDer, tbsPos); }
+
+    // Skip serialNumber (INTEGER)
+    tbsPos += field.totalLength;
+
+    // Skip signature algorithm (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip issuer (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip validity (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip subject (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // SubjectPublicKeyInfo (SEQUENCE) — this is what we need for Tag 9
+    field = readTlv(certDer, tbsPos);
+    const publicKeyInfoBytes = certDer.slice(tbsPos, tbsPos + field.totalLength);
+
+    return { signature: signatureBytes, publicKey: publicKeyInfoBytes };
+  } catch (e) {
+    console.error("extractCertSignatureAndPublicKey error:", e);
+    // Fallback: return empty arrays
+    return { signature: new Uint8Array(0), publicKey: new Uint8Array(0) };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Main Handler
 // ═══════════════════════════════════════════════════════════════
 

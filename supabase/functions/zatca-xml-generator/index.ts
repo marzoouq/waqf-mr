@@ -37,9 +37,11 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
  * E = Exempt
  * O = Out of scope
  */
-function getVatCategoryCode(vatRate: number): string {
+function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): string {
   if (vatRate > 0) return "S";
-  return "E"; // exempt by default for zero-rate waqf
+  // Z = Zero-rated (default for waqf), E = Exempt (requires explicit reason)
+  if (vatExemptionReason) return "E";
+  return "Z";
 }
 
 /**
