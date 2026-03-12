@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
-import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt } from 'lucide-react';
+import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -42,33 +42,19 @@ const ContractsPage = () => {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
-  const { data: tenantPayments = [] } = useTenantPayments();
-  const upsertPayment = useUpsertTenantPayment();
-  
+  // جلب فواتير الدفعات لتحديد التحصيل الفعلي (مصدر الحقيقة الوحيد)
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
-  const paymentsMap = useMemo(() => {
+  // بناء خريطة الدفعات المسددة من الفواتير (المصدر الوحيد)
+  const invoicePaidMap = useMemo(() => {
     const map = new Map<string, number>();
-    for (const p of tenantPayments) map.set(p.contract_id, p.paid_months);
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'paid') {
+        map.set(inv.contract_id, (map.get(inv.contract_id) ?? 0) + 1);
+      }
+    }
     return map;
-  }, [tenantPayments]);
-
-  const handlePayment = (contract: Contract, delta: number) => {
-    const current = paymentsMap.get(contract.id) ?? 0;
-    const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-    // N4 fix: cap at max payment count
-    const next = Math.max(0, Math.min(paymentCount, current + delta));
-    const paymentAmount = Number(contract.rent_amount) / paymentCount;
-    upsertPayment.mutate({
-      contract_id: contract.id,
-      paid_months: next,
-      auto_income: delta > 0 ? {
-        payment_amount: paymentAmount,
-        property_id: contract.property_id,
-        fiscal_year_id: contract.fiscal_year_id || (fiscalYearId === 'all' ? null : fiscalYearId),
-        tenant_name: contract.tenant_name,
-      } : undefined,
-    });
-  };
+  }, [paymentInvoices]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
