@@ -108,7 +108,7 @@ function buildUBL(
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
   const vatCategoryCode = getVatCategoryCode(vatRate);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode);
+  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, String(inv.description || ""));
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
