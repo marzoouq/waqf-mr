@@ -389,10 +389,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الحالة</Label>
-                          <Select value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>{UNIT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">ملاحظات</Label>
