@@ -24,6 +24,7 @@ vi.mock('@simplewebauthn/browser', () => ({
 
 // Supabase mock helpers
 const mockGetSession = vi.fn();
+const mockGetUser = vi.fn();
 const mockSetSession = vi.fn();
 const mockFunctionsInvoke = vi.fn();
 const mockFrom = vi.fn();
