@@ -389,7 +389,7 @@ function ZatcaManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    ) : paginatedInvoices.map(inv => {
+                    {paginatedInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
                       const rowBusy = isRowPending(inv.id);
                       const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
