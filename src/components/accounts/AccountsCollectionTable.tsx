@@ -59,7 +59,34 @@ const AccountsCollectionTable = ({
         {contracts.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
         ) : (
-          <div className="overflow-x-auto">
+          {/* Mobile Cards */}
+          <div className="space-y-3 md:hidden">
+            {collectionData.map((item, idx) => (
+              <div key={item.index} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-bold text-sm">{item.tenantName}</p>
+                    <p className="text-xs text-muted-foreground">#{item.index}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+                    {item.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-muted-foreground">الإيجار الشهري</span><p className="font-bold text-primary">{item.paymentPerPeriod.toLocaleString()} ريال</p></div>
+                  <div><span className="text-muted-foreground">المحصّل</span><p className="font-bold text-primary">{item.totalCollected.toLocaleString()} ريال</p></div>
+                  <div><span className="text-muted-foreground">الدفعات</span><p className="font-medium">{item.paidMonths}/{item.expectedPayments}</p></div>
+                  <div><span className="text-muted-foreground">المتأخرات</span><p className={`font-bold ${item.arrears > 0 ? 'text-destructive' : 'text-success'}`}>{item.arrears.toLocaleString()} ريال</p></div>
+                </div>
+              </div>
+            ))}
+            <div className="p-3 rounded-lg bg-muted/70 font-bold text-sm">
+              <div className="flex justify-between"><span>الإجمالي المحصّل</span><span className="text-primary">{totalCollectedAll.toLocaleString()} ريال</span></div>
+              <div className="flex justify-between mt-1"><span>المتأخرات</span><span className="text-destructive">{totalArrearsAll.toLocaleString()} ريال</span></div>
+            </div>
+          </div>
+          {/* Desktop Table */}
+          <div className="overflow-x-auto hidden md:block">
           <Table className="min-w-[850px]">
             <TableHeader>
               <TableRow className="bg-muted/50">
