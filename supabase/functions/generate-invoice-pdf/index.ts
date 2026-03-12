@@ -438,13 +438,17 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   // ── QR Code for VAT invoices ──
   if (isVatInvoice && waqfSettings.vat_registration_number) {
     try {
-      const tlvBase64 = generateZatcaQrTLV(
-        waqfSettings.waqf_name,
-        waqfSettings.vat_registration_number,
-        new Date().toISOString(),
-        invoice.amount,
-        invoice.vat_amount,
-      );
+      // Prefer the signed QR from invoice_hash (contains Tags 6-9 for standard invoices)
+      // Fall back to basic Tags 1-5 QR if no signed hash available
+      const tlvBase64 = (invoice as unknown as Record<string, unknown>).invoice_hash
+        ? String((invoice as unknown as Record<string, unknown>).invoice_hash)
+        : generateZatcaQrTLV(
+            waqfSettings.waqf_name,
+            waqfSettings.vat_registration_number,
+            new Date().toISOString(),
+            invoice.amount,
+            invoice.vat_amount,
+          );
 
       // Generate QR code as data URL, then extract PNG bytes
       const qrDataUrl: string = await QRCode.toDataURL(tlvBase64, {
