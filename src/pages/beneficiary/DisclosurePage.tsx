@@ -37,6 +37,8 @@ function toGregorianShort(dateStr: string): string {
 }
 
 const DisclosurePage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const isMobile = useIsMobile();
