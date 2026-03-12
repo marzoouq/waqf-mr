@@ -375,7 +375,7 @@ Deno.serve(async (req) => {
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: csrData.binarySecurityToken || "",
-          private_key: privateKey,         // Local ECDSA key (encrypted by DB trigger)
+          private_key: privKeyHex,         // Auto-generated ECDSA key (encrypted by DB trigger)
           zatca_secret: csrData.secret || "", // ZATCA-provided secret for Authorization header
           request_id: csrData.requestID || "",
           is_active: true,
