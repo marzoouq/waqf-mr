@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.8.3",
+    "date": "١٢ مارس ٢٠٢٦",
+    "changes": [
+      { "type": "fix", "text": "إضافة XPath Transform ثالث لاستثناء QR من حساب هاش الفاتورة (ZATCA Sandbox v2.1.0)" },
+      { "type": "fix", "text": "إضافة schemeID و schemeAgencyID على عناصر TaxCategory و TaxScheme للامتثال مع XSD" },
+      { "type": "fix", "text": "تنسيق نسب الضريبة بصيغة عشرية (15.00) لتوافق EN 16931" },
+      { "type": "improvement", "text": "إضافة AllowanceCharge و AllowanceTotalAmount و PrepaidAmount في XML الفاتورة" }
+    ]
+  },
+  {
     "version": "2.8.2",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
