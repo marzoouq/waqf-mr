@@ -47,8 +47,8 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
-  const showBiometric = biometricSupported;
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const showBiometric = browserSupportsWebAuthn() && isBiometricEnabled();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
