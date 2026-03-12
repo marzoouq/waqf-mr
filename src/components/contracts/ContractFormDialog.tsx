@@ -68,7 +68,7 @@ export const emptyFormData: ContractFormData = {
   payment_type: 'annual', payment_count: '1',
   rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
   vat_applicable: false,
-  tenant_id_type: 'NAT', tenant_id_number: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
+  tenant_id_type: 'NAT', tenant_id_number: '', tenant_tax_number: '', tenant_crn: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
 };
 
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
