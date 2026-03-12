@@ -235,58 +235,120 @@ function ZatcaManagementPage() {
                       <TableHead>المبلغ</TableHead>
                       <TableHead>الضريبة</TableHead>
                       <TableHead>التاريخ</TableHead>
+                      <TableHead>خطوات ZATCA</TableHead>
                       <TableHead>حالة ZATCA</TableHead>
                       <TableHead>إجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {invoicesLoading ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>
                     ) : allInvoices.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
                     ) : allInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
-                      const isNotSubmitted = !inv.zatca_status || inv.zatca_status === 'not_submitted';
                       const rowBusy = isRowPending(inv.id);
+                      const isSubmitted = ['submitted', 'reported', 'cleared'].includes(inv.zatca_status || '');
+
+                      // Step state
+                      const hasXml = !!inv.zatca_xml;
+                      const hasSig = !!inv.invoice_hash;
+                      const canSign = hasXml && !hasSig;
+                      const canSubmit = hasXml && hasSig && !isSubmitted;
+
                       return (
                         <TableRow key={inv.id} className={rowBusy ? 'opacity-60' : ''}>
                           <TableCell className="font-mono text-sm">{inv.invoice_number || '—'}</TableCell>
                           <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{Number(inv.vat_amount).toLocaleString()} ({inv.vat_rate}%)</TableCell>
                           <TableCell>{inv.date}</TableCell>
+                          {/* Step indicators */}
+                          <TableCell>
+                            <TooltipProvider delayDuration={200}>
+                              <div className="flex items-center gap-1.5">
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${hasXml ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>1</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{hasXml ? 'XML مُوّلد ✓' : 'XML غير مُوّلد'}</TooltipContent>
+                                </Tooltip>
+                                <span className={`w-4 h-0.5 ${hasXml ? 'bg-primary' : 'bg-muted'}`} />
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${hasSig ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>2</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{hasSig ? 'موقّع ✓' : 'غير موقّع'}</TooltipContent>
+                                </Tooltip>
+                                <span className={`w-4 h-0.5 ${isSubmitted ? 'bg-primary' : 'bg-muted'}`} />
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${isSubmitted ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>3</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>{isSubmitted ? 'مُرسل ✓' : 'لم يُرسل'}</TooltipContent>
+                                </Tooltip>
+                              </div>
+                            </TooltipProvider>
+                          </TableCell>
                           <TableCell><Badge variant={status.variant}>{status.label}</Badge></TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {isNotSubmitted && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => generateXml.mutate({ invoiceId: inv.id, table: inv.source })}
-                                    disabled={rowBusy}
-                                  >
-                                    {rowBusy && pendingAction?.type === 'xml' ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <RefreshCw className="w-3 h-3 ml-1" />}
-                                    XML
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => signInvoice.mutate({ invoiceId: inv.id, table: inv.source })}
-                                    disabled={rowBusy}
-                                  >
-                                    {rowBusy && pendingAction?.type === 'sign' ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <ShieldCheck className="w-3 h-3 ml-1" />}
-                                    توقيع
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
-                                    disabled={rowBusy}
-                                  >
-                                    {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <Send className="w-3 h-3 ml-1" />}
-                                    إرسال
-                                  </Button>
-                                </>
+                              {/* Step 1: Generate XML — always available if not submitted */}
+                              {!isSubmitted && (
+                                <TooltipProvider delayDuration={200}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant={hasXml ? 'ghost' : 'outline'}
+                                        onClick={() => generateXml.mutate({ invoiceId: inv.id, table: inv.source })}
+                                        disabled={rowBusy || hasSig}
+                                      >
+                                        {rowBusy && pendingAction?.type === 'xml' ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
+                                        <span className="mr-1 text-xs">XML</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{hasSig ? 'لا يمكن إعادة توليد XML بعد التوقيع' : hasXml ? 'إعادة توليد XML' : 'توليد XML'}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
+                              {/* Step 2: Sign — requires XML, blocked if already signed */}
+                              {!isSubmitted && (
+                                <TooltipProvider delayDuration={200}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant={hasSig ? 'ghost' : 'outline'}
+                                        onClick={() => signInvoice.mutate({ invoiceId: inv.id, table: inv.source })}
+                                        disabled={rowBusy || !canSign}
+                                      >
+                                        {rowBusy && pendingAction?.type === 'sign' ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
+                                        <span className="mr-1 text-xs">توقيع</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{!hasXml ? 'يجب توليد XML أولاً' : hasSig ? 'موقّعة مسبقاً' : 'توقيع الفاتورة'}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              {/* Step 3: Submit — requires XML + signature */}
+                              {!isSubmitted && (
+                                <TooltipProvider delayDuration={200}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
+                                        disabled={rowBusy || !canSubmit}
+                                      >
+                                        {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                        <span className="mr-1 text-xs">إرسال</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{!hasXml ? 'يجب توليد XML أولاً' : !hasSig ? 'يجب التوقيع أولاً' : 'إرسال إلى ZATCA'}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              {/* Re-submit for rejected invoices */}
                               {inv.zatca_status === 'rejected' && (
                                 <Button
                                   size="sm"
