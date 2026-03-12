@@ -9,7 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { NativeSelect } from '@/components/ui/native-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Headset, CheckCircle, Clock, Send, Loader2, MessageSquare, XCircle, ArrowUpCircle, Eye, Plus, Star,
@@ -292,13 +292,16 @@ function NewTicketDialog({ open, onClose }: { open: boolean; onClose: () => void
         <div className="space-y-4">
           <Input placeholder="عنوان الطلب *" value={title} onChange={e => setTitle(e.target.value)} />
           <Textarea placeholder="وصف تفصيلي للمشكلة..." value={description} onChange={e => setDescription(e.target.value)} />
-          <NativeSelect value={category} onValueChange={setCategory} options={[
-            { value: 'general', label: 'عام' },
-            { value: 'technical', label: 'تقني' },
-            { value: 'financial', label: 'مالي' },
-            { value: 'account', label: 'حساب' },
-            { value: 'suggestion', label: 'اقتراح' },
-          ]} />
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger><SelectValue placeholder="التصنيف" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">عام</SelectItem>
+              <SelectItem value="technical">تقني</SelectItem>
+              <SelectItem value="financial">مالي</SelectItem>
+              <SelectItem value="account">حساب</SelectItem>
+              <SelectItem value="suggestion">اقتراح</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>

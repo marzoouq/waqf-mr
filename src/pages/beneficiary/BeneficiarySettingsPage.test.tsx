@@ -47,14 +47,6 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@tanstack/react-query', async () => {
-  const actual = await vi.importActual('@tanstack/react-query');
-  return {
-    ...actual,
-    useQueryClient: vi.fn(() => ({ invalidateQueries: vi.fn() })),
-  };
-});
-
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/ThemeColorPicker', () => ({ default: () => <div>ThemeColorPicker</div> }));
 

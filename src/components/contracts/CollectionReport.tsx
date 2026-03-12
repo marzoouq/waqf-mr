@@ -6,20 +6,22 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell, Pencil } from 'lucide-react';
 import { Contract } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import ExportMenu from '@/components/ExportMenu';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
-import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
-import { getPaymentCount } from '@/utils/contractHelpers';
 
 interface CollectionReportProps {
   contracts: Contract[];
-  paymentInvoices: PaymentInvoice[];
+  paymentsMap: Map<string, number>;
   isLoading: boolean;
   fiscalYears?: FiscalYear[];
   fiscalYearId?: string;
@@ -29,25 +31,32 @@ type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 
 interface CollectionRow {
   contract: Contract;
-  paymentCount: number;
+  paymentCount: number;       // total payments in this FY (or contract total for 'all')
   paid: number;
   expected: number;
   overdue: number;
   overdueAmount: number;
   collectedAmount: number;
-  totalAmount: number;
-  paymentAmount: number;
+  totalAmount: number;        // allocated amount for this FY
+  paymentAmount: number;      // per-payment amount
   status: 'complete' | 'partial' | 'overdue' | 'not_started';
 }
 
+/**
+ * Fallback: date-based expected payments (used when fiscalYearId === 'all')
+ */
 function getExpectedPaymentsFallback(contract: Contract): number {
   const start = new Date(contract.start_date);
   const end = new Date(contract.end_date);
   const now = new Date();
+
   if (now < start) return 0;
 
-  const paymentCount = getPaymentCount(contract);
+  const paymentCount = contract.payment_type === 'monthly' ? 12
+    : contract.payment_type === 'annual' ? 1
+    : (contract.payment_count || 1);
 
+  // N3 fix: cap at actual contract duration, not hardcoded 12
   const contractDurationMonths = Math.max(1, Math.round(
     (end.getTime() - start.getTime()) / (1000 * 3600 * 24 * 30.44)
   ));
@@ -67,49 +76,33 @@ function getExpectedPaymentsFallback(contract: Contract): number {
   return Math.min(Math.floor(paymentCount * elapsedDays / totalDays), paymentCount);
 }
 
-export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
+export default function CollectionReport({ contracts, paymentsMap, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sendingAlerts, setSendingAlerts] = useState(false);
+  const [editRow, setEditRow] = useState<CollectionRow | null>(null);
+  const [editPaidMonths, setEditPaidMonths] = useState(0);
+  const [editNotes, setEditNotes] = useState('');
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const upsertPayment = useUpsertTenantPayment();
 
   const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
 
-  // بناء خريطة الدفعات المسددة من الفواتير (المصدر الوحيد للحقيقة)
-  const invoicePaidMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const inv of paymentInvoices) {
-      if (inv.status === 'paid') {
-        map.set(inv.contract_id, (map.get(inv.contract_id) ?? 0) + 1);
-      }
-    }
-    return map;
-  }, [paymentInvoices]);
-
-  // مجموعة العقود التي لها فواتير غير مسددة (لتشمل العقود المنتهية)
-  const contractsWithUnpaidInvoices = useMemo(() => {
-    const ids = new Set<string>();
-    for (const inv of paymentInvoices) {
-      if (inv.status !== 'paid') ids.add(inv.contract_id);
-    }
-    return ids;
-  }, [paymentInvoices]);
-
-  // شمول العقود النشطة + العقود المنتهية التي لها فواتير غير مسددة
-  const relevantContracts = useMemo(() => contracts.filter(c =>
-    c.status === 'active' || contractsWithUnpaidInvoices.has(c.id)
-  ), [contracts, contractsWithUnpaidInvoices]);
+  const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active'), [contracts]);
 
   const rows: CollectionRow[] = useMemo(() => {
-    return relevantContracts.map(contract => {
-      const contractPaymentCount = getPaymentCount(contract);
+    return activeContracts.map(contract => {
+      const contractPaymentCount = contract.payment_type === 'monthly' ? 12
+        : contract.payment_type === 'annual' ? 1
+        : (contract.payment_count || 1);
       const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
-      const paid = invoicePaidMap.get(contract.id) ?? 0;
+      const paid = paymentsMap.get(contract.id) ?? 0;
 
       let allocatedPayments: number;
       let allocatedAmount: number;
 
       if (useDynamicAllocation) {
+        // Dynamic allocation: compute payments allocated to the selected fiscal year
         const allocations = allocateContractToFiscalYears(
           {
             id: contract.id,
@@ -126,6 +119,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
         allocatedPayments = fyAlloc?.allocated_payments ?? 0;
         allocatedAmount = fyAlloc?.allocated_amount ?? 0;
       } else {
+        // Fallback: use full contract values
         allocatedPayments = contractPaymentCount;
         allocatedAmount = Number(contract.rent_amount);
       }
@@ -154,7 +148,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
         status,
       };
     });
-  }, [relevantContracts, invoicePaidMap, useDynamicAllocation, fiscalYears, fiscalYearId]);
+  }, [activeContracts, paymentsMap, useDynamicAllocation, fiscalYears, fiscalYearId]);
 
   const filteredRows = useMemo(() => {
     let result = rows;
@@ -190,6 +184,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     }
     setSendingAlerts(true);
     try {
+      // N7 fix: check RPC error properly
       const { error } = await (supabase.rpc as Function)('cron_check_late_payments');
       if (error) throw error;
       toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
@@ -324,15 +319,17 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                         <div>
                           <span className="font-bold text-sm">{row.contract.contract_number}</span>
                           <p className="text-xs text-muted-foreground">{row.contract.tenant_name}</p>
-                          {row.contract.status === 'expired' && (
-                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[10px] mt-1">منتهي</Badge>
-                          )}
                         </div>
                         {getStatusBadge(row.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><span className="text-muted-foreground text-xs">الدفعات</span>
-                          <p className="font-medium">{row.paid}/{row.paymentCount}</p>
+                          <div className="flex items-center gap-1">
+                            <p className="font-medium">{row.paid}/{row.paymentCount}</p>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }} aria-label="تعديل الدفعات">
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
                         <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
                         <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
@@ -369,20 +366,20 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                   <TableBody>
                     {filteredRows.map(row => (
                       <TableRow key={row.contract.id} className={row.overdue > 0 ? 'bg-destructive/5' : ''}>
-                        <TableCell className="font-medium">
-                          {row.contract.contract_number}
-                          {row.contract.status === 'expired' && (
-                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[10px] mr-2">منتهي</Badge>
-                          )}
-                        </TableCell>
+                        <TableCell className="font-medium">{row.contract.contract_number}</TableCell>
                         <TableCell>{row.contract.tenant_name}</TableCell>
                         <TableCell>{row.contract.property?.property_number || '-'}</TableCell>
                         <TableCell>{row.totalAmount.toLocaleString()} ر.س</TableCell>
                         <TableCell>{row.paymentAmount.toLocaleString()} ر.س</TableCell>
                         <TableCell className="text-center">
-                          <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
-                            {row.paid}/{row.paymentCount}
-                          </span>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
+                              {row.paid}/{row.paymentCount}
+                            </span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditRow(row); setEditPaidMonths(row.paid); setEditNotes(''); }} aria-label="تعديل الدفعات">
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                          </div>
                           {row.overdue > 0 && (
                             <span className="text-xs text-destructive block">({row.overdue} متأخرة)</span>
                           )}
@@ -407,6 +404,74 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           )}
         </CardContent>
       </Card>
+
+      {/* حوار تصحيح الدفعات */}
+      <Dialog open={!!editRow} onOpenChange={() => setEditRow(null)}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تصحيح عدد الدفعات المسددة</DialogTitle>
+          </DialogHeader>
+          {editRow && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p><span className="text-muted-foreground">العقد:</span> {editRow.contract.contract_number}</p>
+                <p><span className="text-muted-foreground">المستأجر:</span> {editRow.contract.tenant_name}</p>
+                <p><span className="text-muted-foreground">إجمالي الدفعات:</span> {editRow.paymentCount}</p>
+                <p><span className="text-muted-foreground">قيمة الدفعة:</span> {editRow.paymentAmount.toLocaleString()} ر.س</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>عدد الدفعات المسددة (الحالي: {editRow.paid})</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={editRow.paymentCount}
+                  value={editPaidMonths}
+                  onChange={e => setEditPaidMonths(Math.max(0, Math.min(editRow.paymentCount, parseInt(e.target.value) || 0)))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>سبب التصحيح</Label>
+                <Textarea
+                  placeholder="اذكر سبب التعديل..."
+                  value={editNotes}
+                  onChange={e => setEditNotes(e.target.value)}
+                />
+              </div>
+
+              {editPaidMonths !== editRow.paid && (
+                <div className={`text-sm p-2 rounded-lg ${editPaidMonths > editRow.paid ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'}`}>
+                  {editPaidMonths > editRow.paid
+                    ? `⚠️ سيتم زيادة الدفعات من ${editRow.paid} إلى ${editPaidMonths} (بدون إنشاء سجلات دخل)`
+                    : `سيتم تقليل الدفعات من ${editRow.paid} إلى ${editPaidMonths}`
+                  }
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditRow(null)}>إلغاء</Button>
+            <Button
+              disabled={!editRow || editPaidMonths === editRow.paid || upsertPayment.isPending}
+              onClick={async () => {
+                if (!editRow) return;
+                const note = `تصحيح يدوي: من ${editRow.paid} إلى ${editPaidMonths}${editNotes ? ' - ' + editNotes : ''}`;
+                upsertPayment.mutate({
+                  contract_id: editRow.contract.id,
+                  paid_months: editPaidMonths,
+                  notes: note,
+                  // payment_amount = 0 to prevent creating income records
+                }, {
+                  onSuccess: () => setEditRow(null),
+                });
+              }}
+            >
+              {upsertPayment.isPending ? 'جاري الحفظ...' : 'حفظ التصحيح'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

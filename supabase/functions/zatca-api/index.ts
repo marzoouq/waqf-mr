@@ -91,70 +91,6 @@ function asn1Context(tag: number, content: Uint8Array): Uint8Array {
   return asn1Wrap(0xa0 | tag, content);
 }
 
-function asn1OctetString(data: Uint8Array): Uint8Array {
-  return asn1Wrap(0x04, data);
-}
-
-function asn1Ia5String(str: string): Uint8Array {
-  const encoded = new TextEncoder().encode(str);
-  return asn1Wrap(0x16, encoded);
-}
-
-/**
- * Build X509 Extensions for ZATCA CSR:
- * - SubjectAlternativeName (OID 2.5.29.17) with directoryName containing UID
- * - CertificateTemplateName (OID 1.3.6.1.4.1.311.20.2) for environment
- *
- * ZATCA requires SAN as a directoryName with UID attribute (OID 0.9.2342.19200300.100.1.1)
- * containing the device serial in format: 1-{SolutionName}|2-{UnitType}|3-{SerialNumber}
- */
-function buildCsrExtensions(solutionName: string, isProduction: boolean, deviceSerial: string): Uint8Array {
-  // --- Extension 1: SubjectAlternativeName (SAN) ---
-  // ZATCA spec: SAN must use directoryName [4] with UID attribute
-  const sanValue = deviceSerial || `1-${solutionName}|2-1|3-${crypto.randomUUID()}`;
-
-  // UID OID: 0.9.2342.19200300.100.1.1
-  const uidAttr = asn1Set([
-    asn1Sequence([
-      asn1Oid([0, 9, 2342, 19200300, 100, 1, 1]), // UID
-      asn1Utf8String(sanValue),
-    ]),
-  ]);
-  // directoryName is context tag [4] (constructed) in GeneralName
-  const dirName = asn1Context(4, asn1Sequence([uidAttr]));
-
-  const sanExtValue = asn1OctetString(
-    asn1Sequence([dirName])
-  );
-  const sanExtension = asn1Sequence([
-    asn1Oid([2, 5, 29, 17]), // subjectAltName
-    sanExtValue,
-  ]);
-
-  // --- Extension 2: CertificateTemplateName ---
-  const templateName = isProduction ? "ZATCA-Code-Signing" : "PREZATCA-Code-Signing";
-  const templateExtValue = asn1OctetString(
-    asn1Ia5String(templateName)
-  );
-  const templateExtension = asn1Sequence([
-    asn1Oid([1, 3, 6, 1, 4, 1, 311, 20, 2]), // certificateTemplateName
-    templateExtValue,
-  ]);
-
-  // Wrap both extensions in a SEQUENCE, then in extensionRequest attribute
-  const extensionsSeq = asn1Sequence([sanExtension, templateExtension]);
-
-  // extensionRequest attribute (OID 1.2.840.113549.1.9.14)
-  return asn1Context(0,
-    asn1Sequence([
-      asn1Sequence([
-        asn1Oid([1, 2, 840, 113549, 1, 9, 14]), // extensionRequest
-        asn1Set([extensionsSeq]),
-      ]),
-    ])
-  );
-}
-
 function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint8Array {
   const rdns = attrs.map(attr =>
     asn1Set([
@@ -269,29 +205,28 @@ Deno.serve(async (req) => {
       }
 
       const otp = Deno.env.get("ZATCA_OTP") || "";
+      const privateKey = Deno.env.get("ZATCA_PRIVATE_KEY") || "";
 
-      if (!otp) {
-        return new Response(JSON.stringify({ error: "ZATCA_OTP secret is required for production onboarding" }), {
+      if (!otp || !privateKey) {
+        return new Response(JSON.stringify({ error: "ZATCA_OTP and ZATCA_PRIVATE_KEY secrets are required for production onboarding" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       // Fetch seller info for CSR subject
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial", "zatca_solution_name"]);
+        .in("key", ["waqf_name", "vat_number", "zatca_device_serial"]);
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
       const orgName = settings.waqf_name || "";
-      const vatNumber = settings.vat_registration_number || "";
+      const vatNumber = settings.vat_number || "";
       const deviceSerial = settings.zatca_device_serial || "";
-      const solutionName = settings.zatca_solution_name || "WaqfManagement";
-      const isProduction = ZATCA_API_URL.includes("gw-fatoora.zatca.gov.sa");
 
       // Validate required identity fields before contacting ZATCA
       const missingFields: string[] = [];
       if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");
-      if (!vatNumber) missingFields.push("vat_registration_number (الرقم الضريبي)");
+      if (!vatNumber) missingFields.push("vat_number (الرقم الضريبي)");
       if (!orgName) missingFields.push("waqf_name (اسم المنشأة)");
 
       if (missingFields.length > 0) {
@@ -300,13 +235,11 @@ Deno.serve(async (req) => {
         }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Auto-generate ECDSA P-256 private key (no need for ZATCA_PRIVATE_KEY env var)
+      // Build PKCS#10 CSR
       let csrPem: string;
       let privBytes: Uint8Array;
-      let privKeyHex: string;
       try {
-        privBytes = p256.utils.randomPrivateKey(); // 32 bytes
-        privKeyHex = Array.from(privBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+        privBytes = hexToBytes(privateKey);
         const pubKey = p256.getPublicKey(privBytes, false);
 
         // ZATCA spec: CN = Device Serial, O = Organization, SERIALNUMBER = VAT TIN
@@ -319,14 +252,11 @@ Deno.serve(async (req) => {
 
         const spki = buildEcSpki(pubKey);
 
-        // Build X509 Extensions (SAN + CertificateTemplateName)
-        const extensions = buildCsrExtensions(solutionName, isProduction, deviceSerial);
-
         const certReqInfo = asn1Sequence([
           asn1Integer(0),
           subject,
           spki,
-          extensions,
+          asn1Context(0, new Uint8Array(0)),
         ]);
 
         const hashBytes = await sha256Async(certReqInfo);
@@ -375,7 +305,7 @@ Deno.serve(async (req) => {
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: csrData.binarySecurityToken || "",
-          private_key: privKeyHex,         // Auto-generated ECDSA key (encrypted by DB trigger)
+          private_key: privateKey,         // Local ECDSA key (encrypted by DB trigger)
           zatca_secret: csrData.secret || "", // ZATCA-provided secret for Authorization header
           request_id: csrData.requestID || "",
           is_active: true,
@@ -558,7 +488,7 @@ Deno.serve(async (req) => {
             ...ZATCA_COMMON_HEADERS,
             "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
             "Accept-Language": "ar",
-            ...(action === "clearance" ? { "ClearanceStatus": "1" } : {}),
+            "Clearance-Status": action === "clearance" ? "1" : "0",
           },
           body: JSON.stringify({
             invoiceHash: inv.invoice_hash,

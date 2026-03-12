@@ -75,11 +75,11 @@ vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => <div>no y
 vi.mock('@/components/ExportMenu', () => ({ default: () => null }));
 
 describe('WaqifDashboard', () => {
-  it('renders without crashing', async () => {
+  it('renders financial summary cards', async () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const { default: WaqifDashboard } = await import('./WaqifDashboard');
 
-    const { container } = render(
+    render(
       <QueryClientProvider client={qc}>
         <MemoryRouter>
           <WaqifDashboard />
@@ -87,7 +87,7 @@ describe('WaqifDashboard', () => {
       </QueryClientProvider>
     );
 
-    // Check that the component renders something in the DOM
-    expect(container.firstChild).not.toBeNull();
-  }, 15_000);
-});
+    // Should show key financial info
+    expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
+  });
+}, 15_000);

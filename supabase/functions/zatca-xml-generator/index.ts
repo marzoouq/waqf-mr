@@ -13,12 +13,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * Credit Note: code=381
  */
 function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
-  const type = invoiceType?.toLowerCase();
-  // Determine if it's a simplified variant
-  const isSimplified = type === "simplified" || type === "مبسطة"
-    || type === "simplified_credit" || type === "simplified_debit";
-
-  switch (type) {
+  switch (invoiceType?.toLowerCase()) {
     case "simplified":
     case "مبسطة":
       return { code: "388", name: "0200000" };
@@ -28,10 +23,6 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
     case "credit_note":
     case "إشعار دائن":
       return { code: "381", name: "0100000" };
-    case "simplified_debit":
-      return { code: "383", name: "0200000" };
-    case "simplified_credit":
-      return { code: "381", name: "0200000" };
     case "standard":
     case "قياسية":
     default:
@@ -46,37 +37,9 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
  * E = Exempt
  * O = Out of scope
  */
-function getVatCategoryCode(vatRate: number, exemptionCode?: string): string {
+function getVatCategoryCode(vatRate: number): string {
   if (vatRate > 0) return "S";
-  // If an explicit exemption code (VATEX-SA-29-7 etc.) is provided → Exempt
-  if (exemptionCode) return "E";
-  // Default for 0% → Zero-rated (residential rent etc.)
-  return "Z";
-}
-
-/**
- * Get tax exemption reason code and text for E/Z categories
- * Based on ZATCA VATEX codes for Saudi Arabia
- */
-function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
-  if (vatCategoryCode === "S") return null;
-  if (vatCategoryCode === "E") {
-    // Allow override via description containing VATEX code pattern
-    const vatexMatch = invoiceDescription?.match(/VATEX-SA-[\d-]+/);
-    if (vatexMatch) {
-      return { code: vatexMatch[0], reason: invoiceDescription || "" };
-    }
-    // Default: real estate residential rental exemption
-    return {
-      code: "VATEX-SA-29-7",
-      reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة",
-    };
-  }
-  // Z = Zero-rated
-  return {
-    code: "VATEX-SA-32",
-    reason: "توريدات خاضعة لنسبة صفر بالمائة",
-  };
+  return "E"; // exempt by default for zero-rate waqf
 }
 
 /**
@@ -97,15 +60,15 @@ function buildUBL(
   previousInvoiceHash: string
 ): string {
   // --- Seller info from settings ---
-  const vatNumber = settings.vat_registration_number || "";
+  const vatNumber = settings.vat_number || "";
   const crn = settings.commercial_registration_number || "";
   const sellerName = escapeXml(settings.waqf_name || "");
   const streetName = escapeXml(settings.business_address_street || "");
   const buildingNumber = settings.business_address_building || "";
   const cityName = escapeXml(settings.business_address_city || "");
-  const postalZone = settings.business_address_postal_code || "";
+  const postalZone = settings.business_address_postal || "";
   const districtName = escapeXml(settings.business_address_district || "");
-  
+  const countrySubentity = escapeXml(settings.business_address_province || "");
 
   // --- Invoice data ---
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
@@ -123,22 +86,11 @@ function buildUBL(
   // --- Invoice type ---
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
-  // Check for explicit exemption code from invoice data
-  const rawExemptionCode = String(inv.vat_exemption_code || inv.exemption_code || "");
-  const vatCategoryCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, rawExemptionCode || String(inv.description || ""));
+  const vatCategoryCode = getVatCategoryCode(vatRate);
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
-  // Buyer ID type: CRN, NAT, IQA, PAS, TIN, MOM, MLS, SAG, GCC, 700
-  const validBuyerIdTypes = ["CRN", "NAT", "IQA", "PAS", "TIN", "MOM", "MLS", "SAG", "GCC", "700"];
-  const rawBuyerIdType = String(inv.buyer_id_type || "NAT").toUpperCase();
-  const buyerIdType = validBuyerIdTypes.includes(rawBuyerIdType) ? rawBuyerIdType : "NAT";
   const isSimplified = typeInfo.name === "0200000";
-  const isCreditOrDebit = typeInfo.code === "381" || typeInfo.code === "383";
-
-  // --- Payment means ---
-  const paymentMeansCode = String(inv.payment_means_code || "10");
 
   // --- PIH (Previous Invoice Hash) ---
   const pih = previousInvoiceHash || "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
@@ -165,12 +117,6 @@ function buildUBL(
   <cbc:InvoiceTypeCode name="${typeInfo.name}">${typeInfo.code}</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${currencyCode}</cbc:DocumentCurrencyCode>
   <cbc:TaxCurrencyCode>${currencyCode}</cbc:TaxCurrencyCode>
-  <cbc:Note languageID="ar">${escapeXml(String(inv.notes || inv.description || "فاتورة"))}</cbc:Note>${isCreditOrDebit ? `
-  <cac:BillingReference>
-    <cac:InvoiceDocumentReference>
-      <cbc:ID>${escapeXml(String(inv.original_invoice_number || inv.billing_reference_id || ""))}</cbc:ID>
-    </cac:InvoiceDocumentReference>
-  </cac:BillingReference>` : ""}
   <cac:AdditionalDocumentReference>
     <cbc:ID>ICV</cbc:ID>
     <cbc:UUID>${Number(inv.icv || 0)}</cbc:UUID>
@@ -202,12 +148,13 @@ function buildUBL(
         <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
         <cbc:CityName>${cityName}</cbc:CityName>
         <cbc:PostalZone>${postalZone}</cbc:PostalZone>
+        <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(vatNumber)}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="TIN">${escapeXml(vatNumber)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
@@ -218,12 +165,10 @@ function buildUBL(
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cac:PartyIdentification>
-        <cbc:ID schemeID="${buyerIdType}">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
+        <cbc:ID schemeID="NAT">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
       </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(String(inv.buyer_street || ""))}</cbc:StreetName>
-        <cbc:BuildingNumber>${escapeXml(String(inv.buyer_building || ""))}</cbc:BuildingNumber>
-        <cbc:CitySubdivisionName>${escapeXml(String(inv.buyer_district || ""))}</cbc:CitySubdivisionName>
         <cbc:CityName>${escapeXml(String(inv.buyer_city || ""))}</cbc:CityName>
         <cbc:PostalZone>${escapeXml(String(inv.buyer_postal || ""))}</cbc:PostalZone>
         <cac:Country>
@@ -247,42 +192,35 @@ function buildUBL(
     </cac:Party>
   </cac:AccountingCustomerParty>`}
   <cac:Delivery>
-    <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>${!isSimplified ? `
-    <cbc:LatestDeliveryDate>${String(inv.latest_delivery_date || inv.end_date || issueDate)}</cbc:LatestDeliveryDate>` : ""}
+    <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>
   </cac:Delivery>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
-  <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-  </cac:TaxTotal>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
     <cac:TaxSubtotal>
       <cbc:TaxableAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxableAmount>
       <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
       <cac:TaxCategory>
-        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
-        <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
-        <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
-        <cac:TaxScheme>
-          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-        </cac:TaxScheme>
+        <cbc:ID>${vatCategoryCode}</cbc:ID>
+        <cbc:Percent>${vatRate}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:TaxCategory>
     </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
   </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxExclusiveAmount>
     <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
-    
-    <cbc:PrepaidAmount currencyID="${currencyCode}">0.00</cbc:PrepaidAmount>
     <cbc:PayableAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
   <cac:InvoiceLine>
     <cbc:ID>1</cbc:ID>
-    <cbc:InvoicedQuantity unitCode="MON">1.000000</cbc:InvoicedQuantity>
+    <cbc:InvoicedQuantity unitCode="PCE">1</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cac:TaxTotal>
       <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
@@ -291,11 +229,9 @@ function buildUBL(
     <cac:Item>
       <cbc:Name>${escapeXml(String(inv.description || "إيجار عقاري"))}</cbc:Name>
       <cac:ClassifiedTaxCategory>
-        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>
-        <cac:TaxScheme>
-          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-        </cac:TaxScheme>
+        <cbc:ID>${vatCategoryCode}</cbc:ID>
+        <cbc:Percent>${vatRate}</cbc:Percent>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:ClassifiedTaxCategory>
     </cac:Item>
     <cac:Price>
@@ -344,9 +280,9 @@ Deno.serve(async (req) => {
 
     // Fetch all ZATCA-relevant settings
     const settingKeys = [
-      "vat_registration_number", "waqf_name", "commercial_registration_number",
+      "vat_number", "waqf_name", "commercial_registration_number",
       "business_address_street", "business_address_building",
-      "business_address_city", "business_address_postal_code",
+      "business_address_city", "business_address_postal",
       "business_address_district", "business_address_province",
     ];
     const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", settingKeys);
@@ -366,21 +302,11 @@ Deno.serve(async (req) => {
     if (table === "payment_invoices" && inv.contract_id) {
       const { data: contract } = await admin
         .from("contracts")
-        .select("tenant_name, tenant_id_type, tenant_id_number, tenant_tax_number, tenant_crn, tenant_street, tenant_building, tenant_district, tenant_city, tenant_postal_code")
+        .select("tenant_name")
         .eq("id", inv.contract_id)
         .single();
       if (contract) {
-        const invRec = inv as Record<string, unknown>;
-        invRec.tenant_name = contract.tenant_name;
-        invRec.buyer_id_type = contract.tenant_id_type || "NAT";
-        invRec.buyer_id = contract.tenant_id_number || "";
-        invRec.buyer_vat = (contract as Record<string, unknown>).tenant_tax_number || "";
-        invRec.buyer_crn = (contract as Record<string, unknown>).tenant_crn || "";
-        invRec.buyer_street = contract.tenant_street || "";
-        invRec.buyer_building = contract.tenant_building || "";
-        invRec.buyer_district = contract.tenant_district || "";
-        invRec.buyer_city = contract.tenant_city || "";
-        invRec.buyer_postal = contract.tenant_postal_code || "";
+        (inv as Record<string, unknown>).tenant_name = contract.tenant_name;
       }
       // Default to simplified for payment invoices
       if (!inv.invoice_type) {

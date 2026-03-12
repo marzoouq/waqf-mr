@@ -21,10 +21,8 @@ import { toast } from 'sonner';
 import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import TablePagination from '@/components/TablePagination';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
@@ -37,22 +35,19 @@ const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'se
 };
 
 function ZatcaManagementPage() {
-  const { fiscalYearId } = useFiscalYear();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<any>(null);
-  const [invoicePage, setInvoicePage] = useState(1);
-  const INVOICES_PER_PAGE = 20;
 
   // ─── Required Settings for Onboarding ───
   const { data: zatcaSettings } = useQuery({
     queryKey: ['zatca-required-settings'],
     queryFn: async () => {
       const { data } = await supabase.from('app_settings').select('key, value')
-        .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
+        .in('key', ['waqf_name', 'vat_number', 'zatca_device_serial']);
       const map: Record<string, string> = {};
       (data || []).forEach(s => { map[s.key] = s.value; });
       return map;
@@ -61,7 +56,7 @@ function ZatcaManagementPage() {
 
   const missingSettings = [
     ...(!zatcaSettings?.zatca_device_serial ? ['الرقم التسلسلي للجهاز'] : []),
-    ...(!zatcaSettings?.vat_registration_number ? ['الرقم الضريبي'] : []),
+    ...(!zatcaSettings?.vat_number ? ['الرقم الضريبي'] : []),
     ...(!zatcaSettings?.waqf_name ? ['اسم المنشأة'] : []),
   ];
   const canOnboard = missingSettings.length === 0;
@@ -78,11 +73,10 @@ function ZatcaManagementPage() {
 
   // ─── Invoices (both tables) ───
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
+    queryKey: ['zatca-invoices', statusFilter],
     queryFn: async () => {
-      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(200);
+      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv').order('date', { ascending: false }).limit(200);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
-      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
       return (data || []).map(i => ({ ...i, source: 'invoices' as const }));
@@ -90,11 +84,10 @@ function ZatcaManagementPage() {
   });
 
   const { data: paymentInvoices = [] } = useQuery({
-    queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
+    queryKey: ['zatca-payment-invoices', statusFilter],
     queryFn: async () => {
-      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(200);
+      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type').order('due_date', { ascending: false }).limit(200);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
-      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
       return (data || []).map(i => ({ ...i, source: 'payment_invoices' as const, date: i.due_date }));
@@ -102,10 +95,6 @@ function ZatcaManagementPage() {
   });
 
   const allInvoices = [...invoices, ...paymentInvoices];
-  const paginatedInvoices = useMemo(() => {
-    const start = (invoicePage - 1) * INVOICES_PER_PAGE;
-    return allInvoices.slice(start, start + INVOICES_PER_PAGE);
-  }, [allInvoices, invoicePage]);
 
   // ─── Invoice Chain ───
   const { data: chain = [], isLoading: chainLoading } = useQuery({
@@ -232,7 +221,7 @@ function ZatcaManagementPage() {
   };
 
   // ─── Summary ───
-  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(i.zatca_status || '')).length;
+  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared'].includes(i.zatca_status || '')).length;
   const pending = allInvoices.filter(i => i.zatca_status === 'not_submitted' || !i.zatca_status).length;
   const rejected = allInvoices.filter(i => i.zatca_status === 'rejected').length;
   const activeCert = certificates.find(c => c.is_active);
@@ -294,7 +283,7 @@ function ZatcaManagementPage() {
           {/* ─── Invoices Tab ─── */}
           <TabsContent value="invoices" className="space-y-4">
             <div className="flex items-center gap-3">
-              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setInvoicePage(1); }}>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="فلتر الحالة" />
                 </SelectTrigger>
@@ -334,10 +323,10 @@ function ZatcaManagementPage() {
                       <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>
                     ) : allInvoices.length === 0 ? (
                       <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
-                    ) : paginatedInvoices.map(inv => {
+                    ) : allInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
                       const rowBusy = isRowPending(inv.id);
-                      const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
+                      const isSubmitted = ['submitted', 'reported', 'cleared'].includes(inv.zatca_status || '');
 
                       const hasXml = !!inv.zatca_xml;
                       const hasSig = !!inv.invoice_hash;
@@ -476,7 +465,6 @@ function ZatcaManagementPage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <TablePagination currentPage={invoicePage} totalItems={allInvoices.length} itemsPerPage={INVOICES_PER_PAGE} onPageChange={setInvoicePage} />
             </Card>
           </TabsContent>
 

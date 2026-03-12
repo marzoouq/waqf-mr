@@ -205,7 +205,7 @@ const { data } = await supabase.functions.invoke('guard-signup', {
 // فشل: { error: 'التسجيل معطل حالياً' }
 ```
 
-> يتحقق من: صيغة البريد، طول كلمة المرور (8-128)، وإعداد `registration_enabled` في `app_settings`.
+> يتحقق من: صيغة البريد، طول كلمة المرور (6-128)، وإعداد `registration_enabled` في `app_settings`.
 
 ---
 

@@ -413,13 +413,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contract_fiscal_allocations_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "contract_fiscal_allocations_fiscal_year_id_fkey"
             columns: ["fiscal_year_id"]
             isOneToOne: false
@@ -443,16 +436,7 @@ export type Database = {
           rent_amount: number
           start_date: string
           status: string
-          tenant_building: string | null
-          tenant_city: string | null
-          tenant_crn: string | null
-          tenant_district: string | null
-          tenant_id_number: string | null
-          tenant_id_type: string | null
           tenant_name: string
-          tenant_postal_code: string | null
-          tenant_street: string | null
-          tenant_tax_number: string | null
           unit_id: string | null
           updated_at: string
         }
@@ -470,16 +454,7 @@ export type Database = {
           rent_amount: number
           start_date: string
           status?: string
-          tenant_building?: string | null
-          tenant_city?: string | null
-          tenant_crn?: string | null
-          tenant_district?: string | null
-          tenant_id_number?: string | null
-          tenant_id_type?: string | null
           tenant_name: string
-          tenant_postal_code?: string | null
-          tenant_street?: string | null
-          tenant_tax_number?: string | null
           unit_id?: string | null
           updated_at?: string
         }
@@ -497,16 +472,7 @@ export type Database = {
           rent_amount?: number
           start_date?: string
           status?: string
-          tenant_building?: string | null
-          tenant_city?: string | null
-          tenant_crn?: string | null
-          tenant_district?: string | null
-          tenant_id_number?: string | null
-          tenant_id_type?: string | null
           tenant_name?: string
-          tenant_postal_code?: string | null
-          tenant_street?: string | null
-          tenant_tax_number?: string | null
           unit_id?: string | null
           updated_at?: string
         }
@@ -750,13 +716,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "income_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts_safe"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "income_fiscal_year_id_fkey"
             columns: ["fiscal_year_id"]
             isOneToOne: false
@@ -881,13 +840,6 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts_safe"
             referencedColumns: ["id"]
           },
           {
@@ -1060,13 +1012,6 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_invoices_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts_safe"
             referencedColumns: ["id"]
           },
           {
@@ -1249,13 +1194,6 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: true
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_payments_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: true
-            referencedRelation: "contracts_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1476,12 +1414,12 @@ export type Database = {
         Insert: {
           bank_account?: never
           created_at?: string | null
-          email?: never
+          email?: string | null
           id?: string | null
           name?: string | null
           national_id?: never
           notes?: string | null
-          phone?: never
+          phone?: string | null
           share_percentage?: number | null
           updated_at?: string | null
           user_id?: string | null
@@ -1489,123 +1427,17 @@ export type Database = {
         Update: {
           bank_account?: never
           created_at?: string | null
-          email?: never
+          email?: string | null
           id?: string | null
           name?: string | null
           national_id?: never
           notes?: string | null
-          phone?: never
+          phone?: string | null
           share_percentage?: number | null
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: []
-      }
-      contracts_safe: {
-        Row: {
-          contract_number: string | null
-          created_at: string | null
-          end_date: string | null
-          fiscal_year_id: string | null
-          id: string | null
-          notes: string | null
-          payment_amount: number | null
-          payment_count: number | null
-          payment_type: string | null
-          property_id: string | null
-          rent_amount: number | null
-          start_date: string | null
-          status: string | null
-          tenant_building: string | null
-          tenant_city: string | null
-          tenant_crn: string | null
-          tenant_district: string | null
-          tenant_id_number: string | null
-          tenant_id_type: string | null
-          tenant_name: string | null
-          tenant_postal_code: string | null
-          tenant_street: string | null
-          tenant_tax_number: string | null
-          unit_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          contract_number?: string | null
-          created_at?: string | null
-          end_date?: string | null
-          fiscal_year_id?: string | null
-          id?: string | null
-          notes?: string | null
-          payment_amount?: number | null
-          payment_count?: number | null
-          payment_type?: string | null
-          property_id?: string | null
-          rent_amount?: number | null
-          start_date?: string | null
-          status?: string | null
-          tenant_building?: never
-          tenant_city?: never
-          tenant_crn?: never
-          tenant_district?: never
-          tenant_id_number?: never
-          tenant_id_type?: never
-          tenant_name?: string | null
-          tenant_postal_code?: never
-          tenant_street?: never
-          tenant_tax_number?: never
-          unit_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          contract_number?: string | null
-          created_at?: string | null
-          end_date?: string | null
-          fiscal_year_id?: string | null
-          id?: string | null
-          notes?: string | null
-          payment_amount?: number | null
-          payment_count?: number | null
-          payment_type?: string | null
-          property_id?: string | null
-          rent_amount?: number | null
-          start_date?: string | null
-          status?: string | null
-          tenant_building?: never
-          tenant_city?: never
-          tenant_crn?: never
-          tenant_district?: never
-          tenant_id_number?: never
-          tenant_id_type?: never
-          tenant_name?: string | null
-          tenant_postal_code?: never
-          tenant_street?: never
-          tenant_tax_number?: never
-          unit_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contracts_fiscal_year_id_fkey"
-            columns: ["fiscal_year_id"]
-            isOneToOne: false
-            referencedRelation: "fiscal_years"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Functions: {

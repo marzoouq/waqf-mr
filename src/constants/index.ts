@@ -88,15 +88,6 @@ export const UNIT_TYPES = [
   'موقف',
 ] as const;
 
-// ─── أنواع هوية المستأجر ───
-export const TENANT_ID_TYPES = [
-  { value: 'NAT', label: 'هوية وطنية' },
-  { value: 'CRN', label: 'سجل تجاري' },
-  { value: 'IQA', label: 'إقامة' },
-  { value: 'PAS', label: 'جواز سفر' },
-  { value: 'TIN', label: 'رقم ضريبي' },
-] as const;
-
 // ─── أدوار المستخدمين ───
 export const ROLE_LABELS: Record<string, string> = {
   admin: 'ناظر الوقف',

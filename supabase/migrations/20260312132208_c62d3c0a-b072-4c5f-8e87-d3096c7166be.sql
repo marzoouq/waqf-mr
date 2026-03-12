@@ -1,1 +1,0 @@
-UPDATE app_settings SET value = 'true' WHERE key = 'registration_enabled';

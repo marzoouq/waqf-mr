@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,12 +45,6 @@ interface AccountsDialogsProps {
   onSaveContractEdit: () => void;
   isUpdatePending: boolean;
 }
-
-const statusOptions = [
-  { value: 'active', label: 'نشط' },
-  { value: 'expired', label: 'منتهي' },
-  { value: 'cancelled', label: 'ملغي' },
-];
 
 const AccountsDialogs = ({
   deleteTarget, setDeleteTarget, onConfirmDelete,
@@ -104,11 +98,16 @@ const AccountsDialogs = ({
               </div>
               <div className="space-y-2">
                 <Label>الحالة</Label>
-                <NativeSelect
-                  value={editingContractData.status}
-                  onValueChange={(val) => setEditingContractData((prev) => prev ? { ...prev, status: val } : prev)}
-                  options={statusOptions}
-                />
+                <Select value={editingContractData.status} onValueChange={(val) => setEditingContractData((prev) => prev ? { ...prev, status: val } : prev)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">نشط</SelectItem>
+                    <SelectItem value="expired">منتهي</SelectItem>
+                    <SelectItem value="cancelled">ملغي</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button className="flex-1 gradient-primary" onClick={onSaveContractEdit} disabled={isUpdatePending}>

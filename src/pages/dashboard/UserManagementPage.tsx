@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -291,12 +291,17 @@ const UserManagementPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>الدور</Label>
-                  <NativeSelect value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })} options={[
-                    { value: 'admin', label: 'ناظر (Admin)' },
-                    { value: 'accountant', label: 'محاسب' },
-                    { value: 'beneficiary', label: 'مستفيد' },
-                    { value: 'waqif', label: 'واقف' },
-                  ]} />
+                  <Select value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">ناظر (Admin)</SelectItem>
+                      <SelectItem value="accountant">محاسب</SelectItem>
+                      <SelectItem value="beneficiary">مستفيد</SelectItem>
+                      <SelectItem value="waqif">واقف</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button type="submit" className="w-full gradient-primary" disabled={createUser.isPending}>
                   {createUser.isPending ? 'جاري الإنشاء...' : 'إنشاء المستخدم'}
@@ -609,12 +614,17 @@ const UserManagementPage = () => {
               </div>
               <div className="space-y-2">
                 <Label>الدور</Label>
-                <NativeSelect value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
-                  { value: 'admin', label: 'ناظر (Admin)' },
-                  { value: 'accountant', label: 'محاسب' },
-                  { value: 'beneficiary', label: 'مستفيد' },
-                  { value: 'waqif', label: 'واقف' },
-                ]} />
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر الدور" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">ناظر (Admin)</SelectItem>
+                    <SelectItem value="accountant">محاسب</SelectItem>
+                    <SelectItem value="beneficiary">مستفيد</SelectItem>
+                    <SelectItem value="waqif">واقف</SelectItem>
+                  </SelectContent>
+                </Select>
                 {/* BUG-6 fix: تحذير ومنع الناظر من تغيير دوره */}
                 {editingUser && isSelf(editingUser.id) && (
                   <Alert variant="destructive" className="mt-2">

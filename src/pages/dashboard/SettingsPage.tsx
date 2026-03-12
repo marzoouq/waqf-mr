@@ -667,7 +667,7 @@ const SettingsPage = () => {
             </Select>
           </div>
           {/* Desktop: TabsList */}
-          <TabsList className="hidden md:flex w-full flex-wrap h-auto gap-1.5 bg-muted/50 p-1.5 rounded-xl">
+          <TabsList className="hidden md:flex w-full flex-wrap h-auto gap-1 bg-muted/50 p-1">
             <TabsTrigger value="waqf" className="gap-1.5 text-xs md:text-sm">
               <Building2 className="w-4 h-4" />
               بيانات الوقف

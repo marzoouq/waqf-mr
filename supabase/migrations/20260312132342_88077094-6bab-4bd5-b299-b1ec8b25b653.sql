@@ -1,2 +1,0 @@
-INSERT INTO public.user_roles (user_id, role) VALUES ('bd7583f5-2f1c-4371-8c86-64b4e64c5057', 'admin') ON CONFLICT (user_id, role) DO NOTHING;
-UPDATE app_settings SET value = 'false' WHERE key = 'registration_enabled';

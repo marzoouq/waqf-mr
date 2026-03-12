@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +30,6 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 const NotificationsPage = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { data: allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -90,7 +87,7 @@ const NotificationsPage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل الإشعارات</h2>
-          <Button onClick={handleRetry} className="gap-2">
+          <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>

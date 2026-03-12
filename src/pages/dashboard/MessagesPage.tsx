@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { NativeSelect } from '@/components/ui/native-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Send, Plus, Users, ArrowRight, Loader2 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -202,7 +202,14 @@ const MessagesPage = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>المستفيد</Label>
-              <NativeSelect value={newConvBeneficiary} onValueChange={setNewConvBeneficiary} placeholder="اختر المستفيد" options={beneficiaries.filter((b) => b.user_id).map((b) => ({ value: b.user_id!, label: b.name }))} />
+              <Select value={newConvBeneficiary} onValueChange={setNewConvBeneficiary}>
+                <SelectTrigger><SelectValue placeholder="اختر المستفيد" /></SelectTrigger>
+                <SelectContent>
+                  {beneficiaries.filter((b) => b.user_id).map((b) => (
+                    <SelectItem key={b.id} value={b.user_id!}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label>الموضوع</Label>

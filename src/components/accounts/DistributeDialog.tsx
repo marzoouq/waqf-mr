@@ -95,8 +95,6 @@ const DistributeDialog = ({
 
   const distributions = useMemo(() => {
     // === Largest Remainder algorithm for precise share allocation ===
-    // F-AUDIT: استخدام مجموع النسب الفعلي (totalPercentage) بدلاً من 100 الثابتة
-    // لضمان التناسق مع get_max_advance_amount و validate_advance_request_amount في DB
     const totalPercentage = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
     if (totalPercentage === 0 || availableAmount === 0) {
       return beneficiaries.map(b => ({
@@ -107,9 +105,8 @@ const DistributeDialog = ({
     }
 
     // Step 1: Calculate raw shares and floor them to 2 decimals
-    // F-AUDIT fix: normalize by totalPercentage (not hardcoded 100) to match DB RPC behavior
     const rawShares = beneficiaries.map(b => {
-      const exact = availableAmount * Number(b.share_percentage) / totalPercentage;
+      const exact = availableAmount * Number(b.share_percentage) / 100;
       const floored = Math.floor(exact * 100) / 100;
       return { id: b.id, exact, floored, remainder: exact - floored };
     });

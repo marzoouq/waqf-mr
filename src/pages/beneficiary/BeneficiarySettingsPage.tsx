@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -40,8 +39,6 @@ const defaultPrefs = {
 };
 
 const BeneficiarySettingsPage = () => {
-  const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
@@ -152,7 +149,7 @@ const BeneficiarySettingsPage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={handleRetry} className="gap-2">
+          <Button onClick={() => window.location.reload()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>

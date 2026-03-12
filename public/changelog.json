@@ -1,388 +1,69 @@
 [
   {
-    "version": "2.7.3",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "improvement",
-        "text": "Add RLS on beneficiaries_safe"
-      },
-      {
-        "type": "improvement",
-        "text": "Changes"
-      }
-    ]
-  },
-  {
-    "version": "2.7.2",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      }
-    ]
-  },
-  {
-    "version": "2.7.1",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "improvement",
-        "text": "Changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "fix(test): remove brittle text assertion - just check component renders without crash"
-      },
-      {
-        "type": "improvement",
-        "text": "Update WaqifDashboard.test.tsx"
-      },
-      {
-        "type": "improvement",
-        "text": "Change npm ci to npm install in workflow"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Fix stale lockfile for deploy"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Regenerated lockfile"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Reverted to commit 00db74b73ee0e5538f9f2636983a63a8cbfe58b0"
-      },
-      {
-        "type": "improvement",
-        "text": "Add PerformanceMonitor tests"
-      },
-      {
-        "type": "improvement",
-        "text": "Preceding changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Add integration test for PerformanceMonitorTab"
-      },
-      {
-        "type": "improvement",
-        "text": "Add build trigger comment"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      }
-    ]
-  },
-  {
-    "version": "2.8.3",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "fix",
-        "text": "إضافة XPath Transform ثالث لاستثناء QR من حساب هاش الفاتورة (ZATCA Sandbox v2.1.0)"
-      },
-      {
-        "type": "fix",
-        "text": "إضافة schemeID و schemeAgencyID على عناصر TaxCategory و TaxScheme للامتثال مع XSD"
-      },
-      {
-        "type": "fix",
-        "text": "تنسيق نسب الضريبة بصيغة عشرية (15.00) لتوافق EN 16931"
-      },
-      {
-        "type": "improvement",
-        "text": "إضافة AllowanceCharge و AllowanceTotalAmount و PrepaidAmount في XML الفاتورة"
-      }
-    ]
-  },
-  {
-    "version": "2.8.2",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "fix",
-        "text": "تصحيح هيكل SAN في CSR: استخدام directoryName مع UID OID بدل otherName مع VeriSign OID"
-      },
-      {
-        "type": "improvement",
-        "text": "توليد تلقائي للمفتاح الخاص ECDSA عند Onboarding — لم يعد مطلوباً إدخال ZATCA_PRIVATE_KEY"
-      },
-      {
-        "type": "improvement",
-        "text": "تخزين المفتاح الخاص المولّد مباشرة في قاعدة البيانات مشفراً لضمان التطابق مع CSR"
-      }
-    ]
-  },
-  {
-    "version": "2.8.1",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "fix",
-        "text": "تصحيح SAN في CSR: استخدام الرقم التسلسلي الفعلي من الإعدادات بدل UUID ثابت"
-      },
-      {
-        "type": "fix",
-        "text": "تصحيح QR Tags 8-9: استخراج توقيع الشهادة والمفتاح العام من DER بدل البيانات الخاطئة"
-      },
-      {
-        "type": "fix",
-        "text": "تصحيح فئة ضريبة الصفر: استخدام Z (صفري) بدل E (معفي) كقيمة افتراضية"
-      },
-      {
-        "type": "improvement",
-        "text": "إضافة rollback تلقائي لسلسلة الفواتير عند فشل التوقيع لمنع كسر PIH"
-      },
-      {
-        "type": "improvement",
-        "text": "منع التوقيع بشهادة وهمية (Placeholder) مع رسالة خطأ واضحة"
-      },
-      {
-        "type": "improvement",
-        "text": "إضافة تحقق مسبق من المبالغ وعناصر XML الإلزامية قبل التوقيع"
-      }
-    ]
-  },
-  {
-    "version": "2.8.0",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "fix",
-        "text": "إصلاح مفتاح الرمز البريدي في ZATCA XML (business_address_postal → postal_code)"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح ترتيب ICV: تخصيص قبل الهاش لضمان صحة التوقيع الرقمي"
-      },
-      {
-        "type": "fix",
-        "text": "استخراج X509IssuerSerial ديناميكياً من الشهادة بدل القيم الثابتة"
-      },
-      {
-        "type": "fix",
-        "text": "تصحيح QR Tag-4: استخدام المبلغ الشامل للضريبة (TaxInclusiveAmount)"
-      },
-      {
-        "type": "fix",
-        "text": "تصحيح توجيه الواقف إلى /waqif بدل /beneficiary في 3 ملفات"
-      },
-      {
-        "type": "fix",
-        "text": "مزامنة الحد الأدنى لكلمة المرور (8 أحرف) بين الكود والاختبارات والوثائق"
-      },
-      {
-        "type": "improvement",
-        "text": "إزالة مكتبة react-day-picker غير المستخدمة وتقليل حجم الحزمة"
-      },
-      {
-        "type": "improvement",
-        "text": "تحسين أمان التبعيات: نقل serialize-javascript وتثبيت react-router-dom"
-      },
-      {
-        "type": "improvement",
-        "text": "تأمين دالة allocate_icv_and_chain بفحص الدور وسحب الصلاحيات"
-      },
-      {
-        "type": "improvement",
-        "text": "إخفاء email و phone في عرض المستفيدين لغير المشرفين"
-      }
-    ]
-  },
-  {
     "version": "2.7.0",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
-      {
-        "type": "feature",
-        "text": "تكامل ZATCA كامل: المرحلة الأولى والثانية (XML, توقيع رقمي, API)"
-      },
-      {
-        "type": "feature",
-        "text": "بوابة الواقف المستقلة مع رسوم بيانية تفاعلية"
-      },
-      {
-        "type": "feature",
-        "text": "نظام تذاكر الدعم الفني للمستفيدين"
-      },
-      {
-        "type": "feature",
-        "text": "نظام ترحيل السلف بين السنوات المالية"
-      },
-      {
-        "type": "improvement",
-        "text": "ترقية React إلى الإصدار 19 وتحسين الأداء"
-      },
-      {
-        "type": "improvement",
-        "text": "تشديد أمني شامل: CORS, RLS, تشفير المفاتيح الخاصة"
-      },
-      {
-        "type": "improvement",
-        "text": "تقسيم صفحة المصادقة لمكونات فرعية منفصلة"
-      },
-      {
-        "type": "improvement",
-        "text": "تنبيه تلقائي عند اقتطاع البيانات (حد 500 سجل)"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح تحذيرات forwardRef بترقية React 19"
-      },
-      {
-        "type": "fix",
-        "text": "حماية سجل الوصول ضد انتحال الشخصية"
-      }
+      { "type": "feature", "text": "تكامل ZATCA كامل: المرحلة الأولى والثانية (XML, توقيع رقمي, API)" },
+      { "type": "feature", "text": "بوابة الواقف المستقلة مع رسوم بيانية تفاعلية" },
+      { "type": "feature", "text": "نظام تذاكر الدعم الفني للمستفيدين" },
+      { "type": "feature", "text": "نظام ترحيل السلف بين السنوات المالية" },
+      { "type": "improvement", "text": "ترقية React إلى الإصدار 19 وتحسين الأداء" },
+      { "type": "improvement", "text": "تشديد أمني شامل: CORS, RLS, تشفير المفاتيح الخاصة" },
+      { "type": "improvement", "text": "تقسيم صفحة المصادقة لمكونات فرعية منفصلة" },
+      { "type": "improvement", "text": "تنبيه تلقائي عند اقتطاع البيانات (حد 500 سجل)" },
+      { "type": "fix", "text": "إصلاح تحذيرات forwardRef بترقية React 19" },
+      { "type": "fix", "text": "حماية سجل الوصول ضد انتحال الشخصية" }
     ]
   },
   {
     "version": "2.6.0",
     "date": "٦ مارس ٢٠٢٦",
     "changes": [
-      {
-        "type": "feature",
-        "text": "إضافة اسم المستفيد في إشعار طلب السلفة"
-      },
-      {
-        "type": "improvement",
-        "text": "تخزين مؤقت ذكي لبيانات API عند انقطاع الإنترنت (NetworkFirst)"
-      },
-      {
-        "type": "improvement",
-        "text": "زيادة مدة الاحتفاظ بالكاش للبيانات المالية (30 دقيقة)"
-      },
-      {
-        "type": "improvement",
-        "text": "تسجيل أخطاء العميل تلقائياً في سجل المراقبة"
-      },
-      {
-        "type": "fix",
-        "text": "توحيد النطاق للنشر (waqf-wise.net) في جميع الملفات"
-      },
-      {
-        "type": "fix",
-        "text": "حماية ErrorBoundary منفصلة للمكونات الثانوية"
-      }
+      { "type": "feature", "text": "إضافة اسم المستفيد في إشعار طلب السلفة" },
+      { "type": "improvement", "text": "تخزين مؤقت ذكي لبيانات API عند انقطاع الإنترنت (NetworkFirst)" },
+      { "type": "improvement", "text": "زيادة مدة الاحتفاظ بالكاش للبيانات المالية (30 دقيقة)" },
+      { "type": "improvement", "text": "تسجيل أخطاء العميل تلقائياً في سجل المراقبة" },
+      { "type": "fix", "text": "توحيد النطاق للنشر (waqf-wise.net) في جميع الملفات" },
+      { "type": "fix", "text": "حماية ErrorBoundary منفصلة للمكونات الثانوية" }
     ]
   },
   {
     "version": "2.5.0",
     "date": "٢ مارس ٢٠٢٦",
     "changes": [
-      {
-        "type": "fix",
-        "text": "إصلاح عرض البيانات الشخصية للمحاسب (الهوية/البنك) بدون تقنيع"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح حساب السلف بمجموع النسب التناسبي بدل القسمة على 100"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح تنبيهات التأخر للعقود المنتهية"
-      },
-      {
-        "type": "feature",
-        "text": "نظام الفواتير: فلاتر النوع والحالة وعرض بطاقات للجوال"
-      },
-      {
-        "type": "improvement",
-        "text": "تحديث شامل للتوثيق وإضافة النطاق المخصص waqf-wise.net"
-      }
+      { "type": "fix", "text": "إصلاح عرض البيانات الشخصية للمحاسب (الهوية/البنك) بدون تقنيع" },
+      { "type": "fix", "text": "إصلاح حساب السلف بمجموع النسب التناسبي بدل القسمة على 100" },
+      { "type": "fix", "text": "إصلاح تنبيهات التأخر للعقود المنتهية" },
+      { "type": "feature", "text": "نظام الفواتير: فلاتر النوع والحالة وعرض بطاقات للجوال" },
+      { "type": "improvement", "text": "تحديث شامل للتوثيق وإضافة النطاق المخصص waqf-wise.net" }
     ]
   },
   {
     "version": "2.4.0",
     "date": "٢١ فبراير ٢٠٢٦",
     "changes": [
-      {
-        "type": "improvement",
-        "text": "استبدال الألوان الثابتة بتوكنات التصميم لدعم الوضع الداكن"
-      },
-      {
-        "type": "feature",
-        "text": "إضافة سجل التحديثات عند تحديث التطبيق"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح ألوان شارة 'مقفلة' في الوضع الداكن"
-      },
-      {
-        "type": "improvement",
-        "text": "إضافة اختبارات وحدة جديدة للحسابات المالية"
-      }
+      { "type": "improvement", "text": "استبدال الألوان الثابتة بتوكنات التصميم لدعم الوضع الداكن" },
+      { "type": "feature", "text": "إضافة سجل التحديثات عند تحديث التطبيق" },
+      { "type": "fix", "text": "إصلاح ألوان شارة 'مقفلة' في الوضع الداكن" },
+      { "type": "improvement", "text": "إضافة اختبارات وحدة جديدة للحسابات المالية" }
     ]
   },
   {
     "version": "2.3.0",
     "date": "٢٠ فبراير ٢٠٢٦",
     "changes": [
-      {
-        "type": "feature",
-        "text": "إشعار تحديث تلقائي للتطبيق (PWA)"
-      },
-      {
-        "type": "improvement",
-        "text": "تحسين أداء التطبيق وسرعة التحميل"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح مشاكل التوافق مع الأجهزة المحمولة"
-      }
+      { "type": "feature", "text": "إشعار تحديث تلقائي للتطبيق (PWA)" },
+      { "type": "improvement", "text": "تحسين أداء التطبيق وسرعة التحميل" },
+      { "type": "fix", "text": "إصلاح مشاكل التوافق مع الأجهزة المحمولة" }
     ]
   },
   {
     "version": "2.2.0",
     "date": "١٨ فبراير ٢٠٢٦",
     "changes": [
-      {
-        "type": "feature",
-        "text": "نظام الرسائل والمحادثات بين الناظر والمستفيدين"
-      },
-      {
-        "type": "improvement",
-        "text": "تحسين واجهة لوحة التحكم الرئيسية"
-      },
-      {
-        "type": "fix",
-        "text": "إصلاح حساب نسب التوزيع"
-      }
+      { "type": "feature", "text": "نظام الرسائل والمحادثات بين الناظر والمستفيدين" },
+      { "type": "improvement", "text": "تحسين واجهة لوحة التحكم الرئيسية" },
+      { "type": "fix", "text": "إصلاح حساب نسب التوزيع" }
     ]
   }
 ]

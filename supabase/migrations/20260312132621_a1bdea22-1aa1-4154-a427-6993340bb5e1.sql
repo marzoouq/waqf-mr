@@ -1,1 +1,0 @@
-DELETE FROM user_roles WHERE user_id = 'bd7583f5-2f1c-4371-8c86-64b4e64c5057' AND role = 'beneficiary';

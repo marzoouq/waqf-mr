@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
@@ -198,7 +197,7 @@ const InvoicesPage = () => {
         <PageHeaderCard
           title="إدارة الفواتير"
           icon={FileText}
-          description="رفع وإدارة فواتير المصروفات والمشتريات — فواتير دفعات الإيجار تُدار من صفحة العقود"
+          description="رفع وإدارة جميع أنواع الفواتير"
           actions={<>
             {(() => {
               const withoutFiles = invoices.filter(inv => !inv.file_path);
@@ -261,16 +260,25 @@ const InvoicesPage = () => {
                     <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
                     <div className="space-y-2">
                       <Label>نوع الفاتورة *</Label>
-                      <NativeSelect value={formData.invoice_type} onValueChange={(v) => setFormData({ ...formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
+                      <Select value={formData.invoice_type} onValueChange={(v) => setFormData({ ...formData, invoice_type: v })}>
+                        <SelectTrigger><SelectValue placeholder="اختر النوع" /></SelectTrigger>
+                        <SelectContent>{Object.entries(INVOICE_TYPE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}</SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label>العقار (اختياري)</Label>
-                    <NativeSelect value={formData.property_id} onValueChange={(v) => setFormData({ ...formData, property_id: v })} placeholder="اختر العقار" options={properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
+                    <Select value={formData.property_id} onValueChange={(v) => setFormData({ ...formData, property_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
+                      <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>العقد (اختياري)</Label>
-                    <NativeSelect value={formData.contract_id} onValueChange={(v) => setFormData({ ...formData, contract_id: v })} placeholder="اختر العقد" options={contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
+                    <Select value={formData.contract_id} onValueChange={(v) => setFormData({ ...formData, contract_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="اختر العقد" /></SelectTrigger>
+                      <SelectContent>{contracts.map((c) => (<SelectItem key={c.id} value={c.id}>{c.contract_number} - {c.tenant_name}</SelectItem>))}</SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2"><Label>وصف</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
                   <div className="flex gap-2 pt-4">
