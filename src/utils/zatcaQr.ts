@@ -70,6 +70,12 @@ export function generateZatcaQrTLV(data: ZatcaQrData): string {
     encodeTLV(5, data.vatAmount.toFixed(2)),
   ];
 
+  // Tags 6-9 for Standard invoices (Phase 2)
+  if (data.digitalSignature) entries.push(encodeTLVBytes(6, data.digitalSignature));
+  if (data.publicKey) entries.push(encodeTLVBytes(7, data.publicKey));
+  if (data.certificateSignature) entries.push(encodeTLVBytes(8, data.certificateSignature));
+  if (data.certificatePublicKey) entries.push(encodeTLVBytes(9, data.certificatePublicKey));
+
   // Concatenate all TLV entries
   const totalLength = entries.reduce((sum, e) => sum + e.length, 0);
   const result = new Uint8Array(totalLength);
