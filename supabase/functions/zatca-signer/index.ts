@@ -365,7 +365,7 @@ Deno.serve(async (req) => {
     // ════════════════════════════════════════════════════════════
     try {
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_number"]);
+        .in("key", ["waqf_name", "vat_registration_number"]);
       const qs: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
 
