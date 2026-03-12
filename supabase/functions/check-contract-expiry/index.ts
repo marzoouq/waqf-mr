@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
         .from("contracts")
         .select("id, contract_number, tenant_name, end_date, rent_amount")
         .eq("status", "expired")
-        .limit(500);
+        .limit(2000);
       if (expiredError) throw expiredError;
       expiredContracts = expired || [];
     }

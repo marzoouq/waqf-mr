@@ -213,6 +213,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('waqf_notification_tone');
       localStorage.removeItem('waqf_notification_volume');
       localStorage.removeItem('waqf_notification_preferences');
+      localStorage.removeItem('error_log_queue');
+      localStorage.removeItem('waqf_notification_sound');
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
       clearToasts();
