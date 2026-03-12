@@ -416,9 +416,48 @@ const Auth = () => {
           className="w-full h-11 gap-2 border-primary/30 hover:bg-primary/5"
           disabled={biometricLoading}
           onClick={async () => {
-            const success = await authenticateWithBiometric();
-            if (success) {
-              // سيتم التوجيه تلقائياً عبر useEffect
+            setBiometricLoading(true);
+            try {
+              // 1. طلب خيارات المصادقة
+              const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
+                body: { action: 'auth-options' },
+              });
+              if (optErr || !options) {
+                toast.error('فشل في بدء عملية المصادقة');
+                return;
+              }
+              // 2. تشغيل مطالبة البصمة
+              const credential = await startAuthentication({ optionsJSON: options });
+              // 3. التحقق
+              const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
+                body: { action: 'auth-verify', credential, challenge_id: options.challenge_id },
+              });
+              if (verErr || !result?.verified) {
+                toast.error('فشل في التحقق من البصمة');
+                return;
+              }
+              if (!result.access_token || !result.refresh_token) {
+                toast.error('لم يتم استلام بيانات الجلسة');
+                return;
+              }
+              const { error: sessionError } = await supabase.auth.setSession({
+                access_token: result.access_token,
+                refresh_token: result.refresh_token,
+              });
+              if (sessionError) {
+                toast.error('فشل في إنشاء الجلسة');
+                return;
+              }
+              toast.success('تم تسجيل الدخول بالبصمة بنجاح');
+            } catch (err: unknown) {
+              const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+              if (name === 'NotAllowedError') {
+                toast.error('تم إلغاء عملية البصمة');
+              } else {
+                toast.error('حدث خطأ أثناء المصادقة بالبصمة');
+              }
+            } finally {
+              setBiometricLoading(false);
             }
           }}
         >
