@@ -107,8 +107,8 @@ describe('ZatcaManagementPage', () => {
     setupMockFrom(prodCert);
     await renderPage();
     await userEvent.click(screen.getByText('الشهادات'));
-    // Wait for table to render
-    await screen.findByText('إنتاج');
+    // Wait for table to render — multiple "إنتاج" elements exist (summary + table badge)
+    await screen.findAllByText('إنتاج');
     expect(screen.queryByText('ترقية للإنتاج')).not.toBeInTheDocument();
   });
 
