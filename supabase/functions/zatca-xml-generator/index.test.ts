@@ -69,8 +69,9 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   const uuid = String(inv.zatca_uuid || crypto.randomUUID());
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
-  const vatCategoryCode = getVatCategoryCode(vatRate);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode);
+  const rawExemptionCode = String(inv.vat_exemption_code || inv.exemption_code || "");
+  const vatCategoryCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
+  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, rawExemptionCode || String(inv.description || ""));
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
   const validBuyerIdTypes = ["CRN", "NAT", "IQA", "PAS", "TIN", "MOM", "MLS", "SAG", "GCC", "700"];
   const rawBuyerIdType = String(inv.buyer_id_type || "NAT").toUpperCase();
