@@ -73,7 +73,9 @@ function buildUBL(
   // --- Invoice data ---
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
   const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
-  const issueTime = new Date().toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
+  // Use invoice created_at time if available, otherwise current time
+  const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
+  const issueTime = createdAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
   const amountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
   const vatAmount = Number(inv.vat_amount ?? 0);
   const total = amountExVat + vatAmount;
