@@ -1,71 +1,129 @@
 
+# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-# إضافة حقول هوية المستأجر (المشتري) في نموذج العقد ومسار الفوترة
+## ✅ تم التنفيذ
 
-## السياق الحالي
+### 1. إصلاح تحذيرات forwardRef
+- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
 
-مولّد XML يقرأ حقول `buyer_id_type`, `buyer_id`, `buyer_street`, `buyer_building` من بيانات الفاتورة، لكن هذه الحقول **غير موجودة** في قاعدة البيانات. النتيجة: كل الفواتير القياسية تُنشأ بـ `schemeID="NAT"` وبيانات مشتري فارغة.
+### 2. إشعار حد السجلات في useCrudFactory
+- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
 
-بما أن النظام نظام تأجير عقارات (سكني/تجاري)، المشتري هو **المستأجر** والبيانات يجب أن تُخزّن في جدول **العقود** (contracts) لأنها مرتبطة بالمستأجر وليس بالفاتورة.
+### 3. تقسيم Auth.tsx إلى مكونات فرعية
+- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
+- `SignupForm` — نموذج إنشاء حساب
+- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
+- `ResetPasswordForm` — نموذج استعادة كلمة المرور
+- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
 
-## التغييرات المطلوبة
+---
 
-### 1. Migration: إضافة أعمدة للعقود
+# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
+
+## الفجوات المكتشفة (12 فجوة)
+
+| # | الشدة | الفجوة | الحالة |
+|---|-------|--------|--------|
+| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
+| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
+| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
+| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
+| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
+| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
+| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
+| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
+| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
+| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
+| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
+| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+
+---
+
+## المراحل
+
+### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
+**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
+
+- إضافة `<cbc:IssueTime>` (وقت الإصدار)
+- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
+- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
+- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
+- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
+- قراءة `invoice_type` لتحديد `name` attribute:
+  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
+  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
+  - Debit Note: `383`, Credit Note: `381`
+- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
+- إضافة `zatca:ext` namespace
+
+### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
+**الملف**: `supabase/functions/zatca-signer/index.ts`
+
+- SHA-256 على كامل XML بعد Canonicalization (C14N)
+- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
+- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
+- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
+- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
+- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
+- تحديث XML المخزّن في الفاتورة بعد التوقيع
+- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+
+### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
+**الملف**: `supabase/functions/zatca-api/index.ts`
+
+- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
+  - `CN` = اسم المنشأة
+  - `O` = الرقم الضريبي
+  - `serialNumber` = رقم الجهاز
+- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
+- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
+- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
+
+### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
+**Migration مطلوب**:
 ```sql
-ALTER TABLE contracts ADD COLUMN tenant_id_type text DEFAULT 'NAT';
-ALTER TABLE contracts ADD COLUMN tenant_id_number text;
-ALTER TABLE contracts ADD COLUMN tenant_street text;
-ALTER TABLE contracts ADD COLUMN tenant_building text;
-ALTER TABLE contracts ADD COLUMN tenant_district text;
-ALTER TABLE contracts ADD COLUMN tenant_city text;
-ALTER TABLE contracts ADD COLUMN tenant_postal_code text;
+ALTER TABLE payment_invoices
+  ADD COLUMN IF NOT EXISTS zatca_xml text,
+  ADD COLUMN IF NOT EXISTS invoice_hash text,
+  ADD COLUMN IF NOT EXISTS icv integer,
+  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
 ```
 
-### 2. نموذج العقد (`ContractFormDialog.tsx`)
-- إضافة حقل **نوع الهوية** (Select: هوية وطنية NAT، سجل تجاري CRN، إقامة IQA، جواز سفر PAS)
-- إضافة حقل **رقم الهوية** (Input مع validation حسب النوع)
-- إضافة حقول عنوان المستأجر اختيارية (شارع، مبنى، حي، مدينة، رمز بريدي) — مطلوبة فقط للفواتير القياسية B2B
+**الملفات المتأثرة**:
+- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
+- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
+- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
 
-### 3. تحديث `ContractFormData` و `emptyFormData`
-إضافة الحقول الجديدة للنوع والبيانات الابتدائية.
+### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
+**الملف**: `src/utils/zatcaQr.ts`
 
-### 4. تحديث `src/types/database.ts` (Contract interface)
-إضافة الحقول الاختيارية الجديدة.
+- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
+- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
+- تضمين QR في PDF عبر `generateQrDataUrl()`
 
-### 5. تحديث `useContracts.ts`
-تمرير الحقول الجديدة عند الإنشاء والتحديث.
+### المرحلة 6 — إصلاح UI (GAP-7)
+**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
 
-### 6. تحديث Edge Function (`zatca-xml-generator/index.ts`)
-عند جلب بيانات `payment_invoices`، استرجاع حقول المستأجر من العقد:
-```typescript
-// خط 365-371 الحالي: يجلب tenant_name فقط
-// التحديث: جلب كل حقول المستأجر
-.select("tenant_name, tenant_id_type, tenant_id_number, tenant_street, tenant_building, tenant_district, tenant_city, tenant_postal_code")
-// ثم تعيينها:
-inv.buyer_id_type = contract.tenant_id_type;
-inv.buyer_id = contract.tenant_id_number;
-inv.buyer_street = contract.tenant_street;
-// ...
+- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
+- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
+- عرض حالة كل خطوة بصرياً (stepper أو badges)
+
+---
+
+## ترتيب التنفيذ
+
+```
+المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
+                              ↓
+                        المرحلة 4: payment_invoices migration
+                              ↓
+                        المرحلة 5: QR في XML
+                              ↓
+                        المرحلة 6: UI validation
 ```
 
-### 7. تحديث الثوابت (`constants/index.ts`)
-```typescript
-export const TENANT_ID_TYPES = [
-  { value: 'NAT', label: 'هوية وطنية' },
-  { value: 'CRN', label: 'سجل تجاري' },
-  { value: 'IQA', label: 'إقامة' },
-  { value: 'PAS', label: 'جواز سفر' },
-  { value: 'TIN', label: 'رقم ضريبي' },
-] as const;
-```
-
-## ملخص الملفات المتأثرة
-| الملف | التغيير |
-|---|---|
-| Migration SQL | إضافة 7 أعمدة لجدول contracts |
-| `src/types/database.ts` | إضافة حقول اختيارية لـ Contract |
-| `src/constants/index.ts` | إضافة TENANT_ID_TYPES |
-| `src/components/contracts/ContractFormDialog.tsx` | إضافة حقول نوع/رقم الهوية + عنوان المستأجر |
-| `src/hooks/useContracts.ts` | تمرير الحقول الجديدة |
-| `supabase/functions/zatca-xml-generator/index.ts` | جلب بيانات المستأجر من العقد |
-
+## ما لن يتغير
+- جدول `invoice_chain` وآلية ICV — سليمة
+- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
+- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
+- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
