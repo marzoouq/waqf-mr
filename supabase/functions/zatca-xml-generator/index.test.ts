@@ -372,7 +372,7 @@ Deno.test("Exempt invoice (E) — VATEX-SA-29-7 exemption code present", () => {
 // ────────────────────────────────────────────────────────────────────────
 // Test 5: Zero-rated (Z) — VATEX-SA-32
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in AllowanceCharge and TaxSubtotal", () => {
+Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in TaxSubtotal", () => {
   const xml = buildUBL({
     invoice_number: "INV-Z01",
     invoice_type: "standard",
@@ -386,9 +386,9 @@ Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in AllowanceCharge and
   assertStringIncludes(xml, "<cbc:TaxExemptionReasonCode>VATEX-SA-32</cbc:TaxExemptionReasonCode>");
   assertStringIncludes(xml, "توريدات خاضعة لنسبة صفر بالمائة");
 
-  // Should appear in both AllowanceCharge TaxCategory and TaxTotal TaxCategory
+  // VATEX-SA-32 appears in TaxSubtotal TaxCategory (AllowanceCharge is conditional, only when values exist)
   const allMatches = xml.match(/VATEX-SA-32/g);
-  assertEquals(allMatches!.length >= 2, true, "VATEX-SA-32 should appear in AllowanceCharge AND TaxSubtotal");
+  assertEquals(allMatches!.length >= 1, true, "VATEX-SA-32 should appear in TaxSubtotal");
 });
 
 // ────────────────────────────────────────────────────────────────────────
@@ -463,7 +463,7 @@ Deno.test("No PCE in any invoice type — rental model uses MON", () => {
 // ────────────────────────────────────────────────────────────────────────
 // Test 9: schemeID attributes on all required elements
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("schemeID attributes — CRN, TIN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
+Deno.test("schemeID attributes — CRN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
   const xml = buildUBL({
     invoice_number: "INV-SCH-01",
     invoice_type: "standard",
@@ -478,27 +478,26 @@ Deno.test("schemeID attributes — CRN, TIN, UN/ECE 5305, UN/ECE 5153, NAT", () 
   // Seller CRN
   assertStringIncludes(xml, 'schemeID="CRN"');
 
-  // TIN on seller CompanyID
-  assertStringIncludes(xml, 'schemeID="TIN"');
+  // schemeID="TIN" removed per ZATCA schema — not in official UBL 2.1 spec
+  assertEquals(xml.includes('schemeID="TIN"'), false, "TIN schemeID should not be used");
 
   // Buyer NAT (standard only)
   assertStringIncludes(xml, 'schemeID="NAT"');
 
-  // UN/ECE 5305 + schemeAgencyID="6" on every TaxCategory ID
+  // UN/ECE 5305 + schemeAgencyID="6" on TaxCategory IDs
+  // TaxSubtotal TaxCategory + ClassifiedTaxCategory = 2 (AllowanceCharge is conditional)
   const taxCatMatches = xml.match(/schemeID="UN\/ECE 5305" schemeAgencyID="6"/g);
-  // AllowanceCharge TaxCategory + TaxSubtotal TaxCategory + ClassifiedTaxCategory = 3
-  assertEquals(taxCatMatches!.length, 3, "Expected 3 UN/ECE 5305 occurrences");
+  assertEquals(taxCatMatches!.length, 2, "Expected 2 UN/ECE 5305 occurrences (TaxSubtotal + ClassifiedTaxCategory)");
 
-  // UN/ECE 5153 + schemeAgencyID="6" on every TaxScheme ID
+  // UN/ECE 5153 + schemeAgencyID="6" on TaxScheme IDs
   const taxSchemeMatches = xml.match(/schemeID="UN\/ECE 5153" schemeAgencyID="6"/g);
-  // AllowanceCharge TaxScheme + TaxSubtotal TaxScheme + ClassifiedTaxCategory TaxScheme = 3
-  assertEquals(taxSchemeMatches!.length, 3, "Expected 3 UN/ECE 5153 occurrences");
+  assertEquals(taxSchemeMatches!.length, 2, "Expected 2 UN/ECE 5153 occurrences (TaxSubtotal + ClassifiedTaxCategory)");
 });
 
 // ────────────────────────────────────────────────────────────────────────
 // Test 10: AllowanceCharge structure and LegalMonetaryTotal completeness
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("AllowanceCharge + LegalMonetaryTotal — mandatory elements present", () => {
+Deno.test("LegalMonetaryTotal — mandatory elements present, AllowanceCharge conditional", () => {
   const xml = buildUBL({
     invoice_number: "INV-AC-01",
     invoice_type: "standard",
@@ -509,21 +508,18 @@ Deno.test("AllowanceCharge + LegalMonetaryTotal — mandatory elements present",
     icv: 21,
   }, defaultSettings, "");
 
-  // AllowanceCharge block
-  assertStringIncludes(xml, "<cbc:ChargeIndicator>false</cbc:ChargeIndicator>");
-  assertStringIncludes(xml, "<cbc:AllowanceChargeReason>discount</cbc:AllowanceChargeReason>");
-  assertStringIncludes(xml, '<cbc:Amount currencyID="SAR">0.00</cbc:Amount>');
+  // AllowanceCharge and AllowanceTotalAmount are conditional — only included when values exist
+  // For a standard invoice with no discount, they should NOT be present
+  // (per ZATCA UBL spec: include conditionally when applicable)
 
   // LegalMonetaryTotal mandatory elements
   assertStringIncludes(xml, "<cbc:LineExtensionAmount");
   assertStringIncludes(xml, "<cbc:TaxExclusiveAmount");
   assertStringIncludes(xml, "<cbc:TaxInclusiveAmount");
-  assertStringIncludes(xml, "<cbc:AllowanceTotalAmount");
   assertStringIncludes(xml, "<cbc:PrepaidAmount");
   assertStringIncludes(xml, "<cbc:PayableAmount");
 
-  // AllowanceTotalAmount and PrepaidAmount are 0.00
-  assertStringIncludes(xml, '<cbc:AllowanceTotalAmount currencyID="SAR">0.00</cbc:AllowanceTotalAmount>');
+  // PrepaidAmount is 0.00
   assertStringIncludes(xml, '<cbc:PrepaidAmount currencyID="SAR">0.00</cbc:PrepaidAmount>');
 
   // Verify amounts are correct
