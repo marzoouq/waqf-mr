@@ -463,7 +463,7 @@ Deno.test("No PCE in any invoice type — rental model uses MON", () => {
 // ────────────────────────────────────────────────────────────────────────
 // Test 9: schemeID attributes on all required elements
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("schemeID attributes — CRN, TIN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
+Deno.test("schemeID attributes — CRN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
   const xml = buildUBL({
     invoice_number: "INV-SCH-01",
     invoice_type: "standard",
@@ -478,21 +478,20 @@ Deno.test("schemeID attributes — CRN, TIN, UN/ECE 5305, UN/ECE 5153, NAT", () 
   // Seller CRN
   assertStringIncludes(xml, 'schemeID="CRN"');
 
-  // TIN on seller CompanyID
-  assertStringIncludes(xml, 'schemeID="TIN"');
+  // schemeID="TIN" removed per ZATCA schema — not in official UBL 2.1 spec
+  assertEquals(xml.includes('schemeID="TIN"'), false, "TIN schemeID should not be used");
 
   // Buyer NAT (standard only)
   assertStringIncludes(xml, 'schemeID="NAT"');
 
-  // UN/ECE 5305 + schemeAgencyID="6" on every TaxCategory ID
+  // UN/ECE 5305 + schemeAgencyID="6" on TaxCategory IDs
+  // TaxSubtotal TaxCategory + ClassifiedTaxCategory = 2 (AllowanceCharge is conditional)
   const taxCatMatches = xml.match(/schemeID="UN\/ECE 5305" schemeAgencyID="6"/g);
-  // AllowanceCharge TaxCategory + TaxSubtotal TaxCategory + ClassifiedTaxCategory = 3
-  assertEquals(taxCatMatches!.length, 3, "Expected 3 UN/ECE 5305 occurrences");
+  assertEquals(taxCatMatches!.length, 2, "Expected 2 UN/ECE 5305 occurrences (TaxSubtotal + ClassifiedTaxCategory)");
 
-  // UN/ECE 5153 + schemeAgencyID="6" on every TaxScheme ID
+  // UN/ECE 5153 + schemeAgencyID="6" on TaxScheme IDs
   const taxSchemeMatches = xml.match(/schemeID="UN\/ECE 5153" schemeAgencyID="6"/g);
-  // AllowanceCharge TaxScheme + TaxSubtotal TaxScheme + ClassifiedTaxCategory TaxScheme = 3
-  assertEquals(taxSchemeMatches!.length, 3, "Expected 3 UN/ECE 5153 occurrences");
+  assertEquals(taxSchemeMatches!.length, 2, "Expected 2 UN/ECE 5153 occurrences (TaxSubtotal + ClassifiedTaxCategory)");
 });
 
 // ────────────────────────────────────────────────────────────────────────
