@@ -227,28 +227,7 @@ Deno.serve(async (req: Request) => {
     if (action === "auth-verify") {
       const { credential, challenge_id } = body;
 
-      // جلب التحدي بواسطة challenge_id المحدد (بدل ORDER BY الأحدث)
-      let challengeRow: { id: string; challenge: string } | null = null;
-
-      if (challenge_id) {
-        const { data } = await admin
-          .from("webauthn_challenges")
-          .select("id, challenge")
-          .eq("id", challenge_id)
-          .eq("type", "authentication")
-          .single();
-        challengeRow = data;
-      } else {
-        // Fallback removed: challenge_id is always provided by the client.
-        // Rejecting requests without it prevents cross-user challenge retrieval.
-        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
-      }
-
-      if (!challengeRow) {
-        return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });
-      }
-
-      // البحث عن بيانات الاعتماد بواسطة credential_id
+      // البحث عن بيانات الاعتماد بواسطة credential_id أولاً
       const credIdBase64 = credential.id;
       const { data: storedCred } = await admin
         .from("webauthn_credentials")
@@ -258,6 +237,38 @@ Deno.serve(async (req: Request) => {
 
       if (!storedCred) {
         return new Response(JSON.stringify({ error: "بيانات الاعتماد غير موجودة" }), { status: 400, headers: cors });
+      }
+
+      // جلب التحدي بواسطة challenge_id وربطه بصاحب بيانات الاعتماد
+      let challengeRow: { id: string; challenge: string; user_id: string | null } | null = null;
+
+      if (challenge_id) {
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("id, challenge, user_id")
+          .eq("id", challenge_id)
+          .eq("type", "authentication")
+          .or(`user_id.is.null,user_id.eq.${storedCred.user_id}`)
+          .single();
+        challengeRow = data;
+
+        // ربط التحدي بالمستخدم عند أول تحقق لمنع إعادة استخدامه عبر مستخدم آخر
+        if (challengeRow?.user_id === null) {
+          await admin
+            .from("webauthn_challenges")
+            .update({ user_id: storedCred.user_id })
+            .eq("id", challenge_id)
+            .eq("type", "authentication")
+            .is("user_id", null);
+        }
+      } else {
+        // Fallback removed: challenge_id is always provided by the client.
+        // Rejecting requests without it prevents cross-user challenge retrieval.
+        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
+      }
+
+      if (!challengeRow) {
+        return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });
       }
 
       // تحويل المفتاح العام من base64 إلى Uint8Array
