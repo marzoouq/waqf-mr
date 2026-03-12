@@ -941,8 +941,11 @@ export type Database = {
           due_date: string
           file_path: string | null
           fiscal_year_id: string | null
+          icv: number | null
           id: string
+          invoice_hash: string | null
           invoice_number: string
+          invoice_type: string | null
           notes: string | null
           paid_amount: number | null
           paid_date: string | null
@@ -953,6 +956,7 @@ export type Database = {
           vat_rate: number
           zatca_status: string | null
           zatca_uuid: string | null
+          zatca_xml: string | null
         }
         Insert: {
           amount?: number
@@ -961,8 +965,11 @@ export type Database = {
           due_date: string
           file_path?: string | null
           fiscal_year_id?: string | null
+          icv?: number | null
           id?: string
+          invoice_hash?: string | null
           invoice_number: string
+          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number | null
           paid_date?: string | null
@@ -973,6 +980,7 @@ export type Database = {
           vat_rate?: number
           zatca_status?: string | null
           zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Update: {
           amount?: number
@@ -981,8 +989,11 @@ export type Database = {
           due_date?: string
           file_path?: string | null
           fiscal_year_id?: string | null
+          icv?: number | null
           id?: string
+          invoice_hash?: string | null
           invoice_number?: string
+          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number | null
           paid_date?: string | null
@@ -993,6 +1004,7 @@ export type Database = {
           vat_rate?: number
           zatca_status?: string | null
           zatca_uuid?: string | null
+          zatca_xml?: string | null
         }
         Relationships: [
           {

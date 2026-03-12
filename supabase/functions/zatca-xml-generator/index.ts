@@ -73,7 +73,9 @@ function buildUBL(
   // --- Invoice data ---
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
   const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
-  const issueTime = new Date().toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
+  // Use invoice created_at time if available, otherwise current time
+  const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
+  const issueTime = createdAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
   const amountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
   const vatAmount = Number(inv.vat_amount ?? 0);
   const total = amountExVat + vatAmount;
@@ -143,6 +145,7 @@ function buildUBL(
       <cac:PostalAddress>
         <cbc:StreetName>${streetName}</cbc:StreetName>
         <cbc:BuildingNumber>${buildingNumber}</cbc:BuildingNumber>
+        <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
         <cbc:CityName>${cityName}</cbc:CityName>
         <cbc:PostalZone>${postalZone}</cbc:PostalZone>
         <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
@@ -151,7 +154,7 @@ function buildUBL(
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(vatNumber)}</cbc:CompanyID>
+        <cbc:CompanyID schemeID="TIN">${escapeXml(vatNumber)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
@@ -317,7 +320,6 @@ Deno.serve(async (req) => {
     if (table === "invoices") {
       await admin.from("invoices").update({ zatca_xml: xml }).eq("id", invoice_id);
     } else if (table === "payment_invoices") {
-      // Will work after GAP-9 migration adds zatca_xml column
       await admin.from("payment_invoices").update({ zatca_xml: xml } as Record<string, unknown>).eq("id", invoice_id);
     }
 
