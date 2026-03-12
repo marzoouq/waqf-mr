@@ -264,7 +264,7 @@ const ContractsPage = () => {
     }
   };
 
-  const getPaymentTypeLabel = (type?: string) => type === 'monthly' ? 'شهري' : type === 'quarterly' ? 'ربعي' : type === 'semi_annual' ? 'نصف سنوي' : type === 'annual' ? 'سنوي' : 'متعدد';
+  
 
   const filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
