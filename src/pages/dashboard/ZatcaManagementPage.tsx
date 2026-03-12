@@ -37,6 +37,7 @@ const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'se
 };
 
 function ZatcaManagementPage() {
+  const { fiscalYearId } = useFiscalYear();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
