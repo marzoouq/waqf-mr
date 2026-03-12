@@ -436,7 +436,14 @@ export type Database = {
           rent_amount: number
           start_date: string
           status: string
+          tenant_building: string | null
+          tenant_city: string | null
+          tenant_district: string | null
+          tenant_id_number: string | null
+          tenant_id_type: string | null
           tenant_name: string
+          tenant_postal_code: string | null
+          tenant_street: string | null
           unit_id: string | null
           updated_at: string
         }
@@ -454,7 +461,14 @@ export type Database = {
           rent_amount: number
           start_date: string
           status?: string
+          tenant_building?: string | null
+          tenant_city?: string | null
+          tenant_district?: string | null
+          tenant_id_number?: string | null
+          tenant_id_type?: string | null
           tenant_name: string
+          tenant_postal_code?: string | null
+          tenant_street?: string | null
           unit_id?: string | null
           updated_at?: string
         }
@@ -472,7 +486,14 @@ export type Database = {
           rent_amount?: number
           start_date?: string
           status?: string
+          tenant_building?: string | null
+          tenant_city?: string | null
+          tenant_district?: string | null
+          tenant_id_number?: string | null
+          tenant_id_type?: string | null
           tenant_name?: string
+          tenant_postal_code?: string | null
+          tenant_street?: string | null
           unit_id?: string | null
           updated_at?: string
         }
