@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Link, IdCard } from 'lucide-react';
 
@@ -48,6 +48,11 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
     onSubmit(e);
   };
 
+  const userOptions = [
+    { value: '__none__', label: 'بدون ربط' },
+    ...availableUsers.map(user => ({ value: user.id, label: user.email })),
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) { onReset(); setErrors({}); } }}>
       <DialogTrigger asChild><Button className="gradient-primary gap-2"><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة مستفيد</span></Button></DialogTrigger>
@@ -74,20 +79,11 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
           </div>
           <div className="space-y-2">
             <Label className="flex items-center gap-2"><Link className="w-4 h-4" />ربط بحساب مستخدم</Label>
-            <Select
+            <NativeSelect
               value={formData.user_id || '__none__'}
               onValueChange={(value) => setFormData({ ...formData, user_id: value === '__none__' ? '' : value })}
-            >
-              <SelectTrigger dir="ltr">
-                <SelectValue placeholder="اختر مستخدم للربط" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">بدون ربط</SelectItem>
-                {availableUsers.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>{user.email}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              options={userOptions}
+            />
             <p className="text-xs text-muted-foreground">اختر حساب المستفيد لربطه بملفه الشخصي</p>
           </div>
           <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" maxLength={500} /></div>
