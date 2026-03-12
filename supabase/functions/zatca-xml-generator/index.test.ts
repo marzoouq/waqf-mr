@@ -372,7 +372,7 @@ Deno.test("Exempt invoice (E) — VATEX-SA-29-7 exemption code present", () => {
 // ────────────────────────────────────────────────────────────────────────
 // Test 5: Zero-rated (Z) — VATEX-SA-32
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in AllowanceCharge and TaxSubtotal", () => {
+Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in TaxSubtotal", () => {
   const xml = buildUBL({
     invoice_number: "INV-Z01",
     invoice_type: "standard",
@@ -386,9 +386,9 @@ Deno.test("Zero-rated invoice (Z) — VATEX-SA-32 present in AllowanceCharge and
   assertStringIncludes(xml, "<cbc:TaxExemptionReasonCode>VATEX-SA-32</cbc:TaxExemptionReasonCode>");
   assertStringIncludes(xml, "توريدات خاضعة لنسبة صفر بالمائة");
 
-  // Should appear in both AllowanceCharge TaxCategory and TaxTotal TaxCategory
+  // VATEX-SA-32 appears in TaxSubtotal TaxCategory (AllowanceCharge is conditional, only when values exist)
   const allMatches = xml.match(/VATEX-SA-32/g);
-  assertEquals(allMatches!.length >= 2, true, "VATEX-SA-32 should appear in AllowanceCharge AND TaxSubtotal");
+  assertEquals(allMatches!.length >= 1, true, "VATEX-SA-32 should appear in TaxSubtotal");
 });
 
 // ────────────────────────────────────────────────────────────────────────
