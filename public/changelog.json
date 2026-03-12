@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.8.2",
+    "date": "١٢ مارس ٢٠٢٦",
+    "changes": [
+      { "type": "fix", "text": "تصحيح هيكل SAN في CSR: استخدام directoryName مع UID OID بدل otherName مع VeriSign OID" },
+      { "type": "improvement", "text": "توليد تلقائي للمفتاح الخاص ECDSA عند Onboarding — لم يعد مطلوباً إدخال ZATCA_PRIVATE_KEY" },
+      { "type": "improvement", "text": "تخزين المفتاح الخاص المولّد مباشرة في قاعدة البيانات مشفراً لضمان التطابق مع CSR" }
+    ]
+  },
+  {
     "version": "2.8.1",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
