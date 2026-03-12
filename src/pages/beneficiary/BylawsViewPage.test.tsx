@@ -69,9 +69,11 @@ describe('BylawsViewPage', () => {
     } as any);
 
     render(
-      <MemoryRouter>
-        <BylawsViewPage />
-      </MemoryRouter>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <BylawsViewPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByText('اللائحة غير متاحة حالياً')).toBeInTheDocument();
