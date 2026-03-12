@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
             ...ZATCA_COMMON_HEADERS,
             "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
             "Accept-Language": "ar",
-            "Clearance-Status": action === "clearance" ? "1" : "0",
+            "ClearanceStatus": action === "clearance" ? "1" : "0",
           },
           body: JSON.stringify({
             invoiceHash: inv.invoice_hash,
