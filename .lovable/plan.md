@@ -1,37 +1,80 @@
 
 
-## خطة الاختبار اليدوي الشامل للوحة تحكم الناظر
+# خطة شاملة: لوحة مراقبة الأداء + MobileCardView لجميع الجداول + إصلاح أمني
 
-أنا حالياً في وضع التخطيط (للقراءة فقط) ولا أستطيع التفاعل مع المتصفح. للتنفيذ الفعلي، يجب التبديل لوضع التنفيذ.
+## ملخص
 
-### ما سيتم اختباره
+4 مهام رئيسية:
+1. إضافة تبويب "مراقبة الأداء" في إعدادات الناظر
+2. إضافة MobileCardView لجميع الجداول التي تفتقر إليها (15 صفحة)
+3. إصلاح تحذير `beneficiaries_safe` الأمني بإضافة RLS policies
+4. إغلاق تحذير `extension_in_public`
 
-**1. تسجيل الدخول** بالبيانات المقدمة → التحقق من توجيه الناظر للوحة التحكم
+---
 
-**2. الإعدادات** (`/dashboard/settings`)
-- تبويبات: معلومات الوقف، السنوات المالية، الصلاحيات، البانر، ZATCA، السُلف، القائمة
-- تعديل إعداد وحفظه → التأكد من ظهور رسالة نجاح
+## 1. تبويب مراقبة الأداء (جديد في الإعدادات)
 
-**3. إدارة ZATCA** (`/dashboard/zatca`)
-- عرض الشهادات، إنشاء CSR، فحص الامتثال
-- التأكد من عمل الأزرار والحوارات
+**ملف جديد:** `src/components/settings/PerformanceMonitorTab.tsx`
 
-**4. دفعات الإيجار** (ضمن العقود `/dashboard/contracts`)
-- تبويب "فواتير الدفعات" → عرض الفواتير، تسديد فاتورة، إلغاء تسديد
-- التحقق من تحديث الأرقام تلقائياً
+يعرض:
+- **الاستعلامات البطيئة** من `getSlowQueries()` (الموجودة في `performanceMonitor.ts`)
+- **مقاييس تحميل الصفحة** (Navigation Timing API): loadTime, domInteractive, TTFB
+- **حجم DOM**: عدد العناصر
+- **ذاكرة JS** (إن توفرت): usedJSHeapSize
+- زر "تحديث" لإعادة جمع البيانات
+- زر "مسح السجل" لتنظيف الاستعلامات البطيئة
 
-**5. التقارير** (`/dashboard/reports`)
-- تقرير الأداء الشهري، مقارنة السنوات
-- تصدير PDF
+**تعديل:** `src/pages/dashboard/SettingsPage.tsx`
+- إضافة تبويب "الأداء" مع أيقونة `Activity` في TabsList والقائمة المنسدلة
 
-**6. الفواتير** (`/dashboard/invoices`)
-- عرض الشبكة/الجدول، فلترة بالحالة، عرض تفاصيل فاتورة
+---
 
-**7. العقود** (`/dashboard/contracts`)
-- قائمة العقود، إضافة/تعديل عقد، بطاقات الإحصائيات
-- تقرير التحصيل
+## 2. إضافة MobileCardView لجميع الجداول
 
-### النهج
-- التنقل لكل صفحة ← لقطة شاشة ← التفاعل مع العناصر الرئيسية ← توثيق أي مشاكل
-- الإبلاغ الفوري عن أي خلل مع الإصلاح
+الصفحات التي تحتوي جداول بدون MobileCardView (14 صفحة):
 
+**لوحة الناظر:**
+- `ContractsPage.tsx` — العقود
+- `PropertiesPage.tsx` — العقارات
+- `IncomePage.tsx` — الدخل
+- `ExpensesPage.tsx` — المصروفات
+- `BeneficiariesPage.tsx` — المستفيدين
+- `UserManagementPage.tsx` — إدارة المستخدمين
+- `AuditLogPage.tsx` — سجل المراجعة
+- `SupportDashboardPage.tsx` — الدعم الفني
+- `ZatcaManagementPage.tsx` — إدارة ZATCA
+
+**واجهة المستفيد:**
+- `ContractsViewPage.tsx` — عرض العقود
+- `PropertiesViewPage.tsx` — عرض العقارات
+- `InvoicesViewPage.tsx` — عرض الفواتير
+- `DisclosurePage.tsx` — الإفصاح (جدول العقود)
+- `CarryforwardHistoryPage.tsx` — سجل الترحيل
+
+**وكذلك مكونات فرعية:**
+- `AccountsBeneficiariesTable.tsx`
+- `AccountsCollectionTable.tsx`
+- `AccountsContractsTable.tsx`
+- `AccountsDistributionTable.tsx`
+- `AccountsExpensesTable.tsx`
+- `AccountsIncomeTable.tsx`
+- `PaymentInvoicesTab.tsx`
+
+**النهج:** لكل صفحة:
+1. Import `MobileCardView`
+2. إضافة `<MobileCardView>` قبل الجدول مع `getTitle`, `getFields`, `getBadge`
+3. إخفاء الجدول على الجوال بـ `hidden md:block`
+
+---
+
+## 3. إصلاح أمني: `beneficiaries_safe`
+
+**Migration SQL:**
+```sql
+-- beneficiaries_safe هو View وليس جدول، لكن الفحص يطلب RLS policies
+-- الحل: التأكد من أن الـ View يستخدم security_invoker = on (موجود بالفعل)
+-- وإضافة تعليق توثيقي + إغلاق التحذير
+
+COMMENT ON VIEW public.beneficiaries_safe IS 
+'Secure view with security_invoker=on. Access controlled by RLS on underlying beneficiaries table.';
+```
