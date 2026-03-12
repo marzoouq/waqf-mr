@@ -17,6 +17,8 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 const BeneficiaryMessagesPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
   const { data: supportConversations = [], isLoading: supportLoading } = useConversations('support');
