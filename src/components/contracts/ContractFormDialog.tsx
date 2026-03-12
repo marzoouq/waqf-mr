@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,14 +44,11 @@ export interface ContractFormData {
   notes: string;
   payment_type: string;
   payment_count: string;
-  // Multi-unit fields
   rental_mode: RentalMode;
   selected_unit_ids: string[];
   pricing_mode: PricingMode;
   rent_per_unit: Record<string, string>;
-  // VAT
   vat_applicable: boolean;
-  // Tenant identity
   tenant_id_type: string;
   tenant_id_number: string;
   tenant_tax_number: string;
@@ -76,14 +73,12 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
   const { data: propertyUnits = [] } = useUnits(formData.property_id || undefined);
   const { fiscalYears } = useFiscalYear();
 
-  // Sync form when initialFormData changes
   const [lastInitial, setLastInitial] = useState(initialFormData);
   if (initialFormData !== lastInitial) {
     setLastInitial(initialFormData);
     if (initialFormData) setFormData(initialFormData);
   }
 
-  // Find units that already have active contracts
   const occupiedUnitIds = useMemo(() => {
     const map = new Map<string, string>();
     for (const c of activeContracts) {
@@ -137,13 +132,41 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
   const isMulti = formData.rental_mode === 'multi';
   const selectedCount = formData.selected_unit_ids.length;
 
-  // Calculate per-unit amount for total pricing mode
   const perUnitAmount = isMulti && formData.pricing_mode === 'total' && selectedCount > 0 && formData.rent_amount
     ? parseFloat(formData.rent_amount) / selectedCount
     : 0;
 
-  // Suffix letters
   const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  // Build option arrays for NativeSelect
+  const propertyOptions = properties.map(p => ({ value: p.id, label: `${p.property_number} - ${p.location}` }));
+
+  const unitOptions = propertyUnits.map(u => ({
+    value: u.id,
+    label: `${u.unit_type} ${u.unit_number} ${u.floor ? `(${u.floor})` : ''} ${occupiedUnitIds.has(u.id) ? `— مؤجرة: ${occupiedUnitIds.get(u.id)}` : ''}`,
+    disabled: occupiedUnitIds.has(u.id),
+  }));
+
+  const unitEditOptions = [
+    { value: 'full', label: 'العقار كامل' },
+    ...propertyUnits.map(u => ({ value: u.id, label: `${u.unit_type} ${u.unit_number}` })),
+  ];
+
+  const tenantIdTypeOptions = TENANT_ID_TYPES.map(t => ({ value: t.value, label: t.label }));
+
+  const paymentTypeOptions = [
+    { value: 'annual', label: 'دفعة واحدة (سنوي)' },
+    { value: 'semi_annual', label: 'نصف سنوي (دفعتان)' },
+    { value: 'quarterly', label: 'ربعي (4 دفعات)' },
+    { value: 'monthly', label: 'شهري (12 دفعة)' },
+    { value: 'multi', label: 'دفعات متعددة (مخصص)' },
+  ];
+
+  const statusOptions = [
+    { value: 'active', label: 'نشط' },
+    { value: 'expired', label: 'منتهي' },
+    { value: 'pending', label: 'معلق' },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setFormData(emptyFormData); onReset(); } }}>
@@ -153,10 +176,12 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           <div className="space-y-2"><Label>رقم العقد *</Label><Input value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
           <div className="space-y-2">
             <Label>العقار *</Label>
-            <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value, unit_id: '', selected_unit_ids: [], rent_per_unit: {} })}>
-              <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
-              <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
-            </Select>
+            <NativeSelect
+              value={formData.property_id}
+              onValueChange={(value) => setFormData({ ...formData, property_id: value, unit_id: '', selected_unit_ids: [], rent_per_unit: {} })}
+              options={propertyOptions}
+              placeholder="اختر العقار"
+            />
           </div>
 
           {/* Rental Mode Selection */}
@@ -191,16 +216,12 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {formData.property_id && formData.rental_mode === 'single' && (
             <div className="space-y-2">
               <Label>الوحدة</Label>
-              <Select value={formData.unit_id} onValueChange={(value) => setFormData({ ...formData, unit_id: value })}>
-                <SelectTrigger><SelectValue placeholder="اختر الوحدة" /></SelectTrigger>
-                <SelectContent>
-                  {propertyUnits.map((u) => (
-                    <SelectItem key={u.id} value={u.id} disabled={occupiedUnitIds.has(u.id)}>
-                      {u.unit_type} {u.unit_number} {u.floor ? `(${u.floor})` : ''} {occupiedUnitIds.has(u.id) ? `— مؤجرة: ${occupiedUnitIds.get(u.id)}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={formData.unit_id}
+                onValueChange={(value) => setFormData({ ...formData, unit_id: value })}
+                options={unitOptions}
+                placeholder="اختر الوحدة"
+              />
             </div>
           )}
 
@@ -208,13 +229,11 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {formData.property_id && editingContract && (
             <div className="space-y-2">
               <Label>الوحدة</Label>
-              <Select value={formData.unit_id} onValueChange={(value) => setFormData({ ...formData, unit_id: value === 'full' ? '' : value })}>
-                <SelectTrigger><SelectValue placeholder="العقار كامل" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">العقار كامل</SelectItem>
-                  {propertyUnits.map((u) => (<SelectItem key={u.id} value={u.id}>{u.unit_type} {u.unit_number}</SelectItem>))}
-                </SelectContent>
-              </Select>
+              <NativeSelect
+                value={formData.unit_id || 'full'}
+                onValueChange={(value) => setFormData({ ...formData, unit_id: value === 'full' ? '' : value })}
+                options={unitEditOptions}
+              />
             </div>
           )}
 
@@ -323,14 +342,12 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">نوع الهوية</Label>
-                <Select value={formData.tenant_id_type} onValueChange={(value) => setFormData({ ...formData, tenant_id_type: value })}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {TENANT_ID_TYPES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <NativeSelect
+                  value={formData.tenant_id_type}
+                  onValueChange={(value) => setFormData({ ...formData, tenant_id_type: value })}
+                  options={tenantIdTypeOptions}
+                  triggerClassName="h-9"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">رقم الهوية</Label>
@@ -361,7 +378,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
             <div className="space-y-2"><Label>تاريخ النهاية *</Label><Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
           </div>
 
-          {/* Rent amount - shown for non-multi or multi with total pricing */}
+          {/* Rent amount */}
           {(!isMulti || formData.pricing_mode === 'total') && (
             <div className="space-y-2">
               <Label>{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
@@ -374,16 +391,11 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
           <div className="space-y-2">
             <Label>نوع الدفع *</Label>
-            <Select value={formData.payment_type} onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'quarterly' ? '4' : value === 'semi_annual' ? '2' : value === 'annual' ? '1' : formData.payment_count })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="annual">دفعة واحدة (سنوي)</SelectItem>
-                <SelectItem value="semi_annual">نصف سنوي (دفعتان)</SelectItem>
-                <SelectItem value="quarterly">ربعي (4 دفعات)</SelectItem>
-                <SelectItem value="monthly">شهري (12 دفعة)</SelectItem>
-                <SelectItem value="multi">دفعات متعددة (مخصص)</SelectItem>
-              </SelectContent>
-            </Select>
+            <NativeSelect
+              value={formData.payment_type}
+              onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'quarterly' ? '4' : value === 'semi_annual' ? '2' : value === 'annual' ? '1' : formData.payment_count })}
+              options={paymentTypeOptions}
+            />
           </div>
           {formData.payment_type === 'multi' && (
             <div className="space-y-2">
@@ -440,7 +452,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                   <span key={i} className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-medium">
                     {formData.contract_number}-{suffixLetters[i] || (i + 1)}
                   </span>
-                ))}
+                ))
+                }
               </div>
             </div>
           )}
@@ -483,10 +496,11 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
           <div className="space-y-2">
             <Label>الحالة</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="active">نشط</SelectItem><SelectItem value="expired">منتهي</SelectItem><SelectItem value="pending">معلق</SelectItem></SelectContent>
-            </Select>
+            <NativeSelect
+              value={formData.status}
+              onValueChange={(value) => setFormData({ ...formData, status: value })}
+              options={statusOptions}
+            />
           </div>
           <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
           <div className="flex gap-2 pt-4">
