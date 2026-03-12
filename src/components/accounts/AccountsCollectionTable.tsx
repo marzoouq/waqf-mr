@@ -59,8 +59,8 @@ const AccountsCollectionTable = ({
         {contracts.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
         ) : (
-          {/* Mobile Cards */}
-          <div className="space-y-3 md:hidden">
+          <>
+            <div className="space-y-3 md:hidden">
             {collectionData.map((item, idx) => (
               <div key={item.index} className="p-3 rounded-lg border bg-muted/20 space-y-2">
                 <div className="flex justify-between items-start">
