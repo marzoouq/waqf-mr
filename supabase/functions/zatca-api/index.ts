@@ -215,18 +215,18 @@ Deno.serve(async (req) => {
 
       // Fetch seller info for CSR subject
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_number", "zatca_device_serial"]);
+        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial"]);
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
       const orgName = settings.waqf_name || "";
-      const vatNumber = settings.vat_number || "";
+      const vatNumber = settings.vat_registration_number || "";
       const deviceSerial = settings.zatca_device_serial || "";
 
       // Validate required identity fields before contacting ZATCA
       const missingFields: string[] = [];
       if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");
-      if (!vatNumber) missingFields.push("vat_number (الرقم الضريبي)");
+      if (!vatNumber) missingFields.push("vat_registration_number (الرقم الضريبي)");
       if (!orgName) missingFields.push("waqf_name (اسم المنشأة)");
 
       if (missingFields.length > 0) {

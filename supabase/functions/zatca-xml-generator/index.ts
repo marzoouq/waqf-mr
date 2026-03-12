@@ -60,7 +60,7 @@ function buildUBL(
   previousInvoiceHash: string
 ): string {
   // --- Seller info from settings ---
-  const vatNumber = settings.vat_number || "";
+  const vatNumber = settings.vat_registration_number || "";
   const crn = settings.commercial_registration_number || "";
   const sellerName = escapeXml(settings.waqf_name || "");
   const streetName = escapeXml(settings.business_address_street || "");
@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
 
     // Fetch all ZATCA-relevant settings
     const settingKeys = [
-      "vat_number", "waqf_name", "commercial_registration_number",
+      "vat_registration_number", "waqf_name", "commercial_registration_number",
       "business_address_street", "business_address_building",
       "business_address_city", "business_address_postal",
       "business_address_district", "business_address_province",

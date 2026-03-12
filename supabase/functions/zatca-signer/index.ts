@@ -365,12 +365,12 @@ Deno.serve(async (req) => {
     // ════════════════════════════════════════════════════════════
     try {
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_number"]);
+        .in("key", ["waqf_name", "vat_registration_number"]);
       const qs: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
 
       const qrTlv = generateZatcaQrTLV(
-        qs.waqf_name || "", qs.vat_number || "",
+        qs.waqf_name || "", qs.vat_registration_number || "",
         inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
         Number(inv.amount) || 0, Number(inv.vat_amount) || 0,
       );
