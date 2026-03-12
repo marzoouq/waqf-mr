@@ -491,7 +491,7 @@ const ContractsPage = () => {
           </TabsContent>
 
           <TabsContent value="collection">
-            <CollectionReport contracts={contracts} paymentsMap={paymentsMap} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} />
+            <CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} />
           </TabsContent>
         </Tabs>
 
