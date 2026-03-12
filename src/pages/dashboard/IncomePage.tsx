@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
@@ -117,10 +117,7 @@ const IncomePage = () => {
                   <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
                   <div className="space-y-2">
                     <Label>العقار (اختياري)</Label>
-                    <Select value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })}>
-                      <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
-                      <SelectContent>{properties.map((p) => (<SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>))}</SelectContent>
-                    </Select>
+                    <NativeSelect value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })} placeholder="اختر العقار" options={properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
                   </div>
                   <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
                   <div className="flex gap-2 pt-4">
