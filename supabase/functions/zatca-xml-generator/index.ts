@@ -60,7 +60,7 @@ function buildUBL(
   previousInvoiceHash: string
 ): string {
   // --- Seller info from settings ---
-  const vatNumber = settings.vat_number || "";
+  const vatNumber = settings.vat_registration_number || "";
   const crn = settings.commercial_registration_number || "";
   const sellerName = escapeXml(settings.waqf_name || "");
   const streetName = escapeXml(settings.business_address_street || "");
