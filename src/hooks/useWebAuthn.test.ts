@@ -124,7 +124,7 @@ describe('useWebAuthn', () => {
     it('handles NotAllowedError with timeout message', async () => {
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
-      mockStartRegistration.mockRejectedValue(makeDOMException('NotAllowedError', 'The operation timed out'));
+      mockStartRegistration.mockRejectedValue(makeDOMException('NotAllowedError', 'The operation has timeout'));
       const { result } = renderHook(() => useWebAuthn());
       let res: boolean | undefined;
       await act(async () => { res = await result.current.registerBiometric(); });
