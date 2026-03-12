@@ -47,7 +47,7 @@ function ZatcaManagementPage() {
     queryKey: ['zatca-required-settings'],
     queryFn: async () => {
       const { data } = await supabase.from('app_settings').select('key, value')
-        .in('key', ['waqf_name', 'vat_number', 'zatca_device_serial']);
+        .in('key', ['waqf_name', 'vat_registration_number', 'zatca_device_serial']);
       const map: Record<string, string> = {};
       (data || []).forEach(s => { map[s.key] = s.value; });
       return map;
