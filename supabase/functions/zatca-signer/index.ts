@@ -463,6 +463,32 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════════════════════════
+    // Pre-sign Validation (Compliance Check)
+    // ════════════════════════════════════════════════════════════
+    const validationErrors: string[] = [];
+
+    // 1. Required fields
+    if (!inv.amount && inv.amount !== 0) validationErrors.push("مبلغ الفاتورة مطلوب");
+    if (inv.vat_amount === null || inv.vat_amount === undefined) validationErrors.push("مبلغ الضريبة مطلوب");
+    if (!inv.zatca_uuid) validationErrors.push("معرّف UUID للفاتورة مطلوب");
+
+    // 2. Amount consistency: TaxInclusive = TaxExclusive + VAT
+    const amountExclVat = Number(inv.amount_excluding_vat ?? inv.amount) || 0;
+    const vatAmt = Number(inv.vat_amount) || 0;
+    const totalAmt = Number(inv.amount) || 0;
+    if (Math.abs((amountExclVat + vatAmt) - totalAmt) > 0.01 && inv.amount_excluding_vat !== null && inv.amount_excluding_vat !== undefined) {
+      validationErrors.push(`عدم اتساق المبالغ: المبلغ بدون ضريبة (${amountExclVat}) + الضريبة (${vatAmt}) ≠ الإجمالي (${totalAmt})`);
+    }
+
+    // 3. XML has required ZATCA elements
+    if (!xml.includes("<cbc:ID>ICV</cbc:ID>")) validationErrors.push("XML يفتقر لعنصر ICV");
+    if (!xml.includes("<ext:UBLExtensions>")) validationErrors.push("XML يفتقر لعنصر UBLExtensions");
+
+    if (validationErrors.length > 0) {
+      return json({ error: "فشل التحقق قبل التوقيع", validation_errors: validationErrors }, 422, corsHeaders);
+    }
+
+    // ════════════════════════════════════════════════════════════
     // Step 1: Atomic ICV allocation FIRST (before hashing)
     // ════════════════════════════════════════════════════════════
     // We need a preliminary hash for the chain. We'll use the invoice digest
