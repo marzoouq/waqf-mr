@@ -13,6 +13,11 @@ interface ZatcaQrData {
   timestamp: string; // ISO 8601
   totalWithVat: number;
   vatAmount: number;
+  // Tags 6-9 for Standard invoices (Phase 2)
+  digitalSignature?: Uint8Array;
+  publicKey?: Uint8Array;
+  certificateSignature?: Uint8Array;
+  certificatePublicKey?: Uint8Array;
 }
 
 /**
@@ -42,6 +47,18 @@ function encodeTLV(tag: number, value: string): Uint8Array {
 }
 
 /**
+ * Encode a TLV entry from raw bytes (for Tags 6-9)
+ */
+function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
+  const lenBytes = berLength(value.length);
+  const tlv = new Uint8Array(1 + lenBytes.length + value.length);
+  tlv[0] = tag;
+  tlv.set(lenBytes, 1);
+  tlv.set(value, 1 + lenBytes.length);
+  return tlv;
+}
+
+/**
  * Generate ZATCA-compliant TLV Base64 string for QR code
  */
 export function generateZatcaQrTLV(data: ZatcaQrData): string {
@@ -52,6 +69,12 @@ export function generateZatcaQrTLV(data: ZatcaQrData): string {
     encodeTLV(4, data.totalWithVat.toFixed(2)),
     encodeTLV(5, data.vatAmount.toFixed(2)),
   ];
+
+  // Tags 6-9 for Standard invoices (Phase 2)
+  if (data.digitalSignature) entries.push(encodeTLVBytes(6, data.digitalSignature));
+  if (data.publicKey) entries.push(encodeTLVBytes(7, data.publicKey));
+  if (data.certificateSignature) entries.push(encodeTLVBytes(8, data.certificateSignature));
+  if (data.certificatePublicKey) entries.push(encodeTLVBytes(9, data.certificatePublicKey));
 
   // Concatenate all TLV entries
   const totalLength = entries.reduce((sum, e) => sum + e.length, 0);
