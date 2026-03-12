@@ -50,16 +50,25 @@ export function useWebAuthn() {
 
   // جلب بيانات الاعتماد المسجلة
   const fetchCredentials = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setCredentials([]);
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(20);
+
     if (error) {
       logger.error('Failed to fetch credentials:', error.message);
       toast.error('تعذر جلب بيانات الاعتماد');
       return [];
     }
+
     setCredentials(data || []);
     return data || [];
   }, []);
