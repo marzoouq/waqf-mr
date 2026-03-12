@@ -21,6 +21,8 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const InvoicesViewPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
