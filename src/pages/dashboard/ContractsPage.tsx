@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
-import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Plus, Minus, Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt } from 'lucide-react';
+import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -42,33 +42,19 @@ const ContractsPage = () => {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
-  const { data: tenantPayments = [] } = useTenantPayments();
-  const upsertPayment = useUpsertTenantPayment();
-  
+  // جلب فواتير الدفعات لتحديد التحصيل الفعلي (مصدر الحقيقة الوحيد)
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
-  const paymentsMap = useMemo(() => {
+  // بناء خريطة الدفعات المسددة من الفواتير (المصدر الوحيد)
+  const invoicePaidMap = useMemo(() => {
     const map = new Map<string, number>();
-    for (const p of tenantPayments) map.set(p.contract_id, p.paid_months);
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'paid') {
+        map.set(inv.contract_id, (map.get(inv.contract_id) ?? 0) + 1);
+      }
+    }
     return map;
-  }, [tenantPayments]);
-
-  const handlePayment = (contract: Contract, delta: number) => {
-    const current = paymentsMap.get(contract.id) ?? 0;
-    const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-    // N4 fix: cap at max payment count
-    const next = Math.max(0, Math.min(paymentCount, current + delta));
-    const paymentAmount = Number(contract.rent_amount) / paymentCount;
-    upsertPayment.mutate({
-      contract_id: contract.id,
-      paid_months: next,
-      auto_income: delta > 0 ? {
-        payment_amount: paymentAmount,
-        property_id: contract.property_id,
-        fiscal_year_id: contract.fiscal_year_id || (fiscalYearId === 'all' ? null : fiscalYearId),
-        tenant_name: contract.tenant_name,
-      } : undefined,
-    });
-  };
+  }, [paymentInvoices]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
@@ -412,19 +398,15 @@ const ContractsPage = () => {
                           <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
                           <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
                         </div>
-                        {/* التحصيل */}
+                        {/* التحصيل (من الفواتير) */}
                         <div className="flex items-center justify-between pt-2 border-t">
                           <span className="text-xs text-muted-foreground">التحصيل</span>
                           {(() => {
                             const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-                            const paid = paymentsMap.get(contract.id) ?? 0;
+                            const paid = invoicePaidMap.get(contract.id) ?? 0;
                             return (
                               <div className="space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending} aria-label="إنقاص دفعة"><Minus className="w-3 h-3" /></Button>
-                                  <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                  <Button variant="outline" size="icon" className="w-7 h-7" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending} aria-label="إضافة دفعة"><Plus className="w-3 h-3" /></Button>
-                                </div>
+                                <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
                                 <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                               </div>
                             );
@@ -473,14 +455,10 @@ const ContractsPage = () => {
                           <TableCell>
                             {(() => {
                               const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-                              const paid = paymentsMap.get(contract.id) ?? 0;
+                              const paid = invoicePaidMap.get(contract.id) ?? 0;
                               return (
                                 <div className="space-y-1.5">
-                                  <div className="flex items-center gap-1">
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending} aria-label="إنقاص دفعة"><Minus className="w-3 h-3" /></Button>
-                                    <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending} aria-label="إضافة دفعة"><Plus className="w-3 h-3" /></Button>
-                                  </div>
+                                  <span className={`text-sm font-bold min-w-[3rem] text-center block ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
                                   <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                                 </div>
                               );
@@ -513,7 +491,7 @@ const ContractsPage = () => {
           </TabsContent>
 
           <TabsContent value="collection">
-            <CollectionReport contracts={contracts} paymentsMap={paymentsMap} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} />
+            <CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} />
           </TabsContent>
         </Tabs>
 
