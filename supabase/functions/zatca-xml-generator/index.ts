@@ -119,6 +119,7 @@ function buildUBL(
   <cbc:InvoiceTypeCode name="${typeInfo.name}">${typeInfo.code}</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${currencyCode}</cbc:DocumentCurrencyCode>
   <cbc:TaxCurrencyCode>${currencyCode}</cbc:TaxCurrencyCode>
+  <cbc:Note languageID="ar">${escapeXml(String(inv.notes || inv.description || "فاتورة"))}</cbc:Note>
   <cac:AdditionalDocumentReference>
     <cbc:ID>ICV</cbc:ID>
     <cbc:UUID>${Number(inv.icv || 0)}</cbc:UUID>
