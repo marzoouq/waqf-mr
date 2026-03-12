@@ -98,6 +98,10 @@ function ZatcaManagementPage() {
   });
 
   const allInvoices = [...invoices, ...paymentInvoices];
+  const paginatedInvoices = useMemo(() => {
+    const start = (invoicePage - 1) * INVOICES_PER_PAGE;
+    return allInvoices.slice(start, start + INVOICES_PER_PAGE);
+  }, [allInvoices, invoicePage]);
 
   // ─── Invoice Chain ───
   const { data: chain = [], isLoading: chainLoading } = useQuery({
