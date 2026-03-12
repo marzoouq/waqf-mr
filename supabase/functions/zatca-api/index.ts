@@ -269,10 +269,9 @@ Deno.serve(async (req) => {
       }
 
       const otp = Deno.env.get("ZATCA_OTP") || "";
-      const privateKey = Deno.env.get("ZATCA_PRIVATE_KEY") || "";
 
-      if (!otp || !privateKey) {
-        return new Response(JSON.stringify({ error: "ZATCA_OTP and ZATCA_PRIVATE_KEY secrets are required for production onboarding" }), {
+      if (!otp) {
+        return new Response(JSON.stringify({ error: "ZATCA_OTP secret is required for production onboarding" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -301,11 +300,13 @@ Deno.serve(async (req) => {
         }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Build PKCS#10 CSR
+      // Auto-generate ECDSA P-256 private key (no need for ZATCA_PRIVATE_KEY env var)
       let csrPem: string;
       let privBytes: Uint8Array;
+      let privKeyHex: string;
       try {
-        privBytes = hexToBytes(privateKey);
+        privBytes = p256.utils.randomPrivateKey(); // 32 bytes
+        privKeyHex = Array.from(privBytes).map(b => b.toString(16).padStart(2, "0")).join("");
         const pubKey = p256.getPublicKey(privBytes, false);
 
         // ZATCA spec: CN = Device Serial, O = Organization, SERIALNUMBER = VAT TIN
