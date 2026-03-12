@@ -402,7 +402,7 @@ const ContractsPage = () => {
                         <div className="flex items-center justify-between pt-2 border-t">
                           <span className="text-xs text-muted-foreground">التحصيل</span>
                           {(() => {
-                            const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                             const paymentCount = getPaymentCount(contract);
                             const paid = invoicePaidMap.get(contract.id) ?? 0;
                             return (
                               <div className="space-y-1.5">
