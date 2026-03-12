@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, forwardRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/useFiscalYears';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,7 +16,7 @@ const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undef
 
 const STORAGE_KEY = 'waqf_selected_fiscal_year';
 
-export const FiscalYearProvider = forwardRef<HTMLDivElement, { children: React.ReactNode }>(function FiscalYearProvider({ children }, _ref) {
+export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
@@ -84,7 +84,7 @@ export const FiscalYearProvider = forwardRef<HTMLDivElement, { children: React.R
       {children}
     </FiscalYearContext.Provider>
   );
-});
+}
 
 export const useFiscalYear = () => {
   const context = useContext(FiscalYearContext);
