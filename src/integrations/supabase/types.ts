@@ -1426,6 +1426,10 @@ export type Database = {
       }
     }
     Functions: {
+      allocate_icv_and_chain: {
+        Args: { p_invoice_hash: string; p_invoice_id: string }
+        Returns: Json
+      }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
