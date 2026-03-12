@@ -577,10 +577,16 @@ function ZatcaManagementPage() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-2 pt-2">
+                      {!canOnboard && (
+                        <p className="text-sm text-destructive w-full">
+                          <AlertTriangle className="w-4 h-4 inline ml-1" />
+                          يجب تعيين الإعدادات التالية قبل التسجيل: {missingSettings.join('، ')}
+                        </p>
+                      )}
                       {/* Re-onboard */}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" disabled={onboardLoading}>
+                          <Button variant="outline" size="sm" disabled={onboardLoading || !canOnboard}>
                             {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                             إعادة التسجيل
                           </Button>
