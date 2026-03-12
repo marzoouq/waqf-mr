@@ -234,6 +234,32 @@ Deno.serve(async (req) => {
       );
     }
 
+    // --- Step 4b: GAP-5 FIX — Generate QR TLV and inject into XML ---
+    try {
+      // Fetch seller info for QR
+      const { data: settingsRows } = await admin.from("app_settings").select("key, value")
+        .in("key", ["waqf_name", "vat_number"]);
+      const qrSettings: Record<string, string> = {};
+      (settingsRows || []).forEach((s: { key: string; value: string }) => { qrSettings[s.key] = s.value; });
+
+      const sellerName = qrSettings.waqf_name || "";
+      const vatNumber = qrSettings.vat_number || "";
+      const totalWithVat = Number(inv.amount) || 0;
+      const vatAmt = Number(inv.vat_amount) || 0;
+      // Use invoice created_at as timestamp
+      const qrTimestamp = inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString();
+
+      const qrTlvBase64 = generateZatcaQrTLV(sellerName, vatNumber, qrTimestamp, totalWithVat, vatAmt);
+      // Replace QR placeholder in XML
+      signedXml = signedXml.replace(
+        /(<cbc:EmbeddedDocumentBinaryObject mimeCode="text\/plain">)\s*<!--[^>]*-->\s*(<\/cbc:EmbeddedDocumentBinaryObject>)/,
+        `$1${qrTlvBase64}$2`
+      );
+    } catch (qrErr) {
+      console.error("QR TLV generation warning:", qrErr);
+      // Non-fatal — continue without QR
+    }
+
     // --- Step 5: Atomic ICV allocation + chain insert (GAP-11 fix) ---
     const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
       p_invoice_id: invoice_id,

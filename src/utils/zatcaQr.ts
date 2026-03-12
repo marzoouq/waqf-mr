@@ -2,6 +2,8 @@
  * ZATCA QR Code TLV Base64 Generator
  * Generates TLV (Tag-Length-Value) encoded Base64 string per ZATCA e-invoicing requirements.
  * Tags 1-5: Seller Name, VAT Number, Timestamp, Total (incl. VAT), VAT Amount
+ *
+ * GAP-10 FIX: Supports value lengths > 127 bytes using multi-byte BER length encoding.
  */
 import QRCode from 'qrcode';
 
@@ -14,15 +16,28 @@ interface ZatcaQrData {
 }
 
 /**
- * Encode a single TLV entry
+ * Encode length in BER (Basic Encoding Rules) format.
+ * - 0-127   → single byte
+ * - 128-255 → 0x81, length
+ * - 256+    → 0x82, high byte, low byte
+ */
+function berLength(len: number): Uint8Array {
+  if (len < 128) return new Uint8Array([len]);
+  if (len < 256) return new Uint8Array([0x81, len]);
+  return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
+}
+
+/**
+ * Encode a single TLV entry with multi-byte length support
  */
 function encodeTLV(tag: number, value: string): Uint8Array {
   const encoder = new TextEncoder();
   const valueBytes = encoder.encode(value);
-  const tlv = new Uint8Array(2 + valueBytes.length);
+  const lenBytes = berLength(valueBytes.length);
+  const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
   tlv[0] = tag;
-  tlv[1] = valueBytes.length;
-  tlv.set(valueBytes, 2);
+  tlv.set(lenBytes, 1);
+  tlv.set(valueBytes, 1 + lenBytes.length);
   return tlv;
 }
 
