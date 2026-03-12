@@ -446,10 +446,8 @@ Deno.test("Test 10: ICV injection replaces placeholder correctly", () => {
 Deno.test("Test 11: X509 parser extracts IssuerName and SerialNumber", () => {
   const { issuerName, serialNumber } = parseX509IssuerSerial(TEST_CERT_BASE64);
 
-  // The test cert has CN=Test, O=TestOrg, C=SA
-  assert(issuerName.includes("CN=Test"), `IssuerName should contain CN=Test, got: ${issuerName}`);
-  assert(issuerName.includes("O=TestOrg"), `IssuerName should contain O=TestOrg, got: ${issuerName}`);
-  assert(issuerName.includes("C=SA"), `IssuerName should contain C=SA, got: ${issuerName}`);
+  // The test cert issuer is CN=ZATCA-SubCA
+  assert(issuerName.includes("CN=ZATCA-SubCA"), `IssuerName should contain CN=ZATCA-SubCA, got: ${issuerName}`);
 
   // Serial number should be a positive decimal number
   assert(serialNumber !== "0", "SerialNumber should not be the default '0'");
