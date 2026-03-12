@@ -13,7 +13,7 @@ export const getPaymentCount = (contract: { payment_type?: string | null; paymen
 /** تسمية عربية لنوع الدفع */
 export const getPaymentTypeLabel = (type?: string | null) =>
   type === 'monthly' ? 'شهري'
-  : type === 'quarterly' ? 'ربعي'
+  : type === 'quarterly' ? 'ربع سنوي'
   : type === 'semi_annual' ? 'نصف سنوي'
-  : type === 'annual' ? 'دفعة واحدة'
+  : type === 'annual' ? 'سنوي'
   : 'متعدد';

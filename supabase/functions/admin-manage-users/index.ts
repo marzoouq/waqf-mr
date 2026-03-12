@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("صيغة البريد الإلكتروني غير صالحة");
     };
     const validatePassword = (p: string) => {
-      if (!p || typeof p !== "string" || p.length < 6 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+      if (!p || typeof p !== "string" || p.length < 8 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
     };
     const validateUuid = (id: string) => {
       if (!id || typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("معرف غير صالح");

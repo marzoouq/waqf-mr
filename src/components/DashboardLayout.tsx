@@ -130,7 +130,7 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 };
 
 // Routes accountant can never access
-const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings'];
+const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca'];
 
 // Dynamic mobile header titles
 const ROUTE_TITLES: Record<string, string> = {
