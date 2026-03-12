@@ -108,10 +108,15 @@ function buildUBL(
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
   const vatCategoryCode = getVatCategoryCode(vatRate);
+  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode);
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
   const isSimplified = typeInfo.name === "0200000";
+  const isCreditOrDebit = typeInfo.code === "381" || typeInfo.code === "383";
+
+  // --- Payment means ---
+  const paymentMeansCode = String(inv.payment_means_code || "10");
 
   // --- PIH (Previous Invoice Hash) ---
   const pih = previousInvoiceHash || "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
