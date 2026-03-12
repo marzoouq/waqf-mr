@@ -14,55 +14,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * ZATCA requires: CN, O (org), serialNumber (device), C=SA
  * This produces a Base64-encoded DER CSR.
  */
-function buildCsrBase64(params: {
-  commonName: string;
-  orgName: string;
-  serialNumber: string;
-  countryCode: string;
-  privateKeyHex: string;
-}): string {
-  // For ZATCA, the CSR must be signed with the private key.
-  // We build a simplified ASN.1 DER structure.
-  
-  const subject = buildDistinguishedName([
-    { oid: [2, 5, 4, 6], value: params.countryCode },      // C
-    { oid: [2, 5, 4, 10], value: params.orgName },          // O
-    { oid: [2, 5, 4, 3], value: params.commonName },        // CN
-    { oid: [2, 5, 4, 5], value: params.serialNumber },      // serialNumber
-  ]);
-
-  // Public key from private key
-  const privBytes = hexToBytes(params.privateKeyHex);
-  const pubKey = secp256k1.getPublicKey(privBytes, false); // uncompressed
-
-  // Build SubjectPublicKeyInfo for EC secp256k1
-  const spki = buildEcSpki(pubKey);
-
-  // CertificationRequestInfo
-  const certReqInfo = asn1Sequence([
-    asn1Integer(0), // version
-    subject,
-    spki,
-    asn1Context(0, new Uint8Array(0)), // attributes (empty)
-  ]);
-
-  // Sign the certReqInfo
-  const hash = sha256(certReqInfo);
-  const signature = secp256k1.sign(hash, privBytes);
-  const sigDer = signature.toDERRawBytes();
-
-  // Build full CSR
-  const csr = asn1Sequence([
-    certReqInfo,
-    asn1Sequence([ // signatureAlgorithm: ecdsaWithSHA256
-      asn1Oid([1, 2, 840, 10045, 4, 3, 2]),
-    ]),
-    asn1BitString(sigDer),
-  ]);
-
-  return btoa(String.fromCharCode(...csr));
-}
-
+// buildCsrBase64 removed — CSR is built inline in the onboard handler (lines ~289-323)
 // ─── ASN.1 DER Encoding Helpers ───
 
 function asn1Length(len: number): Uint8Array {
