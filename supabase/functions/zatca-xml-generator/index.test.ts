@@ -153,7 +153,6 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
         <cbc:CitySubdivisionName>${escapeXml(String(inv.buyer_district || ""))}</cbc:CitySubdivisionName>
         <cbc:CityName>${escapeXml(String(inv.buyer_city || ""))}</cbc:CityName>
         <cbc:PostalZone>${escapeXml(String(inv.buyer_postal || ""))}</cbc:PostalZone>
-        <cbc:CountrySubentity>${escapeXml(String(inv.buyer_province || ""))}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
