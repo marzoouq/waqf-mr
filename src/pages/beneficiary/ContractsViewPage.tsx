@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';

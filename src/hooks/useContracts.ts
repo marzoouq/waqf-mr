@@ -20,7 +20,7 @@ export const useCreateContract = contractsCrud.useCreate;
 export const useUpdateContract = contractsCrud.useUpdate;
 export const useDeleteContract = contractsCrud.useDelete;
 
-/** Contracts filtered by fiscal year */
+/** Contracts filtered by fiscal year (admin/accountant — full data) */
 export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['contracts', 'fiscal_year', fiscalYearId],
@@ -29,6 +29,30 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
     queryFn: async () => {
       let query = supabase
         .from('contracts')
+        .select('*, property:properties(*), unit:units(*)')
+        .order('start_date', { ascending: false });
+      if (fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      if (fiscalYearId === 'all') {
+        query = query.limit(1000);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Contract[];
+    },
+  });
+};
+
+/** Contracts filtered by fiscal year (beneficiary/waqif — tenant PII stripped) */
+export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
+  return useQuery({
+    queryKey: ['contracts_safe', 'fiscal_year', fiscalYearId],
+    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    staleTime: 60_000,
+    queryFn: async () => {
+      let query = supabase
+        .from('contracts_safe' as any)
         .select('*, property:properties(*), unit:units(*)')
         .order('start_date', { ascending: false });
       if (fiscalYearId !== 'all') {
