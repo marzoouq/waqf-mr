@@ -201,7 +201,7 @@ function buildUBL(
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cac:PartyIdentification>
-        <cbc:ID schemeID="NAT">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
+        <cbc:ID schemeID="${buyerIdType}">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
       </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(String(inv.buyer_street || ""))}</cbc:StreetName>
