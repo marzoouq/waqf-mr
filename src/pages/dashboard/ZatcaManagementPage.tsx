@@ -113,6 +113,7 @@ function ZatcaManagementPage() {
     onSuccess: () => {
       toast.success('تم التوقيع بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['invoice-chain'] });
     },
     onError: (e: Error) => toast.error(e.message),
