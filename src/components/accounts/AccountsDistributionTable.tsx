@@ -51,6 +51,26 @@ const AccountsDistributionTable = ({
             </AlertDescription>
           </Alert>
         )}
+        {/* Mobile: simplified list */}
+        <div className="space-y-1 md:hidden">
+          {waqfCorpusPrevious > 0 && (
+            <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">مبلغ مرحّل</span><span className="font-bold text-success text-sm">{waqfCorpusPrevious.toLocaleString()}</span></div>
+          )}
+          <div className="flex justify-between py-2 px-3 bg-success/10 rounded"><span className="text-sm font-medium">إجمالي الدخل</span><span className="font-bold text-success text-sm">{totalIncome.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">المصروفات</span><span className="text-destructive text-sm">{totalExpenses.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 bg-muted/30 rounded"><span className="text-sm font-bold">الصافي بعد المصاريف</span><span className="font-bold text-sm">{netAfterExpenses.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">ضريبة القيمة المضافة</span><span className="text-destructive text-sm">{manualVat.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">الزكاة</span><span className="text-destructive text-sm">{zakatAmount.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">حصة الناظر ({adminPercent}%)</span><span className="text-sm">{adminShare.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">حصة الواقف ({waqifPercent}%)</span><span className="text-sm">{waqifShare.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 bg-primary/10 rounded"><span className="text-sm font-bold">ريع الوقف</span><span className="font-bold text-primary text-sm">{waqfRevenue.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">رقبة الوقف</span><span className="text-sm">{waqfCorpusManual.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 bg-primary/5 rounded"><span className="text-sm font-bold">المبلغ المتاح</span><span className="font-bold text-primary text-sm">{availableAmount.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 border-b"><span className="text-sm">التوزيعات</span><span className="text-sm">{manualDistributions.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 px-3 bg-accent/20 rounded"><span className="font-bold">الرصيد المتبقي</span><span className={`font-bold ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</span></div>
+        </div>
+        {/* Desktop Table */}
+        <div className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
@@ -146,6 +166,7 @@ const AccountsDistributionTable = ({
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

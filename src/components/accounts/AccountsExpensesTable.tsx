@@ -22,7 +22,17 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
           <p className="text-center text-muted-foreground py-8">لا توجد مصروفات مسجلة</p>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Mobile Cards */}
+            <div className="space-y-2 md:hidden">
+              {Object.entries(expensesByType).map(([type, amount]) => (
+                <div key={type} className="flex justify-between items-center py-2 px-3 rounded-lg border bg-muted/20">
+                  <span className="font-medium text-sm">{type}</span>
+                  <span className="text-destructive font-bold text-sm">-{amount.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+            {/* Desktop Table */}
+            <div className="overflow-x-auto hidden md:block">
             <Table className="min-w-[350px]">
               <TableHeader>
                 <TableRow className="bg-muted/50">

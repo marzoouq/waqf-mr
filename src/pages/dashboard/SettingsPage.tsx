@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings, Activity } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
@@ -26,6 +26,7 @@ const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissi
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
+const PerformanceMonitorTab = lazy(() => import('@/components/settings/PerformanceMonitorTab'));
 
 // === Logo Management Component ===
 const LogoManager = () => {
@@ -663,6 +664,7 @@ const SettingsPage = () => {
                 <SelectItem value="advances">السُلف</SelectItem>
                 <SelectItem value="zatca">الضريبة (ZATCA)</SelectItem>
                 <SelectItem value="security">الأمان</SelectItem>
+                <SelectItem value="performance">الأداء</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -732,6 +734,10 @@ const SettingsPage = () => {
               <ShieldCheck className="w-4 h-4" />
               الأمان
             </TabsTrigger>
+            <TabsTrigger value="performance" className="gap-1.5 text-xs md:text-sm">
+              <Activity className="w-4 h-4" />
+              الأداء
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><LandingPageTab /></Suspense></TabsContent>
@@ -749,6 +755,7 @@ const SettingsPage = () => {
           <TabsContent value="advances"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><ZatcaSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
+          <TabsContent value="performance"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><PerformanceMonitorTab /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>

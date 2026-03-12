@@ -179,7 +179,26 @@ const CarryforwardHistoryPage = () => {
             {carryforwards.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground text-sm">لا توجد فروق مرحّلة</p>
             ) : (
-              <div className="overflow-x-auto">
+              {/* Mobile Cards */}
+              <div className="space-y-3 md:hidden">
+                {carryforwards.map(cf => (
+                  <div key={cf.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">من: {fyLabel(cf.from_fiscal_year_id)}</span>
+                      <Badge variant={cf.status === 'active' ? 'destructive' : 'default'} className="text-xs">
+                        {cf.status === 'active' ? 'نشط' : 'مُسوّى'}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><span className="text-muted-foreground">إلى</span><p className="font-medium">{fyLabel(cf.to_fiscal_year_id)}</p></div>
+                      <div><span className="text-muted-foreground">المبلغ</span><p className="font-medium text-destructive">{Number(cf.amount).toLocaleString('ar-SA')} ر.س</p></div>
+                    </div>
+                    {cf.notes && <p className="text-xs text-muted-foreground truncate">{cf.notes}</p>}
+                  </div>
+                ))}
+              </div>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -228,7 +247,20 @@ const CarryforwardHistoryPage = () => {
             {paidAdvances.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground text-sm">لا توجد سُلف مصروفة</p>
             ) : (
-              <div className="overflow-x-auto">
+              {/* Mobile Cards */}
+              <div className="space-y-3 md:hidden">
+                {paidAdvances.map(adv => (
+                  <div key={adv.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-sm">{Number(adv.amount).toLocaleString('ar-SA')} ر.س</span>
+                      <span className="text-xs text-muted-foreground">{adv.paid_at ? new Date(adv.paid_at).toLocaleDateString('ar-SA') : '—'}</span>
+                    </div>
+                    {adv.reason && <p className="text-xs text-muted-foreground">{adv.reason}</p>}
+                  </div>
+                ))}
+              </div>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
