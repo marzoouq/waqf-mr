@@ -47,6 +47,18 @@ function encodeTLV(tag: number, value: string): Uint8Array {
 }
 
 /**
+ * Encode a TLV entry from raw bytes (for Tags 6-9)
+ */
+function encodeTLVBytes(tag: number, value: Uint8Array): Uint8Array {
+  const lenBytes = berLength(value.length);
+  const tlv = new Uint8Array(1 + lenBytes.length + value.length);
+  tlv[0] = tag;
+  tlv.set(lenBytes, 1);
+  tlv.set(value, 1 + lenBytes.length);
+  return tlv;
+}
+
+/**
  * Generate ZATCA-compliant TLV Base64 string for QR code
  */
 export function generateZatcaQrTLV(data: ZatcaQrData): string {
