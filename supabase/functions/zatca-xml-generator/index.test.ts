@@ -47,7 +47,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   const cityName = escapeXml(settings.business_address_city || "");
   const postalZone = settings.business_address_postal_code || "";
   const districtName = escapeXml(settings.business_address_district || "");
-  const countrySubentity = escapeXml(settings.business_address_province || "");
+  
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
   const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
   const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
