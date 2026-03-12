@@ -13,7 +13,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * Credit Note: code=381
  */
 function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
-  switch (invoiceType?.toLowerCase()) {
+  const type = invoiceType?.toLowerCase();
+  // Determine if it's a simplified variant
+  const isSimplified = type === "simplified" || type === "مبسطة"
+    || type === "simplified_credit" || type === "simplified_debit";
+
+  switch (type) {
     case "simplified":
     case "مبسطة":
       return { code: "388", name: "0200000" };
@@ -23,6 +28,10 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
     case "credit_note":
     case "إشعار دائن":
       return { code: "381", name: "0100000" };
+    case "simplified_debit":
+      return { code: "383", name: "0200000" };
+    case "simplified_credit":
+      return { code: "381", name: "0200000" };
     case "standard":
     case "قياسية":
     default:
@@ -37,9 +46,11 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
  * E = Exempt
  * O = Out of scope
  */
-function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): string {
+function getVatCategoryCode(vatRate: number, exemptionCode?: string): string {
   if (vatRate > 0) return "S";
-  if (vatExemptionReason) return "E";
+  // If an explicit exemption code (VATEX-SA-29-7 etc.) is provided → Exempt
+  if (exemptionCode) return "E";
+  // Default for 0% → Zero-rated (residential rent etc.)
   return "Z";
 }
 
@@ -112,8 +123,10 @@ function buildUBL(
   // --- Invoice type ---
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
-  const vatCategoryCode = getVatCategoryCode(vatRate);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, String(inv.description || ""));
+  // Check for explicit exemption code from invoice data
+  const rawExemptionCode = String(inv.vat_exemption_code || inv.exemption_code || "");
+  const vatCategoryCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
+  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, rawExemptionCode || String(inv.description || ""));
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
@@ -361,7 +374,7 @@ Deno.serve(async (req) => {
         invRec.tenant_name = contract.tenant_name;
         invRec.buyer_id_type = contract.tenant_id_type || "NAT";
         invRec.buyer_id = contract.tenant_id_number || "";
-        invRec.buyer_tax_number = (contract as Record<string, unknown>).tenant_tax_number || "";
+        invRec.buyer_vat = (contract as Record<string, unknown>).tenant_tax_number || "";
         invRec.buyer_crn = (contract as Record<string, unknown>).tenant_crn || "";
         invRec.buyer_street = contract.tenant_street || "";
         invRec.buyer_building = contract.tenant_building || "";
