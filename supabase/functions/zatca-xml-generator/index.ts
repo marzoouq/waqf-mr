@@ -50,7 +50,12 @@ function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): strin
 function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
   if (vatCategoryCode === "S") return null;
   if (vatCategoryCode === "E") {
-    // Exempt — default to real estate rental exemption
+    // Allow override via description containing VATEX code pattern
+    const vatexMatch = invoiceDescription?.match(/VATEX-SA-[\d-]+/);
+    if (vatexMatch) {
+      return { code: vatexMatch[0], reason: invoiceDescription || "" };
+    }
+    // Default: real estate residential rental exemption
     return {
       code: "VATEX-SA-29-7",
       reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة",
