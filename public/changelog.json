@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.7.3",
+    "date": "١٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Add RLS on beneficiaries_safe"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      }
+    ]
+  },
+  {
     "version": "2.7.2",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
