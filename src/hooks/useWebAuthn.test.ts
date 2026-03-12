@@ -71,6 +71,7 @@ describe('useWebAuthn', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     mockFrom.mockReturnValue(chainMethods());
   });
 
