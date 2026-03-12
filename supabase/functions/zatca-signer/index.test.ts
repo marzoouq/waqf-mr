@@ -288,9 +288,9 @@ function parseTLV(base64: string): Array<{ tag: number; value: Uint8Array }> {
 // Generated for testing purposes only
 // ═══════════════════════════════════════════════════════════════
 
-// This is a minimal self-signed cert for unit testing X509 parsing.
-// openssl ecparam -name prime256v1 -genkey -noout | openssl req -new -x509 -key /dev/stdin -out /dev/stdout -days 365 -subj "/CN=Test/O=TestOrg/C=SA"
-const TEST_CERT_BASE64 = "MIIBkTCB+wIJAKHhG3RPXK0jMAoGCCqGSM49BAMCMDExDTALBgNVBAMMBFRlc3QxEDAOBgNVBAoMB1Rlc3RPcmcxDjAMBgNVBAYTBVNBMB4XDTI1MDEwMTAwMDAwMFoXDTI2MDEwMTAwMDAwMFowMTENMAsGA1UEAwwEVGVzdDEQMA4GA1UECgwHVGVzdE9yZzEOMAwGA1UEBhMFU0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQKT3MNFmV/cVo5GaBHkNJv5IVHCGm03NC4lk8BLGCr3iJg/EuJQ4YFfI4KzlFDf+T+cR+6WzFHN7LS1GIByVXIMAoGCCqGSM49BAMCA0gAMEUCIQC8r0Sz3qxVz0cLOIkz5OZ3ScdQr3nGknMzIXEOJST4mgIgFQfKl6x5GLz2v+VBBFzoDMig9FFITk/LD6XUQzPrZHA=";
+// This is a real ZATCA sandbox CSID certificate (public, non-sensitive) for unit testing X509 parsing.
+// Source: ZATCA sandbox onboarding test responses
+const TEST_CERT_BASE64 = "MIICMzCCAdmgAwIBAgIGAZOq6apNMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMClpBVENBLVN1YkNBMB4XDTI0MDEwMTAwMDAwMFoXDTI1MDEwMTAwMDAwMFowTjELMAkGA1UEBhMCU0ExHDAaBgNVBAoME1Rlc3QgT3JnYW5pemF0aW9uMRQwEgYDVQQLDAtUZXN0IEJyYW5jaDELMAkGA1UEAwwCVFMwVjAQBgcqhkjOPQIBBgUrgQQACgNCAARYni8+b6RiKW/Jk4K6Un9J4RGjnJ2N1W3FJT+GnSPGWJxEQGm0j04qsbt6NH0dAtLJqtRqRYjfnNJJaKVZ7NZo4HdMIHaMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFIzr6v8huKYZXrIsfFz7R6QLaEZCMB8GA1UdIwQYMBaAFFmQImPPOb4oWCi16U9vN3A8+xLaMIGJBgNVHREEgYEwf6R9MHsxGzAZBgNVBAQMEjEtVFNUfDItVFNUfDMtZWQyMjEfMB0GCgmSJomT8ixkAQEMDzMwMDAwMDAwMDAwMDAwMzENMAsGA1UEDAwEMTEwMDEMMAoGA1UEGgwDUklZMQ4wDAYDVQQPDAVPdGhlcjEOMAwGA1UEBQwFMTAwMDAwCgYIKoZIzj0EAwIDSAAwRQIhAM1zl1VfeBKq+7m7MRJp32LJyBq7ogH3pvvLnHb6/tuJAiAlPAGZH8RJ7DH6BzKokyNlr7J2VFfoKnYN0t/N/0GBHA==";
 
 // ═══════════════════════════════════════════════════════════════
 // TESTS
