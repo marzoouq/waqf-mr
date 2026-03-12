@@ -270,13 +270,15 @@ Deno.serve(async (req) => {
 
       // Fetch seller info for CSR subject
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial"]);
+        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial", "zatca_solution_name"]);
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
       const orgName = settings.waqf_name || "";
       const vatNumber = settings.vat_registration_number || "";
       const deviceSerial = settings.zatca_device_serial || "";
+      const solutionName = settings.zatca_solution_name || "WaqfManagement";
+      const isProduction = ZATCA_API_URL.includes("gw-fatoora.zatca.gov.sa");
 
       // Validate required identity fields before contacting ZATCA
       const missingFields: string[] = [];
