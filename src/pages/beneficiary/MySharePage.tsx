@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { generateMySharePDF, generateDistributionsPDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -25,6 +25,8 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 const MySharePage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
@@ -271,7 +273,7 @@ const MySharePage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>
@@ -300,7 +302,7 @@ const MySharePage = () => {
           <p className="text-muted-foreground text-center max-w-md">
             لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
           </p>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة تحميل
           </Button>
         </div>
