@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
       try {
         // For CSR signing we need async SHA-256
         const privBytes = hexToBytes(privateKey);
-        const pubKey = secp256k1.getPublicKey(privBytes, false);
+        const pubKey = p256.getPublicKey(privBytes, false);
 
         // Build CSR subject
         const subject = buildDistinguishedName([
