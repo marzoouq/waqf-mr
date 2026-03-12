@@ -33,17 +33,7 @@ import ContractFormDialog, { ContractFormData, emptyFormData } from '@/component
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 
-/** دالة موحدة لحساب عدد الدفعات حسب نوع الدفع */
-const getPaymentCount = (contract: { payment_type?: string | null; payment_count?: number | null }) => {
-  switch (contract.payment_type) {
-    case 'monthly': return 12;
-    case 'quarterly': return 4;
-    case 'semi_annual':
-    case 'semi-annual': return 2;
-    case 'annual': return 1;
-    default: return contract.payment_count || 1;
-  }
-};
+import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
