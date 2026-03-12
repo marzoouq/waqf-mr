@@ -455,14 +455,10 @@ const ContractsPage = () => {
                           <TableCell>
                             {(() => {
                               const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-                              const paid = paymentsMap.get(contract.id) ?? 0;
+                              const paid = invoicePaidMap.get(contract.id) ?? 0;
                               return (
                                 <div className="space-y-1.5">
-                                  <div className="flex items-center gap-1">
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, -1)} disabled={paid <= 0 || upsertPayment.isPending} aria-label="إنقاص دفعة"><Minus className="w-3 h-3" /></Button>
-                                    <span className={`text-sm font-bold min-w-[3rem] text-center ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                    <Button variant="outline" size="icon" className="w-6 h-6" onClick={() => handlePayment(contract, 1)} disabled={paid >= paymentCount || upsertPayment.isPending} aria-label="إضافة دفعة"><Plus className="w-3 h-3" /></Button>
-                                  </div>
+                                  <span className={`text-sm font-bold min-w-[3rem] text-center block ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
                                   <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                                 </div>
                               );
