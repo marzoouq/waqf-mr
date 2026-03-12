@@ -364,7 +364,7 @@ Deno.serve(async (req) => {
     if (table === "payment_invoices" && inv.contract_id) {
       const { data: contract } = await admin
         .from("contracts")
-        .select("tenant_name, tenant_id_type, tenant_id_number, tenant_street, tenant_building, tenant_district, tenant_city, tenant_postal_code")
+        .select("tenant_name, tenant_id_type, tenant_id_number, tenant_tax_number, tenant_crn, tenant_street, tenant_building, tenant_district, tenant_city, tenant_postal_code")
         .eq("id", inv.contract_id)
         .single();
       if (contract) {
@@ -372,6 +372,8 @@ Deno.serve(async (req) => {
         invRec.tenant_name = contract.tenant_name;
         invRec.buyer_id_type = contract.tenant_id_type || "NAT";
         invRec.buyer_id = contract.tenant_id_number || "";
+        invRec.buyer_tax_number = (contract as Record<string, unknown>).tenant_tax_number || "";
+        invRec.buyer_crn = (contract as Record<string, unknown>).tenant_crn || "";
         invRec.buyer_street = contract.tenant_street || "";
         invRec.buyer_building = contract.tenant_building || "";
         invRec.buyer_district = contract.tenant_district || "";

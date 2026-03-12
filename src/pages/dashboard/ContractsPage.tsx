@@ -103,7 +103,7 @@ const ContractsPage = () => {
       payment_type: contract.payment_type || 'annual',
       payment_count: (contract.payment_count || 1).toString(),
       rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: 'NAT', tenant_id_number: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
+      tenant_id_type: 'NAT', tenant_id_number: '', tenant_tax_number: '', tenant_crn: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
     });
     setEditingContract(null);
     setIsOpen(true);
@@ -117,7 +117,7 @@ const ContractsPage = () => {
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
       rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: contract.tenant_id_type || 'NAT', tenant_id_number: contract.tenant_id_number || '', tenant_street: contract.tenant_street || '', tenant_building: contract.tenant_building || '', tenant_district: contract.tenant_district || '', tenant_city: contract.tenant_city || '', tenant_postal_code: contract.tenant_postal_code || '',
+      tenant_id_type: contract.tenant_id_type || 'NAT', tenant_id_number: contract.tenant_id_number || '', tenant_tax_number: (contract as any).tenant_tax_number || '', tenant_crn: (contract as any).tenant_crn || '', tenant_street: contract.tenant_street || '', tenant_building: contract.tenant_building || '', tenant_district: contract.tenant_district || '', tenant_city: contract.tenant_city || '', tenant_postal_code: contract.tenant_postal_code || '',
     });
     setIsOpen(true);
   };
@@ -134,6 +134,7 @@ const ContractsPage = () => {
         status: formData.status, notes: formData.notes || undefined,
         payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
         tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
+        tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
         tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
@@ -173,6 +174,7 @@ const ContractsPage = () => {
           payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
           fiscal_year_id: activeFY?.id || null,
           tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
+          tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
           tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
           tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
         };
@@ -191,6 +193,7 @@ const ContractsPage = () => {
         status: formData.status, notes: formData.notes || undefined,
         payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
         tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
+        tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
         tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
         tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };

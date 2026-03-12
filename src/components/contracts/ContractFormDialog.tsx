@@ -54,6 +54,8 @@ export interface ContractFormData {
   // Tenant identity
   tenant_id_type: string;
   tenant_id_number: string;
+  tenant_tax_number: string;
+  tenant_crn: string;
   tenant_street: string;
   tenant_building: string;
   tenant_district: string;
@@ -66,7 +68,7 @@ export const emptyFormData: ContractFormData = {
   payment_type: 'annual', payment_count: '1',
   rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {},
   vat_applicable: false,
-  tenant_id_type: 'NAT', tenant_id_number: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
+  tenant_id_type: 'NAT', tenant_id_number: '', tenant_tax_number: '', tenant_crn: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
 };
 
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
@@ -333,6 +335,14 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <div className="space-y-1">
                 <Label className="text-xs">رقم الهوية</Label>
                 <Input className="h-9" value={formData.tenant_id_number} onChange={(e) => setFormData({ ...formData, tenant_id_number: e.target.value })} placeholder="رقم الهوية" maxLength={20} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">الرقم الضريبي (VAT)</Label>
+                <Input className="h-9" value={formData.tenant_tax_number} onChange={(e) => setFormData({ ...formData, tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">رقم السجل التجاري</Label>
+                <Input className="h-9" value={formData.tenant_crn} onChange={(e) => setFormData({ ...formData, tenant_crn: e.target.value })} placeholder="رقم السجل التجاري" maxLength={15} />
               </div>
             </div>
             <details className="text-xs">
