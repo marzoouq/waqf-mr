@@ -7,14 +7,6 @@ const ZATCA_API_URL = Deno.env.get("ZATCA_API_URL") || "";
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-// ─── CSR Generation Helpers ───
-
-/**
- * Build a minimal PKCS#10 CSR for ZATCA onboarding.
- * ZATCA requires: CN, O (org), serialNumber (device), C=SA
- * This produces a Base64-encoded DER CSR.
- */
-// buildCsrBase64 removed — CSR is built inline in the onboard handler (lines ~289-323)
 // ─── ASN.1 DER Encoding Helpers ───
 
 function asn1Length(len: number): Uint8Array {
@@ -112,15 +104,12 @@ function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint
 }
 
 function buildEcSpki(publicKey: Uint8Array): Uint8Array {
-  // AlgorithmIdentifier: ecPublicKey + prime256v1 (P-256) — required by ZATCA
   const algId = asn1Sequence([
     asn1Oid([1, 2, 840, 10045, 2, 1]),   // ecPublicKey
     asn1Oid([1, 2, 840, 10045, 3, 1, 7]), // prime256v1 (P-256)
   ]);
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
-
-// sha256 sync removed — only sha256Async is used
 
 async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
   const hash = await crypto.subtle.digest("SHA-256", data);
@@ -129,8 +118,6 @@ async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
 
 function hexToBytes(hex: string): Uint8Array {
   let clean = hex.replace(/-----[A-Z ]+-----/g, "").replace(/\s/g, "");
-  
-  // If base64 (PEM content), decode
   if (/^[A-Za-z0-9+/=]+$/.test(clean) && clean.length > 64) {
     try {
       const binary = atob(clean);
@@ -140,7 +127,6 @@ function hexToBytes(hex: string): Uint8Array {
       return bytes;
     } catch { /* not base64 */ }
   }
-  
   if (clean.startsWith("0x")) clean = clean.slice(2);
   const bytes = new Uint8Array(clean.length / 2);
   for (let i = 0; i < clean.length; i += 2) {
@@ -148,6 +134,23 @@ function hexToBytes(hex: string): Uint8Array {
   }
   return bytes;
 }
+
+/** Convert DER bytes to PEM with proper headers */
+function derToPem(der: Uint8Array, label: string): string {
+  const b64 = btoa(String.fromCharCode(...der));
+  const lines: string[] = [];
+  for (let i = 0; i < b64.length; i += 64) {
+    lines.push(b64.substring(i, i + 64));
+  }
+  return `-----BEGIN ${label}-----\n${lines.join("\n")}\n-----END ${label}-----`;
+}
+
+// ─── Common ZATCA Headers ───
+const ZATCA_COMMON_HEADERS = {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "Accept-Version": "V2",
+};
 
 // ─── Main Handler ───
 
@@ -186,11 +189,11 @@ Deno.serve(async (req) => {
     // ─── Onboarding ───
     if (action === "onboard") {
       if (!ZATCA_API_URL) {
-        // Development mode — store placeholder
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: "PLACEHOLDER_CERTIFICATE_DEV",
           private_key: "PLACEHOLDER_KEY_DEV",
+          zatca_secret: "PLACEHOLDER_SECRET_DEV",
           request_id: `DEV-${Date.now()}`,
           is_active: true,
         });
@@ -201,7 +204,6 @@ Deno.serve(async (req) => {
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Production onboarding
       const otp = Deno.env.get("ZATCA_OTP") || "";
       const privateKey = Deno.env.get("ZATCA_PRIVATE_KEY") || "";
 
@@ -221,14 +223,13 @@ Deno.serve(async (req) => {
       const orgName = settings.vat_number || "";
       const deviceSerial = settings.zatca_device_serial || `1-WAQF|2-${Date.now()}|3-inv`;
 
-      // GAP-2 FIX: Generate proper PKCS#10 CSR instead of sending private key
-      let csrBase64: string;
+      // Build PKCS#10 CSR
+      let csrPem: string;
+      let privBytes: Uint8Array;
       try {
-        // For CSR signing we need async SHA-256
-        const privBytes = hexToBytes(privateKey);
+        privBytes = hexToBytes(privateKey);
         const pubKey = p256.getPublicKey(privBytes, false);
 
-        // Build CSR subject
         const subject = buildDistinguishedName([
           { oid: [2, 5, 4, 6], value: "SA" },
           { oid: [2, 5, 4, 10], value: orgName },
@@ -245,18 +246,18 @@ Deno.serve(async (req) => {
           asn1Context(0, new Uint8Array(0)),
         ]);
 
-        // SHA-256 hash of certReqInfo then sign
         const hashBytes = await sha256Async(certReqInfo);
         const signature = p256.sign(hashBytes, privBytes);
         const sigDer = signature.toDERRawBytes();
 
-        const csr = asn1Sequence([
+        const csrDer = asn1Sequence([
           certReqInfo,
-          asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]),
+          asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]), // ecdsaWithSHA256
           asn1BitString(sigDer),
         ]);
 
-        csrBase64 = btoa(String.fromCharCode(...csr));
+        // FIX: Convert DER to base64 (ZATCA expects base64-encoded CSR, not PEM with headers)
+        csrPem = btoa(String.fromCharCode(...csrDer));
       } catch (csrErr) {
         console.error("CSR generation error:", csrErr);
         return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR)" }), {
@@ -265,15 +266,13 @@ Deno.serve(async (req) => {
       }
 
       try {
-        // Send CSR (not private key!) to ZATCA
         const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            ...ZATCA_COMMON_HEADERS,
             "OTP": otp,
-            "Accept-Version": "V2",
           },
-          body: JSON.stringify({ csr: csrBase64 }),
+          body: JSON.stringify({ csr: csrPem }),
         });
 
         if (!csrResponse.ok) {
@@ -285,14 +284,16 @@ Deno.serve(async (req) => {
 
         const csrData = await csrResponse.json();
 
-        // Deactivate old certificates
+        // FIX #1: Store ZATCA's secret separately from the private key
+        // csrData.secret = the secret ZATCA returns for auth in subsequent requests
+        // privateKey = the local ECDSA key used for signing invoices
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
 
-        // Store binarySecurityToken as certificate, private key stays local (encrypted via DB trigger)
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: csrData.binarySecurityToken || "",
-          private_key: privateKey, // encrypted by DB trigger (pgp_sym_encrypt)
+          private_key: privateKey,         // Local ECDSA key (encrypted by DB trigger)
+          zatca_secret: csrData.secret || "", // ZATCA-provided secret for Authorization header
           request_id: csrData.requestID || "",
           is_active: true,
         });
@@ -309,6 +310,71 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ─── Compliance Check (send test invoices before production) ───
+    if (action === "compliance-check") {
+      const { invoice_id, table } = body;
+      if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
+        return new Response(JSON.stringify({ error: "invoice_id and table are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const { data: certData } = await admin.rpc("get_active_zatca_certificate");
+      if (!certData || certData.error) {
+        return new Response(JSON.stringify({ error: "لا توجد شهادة امتثال نشطة. أكمل Onboarding أولاً." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (certData.certificate_type !== "compliance") {
+        return new Response(JSON.stringify({ error: "فحص الامتثال يتطلب شهادة compliance. الشهادة الحالية من نوع: " + certData.certificate_type }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get invoice
+      const { data: inv } = await admin.from(table).select("*").eq("id", invoice_id).single();
+      if (!inv) {
+        return new Response(JSON.stringify({ error: "الفاتورة غير موجودة" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const xml = inv.zatca_xml || "";
+      if (!xml || !inv.invoice_hash) {
+        return new Response(JSON.stringify({ error: "يجب توليد XML وتوقيعه قبل فحص الامتثال" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const bst = certData.certificate || "";
+      const secret = certData.zatca_secret || "";
+
+      try {
+        const complianceRes = await fetch(`${ZATCA_API_URL}/compliance/invoices`, {
+          method: "POST",
+          headers: {
+            ...ZATCA_COMMON_HEADERS,
+            "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
+            "Accept-Language": "ar",
+          },
+          body: JSON.stringify({
+            invoiceHash: inv.invoice_hash,
+            uuid: inv.zatca_uuid || "",
+            invoice: btoa(xml),
+          }),
+        });
+
+        const complianceData = await complianceRes.json().catch(() => ({}));
+
+        return new Response(JSON.stringify({
+          success: complianceRes.ok,
+          status: complianceRes.status,
+          zatca_response: complianceData,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (fetchErr) {
+        return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // ─── Production Certificate (upgrade from compliance to production) ───
     if (action === "production") {
       const { data: certData } = await admin.rpc("get_active_zatca_certificate");
@@ -320,16 +386,15 @@ Deno.serve(async (req) => {
 
       const requestId = certData.request_id || "";
       const bst = certData.certificate || "";
+      // FIX #1: Use zatca_secret (from ZATCA) not private_key for auth
+      const secret = certData.zatca_secret || "";
 
       try {
-        // GAP-4 FIX: Use binarySecurityToken:secret for auth
-        const secret = certData.private_key || "";
         const prodResponse = await fetch(`${ZATCA_API_URL}/production/csids`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            ...ZATCA_COMMON_HEADERS,
             "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
-            "Accept-Version": "V2",
           },
           body: JSON.stringify({ compliance_request_id: requestId }),
         });
@@ -348,7 +413,8 @@ Deno.serve(async (req) => {
         await admin.from("zatca_certificates").insert({
           certificate_type: "production",
           certificate: prodData.binarySecurityToken || "",
-          private_key: certData.private_key, // same key, encrypted by DB trigger
+          private_key: certData.private_key,         // Same local key for signing
+          zatca_secret: prodData.secret || "",        // New production secret from ZATCA
           request_id: prodData.requestID || "",
           is_active: true,
         });
@@ -372,7 +438,6 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Get active certificate
       const { data: certData, error: certErr } = await admin.rpc("get_active_zatca_certificate");
       if (certErr || !certData || certData.error) {
         return new Response(JSON.stringify({ error: certData?.error || "No active ZATCA certificate. Complete onboarding first." }), {
@@ -380,13 +445,11 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get invoice
       const { data: inv } = await admin.from(table).select("*").eq("id", invoice_id).single();
       if (!inv) {
         return new Response(JSON.stringify({ error: "Invoice not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // GAP-9 FIX: Get XML from both tables (now payment_invoices has zatca_xml column)
       const xml = inv.zatca_xml || "";
       if (!xml) {
         return new Response(JSON.stringify({ error: "يجب توليد XML وتوقيعه قبل الإرسال" }), {
@@ -400,20 +463,18 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Submit to ZATCA
       const endpoint = action === "clearance" ? "clearance" : "reporting";
       const bst = certData.certificate || "";
-      const secret = certData.private_key || "";
+      // FIX #1: Use zatca_secret for Authorization
+      const secret = certData.zatca_secret || "";
 
       try {
-        // GAP-4 FIX: Correct Authorization header
         const zatcaRes = await fetch(`${ZATCA_API_URL}/invoices/${endpoint}/single`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            ...ZATCA_COMMON_HEADERS,
             "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
             "Accept-Language": "ar",
-            "Accept-Version": "V2",
             "Clearance-Status": action === "clearance" ? "1" : "0",
           },
           body: JSON.stringify({
@@ -426,7 +487,6 @@ Deno.serve(async (req) => {
         const zatcaData = await zatcaRes.json().catch(() => ({}));
         const newStatus = zatcaRes.ok ? (action === "clearance" ? "cleared" : "reported") : "rejected";
 
-        // Update zatca_status
         await admin.from(table).update({ zatca_status: newStatus }).eq("id", invoice_id);
 
         return new Response(JSON.stringify({
@@ -442,7 +502,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, production, report, clearance" }), {
+    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

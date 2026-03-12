@@ -1371,6 +1371,7 @@ export type Database = {
           is_active: boolean | null
           private_key: string
           request_id: string | null
+          zatca_secret: string | null
         }
         Insert: {
           certificate: string
@@ -1380,6 +1381,7 @@ export type Database = {
           is_active?: boolean | null
           private_key: string
           request_id?: string | null
+          zatca_secret?: string | null
         }
         Update: {
           certificate?: string
@@ -1389,6 +1391,7 @@ export type Database = {
           is_active?: boolean | null
           private_key?: string
           request_id?: string | null
+          zatca_secret?: string | null
         }
         Relationships: []
       }
