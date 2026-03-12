@@ -95,6 +95,46 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
+// ─── ZATCA QR TLV (GAP-5 + GAP-10) ───
+function berLength(len: number): Uint8Array {
+  if (len < 128) return new Uint8Array([len]);
+  if (len < 256) return new Uint8Array([0x81, len]);
+  return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
+}
+
+function encodeTLV(tag: number, value: string): Uint8Array {
+  const encoder = new TextEncoder();
+  const valueBytes = encoder.encode(value);
+  const lenBytes = berLength(valueBytes.length);
+  const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
+  tlv[0] = tag;
+  tlv.set(lenBytes, 1);
+  tlv.set(valueBytes, 1 + lenBytes.length);
+  return tlv;
+}
+
+function generateZatcaQrTLV(sellerName: string, vatNumber: string, timestamp: string, totalWithVat: number, vatAmount: number): string {
+  const entries = [
+    encodeTLV(1, sellerName),
+    encodeTLV(2, vatNumber),
+    encodeTLV(3, timestamp),
+    encodeTLV(4, totalWithVat.toFixed(2)),
+    encodeTLV(5, vatAmount.toFixed(2)),
+  ];
+  const totalLength = entries.reduce((sum, e) => sum + e.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const entry of entries) {
+    result.set(entry, offset);
+    offset += entry.length;
+  }
+  let binary = '';
+  for (let i = 0; i < result.length; i++) {
+    binary += String.fromCharCode(result[i]);
+  }
+  return btoa(binary);
+}
+
 /**
  * Build the XMLDSig SignedProperties and Signature block
  */
@@ -234,6 +274,32 @@ Deno.serve(async (req) => {
       );
     }
 
+    // --- Step 4b: GAP-5 FIX — Generate QR TLV and inject into XML ---
+    try {
+      // Fetch seller info for QR
+      const { data: settingsRows } = await admin.from("app_settings").select("key, value")
+        .in("key", ["waqf_name", "vat_number"]);
+      const qrSettings: Record<string, string> = {};
+      (settingsRows || []).forEach((s: { key: string; value: string }) => { qrSettings[s.key] = s.value; });
+
+      const sellerName = qrSettings.waqf_name || "";
+      const vatNumber = qrSettings.vat_number || "";
+      const totalWithVat = Number(inv.amount) || 0;
+      const vatAmt = Number(inv.vat_amount) || 0;
+      // Use invoice created_at as timestamp
+      const qrTimestamp = inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString();
+
+      const qrTlvBase64 = generateZatcaQrTLV(sellerName, vatNumber, qrTimestamp, totalWithVat, vatAmt);
+      // Replace QR placeholder in XML
+      signedXml = signedXml.replace(
+        /(<cbc:EmbeddedDocumentBinaryObject mimeCode="text\/plain">)\s*<!--[^>]*-->\s*(<\/cbc:EmbeddedDocumentBinaryObject>)/,
+        `$1${qrTlvBase64}$2`
+      );
+    } catch (qrErr) {
+      console.error("QR TLV generation warning:", qrErr);
+      // Non-fatal — continue without QR
+    }
+
     // --- Step 5: Atomic ICV allocation + chain insert (GAP-11 fix) ---
     const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
       p_invoice_id: invoice_id,
@@ -260,7 +326,6 @@ Deno.serve(async (req) => {
     if (table === "invoices") {
       await admin.from("invoices").update(updateData).eq("id", invoice_id);
     } else if (table === "payment_invoices") {
-      // Will work after GAP-9 migration
       await admin.from("payment_invoices").update(updateData as Record<string, unknown>).eq("id", invoice_id);
     }
 
