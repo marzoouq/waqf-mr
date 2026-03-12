@@ -34,7 +34,7 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-  const [containerEl, setContainerEl] = React.useState<HTMLElement | null>(null);
+  const [containerEl, setContainerEl] = React.useState<HTMLDivElement | null>(null);
 
   const mergedRef = React.useCallback(
     (node: HTMLElement | null) => {
