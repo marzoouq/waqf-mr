@@ -84,7 +84,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       {children}
     </FiscalYearContext.Provider>
   );
-});
+}
 
 export const useFiscalYear = () => {
   const context = useContext(FiscalYearContext);
