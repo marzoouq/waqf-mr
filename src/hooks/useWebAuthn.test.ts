@@ -53,6 +53,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+const fakeUser = { id: 'u1' };
 const fakeSession = { user: { id: 'u1' }, access_token: 'tok', refresh_token: 'ref' };
 
 function makeDOMException(name: string, message = '') {
