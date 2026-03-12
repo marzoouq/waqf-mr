@@ -129,7 +129,6 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
         <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
         <cbc:CityName>${cityName}</cbc:CityName>
         <cbc:PostalZone>${postalZone}</cbc:PostalZone>
-        <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
