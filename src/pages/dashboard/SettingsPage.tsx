@@ -664,6 +664,7 @@ const SettingsPage = () => {
                 <SelectItem value="advances">السُلف</SelectItem>
                 <SelectItem value="zatca">الضريبة (ZATCA)</SelectItem>
                 <SelectItem value="security">الأمان</SelectItem>
+                <SelectItem value="performance">الأداء</SelectItem>
               </SelectContent>
             </Select>
           </div>
