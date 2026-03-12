@@ -417,6 +417,92 @@ function generateZatcaQrTLV(
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Certificate DER Parsing — Extract Signature + SubjectPublicKey
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Extract the signatureValue and subjectPublicKeyInfo from an X.509 DER certificate.
+ * - Tag 8 (certSignature): The raw signature bytes (last BitString in cert)
+ * - Tag 9 (certPublicKey): The SubjectPublicKeyInfo bytes from tbsCertificate
+ */
+function extractCertSignatureAndPublicKey(certDer: Uint8Array): { signature: Uint8Array; publicKey: Uint8Array } {
+  // ASN.1 DER reader
+  function readTlv(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
+    const tag = data[offset];
+    let lenOffset = offset + 1;
+    let length = data[lenOffset];
+    let valueOffset: number;
+    if (length & 0x80) {
+      const numBytes = length & 0x7f;
+      length = 0;
+      for (let i = 0; i < numBytes; i++) {
+        length = (length << 8) | data[lenOffset + 1 + i];
+      }
+      valueOffset = lenOffset + 1 + numBytes;
+    } else {
+      valueOffset = lenOffset + 1;
+    }
+    return { tag, length, valueOffset, totalLength: valueOffset - offset + length };
+  }
+
+  try {
+    // Certificate = SEQUENCE { tbsCertificate, signatureAlgorithm, signatureValue }
+    const cert = readTlv(certDer, 0); // outer SEQUENCE
+    let pos = cert.valueOffset;
+
+    // tbsCertificate (SEQUENCE)
+    const tbs = readTlv(certDer, pos);
+    const tbsEnd = tbs.valueOffset + tbs.length;
+    pos += tbs.totalLength;
+
+    // signatureAlgorithm (SEQUENCE) — skip
+    const sigAlg = readTlv(certDer, pos);
+    pos += sigAlg.totalLength;
+
+    // signatureValue (BIT STRING)
+    const sigBitString = readTlv(certDer, pos);
+    // Skip the first byte (unused bits indicator) of BitString
+    const signatureBytes = certDer.slice(sigBitString.valueOffset + 1, sigBitString.valueOffset + sigBitString.length);
+
+    // Now extract SubjectPublicKeyInfo from tbsCertificate
+    let tbsPos = tbs.valueOffset;
+
+    // Skip version [0] if present
+    let field = readTlv(certDer, tbsPos);
+    if (field.tag === 0xa0) { tbsPos += field.totalLength; field = readTlv(certDer, tbsPos); }
+
+    // Skip serialNumber (INTEGER)
+    tbsPos += field.totalLength;
+
+    // Skip signature algorithm (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip issuer (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip validity (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // Skip subject (SEQUENCE)
+    field = readTlv(certDer, tbsPos);
+    tbsPos += field.totalLength;
+
+    // SubjectPublicKeyInfo (SEQUENCE) — this is what we need for Tag 9
+    field = readTlv(certDer, tbsPos);
+    const publicKeyInfoBytes = certDer.slice(tbsPos, tbsPos + field.totalLength);
+
+    return { signature: signatureBytes, publicKey: publicKeyInfoBytes };
+  } catch (e) {
+    console.error("extractCertSignatureAndPublicKey error:", e);
+    // Fallback: return empty arrays
+    return { signature: new Uint8Array(0), publicKey: new Uint8Array(0) };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Main Handler
 // ═══════════════════════════════════════════════════════════════
 
@@ -491,10 +577,6 @@ Deno.serve(async (req) => {
     // ════════════════════════════════════════════════════════════
     // Step 1: Atomic ICV allocation FIRST (before hashing)
     // ════════════════════════════════════════════════════════════
-    // We need a preliminary hash for the chain. We'll use the invoice digest
-    // computed from the XML with the NEW ICV injected.
-    
-    // First, allocate ICV with a placeholder hash (will be updated after signing)
     const placeholderHash = "PENDING";
     const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
       p_invoice_id: invoice_id,
@@ -509,44 +591,52 @@ Deno.serve(async (req) => {
     const icv = chainResult.icv;
     const previousHash = chainResult.previous_hash;
 
-    // ════════════════════════════════════════════════════════════
-    // Step 2: Inject new ICV into XML before hashing
-    // ════════════════════════════════════════════════════════════
-    // Replace the ICV UUID value in the XML with the newly allocated ICV
-    xml = xml.replace(
-      /(<cac:AdditionalDocumentReference>\s*<cbc:ID>ICV<\/cbc:ID>\s*<cbc:UUID>)\d+(<\/cbc:UUID>)/,
-      `$1${icv}$2`,
-    );
+    // Wrap signing in try/catch — rollback invoice_chain on failure
+    try {
+      // ════════════════════════════════════════════════════════════
+      // Step 2: Inject new ICV into XML before hashing
+      // ════════════════════════════════════════════════════════════
+      xml = xml.replace(
+        /(<cac:AdditionalDocumentReference>\s*<cbc:ID>ICV<\/cbc:ID>\s*<cbc:UUID>)\d+(<\/cbc:UUID>)/,
+        `$1${icv}$2`,
+      );
 
-    // ════════════════════════════════════════════════════════════
-    // Step 3: Invoice Digest (strip UBLExtensions + cac:Signature → C14N → SHA-256)
-    // ════════════════════════════════════════════════════════════
-    let xmlForHash = xml;
-    xmlForHash = xmlForHash.replace(/<ext:UBLExtensions>[\s\S]*?<\/ext:UBLExtensions>/g, "");
-    xmlForHash = xmlForHash.replace(/<cac:Signature>[\s\S]*?<\/cac:Signature>/g, "");
-    const invoiceCanon = c14n(xmlForHash);
-    const invoiceDigest = await sha256Base64(invoiceCanon);
+      // ════════════════════════════════════════════════════════════
+      // Step 3: Invoice Digest (strip UBLExtensions + cac:Signature → C14N → SHA-256)
+      // ════════════════════════════════════════════════════════════
+      let xmlForHash = xml;
+      xmlForHash = xmlForHash.replace(/<ext:UBLExtensions>[\s\S]*?<\/ext:UBLExtensions>/g, "");
+      xmlForHash = xmlForHash.replace(/<cac:Signature>[\s\S]*?<\/cac:Signature>/g, "");
+      const invoiceCanon = c14n(xmlForHash);
+      const invoiceDigest = await sha256Base64(invoiceCanon);
 
-    // ════════════════════════════════════════════════════════════
-    // Step 4: Get certificate + private key
-    // ════════════════════════════════════════════════════════════
-    const { data: certData } = await admin.rpc("get_active_zatca_certificate");
-    let certificate = "";
-    let privateKeyRaw: Uint8Array | null = null;
+      // ════════════════════════════════════════════════════════════
+      // Step 4: Get certificate + private key
+      // ════════════════════════════════════════════════════════════
+      const { data: certData } = await admin.rpc("get_active_zatca_certificate");
+      let certificate = "";
+      let privateKeyRaw: Uint8Array | null = null;
 
-    if (certData && !certData.error) {
-      certificate = certData.certificate || "";
-      const pk = certData.private_key || "";
-      if (pk) privateKeyRaw = hexToBytes(pk);
-    }
+      if (certData && !certData.error) {
+        certificate = certData.certificate || "";
+        const pk = certData.private_key || "";
+        if (pk && !certificate.startsWith("PLACEHOLDER")) {
+          privateKeyRaw = hexToBytes(pk);
+        }
+      }
 
-    // ════════════════════════════════════════════════════════════
-    // Step 5: Build full XMLDSig Signature
-    // ════════════════════════════════════════════════════════════
-    let signedXml = xml;
-    let isSigned = false;
+      // Block signing without a real certificate
+      if (!privateKeyRaw || !certificate || certificate.startsWith("PLACEHOLDER")) {
+        // Rollback: delete the chain record
+        await admin.from("invoice_chain").delete()
+          .eq("invoice_id", invoice_id).eq("icv", icv);
+        return json({ error: "لا توجد شهادة ZATCA نشطة حقيقية. أكمل عملية الربط (Onboarding) أولاً." }, 400, corsHeaders);
+      }
 
-    if (privateKeyRaw && certificate) {
+      // ════════════════════════════════════════════════════════════
+      // Step 5: Build full XMLDSig Signature
+      // ════════════════════════════════════════════════════════════
+      let signedXml = xml;
       const signingTime = new Date().toISOString();
 
       // Certificate digest: SHA-256 of raw cert bytes
@@ -563,96 +653,100 @@ Deno.serve(async (req) => {
         /(<ext:ExtensionContent>)\s*(?:<!--[\s\S]*?-->)?\s*(<\/ext:ExtensionContent>)/,
         `$1\n${dsigBlock}\n$2`,
       );
-      isSigned = true;
-    }
 
-    // ════════════════════════════════════════════════════════════
-    // Step 6: Inject QR TLV (with TaxInclusiveAmount = amount + vat_amount)
-    // ════════════════════════════════════════════════════════════
-    try {
-      const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_registration_number"]);
-      const qs: Record<string, string> = {};
-      (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
+      // ════════════════════════════════════════════════════════════
+      // Step 6: Inject QR TLV (with TaxInclusiveAmount = amount + vat_amount)
+      // ════════════════════════════════════════════════════════════
+      try {
+        const { data: settingsRows } = await admin.from("app_settings").select("key, value")
+          .in("key", ["waqf_name", "vat_registration_number"]);
+        const qs: Record<string, string> = {};
+        (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
 
-      // CRITICAL FIX: Tag-4 must be TaxInclusiveAmount (amount + vat_amount)
-      const taxInclusiveAmount = (Number(inv.amount) || 0) + (Number(inv.vat_amount) || 0);
+        const taxInclusiveAmount = (Number(inv.amount) || 0) + (Number(inv.vat_amount) || 0);
 
-      // Determine if Standard invoice → include Tags 6-9
-      const invoiceType = inv.invoice_type || "simplified";
-      const isStandard = invoiceType === "standard" || invoiceType === "388";
-      
-      let sigBytes: Uint8Array | undefined;
-      let pubKeyBytes: Uint8Array | undefined;
-      let certSigBytes: Uint8Array | undefined;
-      let certPubKeyBytes: Uint8Array | undefined;
-      
-      if (isStandard && certificate && privateKeyRaw) {
-        try {
-          // Tag 7: Public key from certificate
-          pubKeyBytes = p256.getPublicKey(privateKeyRaw, false);
-          
-          // Tag 6: Digital signature (re-derive from signed XML)
-          const signedInfoMatch = signedXml.match(/<ds:SignatureValue>([^<]+)<\/ds:SignatureValue>/);
-          if (signedInfoMatch) {
-            sigBytes = Uint8Array.from(atob(signedInfoMatch[1]), c => c.charCodeAt(0));
+        // Determine if Standard invoice → include Tags 6-9
+        const invoiceType = inv.invoice_type || "simplified";
+        const isStandard = invoiceType === "standard" || invoiceType === "388";
+
+        let sigBytes: Uint8Array | undefined;
+        let pubKeyBytes: Uint8Array | undefined;
+        let certSigBytes: Uint8Array | undefined;
+        let certPubKeyBytes: Uint8Array | undefined;
+
+        if (isStandard && certificate && privateKeyRaw) {
+          try {
+            // Tag 7: Public key from our keypair
+            pubKeyBytes = p256.getPublicKey(privateKeyRaw, false);
+
+            // Tag 6: Digital signature (from signed XML)
+            const signedInfoMatch = signedXml.match(/<ds:SignatureValue>([^<]+)<\/ds:SignatureValue>/);
+            if (signedInfoMatch) {
+              sigBytes = Uint8Array.from(atob(signedInfoMatch[1]), c => c.charCodeAt(0));
+            }
+
+            // Tags 8-9: Extract from certificate DER structure
+            const extracted = extractCertSignatureAndPublicKey(certBytes);
+            certSigBytes = extracted.signature;
+            certPubKeyBytes = extracted.publicKey;
+          } catch (tagErr) {
+            console.error("Tags 6-9 extraction warning:", tagErr);
           }
-          
-          // Tags 8-9: Certificate signature and public key (extract from cert DER)
-          if (certificate) {
-            const certDer = Uint8Array.from(atob(certificate), c => c.charCodeAt(0));
-            // Tag 8: Full certificate signature (last part of cert DER)
-            certSigBytes = certDer; // Simplified: pass full cert for Tag 8
-            // Tag 9: Certificate issuer public key (use our public key as placeholder)
-            certPubKeyBytes = pubKeyBytes;
-          }
-        } catch (tagErr) {
-          console.error("Tags 6-9 extraction warning:", tagErr);
         }
+
+        const qrTlv = generateZatcaQrTLV(
+          qs.waqf_name || "", qs.vat_registration_number || "",
+          inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
+          taxInclusiveAmount, Number(inv.vat_amount) || 0,
+          sigBytes, pubKeyBytes, certSigBytes, certPubKeyBytes,
+        );
+        signedXml = signedXml.replace(
+          /(<cbc:EmbeddedDocumentBinaryObject mimeCode="text\/plain">)\s*(?:<!--[^>]*-->)?\s*(<\/cbc:EmbeddedDocumentBinaryObject>)/,
+          `$1${qrTlv}$2`,
+        );
+      } catch (qrErr) {
+        console.error("QR TLV warning:", qrErr);
       }
 
-      const qrTlv = generateZatcaQrTLV(
-        qs.waqf_name || "", qs.vat_registration_number || "",
-        inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
-        taxInclusiveAmount, Number(inv.vat_amount) || 0,
-        sigBytes, pubKeyBytes, certSigBytes, certPubKeyBytes,
-      );
-      signedXml = signedXml.replace(
-        /(<cbc:EmbeddedDocumentBinaryObject mimeCode="text\/plain">)\s*(?:<!--[^>]*-->)?\s*(<\/cbc:EmbeddedDocumentBinaryObject>)/,
-        `$1${qrTlv}$2`,
-      );
-    } catch (qrErr) {
-      console.error("QR TLV warning:", qrErr);
+      // ════════════════════════════════════════════════════════════
+      // Step 7: Update chain with real hash + Save signed XML
+      // ════════════════════════════════════════════════════════════
+      await admin.from("invoice_chain")
+        .update({ invoice_hash: invoiceDigest })
+        .eq("invoice_id", invoice_id)
+        .eq("icv", icv);
+
+      const updateData: Record<string, unknown> = {
+        invoice_hash: invoiceDigest,
+        icv,
+        zatca_xml: signedXml,
+      };
+
+      if (table === "invoices") {
+        await admin.from("invoices").update(updateData).eq("id", invoice_id);
+      } else {
+        await admin.from("payment_invoices").update(updateData as Record<string, unknown>).eq("id", invoice_id);
+      }
+
+      return json({
+        success: true,
+        icv,
+        invoice_hash: invoiceDigest,
+        previous_hash: previousHash,
+        signed: true,
+      }, 200, corsHeaders);
+
+    } catch (signErr) {
+      // Rollback: delete the PENDING chain record to avoid breaking PIH
+      console.error("Signing failed, rolling back ICV chain:", signErr);
+      try {
+        await admin.from("invoice_chain").delete()
+          .eq("invoice_id", invoice_id).eq("icv", icv);
+      } catch (rollbackErr) {
+        console.error("Rollback failed:", rollbackErr);
+      }
+      return json({ error: `فشل التوقيع: ${signErr instanceof Error ? signErr.message : "خطأ غير معروف"}` }, 500, corsHeaders);
     }
-
-    // ════════════════════════════════════════════════════════════
-    // Step 7: Update chain with real hash + Save signed XML
-    // ════════════════════════════════════════════════════════════
-    // Update the chain record with the real invoice hash
-    await admin.from("invoice_chain")
-      .update({ invoice_hash: invoiceDigest })
-      .eq("invoice_id", invoice_id)
-      .eq("icv", icv);
-
-    const updateData: Record<string, unknown> = {
-      invoice_hash: invoiceDigest,
-      icv,
-      zatca_xml: signedXml,
-    };
-
-    if (table === "invoices") {
-      await admin.from("invoices").update(updateData).eq("id", invoice_id);
-    } else {
-      await admin.from("payment_invoices").update(updateData as Record<string, unknown>).eq("id", invoice_id);
-    }
-
-    return json({
-      success: true,
-      icv,
-      invoice_hash: invoiceDigest,
-      previous_hash: previousHash,
-      signed: isSigned,
-    }, 200, corsHeaders);
 
   } catch (e) {
     console.error("zatca-signer error:", e instanceof Error ? e.message : e);

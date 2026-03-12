@@ -105,11 +105,12 @@ function asn1Ia5String(str: string): Uint8Array {
  * - SubjectAlternativeName (OID 2.5.29.17) with solution identifier
  * - CertificateTemplateName (OID 1.3.6.1.4.1.311.20.2) for environment
  */
-function buildCsrExtensions(solutionName: string, isProduction: boolean): Uint8Array {
+function buildCsrExtensions(solutionName: string, isProduction: boolean, deviceSerial: string): Uint8Array {
   // --- Extension 1: SubjectAlternativeName (SAN) ---
   // SAN contains directoryName with the solution identifier fields
   // ZATCA expects: 1-{SolutionName}|2-{UnitType}|3-{UnitSerialNumber}
-  const sanValue = `1-${solutionName}|2-1|3-ed22f1d8-e6a2-1118-9b58-d9a8f11e445f`;
+  // Use deviceSerial from app_settings which has the full formatted value
+  const sanValue = deviceSerial || `1-${solutionName}|2-1|3-${crypto.randomUUID()}`;
   const sanOtherName = asn1Context(0, asn1Sequence([
     asn1Oid([2, 16, 840, 1, 113733, 1, 6, 9]), // registeredID
     asn1Context(0, asn1Utf8String(sanValue)),
@@ -310,7 +311,7 @@ Deno.serve(async (req) => {
         const spki = buildEcSpki(pubKey);
 
         // Build X509 Extensions (SAN + CertificateTemplateName)
-        const extensions = buildCsrExtensions(solutionName, isProduction);
+        const extensions = buildCsrExtensions(solutionName, isProduction, deviceSerial);
 
         const certReqInfo = asn1Sequence([
           asn1Integer(0),
