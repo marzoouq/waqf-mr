@@ -9,8 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint, AlertTriangle, ShieldAlert } from 'lucide-react';
-import { useWebAuthn, isBiometricEnabled } from '@/hooks/useWebAuthn';
-import { browserSupportsWebAuthn } from '@simplewebauthn/browser';
+import { useWebAuthn } from '@/hooks/useWebAuthn';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
@@ -48,7 +47,7 @@ const Auth = () => {
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
-  const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
+  const showBiometric = biometricSupported;
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
