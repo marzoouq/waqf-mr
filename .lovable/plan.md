@@ -1,118 +1,40 @@
 
 
-## تحليل المشكلة
+# خطة الإصلاح الشامل — تصحيح `package-lock.json` وحل فشل النشر
 
-الملف `.github/workflows/auto-version.yml` يحتوي على عدة مشاكل تسبب فشله المتكرر:
+## المشكلة المؤكدة
 
-### 1. مشكلة JSON مع النصوص العربية (السبب الرئيسي)
-- في خطوة "Collect commits" يتم بناء JSON يدوياً باستخدام `for` loops مع `tr '|' '\n'`
-- رسائل الـ commits التي تحتوي مسافات أو أحرف خاصة أو نصوص عربية تتكسر عند `tr` و word-splitting
-- مثال: `"تحسين واجهة المستخدم"` تصبح 3 كلمات منفصلة في `for` loop
-- النتيجة: JSON غير صالح → خطوة "Update changelog.json" تفشل بـ `JSON.parse` error
+`package-lock.json` يحتوي على بيانات قديمة تتعارض مع `package.json`:
 
-### 2. مشكلة الـ push conflict مع Lovable
-- Lovable يدفع تغييرات للـ repo باستمرار
-- عندما يحاول الـ Action عمل `git push`، قد يفشل لأن الـ remote تغيّر (non-fast-forward)
-
-### 3. مشكلة `paths-ignore`
-- الملف يتجاهل تغييرات `.github/workflows/**` لكن لا يتجاهل `package.json`
-- هذا قد يسبب حلقات لا نهائية في بعض الحالات
-
----
-
-## خطة الإصلاح
-
-### تعديل ملف `.github/workflows/auto-version.yml`:
-
-**أ) إعادة كتابة خطوة "Collect commits" بـ Node.js بدلاً من Bash:**
-- استخدام `node` script لتصنيف الـ commits وبناء JSON بشكل آمن
-- يحل مشكلة الأحرف العربية والمسافات والأحرف الخاصة بالكامل
-
-**ب) إضافة `git pull --rebase` قبل `git push`:**
-- يحل مشكلة الـ conflict مع تغييرات Lovable المتزامنة
-- إضافة retry logic في حالة فشل الـ push
-
-**ج) إضافة `package.json` لقائمة `paths-ignore`:**
-- منع الحلقات اللا نهائية
-
-### الملف المعدّل (الأجزاء المتغيرة):
-
-```yaml
-paths-ignore:
-  - 'public/changelog.json'
-  - 'docs/CHANGELOG.md'
-  - '.github/workflows/**'
-  - 'package.json'          # ← جديد: منع الحلقات
+```text
+package.json (السطر 59):     "next-themes": "0.4.6"
+package-lock.json (السطر 54): "next-themes": "^0.3.0"   ← خطأ
+package-lock.json (السطر 10336): "version": "0.3.0"     ← خطأ
+                    peerDependencies: "react": "^16.8 || ^17 || ^18"  ← لا يدعم React 19!
 ```
 
-خطوة "Collect commits" الجديدة:
-```yaml
-- name: Collect commits since last tag
-  id: commits
-  run: |
-    LAST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1 || echo "")
-    if [ -z "$LAST_TAG" ]; then
-      git log --oneline --no-merges -20 --pretty="%s" > /tmp/commits.txt
-    else
-      git log "$LAST_TAG"..HEAD --oneline --no-merges --pretty="%s" > /tmp/commits.txt
-    fi
+عند تشغيل `npm ci`، يفشل لأن الـ lockfile لا يطابق package.json. هذا هو السبب الجذري الوحيد لفشل النشر 821 مرة.
 
-    node -e "
-      const fs = require('fs');
-      const lines = fs.readFileSync('/tmp/commits.txt','utf8').split('\n').filter(Boolean);
-      const changes = [];
-      for (const msg of lines) {
-        if (/\[skip ci\]/i.test(msg) || /^docs:/i.test(msg)) continue;
-        const clean = msg.replace(/^(feat|fix|improvement|chore|refactor|perf|style):\s*/i, '');
-        const type = /^feat:/i.test(msg) ? 'feature' : /^fix:/i.test(msg) ? 'fix' : 'improvement';
-        changes.push({ type, text: clean });
-      }
-      if (!changes.length) changes.push({ type: 'improvement', text: 'تحسينات وإصلاحات متنوعة' });
-      fs.writeFileSync('/tmp/changes.json', JSON.stringify(changes));
-    "
-    echo "json=$(cat /tmp/changes.json)" >> "$GITHUB_OUTPUT"
-```
+## خطة التنفيذ
 
-خطوة "Update changelog.json" تبقى كما هي لكن تقرأ من ملف بدل متغير:
-```yaml
-- name: Update changelog.json
-  run: |
-    node -e "
-      const fs = require('fs');
-      const changelog = JSON.parse(fs.readFileSync('public/changelog.json', 'utf8'));
-      const changes = JSON.parse(fs.readFileSync('/tmp/changes.json', 'utf8'));
-      changelog.unshift({
-        version: '${{ steps.bump.outputs.version }}',
-        date: '${{ steps.date.outputs.arabic }}',
-        changes
-      });
-      fs.writeFileSync('public/changelog.json', JSON.stringify(changelog, null, 2) + '\n');
-    "
-```
+### 1. تحديث `package-lock.json` — إدخال الجذر (السطر 54)
+تغيير `"next-themes": "^0.3.0"` إلى `"next-themes": "0.4.6"`
 
-خطوة "Commit and push" الجديدة مع retry:
-```yaml
-- name: Commit and push
-  run: |
-    git config user.name "github-actions[bot]"
-    git config user.email "github-actions[bot]@users.noreply.github.com"
-    git add package.json public/changelog.json
-    git diff --cached --quiet && echo "No changes" && exit 0
-    git commit -m "chore: bump version to v${{ steps.bump.outputs.version }} [skip ci]"
-    git tag "v${{ steps.bump.outputs.version }}"
-    for i in 1 2 3; do
-      git pull --rebase origin main && git push && git push --tags && exit 0
-      echo "Retry $i..."
-      sleep 5
-    done
-    echo "Push failed after 3 retries"
-    exit 1
-```
+### 2. تحديث `package-lock.json` — إدخال node_modules (الأسطر 10335-10343)
+استبدال كتلة `next-themes@0.3.0` بـ `next-themes@0.4.6` مع:
+- integrity hash صحيح لـ 0.4.6
+- peerDependencies يدعم React 19 (`"react": "^16.8 || ^17 || ^18 || ^19"`)
 
-### ملخص التغييرات
-| المشكلة | الحل |
-|---------|------|
-| JSON يتكسر مع النصوص العربية | بناء JSON بـ Node.js بدل Bash |
-| Push conflict مع Lovable | `git pull --rebase` + retry 3 مرات |
-| حلقة لا نهائية محتملة | إضافة `package.json` لـ paths-ignore |
+### 3. لا تعديلات أخرى مطلوبة
+- `auto-version.yml` يعمل بشكل صحيح (يحتوي `[skip ci]`)
+- `test.yml` يستخدم `--legacy-peer-deps` بالفعل
+- `@dnd-kit` متوافق (sortable يطلب core `^6.3.0`)
+- `@hookform/resolvers` و `zod` غير مستخدمين في الكود
+- الـ overrides الأمنية موجودة بالفعل
+
+## التفاصيل التقنية
+
+الملف الوحيد المتأثر: `package-lock.json` (تعديلان فقط)
+
+هذا الإصلاح سيجعل `npm ci` ينجح لأن الـ lockfile سيطابق package.json أخيراً، مما يحل مشكلة النشر نهائياً.
 
