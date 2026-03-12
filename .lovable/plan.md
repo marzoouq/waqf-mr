@@ -1,59 +1,86 @@
 
+# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-# تحديث خطة ZATCA — إضافة الفجوات 7-12
+## ✅ تم التنفيذ
 
-## الهدف
-تحديث `.lovable/plan.md` بإضافة الفجوات الست الإضافية التي كشفها التدقيق الشامل، مع تنظيم الخطة في أقسام واضحة.
+### 1. إصلاح تحذيرات forwardRef
+- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
 
-## التغييرات المطلوبة
+### 2. إشعار حد السجلات في useCrudFactory
+- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
 
-### 1. تحديث `.lovable/plan.md`
-إعادة كتابة الملف ليشمل:
-- القسم الحالي (ما تم تنفيذه)
-- خارطة طريق ZATCA الكاملة بـ 12 فجوة مرتبة حسب الأولوية
+### 3. تقسيم Auth.tsx إلى مكونات فرعية
+- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
+- `SignupForm` — نموذج إنشاء حساب
+- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
+- `ResetPasswordForm` — نموذج استعادة كلمة المرور
+- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
 
-### 2. هيكل الخطة المحدّثة
+---
 
-**المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)**
-- إضافة العناصر الإلزامية الناقصة
-- قراءة `invoice_type` من الفاتورة لتحديد `name` attribute (0100000 vs 0200000)
-- دعم أنواع الفواتير: Standard, Simplified, Debit Note, Credit Note
+# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
 
-**المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)**
-- C14N + ECDSA-secp256k1 بدل SHA-256 البسيط
-- حل race condition على ICV باستخدام `SELECT FOR UPDATE` أو دالة RPC ذرية
-- منع التوقيع المزدوج: التحقق من `invoice_hash` قبل التوقيع
+## الفجوات المكتشفة (12 فجوة)
 
-**المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)**
-- توليد CSR حقيقي (PKCS#10) بدل إرسال المفتاح الخاص
-- تصحيح Auth header إلى `binarySecurityToken:secret`
+| # | الشدة | الفجوة | الحالة |
+|---|-------|--------|--------|
+| GAP-1 | 🔴 | التوقيع الرقمي ECDSA غائب — SHA-256 بسيط بدل C14N + ECDSA | ⏳ |
+| GAP-2 | 🔴 | Onboarding يرسل private_key بدل CSR (PKCS#10) | ⏳ |
+| GAP-3 | 🔴 | XML ناقص عناصر إلزامية (UBLExtensions, IssueTime, CustomerParty) | ⏳ |
+| GAP-4 | 🔴 | Auth header خاطئ — يستخدم cert:private_key بدل binarySecurityToken | ⏳ |
+| GAP-5 | 🟠 | QR موجود في `zatcaQr.ts` لكن غير مربوط بالـ XML | ⏳ |
+| GAP-6 | ✅ | تشفير المفتاح الخاص — محلول عبر `get_active_zatca_certificate()` | ✅ |
+| GAP-7 | 🔴 | UI بلا validation على ترتيب الخطوات (XML → Sign → Submit) | ⏳ |
+| GAP-8 | 🔴 | `invoice_type` لا يُمرر للـ XML Generator | ⏳ |
+| GAP-9 | 🔴 | `payment_invoices` ليس لديها أعمدة ZATCA — مسار الإرسال مكسور | ⏳ |
+| GAP-10 | 🟠 | TLV encoding خاطئ للقيم > 127 بايت | ⏳ |
+| GAP-11 | 🟠 | ICV race condition — `get_next_icv` بلا transaction | ⏳ |
+| GAP-12 | 🟡 | Signer بلا حماية من التطبيق المزدوج | ⏳ |
 
-**المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)**
-- إضافة أعمدة `zatca_xml`, `invoice_hash`, `icv` لجدول `payment_invoices` عبر migration
-- توحيد مسار XML → Sign → Submit ليعمل على كلا الجدولين
+---
 
-**المرحلة 5 — QR + TLV (GAP-5 + GAP-10)**
-- إصلاح TLV encoding لدعم قيم أكبر من 127 بايت (multi-byte length)
-- ربط QR داخل XML كـ `AdditionalDocumentReference`
-- تضمين QR في PDF
+## المراحل
 
-**المرحلة 6 — إصلاح UI (GAP-7)**
-- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
-- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
-- عرض حالة كل خطوة بصرياً (stepper أو badges)
+### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
+**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
 
-### 3. الملفات المتأثرة
+- إضافة `<cbc:IssueTime>` (وقت الإصدار)
+- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
+- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
+- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
+- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
+- قراءة `invoice_type` لتحديد `name` attribute:
+  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
+  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
+  - Debit Note: `383`, Credit Note: `381`
+- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
+- إضافة `zatca:ext` namespace
 
-| الملف | الفجوات |
-|-------|---------|
-| `supabase/functions/zatca-xml-generator/index.ts` | GAP-3, GAP-8 |
-| `supabase/functions/zatca-signer/index.ts` | GAP-1, GAP-11, GAP-12 |
-| `supabase/functions/zatca-api/index.ts` | GAP-2, GAP-4, GAP-9 |
-| `src/utils/zatcaQr.ts` | GAP-10 |
-| `src/pages/dashboard/ZatcaManagementPage.tsx` | GAP-7, GAP-9 |
-| Migration SQL | GAP-9 (أعمدة جديدة لـ payment_invoices) |
+### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
+**الملف**: `supabase/functions/zatca-signer/index.ts`
 
-### 4. Migration مطلوب (GAP-9)
+- SHA-256 على كامل XML بعد Canonicalization (C14N)
+- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
+- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
+- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
+- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
+- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
+- تحديث XML المخزّن في الفاتورة بعد التوقيع
+- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+
+### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
+**الملف**: `supabase/functions/zatca-api/index.ts`
+
+- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
+  - `CN` = اسم المنشأة
+  - `O` = الرقم الضريبي
+  - `serialNumber` = رقم الجهاز
+- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
+- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
+- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
+
+### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
+**Migration مطلوب**:
 ```sql
 ALTER TABLE payment_invoices
   ADD COLUMN IF NOT EXISTS zatca_xml text,
@@ -62,3 +89,41 @@ ALTER TABLE payment_invoices
   ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
 ```
 
+**الملفات المتأثرة**:
+- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
+- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
+- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
+
+### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
+**الملف**: `src/utils/zatcaQr.ts`
+
+- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
+- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
+- تضمين QR في PDF عبر `generateQrDataUrl()`
+
+### المرحلة 6 — إصلاح UI (GAP-7)
+**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
+
+- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
+- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
+- عرض حالة كل خطوة بصرياً (stepper أو badges)
+
+---
+
+## ترتيب التنفيذ
+
+```
+المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
+                              ↓
+                        المرحلة 4: payment_invoices migration
+                              ↓
+                        المرحلة 5: QR في XML
+                              ↓
+                        المرحلة 6: UI validation
+```
+
+## ما لن يتغير
+- جدول `invoice_chain` وآلية ICV — سليمة
+- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
+- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
+- إعدادات `ZatcaSettingsTab` — كاملة وسليمة

@@ -38,8 +38,8 @@ const GlobalSearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
-  const abortRef = useRef<AbortController>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const abortRef = useRef<AbortController>(undefined);
 
   const isAdmin = role === 'admin' || role === 'accountant';
   const basePath = isAdmin ? '/dashboard' : '/beneficiary';
