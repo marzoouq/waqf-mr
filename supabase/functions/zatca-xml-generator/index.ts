@@ -39,9 +39,28 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
  */
 function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): string {
   if (vatRate > 0) return "S";
-  // Z = Zero-rated (default for waqf), E = Exempt (requires explicit reason)
   if (vatExemptionReason) return "E";
   return "Z";
+}
+
+/**
+ * Get tax exemption reason code and text for E/Z categories
+ * Based on ZATCA VATEX codes for Saudi Arabia
+ */
+function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
+  if (vatCategoryCode === "S") return null;
+  if (vatCategoryCode === "E") {
+    // Exempt — default to real estate rental exemption
+    return {
+      code: "VATEX-SA-29-7",
+      reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة",
+    };
+  }
+  // Z = Zero-rated
+  return {
+    code: "VATEX-SA-32",
+    reason: "توريدات خاضعة لنسبة صفر بالمائة",
+  };
 }
 
 /**
