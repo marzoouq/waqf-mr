@@ -158,7 +158,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="TIN">${escapeXml(String(inv.buyer_vat || ""))}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(String(inv.buyer_vat || ""))}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
