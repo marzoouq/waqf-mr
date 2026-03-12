@@ -113,9 +113,9 @@ async function sha256BytesBase64(data: Uint8Array): Promise<string> {
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 
-/** Sign hash with ECDSA secp256k1 → base64 DER */
+/** Sign hash with ECDSA P-256 (prime256v1) → base64 DER */
 function signEcdsa(messageHash: Uint8Array, privateKeyRaw: Uint8Array): string {
-  const sig = secp256k1.sign(messageHash, privateKeyRaw);
+  const sig = p256.sign(messageHash, privateKeyRaw);
   return btoa(String.fromCharCode(...sig.toDERRawBytes()));
 }
 

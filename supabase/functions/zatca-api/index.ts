@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
 
         // SHA-256 hash of certReqInfo then sign
         const hashBytes = await sha256Async(certReqInfo);
-        const signature = secp256k1.sign(hashBytes, privBytes);
+        const signature = p256.sign(hashBytes, privBytes);
         const sigDer = signature.toDERRawBytes();
 
         const csr = asn1Sequence([
