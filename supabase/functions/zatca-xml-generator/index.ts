@@ -143,7 +143,12 @@ function buildUBL(
   <cbc:InvoiceTypeCode name="${typeInfo.name}">${typeInfo.code}</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${currencyCode}</cbc:DocumentCurrencyCode>
   <cbc:TaxCurrencyCode>${currencyCode}</cbc:TaxCurrencyCode>
-  <cbc:Note languageID="ar">${escapeXml(String(inv.notes || inv.description || "فاتورة"))}</cbc:Note>
+  <cbc:Note languageID="ar">${escapeXml(String(inv.notes || inv.description || "فاتورة"))}</cbc:Note>${isCreditOrDebit ? `
+  <cac:BillingReference>
+    <cac:InvoiceDocumentReference>
+      <cbc:ID>${escapeXml(String(inv.original_invoice_number || inv.billing_reference_id || ""))}</cbc:ID>
+    </cac:InvoiceDocumentReference>
+  </cac:BillingReference>` : ""}
   <cac:AdditionalDocumentReference>
     <cbc:ID>ICV</cbc:ID>
     <cbc:UUID>${Number(inv.icv || 0)}</cbc:UUID>
@@ -196,8 +201,11 @@ function buildUBL(
       </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(String(inv.buyer_street || ""))}</cbc:StreetName>
+        <cbc:BuildingNumber>${escapeXml(String(inv.buyer_building || ""))}</cbc:BuildingNumber>
+        <cbc:CitySubdivisionName>${escapeXml(String(inv.buyer_district || ""))}</cbc:CitySubdivisionName>
         <cbc:CityName>${escapeXml(String(inv.buyer_city || ""))}</cbc:CityName>
         <cbc:PostalZone>${escapeXml(String(inv.buyer_postal || ""))}</cbc:PostalZone>
+        <cbc:CountrySubentity>${escapeXml(String(inv.buyer_province || ""))}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
@@ -219,10 +227,11 @@ function buildUBL(
     </cac:Party>
   </cac:AccountingCustomerParty>`}
   <cac:Delivery>
-    <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>
+    <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>${!isSimplified ? `
+    <cbc:LatestDeliveryDate>${issueDate}</cbc:LatestDeliveryDate>` : ""}
   </cac:Delivery>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
   <cac:AllowanceCharge>
     <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
@@ -230,7 +239,9 @@ function buildUBL(
     <cbc:Amount currencyID="${currencyCode}">0.00</cbc:Amount>
     <cac:TaxCategory>
       <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-      <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>
+      <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
+      <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
+      <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
       <cac:TaxScheme>
         <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
       </cac:TaxScheme>
@@ -246,7 +257,9 @@ function buildUBL(
       <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
       <cac:TaxCategory>
         <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>
+        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
+        <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
+        <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
         <cac:TaxScheme>
           <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
         </cac:TaxScheme>
