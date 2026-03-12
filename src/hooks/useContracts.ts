@@ -53,7 +53,7 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
     queryFn: async () => {
       let query = supabase
         .from('contracts_safe' as any)
-        .select('*, property:properties(*), unit:units(*)')
+        .select('*')
         .order('start_date', { ascending: false });
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
@@ -63,7 +63,7 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data as Contract[];
+      return data as unknown as Contract[];
     },
   });
 };
