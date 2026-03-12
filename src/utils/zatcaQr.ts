@@ -13,6 +13,11 @@ interface ZatcaQrData {
   timestamp: string; // ISO 8601
   totalWithVat: number;
   vatAmount: number;
+  // Tags 6-9 for Standard invoices (Phase 2)
+  digitalSignature?: Uint8Array;
+  publicKey?: Uint8Array;
+  certificateSignature?: Uint8Array;
+  certificatePublicKey?: Uint8Array;
 }
 
 /**
