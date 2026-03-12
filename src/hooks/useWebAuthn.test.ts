@@ -43,6 +43,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getSession: () => mockGetSession(),
+      getUser: () => mockGetUser(),
       setSession: (...a: unknown[]) => mockSetSession(...a),
     },
     functions: { invoke: (...a: unknown[]) => mockFunctionsInvoke(...a) },
