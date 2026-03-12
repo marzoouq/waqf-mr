@@ -78,10 +78,11 @@ function ZatcaManagementPage() {
 
   // ─── Invoices (both tables) ───
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ['zatca-invoices', statusFilter],
+    queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
     queryFn: async () => {
-      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv').order('date', { ascending: false }).limit(200);
+      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(200);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
+      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
       return (data || []).map(i => ({ ...i, source: 'invoices' as const }));
@@ -89,10 +90,11 @@ function ZatcaManagementPage() {
   });
 
   const { data: paymentInvoices = [] } = useQuery({
-    queryKey: ['zatca-payment-invoices', statusFilter],
+    queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
     queryFn: async () => {
-      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type').order('due_date', { ascending: false }).limit(200);
+      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(200);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
+      if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
       if (error) throw error;
       return (data || []).map(i => ({ ...i, source: 'payment_invoices' as const, date: i.due_date }));
