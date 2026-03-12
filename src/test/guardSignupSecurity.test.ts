@@ -14,8 +14,8 @@ function validateSignupEmail(email: unknown): string | null {
 }
 
 function validateSignupPassword(password: unknown): string | null {
-  if (!password || typeof password !== "string" || (password as string).length < 6 || (password as string).length > 128) {
-    return "كلمة المرور يجب أن تكون بين 6 و 128 حرفاً";
+  if (!password || typeof password !== "string" || (password as string).length < 8 || (password as string).length > 128) {
+    return "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً";
   }
   return null;
 }

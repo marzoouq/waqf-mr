@@ -59,7 +59,7 @@ const Auth = () => {
       } else if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'waqif') {
-        navigate('/beneficiary');
+        navigate('/waqif');
       }
     }
   }, [user, role, loading, navigate]);

@@ -282,7 +282,7 @@ Deno.serve(async (req) => {
     const settingKeys = [
       "vat_registration_number", "waqf_name", "commercial_registration_number",
       "business_address_street", "business_address_building",
-      "business_address_city", "business_address_postal",
+      "business_address_city", "business_address_postal_code",
       "business_address_district", "business_address_province",
     ];
     const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", settingKeys);
