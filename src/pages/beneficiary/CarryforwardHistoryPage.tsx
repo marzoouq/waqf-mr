@@ -18,6 +18,8 @@ import { useNavigate } from 'react-router-dom';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 const CarryforwardHistoryPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const { user } = useAuth();
   const navigate = useNavigate();
 
