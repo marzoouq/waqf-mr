@@ -14,55 +14,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * ZATCA requires: CN, O (org), serialNumber (device), C=SA
  * This produces a Base64-encoded DER CSR.
  */
-function buildCsrBase64(params: {
-  commonName: string;
-  orgName: string;
-  serialNumber: string;
-  countryCode: string;
-  privateKeyHex: string;
-}): string {
-  // For ZATCA, the CSR must be signed with the private key.
-  // We build a simplified ASN.1 DER structure.
-  
-  const subject = buildDistinguishedName([
-    { oid: [2, 5, 4, 6], value: params.countryCode },      // C
-    { oid: [2, 5, 4, 10], value: params.orgName },          // O
-    { oid: [2, 5, 4, 3], value: params.commonName },        // CN
-    { oid: [2, 5, 4, 5], value: params.serialNumber },      // serialNumber
-  ]);
-
-  // Public key from private key
-  const privBytes = hexToBytes(params.privateKeyHex);
-  const pubKey = secp256k1.getPublicKey(privBytes, false); // uncompressed
-
-  // Build SubjectPublicKeyInfo for EC secp256k1
-  const spki = buildEcSpki(pubKey);
-
-  // CertificationRequestInfo
-  const certReqInfo = asn1Sequence([
-    asn1Integer(0), // version
-    subject,
-    spki,
-    asn1Context(0, new Uint8Array(0)), // attributes (empty)
-  ]);
-
-  // Sign the certReqInfo
-  const hash = sha256(certReqInfo);
-  const signature = secp256k1.sign(hash, privBytes);
-  const sigDer = signature.toDERRawBytes();
-
-  // Build full CSR
-  const csr = asn1Sequence([
-    certReqInfo,
-    asn1Sequence([ // signatureAlgorithm: ecdsaWithSHA256
-      asn1Oid([1, 2, 840, 10045, 4, 3, 2]),
-    ]),
-    asn1BitString(sigDer),
-  ]);
-
-  return btoa(String.fromCharCode(...csr));
-}
-
+// buildCsrBase64 removed — CSR is built inline in the onboard handler (lines ~289-323)
 // ─── ASN.1 DER Encoding Helpers ───
 
 function asn1Length(len: number): Uint8Array {
@@ -168,23 +120,7 @@ function buildEcSpki(publicKey: Uint8Array): Uint8Array {
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
 
-function sha256(data: Uint8Array): Uint8Array {
-  // Use @noble/secp256k1's internal utils or Web Crypto sync workaround
-  // Since we're in Deno, use the synchronous hash from noble
-  const { sha256: nobleSha256 } = await_import_sha256();
-  return nobleSha256(data);
-}
-
-// Lazy import for sha256
-let _sha256Fn: ((data: Uint8Array) => Uint8Array) | null = null;
-function await_import_sha256(): { sha256: (data: Uint8Array) => Uint8Array } {
-  if (!_sha256Fn) {
-    // Fallback: compute using Web Crypto API in a sync-compatible way
-    // For Deno edge functions, we'll use the crypto.subtle approach
-    throw new Error("sha256 not initialized");
-  }
-  return { sha256: _sha256Fn };
-}
+// sha256 sync removed — only sha256Async is used
 
 async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
   const hash = await crypto.subtle.digest("SHA-256", data);
