@@ -89,7 +89,7 @@ function buildUBL(
   const cityName = escapeXml(settings.business_address_city || "");
   const postalZone = settings.business_address_postal_code || "";
   const districtName = escapeXml(settings.business_address_district || "");
-  const countrySubentity = escapeXml(settings.business_address_province || "");
+  
 
   // --- Invoice data ---
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
