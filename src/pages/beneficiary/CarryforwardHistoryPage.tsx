@@ -179,7 +179,7 @@ const CarryforwardHistoryPage = () => {
             {carryforwards.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground text-sm">لا توجد فروق مرحّلة</p>
             ) : (
-              {/* Mobile Cards */}
+              <>
               <div className="space-y-3 md:hidden">
                 {carryforwards.map(cf => (
                   <div key={cf.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
@@ -197,7 +197,6 @@ const CarryforwardHistoryPage = () => {
                   </div>
                 ))}
               </div>
-              {/* Desktop Table */}
               <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
@@ -234,6 +233,7 @@ const CarryforwardHistoryPage = () => {
                   </TableBody>
                 </Table>
               </div>
+              </>
             )}
           </CardContent>
         </Card>
