@@ -63,7 +63,25 @@ export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data as unknown as Contract[];
+
+      // Fetch property data separately since VIEWs don't support Supabase joins
+      const contractsRaw = data as unknown as Contract[];
+      const propertyIds = [...new Set(contractsRaw.map(c => c.property_id).filter(Boolean))];
+      let propertiesMap: Record<string, any> = {};
+      if (propertyIds.length > 0) {
+        const { data: props } = await supabase
+          .from('properties')
+          .select('*')
+          .in('id', propertyIds);
+        if (props) {
+          propertiesMap = Object.fromEntries(props.map(p => [p.id, p]));
+        }
+      }
+
+      return contractsRaw.map(c => ({
+        ...c,
+        property: propertiesMap[c.property_id] || null,
+      })) as Contract[];
     },
   });
 };
