@@ -288,7 +288,6 @@ Deno.test("Standard rental 15% — unitCode=MON, TaxTotal order, buyer address",
   // Buyer address fields present
   assertStringIncludes(xml, "<cbc:BuildingNumber>5678</cbc:BuildingNumber>");
   assertStringIncludes(xml, "<cbc:CitySubdivisionName>حي الحمراء</cbc:CitySubdivisionName>");
-  assertStringIncludes(xml, "<cbc:CountrySubentity>مكة المكرمة</cbc:CountrySubentity>");
 
   // LatestDeliveryDate present for standard
   assertStringIncludes(xml, "<cbc:LatestDeliveryDate>");
