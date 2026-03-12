@@ -15,5 +15,5 @@ export const getPaymentTypeLabel = (type?: string | null) =>
   type === 'monthly' ? 'شهري'
   : type === 'quarterly' ? 'ربعي'
   : type === 'semi_annual' ? 'نصف سنوي'
-  : type === 'annual' ? 'سنوي'
+  : type === 'annual' ? 'دفعة واحدة'
   : 'متعدد';
