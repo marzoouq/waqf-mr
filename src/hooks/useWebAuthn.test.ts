@@ -54,7 +54,10 @@ vi.mock('@/integrations/supabase/client', () => ({
 const fakeSession = { user: { id: 'u1' }, access_token: 'tok', refresh_token: 'ref' };
 
 function makeDOMException(name: string, message = '') {
-  const err = new DOMException(message, name);
+  // jsdom's DOMException may not preserve message in .message getter,
+  // so we create a plain Error and override .name for reliable testing
+  const err = new Error(message);
+  err.name = name;
   return err;
 }
 
