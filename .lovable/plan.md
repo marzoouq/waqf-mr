@@ -1,46 +1,40 @@
 
 
-## خطة إصلاح فشل اختبارات CI (Run Tests workflow)
+# خطة الإصلاح الشامل — تصحيح `package-lock.json` وحل فشل النشر
 
-### المشكلة
-الـ Run Tests workflow يفشل لكن لا يمكننا رؤية تفاصيل الخطأ لأن سجلات GitHub Actions تتطلب تسجيل دخول بصلاحيات admin.
+## المشكلة المؤكدة
 
-### الحل: خطوتان
+`package-lock.json` يحتوي على بيانات قديمة تتعارض مع `package.json`:
 
-#### 1. تحسين CI لعرض تفاصيل الأخطاء
-تعديل `.github/workflows/test.yml` لإضافة:
-- `--reporter=verbose` لعرض كل اختبار بالاسم
-- حفظ نتائج الاختبار كـ artifact حتى لو فشلت
-- خطوة إضافية تكتب ملخص الأخطاء في GitHub Summary
-
-```yaml
-- name: Run tests with coverage
-  run: npx vitest run --coverage --reporter=verbose 2>&1 | tee /tmp/test-output.txt
-  continue-on-error: true
-
-- name: Write test summary
-  if: always()
-  run: |
-    echo '## Test Results' >> $GITHUB_STEP_SUMMARY
-    tail -100 /tmp/test-output.txt >> $GITHUB_STEP_SUMMARY
-
-- name: Check test result
-  run: |
-    if grep -q 'Tests.*failed' /tmp/test-output.txt; then
-      echo "Tests failed — see summary above"
-      exit 1
-    fi
+```text
+package.json (السطر 59):     "next-themes": "0.4.6"
+package-lock.json (السطر 54): "next-themes": "^0.3.0"   ← خطأ
+package-lock.json (السطر 10336): "version": "0.3.0"     ← خطأ
+                    peerDependencies: "react": "^16.8 || ^17 || ^18"  ← لا يدعم React 19!
 ```
 
-#### 2. إضافة `@types/qrcode` كـ devDependency
-مكتبة `qrcode` مستخدمة في المشروع بدون أنواع TypeScript، وهذا قد يسبب مشاكل في بعض بيئات الاختبار.
+عند تشغيل `npm ci`، يفشل لأن الـ lockfile لا يطابق package.json. هذا هو السبب الجذري الوحيد لفشل النشر 821 مرة.
 
-### الملفات المتأثرة
-| الملف | التغيير |
-|-------|---------|
-| `.github/workflows/test.yml` | تحسين عرض الأخطاء + حفظ النتائج |
-| `package.json` | إضافة `@types/qrcode` |
+## خطة التنفيذ
 
-### النتيجة المتوقعة
-بعد تطبيق هذه التغييرات، عند الدفع التالي سيظهر ملخص تفصيلي للاختبارات الفاشلة في صفحة الـ workflow على GitHub (في قسم Summary)، مما يسمح بتشخيص المشكلة الفعلية وإصلاحها بدقة.
+### 1. تحديث `package-lock.json` — إدخال الجذر (السطر 54)
+تغيير `"next-themes": "^0.3.0"` إلى `"next-themes": "0.4.6"`
+
+### 2. تحديث `package-lock.json` — إدخال node_modules (الأسطر 10335-10343)
+استبدال كتلة `next-themes@0.3.0` بـ `next-themes@0.4.6` مع:
+- integrity hash صحيح لـ 0.4.6
+- peerDependencies يدعم React 19 (`"react": "^16.8 || ^17 || ^18 || ^19"`)
+
+### 3. لا تعديلات أخرى مطلوبة
+- `auto-version.yml` يعمل بشكل صحيح (يحتوي `[skip ci]`)
+- `test.yml` يستخدم `--legacy-peer-deps` بالفعل
+- `@dnd-kit` متوافق (sortable يطلب core `^6.3.0`)
+- `@hookform/resolvers` و `zod` غير مستخدمين في الكود
+- الـ overrides الأمنية موجودة بالفعل
+
+## التفاصيل التقنية
+
+الملف الوحيد المتأثر: `package-lock.json` (تعديلان فقط)
+
+هذا الإصلاح سيجعل `npm ci` ينجح لأن الـ lockfile سيطابق package.json أخيراً، مما يحل مشكلة النشر نهائياً.
 
