@@ -329,7 +329,7 @@ function ZatcaManagementPage() {
                     ) : allInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
                       const rowBusy = isRowPending(inv.id);
-                      const isSubmitted = ['submitted', 'reported', 'cleared'].includes(inv.zatca_status || '');
+                      const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
 
                       const hasXml = !!inv.zatca_xml;
                       const hasSig = !!inv.invoice_hash;
