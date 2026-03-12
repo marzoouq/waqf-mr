@@ -15,6 +15,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import { getPaymentCount } from '@/utils/contractHelpers';
 
 interface CollectionReportProps {
   contracts: Contract[];
