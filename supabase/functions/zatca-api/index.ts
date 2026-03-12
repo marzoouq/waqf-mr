@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
       const orgName = settings.waqf_name || "";
-      const vatNumber = settings.vat_number || "";
+      const vatNumber = settings.vat_registration_number || "";
       const deviceSerial = settings.zatca_device_serial || "";
 
       // Validate required identity fields before contacting ZATCA
