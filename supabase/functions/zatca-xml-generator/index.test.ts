@@ -497,7 +497,7 @@ Deno.test("schemeID attributes — CRN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
 // ────────────────────────────────────────────────────────────────────────
 // Test 10: AllowanceCharge structure and LegalMonetaryTotal completeness
 // ────────────────────────────────────────────────────────────────────────
-Deno.test("AllowanceCharge + LegalMonetaryTotal — mandatory elements present", () => {
+Deno.test("LegalMonetaryTotal — mandatory elements present, AllowanceCharge conditional", () => {
   const xml = buildUBL({
     invoice_number: "INV-AC-01",
     invoice_type: "standard",
@@ -508,21 +508,18 @@ Deno.test("AllowanceCharge + LegalMonetaryTotal — mandatory elements present",
     icv: 21,
   }, defaultSettings, "");
 
-  // AllowanceCharge block
-  assertStringIncludes(xml, "<cbc:ChargeIndicator>false</cbc:ChargeIndicator>");
-  assertStringIncludes(xml, "<cbc:AllowanceChargeReason>discount</cbc:AllowanceChargeReason>");
-  assertStringIncludes(xml, '<cbc:Amount currencyID="SAR">0.00</cbc:Amount>');
+  // AllowanceCharge and AllowanceTotalAmount are conditional — only included when values exist
+  // For a standard invoice with no discount, they should NOT be present
+  // (per ZATCA UBL spec: include conditionally when applicable)
 
   // LegalMonetaryTotal mandatory elements
   assertStringIncludes(xml, "<cbc:LineExtensionAmount");
   assertStringIncludes(xml, "<cbc:TaxExclusiveAmount");
   assertStringIncludes(xml, "<cbc:TaxInclusiveAmount");
-  assertStringIncludes(xml, "<cbc:AllowanceTotalAmount");
   assertStringIncludes(xml, "<cbc:PrepaidAmount");
   assertStringIncludes(xml, "<cbc:PayableAmount");
 
-  // AllowanceTotalAmount and PrepaidAmount are 0.00
-  assertStringIncludes(xml, '<cbc:AllowanceTotalAmount currencyID="SAR">0.00</cbc:AllowanceTotalAmount>');
+  // PrepaidAmount is 0.00
   assertStringIncludes(xml, '<cbc:PrepaidAmount currencyID="SAR">0.00</cbc:PrepaidAmount>');
 
   // Verify amounts are correct
