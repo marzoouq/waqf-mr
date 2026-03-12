@@ -381,10 +381,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الدور</Label>
-                          <Select value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })}>
-                            <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
-                            <SelectContent>{FLOORS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })} placeholder="اختر الدور" options={FLOORS.map(f => ({ value: f, label: f }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">المساحة (م²)</Label>
