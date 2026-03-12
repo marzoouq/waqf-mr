@@ -1,129 +1,51 @@
 
-# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-## ✅ تم التنفيذ
+## فحص جنائي شامل: Radix Select داخل Dialog — كل الملفات المتأثرة
 
-### 1. إصلاح تحذيرات forwardRef
-- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
+### المشكلة الجذرية
+React 19 + Radix UI Select يتعارضان عند استخدام Portal داخل Dialog. يسبب خطأ `removeChild`/`insertBefore` on `Node`. الحل: استبدال Radix Select بـ `NativeSelect` داخل كل Dialog.
 
-### 2. إشعار حد السجلات في useCrudFactory
-- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
+### الملفات التي تم إصلاحها سابقاً (4 ملفات) ✓
+1. `ContractFormDialog.tsx`
+2. `ExpenseFormDialog.tsx`
+3. `BeneficiaryFormDialog.tsx`
+4. `AccountsDialogs.tsx`
 
-### 3. تقسيم Auth.tsx إلى مكونات فرعية
-- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
-- `SignupForm` — نموذج إنشاء حساب
-- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
-- `ResetPasswordForm` — نموذج استعادة كلمة المرور
-- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
+### الملفات التي لا تزال مصابة (6 ملفات) ✗
 
----
+| # | الملف | عدد Select داخل Dialog | التفاصيل |
+|---|-------|----------------------|----------|
+| 1 | `PropertyUnitsDialog.tsx` | 5 | نوع الوحدة، الدور، الحالة، نوع الدفع × 2 |
+| 2 | `IncomePage.tsx` | 1 | اختيار العقار في حوار إضافة الدخل (سطر 120-123) |
+| 3 | `InvoicesPage.tsx` | 3 | نوع الفاتورة، العقار، العقد في حوار رفع فاتورة (سطر 263-281) |
+| 4 | `UserManagementPage.tsx` | 1 | اختيار الدور في حوار إنشاء مستخدم (سطر 294-304) |
+| 5 | `MessagesPage.tsx` | 1 | اختيار المستفيد في حوار محادثة جديدة (سطر 205-212) |
+| 6 | `SupportPage.tsx` (beneficiary) | 1 | اختيار التصنيف في حوار طلب دعم (سطر 295-303) |
+| 7 | `SupportDashboardPage.tsx` | 2 | التصنيف والأولوية في حوار تذكرة جديدة (سطر 781-799) |
 
-# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
+**المجموع: 14 موقع Select داخل Dialog لم يُعالج بعد.**
 
-## الفجوات المكتشفة (12 فجوة)
+### ملفات تستخدم Select خارج Dialog (آمنة — لا تحتاج تغيير)
+- `AuditLogPage.tsx` — فلاتر في الصفحة مباشرة
+- `FiscalYearSelector.tsx` — مكون مستقل
+- `SettingsPage.tsx` — لا يحتوي Dialog
+- `YearOverYearComparison.tsx` — بطاقة مستقلة
+- `AccessLogTab.tsx` / `ArchiveLogTab.tsx` — فلاتر مباشرة
+- `PaymentInvoicesTab.tsx` — فلاتر مباشرة
+- `AccountsCollectionTable.tsx` — inline edit
+- `BulkNotificationsTab.tsx` — tab مباشر
+- `ZatcaSettingsTab.tsx` — tab مباشر
+- `BeneficiarySettingsPage.tsx` — إعدادات مباشرة
+- `SupportDashboardPage.tsx` (فلاتر الصفحة) — خارج Dialog
 
-| # | الشدة | الفجوة | الحالة |
-|---|-------|--------|--------|
-| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
-| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
-| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
-| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
-| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
-| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
-| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
-| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
-| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
-| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
-| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
-| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+### خطة التنفيذ
 
----
+**7 ملفات × استبدال imports + تحويل Select → NativeSelect:**
 
-## المراحل
+كل ملف:
+1. إزالة import لـ `Select, SelectContent, SelectItem, SelectTrigger, SelectValue`
+2. إضافة import لـ `NativeSelect`
+3. تحويل كل `<Select>` داخل `<DialogContent>` إلى `<NativeSelect options={[...]} />`
 
-### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
-**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
+التحويل نمطي ومتكرر — نفس النمط المطبق في الملفات الأربعة السابقة.
 
-- إضافة `<cbc:IssueTime>` (وقت الإصدار)
-- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
-- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
-- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
-- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
-- قراءة `invoice_type` لتحديد `name` attribute:
-  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
-  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
-  - Debit Note: `383`, Credit Note: `381`
-- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
-- إضافة `zatca:ext` namespace
-
-### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
-**الملف**: `supabase/functions/zatca-signer/index.ts`
-
-- SHA-256 على كامل XML بعد Canonicalization (C14N)
-- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
-- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
-- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
-- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
-- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
-- تحديث XML المخزّن في الفاتورة بعد التوقيع
-- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
-
-### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
-**الملف**: `supabase/functions/zatca-api/index.ts`
-
-- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
-  - `CN` = اسم المنشأة
-  - `O` = الرقم الضريبي
-  - `serialNumber` = رقم الجهاز
-- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
-- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
-- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
-
-### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
-**Migration مطلوب**:
-```sql
-ALTER TABLE payment_invoices
-  ADD COLUMN IF NOT EXISTS zatca_xml text,
-  ADD COLUMN IF NOT EXISTS invoice_hash text,
-  ADD COLUMN IF NOT EXISTS icv integer,
-  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
-```
-
-**الملفات المتأثرة**:
-- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
-- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
-- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
-
-### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
-**الملف**: `src/utils/zatcaQr.ts`
-
-- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
-- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
-- تضمين QR في PDF عبر `generateQrDataUrl()`
-
-### المرحلة 6 — إصلاح UI (GAP-7)
-**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
-
-- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
-- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
-- عرض حالة كل خطوة بصرياً (stepper أو badges)
-
----
-
-## ترتيب التنفيذ
-
-```
-المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
-                              ↓
-                        المرحلة 4: payment_invoices migration
-                              ↓
-                        المرحلة 5: QR في XML
-                              ↓
-                        المرحلة 6: UI validation
-```
-
-## ما لن يتغير
-- جدول `invoice_chain` وآلية ICV — سليمة
-- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
-- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
-- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
