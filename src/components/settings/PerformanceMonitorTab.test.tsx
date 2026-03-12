@@ -55,10 +55,11 @@ describe('PerformanceMonitorTab', () => {
     ]);
 
     render(<PerformanceMonitorTab />);
-    expect(screen.getByText('fetch_contracts')).toBeInTheDocument();
-    expect(screen.getByText('fetch_invoices')).toBeInTheDocument();
-    expect(screen.getByText('4500ms')).toBeInTheDocument();
-    expect(screen.getByText('3200ms')).toBeInTheDocument();
+    // Mobile + Desktop both render, so use getAllByText
+    expect(screen.getAllByText('fetch_contracts').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('fetch_invoices').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('4500ms').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('3200ms').length).toBeGreaterThanOrEqual(1);
   });
 
   it('يعرض Badge بعدد الاستعلامات البطيئة', () => {
