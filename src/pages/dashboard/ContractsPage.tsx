@@ -174,6 +174,7 @@ const ContractsPage = () => {
           payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
           fiscal_year_id: activeFY?.id || null,
           tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
+          tenant_tax_number: formData.tenant_tax_number || null, tenant_crn: formData.tenant_crn || null,
           tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
           tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
         };
