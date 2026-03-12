@@ -40,6 +40,8 @@ const defaultPrefs = {
 };
 
 const BeneficiarySettingsPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
