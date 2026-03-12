@@ -46,9 +46,7 @@ function getExpectedPaymentsFallback(contract: Contract): number {
   const now = new Date();
   if (now < start) return 0;
 
-  const paymentCount = contract.payment_type === 'monthly' ? 12
-    : contract.payment_type === 'annual' ? 1
-    : (contract.payment_count || 1);
+  const paymentCount = getPaymentCount(contract);
 
   const contractDurationMonths = Math.max(1, Math.round(
     (end.getTime() - start.getTime()) / (1000 * 3600 * 24 * 30.44)
