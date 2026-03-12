@@ -145,6 +145,7 @@ function buildUBL(
       <cac:PostalAddress>
         <cbc:StreetName>${streetName}</cbc:StreetName>
         <cbc:BuildingNumber>${buildingNumber}</cbc:BuildingNumber>
+        <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
         <cbc:CityName>${cityName}</cbc:CityName>
         <cbc:PostalZone>${postalZone}</cbc:PostalZone>
         <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
