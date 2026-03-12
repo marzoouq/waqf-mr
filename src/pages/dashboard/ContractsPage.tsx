@@ -190,6 +190,9 @@ const ContractsPage = () => {
         start_date: formData.start_date, end_date: formData.end_date, rent_amount: rentAmount,
         status: formData.status, notes: formData.notes || undefined,
         payment_type: formData.payment_type, payment_count: paymentCount, payment_amount: paymentAmount,
+        tenant_id_type: formData.tenant_id_type || 'NAT', tenant_id_number: formData.tenant_id_number || null,
+        tenant_street: formData.tenant_street || null, tenant_building: formData.tenant_building || null,
+        tenant_district: formData.tenant_district || null, tenant_city: formData.tenant_city || null, tenant_postal_code: formData.tenant_postal_code || null,
       };
       if (activeFY?.id) contractData.fiscal_year_id = activeFY.id;
       await createContract.mutateAsync(contractData as unknown as Parameters<typeof createContract.mutateAsync>[0]);
