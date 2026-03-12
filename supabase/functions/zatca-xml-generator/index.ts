@@ -320,7 +320,6 @@ Deno.serve(async (req) => {
     if (table === "invoices") {
       await admin.from("invoices").update({ zatca_xml: xml }).eq("id", invoice_id);
     } else if (table === "payment_invoices") {
-      // Will work after GAP-9 migration adds zatca_xml column
       await admin.from("payment_invoices").update({ zatca_xml: xml } as Record<string, unknown>).eq("id", invoice_id);
     }
 
