@@ -219,9 +219,21 @@ Deno.serve(async (req) => {
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
-      const orgName = settings.waqf_name || "Waqf Entity";
+      const orgName = settings.waqf_name || "";
       const vatNumber = settings.vat_number || "";
-      const deviceSerial = settings.zatca_device_serial || `1-WAQF|2-${Date.now()}|3-inv`;
+      const deviceSerial = settings.zatca_device_serial || "";
+
+      // Validate required identity fields before contacting ZATCA
+      const missingFields: string[] = [];
+      if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");
+      if (!vatNumber) missingFields.push("vat_number (الرقم الضريبي)");
+      if (!orgName) missingFields.push("waqf_name (اسم المنشأة)");
+
+      if (missingFields.length > 0) {
+        return new Response(JSON.stringify({
+          error: `لا يمكن بدء عملية الربط (Onboarding) بدون تعيين الحقول التالية في الإعدادات: ${missingFields.join("، ")}. يرجى إدخالها من صفحة الإعدادات أولاً.`,
+        }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
 
       // Build PKCS#10 CSR
       let csrPem: string;
