@@ -25,6 +25,8 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 const MySharePage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
