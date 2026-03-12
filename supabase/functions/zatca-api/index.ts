@@ -120,23 +120,7 @@ function buildEcSpki(publicKey: Uint8Array): Uint8Array {
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
 
-function sha256(data: Uint8Array): Uint8Array {
-  // Use @noble/secp256k1's internal utils or Web Crypto sync workaround
-  // Since we're in Deno, use the synchronous hash from noble
-  const { sha256: nobleSha256 } = await_import_sha256();
-  return nobleSha256(data);
-}
-
-// Lazy import for sha256
-let _sha256Fn: ((data: Uint8Array) => Uint8Array) | null = null;
-function await_import_sha256(): { sha256: (data: Uint8Array) => Uint8Array } {
-  if (!_sha256Fn) {
-    // Fallback: compute using Web Crypto API in a sync-compatible way
-    // For Deno edge functions, we'll use the crypto.subtle approach
-    throw new Error("sha256 not initialized");
-  }
-  return { sha256: _sha256Fn };
-}
+// sha256 sync removed — only sha256Async is used
 
 async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
   const hash = await crypto.subtle.digest("SHA-256", data);
