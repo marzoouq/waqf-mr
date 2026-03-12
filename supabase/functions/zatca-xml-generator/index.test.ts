@@ -47,7 +47,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   const cityName = escapeXml(settings.business_address_city || "");
   const postalZone = settings.business_address_postal_code || "";
   const districtName = escapeXml(settings.business_address_district || "");
-  const countrySubentity = escapeXml(settings.business_address_province || "");
+  
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
   const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
   const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
@@ -129,13 +129,12 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
         <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
         <cbc:CityName>${cityName}</cbc:CityName>
         <cbc:PostalZone>${postalZone}</cbc:PostalZone>
-        <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="TIN">${escapeXml(vatNumber)}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(vatNumber)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
@@ -154,13 +153,12 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
         <cbc:CitySubdivisionName>${escapeXml(String(inv.buyer_district || ""))}</cbc:CitySubdivisionName>
         <cbc:CityName>${escapeXml(String(inv.buyer_city || ""))}</cbc:CityName>
         <cbc:PostalZone>${escapeXml(String(inv.buyer_postal || ""))}</cbc:PostalZone>
-        <cbc:CountrySubentity>${escapeXml(String(inv.buyer_province || ""))}</cbc:CountrySubentity>
         <cac:Country>
           <cbc:IdentificationCode>SA</cbc:IdentificationCode>
         </cac:Country>
       </cac:PostalAddress>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="TIN">${escapeXml(String(inv.buyer_vat || ""))}</cbc:CompanyID>
+        <cbc:CompanyID>${escapeXml(String(inv.buyer_vat || ""))}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
       <cac:PartyLegalEntity>
@@ -182,20 +180,6 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
-  <cac:AllowanceCharge>
-    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-    <cbc:AllowanceChargeReason>discount</cbc:AllowanceChargeReason>
-    <cbc:Amount currencyID="${currencyCode}">0.00</cbc:Amount>
-    <cac:TaxCategory>
-      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-      <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
-      <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
-      <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
-      <cac:TaxScheme>
-        <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-      </cac:TaxScheme>
-    </cac:TaxCategory>
-  </cac:AllowanceCharge>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
   </cac:TaxTotal>
@@ -219,7 +203,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxExclusiveAmount>
     <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
-    <cbc:AllowanceTotalAmount currencyID="${currencyCode}">0.00</cbc:AllowanceTotalAmount>
+    
     <cbc:PrepaidAmount currencyID="${currencyCode}">0.00</cbc:PrepaidAmount>
     <cbc:PayableAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
@@ -304,7 +288,6 @@ Deno.test("Standard rental 15% — unitCode=MON, TaxTotal order, buyer address",
   // Buyer address fields present
   assertStringIncludes(xml, "<cbc:BuildingNumber>5678</cbc:BuildingNumber>");
   assertStringIncludes(xml, "<cbc:CitySubdivisionName>حي الحمراء</cbc:CitySubdivisionName>");
-  assertStringIncludes(xml, "<cbc:CountrySubentity>مكة المكرمة</cbc:CountrySubentity>");
 
   // LatestDeliveryDate present for standard
   assertStringIncludes(xml, "<cbc:LatestDeliveryDate>");
