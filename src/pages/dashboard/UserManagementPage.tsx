@@ -609,17 +609,12 @@ const UserManagementPage = () => {
               </div>
               <div className="space-y-2">
                 <Label>الدور</Label>
-                <Select value={editRole} onValueChange={setEditRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الدور" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">ناظر (Admin)</SelectItem>
-                    <SelectItem value="accountant">محاسب</SelectItem>
-                    <SelectItem value="beneficiary">مستفيد</SelectItem>
-                    <SelectItem value="waqif">واقف</SelectItem>
-                  </SelectContent>
-                </Select>
+                <NativeSelect value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
+                  { value: 'admin', label: 'ناظر (Admin)' },
+                  { value: 'accountant', label: 'محاسب' },
+                  { value: 'beneficiary', label: 'مستفيد' },
+                  { value: 'waqif', label: 'واقف' },
+                ]} />
                 {/* BUG-6 fix: تحذير ومنع الناظر من تغيير دوره */}
                 {editingUser && isSelf(editingUser.id) && (
                   <Alert variant="destructive" className="mt-2">
