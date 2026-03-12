@@ -374,12 +374,14 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
           <div className="space-y-2">
             <Label>نوع الدفع *</Label>
-            <Select value={formData.payment_type} onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'annual' ? '1' : formData.payment_count })}>
+            <Select value={formData.payment_type} onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'quarterly' ? '4' : value === 'semi_annual' ? '2' : value === 'annual' ? '1' : formData.payment_count })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="annual">سنوي (دفعة واحدة)</SelectItem>
+                <SelectItem value="annual">دفعة واحدة (سنوي)</SelectItem>
+                <SelectItem value="semi_annual">نصف سنوي (دفعتان)</SelectItem>
+                <SelectItem value="quarterly">ربعي (4 دفعات)</SelectItem>
                 <SelectItem value="monthly">شهري (12 دفعة)</SelectItem>
-                <SelectItem value="multi">دفعات متعددة</SelectItem>
+                <SelectItem value="multi">دفعات متعددة (مخصص)</SelectItem>
               </SelectContent>
             </Select>
           </div>
