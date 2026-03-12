@@ -219,8 +219,8 @@ Deno.serve(async (req) => {
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
-      const commonName = settings.waqf_name || "Waqf Entity";
-      const orgName = settings.vat_number || "";
+      const orgName = settings.waqf_name || "Waqf Entity";
+      const vatNumber = settings.vat_number || "";
       const deviceSerial = settings.zatca_device_serial || `1-WAQF|2-${Date.now()}|3-inv`;
 
       // Build PKCS#10 CSR
@@ -230,11 +230,12 @@ Deno.serve(async (req) => {
         privBytes = hexToBytes(privateKey);
         const pubKey = p256.getPublicKey(privBytes, false);
 
+        // ZATCA spec: CN = Device Serial, O = Organization, SERIALNUMBER = VAT TIN
         const subject = buildDistinguishedName([
           { oid: [2, 5, 4, 6], value: "SA" },
           { oid: [2, 5, 4, 10], value: orgName },
-          { oid: [2, 5, 4, 3], value: commonName },
-          { oid: [2, 5, 4, 5], value: deviceSerial },
+          { oid: [2, 5, 4, 3], value: deviceSerial },
+          { oid: [2, 5, 4, 5], value: vatNumber },
         ]);
 
         const spki = buildEcSpki(pubKey);
