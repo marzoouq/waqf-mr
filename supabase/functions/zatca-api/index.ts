@@ -91,6 +91,61 @@ function asn1Context(tag: number, content: Uint8Array): Uint8Array {
   return asn1Wrap(0xa0 | tag, content);
 }
 
+function asn1OctetString(data: Uint8Array): Uint8Array {
+  return asn1Wrap(0x04, data);
+}
+
+function asn1Ia5String(str: string): Uint8Array {
+  const encoded = new TextEncoder().encode(str);
+  return asn1Wrap(0x16, encoded);
+}
+
+/**
+ * Build X509 Extensions for ZATCA CSR:
+ * - SubjectAlternativeName (OID 2.5.29.17) with solution identifier
+ * - CertificateTemplateName (OID 1.3.6.1.4.1.311.20.2) for environment
+ */
+function buildCsrExtensions(solutionName: string, isProduction: boolean): Uint8Array {
+  // --- Extension 1: SubjectAlternativeName (SAN) ---
+  // SAN contains directoryName with the solution identifier fields
+  // ZATCA expects: 1-{SolutionName}|2-{UnitType}|3-{UnitSerialNumber}
+  const sanValue = `1-${solutionName}|2-1|3-ed22f1d8-e6a2-1118-9b58-d9a8f11e445f`;
+  const sanOtherName = asn1Context(0, asn1Sequence([
+    asn1Oid([2, 16, 840, 1, 113733, 1, 6, 9]), // registeredID
+    asn1Context(0, asn1Utf8String(sanValue)),
+  ]));
+  const sanExtValue = asn1OctetString(
+    asn1Sequence([sanOtherName])
+  );
+  const sanExtension = asn1Sequence([
+    asn1Oid([2, 5, 29, 17]), // subjectAltName
+    sanExtValue,
+  ]);
+
+  // --- Extension 2: CertificateTemplateName ---
+  const templateName = isProduction ? "ZATCA-Code-Signing" : "PREZATCA-Code-Signing";
+  const templateExtValue = asn1OctetString(
+    asn1Ia5String(templateName)
+  );
+  const templateExtension = asn1Sequence([
+    asn1Oid([1, 3, 6, 1, 4, 1, 311, 20, 2]), // certificateTemplateName
+    templateExtValue,
+  ]);
+
+  // Wrap both extensions in a SEQUENCE, then in extensionRequest attribute
+  const extensionsSeq = asn1Sequence([sanExtension, templateExtension]);
+
+  // extensionRequest attribute (OID 1.2.840.113549.1.9.14)
+  return asn1Context(0,
+    asn1Sequence([
+      asn1Sequence([
+        asn1Oid([1, 2, 840, 113549, 1, 9, 14]), // extensionRequest
+        asn1Set([extensionsSeq]),
+      ]),
+    ])
+  );
+}
+
 function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint8Array {
   const rdns = attrs.map(attr =>
     asn1Set([

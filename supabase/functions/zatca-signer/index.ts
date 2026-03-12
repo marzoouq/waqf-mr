@@ -353,7 +353,7 @@ ${signedInfo}
 </ds:X509Data>
 </ds:KeyInfo>
 <ds:Object>
-<xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01011/v1.3.2#" Target="signature">
+<xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="signature">
 ${signedProperties}
 </xades:QualifyingProperties>
 </ds:Object>
