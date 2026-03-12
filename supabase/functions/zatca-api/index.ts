@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
 
       // Fetch seller info for CSR subject
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
-        .in("key", ["waqf_name", "vat_number", "zatca_device_serial"]);
+        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial"]);
       const settings: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
