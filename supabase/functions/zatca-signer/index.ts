@@ -293,7 +293,7 @@ async function buildXmlDsig(
   const { issuerName, serialNumber } = parseX509IssuerSerial(certBase64);
 
   // ── 1. Build SignedProperties ──
-  const signedProperties = `<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01011/v1.3.2#" Id="xadesSignedProperties">
+  const signedProperties = `<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Id="xadesSignedProperties">
 <xades:SignedSignatureProperties>
 <xades:SigningTime>${signingTime}</xades:SigningTime>
 <xades:SigningCertificate>
