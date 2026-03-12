@@ -90,9 +90,16 @@ export function useWebAuthn() {
   const registerBiometric = useCallback(async (deviceName?: string) => {
     setIsLoading(true);
     try {
+      // استخدام getUser بدلاً من getSession للتحقق من الخادم مباشرة (عملية حساسة)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        toast.error('يرجى تسجيل الدخول أولاً');
+        return false;
+      }
+      // جلب الجلسة للحصول على access_token فقط (بعد التحقق من صلاحية المستخدم)
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.error('يرجى تسجيل الدخول أولاً');
+        toast.error('انتهت صلاحية الجلسة. يرجى إعادة تسجيل الدخول');
         return false;
       }
 
