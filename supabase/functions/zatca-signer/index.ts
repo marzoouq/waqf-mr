@@ -9,7 +9,7 @@
  *  5. Inject QR TLV → allocate ICV → save
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as secp256k1 from "https://esm.sh/@noble/secp256k1@2.1.0";
+import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
 import { sha256 } from "https://esm.sh/@noble/hashes@1.4.0/sha256";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -113,9 +113,9 @@ async function sha256BytesBase64(data: Uint8Array): Promise<string> {
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 
-/** Sign hash with ECDSA secp256k1 → base64 DER */
+/** Sign hash with ECDSA P-256 (prime256v1) → base64 DER */
 function signEcdsa(messageHash: Uint8Array, privateKeyRaw: Uint8Array): string {
-  const sig = secp256k1.sign(messageHash, privateKeyRaw);
+  const sig = p256.sign(messageHash, privateKeyRaw);
   return btoa(String.fromCharCode(...sig.toDERRawBytes()));
 }
 

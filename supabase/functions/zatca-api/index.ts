@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as secp256k1 from "https://esm.sh/@noble/secp256k1@2.1.0";
+import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -112,10 +112,10 @@ function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint
 }
 
 function buildEcSpki(publicKey: Uint8Array): Uint8Array {
-  // AlgorithmIdentifier: ecPublicKey + secp256k1
+  // AlgorithmIdentifier: ecPublicKey + prime256v1 (P-256) — required by ZATCA
   const algId = asn1Sequence([
-    asn1Oid([1, 2, 840, 10045, 2, 1]), // ecPublicKey
-    asn1Oid([1, 3, 132, 0, 10]),        // secp256k1
+    asn1Oid([1, 2, 840, 10045, 2, 1]),   // ecPublicKey
+    asn1Oid([1, 2, 840, 10045, 3, 1, 7]), // prime256v1 (P-256)
   ]);
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
       try {
         // For CSR signing we need async SHA-256
         const privBytes = hexToBytes(privateKey);
-        const pubKey = secp256k1.getPublicKey(privBytes, false);
+        const pubKey = p256.getPublicKey(privBytes, false);
 
         // Build CSR subject
         const subject = buildDistinguishedName([
@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
 
         // SHA-256 hash of certReqInfo then sign
         const hashBytes = await sha256Async(certReqInfo);
-        const signature = secp256k1.sign(hashBytes, privBytes);
+        const signature = p256.sign(hashBytes, privBytes);
         const sigDer = signature.toDERRawBytes();
 
         const csr = asn1Sequence([
