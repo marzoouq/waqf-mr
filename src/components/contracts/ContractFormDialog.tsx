@@ -54,6 +54,8 @@ export interface ContractFormData {
   // Tenant identity
   tenant_id_type: string;
   tenant_id_number: string;
+  tenant_tax_number: string;
+  tenant_crn: string;
   tenant_street: string;
   tenant_building: string;
   tenant_district: string;
