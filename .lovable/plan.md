@@ -1,118 +1,129 @@
 
+# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-# فحص الامتثال مع قاموس بيانات ZATCA ومتطلبات XML (مايو 2023)
+## ✅ تم التنفيذ
 
-بعد مقارنة تفصيلية للكود الحالي مع المتطلبات الرسمية لقاموس البيانات ومواصفات تنفيذ XML، تم اكتشاف **6 فجوات** تتفاوت في الأهمية.
+### 1. إصلاح تحذيرات forwardRef
+- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
 
----
+### 2. إشعار حد السجلات في useCrudFactory
+- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
 
-## الحالة الراهنة (مُمتثل)
-
-| العنصر | المرجع | الحالة |
-|---|---|---|
-| ProfileID = "reporting:1.0" | BT-23 | ✅ |
-| InvoiceTypeCode + name attribute | BT-3 / KSA-2 | ✅ |
-| ICV + PIH + QR references | KSA-1, KSA-16, KSA-14 | ✅ |
-| UBLExtensions + Signature | — | ✅ |
-| عنوان البائع كامل (8 حقول) | BT-35..BT-43 | ✅ |
-| TaxCategory schemeID | BT-118, BT-151 | ✅ |
-| AllowanceCharge + LegalMonetaryTotal | BG-20, BG-22 | ✅ |
-| unitCode="MON" | BT-130 | ✅ |
-| Note languageID="ar" | BT-22 | ✅ |
-| ClearanceStatus header | API v2.1.1 | ✅ |
+### 3. تقسيم Auth.tsx إلى مكونات فرعية
+- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
+- `SignupForm` — نموذج إنشاء حساب
+- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
+- `ResetPasswordForm` — نموذج استعادة كلمة المرور
+- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
 
 ---
 
-## الفجوات المكتشفة
+# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
 
-### 1. BillingReference مفقود للإشعارات الدائنة/المدينة (حرج)
-**المرجع**: BG-3 (BT-25 Preceding Invoice Reference)
+## الفجوات المكتشفة (12 فجوة)
 
-عند إصدار إشعار دائن (381) أو مدين (383)، ZATCA تتطلب إلزامياً:
-```xml
-<cac:BillingReference>
-  <cac:InvoiceDocumentReference>
-    <cbc:ID>رقم الفاتورة الأصلية</cbc:ID>
-  </cac:InvoiceDocumentReference>
-</cac:BillingReference>
-```
-الكود الحالي لا يضيف هذا العنصر. سيتم رفض أي إشعار دائن/مدين بخطأ `BR-ZATCA-KSA-DG-02`.
-
-### 2. TaxExemptionReasonCode مفقود عند الإعفاء/نسبة صفر (حرج)
-**المرجع**: BT-121 / BT-120
-
-عندما يكون `vatCategoryCode` = `"E"` (معفى) أو `"Z"` (نسبة صفرية)، يجب إضافة:
-```xml
-<cbc:TaxExemptionReasonCode>VATEX-SA-...</cbc:TaxExemptionReasonCode>
-<cbc:TaxExemptionReason>سبب الإعفاء</cbc:TaxExemptionReason>
-```
-غيابهما يسبب خطأ `BR-E-10` أو `BR-Z-10`.
-
-### 3. عنوان المشتري ناقص في الفواتير القياسية (متوسط)
-**المرجع**: BT-50..BT-55
-
-الكود الحالي يفتقر لعناصر إلزامية في عنوان المشتري:
-- `<cbc:BuildingNumber>` (BT-163 KSA)
-- `<cbc:CitySubdivisionName>` (BT-164 KSA — الحي)
-- `<cbc:CountrySubentity>` (BT-54 — المنطقة)
-- `<cbc:PostalZone>` موجود ✅
-
-### 4. LatestDeliveryDate مفقود للقياسية (منخفض)
-**المرجع**: BT-73
-
-النموذج الرسمي يتضمن `<cbc:LatestDeliveryDate>` بجانب `ActualDeliveryDate`. اختياري لكن يحسّن الامتثال.
-
-### 5. PaymentMeansCode ثابت = 10 (منخفض)
-**المرجع**: BT-81
-
-القيمة `10` (نقداً) ثابتة. يجب أن تكون قابلة للتكوين:
-- `10` = نقداً
-- `30` = تحويل بنكي
-- `42` = حساب بنكي
-- `48` = بطاقة ائتمان
-
-### 6. InvoiceLine ID ثابت = "1" (منخفض)
-لا يدعم فواتير متعددة البنود حالياً. مقبول لتطبيق إيجار بسيط.
+| # | الشدة | الفجوة | الحالة |
+|---|-------|--------|--------|
+| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
+| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
+| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
+| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
+| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
+| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
+| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
+| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
+| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
+| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
+| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
+| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
 
 ---
 
-## خطة الإصلاح
+## المراحل
 
-| # | الملف | التغيير | الأولوية |
-|---|---|---|---|
-| 1 | `zatca-xml-generator/index.ts` | إضافة `<cac:BillingReference>` عند إصدار إشعار دائن/مدين (381/383) | حرج |
-| 2 | `zatca-xml-generator/index.ts` | إضافة `TaxExemptionReasonCode` و `TaxExemptionReason` عند vatCategory = E أو Z | حرج |
-| 3 | `zatca-xml-generator/index.ts` | إكمال عنوان المشتري: `BuildingNumber` + `CitySubdivisionName` + `CountrySubentity` | متوسط |
-| 4 | `zatca-xml-generator/index.ts` | إضافة `LatestDeliveryDate` للفواتير القياسية | منخفض |
-| 5 | `zatca-xml-generator/index.ts` | جعل `PaymentMeansCode` ديناميكياً من بيانات الفاتورة | منخفض |
+### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
+**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
 
-### تفاصيل التعديلات الحرجة:
+- إضافة `<cbc:IssueTime>` (وقت الإصدار)
+- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
+- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
+- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
+- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
+- قراءة `invoice_type` لتحديد `name` attribute:
+  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
+  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
+  - Debit Note: `383`, Credit Note: `381`
+- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
+- إضافة `zatca:ext` namespace
 
-**البند 1** — بعد `<cbc:Note>` وقبل `<cac:AdditionalDocumentReference>`:
-```xml
-${typeInfo.code !== "388" ? `
-<cac:BillingReference>
-  <cac:InvoiceDocumentReference>
-    <cbc:ID>${escapeXml(String(inv.original_invoice_number || ""))}</cbc:ID>
-  </cac:InvoiceDocumentReference>
-</cac:BillingReference>` : ""}
+### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
+**الملف**: `supabase/functions/zatca-signer/index.ts`
+
+- SHA-256 على كامل XML بعد Canonicalization (C14N)
+- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
+- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
+- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
+- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
+- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
+- تحديث XML المخزّن في الفاتورة بعد التوقيع
+- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+
+### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
+**الملف**: `supabase/functions/zatca-api/index.ts`
+
+- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
+  - `CN` = اسم المنشأة
+  - `O` = الرقم الضريبي
+  - `serialNumber` = رقم الجهاز
+- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
+- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
+- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
+
+### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
+**Migration مطلوب**:
+```sql
+ALTER TABLE payment_invoices
+  ADD COLUMN IF NOT EXISTS zatca_xml text,
+  ADD COLUMN IF NOT EXISTS invoice_hash text,
+  ADD COLUMN IF NOT EXISTS icv integer,
+  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
 ```
 
-**البند 2** — داخل كل `<cac:TaxCategory>` عند E أو Z:
-```xml
-${vatCategoryCode !== "S" ? `
-<cbc:TaxExemptionReasonCode>${exemptionReasonCode}</cbc:TaxExemptionReasonCode>
-<cbc:TaxExemptionReason>${exemptionReason}</cbc:TaxExemptionReason>` : ""}
-```
-مع استخدام أكواد مثل: `VATEX-SA-29` (خدمات عقارية إيجارية سكنية معفاة).
+**الملفات المتأثرة**:
+- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
+- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
+- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
 
-**البند 3** — إكمال عنوان المشتري في الفاتورة القياسية:
-```xml
-<cbc:StreetName>...</cbc:StreetName>
-<cbc:BuildingNumber>${inv.buyer_building || ""}</cbc:BuildingNumber>
-<cbc:CitySubdivisionName>${inv.buyer_district || ""}</cbc:CitySubdivisionName>
-<cbc:CityName>...</cbc:CityName>
-<cbc:PostalZone>...</cbc:PostalZone>
-<cbc:CountrySubentity>${inv.buyer_province || ""}</cbc:CountrySubentity>
+### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
+**الملف**: `src/utils/zatcaQr.ts`
+
+- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
+- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
+- تضمين QR في PDF عبر `generateQrDataUrl()`
+
+### المرحلة 6 — إصلاح UI (GAP-7)
+**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
+
+- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
+- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
+- عرض حالة كل خطوة بصرياً (stepper أو badges)
+
+---
+
+## ترتيب التنفيذ
+
+```
+المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
+                              ↓
+                        المرحلة 4: payment_invoices migration
+                              ↓
+                        المرحلة 5: QR في XML
+                              ↓
+                        المرحلة 6: UI validation
 ```
 
+## ما لن يتغير
+- جدول `invoice_chain` وآلية ICV — سليمة
+- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
+- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
+- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
