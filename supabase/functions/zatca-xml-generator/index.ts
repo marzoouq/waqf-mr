@@ -13,7 +13,12 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  * Credit Note: code=381
  */
 function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
-  switch (invoiceType?.toLowerCase()) {
+  const type = invoiceType?.toLowerCase();
+  // Determine if it's a simplified variant
+  const isSimplified = type === "simplified" || type === "مبسطة"
+    || type === "simplified_credit" || type === "simplified_debit";
+
+  switch (type) {
     case "simplified":
     case "مبسطة":
       return { code: "388", name: "0200000" };
@@ -23,6 +28,10 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
     case "credit_note":
     case "إشعار دائن":
       return { code: "381", name: "0100000" };
+    case "simplified_debit":
+      return { code: "383", name: "0200000" };
+    case "simplified_credit":
+      return { code: "381", name: "0200000" };
     case "standard":
     case "قياسية":
     default:
