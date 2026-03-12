@@ -326,7 +326,6 @@ Deno.serve(async (req) => {
     if (table === "invoices") {
       await admin.from("invoices").update(updateData).eq("id", invoice_id);
     } else if (table === "payment_invoices") {
-      // Will work after GAP-9 migration
       await admin.from("payment_invoices").update(updateData as Record<string, unknown>).eq("id", invoice_id);
     }
 
