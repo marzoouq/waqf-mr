@@ -50,7 +50,12 @@ function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): strin
 function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
   if (vatCategoryCode === "S") return null;
   if (vatCategoryCode === "E") {
-    // Exempt — default to real estate rental exemption
+    // Allow override via description containing VATEX code pattern
+    const vatexMatch = invoiceDescription?.match(/VATEX-SA-[\d-]+/);
+    if (vatexMatch) {
+      return { code: vatexMatch[0], reason: invoiceDescription || "" };
+    }
+    // Default: real estate residential rental exemption
     return {
       code: "VATEX-SA-29-7",
       reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة",
@@ -108,7 +113,7 @@ function buildUBL(
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
   const vatCategoryCode = getVatCategoryCode(vatRate);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode);
+  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, String(inv.description || ""));
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
@@ -230,7 +235,7 @@ function buildUBL(
   </cac:AccountingCustomerParty>`}
   <cac:Delivery>
     <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>${!isSimplified ? `
-    <cbc:LatestDeliveryDate>${issueDate}</cbc:LatestDeliveryDate>` : ""}
+    <cbc:LatestDeliveryDate>${String(inv.latest_delivery_date || inv.end_date || issueDate)}</cbc:LatestDeliveryDate>` : ""}
   </cac:Delivery>
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>

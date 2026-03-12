@@ -175,7 +175,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   </cac:AccountingCustomerParty>`}
   <cac:Delivery>
     <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>${!isSimplified ? `
-    <cbc:LatestDeliveryDate>${issueDate}</cbc:LatestDeliveryDate>` : ""}
+    <cbc:LatestDeliveryDate>${String(inv.latest_delivery_date || inv.end_date || issueDate)}</cbc:LatestDeliveryDate>` : ""}
   </cac:Delivery>
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
