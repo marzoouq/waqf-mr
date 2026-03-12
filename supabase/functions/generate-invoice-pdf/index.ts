@@ -175,7 +175,8 @@ function processArabicText(text: string): string {
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
-// Module-level font cache to avoid re-fetching on every invoice
+// Module-level font cache — works within the same Deno Deploy warm isolate.
+// On cold starts, fonts are re-fetched (~200ms). This is acceptable and expected.
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
 
 async function getFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
