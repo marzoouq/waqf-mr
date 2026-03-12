@@ -14,8 +14,8 @@ function validateSignupEmail(email: unknown): string | null {
 }
 
 function validateSignupPassword(password: unknown): string | null {
-  if (!password || typeof password !== "string" || (password as string).length < 6 || (password as string).length > 128) {
-    return "كلمة المرور يجب أن تكون بين 6 و 128 حرفاً";
+  if (!password || typeof password !== "string" || (password as string).length < 8 || (password as string).length > 128) {
+    return "كلمة المرور يجب أن تكون بين 8 و 128 حرفاً";
   }
   return null;
 }
@@ -78,25 +78,26 @@ describe("Guard Signup Security", () => {
   });
 
   describe("Password validation", () => {
-    it("accepts valid password (6-128 chars)", () => {
-      expect(validateSignupPassword("123456")).toBeNull();
+    it("accepts valid password (8-128 chars)", () => {
+      expect(validateSignupPassword("12345678")).toBeNull();
       expect(validateSignupPassword("a".repeat(128))).toBeNull();
       expect(validateSignupPassword("StrongP@ss1")).toBeNull();
     });
 
     it("rejects too short password", () => {
-      expect(validateSignupPassword("12345")).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
-      expect(validateSignupPassword("")).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+      expect(validateSignupPassword("1234567")).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
+      expect(validateSignupPassword("123456")).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
+      expect(validateSignupPassword("")).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
     });
 
     it("rejects too long password", () => {
-      expect(validateSignupPassword("a".repeat(129))).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+      expect(validateSignupPassword("a".repeat(129))).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
     });
 
     it("rejects non-string password", () => {
-      expect(validateSignupPassword(null)).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
-      expect(validateSignupPassword(undefined)).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
-      expect(validateSignupPassword(123456)).toBe("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+      expect(validateSignupPassword(null)).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
+      expect(validateSignupPassword(undefined)).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
+      expect(validateSignupPassword(123456)).toBe("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
     });
   });
 

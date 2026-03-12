@@ -34,7 +34,7 @@ const Index = () => {
       if (role === 'admin' || role === 'accountant') {
         navigate('/dashboard');
       } else if (role === 'waqif') {
-        navigate('/beneficiary');
+        navigate('/waqif');
       } else if (role === 'beneficiary') {
         navigate('/beneficiary');
       }

@@ -2,11 +2,12 @@
  * ZATCA Invoice Signer — Full XMLDSig (GAP-1 fix)
  *
  * Flow:
- *  1. Strip UBLExtensions + cac:Signature → C14N → SHA-256 → invoiceDigest
- *  2. Build xades:SignedProperties (cert hash, signing time) → C14N → SHA-256 → propsDigest
- *  3. Build ds:SignedInfo (invoiceDigest + propsDigest) → C14N → SHA-256 → sign ECDSA
- *  4. Assemble full ds:Signature block → inject into UBLExtensions
- *  5. Inject QR TLV → allocate ICV → save
+ *  1. Allocate ICV atomically first
+ *  2. Inject ICV into XML → Strip UBLExtensions + cac:Signature → C14N → SHA-256 → invoiceDigest
+ *  3. Build xades:SignedProperties (cert hash, signing time, X509IssuerSerial from cert) → C14N → SHA-256 → propsDigest
+ *  4. Build ds:SignedInfo (invoiceDigest + propsDigest) → C14N → SHA-256 → sign ECDSA
+ *  5. Assemble full ds:Signature block → inject into UBLExtensions
+ *  6. Inject QR TLV (with TaxInclusiveAmount) → save
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
@@ -76,7 +77,7 @@ function c14n(xml: string): string {
   });
 
   // 6. Remove whitespace-only text nodes between elements
-  c = c.replace(/>\s+</g, (match) => {
+  c = c.replace(/>\s+</g, (_match) => {
     // Preserve a single newline for readability in canonical form
     return ">\n<";
   });
@@ -141,6 +142,134 @@ function hexToBytes(hex: string): Uint8Array {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// X.509 Certificate Parsing (extract IssuerName + SerialNumber)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Parse a base64-encoded X.509 certificate to extract Issuer DN and Serial Number.
+ * Uses lightweight ASN.1 DER parsing (no external library needed).
+ */
+function parseX509IssuerSerial(certBase64: string): { issuerName: string; serialNumber: string } {
+  const defaultResult = { issuerName: "CN=ZATCA-SubCA", serialNumber: "0" };
+  
+  try {
+    const certDer = Uint8Array.from(atob(certBase64), c => c.charCodeAt(0));
+    
+    // ASN.1 DER parsing helpers
+    function readTag(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
+      if (offset >= data.length) throw new Error("EOF");
+      const tag = data[offset];
+      let lenOffset = offset + 1;
+      let length = data[lenOffset];
+      let valueOffset: number;
+      
+      if (length & 0x80) {
+        const numBytes = length & 0x7f;
+        length = 0;
+        for (let i = 0; i < numBytes; i++) {
+          length = (length << 8) | data[lenOffset + 1 + i];
+        }
+        valueOffset = lenOffset + 1 + numBytes;
+      } else {
+        valueOffset = lenOffset + 1;
+      }
+      
+      return { tag, length, valueOffset, totalLength: valueOffset - offset + length };
+    }
+    
+    // Navigate: SEQUENCE (Certificate) → SEQUENCE (TBSCertificate)
+    const cert = readTag(certDer, 0);
+    if (cert.tag !== 0x30) return defaultResult;
+    
+    const tbs = readTag(certDer, cert.valueOffset);
+    if (tbs.tag !== 0x30) return defaultResult;
+    
+    let pos = tbs.valueOffset;
+    
+    // Skip version if present (context tag [0])
+    let field = readTag(certDer, pos);
+    if (field.tag === 0xa0) {
+      pos += field.totalLength;
+      field = readTag(certDer, pos);
+    }
+    
+    // Serial Number (INTEGER)
+    if (field.tag !== 0x02) return defaultResult;
+    const serialBytes = certDer.slice(field.valueOffset, field.valueOffset + field.length);
+    // Convert to decimal string
+    let serialBigInt = 0n;
+    for (let i = 0; i < serialBytes.length; i++) {
+      serialBigInt = (serialBigInt << 8n) | BigInt(serialBytes[i]);
+    }
+    const serialNumber = serialBigInt.toString();
+    pos += field.totalLength;
+    
+    // Skip Algorithm Identifier (SEQUENCE)
+    field = readTag(certDer, pos);
+    pos += field.totalLength;
+    
+    // Issuer (SEQUENCE of SETs of SEQUENCE of OID + value)
+    field = readTag(certDer, pos);
+    if (field.tag !== 0x30) return { issuerName: defaultResult.issuerName, serialNumber };
+    
+    const issuerEnd = field.valueOffset + field.length;
+    let issuerPos = field.valueOffset;
+    const rdns: string[] = [];
+    
+    // OID to name mapping
+    const oidNames: Record<string, string> = {
+      "2.5.4.3": "CN",
+      "2.5.4.6": "C",
+      "2.5.4.7": "L",
+      "2.5.4.8": "ST",
+      "2.5.4.10": "O",
+      "2.5.4.11": "OU",
+      "2.5.4.5": "SERIALNUMBER",
+      "1.2.840.113549.1.9.1": "E",
+    };
+    
+    while (issuerPos < issuerEnd) {
+      const set = readTag(certDer, issuerPos);
+      if (set.tag !== 0x31) break;
+      
+      const seq = readTag(certDer, set.valueOffset);
+      if (seq.tag !== 0x30) { issuerPos += set.totalLength; continue; }
+      
+      // OID
+      const oid = readTag(certDer, seq.valueOffset);
+      if (oid.tag !== 0x06) { issuerPos += set.totalLength; continue; }
+      
+      // Decode OID
+      const oidBytes = certDer.slice(oid.valueOffset, oid.valueOffset + oid.length);
+      const oidParts: number[] = [Math.floor(oidBytes[0] / 40), oidBytes[0] % 40];
+      let val = 0;
+      for (let i = 1; i < oidBytes.length; i++) {
+        val = (val << 7) | (oidBytes[i] & 0x7f);
+        if (!(oidBytes[i] & 0x80)) { oidParts.push(val); val = 0; }
+      }
+      const oidStr = oidParts.join(".");
+      
+      // Value (UTF8String, PrintableString, etc.)
+      const valField = readTag(certDer, oid.valueOffset + oid.totalLength);
+      const decoder = new TextDecoder();
+      const valStr = decoder.decode(certDer.slice(valField.valueOffset, valField.valueOffset + valField.length));
+      
+      const name = oidNames[oidStr] || oidStr;
+      rdns.push(`${name}=${valStr}`);
+      
+      issuerPos += set.totalLength;
+    }
+    
+    const issuerName = rdns.join(", ");
+    return { issuerName: issuerName || defaultResult.issuerName, serialNumber };
+    
+  } catch (e) {
+    console.error("X.509 parse error (using defaults):", e);
+    return defaultResult;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // XMLDSig Builder
 // ═══════════════════════════════════════════════════════════════
 
@@ -160,6 +289,9 @@ async function buildXmlDsig(
   signingTime: string,
   privateKey: Uint8Array,
 ): Promise<string> {
+  // Extract real IssuerName and SerialNumber from certificate
+  const { issuerName, serialNumber } = parseX509IssuerSerial(certBase64);
+
   // ── 1. Build SignedProperties ──
   const signedProperties = `<xades:SignedProperties xmlns:xades="http://uri.etsi.org/01011/v1.3.2#" Id="xadesSignedProperties">
 <xades:SignedSignatureProperties>
@@ -171,8 +303,8 @@ async function buildXmlDsig(
 <ds:DigestValue xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${certDigest}</ds:DigestValue>
 </xades:CertDigest>
 <xades:IssuerSerial>
-<ds:X509IssuerName xmlns:ds="http://www.w3.org/2000/09/xmldsig#">CN=ZATCA-SubCA</ds:X509IssuerName>
-<ds:X509SerialNumber xmlns:ds="http://www.w3.org/2000/09/xmldsig#">0</ds:X509SerialNumber>
+<ds:X509IssuerName xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${issuerName}</ds:X509IssuerName>
+<ds:X509SerialNumber xmlns:ds="http://www.w3.org/2000/09/xmldsig#">${serialNumber}</ds:X509SerialNumber>
 </xades:IssuerSerial>
 </xades:Cert>
 </xades:SigningCertificate>
@@ -307,13 +439,43 @@ Deno.serve(async (req) => {
       return json({ error: "الفاتورة موقّعة مسبقاً. لا يمكن التوقيع مرتين." }, 409, corsHeaders);
     }
 
-    const xml = inv.zatca_xml;
+    let xml = inv.zatca_xml;
     if (!xml) {
       return json({ error: "يجب توليد XML أولاً قبل التوقيع" }, 400, corsHeaders);
     }
 
     // ════════════════════════════════════════════════════════════
-    // Step 1: Invoice Digest (strip UBLExtensions + cac:Signature → C14N → SHA-256)
+    // Step 1: Atomic ICV allocation FIRST (before hashing)
+    // ════════════════════════════════════════════════════════════
+    // We need a preliminary hash for the chain. We'll use the invoice digest
+    // computed from the XML with the NEW ICV injected.
+    
+    // First, allocate ICV with a placeholder hash (will be updated after signing)
+    const placeholderHash = "PENDING";
+    const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
+      p_invoice_id: invoice_id,
+      p_invoice_hash: placeholderHash,
+    });
+
+    if (chainErr) {
+      console.error("Chain allocation error:", chainErr);
+      return json({ error: "فشل تخصيص رقم التسلسل" }, 500, corsHeaders);
+    }
+
+    const icv = chainResult.icv;
+    const previousHash = chainResult.previous_hash;
+
+    // ════════════════════════════════════════════════════════════
+    // Step 2: Inject new ICV into XML before hashing
+    // ════════════════════════════════════════════════════════════
+    // Replace the ICV UUID value in the XML with the newly allocated ICV
+    xml = xml.replace(
+      /(<cac:AdditionalDocumentReference>\s*<cbc:ID>ICV<\/cbc:ID>\s*<cbc:UUID>)\d+(<\/cbc:UUID>)/,
+      `$1${icv}$2`,
+    );
+
+    // ════════════════════════════════════════════════════════════
+    // Step 3: Invoice Digest (strip UBLExtensions + cac:Signature → C14N → SHA-256)
     // ════════════════════════════════════════════════════════════
     let xmlForHash = xml;
     xmlForHash = xmlForHash.replace(/<ext:UBLExtensions>[\s\S]*?<\/ext:UBLExtensions>/g, "");
@@ -322,7 +484,7 @@ Deno.serve(async (req) => {
     const invoiceDigest = await sha256Base64(invoiceCanon);
 
     // ════════════════════════════════════════════════════════════
-    // Step 2: Get certificate + private key
+    // Step 4: Get certificate + private key
     // ════════════════════════════════════════════════════════════
     const { data: certData } = await admin.rpc("get_active_zatca_certificate");
     let certificate = "";
@@ -335,7 +497,7 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════════════════════════
-    // Step 3: Build full XMLDSig Signature
+    // Step 5: Build full XMLDSig Signature
     // ════════════════════════════════════════════════════════════
     let signedXml = xml;
     let isSigned = false;
@@ -347,7 +509,7 @@ Deno.serve(async (req) => {
       const certBytes = Uint8Array.from(atob(certificate), c => c.charCodeAt(0));
       const certDigest = await sha256BytesBase64(certBytes);
 
-      // Build complete XMLDSig block
+      // Build complete XMLDSig block (with dynamic X509IssuerSerial from cert)
       const dsigBlock = await buildXmlDsig(
         invoiceDigest, certificate, certDigest, signingTime, privateKeyRaw,
       );
@@ -361,7 +523,7 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════════════════════════
-    // Step 4: Inject QR TLV (GAP-5)
+    // Step 6: Inject QR TLV (with TaxInclusiveAmount = amount + vat_amount)
     // ════════════════════════════════════════════════════════════
     try {
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
@@ -369,10 +531,13 @@ Deno.serve(async (req) => {
       const qs: Record<string, string> = {};
       (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
 
+      // CRITICAL FIX: Tag-4 must be TaxInclusiveAmount (amount + vat_amount)
+      const taxInclusiveAmount = (Number(inv.amount) || 0) + (Number(inv.vat_amount) || 0);
+
       const qrTlv = generateZatcaQrTLV(
         qs.waqf_name || "", qs.vat_registration_number || "",
         inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
-        Number(inv.amount) || 0, Number(inv.vat_amount) || 0,
+        taxInclusiveAmount, Number(inv.vat_amount) || 0,
       );
       signedXml = signedXml.replace(
         /(<cbc:EmbeddedDocumentBinaryObject mimeCode="text\/plain">)\s*(?:<!--[^>]*-->)?\s*(<\/cbc:EmbeddedDocumentBinaryObject>)/,
@@ -383,24 +548,14 @@ Deno.serve(async (req) => {
     }
 
     // ════════════════════════════════════════════════════════════
-    // Step 5: Atomic ICV allocation (GAP-11)
+    // Step 7: Update chain with real hash + Save signed XML
     // ════════════════════════════════════════════════════════════
-    const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
-      p_invoice_id: invoice_id,
-      p_invoice_hash: invoiceDigest,
-    });
+    // Update the chain record with the real invoice hash
+    await admin.from("invoice_chain")
+      .update({ invoice_hash: invoiceDigest })
+      .eq("invoice_id", invoice_id)
+      .eq("icv", icv);
 
-    if (chainErr) {
-      console.error("Chain allocation error:", chainErr);
-      return json({ error: "فشل تخصيص رقم التسلسل" }, 500, corsHeaders);
-    }
-
-    const icv = chainResult.icv;
-    const previousHash = chainResult.previous_hash;
-
-    // ════════════════════════════════════════════════════════════
-    // Step 6: Save signed XML + hash + ICV
-    // ════════════════════════════════════════════════════════════
     const updateData: Record<string, unknown> = {
       invoice_hash: invoiceDigest,
       icv,
