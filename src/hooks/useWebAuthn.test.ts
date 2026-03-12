@@ -24,6 +24,7 @@ vi.mock('@simplewebauthn/browser', () => ({
 
 // Supabase mock helpers
 const mockGetSession = vi.fn();
+const mockGetUser = vi.fn();
 const mockSetSession = vi.fn();
 const mockFunctionsInvoke = vi.fn();
 const mockFrom = vi.fn();
@@ -42,6 +43,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getSession: () => mockGetSession(),
+      getUser: () => mockGetUser(),
       setSession: (...a: unknown[]) => mockSetSession(...a),
     },
     functions: { invoke: (...a: unknown[]) => mockFunctionsInvoke(...a) },
@@ -51,6 +53,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+const fakeUser = { id: 'u1' };
 const fakeSession = { user: { id: 'u1' }, access_token: 'tok', refresh_token: 'ref' };
 
 function makeDOMException(name: string, message = '') {
@@ -68,6 +71,7 @@ describe('useWebAuthn', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
     mockFrom.mockReturnValue(chainMethods());
   });
 
@@ -98,6 +102,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles server error on register-options', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: null, error: new Error('fail') });
       const { result } = renderHook(() => useWebAuthn());
@@ -112,6 +117,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles options.error from server', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { error: 'مشكلة مخصصة' }, error: null });
       const { result } = renderHook(() => useWebAuthn());
@@ -122,6 +128,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles NotAllowedError with timeout message', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(makeDOMException('NotAllowedError', 'The operation has timeout'));
@@ -139,6 +146,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles NotAllowedError without timeout (user denied)', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(makeDOMException('NotAllowedError', 'User denied'));
@@ -151,6 +159,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles SecurityError (non-HTTPS)', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(makeDOMException('SecurityError'));
@@ -163,6 +172,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles InvalidStateError (already registered)', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(makeDOMException('InvalidStateError'));
@@ -175,6 +185,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles AbortError', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(makeDOMException('AbortError'));
@@ -187,6 +198,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles network/fetch error with retry', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(new Error('Failed to fetch'));
@@ -202,6 +214,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles unknown error', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke.mockResolvedValue({ data: { challenge_id: 'c1' }, error: null });
       mockStartRegistration.mockRejectedValue(new Error('something weird'));
@@ -214,6 +227,7 @@ describe('useWebAuthn', () => {
     });
 
     it('handles verification failure', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
       mockGetSession.mockResolvedValue({ data: { session: fakeSession } });
       mockFunctionsInvoke
         .mockResolvedValueOnce({ data: { challenge_id: 'c1' }, error: null })
