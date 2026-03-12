@@ -12,13 +12,17 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool } from 'lucide-react';
+import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
@@ -27,14 +31,16 @@ const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'se
   reported: { label: 'تم الإبلاغ', variant: 'default' },
   cleared: { label: 'مُعتمدة', variant: 'default' },
   rejected: { label: 'مرفوضة', variant: 'destructive' },
+  compliance_passed: { label: 'اجتاز الفحص', variant: 'default' },
 };
 
 function ZatcaManagementPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  // FIX #1: Track pending operation per invoice
   const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
   const [onboardLoading, setOnboardLoading] = useState(false);
+  const [productionLoading, setProductionLoading] = useState(false);
+  const [complianceResult, setComplianceResult] = useState<any>(null);
 
   // ─── Certificates ───
   const { data: certificates = [], isLoading: certsLoading } = useQuery({
@@ -46,7 +52,7 @@ function ZatcaManagementPage() {
     },
   });
 
-  // ─── Invoices (both tables) — FIX #2: add .limit(200) ───
+  // ─── Invoices (both tables) ───
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['zatca-invoices', statusFilter],
     queryFn: async () => {
@@ -139,7 +145,33 @@ function ZatcaManagementPage() {
     onSettled: () => setPendingAction(null),
   });
 
-  // FIX #3: Onboarding with confirmation dialog
+  // ─── Compliance Check ───
+  const complianceCheck = useMutation({
+    mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
+      setPendingAction({ id: invoiceId, type: 'compliance' });
+      const { data, error } = await supabase.functions.invoke('zatca-api', {
+        body: { action: 'compliance-check', invoice_id: invoiceId, table },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.validationResults?.status === 'PASS') {
+        toast.success('✅ اجتاز فحص الامتثال');
+      } else if (data?.validationResults?.status === 'WARNING') {
+        toast.warning('⚠️ اجتاز مع تحذيرات');
+      } else {
+        toast.error('❌ لم يجتز فحص الامتثال');
+      }
+      setComplianceResult(data);
+      queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setPendingAction(null),
+  });
+
+  // ─── Onboarding ───
   const handleOnboard = async () => {
     setOnboardLoading(true);
     try {
@@ -154,11 +186,28 @@ function ZatcaManagementPage() {
     }
   };
 
-  // ─── Summary Cards ───
+  // ─── Production Upgrade ───
+  const handleProductionUpgrade = async () => {
+    setProductionLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'production' } });
+      if (error) throw error;
+      toast.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
+      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'فشلت الترقية للإنتاج');
+    } finally {
+      setProductionLoading(false);
+    }
+  };
+
+  // ─── Summary ───
   const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared'].includes(i.zatca_status || '')).length;
   const pending = allInvoices.filter(i => i.zatca_status === 'not_submitted' || !i.zatca_status).length;
   const rejected = allInvoices.filter(i => i.zatca_status === 'rejected').length;
   const activeCert = certificates.find(c => c.is_active);
+  const isComplianceCert = activeCert?.certificate_type === 'compliance';
+  const isProductionCert = activeCert?.certificate_type === 'production';
 
   const isRowPending = (invoiceId: string) => pendingAction?.id === invoiceId;
 
@@ -197,7 +246,9 @@ function ZatcaManagementPage() {
           <Card>
             <CardContent className="pt-4 text-center">
               <ShieldCheck className="w-8 h-8 mx-auto text-primary mb-2" />
-              <p className="text-sm font-bold text-foreground">{activeCert ? 'نشطة' : 'غير مسجّل'}</p>
+              <p className="text-sm font-bold text-foreground">
+                {activeCert ? (isProductionCert ? 'إنتاج' : 'امتثال') : 'غير مسجّل'}
+              </p>
               <p className="text-sm text-muted-foreground">حالة الشهادة</p>
             </CardContent>
           </Card>
@@ -226,6 +277,12 @@ function ZatcaManagementPage() {
                   <SelectItem value="rejected">مرفوضة</SelectItem>
                 </SelectContent>
               </Select>
+              {isComplianceCert && (
+                <Badge variant="secondary" className="gap-1">
+                  <ClipboardCheck className="w-3 h-3" />
+                  وضع فحص الامتثال
+                </Badge>
+              )}
             </div>
 
             <Card>
@@ -252,11 +309,11 @@ function ZatcaManagementPage() {
                       const rowBusy = isRowPending(inv.id);
                       const isSubmitted = ['submitted', 'reported', 'cleared'].includes(inv.zatca_status || '');
 
-                      // Step state
                       const hasXml = !!inv.zatca_xml;
                       const hasSig = !!inv.invoice_hash;
                       const canSign = hasXml && !hasSig;
                       const canSubmit = hasXml && hasSig && !isSubmitted;
+                      const canComplianceCheck = hasXml && hasSig && !isSubmitted && isComplianceCert;
 
                       return (
                         <TableRow key={inv.id} className={rowBusy ? 'opacity-60' : ''}>
@@ -294,7 +351,7 @@ function ZatcaManagementPage() {
                           <TableCell><Badge variant={status.variant}>{status.label}</Badge></TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {/* Step 1: Generate XML — always available if not submitted */}
+                              {/* Step 1: Generate XML */}
                               {!isSubmitted && (
                                 <TooltipProvider delayDuration={200}>
                                   <Tooltip>
@@ -313,7 +370,7 @@ function ZatcaManagementPage() {
                                   </Tooltip>
                                 </TooltipProvider>
                               )}
-                              {/* Step 2: Sign — requires XML, blocked if already signed */}
+                              {/* Step 2: Sign */}
                               {!isSubmitted && (
                                 <TooltipProvider delayDuration={200}>
                                   <Tooltip>
@@ -332,8 +389,27 @@ function ZatcaManagementPage() {
                                   </Tooltip>
                                 </TooltipProvider>
                               )}
-                              {/* Step 3: Submit — requires XML + signature */}
-                              {!isSubmitted && (
+                              {/* Compliance Check — only with compliance cert */}
+                              {canComplianceCheck && (
+                                <TooltipProvider delayDuration={200}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => complianceCheck.mutate({ invoiceId: inv.id, table: inv.source })}
+                                        disabled={rowBusy}
+                                      >
+                                        {rowBusy && pendingAction?.type === 'compliance' ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
+                                        <span className="mr-1 text-xs">فحص</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>فحص امتثال الفاتورة عبر بوابة ZATCA</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              {/* Step 3: Submit — only with production cert */}
+                              {!isSubmitted && isProductionCert && (
                                 <TooltipProvider delayDuration={200}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -350,8 +426,8 @@ function ZatcaManagementPage() {
                                   </Tooltip>
                                 </TooltipProvider>
                               )}
-                              {/* Re-submit for rejected invoices */}
-                              {inv.zatca_status === 'rejected' && (
+                              {/* Re-submit for rejected */}
+                              {inv.zatca_status === 'rejected' && isProductionCert && (
                                 <Button
                                   size="sm"
                                   variant="destructive"
@@ -375,6 +451,37 @@ function ZatcaManagementPage() {
 
           {/* ─── Certificates Tab ─── */}
           <TabsContent value="certificates" className="space-y-4">
+            {/* Workflow Stepper */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">دورة العمل</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {/* Step 1: Onboarding */}
+                  <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${activeCert ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-border text-muted-foreground'}`}>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span className="text-sm font-medium">١. التسجيل</span>
+                    {activeCert && <CheckCircle className="w-3 h-3" />}
+                  </div>
+                  <span className="text-muted-foreground">←</span>
+                  {/* Step 2: Compliance Check */}
+                  <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${isComplianceCert ? 'bg-secondary border-primary text-secondary-foreground' : isProductionCert ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-border text-muted-foreground'}`}>
+                    <ClipboardCheck className="w-4 h-4" />
+                    <span className="text-sm font-medium">٢. فحص الامتثال</span>
+                    {isProductionCert && <CheckCircle className="w-3 h-3" />}
+                  </div>
+                  <span className="text-muted-foreground">←</span>
+                  {/* Step 3: Production */}
+                  <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border ${isProductionCert ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-border text-muted-foreground'}`}>
+                    <ArrowUpCircle className="w-4 h-4" />
+                    <span className="text-sm font-medium">٣. الإنتاج</span>
+                    {isProductionCert && <CheckCircle className="w-3 h-3" />}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -390,7 +497,6 @@ function ZatcaManagementPage() {
                     <AlertTriangle className="w-12 h-12 mx-auto text-accent-foreground" />
                     <p className="text-muted-foreground">لا توجد شهادات مسجّلة</p>
                     <p className="text-sm text-muted-foreground">يجب التسجيل في بوابة فاتورة أولاً للحصول على CSID</p>
-                    {/* FIX #3: AlertDialog confirmation for onboarding */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button disabled={onboardLoading}>
@@ -427,9 +533,13 @@ function ZatcaManagementPage() {
                       <TableBody>
                         {certificates.map(cert => (
                           <TableRow key={cert.id}>
-                            <TableCell>{cert.certificate_type}</TableCell>
                             <TableCell>
-                              <Badge variant={cert.is_active ? 'default' : 'secondary'}>
+                              <Badge variant={cert.certificate_type === 'production' ? 'default' : 'secondary'}>
+                                {cert.certificate_type === 'production' ? 'إنتاج' : 'امتثال'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={cert.is_active ? 'default' : 'outline'}>
                                 {cert.is_active ? 'نشطة' : 'غير نشطة'}
                               </Badge>
                             </TableCell>
@@ -439,28 +549,58 @@ function ZatcaManagementPage() {
                         ))}
                       </TableBody>
                     </Table>
-                    {/* Onboard button when certificates exist (re-onboard) */}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" disabled={onboardLoading}>
-                          {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
-                          إعادة التسجيل
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>⚠️ إعادة تسجيل شهادة ZATCA</AlertDialogTitle>
-                          <AlertDialogDescription className="space-y-2">
-                            <p>سيتم إلغاء الشهادة النشطة الحالية وإنشاء شهادة جديدة.</p>
-                            <p className="text-destructive font-medium">هل أنت متأكد؟ هذا قد يؤثر على الفواتير المعلقة.</p>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter className="gap-2">
-                          <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleOnboard}>تأكيد إعادة التسجيل</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {/* Re-onboard */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" disabled={onboardLoading}>
+                            {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+                            إعادة التسجيل
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>⚠️ إعادة تسجيل شهادة ZATCA</AlertDialogTitle>
+                            <AlertDialogDescription className="space-y-2">
+                              <p>سيتم إلغاء الشهادة النشطة الحالية وإنشاء شهادة جديدة.</p>
+                              <p className="text-destructive font-medium">هل أنت متأكد؟ هذا قد يؤثر على الفواتير المعلقة.</p>
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="gap-2">
+                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleOnboard}>تأكيد إعادة التسجيل</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      {/* Production Upgrade — only when compliance cert is active */}
+                      {isComplianceCert && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" disabled={productionLoading} className="gap-1">
+                              {productionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpCircle className="w-4 h-4" />}
+                              ترقية للإنتاج
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>ترقية إلى شهادة الإنتاج</AlertDialogTitle>
+                              <AlertDialogDescription className="space-y-2">
+                                <p>سيتم ترقية شهادة الامتثال الحالية إلى شهادة إنتاج.</p>
+                                <p className="font-medium">تأكد من أنك أجريت فحص الامتثال بنجاح على 6 فواتير اختبار قبل الترقية.</p>
+                                <p className="text-destructive font-medium">بعد الترقية، ستُرسل الفواتير فعلياً إلى هيئة الزكاة والضريبة.</p>
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="gap-2">
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleProductionUpgrade}>تأكيد الترقية</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -508,6 +648,72 @@ function ZatcaManagementPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Compliance Result Dialog */}
+      <Dialog open={!!complianceResult} onOpenChange={(open) => !open && setComplianceResult(null)}>
+        <DialogContent className="max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5" />
+              نتيجة فحص الامتثال
+            </DialogTitle>
+            <DialogDescription>تفاصيل الرد من بوابة ZATCA</DialogDescription>
+          </DialogHeader>
+          {complianceResult && (
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-4">
+                {/* Status */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">النتيجة:</span>
+                  <Badge variant={
+                    complianceResult.validationResults?.status === 'PASS' ? 'default' :
+                    complianceResult.validationResults?.status === 'WARNING' ? 'secondary' : 'destructive'
+                  }>
+                    {complianceResult.validationResults?.status === 'PASS' ? '✅ ناجح' :
+                     complianceResult.validationResults?.status === 'WARNING' ? '⚠️ تحذيرات' : '❌ فشل'}
+                  </Badge>
+                </div>
+
+                {/* Warnings */}
+                {complianceResult.warningMessages?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
+                    {complianceResult.warningMessages.map((w: any, i: number) => (
+                      <div key={i} className="text-xs bg-secondary/50 rounded p-2 border border-border">
+                        <span className="font-mono">{w.code}</span>: {w.message}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Errors */}
+                {complianceResult.errorMessages?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-destructive">أخطاء:</p>
+                    {complianceResult.errorMessages.map((e: any, i: number) => (
+                      <div key={i} className="text-xs bg-destructive/10 rounded p-2 border border-destructive/20">
+                        <span className="font-mono">{e.code}</span>: {e.message}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Info Messages */}
+                {complianceResult.validationResults?.infoMessages?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">معلومات:</p>
+                    {complianceResult.validationResults.infoMessages.map((m: any, i: number) => (
+                      <div key={i} className="text-xs bg-muted rounded p-2">
+                        <span className="font-mono">{m.code}</span>: {m.message}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
