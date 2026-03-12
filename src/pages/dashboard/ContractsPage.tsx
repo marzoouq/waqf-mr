@@ -451,7 +451,7 @@ const ContractsPage = () => {
                           <TableCell>{contract.end_date}</TableCell>
                           <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>
-                            {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
+                            {getPaymentTypeLabel(contract.payment_type)}
                           </TableCell>
                           <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
                           <TableCell>

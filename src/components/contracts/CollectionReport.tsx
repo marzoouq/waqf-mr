@@ -102,9 +102,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
 
   const rows: CollectionRow[] = useMemo(() => {
     return relevantContracts.map(contract => {
-      const contractPaymentCount = contract.payment_type === 'monthly' ? 12
-        : contract.payment_type === 'annual' ? 1
-        : (contract.payment_count || 1);
+      const contractPaymentCount = getPaymentCount(contract);
       const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
       const paid = invoicePaidMap.get(contract.id) ?? 0;
 
