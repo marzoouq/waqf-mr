@@ -39,6 +39,13 @@ export interface Contract {
   payment_amount?: number;
   fiscal_year_id?: string;
   notes?: string;
+  tenant_id_type?: string;
+  tenant_id_number?: string;
+  tenant_street?: string;
+  tenant_building?: string;
+  tenant_district?: string;
+  tenant_city?: string;
+  tenant_postal_code?: string;
   created_at: string;
   updated_at: string;
   property?: Property;
