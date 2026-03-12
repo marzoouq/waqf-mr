@@ -518,11 +518,17 @@ function ZatcaManagementPage() {
                     <p className="text-sm text-muted-foreground">يجب التسجيل في بوابة فاتورة أولاً للحصول على CSID</p>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button disabled={onboardLoading}>
+                        <Button disabled={onboardLoading || !canOnboard}>
                           {onboardLoading ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
                           بدء التسجيل (Onboarding)
                         </Button>
                       </AlertDialogTrigger>
+                      {!canOnboard && (
+                        <p className="text-sm text-destructive mt-2">
+                          <AlertTriangle className="w-4 h-4 inline ml-1" />
+                          يجب تعيين الإعدادات التالية أولاً: {missingSettings.join('، ')}
+                        </p>
+                      )}
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>⚠️ تسجيل شهادة ZATCA جديدة</AlertDialogTitle>
