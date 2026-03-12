@@ -16,7 +16,7 @@ const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undef
 
 const STORAGE_KEY = 'waqf_selected_fiscal_year';
 
-export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
+export const FiscalYearProvider = forwardRef<HTMLDivElement, { children: React.ReactNode }>(function FiscalYearProvider({ children }, _ref) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
