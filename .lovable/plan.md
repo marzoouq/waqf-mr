@@ -1,129 +1,41 @@
 
-# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-## ✅ تم التنفيذ
+# خطة الفحص الجنائي الشامل للوحة التحكم
 
-### 1. إصلاح تحذيرات forwardRef
-- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
-
-### 2. إشعار حد السجلات في useCrudFactory
-- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
-
-### 3. تقسيم Auth.tsx إلى مكونات فرعية
-- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
-- `SignupForm` — نموذج إنشاء حساب
-- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
-- `ResetPasswordForm` — نموذج استعادة كلمة المرور
-- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
+## نظرة عامة
+فحص منهجي شامل لجميع مكونات لوحة تحكم الناظر (16 صفحة) والبنية التحتية المشتركة، مقسّم إلى 6 مجموعات متتالية لضمان التغطية الكاملة.
 
 ---
 
-# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
+## المجموعة 1: البنية الأساسية والمصادقة والتوجيه
+**الملفات المستهدفة:** `App.tsx`, `AuthContext.tsx`, `ProtectedRoute.tsx`, `DashboardLayout.tsx`, `Sidebar.tsx`, `BottomNav.tsx`
 
-## الفجوات المكتشفة (12 فجوة)
-
-| # | الشدة | الفجوة | الحالة |
-|---|-------|--------|--------|
-| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
-| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
-| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
-| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
-| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
-| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
-| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
-| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
-| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
-| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
-| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
-| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+**نقاط الفحص:**
+- تطابق المسارات (Routes) مع الصلاحيات المعلنة في `allowedRoles` — هل يوجد مسار يسمح بدور لا يجب أن يصل إليه؟
+- منطق `AuthContext`: هل يمكن أن يبقى `role=null` مع `loading=false` ويُسبب حالة معلقة؟
+- تناسق قوائم القائمة الجانبية (`allAdminLinks`) مع المسارات الفعلية في `App.tsx`
+- هل `SHOW_ALL_ROUTES` يغطي كل الصفحات التي تدعم فلتر "جميع السنوات"؟
+- هل `ACCOUNTANT_EXCLUDED_ROUTES` متطابق مع `allowedRoles: ['admin']` في التوجيه؟
+- فحص `IdleTimeout` و`SecurityGuard` — هل يعملان بشكل متوازٍ بدون تعارض؟
 
 ---
 
-## المراحل
+## المجموعة 2: الصفحات المالية الأساسية
+**الملفات المستهدفة:** `AdminDashboard.tsx`, `IncomePage.tsx`, `ExpensesPage.tsx`, `AccountsPage.tsx`, `useFinancialSummary.ts`, `useRawFinancialData.ts`, `useComputedFinancials.ts`, `accountsCalculations.ts`
 
-### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
-**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
-
-- إضافة `<cbc:IssueTime>` (وقت الإصدار)
-- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
-- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
-- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
-- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
-- قراءة `invoice_type` لتحديد `name` attribute:
-  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
-  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
-  - Debit Note: `383`, Credit Note: `381`
-- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
-- إضافة `zatca:ext` namespace
-
-### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
-**الملف**: `supabase/functions/zatca-signer/index.ts`
-
-- SHA-256 على كامل XML بعد Canonicalization (C14N)
-- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
-- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
-- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
-- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
-- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
-- تحديث XML المخزّن في الفاتورة بعد التوقيع
-- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
-
-### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
-**الملف**: `supabase/functions/zatca-api/index.ts`
-
-- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
-  - `CN` = اسم المنشأة
-  - `O` = الرقم الضريبي
-  - `serialNumber` = رقم الجهاز
-- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
-- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
-- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
-
-### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
-**Migration مطلوب**:
-```sql
-ALTER TABLE payment_invoices
-  ADD COLUMN IF NOT EXISTS zatca_xml text,
-  ADD COLUMN IF NOT EXISTS invoice_hash text,
-  ADD COLUMN IF NOT EXISTS icv integer,
-  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
-```
-
-**الملفات المتأثرة**:
-- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
-- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
-- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
-
-### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
-**الملف**: `src/utils/zatcaQr.ts`
-
-- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
-- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
-- تضمين QR في PDF عبر `generateQrDataUrl()`
-
-### المرحلة 6 — إصلاح UI (GAP-7)
-**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
-
-- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
-- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
-- عرض حالة كل خطوة بصرياً (stepper أو badges)
+**نقاط الفحص:**
+- هل حسابات `totalIncome/totalExpenses/waqfRevenue` متسقة بين لوحة التحكم والحسابات الختامية؟
+- هل `useRawFinancialData` يتعامل مع `__none__` و`__skip__` و`all` بشكل موحد في كل الاستدعاءات؟
+- هل نسبة الناظر/الواقف تُعرض فقط بعد الإقفال أم تظهر بيانات خاطئة للسنوات النشطة؟
+- هل `usingFallbackPct` يُحسب بطريقة متسقة مع ما يُعرض في `AccountsSummaryCards`؟
+- هل توجد حالة يُنشأ فيها حساب ختامي مكرر لنفس السنة؟
+- تدقيق `close_fiscal_year` RPC — هل يمكن إقفال سنة مقفلة فعلياً رغم الحماية؟
 
 ---
 
-## ترتيب التنفيذ
+## المجموعة 3: العقود والتحصيل والفواتير
+**الملفات المستهدفة:** `ContractsPage.tsx`, `ContractFormDialog.tsx`, `contractHelpers.ts`, `PaymentInvoicesTab.tsx`, `useContracts.ts`, `usePaymentInvoices.ts`, `InvoicesPage.tsx`, `CollectionReport.tsx`
 
-```
-المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
-                              ↓
-                        المرحلة 4: payment_invoices migration
-                              ↓
-                        المرحلة 5: QR في XML
-                              ↓
-                        المرحلة 6: UI validation
-```
-
-## ما لن يتغير
-- جدول `invoice_chain` وآلية ICV — سليمة
-- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
-- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
-- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
+**نقاط الفحص:**
+- هل `payment_type` يتطابق مع `payment_count` في كل السيناريوهات (شهري=12، ربعي=4، نصف سنوي=2، دفعة واحدة=1)؟
+- هل `get
