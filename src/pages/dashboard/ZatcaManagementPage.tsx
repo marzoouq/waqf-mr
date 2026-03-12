@@ -294,7 +294,7 @@ function ZatcaManagementPage() {
           {/* ─── Invoices Tab ─── */}
           <TabsContent value="invoices" className="space-y-4">
             <div className="flex items-center gap-3">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setInvoicePage(1); }}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="فلتر الحالة" />
                 </SelectTrigger>
