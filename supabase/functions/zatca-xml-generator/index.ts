@@ -112,6 +112,10 @@ function buildUBL(
 
   // --- Buyer info (for Standard invoices) ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
+  // Buyer ID type: CRN, NAT, IQA, PAS, TIN, MOM, MLS, SAG, GCC, 700
+  const validBuyerIdTypes = ["CRN", "NAT", "IQA", "PAS", "TIN", "MOM", "MLS", "SAG", "GCC", "700"];
+  const rawBuyerIdType = String(inv.buyer_id_type || "NAT").toUpperCase();
+  const buyerIdType = validBuyerIdTypes.includes(rawBuyerIdType) ? rawBuyerIdType : "NAT";
   const isSimplified = typeInfo.name === "0200000";
   const isCreditOrDebit = typeInfo.code === "381" || typeInfo.code === "383";
 
@@ -197,7 +201,7 @@ function buildUBL(
   <cac:AccountingCustomerParty>
     <cac:Party>
       <cac:PartyIdentification>
-        <cbc:ID schemeID="NAT">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
+        <cbc:ID schemeID="${buyerIdType}">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
       </cac:PartyIdentification>
       <cac:PostalAddress>
         <cbc:StreetName>${escapeXml(String(inv.buyer_street || ""))}</cbc:StreetName>
