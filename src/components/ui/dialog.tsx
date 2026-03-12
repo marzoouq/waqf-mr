@@ -4,8 +4,6 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// Context to provide dialog container ref to nested portals (fixes React 19 + Radix Select crash)
-export const DialogContainerContext = React.createContext<Element | null>(null);
 
 const Dialog = DialogPrimitive.Root;
 
