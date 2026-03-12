@@ -163,6 +163,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficiary/invoices': 'الفواتير',
   '/beneficiary/bylaws': 'اللائحة التنظيمية',
   '/beneficiary/settings': 'الإعدادات',
+  '/beneficiary/support': 'الدعم الفني',
   '/waqif': 'لوحة الواقف',
 };
 
@@ -356,13 +357,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     // beneficiary or waqif
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
     const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
-    return allBeneficiaryLinks.filter(link => {
-      // Apply beneficiary_sections visibility
-      const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
-      if (bsKey && beneficiarySections[bsKey] === false) return false;
-      const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
-      return !key || perms[key] !== false;
-    });
+    return allBeneficiaryLinks
+      .map(link => {
+        // BUG-G1-3 fix: Replace /beneficiary home with /waqif for waqif role
+        if (role === 'waqif' && link.to === '/beneficiary') {
+          return { ...link, to: '/waqif' };
+        }
+        return link;
+      })
+      .filter(link => {
+        // Apply beneficiary_sections visibility
+        const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
+        if (bsKey && beneficiarySections[bsKey] === false) return false;
+        const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
+        return !key || perms[key] !== false;
+      });
   }, [role, rolePermissions, menuLabels, sectionsVisibility, beneficiarySections]);
 
   const handleSignOut = async () => {
