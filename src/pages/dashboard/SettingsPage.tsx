@@ -26,6 +26,7 @@ const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissi
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
 const ZatcaSettingsTab = lazy(() => import('@/components/settings/ZatcaSettingsTab'));
+const PerformanceMonitorTab = lazy(() => import('@/components/settings/PerformanceMonitorTab'));
 
 // === Logo Management Component ===
 const LogoManager = () => {
