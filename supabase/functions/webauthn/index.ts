@@ -72,6 +72,16 @@ Deno.serve(async (req: Request) => {
       const user = await getAuthUser(req);
       if (!user) return new Response(JSON.stringify({ error: "غير مصرح" }), { status: 401, headers: cors });
 
+      // Rate limiting: 10 requests/minute per user
+      const { data: rlAllowed, error: rlError } = await admin.rpc("check_rate_limit", {
+        p_key: `webauthn:register:${user.id}`,
+        p_limit: 10,
+        p_window_seconds: 60,
+      });
+      if (rlError || rlAllowed === false) {
+        return new Response(JSON.stringify({ error: "طلبات كثيرة، حاول لاحقاً" }), { status: 429, headers: cors });
+      }
+
       // جلب بيانات الاعتماد الموجودة
       const { data: existing } = await admin
         .from("webauthn_credentials")
