@@ -454,7 +454,7 @@ const ContractsPage = () => {
                           <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
                           <TableCell>
                             {(() => {
-                              const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                              const paymentCount = getPaymentCount(contract);
                               const paid = invoicePaidMap.get(contract.id) ?? 0;
                               return (
                                 <div className="space-y-1.5">

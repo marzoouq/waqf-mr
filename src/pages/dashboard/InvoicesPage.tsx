@@ -197,7 +197,7 @@ const InvoicesPage = () => {
         <PageHeaderCard
           title="إدارة الفواتير"
           icon={FileText}
-          description="رفع وإدارة جميع أنواع الفواتير"
+          description="رفع وإدارة فواتير المصروفات والمشتريات — فواتير دفعات الإيجار تُدار من صفحة العقود"
           actions={<>
             {(() => {
               const withoutFiles = invoices.filter(inv => !inv.file_path);
