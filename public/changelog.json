@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.7.2",
+    "date": "١٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      }
+    ]
+  },
+  {
     "version": "2.7.1",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
