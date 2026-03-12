@@ -596,3 +596,56 @@ Deno.test("Percent formatting — always two decimal places", () => {
   }
   assertNotMatch(xml5, /<cbc:Percent>5<\/cbc:Percent>/);
 });
+
+// ────────────────────────────────────────────────────────────────────────
+// Test 12: Buyer ID type — CRN, NIN, IQA, PAS, default NAT
+// ────────────────────────────────────────────────────────────────────────
+Deno.test("Buyer ID type — dynamic schemeID for standard invoices", () => {
+  const baseInv = {
+    invoice_number: "INV-BID-001",
+    invoice_type: "standard",
+    date: "2026-03-01",
+    amount_excluding_vat: 1000,
+    vat_amount: 150,
+    vat_rate: 15,
+    icv: 50,
+    tenant_name: "شركة الاختبار",
+    buyer_id: "1234567890",
+  };
+
+  // Default (no buyer_id_type) → NAT
+  const xmlDefault = buildUBL({ ...baseInv }, defaultSettings, "");
+  assertStringIncludes(xmlDefault, 'schemeID="NAT"');
+
+  // Explicit CRN
+  const xmlCRN = buildUBL({ ...baseInv, buyer_id_type: "CRN" }, defaultSettings, "");
+  assertStringIncludes(xmlCRN, '<cbc:ID schemeID="CRN">1234567890</cbc:ID>');
+  // Ensure buyer CRN is in CustomerParty (not confused with seller CRN)
+  const buyerSection = xmlCRN.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerSection, 'schemeID="CRN"');
+
+  // IQA (Iqama)
+  const xmlIQA = buildUBL({ ...baseInv, buyer_id_type: "IQA" }, defaultSettings, "");
+  const buyerIQA = xmlIQA.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerIQA, 'schemeID="IQA"');
+
+  // PAS (Passport)
+  const xmlPAS = buildUBL({ ...baseInv, buyer_id_type: "PAS" }, defaultSettings, "");
+  const buyerPAS = xmlPAS.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerPAS, 'schemeID="PAS"');
+
+  // TIN
+  const xmlTIN = buildUBL({ ...baseInv, buyer_id_type: "TIN" }, defaultSettings, "");
+  const buyerTIN = xmlTIN.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerTIN, 'schemeID="TIN"');
+
+  // Invalid type → fallback to NAT
+  const xmlInvalid = buildUBL({ ...baseInv, buyer_id_type: "INVALID" }, defaultSettings, "");
+  const buyerInvalid = xmlInvalid.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerInvalid, 'schemeID="NAT"');
+
+  // Case-insensitive
+  const xmlLower = buildUBL({ ...baseInv, buyer_id_type: "crn" }, defaultSettings, "");
+  const buyerLower = xmlLower.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerLower, 'schemeID="CRN"');
+});
