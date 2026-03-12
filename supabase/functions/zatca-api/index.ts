@@ -112,10 +112,10 @@ function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint
 }
 
 function buildEcSpki(publicKey: Uint8Array): Uint8Array {
-  // AlgorithmIdentifier: ecPublicKey + secp256k1
+  // AlgorithmIdentifier: ecPublicKey + prime256v1 (P-256) — required by ZATCA
   const algId = asn1Sequence([
-    asn1Oid([1, 2, 840, 10045, 2, 1]), // ecPublicKey
-    asn1Oid([1, 3, 132, 0, 10]),        // secp256k1
+    asn1Oid([1, 2, 840, 10045, 2, 1]),   // ecPublicKey
+    asn1Oid([1, 2, 840, 10045, 3, 1, 7]), // prime256v1 (P-256)
   ]);
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
