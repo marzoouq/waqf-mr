@@ -3,7 +3,8 @@ import { assertEquals, assertStringIncludes, assertNotMatch, assertMatch } from 
 // ── Replicate helper functions locally (not exported from index.ts) ──
 
 function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
-  switch (invoiceType?.toLowerCase()) {
+  const type = invoiceType?.toLowerCase();
+  switch (type) {
     case "simplified":
     case "مبسطة":
       return { code: "388", name: "0200000" };
@@ -13,6 +14,10 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
     case "credit_note":
     case "إشعار دائن":
       return { code: "381", name: "0100000" };
+    case "simplified_debit":
+      return { code: "383", name: "0200000" };
+    case "simplified_credit":
+      return { code: "381", name: "0200000" };
     case "standard":
     case "قياسية":
     default:
@@ -20,15 +25,19 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
   }
 }
 
-function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): string {
+function getVatCategoryCode(vatRate: number, exemptionCode?: string): string {
   if (vatRate > 0) return "S";
-  if (vatExemptionReason) return "E";
+  if (exemptionCode) return "E";
   return "Z";
 }
 
-function getTaxExemptionInfo(vatCategoryCode: string): { code: string; reason: string } | null {
+function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
   if (vatCategoryCode === "S") return null;
   if (vatCategoryCode === "E") {
+    const vatexMatch = invoiceDescription?.match(/VATEX-SA-[\d-]+/);
+    if (vatexMatch) {
+      return { code: vatexMatch[0], reason: invoiceDescription || "" };
+    }
     return { code: "VATEX-SA-29-7", reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة" };
   }
   return { code: "VATEX-SA-32", reason: "توريدات خاضعة لنسبة صفر بالمائة" };
