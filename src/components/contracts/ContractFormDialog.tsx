@@ -51,6 +51,14 @@ export interface ContractFormData {
   rent_per_unit: Record<string, string>;
   // VAT
   vat_applicable: boolean;
+  // Tenant identity
+  tenant_id_type: string;
+  tenant_id_number: string;
+  tenant_street: string;
+  tenant_building: string;
+  tenant_district: string;
+  tenant_city: string;
+  tenant_postal_code: string;
 }
 
 export const emptyFormData: ContractFormData = {
