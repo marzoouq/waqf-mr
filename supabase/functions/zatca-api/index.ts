@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
       // Validate required identity fields before contacting ZATCA
       const missingFields: string[] = [];
       if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");
-      if (!vatNumber) missingFields.push("vat_number (الرقم الضريبي)");
+      if (!vatNumber) missingFields.push("vat_registration_number (الرقم الضريبي)");
       if (!orgName) missingFields.push("waqf_name (اسم المنشأة)");
 
       if (missingFields.length > 0) {

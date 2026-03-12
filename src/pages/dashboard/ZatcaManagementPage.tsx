@@ -56,7 +56,7 @@ function ZatcaManagementPage() {
 
   const missingSettings = [
     ...(!zatcaSettings?.zatca_device_serial ? ['الرقم التسلسلي للجهاز'] : []),
-    ...(!zatcaSettings?.vat_number ? ['الرقم الضريبي'] : []),
+    ...(!zatcaSettings?.vat_registration_number ? ['الرقم الضريبي'] : []),
     ...(!zatcaSettings?.waqf_name ? ['اسم المنشأة'] : []),
   ];
   const canOnboard = missingSettings.length === 0;

@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
 
     // Fetch all ZATCA-relevant settings
     const settingKeys = [
-      "vat_number", "waqf_name", "commercial_registration_number",
+      "vat_registration_number", "waqf_name", "commercial_registration_number",
       "business_address_street", "business_address_building",
       "business_address_city", "business_address_postal",
       "business_address_district", "business_address_province",

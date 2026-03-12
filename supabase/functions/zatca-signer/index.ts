@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
       (settingsRows || []).forEach((s: { key: string; value: string }) => { qs[s.key] = s.value; });
 
       const qrTlv = generateZatcaQrTLV(
-        qs.waqf_name || "", qs.vat_number || "",
+        qs.waqf_name || "", qs.vat_registration_number || "",
         inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
         Number(inv.amount) || 0, Number(inv.vat_amount) || 0,
       );
