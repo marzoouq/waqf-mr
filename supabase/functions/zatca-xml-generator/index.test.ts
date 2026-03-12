@@ -649,3 +649,38 @@ Deno.test("Buyer ID type — dynamic schemeID for standard invoices", () => {
   const buyerLower = xmlLower.split("AccountingCustomerParty")[1];
   assertStringIncludes(buyerLower, 'schemeID="CRN"');
 });
+
+// ────────────────────────────────────────────────────────────────────────
+// Test 13: Buyer address fields populated from contract tenant data
+// ────────────────────────────────────────────────────────────────────────
+Deno.test("Buyer address fields — standard invoice with tenant address", () => {
+  const inv = {
+    invoice_number: "INV-ADDR-001",
+    invoice_type: "standard",
+    date: "2026-03-12",
+    amount_excluding_vat: 5000,
+    vat_amount: 750,
+    vat_rate: 15,
+    icv: 60,
+    tenant_name: "مؤسسة التقنية للتجارة",
+    buyer_id_type: "CRN",
+    buyer_id: "7001234567",
+    buyer_street: "شارع الملك فهد",
+    buyer_building: "1234",
+    buyer_district: "العليا",
+    buyer_city: "الرياض",
+    buyer_postal: "12345",
+  };
+
+  const xml = buildUBL(inv, defaultSettings, "");
+
+  // Verify buyer section contains CRN
+  const buyerSection = xml.split("AccountingCustomerParty")[1];
+  assertStringIncludes(buyerSection, '<cbc:ID schemeID="CRN">7001234567</cbc:ID>');
+  assertStringIncludes(buyerSection, "<cbc:StreetName>شارع الملك فهد</cbc:StreetName>");
+  assertStringIncludes(buyerSection, "<cbc:BuildingNumber>1234</cbc:BuildingNumber>");
+  assertStringIncludes(buyerSection, "<cbc:CitySubdivisionName>العليا</cbc:CitySubdivisionName>");
+  assertStringIncludes(buyerSection, "<cbc:CityName>الرياض</cbc:CityName>");
+  assertStringIncludes(buyerSection, "<cbc:PostalZone>12345</cbc:PostalZone>");
+  assertStringIncludes(buyerSection, "<cbc:RegistrationName>مؤسسة التقنية للتجارة</cbc:RegistrationName>");
+});
