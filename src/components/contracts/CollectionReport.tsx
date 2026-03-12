@@ -15,6 +15,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import { getPaymentCount } from '@/utils/contractHelpers';
 
 interface CollectionReportProps {
   contracts: Contract[];
@@ -45,9 +46,7 @@ function getExpectedPaymentsFallback(contract: Contract): number {
   const now = new Date();
   if (now < start) return 0;
 
-  const paymentCount = contract.payment_type === 'monthly' ? 12
-    : contract.payment_type === 'annual' ? 1
-    : (contract.payment_count || 1);
+  const paymentCount = getPaymentCount(contract);
 
   const contractDurationMonths = Math.max(1, Math.round(
     (end.getTime() - start.getTime()) / (1000 * 3600 * 24 * 30.44)
@@ -103,9 +102,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
 
   const rows: CollectionRow[] = useMemo(() => {
     return relevantContracts.map(contract => {
-      const contractPaymentCount = contract.payment_type === 'monthly' ? 12
-        : contract.payment_type === 'annual' ? 1
-        : (contract.payment_count || 1);
+      const contractPaymentCount = getPaymentCount(contract);
       const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
       const paid = invoicePaidMap.get(contract.id) ?? 0;
 

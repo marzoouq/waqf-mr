@@ -33,17 +33,7 @@ import ContractFormDialog, { ContractFormData, emptyFormData } from '@/component
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 
-/** دالة موحدة لحساب عدد الدفعات حسب نوع الدفع */
-const getPaymentCount = (contract: { payment_type?: string | null; payment_count?: number | null }) => {
-  switch (contract.payment_type) {
-    case 'monthly': return 12;
-    case 'quarterly': return 4;
-    case 'semi_annual':
-    case 'semi-annual': return 2;
-    case 'annual': return 1;
-    default: return contract.payment_count || 1;
-  }
-};
+import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -274,7 +264,7 @@ const ContractsPage = () => {
     }
   };
 
-  const getPaymentTypeLabel = (type?: string) => type === 'monthly' ? 'شهري' : type === 'quarterly' ? 'ربعي' : type === 'semi_annual' ? 'نصف سنوي' : type === 'annual' ? 'سنوي' : 'متعدد';
+  
 
   const filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
@@ -461,7 +451,7 @@ const ContractsPage = () => {
                           <TableCell>{contract.end_date}</TableCell>
                           <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>
-                            {contract.payment_type === 'monthly' ? 'شهري' : contract.payment_type === 'annual' ? 'سنوي' : `متعدد (${contract.payment_count} دفعات)`}
+                            {getPaymentTypeLabel(contract.payment_type)}
                           </TableCell>
                           <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
                           <TableCell>

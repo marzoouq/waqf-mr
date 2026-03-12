@@ -21,8 +21,9 @@ import { toast } from 'sonner';
 import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import TablePagination from '@/components/TablePagination';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
@@ -41,6 +42,8 @@ function ZatcaManagementPage() {
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<any>(null);
+  const [invoicePage, setInvoicePage] = useState(1);
+  const INVOICES_PER_PAGE = 20;
 
   // ─── Required Settings for Onboarding ───
   const { data: zatcaSettings } = useQuery({
@@ -95,6 +98,10 @@ function ZatcaManagementPage() {
   });
 
   const allInvoices = [...invoices, ...paymentInvoices];
+  const paginatedInvoices = useMemo(() => {
+    const start = (invoicePage - 1) * INVOICES_PER_PAGE;
+    return allInvoices.slice(start, start + INVOICES_PER_PAGE);
+  }, [allInvoices, invoicePage]);
 
   // ─── Invoice Chain ───
   const { data: chain = [], isLoading: chainLoading } = useQuery({
@@ -221,7 +228,7 @@ function ZatcaManagementPage() {
   };
 
   // ─── Summary ───
-  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared'].includes(i.zatca_status || '')).length;
+  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(i.zatca_status || '')).length;
   const pending = allInvoices.filter(i => i.zatca_status === 'not_submitted' || !i.zatca_status).length;
   const rejected = allInvoices.filter(i => i.zatca_status === 'rejected').length;
   const activeCert = certificates.find(c => c.is_active);
@@ -323,10 +330,10 @@ function ZatcaManagementPage() {
                       <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>
                     ) : allInvoices.length === 0 ? (
                       <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
-                    ) : allInvoices.map(inv => {
+                    ) : paginatedInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
                       const rowBusy = isRowPending(inv.id);
-                      const isSubmitted = ['submitted', 'reported', 'cleared'].includes(inv.zatca_status || '');
+                      const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
 
                       const hasXml = !!inv.zatca_xml;
                       const hasSig = !!inv.invoice_hash;
@@ -465,6 +472,7 @@ function ZatcaManagementPage() {
                   </TableBody>
                 </Table>
               </CardContent>
+              <TablePagination currentPage={invoicePage} totalItems={allInvoices.length} itemsPerPage={INVOICES_PER_PAGE} onPageChange={setInvoicePage} />
             </Card>
           </TabsContent>
 
