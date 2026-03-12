@@ -35,6 +35,8 @@ const mockedUseBylaws = vi.mocked(useBylaws);
 const mockedUseAppSettings = vi.mocked(useAppSettings);
 
 describe('BylawsViewPage', () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
   beforeEach(() => {
     mockedUseBylaws.mockReturnValue({
       data: [
