@@ -291,17 +291,12 @@ const UserManagementPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>الدور</Label>
-                  <Select value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">ناظر (Admin)</SelectItem>
-                      <SelectItem value="accountant">محاسب</SelectItem>
-                      <SelectItem value="beneficiary">مستفيد</SelectItem>
-                      <SelectItem value="waqif">واقف</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <NativeSelect value={createForm.role} onValueChange={(v) => setCreateForm({ ...createForm, role: v })} options={[
+                    { value: 'admin', label: 'ناظر (Admin)' },
+                    { value: 'accountant', label: 'محاسب' },
+                    { value: 'beneficiary', label: 'مستفيد' },
+                    { value: 'waqif', label: 'واقف' },
+                  ]} />
                 </div>
                 <Button type="submit" className="w-full gradient-primary" disabled={createUser.isPending}>
                   {createUser.isPending ? 'جاري الإنشاء...' : 'إنشاء المستخدم'}

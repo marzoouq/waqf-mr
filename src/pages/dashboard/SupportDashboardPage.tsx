@@ -779,25 +779,19 @@ function NewTicketDialog({ open, onClose }: { open: boolean; onClose: () => void
           <Input placeholder="عنوان التذكرة *" value={title} onChange={e => setTitle(e.target.value)} />
           <Textarea placeholder="وصف تفصيلي..." value={description} onChange={e => setDescription(e.target.value)} />
           <div className="grid grid-cols-2 gap-3">
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger><SelectValue placeholder="التصنيف" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">عام</SelectItem>
-                <SelectItem value="technical">تقني</SelectItem>
-                <SelectItem value="financial">مالي</SelectItem>
-                <SelectItem value="account">حساب</SelectItem>
-                <SelectItem value="suggestion">اقتراح</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger><SelectValue placeholder="الأولوية" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">منخفض</SelectItem>
-                <SelectItem value="medium">متوسط</SelectItem>
-                <SelectItem value="high">عالي</SelectItem>
-                <SelectItem value="critical">حرج</SelectItem>
-              </SelectContent>
-            </Select>
+            <NativeSelect value={category} onValueChange={setCategory} options={[
+              { value: 'general', label: 'عام' },
+              { value: 'technical', label: 'تقني' },
+              { value: 'financial', label: 'مالي' },
+              { value: 'account', label: 'حساب' },
+              { value: 'suggestion', label: 'اقتراح' },
+            ]} />
+            <NativeSelect value={priority} onValueChange={setPriority} options={[
+              { value: 'low', label: 'منخفض' },
+              { value: 'medium', label: 'متوسط' },
+              { value: 'high', label: 'عالي' },
+              { value: 'critical', label: 'حرج' },
+            ]} />
           </div>
         </div>
         <DialogFooter>

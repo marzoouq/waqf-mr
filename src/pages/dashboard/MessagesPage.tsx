@@ -202,14 +202,7 @@ const MessagesPage = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>المستفيد</Label>
-              <Select value={newConvBeneficiary} onValueChange={setNewConvBeneficiary}>
-                <SelectTrigger><SelectValue placeholder="اختر المستفيد" /></SelectTrigger>
-                <SelectContent>
-                  {beneficiaries.filter((b) => b.user_id).map((b) => (
-                    <SelectItem key={b.id} value={b.user_id!}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NativeSelect value={newConvBeneficiary} onValueChange={setNewConvBeneficiary} placeholder="اختر المستفيد" options={beneficiaries.filter((b) => b.user_id).map((b) => ({ value: b.user_id!, label: b.name }))} />
             </div>
             <div className="space-y-1.5">
               <Label>الموضوع</Label>

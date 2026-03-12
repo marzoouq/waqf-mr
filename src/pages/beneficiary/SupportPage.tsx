@@ -292,16 +292,13 @@ function NewTicketDialog({ open, onClose }: { open: boolean; onClose: () => void
         <div className="space-y-4">
           <Input placeholder="عنوان الطلب *" value={title} onChange={e => setTitle(e.target.value)} />
           <Textarea placeholder="وصف تفصيلي للمشكلة..." value={description} onChange={e => setDescription(e.target.value)} />
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger><SelectValue placeholder="التصنيف" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="general">عام</SelectItem>
-              <SelectItem value="technical">تقني</SelectItem>
-              <SelectItem value="financial">مالي</SelectItem>
-              <SelectItem value="account">حساب</SelectItem>
-              <SelectItem value="suggestion">اقتراح</SelectItem>
-            </SelectContent>
-          </Select>
+          <NativeSelect value={category} onValueChange={setCategory} options={[
+            { value: 'general', label: 'عام' },
+            { value: 'technical', label: 'تقني' },
+            { value: 'financial', label: 'مالي' },
+            { value: 'account', label: 'حساب' },
+            { value: 'suggestion', label: 'اقتراح' },
+          ]} />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>

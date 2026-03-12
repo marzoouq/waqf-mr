@@ -690,10 +690,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">نوع الدفع</Label>
-                          <Select value={wholeRentalForm.payment_type} onValueChange={(v) => setWholeRentalForm({ ...wholeRentalForm, payment_type: v })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>{PAYMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={wholeRentalForm.payment_type} onValueChange={(v) => setWholeRentalForm({ ...wholeRentalForm, payment_type: v })} options={PAYMENT_TYPES} />
                         </div>
                         {wholeRentalForm.payment_type === 'multi' && (
                           <div className="space-y-1">
