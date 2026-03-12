@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
-import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
@@ -27,7 +27,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 
 const ContractsViewPage = () => {
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
-  const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
+  const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
   const pdfWaqfInfo = usePdfWaqfInfo();
 

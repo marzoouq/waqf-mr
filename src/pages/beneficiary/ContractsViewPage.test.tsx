@@ -38,7 +38,7 @@ const mockContracts = [
 ];
 
 vi.mock('@/hooks/useContracts', () => ({
-  useContractsSafeByFiscalYear: vi.fn(() => ({
+  useContractsByFiscalYear: vi.fn(() => ({
     data: mockContracts, isLoading: false, isError: false, refetch: vi.fn(),
   })),
 }));

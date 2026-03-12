@@ -52,25 +52,6 @@ const AccountsBeneficiariesTable = ({
           <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
         ) : (
           <>
-            {/* Mobile Cards */}
-            <div className="space-y-2 md:hidden">
-              {beneficiaries.map((b) => (
-                <div key={b.id} className="flex justify-between items-center py-2 px-3 rounded-lg border bg-muted/20">
-                  <div>
-                    <p className="font-medium text-sm">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatPercentage(b.share_percentage)}</p>
-                  </div>
-                  <span className="text-primary font-bold text-sm">
-                    {(totalBeneficiaryPercentage > 0
-                      ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
-                      : 0
-                    ).toLocaleString()} ريال
-                  </span>
-                </div>
-              ))}
-            </div>
-            {/* Desktop Table */}
-            <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -94,7 +75,6 @@ const AccountsBeneficiariesTable = ({
                 ))}
               </TableBody>
             </Table>
-            </div>
             {totalBeneficiaryPercentage > 0 && totalBeneficiaryPercentage !== 100 && (
               <div className="mt-2 px-3 py-2 bg-warning/10 border border-warning/30 rounded-md text-xs text-warning flex items-center gap-1">
                 ⚠ مجموع نسب المستفيدين ({totalBeneficiaryPercentage}%) لا يساوي 100% — التوزيع يتم بشكل تناسبي
