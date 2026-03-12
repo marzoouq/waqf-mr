@@ -239,7 +239,7 @@ function buildUBL(
   </cac:LegalMonetaryTotal>
   <cac:InvoiceLine>
     <cbc:ID>1</cbc:ID>
-    <cbc:InvoicedQuantity unitCode="PCE">1.000000</cbc:InvoicedQuantity>
+    <cbc:InvoicedQuantity unitCode="MON">1.000000</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cac:TaxTotal>
       <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
