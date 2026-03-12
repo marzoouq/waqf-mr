@@ -1414,12 +1414,12 @@ export type Database = {
         Insert: {
           bank_account?: never
           created_at?: string | null
-          email?: string | null
+          email?: never
           id?: string | null
           name?: string | null
           national_id?: never
           notes?: string | null
-          phone?: string | null
+          phone?: never
           share_percentage?: number | null
           updated_at?: string | null
           user_id?: string | null
@@ -1427,12 +1427,12 @@ export type Database = {
         Update: {
           bank_account?: never
           created_at?: string | null
-          email?: string | null
+          email?: never
           id?: string | null
           name?: string | null
           national_id?: never
           notes?: string | null
-          phone?: string | null
+          phone?: never
           share_percentage?: number | null
           updated_at?: string | null
           user_id?: string | null
