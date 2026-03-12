@@ -24,18 +24,18 @@
 
 | # | الشدة | الفجوة | الحالة |
 |---|-------|--------|--------|
-| GAP-1 | 🔴 | التوقيع الرقمي ECDSA غائب — SHA-256 بسيط بدل C14N + ECDSA | ⏳ |
-| GAP-2 | 🔴 | Onboarding يرسل private_key بدل CSR (PKCS#10) | ⏳ |
-| GAP-3 | 🔴 | XML ناقص عناصر إلزامية (UBLExtensions, IssueTime, CustomerParty) | ⏳ |
-| GAP-4 | 🔴 | Auth header خاطئ — يستخدم cert:private_key بدل binarySecurityToken | ⏳ |
-| GAP-5 | 🟠 | QR موجود في `zatcaQr.ts` لكن غير مربوط بالـ XML | ⏳ |
-| GAP-6 | ✅ | تشفير المفتاح الخاص — محلول عبر `get_active_zatca_certificate()` | ✅ |
-| GAP-7 | 🔴 | UI بلا validation على ترتيب الخطوات (XML → Sign → Submit) | ⏳ |
-| GAP-8 | 🔴 | `invoice_type` لا يُمرر للـ XML Generator | ⏳ |
-| GAP-9 | 🔴 | `payment_invoices` ليس لديها أعمدة ZATCA — مسار الإرسال مكسور | ⏳ |
-| GAP-10 | 🟠 | TLV encoding خاطئ للقيم > 127 بايت | ⏳ |
-| GAP-11 | 🟠 | ICV race condition — `get_next_icv` بلا transaction | ⏳ |
-| GAP-12 | 🟡 | Signer بلا حماية من التطبيق المزدوج | ⏳ |
+| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
+| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
+| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
+| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
+| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
+| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
+| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
+| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
+| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
+| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
+| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
+| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
 
 ---
 
