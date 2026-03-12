@@ -94,6 +94,7 @@ function ZatcaManagementPage() {
     onSuccess: () => {
       toast.success('تم توليد XML بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: () => setPendingAction(null),
