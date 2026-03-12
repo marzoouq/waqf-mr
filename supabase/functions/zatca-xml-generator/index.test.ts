@@ -463,3 +463,133 @@ Deno.test("No PCE in any invoice type — rental model uses MON", () => {
     assertStringIncludes(xml, 'unitCode="MON"');
   }
 });
+
+// ────────────────────────────────────────────────────────────────────────
+// Test 9: schemeID attributes on all required elements
+// ────────────────────────────────────────────────────────────────────────
+Deno.test("schemeID attributes — CRN, TIN, UN/ECE 5305, UN/ECE 5153, NAT", () => {
+  const xml = buildUBL({
+    invoice_number: "INV-SCH-01",
+    invoice_type: "standard",
+    date: "2026-04-01",
+    amount_excluding_vat: 5000,
+    vat_amount: 750,
+    vat_rate: 15,
+    icv: 20,
+    buyer_id: "9999999999",
+  }, defaultSettings, "");
+
+  // Seller CRN
+  assertStringIncludes(xml, 'schemeID="CRN"');
+
+  // TIN on seller CompanyID
+  assertStringIncludes(xml, 'schemeID="TIN"');
+
+  // Buyer NAT (standard only)
+  assertStringIncludes(xml, 'schemeID="NAT"');
+
+  // UN/ECE 5305 + schemeAgencyID="6" on every TaxCategory ID
+  const taxCatMatches = xml.match(/schemeID="UN\/ECE 5305" schemeAgencyID="6"/g);
+  // AllowanceCharge TaxCategory + TaxSubtotal TaxCategory + ClassifiedTaxCategory = 3
+  assertEquals(taxCatMatches!.length, 3, "Expected 3 UN/ECE 5305 occurrences");
+
+  // UN/ECE 5153 + schemeAgencyID="6" on every TaxScheme ID
+  const taxSchemeMatches = xml.match(/schemeID="UN\/ECE 5153" schemeAgencyID="6"/g);
+  // AllowanceCharge TaxScheme + TaxSubtotal TaxScheme + ClassifiedTaxCategory TaxScheme = 3
+  assertEquals(taxSchemeMatches!.length, 3, "Expected 3 UN/ECE 5153 occurrences");
+});
+
+// ────────────────────────────────────────────────────────────────────────
+// Test 10: AllowanceCharge structure and LegalMonetaryTotal completeness
+// ────────────────────────────────────────────────────────────────────────
+Deno.test("AllowanceCharge + LegalMonetaryTotal — mandatory elements present", () => {
+  const xml = buildUBL({
+    invoice_number: "INV-AC-01",
+    invoice_type: "standard",
+    date: "2026-04-05",
+    amount_excluding_vat: 12000,
+    vat_amount: 1800,
+    vat_rate: 15,
+    icv: 21,
+  }, defaultSettings, "");
+
+  // AllowanceCharge block
+  assertStringIncludes(xml, "<cbc:ChargeIndicator>false</cbc:ChargeIndicator>");
+  assertStringIncludes(xml, "<cbc:AllowanceChargeReason>discount</cbc:AllowanceChargeReason>");
+  assertStringIncludes(xml, '<cbc:Amount currencyID="SAR">0.00</cbc:Amount>');
+
+  // LegalMonetaryTotal mandatory elements
+  assertStringIncludes(xml, "<cbc:LineExtensionAmount");
+  assertStringIncludes(xml, "<cbc:TaxExclusiveAmount");
+  assertStringIncludes(xml, "<cbc:TaxInclusiveAmount");
+  assertStringIncludes(xml, "<cbc:AllowanceTotalAmount");
+  assertStringIncludes(xml, "<cbc:PrepaidAmount");
+  assertStringIncludes(xml, "<cbc:PayableAmount");
+
+  // AllowanceTotalAmount and PrepaidAmount are 0.00
+  assertStringIncludes(xml, '<cbc:AllowanceTotalAmount currencyID="SAR">0.00</cbc:AllowanceTotalAmount>');
+  assertStringIncludes(xml, '<cbc:PrepaidAmount currencyID="SAR">0.00</cbc:PrepaidAmount>');
+
+  // Verify amounts are correct
+  assertStringIncludes(xml, '<cbc:TaxInclusiveAmount currencyID="SAR">13800.00</cbc:TaxInclusiveAmount>');
+  assertStringIncludes(xml, '<cbc:PayableAmount currencyID="SAR">13800.00</cbc:PayableAmount>');
+});
+
+// ────────────────────────────────────────────────────────────────────────
+// Test 11: Percent formatting — always 2 decimal places
+// ────────────────────────────────────────────────────────────────────────
+Deno.test("Percent formatting — always two decimal places", () => {
+  // 15% VAT
+  const xml15 = buildUBL({
+    invoice_number: "INV-PCT-15",
+    invoice_type: "standard",
+    date: "2026-05-01",
+    amount_excluding_vat: 1000,
+    vat_amount: 150,
+    vat_rate: 15,
+    icv: 30,
+  }, defaultSettings, "");
+
+  // All Percent elements should be 15.00
+  const percents15 = xml15.match(/<cbc:Percent>[^<]+<\/cbc:Percent>/g)!;
+  for (const p of percents15) {
+    assertStringIncludes(p, "15.00");
+  }
+  // Must NOT have bare "15" or "15.0" without second decimal
+  assertNotMatch(xml15, /<cbc:Percent>15<\/cbc:Percent>/);
+  assertNotMatch(xml15, /<cbc:Percent>15\.0<\/cbc:Percent>/);
+
+  // 0% VAT (zero-rated)
+  const xml0 = buildUBL({
+    invoice_number: "INV-PCT-0",
+    invoice_type: "standard",
+    date: "2026-05-01",
+    amount_excluding_vat: 1000,
+    vat_amount: 0,
+    vat_rate: 0,
+    icv: 31,
+  }, defaultSettings, "");
+
+  const percents0 = xml0.match(/<cbc:Percent>[^<]+<\/cbc:Percent>/g)!;
+  for (const p of percents0) {
+    assertStringIncludes(p, "0.00");
+  }
+  assertNotMatch(xml0, /<cbc:Percent>0<\/cbc:Percent>/);
+
+  // 5% VAT
+  const xml5 = buildUBL({
+    invoice_number: "INV-PCT-5",
+    invoice_type: "standard",
+    date: "2026-05-01",
+    amount_excluding_vat: 1000,
+    vat_amount: 50,
+    vat_rate: 5,
+    icv: 32,
+  }, defaultSettings, "");
+
+  const percents5 = xml5.match(/<cbc:Percent>[^<]+<\/cbc:Percent>/g)!;
+  for (const p of percents5) {
+    assertStringIncludes(p, "5.00");
+  }
+  assertNotMatch(xml5, /<cbc:Percent>5<\/cbc:Percent>/);
+});
