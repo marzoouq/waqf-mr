@@ -65,8 +65,8 @@ describe('ErrorBoundary', () => {
     );
 
     // First click: soft recovery attempt (resets state, child throws again)
-    await userEvent.click(screen.getByRole('button', { name: /العودة للصفحة الرئيسية/ }));
-    // Second click: hard redirect
+    await userEvent.click(screen.getByRole('button', { name: /إعادة المحاولة/ }));
+    // Second click: hard redirect — button text changes to "العودة للصفحة الرئيسية"
     await userEvent.click(screen.getByRole('button', { name: /العودة للصفحة الرئيسية/ }));
     expect(window.location.href).toBe('/');
   });
