@@ -3,10 +3,23 @@ import { startRegistration, startAuthentication, browserSupportsWebAuthn } from 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { logAccessEvent } from '@/hooks/useAccessLog';
 
 const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
 
 interface WebAuthnCredential { id: string; device_name: string; created_at: string; }
+
+/** تسجيل حدث بصمة في سجل الوصول */
+const logBiometricEvent = (
+  eventType: 'login_success' | 'login_failed',
+  action: string,
+  metadata?: Record<string, unknown>,
+) => {
+  logAccessEvent({
+    event_type: eventType,
+    metadata: { login_method: 'biometric', action, ...metadata },
+  });
+};
 
 export function useWebAuthn() {
   const [isSupported, setIsSupported] = useState(false);
@@ -91,13 +104,15 @@ export function useWebAuthn() {
 
       if (optErr || !options) {
         logger.error('WebAuthn register-options error:', optErr);
-        toast.error('فشل في بدء عملية التسجيل');
+        logBiometricEvent('login_failed', 'register-options', { reason: 'server_error' });
+        toast.error('فشل في بدء عملية التسجيل. تحقق من اتصالك بالإنترنت وأعد المحاولة');
         return false;
       }
 
       // التحقق من وجود خطأ في الاستجابة
       if (options.error) {
         logger.error('WebAuthn register-options server error');
+        logBiometricEvent('login_failed', 'register-options', { reason: options.error });
         toast.error(options.error || 'فشل في بدء عملية التسجيل');
         return false;
       }
@@ -112,6 +127,7 @@ export function useWebAuthn() {
       });
 
       if (verErr || !result?.verified) {
+        logBiometricEvent('login_failed', 'register-verify', { reason: 'verification_failed' });
         toast.error('فشل في تسجيل البصمة');
         return false;
       }
@@ -125,18 +141,34 @@ export function useWebAuthn() {
       const name = err instanceof DOMException || err instanceof Error ? err.name : '';
       const errMessage = err instanceof Error ? err.message : 'خطأ غير معروف';
       logger.error('WebAuthn registration error:', errMessage, err);
+
       if (name === 'NotAllowedError') {
         if (errMessage.toLowerCase().includes('timeout')) {
-          toast.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال');
+          logBiometricEvent('login_failed', 'register', { reason: 'timeout' });
+          toast.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال', {
+            action: { label: 'إعادة المحاولة', onClick: () => registerBiometric(deviceName) },
+          });
         } else {
-          toast.error('تعذّر إكمال تسجيل البصمة. تأكد من تفعيل البصمة/الوجه على الجهاز ثم أعد المحاولة');
+          logBiometricEvent('login_failed', 'register', { reason: 'not_allowed' });
+          toast.error('تعذّر إكمال تسجيل البصمة. تأكد من:\n• تفعيل البصمة/الوجه في إعدادات جهازك\n• السماح للمتصفح بالوصول للمستشعر البيومتري');
         }
       } else if (name === 'SecurityError') {
+        logBiometricEvent('login_failed', 'register', { reason: 'security_error' });
         toast.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
       } else if (name === 'InvalidStateError') {
+        logBiometricEvent('login_failed', 'register', { reason: 'already_registered' });
         toast.error('هذا الجهاز مسجل مسبقاً');
+      } else if (name === 'AbortError') {
+        logBiometricEvent('login_failed', 'register', { reason: 'aborted' });
+        toast.error('تم إلغاء عملية تسجيل البصمة');
+      } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
+        logBiometricEvent('login_failed', 'register', { reason: 'network_error' });
+        toast.error('خطأ في الاتصال بالخادم. تحقق من اتصالك بالإنترنت وأعد المحاولة', {
+          action: { label: 'إعادة المحاولة', onClick: () => registerBiometric(deviceName) },
+        });
       } else {
-        toast.error('حدث خطأ أثناء تسجيل البصمة');
+        logBiometricEvent('login_failed', 'register', { reason: 'unknown', error_name: name });
+        toast.error('حدث خطأ أثناء تسجيل البصمة. أعد المحاولة أو تواصل مع الدعم الفني');
       }
       return false;
     } finally {
@@ -154,7 +186,8 @@ export function useWebAuthn() {
       });
 
       if (optErr || !options) {
-        toast.error('فشل في بدء عملية المصادقة');
+        logBiometricEvent('login_failed', 'auth-options', { reason: 'server_error' });
+        toast.error('فشل في بدء عملية المصادقة. تحقق من اتصالك بالإنترنت');
         return false;
       }
 
@@ -167,13 +200,15 @@ export function useWebAuthn() {
       });
 
       if (verErr || !result?.verified) {
+        logBiometricEvent('login_failed', 'auth-verify', { reason: 'verification_failed' });
         toast.error('فشل في التحقق من البصمة');
         return false;
       }
 
       // 4. تعيين الجلسة من الاستجابة مباشرة (الجلسة تُنشأ server-side)
       if (!result.access_token || !result.refresh_token) {
-        toast.error('لم يتم استلام بيانات الجلسة');
+        logBiometricEvent('login_failed', 'auth-session', { reason: 'no_tokens' });
+        toast.error('لم يتم استلام بيانات الجلسة. أعد المحاولة');
         return false;
       }
 
@@ -183,18 +218,35 @@ export function useWebAuthn() {
       });
 
       if (sessionError) {
+        logBiometricEvent('login_failed', 'auth-session', { reason: 'session_set_error' });
         toast.error('فشل في إنشاء الجلسة');
         return false;
       }
 
+      logBiometricEvent('login_success', 'authenticate', {});
       toast.success('تم تسجيل الدخول بالبصمة بنجاح');
       return true;
     } catch (err: unknown) {
       const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+      const errMessage = err instanceof Error ? err.message : '';
+
       if (name === 'NotAllowedError') {
-        toast.error('تم إلغاء عملية البصمة');
+        if (errMessage.toLowerCase().includes('timeout')) {
+          logBiometricEvent('login_failed', 'authenticate', { reason: 'timeout' });
+          toast.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
+        } else {
+          logBiometricEvent('login_failed', 'authenticate', { reason: 'cancelled' });
+          toast.error('تم إلغاء عملية البصمة');
+        }
+      } else if (name === 'AbortError') {
+        logBiometricEvent('login_failed', 'authenticate', { reason: 'aborted' });
+        toast.error('تم إلغاء عملية المصادقة بالبصمة');
+      } else if (errMessage.toLowerCase().includes('network') || errMessage.toLowerCase().includes('fetch')) {
+        logBiometricEvent('login_failed', 'authenticate', { reason: 'network_error' });
+        toast.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
       } else {
-        toast.error('حدث خطأ أثناء المصادقة بالبصمة');
+        logBiometricEvent('login_failed', 'authenticate', { reason: 'unknown', error_name: name });
+        toast.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
       }
       return false;
     } finally {

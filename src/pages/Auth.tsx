@@ -451,10 +451,19 @@ const Auth = () => {
               toast.success('تم تسجيل الدخول بالبصمة بنجاح');
             } catch (err: unknown) {
               const name = err instanceof DOMException || err instanceof Error ? err.name : '';
+              const errMsg = err instanceof Error ? err.message : '';
               if (name === 'NotAllowedError') {
-                toast.error('تم إلغاء عملية البصمة');
+                if (errMsg.toLowerCase().includes('timeout')) {
+                  toast.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
+                } else {
+                  toast.error('تم إلغاء عملية البصمة');
+                }
+              } else if (name === 'AbortError') {
+                toast.error('تم إلغاء عملية المصادقة');
+              } else if (errMsg.toLowerCase().includes('network') || errMsg.toLowerCase().includes('fetch')) {
+                toast.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
               } else {
-                toast.error('حدث خطأ أثناء المصادقة بالبصمة');
+                toast.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
               }
             } finally {
               setBiometricLoading(false);
