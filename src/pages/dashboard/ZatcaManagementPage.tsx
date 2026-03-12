@@ -42,6 +42,8 @@ function ZatcaManagementPage() {
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<any>(null);
+  const [invoicePage, setInvoicePage] = useState(1);
+  const INVOICES_PER_PAGE = 20;
 
   // ─── Required Settings for Onboarding ───
   const { data: zatcaSettings } = useQuery({
