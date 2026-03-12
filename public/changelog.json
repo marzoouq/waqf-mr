@@ -3,10 +3,16 @@
     "version": "2.8.0",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
-      { "type": "improvement", "text": "تحسين أمان التبعيات: نقل serialize-javascript وتثبيت react-router-dom بشكل مرن" },
-      { "type": "improvement", "text": "إصلاح ثغرة beneficiaries_safe: إخفاء email و phone للمستفيدين" },
+      { "type": "fix", "text": "إصلاح مفتاح الرمز البريدي في ZATCA XML (business_address_postal → postal_code)" },
+      { "type": "fix", "text": "إصلاح ترتيب ICV: تخصيص قبل الهاش لضمان صحة التوقيع الرقمي" },
+      { "type": "fix", "text": "استخراج X509IssuerSerial ديناميكياً من الشهادة بدل القيم الثابتة" },
+      { "type": "fix", "text": "تصحيح QR Tag-4: استخدام المبلغ الشامل للضريبة (TaxInclusiveAmount)" },
+      { "type": "fix", "text": "تصحيح توجيه الواقف إلى /waqif بدل /beneficiary في 3 ملفات" },
+      { "type": "fix", "text": "مزامنة الحد الأدنى لكلمة المرور (8 أحرف) بين الكود والاختبارات والوثائق" },
+      { "type": "improvement", "text": "إزالة مكتبة react-day-picker غير المستخدمة وتقليل حجم الحزمة" },
+      { "type": "improvement", "text": "تحسين أمان التبعيات: نقل serialize-javascript وتثبيت react-router-dom" },
       { "type": "improvement", "text": "تأمين دالة allocate_icv_and_chain بفحص الدور وسحب الصلاحيات" },
-      { "type": "fix", "text": "مزامنة إصدار package.json مع changelog لتفعيل تحديث PWA التلقائي" }
+      { "type": "improvement", "text": "إخفاء email و phone في عرض المستفيدين لغير المشرفين" }
     ]
   },
   {
