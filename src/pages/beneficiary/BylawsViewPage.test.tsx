@@ -81,9 +81,11 @@ describe('BylawsViewPage', () => {
 
   it('renders published bylaws content', () => {
     render(
-      <MemoryRouter>
-        <BylawsViewPage />
-      </MemoryRouter>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <BylawsViewPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByText('اللائحة التنظيمية')).toBeInTheDocument();
