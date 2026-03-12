@@ -21,8 +21,9 @@ import { toast } from 'sonner';
 import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import TablePagination from '@/components/TablePagination';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
