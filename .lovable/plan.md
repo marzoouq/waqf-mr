@@ -1,100 +1,129 @@
 
+# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-# تقرير مشاكل أقسام لوحة الناظر والصفحات
+## ✅ تم التنفيذ
 
-بعد فحص شامل لجميع ملفات لوحة الناظر، اكتشفت **7 مشاكل** تتراوح بين خلل وظيفي وعدم اتساق:
+### 1. إصلاح تحذيرات forwardRef
+- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
 
----
+### 2. إشعار حد السجلات في useCrudFactory
+- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
 
-## المشكلة 1: إعداد "إظهار/إخفاء الأقسام" لا يعمل فعلياً 🔴
-
-تبويب "الأقسام" في الإعدادات (`SectionsTab`) يحفظ `sections_visibility` في `app_settings`، لكن `DashboardLayout` **لا يقرأ هذا الإعداد أبداً** عند بناء قائمة الروابط. القائمة الجانبية تستخدم فقط `role_permissions` لفلترة الروابط.
-
-**النتيجة:** الناظر يغيّر مفاتيح التبديل (Switches) لكن لا يتغير شيء في القائمة الجانبية.
-
-**الإصلاح:** دمج `sections_visibility` في منطق فلترة `allAdminLinks` داخل `DashboardLayout` بحيث يتم إخفاء الأقسام التي أوقفها الناظر.
-
----
-
-## المشكلة 2: تبويب "واجهة المستفيد" لا يُطبَّق أيضاً 🔴
-
-نفس المشكلة: `beneficiary_sections` يُحفظ لكن لا يُستخدم في فلترة `allBeneficiaryLinks`.
-
-**الإصلاح:** دمج `beneficiary_sections` في منطق فلترة روابط المستفيد داخل `DashboardLayout`.
+### 3. تقسيم Auth.tsx إلى مكونات فرعية
+- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
+- `SignupForm` — نموذج إنشاء حساب
+- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
+- `ResetPasswordForm` — نموذج استعادة كلمة المرور
+- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
 
 ---
 
-## المشكلة 3: `payment_type` لا يُعالج `semi_annual` بشكل متسق 🟡
+# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
 
-في `ContractsPage` (سطر 405):
-```typescript
-const paymentCount = contract.payment_type === 'monthly' ? 12 
-  : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+## الفجوات المكتشفة (12 فجوة)
+
+| # | الشدة | الفجوة | الحالة |
+|---|-------|--------|--------|
+| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
+| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
+| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
+| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
+| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
+| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
+| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
+| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
+| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
+| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
+| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
+| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+
+---
+
+## المراحل
+
+### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
+**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
+
+- إضافة `<cbc:IssueTime>` (وقت الإصدار)
+- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
+- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
+- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
+- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
+- قراءة `invoice_type` لتحديد `name` attribute:
+  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
+  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
+  - Debit Note: `383`, Credit Note: `381`
+- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
+- إضافة `zatca:ext` namespace
+
+### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
+**الملف**: `supabase/functions/zatca-signer/index.ts`
+
+- SHA-256 على كامل XML بعد Canonicalization (C14N)
+- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
+- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
+- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
+- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
+- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
+- تحديث XML المخزّن في الفاتورة بعد التوقيع
+- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+
+### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
+**الملف**: `supabase/functions/zatca-api/index.ts`
+
+- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
+  - `CN` = اسم المنشأة
+  - `O` = الرقم الضريبي
+  - `serialNumber` = رقم الجهاز
+- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
+- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
+- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
+
+### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
+**Migration مطلوب**:
+```sql
+ALTER TABLE payment_invoices
+  ADD COLUMN IF NOT EXISTS zatca_xml text,
+  ADD COLUMN IF NOT EXISTS invoice_hash text,
+  ADD COLUMN IF NOT EXISTS icv integer,
+  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
 ```
 
-هذا يتجاهل `quarterly` و`semi_annual` ويعتمد على `payment_count` الاحتياطي. لكن في `handleFormSubmit` (سطر 112) يُحسب بشكل صحيح. عدم الاتساق قد يسبب خطأ في عرض نسبة التحصيل.
+**الملفات المتأثرة**:
+- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
+- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
+- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
 
-**الإصلاح:** توحيد دالة حساب `paymentCount` واستخدامها في كل الأماكن.
+### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
+**الملف**: `src/utils/zatcaQr.ts`
 
----
+- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
+- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
+- تضمين QR في PDF عبر `generateQrDataUrl()`
 
-## المشكلة 4: عمود "التحصيل" في العقود يُحسب من الفواتير لكن قد لا توجد فواتير 🟡
+### المرحلة 6 — إصلاح UI (GAP-7)
+**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
 
-بعد إزالة أزرار +/- (الإصلاح السابق)، إذا لم يتم توليد فواتير لعقد ما، يظهر التحصيل `0/X` حتى لو كان العقد محصّلاً فعلياً عبر المسار القديم (tenant_payments).
-
-**الإصلاح:** إضافة تنبيه واضح في واجهة العقود عند وجود عقود بدون فواتير مولّدة، مع زر سريع لتوليدها.
-
----
-
-## المشكلة 5: صفحة "الفواتير" (`InvoicesPage`) وصفحة "فواتير الدفعات" (`PaymentInvoicesTab`) منفصلتان وقد تُسبب لبساً 🟡
-
-- `/dashboard/invoices` — فواتير عامة (مصروفات، مشتريات، إلخ) من جدول `invoices`
-- تبويب "فواتير الدفعات" في `/dashboard/contracts` — فواتير الإيجار من جدول `payment_invoices`
-
-هذا تصميم صحيح لكن قد يُربك الناظر. لا يوجد إشارة واضحة في صفحة الفواتير أنها ليست فواتير الإيجار.
-
-**الإصلاح:** إضافة ملاحظة توضيحية في أعلى صفحة الفواتير (`InvoicesPage`) تشير إلى أن فواتير دفعات الإيجار تُدار من صفحة العقود.
+- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
+- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
+- عرض حالة كل خطوة بصرياً (stepper أو badges)
 
 ---
 
-## المشكلة 6: لوحة الواقف (`/waqif`) تشير للرابط الخطأ في `BottomNav` 🟡
+## ترتيب التنفيذ
 
-```typescript
-const waqifLinks = [
-  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
+```
+المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
+                              ↓
+                        المرحلة 4: payment_invoices migration
+                              ↓
+                        المرحلة 5: QR في XML
+                              ↓
+                        المرحلة 6: UI validation
 ```
 
-الواقف له لوحة خاصة `/waqif` لكن `BottomNav` يوجهه لـ `/beneficiary` كرئيسية. الرابط `/waqif` موجود في الراوتر لكن `BottomNav` لا يستخدمه.
-
-**الإصلاح:** تغيير `waqifLinks[0].to` إلى `/waqif`.
-
----
-
-## المشكلة 7: صفحة الإعدادات — 16 تبويب في سطر واحد 🟡
-
-على شاشة Desktop، يُعرض 16 تبويب في `TabsList` واحد، مما يسبب تزاحماً شديداً خاصة على شاشات 1024-1366px. على الجوال يستخدم `Select` وهذا جيد.
-
-**الإصلاح:** تجميع التبويبات في فئات أو استخدام `flex-wrap` مع `gap` أكبر (هذا مُطبق جزئياً بـ `flex-wrap` لكن بدون تجميع).
-
----
-
-## ملخص الإصلاحات
-
-| # | المشكلة | الأولوية | الملف |
-|---|---------|----------|-------|
-| 1 | إخفاء الأقسام لا يعمل | 🔴 عالية | `DashboardLayout.tsx` |
-| 2 | إخفاء أقسام المستفيد لا يعمل | 🔴 عالية | `DashboardLayout.tsx` |
-| 3 | حساب عدد الدفعات غير متسق | 🟡 متوسطة | `ContractsPage.tsx` |
-| 4 | عقود بدون فواتير = تحصيل 0 | 🟡 متوسطة | `ContractsPage.tsx` |
-| 5 | لبس بين نوعي الفواتير | 🟡 منخفضة | `InvoicesPage.tsx` |
-| 6 | BottomNav الواقف يشير لمسار خطأ | 🟡 متوسطة | `BottomNav.tsx` |
-| 7 | تزاحم تبويبات الإعدادات | 🟡 منخفضة | `SettingsPage.tsx` |
-
-### خطة التنفيذ
-
-1. **`DashboardLayout.tsx`**: قراءة `sections_visibility` و`beneficiary_sections` من `useAppSettings` وتطبيقها على فلترة الروابط
-2. **`ContractsPage.tsx`**: إنشاء دالة `getPaymentCount(contract)` موحدة واستخدامها في عرض التحصيل + إضافة تنبيه للعقود بدون فواتير
-3. **`BottomNav.tsx`**: إصلاح رابط الرئيسية للواقف
-4. **`InvoicesPage.tsx`**: إضافة ملاحظة توضيحية
-5. **`SettingsPage.tsx`**: تحسين طفيف لتنظيم التبويبات
-
+## ما لن يتغير
+- جدول `invoice_chain` وآلية ICV — سليمة
+- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
+- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
+- إعدادات `ZatcaSettingsTab` — كاملة وسليمة

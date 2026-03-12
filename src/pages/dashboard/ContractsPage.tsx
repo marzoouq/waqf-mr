@@ -33,6 +33,18 @@ import ContractFormDialog, { ContractFormData, emptyFormData } from '@/component
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 
+/** دالة موحدة لحساب عدد الدفعات حسب نوع الدفع */
+const getPaymentCount = (contract: { payment_type?: string | null; payment_count?: number | null }) => {
+  switch (contract.payment_type) {
+    case 'monthly': return 12;
+    case 'quarterly': return 4;
+    case 'semi_annual':
+    case 'semi-annual': return 2;
+    case 'annual': return 1;
+    default: return contract.payment_count || 1;
+  }
+};
+
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
@@ -402,7 +414,7 @@ const ContractsPage = () => {
                         <div className="flex items-center justify-between pt-2 border-t">
                           <span className="text-xs text-muted-foreground">التحصيل</span>
                           {(() => {
-                            const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                             const paymentCount = getPaymentCount(contract);
                             const paid = invoicePaidMap.get(contract.id) ?? 0;
                             return (
                               <div className="space-y-1.5">
@@ -454,7 +466,7 @@ const ContractsPage = () => {
                           <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
                           <TableCell>
                             {(() => {
-                              const paymentCount = contract.payment_type === 'monthly' ? 12 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
+                              const paymentCount = getPaymentCount(contract);
                               const paid = invoicePaidMap.get(contract.id) ?? 0;
                               return (
                                 <div className="space-y-1.5">
