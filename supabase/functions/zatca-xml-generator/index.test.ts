@@ -203,7 +203,7 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxExclusiveAmount>
     <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
-    <cbc:AllowanceTotalAmount currencyID="${currencyCode}">0.00</cbc:AllowanceTotalAmount>
+    
     <cbc:PrepaidAmount currencyID="${currencyCode}">0.00</cbc:PrepaidAmount>
     <cbc:PayableAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
