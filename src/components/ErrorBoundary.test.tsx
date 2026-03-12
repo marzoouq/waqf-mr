@@ -46,7 +46,7 @@ describe('ErrorBoundary', () => {
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>,
     );
-    expect(screen.getByRole('button', { name: /العودة للصفحة الرئيسية/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /إعادة المحاولة/ })).toBeInTheDocument();
   });
 
   it('navigates to home on reset button click', async () => {
