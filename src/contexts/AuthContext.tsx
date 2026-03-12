@@ -241,7 +241,7 @@ export const AuthProvider = React.forwardRef<HTMLDivElement, { children: React.R
       {children}
     </AuthContext.Provider>
   );
-}
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

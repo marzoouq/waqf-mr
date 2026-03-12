@@ -2,55 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Building2, LogIn, UserPlus, IdCard, Mail, KeyRound, Download, Loader2, Fingerprint, AlertTriangle, ShieldAlert } from 'lucide-react';
-import { isBiometricEnabled } from '@/hooks/useWebAuthn';
+import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { browserSupportsWebAuthn, startAuthentication } from '@simplewebauthn/browser';
 import { logAccessEvent } from '@/hooks/useAccessLog';
-import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-
-/** تحويل الأرقام العربية-الهندية (٠-٩) والفارسية (۰-۹) إلى أرقام لاتينية */
-function normalizeArabicDigits(str: string): string {
-  return str
-    .replace(/[٠-٩]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48))
-    .replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48))
-    .trim();
-}
+import LoginForm from '@/components/auth/LoginForm';
+import SignupForm from '@/components/auth/SignupForm';
+import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 
 const Auth = () => {
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-  const [nationalId, setNationalId] = useState('');
-  const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
-  const [isLoading, setIsLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(false);
-  const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
-  const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
-    try {
-      const stored = sessionStorage.getItem('nidLockedUntil');
-      if (stored) {
-        const val = Number(stored);
-        return val > Date.now() ? val : null;
-      }
-    } catch { /* silent */ }
-    return null;
-  });
   const [resetMode, setResetMode] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
-  const [biometricLoading, setBiometricLoading] = useState(false);
-  const showBiometric = browserSupportsWebAuthn() && isBiometricEnabled();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // Online/offline detection
   useEffect(() => {
     const goOnline = () => setIsOffline(false);
     const goOffline = () => setIsOffline(true);
@@ -82,17 +51,7 @@ const Auth = () => {
     }
   }, []);
 
-  // مؤقت أمان صارم: يمنع الزر من البقاء معلقاً أكثر من 10 ثوانٍ
-  useEffect(() => {
-    if (!isLoading) return;
-    const safety = setTimeout(() => {
-      setIsLoading(false);
-      // Force-reset isLoading after 10s safety timeout
-    }, 10000);
-    return () => clearTimeout(safety);
-  }, [isLoading]);
-
-  // توجيه المستخدم بعد تسجيل الدخول
+  // Redirect after login
   useEffect(() => {
     if (user && !loading && role) {
       if (role === 'beneficiary') {
@@ -105,20 +64,18 @@ const Auth = () => {
     }
   }, [user, role, loading, navigate]);
 
-  // آلية حماية: إذا تم تسجيل الدخول لكن الدور لم يُحل بعد 5 ثوانٍ (يعتمد على AuthContext)
+  // Role wait timeout
   const [roleWaitTimeout, setRoleWaitTimeout] = useState(false);
   useEffect(() => {
     if (!user || loading || role) {
       setRoleWaitTimeout(false);
       return;
     }
-    const timer = setTimeout(() => {
-      // Role not resolved after 5s from AuthContext
-      setRoleWaitTimeout(true);
-    }, 5000);
+    const timer = setTimeout(() => setRoleWaitTimeout(true), 5000);
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 
+  // Fetch registration setting
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -131,357 +88,13 @@ const Auth = () => {
           setRegistrationEnabled(data.value === 'true');
         }
       } catch {
-        // الافتراضي false — لا تسجيل مفتوح
+        // الافتراضي false
       }
     };
     fetchSettings();
   }, []);
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      let resolvedEmail = normalizeArabicDigits(loginEmail);
-
-      if (loginMethod === 'national_id') {
-        if (!nationalId) {
-          toast.error('يرجى إدخال رقم الهوية الوطنية');
-          return;
-        }
-
-        // Check if currently locked out
-        if (nidLockedUntil && Date.now() < nidLockedUntil) {
-          const secs = Math.ceil((nidLockedUntil - Date.now()) / 1000);
-          toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${secs} ثانية`);
-          return;
-        }
-
-        if (!loginPassword) {
-          toast.error('يرجى إدخال كلمة المرور');
-          return;
-        }
-
-        // تحويل الأرقام العربية/الفارسية تلقائياً
-        const cleanId = normalizeArabicDigits(nationalId);
-
-        // التحقق الفوري من صحة التنسيق قبل الإرسال
-        if (!/^\d{10}$/.test(cleanId)) {
-          toast.error('رقم الهوية يجب أن يكون 10 أرقام');
-          return;
-        }
-
-        // Server-side auth: send password to edge function, never expose email
-        const { data, error: lookupError } = await supabase.functions.invoke('lookup-national-id', {
-          body: { national_id: cleanId, password: loginPassword }
-        });
-
-        // Handle rate limiting (429) — BUG-7 fix: check error message OR data
-        if (lookupError) {
-          // supabase.functions.invoke puts 429 body in error, data may be null
-          const errorBody = typeof lookupError === 'object' && lookupError !== null
-            ? (lookupError as Record<string, unknown>)
-            : null;
-          const errMessage = errorBody?.message || lookupError?.message || '';
-          
-          if (String(errMessage).includes('تم تجاوز حد المحاولات') || data?.remaining === 0) {
-            const retryAfter = data?.retry_after || 120;
-            const lockTime = Date.now() + retryAfter * 1000;
-            setNidLockedUntil(lockTime);
-            try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
-            setNidAttemptsRemaining(0);
-            toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
-            return;
-          }
-          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
-          return;
-        }
-
-        // Update remaining attempts from response
-        if (data?.remaining !== undefined) {
-          setNidAttemptsRemaining(data.remaining);
-        }
-
-        if (!data?.found) {
-          toast.error('رقم الهوية غير مسجل في النظام. تأكد من صحة الرقم أو تواصل مع ناظر الوقف.');
-          return;
-        }
-
-        // Check for auth error from server-side login
-        if (data?.auth_error) {
-          toast.error(data.auth_error);
-          logAccessEvent({
-            event_type: 'login_failed',
-            metadata: { error_message: 'nid_auth_error', login_method: 'national_id' },
-          });
-          return;
-        }
-
-        // If session returned from server-side auth, set it directly
-        if (data?.session?.access_token && data?.session?.refresh_token) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-          });
-          if (sessionError) {
-            toast.error('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
-            logAccessEvent({
-              event_type: 'login_failed',
-              metadata: { error_message: 'session_set_error', login_method: 'national_id' },
-            });
-          } else {
-            toast.success('تم تسجيل الدخول بنجاح');
-            logAccessEvent({
-              event_type: 'login_success',
-              metadata: { login_method: 'national_id' },
-            });
-          }
-          return;
-        }
-
-        // Fallback: shouldn't reach here with new flow
-        toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
-        return;
-      } else {
-        if (!resolvedEmail) {
-          toast.error('يرجى إدخال البريد الإلكتروني');
-          return;
-        }
-      }
-
-      if (!loginPassword) {
-        toast.error('يرجى إدخال كلمة المرور');
-        return;
-      }
-
-      const { error } = await signIn(resolvedEmail, loginPassword);
-      if (error) {
-        toast.error(getSafeErrorMessage(error));
-        logAccessEvent({
-          event_type: 'login_failed',
-          email: resolvedEmail,
-          metadata: { error_message: 'login_error', login_method: loginMethod },
-        });
-      } else {
-        toast.success('تم تسجيل الدخول بنجاح');
-        supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
-          logAccessEvent({
-            event_type: 'login_success',
-            email: resolvedEmail,
-            user_id: currentUser?.id,
-          });
-        }).catch(() => { /* silent */ });
-      }
-    } catch (err) {
-      toast.error('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signupEmail || !signupPassword) {
-      toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-      return;
-    }
-    if (signupPassword.length < 8) {
-      toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-      return;
-    }
-    setIsLoading(true);
-    const { error } = await signUp(normalizeArabicDigits(signupEmail), signupPassword);
-    setIsLoading(false);
-    if (error) {
-      toast.error(getSafeErrorMessage(error));
-    } else {
-      toast.success('تم التسجيل بنجاح! يرجى تأكيد بريدك الإلكتروني. سيتم إنشاء حسابك كمستفيد ويحتاج تفعيل من ناظر الوقف.');
-    }
-  };
-
-  const renderLoginForm = (idSuffix = '') => (
-    <form onSubmit={handleSignIn} className="space-y-5">
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">طريقة تسجيل الدخول</Label>
-        <RadioGroup
-          value={loginMethod}
-          onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}
-          className="flex flex-wrap gap-3"
-          dir="rtl"
-        >
-          <label
-            htmlFor={`method-email${idSuffix}`}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
-              loginMethod === 'email'
-                ? 'border-primary bg-accent shadow-sm'
-                : 'border-border hover:border-primary/30'
-            }`}
-          >
-            <RadioGroupItem value="email" id={`method-email${idSuffix}`} />
-            <Mail className="w-4 h-4" />
-            <span className="text-sm">البريد الإلكتروني</span>
-          </label>
-          <label
-            htmlFor={`method-id${idSuffix}`}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
-              loginMethod === 'national_id'
-                ? 'border-primary bg-accent shadow-sm'
-                : 'border-border hover:border-primary/30'
-            }`}
-          >
-            <RadioGroupItem value="national_id" id={`method-id${idSuffix}`} />
-            <IdCard className="w-4 h-4" />
-            <span className="text-sm">رقم الهوية</span>
-          </label>
-        </RadioGroup>
-      </div>
-
-      {loginMethod === 'email' ? (
-        <div className="space-y-2">
-          <Label htmlFor={`signin-email${idSuffix}`}>البريد الإلكتروني</Label>
-          <Input
-            id={`signin-email${idSuffix}`}
-            type="email"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            placeholder="example@email.com"
-            dir="ltr"
-            className="h-11"
-          />
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor={`signin-national-id${idSuffix}`}>رقم الهوية الوطنية</Label>
-          <Input
-            id={`signin-national-id${idSuffix}`}
-            type="text"
-            value={nationalId}
-            onChange={(e) => setNationalId(e.target.value)}
-            placeholder="1234567890"
-            dir="ltr"
-            className="h-11"
-          />
-          {/* عداد المحاولات المتبقية */}
-          {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
-            <div className={`flex items-center gap-1.5 text-xs mt-1 ${
-              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
-            }`}>
-              {nidAttemptsRemaining === 0 ? (
-                <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-              ) : (
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              )}
-              <span>
-                {nidAttemptsRemaining === 0
-                  ? 'تم تجاوز حد المحاولات — يرجى الانتظار دقيقتين'
-                  : `المحاولات المتبقية: ${nidAttemptsRemaining}`}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor={`signin-password${idSuffix}`}>كلمة المرور</Label>
-        <Input
-          id={`signin-password${idSuffix}`}
-          type="password"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          placeholder="••••••••"
-          dir="ltr"
-          className="h-11"
-        />
-      </div>
-      <div className="flex justify-center">
-        <Button
-          type="button"
-          variant="link"
-          className="text-sm text-muted-foreground hover:text-primary p-0 h-auto"
-          onClick={() => setResetMode(true)}
-        >
-          <KeyRound className="w-3.5 h-3.5 ml-1" />
-          نسيت كلمة المرور؟
-        </Button>
-      </div>
-      <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading || loading}>
-        {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
-      </Button>
-
-      {/* زر تسجيل الدخول بالبصمة */}
-      {showBiometric && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full h-11 gap-2 border-primary/30 hover:bg-primary/5"
-          disabled={biometricLoading}
-          onClick={async () => {
-            setBiometricLoading(true);
-            try {
-              // 1. طلب خيارات المصادقة
-              const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
-                body: { action: 'auth-options' },
-              });
-              if (optErr || !options) {
-                toast.error('فشل في بدء عملية المصادقة');
-                return;
-              }
-              // 2. تشغيل مطالبة البصمة
-              const credential = await startAuthentication({ optionsJSON: options });
-              // 3. التحقق
-              const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
-                body: { action: 'auth-verify', credential, challenge_id: options.challenge_id },
-              });
-              if (verErr || !result?.verified) {
-                toast.error('فشل في التحقق من البصمة');
-                return;
-              }
-              if (!result.access_token || !result.refresh_token) {
-                toast.error('لم يتم استلام بيانات الجلسة');
-                return;
-              }
-              const { error: sessionError } = await supabase.auth.setSession({
-                access_token: result.access_token,
-                refresh_token: result.refresh_token,
-              });
-              if (sessionError) {
-                toast.error('فشل في إنشاء الجلسة');
-                return;
-              }
-              toast.success('تم تسجيل الدخول بالبصمة بنجاح');
-            } catch (err: unknown) {
-              const name = err instanceof DOMException || err instanceof Error ? err.name : '';
-              const errMsg = err instanceof Error ? err.message : '';
-              if (name === 'NotAllowedError') {
-                if (errMsg.toLowerCase().includes('timeout')) {
-                  toast.error('انتهت مهلة المصادقة بالبصمة. أعد المحاولة');
-                } else {
-                  toast.error('تم إلغاء عملية البصمة');
-                }
-              } else if (name === 'AbortError') {
-                toast.error('تم إلغاء عملية المصادقة');
-              } else if (errMsg.toLowerCase().includes('network') || errMsg.toLowerCase().includes('fetch')) {
-                toast.error('خطأ في الاتصال. تحقق من الإنترنت وأعد المحاولة');
-              } else {
-                toast.error('حدث خطأ أثناء المصادقة بالبصمة. أعد المحاولة أو سجّل الدخول بكلمة المرور');
-              }
-            } finally {
-              setBiometricLoading(false);
-            }
-          }}
-        >
-          {biometricLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Fingerprint className="w-5 h-5 text-primary" />
-          )}
-          تسجيل الدخول بالبصمة
-        </Button>
-      )}
-    </form>
-  );
-
-  // إذا المستخدم مسجّل دخوله وينتظر التوجيه، عرض شاشة انتقالية
+  // Waiting for role resolution
   if (user && !loading && !role) {
     return (
       <div className="min-h-screen gradient-auth pattern-islamic-strong flex items-center justify-center p-4" dir="rtl">
@@ -520,12 +133,9 @@ const Auth = () => {
         )}
         <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-sm bg-card/95">
           <CardHeader className="text-center space-y-5 pb-2">
-            {/* Logo with glow */}
             <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
               <Building2 className="w-10 h-10 text-primary-foreground" />
             </div>
-
-            {/* Title with Amiri font */}
             <div className="space-y-2">
               <CardTitle className="text-3xl font-display font-bold tracking-wide">
                 نظام إدارة الوقف
@@ -540,40 +150,7 @@ const Auth = () => {
           </CardHeader>
           <CardContent className="pt-4">
             {resetMode ? (
-              <div className="space-y-5">
-                <p className="text-sm text-muted-foreground text-center">أدخل بريدك الإلكتروني لإرسال رابط إعادة تعيين كلمة المرور</p>
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">البريد الإلكتروني</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="example@email.com"
-                    dir="ltr"
-                    className="h-11"
-                  />
-                </div>
-                <Button
-                  className="w-full h-11 gradient-primary"
-                  disabled={isLoading}
-                  onClick={async () => {
-                    if (!resetEmail) { toast.error('يرجى إدخال البريد الإلكتروني'); return; }
-                    setIsLoading(true);
-                    const { error } = await supabase.auth.resetPasswordForEmail(normalizeArabicDigits(resetEmail), {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    setIsLoading(false);
-                    if (error) { toast.error(getSafeErrorMessage(error)); }
-                    else { toast.success('تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني'); setResetMode(false); }
-                  }}
-                >
-                  {isLoading ? 'جاري الإرسال...' : 'إرسال رابط إعادة التعيين'}
-                </Button>
-                <Button variant="ghost" className="w-full" onClick={() => setResetMode(false)}>
-                  العودة لتسجيل الدخول
-                </Button>
-              </div>
+              <ResetPasswordForm onBack={() => setResetMode(false)} />
             ) : registrationEnabled ? (
               <Tabs defaultValue="signin" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6 h-11">
@@ -586,50 +163,17 @@ const Auth = () => {
                     حساب جديد
                   </TabsTrigger>
                 </TabsList>
-
                 <TabsContent value="signin">
-                  {renderLoginForm()}
+                  <LoginForm signIn={signIn} loading={loading} onResetPassword={() => setResetMode(true)} />
                 </TabsContent>
-
                 <TabsContent value="signup">
-                  <form onSubmit={handleSignUp} className="space-y-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">البريد الإلكتروني</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        placeholder="example@email.com"
-                        dir="ltr"
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">كلمة المرور</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="••••••••"
-                        dir="ltr"
-                        className="h-11"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 text-center leading-relaxed">
-                      سيتم إنشاء حسابك كـ<strong>مستفيد</strong> ويحتاج تفعيل من ناظر الوقف قبل استخدامه.
-                    </p>
-                    <Button type="submit" className="w-full h-11 gradient-primary text-base font-medium shadow-elegant hover:shadow-gold transition-shadow" disabled={isLoading}>
-                      {isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'}
-                    </Button>
-                  </form>
+                  <SignupForm signUp={signUp} />
                 </TabsContent>
               </Tabs>
             ) : (
-              renderLoginForm('-direct')
+              <LoginForm signIn={signIn} loading={loading} onResetPassword={() => setResetMode(true)} idSuffix="-direct" />
             )}
-            </CardContent>
+          </CardContent>
         </Card>
 
         {/* Install app button */}
@@ -654,7 +198,6 @@ const Auth = () => {
           </Button>
         )}
 
-        {/* Footer text */}
         <p className="text-center text-primary-foreground/40 text-xs mt-4 font-display">
           ❖ بركة الوقف ❖
         </p>

@@ -84,7 +84,7 @@ export const FiscalYearProvider = forwardRef<HTMLDivElement, { children: React.R
       {children}
     </FiscalYearContext.Provider>
   );
-};
+});
 
 export const useFiscalYear = () => {
   const context = useContext(FiscalYearContext);
