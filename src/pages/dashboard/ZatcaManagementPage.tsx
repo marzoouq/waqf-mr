@@ -228,7 +228,7 @@ function ZatcaManagementPage() {
   };
 
   // ─── Summary ───
-  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared'].includes(i.zatca_status || '')).length;
+  const submitted = allInvoices.filter(i => ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(i.zatca_status || '')).length;
   const pending = allInvoices.filter(i => i.zatca_status === 'not_submitted' || !i.zatca_status).length;
   const rejected = allInvoices.filter(i => i.zatca_status === 'rejected').length;
   const activeCert = certificates.find(c => c.is_active);
