@@ -34,7 +34,7 @@ import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 
 /** دالة موحدة لحساب عدد الدفعات حسب نوع الدفع */
-const getPaymentCount = (contract: { payment_type: string; payment_count?: number | null }) => {
+const getPaymentCount = (contract: { payment_type?: string | null; payment_count?: number | null }) => {
   switch (contract.payment_type) {
     case 'monthly': return 12;
     case 'quarterly': return 4;
