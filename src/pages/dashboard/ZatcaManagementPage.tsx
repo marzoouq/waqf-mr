@@ -472,6 +472,7 @@ function ZatcaManagementPage() {
                   </TableBody>
                 </Table>
               </CardContent>
+              <TablePagination currentPage={invoicePage} totalItems={allInvoices.length} itemsPerPage={INVOICES_PER_PAGE} onPageChange={setInvoicePage} />
             </Card>
           </TabsContent>
 
