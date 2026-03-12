@@ -176,6 +176,23 @@ Deno.serve(async (req: Request) => {
 
     // ─── تسجيل الدخول بالبصمة: توليد خيارات المصادقة ───
     if (action === "auth-options") {
+      // Rate limiting: 10 طلبات/دقيقة لكل IP
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+        || req.headers.get("x-real-ip")
+        || "unknown";
+      const { data: allowed, error: rlError } = await admin.rpc("check_rate_limit", {
+        p_key: `webauthn:auth:${clientIp}`,
+        p_limit: 10,
+        p_window_seconds: 60,
+      });
+      // Fail-closed: إذا فشل الفحص أو تجاوز الحد → رفض
+      if (rlError || allowed === false) {
+        return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، حاول بعد دقيقة" }), {
+          status: 429,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+
       // تنظيف التحديات القديمة
       await admin.rpc("cleanup_expired_challenges");
 
