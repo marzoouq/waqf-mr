@@ -317,6 +317,65 @@ function ZatcaManagementPage() {
 
             <Card>
               <CardContent className="p-0">
+                {invoicesLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">جارٍ التحميل...</div>
+                ) : allInvoices.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">لا توجد فواتير</div>
+                ) : (
+                <>
+                {/* Mobile Cards */}
+                <div className="space-y-3 md:hidden p-3">
+                  {paginatedInvoices.map(inv => {
+                    const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
+                    const rowBusy = isRowPending(inv.id);
+                    const hasXml = !!inv.zatca_xml;
+                    const hasSig = !!inv.invoice_hash;
+                    const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
+                    const canSign = hasXml && !hasSig;
+                    const canSubmit = hasXml && hasSig && !isSubmitted;
+                    return (
+                      <Card key={inv.id} className={`shadow-sm ${rowBusy ? 'opacity-60' : ''}`}>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-sm font-bold">{inv.invoice_number || '—'}</span>
+                            <Badge variant={status.variant}>{status.label}</Badge>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div><span className="text-xs text-muted-foreground">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
+                            <div><span className="text-xs text-muted-foreground">الضريبة</span><p className="font-medium">{Number(inv.vat_amount).toLocaleString()} ({inv.vat_rate}%)</p></div>
+                            <div><span className="text-xs text-muted-foreground">التاريخ</span><p className="font-medium">{inv.date}</p></div>
+                            <div><span className="text-xs text-muted-foreground">الخطوات</span>
+                              <div className="flex items-center gap-1">
+                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${hasXml ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>1</span>
+                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${hasSig ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>2</span>
+                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${isSubmitted ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>3</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            {!isSubmitted && (
+                              <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => generateXml.mutate({ invoiceId: inv.id, table: inv.source })} disabled={rowBusy || hasSig}>
+                                <FileCode className="w-3 h-3 ml-1" />XML
+                              </Button>
+                            )}
+                            {!isSubmitted && (
+                              <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => signInvoice.mutate({ invoiceId: inv.id, table: inv.source })} disabled={rowBusy || !canSign}>
+                                <PenTool className="w-3 h-3 ml-1" />توقيع
+                              </Button>
+                            )}
+                            {canSubmit && (
+                              <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: inv.invoice_type === 'standard' ? 'clearance' : 'report' })} disabled={rowBusy}>
+                                <Send className="w-3 h-3 ml-1" />إرسال
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -330,11 +389,7 @@ function ZatcaManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoicesLoading ? (
-                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>
-                    ) : allInvoices.length === 0 ? (
-                      <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
-                    ) : paginatedInvoices.map(inv => {
+                    {paginatedInvoices.map(inv => {
                       const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
                       const rowBusy = isRowPending(inv.id);
                       const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
@@ -475,6 +530,9 @@ function ZatcaManagementPage() {
                     })}
                   </TableBody>
                 </Table>
+                </div>
+                </>
+                )}
               </CardContent>
               <TablePagination currentPage={invoicePage} totalItems={allInvoices.length} itemsPerPage={INVOICES_PER_PAGE} onPageChange={setInvoicePage} />
             </Card>

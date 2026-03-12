@@ -300,6 +300,47 @@ const SupportDashboardPage = () => {
                     {searchQuery || categoryFilter !== 'all' ? 'لا توجد تذاكر مطابقة للبحث' : 'لا توجد تذاكر'}
                   </p>
                 ) : (
+                  <>
+                  {/* Mobile Cards */}
+                  <div className="space-y-3 md:hidden p-3">
+                    {filteredTickets.map(ticket => {
+                      const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                      const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
+                      const Icon = s.icon;
+                      return (
+                        <Card key={ticket.id} className="shadow-sm">
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <span className="font-bold text-sm">{ticket.title}</span>
+                                <p className="text-xs text-muted-foreground mt-0.5">{ticket.ticket_number}</p>
+                              </div>
+                              <Button size="sm" variant="outline" onClick={() => setSelectedTicket(ticket)}>
+                                <Eye className="w-3 h-3 ml-1" />عرض
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                              <Badge className={p.color}>{p.label}</Badge>
+                              <span className="text-xs text-muted-foreground">{CATEGORY_MAP[ticket.category] || ticket.category}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</span>
+                              {ticket.rating ? (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
@@ -350,6 +391,8 @@ const SupportDashboardPage = () => {
                       })}
                     </TableBody>
                   </Table>
+                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -391,6 +434,28 @@ const SupportDashboardPage = () => {
                     </p>
                   </div>
                 ) : (
+                  <>
+                  {/* Mobile Cards */}
+                  <div className="space-y-3 md:hidden p-3">
+                    {filteredErrors.map(err => {
+                      const meta = err.metadata as Record<string, string> | null;
+                      return (
+                        <Card key={err.id} className="shadow-sm">
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">{new Date(err.created_at).toLocaleString('ar-SA')}</span>
+                            </div>
+                            <p className="font-mono text-xs truncate" dir="ltr">{err.target_path || '—'}</p>
+                            <p className="text-xs text-destructive font-mono truncate" dir="ltr">
+                              {meta?.error_name}: {meta?.error_message}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
@@ -420,6 +485,8 @@ const SupportDashboardPage = () => {
                       })}
                     </TableBody>
                   </Table>
+                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
