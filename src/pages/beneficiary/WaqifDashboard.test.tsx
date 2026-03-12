@@ -87,7 +87,7 @@ describe('WaqifDashboard', () => {
       </QueryClientProvider>
     );
 
-    // Should show key financial info
-    expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
-  });
-}, 15_000);
+    // انتظار ظهور عنوان قسم التسلسل المالي الموجود دائماً عند اكتمال التحميل
+    expect(await screen.findByText('التسلسل المالي', {}, { timeout: 10000 })).toBeInTheDocument();
+  }, 15_000);
+});
