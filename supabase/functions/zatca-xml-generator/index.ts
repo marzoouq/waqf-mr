@@ -66,7 +66,7 @@ function buildUBL(
   const streetName = escapeXml(settings.business_address_street || "");
   const buildingNumber = settings.business_address_building || "";
   const cityName = escapeXml(settings.business_address_city || "");
-  const postalZone = settings.business_address_postal || "";
+  const postalZone = settings.business_address_postal_code || "";
   const districtName = escapeXml(settings.business_address_district || "");
   const countrySubentity = escapeXml(settings.business_address_province || "");
 
