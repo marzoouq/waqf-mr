@@ -309,11 +309,14 @@ Deno.serve(async (req) => {
 
         const spki = buildEcSpki(pubKey);
 
+        // Build X509 Extensions (SAN + CertificateTemplateName)
+        const extensions = buildCsrExtensions(solutionName, isProduction);
+
         const certReqInfo = asn1Sequence([
           asn1Integer(0),
           subject,
           spki,
-          asn1Context(0, new Uint8Array(0)),
+          extensions,
         ]);
 
         const hashBytes = await sha256Async(certReqInfo);
