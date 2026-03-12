@@ -1,129 +1,88 @@
 
-# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-## ✅ تم التنفيذ
+# تقرير فحص جنائي شفاف وصريح
 
-### 1. إصلاح تحذيرات forwardRef
-- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
+## ملخص تنفيذي
 
-### 2. إشعار حد السجلات في useCrudFactory
-- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
-
-### 3. تقسيم Auth.tsx إلى مكونات فرعية
-- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
-- `SignupForm` — نموذج إنشاء حساب
-- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
-- `ResetPasswordForm` — نموذج استعادة كلمة المرور
-- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
+بعد فحص معمق لـ 103 سياسة RLS، و25 دالة قاعدة بيانات، و8 وظائف حافة (Edge Functions)، و3 ملفات ترحيل مشكوكة، وكافة ملفات المصادقة — إليك النتائج **بدون تجميل**:
 
 ---
 
-# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
+## النتائج الحقيقية
 
-## الفجوات المكتشفة (12 فجوة)
+### خطورة عالية (تحتاج إصلاح فوري)
 
-| # | الشدة | الفجوة | الحالة |
-|---|-------|--------|--------|
-| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
-| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
-| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
-| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
-| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
-| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
-| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
-| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
-| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
-| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
-| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
-| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+**1. كلمة مرور بنص واضح في Git (Migration 20260312143820)**
+- الملف يحتوي على `crypt('Test1234!', ...)` لحساب `dev-test@waqfwise.app`
+- **الخطر**: أي شخص يصل للمستودع يرى كلمة المرور
+- **الإصلاح**: تفريغ محتوى الملف واستبداله بتعليق. يجب تغيير كلمة المرور فوراً لأنها باقية في تاريخ Git
 
----
+**2. تعديل مباشر على `auth.users` في 3 ملفات ترحيل**
+- `20260312143820` — تعديل `encrypted_password` مباشرة
+- `20260312132453` — تعديل `email_confirmed_at` مباشرة
+- `20260209113027` — تعديل `email_confirmed_at` لـ `beneficiary1@waqf.com`
+- **الخطر**: التعديل المباشر على `auth.users` محظور ويمكن أن يكسر النظام
+- **الإصلاح**: تفريغ الملفات الثلاثة
 
-## المراحل
+**3. `beneficiaries_safe` — بدون سياسات RLS مستقلة (تحذير الفحص)**
+- الماسح يبلغ أنه لا توجد سياسات RLS على هذا الـ VIEW
+- **الحقيقة**: هذا VIEW وليس جدول، مع `security_invoker=on`، يرث سياسات `beneficiaries` الأصلي — وهذا **آمن فعلاً**
+- **القرار**: تجاهل (إيجابي كاذب) مع توثيق السبب
 
-### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
-**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
+### خطورة متوسطة
 
-- إضافة `<cbc:IssueTime>` (وقت الإصدار)
-- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
-- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
-- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
-- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
-- قراءة `invoice_type` لتحديد `name` attribute:
-  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
-  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
-  - Debit Note: `383`, Credit Note: `381`
-- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
-- إضافة `zatca:ext` namespace
+**4. `contracts_safe` VIEW — لا يظهر في قائمة RLS**
+- نفس الوضع: VIEW مع `security_invoker=on`، يرث سياسات `contracts`
+- **آمن** — لكن يجب توثيقه
 
-### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
-**الملف**: `supabase/functions/zatca-signer/index.ts`
+**5. `extension_in_public` (pgcrypto)**
+- ضروري لتشفير PII
+- لا يمكن نقله في بيئة Lovable Cloud
+- **مقبول** مع تسجيل السبب
 
-- SHA-256 على كامل XML بعد Canonicalization (C14N)
-- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
-- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
-- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
-- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
-- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
-- تحديث XML المخزّن في الفاتورة بعد التوقيع
-- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+### ما هو آمن فعلاً (شفافية)
 
-### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
-**الملف**: `supabase/functions/zatca-api/index.ts`
+| الجانب | الحالة | الدليل |
+|--------|--------|--------|
+| 103 سياسة RLS | مطبقة بشكل صحيح | كل الجداول الـ 32 لها RLS مفعّل |
+| فصل الأدوار عن الملف الشخصي | صحيح | جدول `user_roles` منفصل |
+| `has_role()` كـ SECURITY DEFINER | صحيح | يمنع التكرار في RLS |
+| RESTRICTIVE policies للسنوات غير المنشورة | مطبقة | على 7 جداول مالية |
+| Edge Functions تستخدم `getUser()` | صحيح | لا تعتمد على claims فقط |
+| CORS مقيد بالمشروع | صحيح | UUID المشروع فقط |
+| Rate Limiting | مطبق | على signup + webauthn |
+| تشفير PII | مطبق | pgcrypto + trigger تلقائي |
+| سجل المراجعة محمي | صحيح | INSERT/UPDATE/DELETE = false |
+| تنظيف localStorage عند الخروج | مطبق | كل المفاتيح الحساسة |
+| لا يوجد تحقق أدوار من localStorage | صحيح | كل التحقق من قاعدة البيانات |
 
-- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
-  - `CN` = اسم المنشأة
-  - `O` = الرقم الضريبي
-  - `serialNumber` = رقم الجهاز
-- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
-- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
-- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
+### ما لا أستطيع التحقق منه (شفافية كاملة)
 
-### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
-**Migration مطلوب**:
-```sql
-ALTER TABLE payment_invoices
-  ADD COLUMN IF NOT EXISTS zatca_xml text,
-  ADD COLUMN IF NOT EXISTS invoice_hash text,
-  ADD COLUMN IF NOT EXISTS icv integer,
-  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
-```
-
-**الملفات المتأثرة**:
-- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
-- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
-- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
-
-### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
-**الملف**: `src/utils/zatcaQr.ts`
-
-- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
-- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
-- تضمين QR في PDF عبر `generateQrDataUrl()`
-
-### المرحلة 6 — إصلاح UI (GAP-7)
-**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
-
-- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
-- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
-- عرض حالة كل خطوة بصرياً (stepper أو badges)
+- **تاريخ Git**: كلمة المرور `Test1234!` ستبقى في تاريخ الـ commits حتى لو أفرغنا الملف. لا يمكنني مسح تاريخ Git
+- **بيئة الإنتاج (Live)**: لا أستطيع التحقق مما إذا كانت الترحيلات المشكوكة طُبقت فعلاً على Live
+- **مفتاح التشفير الفعلي**: لا أعرف إن كان `pii_encryption_key` قوياً كفاية — هذا مسؤولية المستخدم
 
 ---
 
-## ترتيب التنفيذ
+## خطة الإصلاح
 
-```
-المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
-                              ↓
-                        المرحلة 4: payment_invoices migration
-                              ↓
-                        المرحلة 5: QR في XML
-                              ↓
-                        المرحلة 6: UI validation
+### الخطوة 1: تفريغ ملفات الترحيل الثلاثة المخالفة
+```text
+20260312143820 → تعليق: أُزيل لاحتوائه على كلمة مرور بنص واضح
+20260312132453 → تعليق: أُزيل لتعديله المباشر على auth.users
+20260209113027 → تعليق: أُزيل لتعديله المباشر على auth.users
 ```
 
-## ما لن يتغير
-- جدول `invoice_chain` وآلية ICV — سليمة
-- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
-- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
-- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
+### الخطوة 2: توثيق الإيجابيات الكاذبة في الماسح الأمني
+- تحديث حالة `beneficiaries_safe` بتوضيح أنه VIEW آمن
+- تأكيد حالة `extension_in_public`
+
+### الخطوة 3: إجراءات يدوية مطلوبة من المستخدم
+- **تغيير كلمة مرور** حساب `dev-test@waqfwise.app` فوراً (أو حذفه)
+- **التحقق** من حساب `beneficiary1@waqf.com` إن كان للاختبار فقط
+
+### التفاصيل التقنية
+- إجمالي الملفات المفحوصة: AuthContext, ProtectedRoute, 8 Edge Functions, 103 RLS policies, 25 DB functions, CORS config, كل ملفات الترحيل
+- لا تغييرات على الكود التطبيقي — الإصلاحات على مستوى الترحيلات فقط
+- خطأ البناء الحالي (`restore point`) هو خطأ مؤقت في البنية التحتية وليس مشكلة أمنية — سيُحل بإعادة المحاولة
+
