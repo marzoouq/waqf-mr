@@ -610,6 +610,10 @@ Deno.serve(async (req) => {
       let xmlForHash = xml;
       xmlForHash = xmlForHash.replace(/<ext:UBLExtensions>[\s\S]*?<\/ext:UBLExtensions>/g, "");
       xmlForHash = xmlForHash.replace(/<cac:Signature>[\s\S]*?<\/cac:Signature>/g, "");
+      // GAP: Also strip QR AdditionalDocumentReference (matches 3rd XPath Transform)
+      xmlForHash = xmlForHash.replace(
+        /<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<\/cac:AdditionalDocumentReference>/g, ""
+      );
       const invoiceCanon = c14n(xmlForHash);
       const invoiceDigest = await sha256Base64(invoiceCanon);
 
