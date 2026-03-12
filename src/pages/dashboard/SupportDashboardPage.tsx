@@ -434,6 +434,28 @@ const SupportDashboardPage = () => {
                     </p>
                   </div>
                 ) : (
+                  <>
+                  {/* Mobile Cards */}
+                  <div className="space-y-3 md:hidden p-3">
+                    {filteredErrors.map(err => {
+                      const meta = err.metadata as Record<string, string> | null;
+                      return (
+                        <Card key={err.id} className="shadow-sm">
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">{new Date(err.created_at).toLocaleString('ar-SA')}</span>
+                            </div>
+                            <p className="font-mono text-xs truncate" dir="ltr">{err.target_path || '—'}</p>
+                            <p className="text-xs text-destructive font-mono truncate" dir="ltr">
+                              {meta?.error_name}: {meta?.error_message}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
@@ -463,6 +485,8 @@ const SupportDashboardPage = () => {
                       })}
                     </TableBody>
                   </Table>
+                  </div>
+                  </>
                 )}
               </CardContent>
             </Card>
