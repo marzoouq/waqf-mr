@@ -438,17 +438,30 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   // ── QR Code for VAT invoices ──
   if (isVatInvoice && waqfSettings.vat_registration_number) {
     try {
-      // Prefer the signed QR from invoice_hash (contains Tags 6-9 for standard invoices)
-      // Fall back to basic Tags 1-5 QR if no signed hash available
-      const tlvBase64 = (invoice as unknown as Record<string, unknown>).invoice_hash
-        ? String((invoice as unknown as Record<string, unknown>).invoice_hash)
-        : generateZatcaQrTLV(
-            waqfSettings.waqf_name,
-            waqfSettings.vat_registration_number,
-            new Date().toISOString(),
-            invoice.amount,
-            invoice.vat_amount,
-          );
+      const invRecord = invoice as unknown as Record<string, unknown>;
+      
+      // Extract QR TLV from signed XML (the authoritative source with Tags 6-9)
+      let tlvBase64 = "";
+      const zatcaXml = invRecord.zatca_xml ? String(invRecord.zatca_xml) : "";
+      if (zatcaXml) {
+        const qrMatch = zatcaXml.match(
+          /<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<cbc:EmbeddedDocumentBinaryObject[^>]*>([^<]+)<\/cbc:EmbeddedDocumentBinaryObject>/
+        );
+        if (qrMatch && qrMatch[1] && !qrMatch[1].includes("<!--")) {
+          tlvBase64 = qrMatch[1].trim();
+        }
+      }
+      
+      // Fall back to basic Tags 1-5 QR if no signed QR in XML
+      if (!tlvBase64) {
+        tlvBase64 = generateZatcaQrTLV(
+          waqfSettings.waqf_name,
+          waqfSettings.vat_registration_number,
+          new Date().toISOString(),
+          invoice.amount,
+          invoice.vat_amount,
+        );
+      }
 
       // Generate QR code as data URL, then extract PNG bytes
       const qrDataUrl: string = await QRCode.toDataURL(tlvBase64, {
