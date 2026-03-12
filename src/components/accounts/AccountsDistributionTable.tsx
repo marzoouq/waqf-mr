@@ -166,6 +166,7 @@ const AccountsDistributionTable = ({
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

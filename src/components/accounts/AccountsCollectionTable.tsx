@@ -206,6 +206,8 @@ const AccountsCollectionTable = ({
             </TableFooter>
           </Table>
           </div>
+          </>
+          
         )}
       </CardContent>
     </Card>

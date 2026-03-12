@@ -755,6 +755,7 @@ const SettingsPage = () => {
           <TabsContent value="advances"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><AdvanceSettingsTab /></Suspense></TabsContent>
           <TabsContent value="zatca"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><ZatcaSettingsTab /></Suspense></TabsContent>
           <TabsContent value="security"><SecurityTab /></TabsContent>
+          <TabsContent value="performance"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><PerformanceMonitorTab /></Suspense></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
