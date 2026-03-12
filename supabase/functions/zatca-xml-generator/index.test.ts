@@ -180,20 +180,6 @@ function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
-  <cac:AllowanceCharge>
-    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
-    <cbc:AllowanceChargeReason>discount</cbc:AllowanceChargeReason>
-    <cbc:Amount currencyID="${currencyCode}">0.00</cbc:Amount>
-    <cac:TaxCategory>
-      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-      <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
-      <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
-      <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
-      <cac:TaxScheme>
-        <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-      </cac:TaxScheme>
-    </cac:TaxCategory>
-  </cac:AllowanceCharge>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
   </cac:TaxTotal>
