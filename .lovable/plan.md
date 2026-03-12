@@ -1,129 +1,53 @@
 
-# تقرير فحص التطبيق — waqf-mr.lovable.app
 
-## ✅ تم التنفيذ
+# تحقيق جنائي — تصحيح الادعاءات وخطة الإصلاح
 
-### 1. إصلاح تحذيرات forwardRef
-- لف `AuthProvider` و `FiscalYearProvider` بـ `React.forwardRef`
+## تصحيحات مهمة على تحليلك
 
-### 2. إشعار حد السجلات في useCrudFactory
-- إضافة toast تحذيري عند وصول البيانات للحد الأقصى (500 سجل)
+### ❌ ادعاء خاطئ: `auto-version.yml` بدون `[skip ci]`
+السطر 151 يحتوي بالفعل على `[skip ci]`:
+```
+git commit -m "chore: رفع الإصدار إلى v${{ steps.bump.outputs.version }} [skip ci]"
+```
+**لا توجد حلقة لا نهائية.** الـ 811 تشغيل فاشل سببها تعارض `next-themes@0.3.0` مع React 19 وليس حلقة workflow.
 
-### 3. تقسيم Auth.tsx إلى مكونات فرعية
-- `LoginForm` — نموذج تسجيل الدخول (بريد + هوية وطنية)
-- `SignupForm` — نموذج إنشاء حساب
-- `BiometricLoginButton` — زر تسجيل الدخول بالبصمة
-- `ResetPasswordForm` — نموذج استعادة كلمة المرور
-- `normalizeDigits` — دالة مشتركة لتحويل الأرقام العربية
+### ❌ ادعاء مضلل: `vite-plugin-pwa` "تم التراجع"
+`^0.21.1` هو **أحدث إصدار متاح** على npm. لم يتم التراجع. الثغرة موجودة في تبعيات عابرة (workbox-build) وهي **build-time فقط** ولا تصل للإنتاج. الـ `overrides` في `package.json` تعالج `serialize-javascript` و `minimatch` بالفعل.
+
+### ✅ ادعاءات صحيحة
+- `package-lock.json` قديم — **هذا السبب الجذري الوحيد لفشل النشر**
+- `@dnd-kit/core@^6` مع `sortable@^10` — تعارض حقيقي
+- حزم الاختبار في devDependencies — **تم إصلاحها بالفعل** ✅
 
 ---
 
-# 🏛️ خارطة طريق ZATCA — الامتثال الكامل لهيئة الزكاة والضريبة
+## المشاكل الفعلية المتبقية (مرتبة بالأولوية)
 
-## الفجوات المكتشفة (12 فجوة)
-
-| # | الشدة | الفجوة | الحالة |
-|---|-------|--------|--------|
-| GAP-1 | ✅ | التوقيع الرقمي ECDSA P-256 + C14N + XAdES | ✅ |
-| GAP-2 | ✅ | Onboarding يرسل CSR (PKCS#10) بدل private_key | ✅ |
-| GAP-3 | ✅ | XML كامل (UBLExtensions, IssueTime, CustomerParty) | ✅ |
-| GAP-4 | ✅ | Auth header: binarySecurityToken + Accept-Version V2 | ✅ |
-| GAP-5 | ✅ | QR TLV مربوط بالـ XML بعد التوقيع | ✅ |
-| GAP-6 | ✅ | تشفير المفتاح الخاص — `get_active_zatca_certificate()` | ✅ |
-| GAP-7 | ✅ | UI Stepper 3 خطوات مع validation | ✅ |
-| GAP-8 | ✅ | `invoice_type` ديناميكي (Standard/Simplified/Debit/Credit) | ✅ |
-| GAP-9 | ✅ | `payment_invoices` أعمدة ZATCA مضافة | ✅ |
-| GAP-10 | ✅ | TLV BER-length encoding متعدد البايت | ✅ |
-| GAP-11 | ✅ | `allocate_icv_and_chain` atomic RPC | ✅ |
-| GAP-12 | ✅ | حماية من التوقيع المزدوج | ✅ |
+| # | المشكلة | التأثير | الحل |
+|---|---------|---------|------|
+| 1 | `package-lock.json` قديم | **فشل النشر** | إعادة توليد |
+| 2 | `@dnd-kit/core@^6` مع `sortable@^10` | تعارض صامت | مزامنة الإصدارات |
+| 3 | `zod@^4` مع `@hookform/resolvers@^5` | خطر runtime | التحقق والمعالجة |
 
 ---
 
-## المراحل
+## خطة التنفيذ
 
-### المرحلة 1 — إصلاح XML Generator (GAP-3 + GAP-8)
-**الملف**: `supabase/functions/zatca-xml-generator/index.ts`
+### الخطوة 1: إعادة توليد `package-lock.json`
+- حذف الملف القديم وإعادة إنشائه
+- هذا يحل مشكلة النشر نهائياً
 
-- إضافة `<cbc:IssueTime>` (وقت الإصدار)
-- إضافة `<ext:UBLExtensions>` (مكان التوقيع + QR)
-- إضافة `<cac:AccountingCustomerParty>` (بيانات المشتري)
-- إضافة `<cac:AdditionalDocumentReference>` لـ PIH و QR
-- إصلاح `schemeID="CRN"` → `schemeID="TIN"` للرقم الضريبي
-- قراءة `invoice_type` لتحديد `name` attribute:
-  - Standard: `<cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>`
-  - Simplified: `<cbc:InvoiceTypeCode name="0200000">388</cbc:InvoiceTypeCode>`
-  - Debit Note: `383`, Credit Note: `381`
-- إضافة عنوان البائع من `app_settings` (street, city, postal_code)
-- إضافة `zatca:ext` namespace
+### الخطوة 2: مزامنة `@dnd-kit`
+- ترقية `@dnd-kit/core` إلى `^10.0.0` ليتوافق مع `sortable@^10`
+- أو تخفيض `sortable` إلى `^8.0.0` المتوافق مع `core@^6`
+- يتطلب فحص الكود لمعرفة أي API مستخدم
 
-### المرحلة 2 — إصلاح Signer (GAP-1 + GAP-11 + GAP-12)
-**الملف**: `supabase/functions/zatca-signer/index.ts`
+### الخطوة 3: التحقق من توافق `zod@4` مع `@hookform/resolvers`
+- `@hookform/resolvers@^5.2.2` قد يدعم `zod@4` رسمياً (يحتاج تحقق)
+- إذا لم يدعم: تخفيض zod إلى `^3.25.0`
 
-- SHA-256 على كامل XML بعد Canonicalization (C14N)
-- توقيع ECDSA-secp256k1 باستخدام المفتاح الخاص من `get_active_zatca_certificate()`
-- تضمين التوقيع في `<ext:UBLExtensions>` داخل XML
-- إضافة `<ds:SignedInfo>`, `<ds:SignatureValue>`, `<ds:X509Certificate>`
-- حل race condition: استخدام `SELECT FOR UPDATE` أو RPC ذرية لـ ICV
-- منع التوقيع المزدوج: `if (inv.invoice_hash) return error("already signed")`
-- تحديث XML المخزّن في الفاتورة بعد التوقيع
-- مكتبة مطلوبة: `@noble/secp256k1` عبر esm.sh
+### التفاصيل التقنية
+- الملفات المتأثرة: `package.json`، `package-lock.json`
+- `auto-version.yml` لا يحتاج تعديل (يعمل بشكل صحيح)
+- `vite-plugin-pwa` لا يحتاج تعديل (أحدث إصدار + overrides موجودة)
 
-### المرحلة 3 — إصلاح Onboarding و API Auth (GAP-2 + GAP-4)
-**الملف**: `supabase/functions/zatca-api/index.ts`
-
-- **CSR Generation**: بناء PKCS#10 CSR حقيقي يحتوي على:
-  - `CN` = اسم المنشأة
-  - `O` = الرقم الضريبي
-  - `serialNumber` = رقم الجهاز
-- إرسال CSR (وليس المفتاح الخاص) + OTP إلى ZATCA
-- تخزين `binarySecurityToken` كشهادة + المفتاح الخاص مشفراً
-- إصلاح Auth header: `binarySecurityToken:secret` بدل `cert:private_key`
-
-### المرحلة 4 — إصلاح مسار payment_invoices (GAP-9)
-**Migration مطلوب**:
-```sql
-ALTER TABLE payment_invoices
-  ADD COLUMN IF NOT EXISTS zatca_xml text,
-  ADD COLUMN IF NOT EXISTS invoice_hash text,
-  ADD COLUMN IF NOT EXISTS icv integer,
-  ADD COLUMN IF NOT EXISTS invoice_type text DEFAULT 'simplified';
-```
-
-**الملفات المتأثرة**:
-- `supabase/functions/zatca-api/index.ts` — إصلاح شرط XML الفارغ لـ payment_invoices
-- `supabase/functions/zatca-signer/index.ts` — تحديث payment_invoices بعد التوقيع
-- `src/pages/dashboard/ZatcaManagementPage.tsx` — جلب الأعمدة الجديدة
-
-### المرحلة 5 — QR + TLV (GAP-5 + GAP-10)
-**الملف**: `src/utils/zatcaQr.ts`
-
-- إصلاح TLV encoding: دعم multi-byte length للقيم > 127 بايت
-- ربط QR داخل XML كـ `<cac:AdditionalDocumentReference>` بـ `ID=QR`
-- تضمين QR في PDF عبر `generateQrDataUrl()`
-
-### المرحلة 6 — إصلاح UI (GAP-7)
-**الملف**: `src/pages/dashboard/ZatcaManagementPage.tsx`
-
-- تعطيل زر "توقيع" حتى يوجد `zatca_xml`
-- تعطيل زر "إرسال" حتى يوجد `invoice_hash`
-- عرض حالة كل خطوة بصرياً (stepper أو badges)
-
----
-
-## ترتيب التنفيذ
-
-```
-المرحلة 1: XML ──→ المرحلة 2: التوقيع ──→ المرحلة 3: Onboarding + Auth
-                              ↓
-                        المرحلة 4: payment_invoices migration
-                              ↓
-                        المرحلة 5: QR في XML
-                              ↓
-                        المرحلة 6: UI validation
-```
-
-## ما لن يتغير
-- جدول `invoice_chain` وآلية ICV — سليمة
-- تشفير المفتاح الخاص — موجود ويعمل (GAP-6 ✅)
-- حماية الفواتير من التعديل بعد الإرسال — trigger موجود وسليم
-- إعدادات `ZatcaSettingsTab` — كاملة وسليمة
