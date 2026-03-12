@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.8.0",
+    "date": "١٢ مارس ٢٠٢٦",
+    "changes": [
+      { "type": "improvement", "text": "تحسين أمان التبعيات: نقل serialize-javascript وتثبيت react-router-dom بشكل مرن" },
+      { "type": "improvement", "text": "إصلاح ثغرة beneficiaries_safe: إخفاء email و phone للمستفيدين" },
+      { "type": "improvement", "text": "تأمين دالة allocate_icv_and_chain بفحص الدور وسحب الصلاحيات" },
+      { "type": "fix", "text": "مزامنة إصدار package.json مع changelog لتفعيل تحديث PWA التلقائي" }
+    ]
+  },
+  {
     "version": "2.7.0",
     "date": "١٢ مارس ٢٠٢٦",
     "changes": [
