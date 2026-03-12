@@ -734,6 +734,10 @@ const SettingsPage = () => {
               <ShieldCheck className="w-4 h-4" />
               الأمان
             </TabsTrigger>
+            <TabsTrigger value="performance" className="gap-1.5 text-xs md:text-sm">
+              <Activity className="w-4 h-4" />
+              الأداء
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><LandingPageTab /></Suspense></TabsContent>
