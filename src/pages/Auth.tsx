@@ -47,7 +47,7 @@ const Auth = () => {
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { authenticateWithBiometric, isLoading: biometricLoading, isSupported: biometricSupported } = useWebAuthn();
-  const [showBiometric] = useState(() => isBiometricEnabled() && browserSupportsWebAuthn());
+  const showBiometric = biometricSupported;
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {

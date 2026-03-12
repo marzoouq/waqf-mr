@@ -210,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('sidebar-open');
       localStorage.removeItem('pwa_last_seen_version');
       localStorage.removeItem('waqf_theme_color');
-      localStorage.removeItem('waqf_biometric_enabled');
+      
       localStorage.removeItem('waqf_notification_tone');
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();

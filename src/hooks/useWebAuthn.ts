@@ -126,7 +126,11 @@ export function useWebAuthn() {
       const errMessage = err instanceof Error ? err.message : 'خطأ غير معروف';
       logger.error('WebAuthn registration error:', errMessage, err);
       if (name === 'NotAllowedError') {
-        toast.error('تم إلغاء عملية البصمة من قبل المستخدم');
+        if (errMessage.toLowerCase().includes('timeout')) {
+          toast.error('انتهت مهلة تسجيل البصمة. أعد المحاولة وثبّت الإصبع/الوجه حتى الاكتمال');
+        } else {
+          toast.error('تعذّر إكمال تسجيل البصمة. تأكد من تفعيل البصمة/الوجه على الجهاز ثم أعد المحاولة');
+        }
       } else if (name === 'SecurityError') {
         toast.error('خطأ أمني: تأكد من استخدام اتصال آمن (HTTPS)');
       } else if (name === 'InvalidStateError') {
