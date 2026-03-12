@@ -42,6 +42,25 @@ function ZatcaManagementPage() {
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<any>(null);
 
+  // ─── Required Settings for Onboarding ───
+  const { data: zatcaSettings } = useQuery({
+    queryKey: ['zatca-required-settings'],
+    queryFn: async () => {
+      const { data } = await supabase.from('app_settings').select('key, value')
+        .in('key', ['waqf_name', 'vat_number', 'zatca_device_serial']);
+      const map: Record<string, string> = {};
+      (data || []).forEach(s => { map[s.key] = s.value; });
+      return map;
+    },
+  });
+
+  const missingSettings = [
+    ...(!zatcaSettings?.zatca_device_serial ? ['الرقم التسلسلي للجهاز'] : []),
+    ...(!zatcaSettings?.vat_number ? ['الرقم الضريبي'] : []),
+    ...(!zatcaSettings?.waqf_name ? ['اسم المنشأة'] : []),
+  ];
+  const canOnboard = missingSettings.length === 0;
+
   // ─── Certificates ───
   const { data: certificates = [], isLoading: certsLoading } = useQuery({
     queryKey: ['zatca-certificates'],
