@@ -46,6 +46,8 @@ export interface Contract {
   tenant_district?: string;
   tenant_city?: string;
   tenant_postal_code?: string;
+  tenant_tax_number?: string;
+  tenant_crn?: string;
   created_at: string;
   updated_at: string;
   property?: Property;
