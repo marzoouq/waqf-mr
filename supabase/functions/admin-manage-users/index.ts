@@ -331,8 +331,8 @@ Deno.serve(async (req) => {
             errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
             continue;
           }
-          if (!u.password || typeof u.password !== "string" || u.password.length < 6 || u.password.length > 128) {
-            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 6 و128 حرفاً" });
+          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
+            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 8 و128 حرفاً" });
             continue;
           }
           if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {
