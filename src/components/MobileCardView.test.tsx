@@ -110,4 +110,50 @@ describe('MobileCardView', () => {
     );
     expect(screen.queryAllByRole('button').length).toBe(0);
   });
+
+  it('renders skeleton cards when isLoading is true', () => {
+    const { container } = render(
+      <MobileCardView {...defaultProps} isLoading={true} skeletonCount={2} />
+    );
+    // Should NOT render actual items
+    expect(screen.queryByText('عنصر أ')).not.toBeInTheDocument();
+    // Should render skeleton cards
+    expect(container.querySelectorAll('.shadow-sm')).toHaveLength(2);
+  });
+
+  it('renders default 3 skeletons when skeletonCount not specified', () => {
+    const { container } = render(
+      <MobileCardView {...defaultProps} isLoading={true} />
+    );
+    expect(container.querySelectorAll('.shadow-sm')).toHaveLength(3);
+  });
+
+  it('applies custom className to fields', () => {
+    render(
+      <MobileCardView
+        items={[items[0]]}
+        getKey={(i) => i.id}
+        getTitle={(i) => i.name}
+        getFields={() => [
+          { label: 'ملاحظات', value: 'نص', className: 'col-span-2' },
+        ]}
+      />
+    );
+    const fieldEl = screen.getByText('ملاحظات').parentElement;
+    expect(fieldEl).toHaveClass('col-span-2');
+  });
+
+  it('renders ReactNode values in fields', () => {
+    render(
+      <MobileCardView
+        items={[items[0]]}
+        getKey={(i) => i.id}
+        getTitle={(i) => i.name}
+        getFields={() => [
+          { label: 'الحالة', value: <span data-testid="badge">نشط</span> },
+        ]}
+      />
+    );
+    expect(screen.getByTestId('badge')).toBeInTheDocument();
+  });
 });
