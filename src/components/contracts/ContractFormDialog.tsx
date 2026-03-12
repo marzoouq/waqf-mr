@@ -314,6 +314,38 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           )}
 
           <div className="space-y-2"><Label>اسم المستأجر *</Label><Input value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
+
+          {/* بيانات هوية المستأجر */}
+          <div className="space-y-3 p-3 rounded-lg border border-border bg-muted/30">
+            <Label className="text-sm font-medium">بيانات هوية المستأجر</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">نوع الهوية</Label>
+                <Select value={formData.tenant_id_type} onValueChange={(value) => setFormData({ ...formData, tenant_id_type: value })}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TENANT_ID_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">رقم الهوية</Label>
+                <Input className="h-9" value={formData.tenant_id_number} onChange={(e) => setFormData({ ...formData, tenant_id_number: e.target.value })} placeholder="رقم الهوية" maxLength={20} />
+              </div>
+            </div>
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">عنوان المستأجر (اختياري — مطلوب للفواتير القياسية)</summary>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="space-y-1"><Label className="text-xs">الشارع</Label><Input className="h-8 text-xs" value={formData.tenant_street} onChange={(e) => setFormData({ ...formData, tenant_street: e.target.value })} maxLength={100} /></div>
+                <div className="space-y-1"><Label className="text-xs">المبنى</Label><Input className="h-8 text-xs" value={formData.tenant_building} onChange={(e) => setFormData({ ...formData, tenant_building: e.target.value })} maxLength={50} /></div>
+                <div className="space-y-1"><Label className="text-xs">الحي</Label><Input className="h-8 text-xs" value={formData.tenant_district} onChange={(e) => setFormData({ ...formData, tenant_district: e.target.value })} maxLength={100} /></div>
+                <div className="space-y-1"><Label className="text-xs">المدينة</Label><Input className="h-8 text-xs" value={formData.tenant_city} onChange={(e) => setFormData({ ...formData, tenant_city: e.target.value })} maxLength={100} /></div>
+                <div className="space-y-1"><Label className="text-xs">الرمز البريدي</Label><Input className="h-8 text-xs" value={formData.tenant_postal_code} onChange={(e) => setFormData({ ...formData, tenant_postal_code: e.target.value })} maxLength={10} /></div>
+              </div>
+            </details>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2"><Label>تاريخ البداية *</Label><Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
             <div className="space-y-2"><Label>تاريخ النهاية *</Label><Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
