@@ -701,9 +701,15 @@ Deno.serve(async (req) => {
           }
         }
 
+        // QR Tag 3: Use invoice issue date + time (not created_at) per ZATCA spec
+        const issueDate = inv.date || inv.due_date || new Date().toISOString().split("T")[0];
+        const issueCreatedAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
+        const issueTime = issueCreatedAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
+        const qrTimestamp = `${issueDate}T${issueTime}Z`;
+
         const qrTlv = generateZatcaQrTLV(
           qs.waqf_name || "", qs.vat_registration_number || "",
-          inv.created_at ? new Date(String(inv.created_at)).toISOString() : new Date().toISOString(),
+          qrTimestamp,
           taxInclusiveAmount, Number(inv.vat_amount) || 0,
           sigBytes, pubKeyBytes, certSigBytes, certPubKeyBytes,
         );
