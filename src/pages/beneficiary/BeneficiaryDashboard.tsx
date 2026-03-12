@@ -18,6 +18,8 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 const BeneficiaryDashboard = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();

@@ -302,7 +302,7 @@ const MySharePage = () => {
           <p className="text-muted-foreground text-center max-w-md">
             لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
           </p>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة تحميل
           </Button>
         </div>

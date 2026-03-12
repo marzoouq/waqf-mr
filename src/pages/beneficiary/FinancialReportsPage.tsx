@@ -36,6 +36,8 @@ const formatArabicMonth = (month: string) => {
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
 const FinancialReportsPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
 
