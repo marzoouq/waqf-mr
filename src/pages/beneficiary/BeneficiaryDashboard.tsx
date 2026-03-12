@@ -101,7 +101,7 @@ const BeneficiaryDashboard = () => {
   });
 
   // Realtime invalidation for distributions
-  const queryClient = useQueryClient();
+  // Realtime invalidation for distributions (queryClient declared above)
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
 
