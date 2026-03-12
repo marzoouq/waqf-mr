@@ -46,9 +46,11 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
  * E = Exempt
  * O = Out of scope
  */
-function getVatCategoryCode(vatRate: number, vatExemptionReason?: string): string {
+function getVatCategoryCode(vatRate: number, exemptionCode?: string): string {
   if (vatRate > 0) return "S";
-  if (vatExemptionReason) return "E";
+  // If an explicit exemption code (VATEX-SA-29-7 etc.) is provided → Exempt
+  if (exemptionCode) return "E";
+  // Default for 0% → Zero-rated (residential rent etc.)
   return "Z";
 }
 
