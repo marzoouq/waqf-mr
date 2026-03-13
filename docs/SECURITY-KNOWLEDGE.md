@@ -90,3 +90,35 @@
 | `generate-invoice-pdf` | `getUser()` | نطاق المستخدم |
 | `lookup-national-id` | عامة + rate limiting + timing-safe | نقطة دخول المصادقة بالهوية — لا تتطلب جلسة مسبقة |
 | `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
+
+## نتائج اختبار الحماية على الإنتاج (2026-03-13)
+
+تم التحقق من حماية الدوال الحساسة على بيئة الإنتاج (Live) عبر استدعاءات `anon` مباشرة:
+
+| الدالة | النتيجة عبر anon | الحالة |
+|--------|-----------------|--------|
+| `get_pii_key()` | `NULL` | ✅ محمية |
+| `decrypt_pii()` | `********` | ✅ محمية |
+| `get_beneficiary_decrypted()` | خطأ: غير مصرح - يجب تسجيل الدخول | ✅ محمية |
+| `execute_distribution()` | خطأ: غير مصرح بتنفيذ التوزيع | ✅ محمية |
+| `close_fiscal_year()` | خطأ: فقط الناظر يمكنه إقفال السنة المالية | ✅ محمية |
+| `notify_admins()` | خطأ: غير مصرح بإرسال إشعارات للمشرفين | ✅ محمية |
+
+### ملاحظة مهمة حول pg_dump و Lovable Cloud
+
+عند النشر، تُنفذ منصة Lovable Cloud هجرة `pg_dump` تُعيد إنشاء جميع الدوال عبر `CREATE OR REPLACE FUNCTION`. هذا يُعيد صلاحيات `EXECUTE` لـ `PUBLIC` تلقائياً، مما يُبطل أي `REVOKE` سابق.
+
+**الحل المعتمد**: بدلاً من الاعتماد على `REVOKE EXECUTE` (غير مستدام مع pg_dump)، تم تضمين فحوصات أمنية **داخل كود الدوال نفسها**:
+
+```sql
+-- نمط الحماية المُطبَّق في كل دالة حساسة
+IF auth.uid() IS NULL THEN
+  RETURN NULL;  -- أو RAISE EXCEPTION
+END IF;
+IF NOT public.has_role(auth.uid(), 'admin') THEN
+  RAISE EXCEPTION 'غير مصرح';
+END IF;
+```
+
+هذا النهج **لا يتأثر بإعادة إنشاء الدوال** لأن الحماية جزء من كود الدالة المُصدَّر مع pg_dump.
+| `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
