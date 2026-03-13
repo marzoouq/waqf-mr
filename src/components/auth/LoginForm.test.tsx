@@ -92,8 +92,7 @@ describe('LoginForm', () => {
 
   it('يعرض حقل رقم الهوية عند اختيار طريقة الهوية', async () => {
     renderForm();
-    const idRadio = screen.getByRole('radio', { name: /method-id/ });
-    await userEvent.click(idRadio);
+    await userEvent.click(screen.getByText('رقم الهوية'));
     expect(screen.getByPlaceholderText('1234567890')).toBeInTheDocument();
   });
 
