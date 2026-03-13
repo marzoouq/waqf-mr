@@ -2,8 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- Mocks ---
+const mockFrom = vi.fn();
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockOrder = vi.fn();
@@ -13,23 +15,9 @@ const mockSingle = vi.fn();
 const mockMaybeSingle = vi.fn();
 const mockUpdate = vi.fn();
 
-const chainMethods = () => ({
-  select: mockSelect,
-  eq: mockEq,
-  order: mockOrder,
-  limit: mockLimit,
-  insert: mockInsert,
-  single: mockSingle,
-  maybeSingle: mockMaybeSingle,
-  update: mockUpdate,
-});
-
-const mockChannel = vi.fn();
-const mockRemoveChannel = vi.fn();
-
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn(() => chainMethods()),
+    from: (...args: unknown[]) => mockFrom(...args),
     channel: vi.fn(() => ({ on: vi.fn().mockReturnThis(), subscribe: vi.fn() })),
     removeChannel: vi.fn(),
   },
@@ -43,18 +31,22 @@ vi.mock('@/utils/notifications', () => ({ notifyUser: vi.fn() }));
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn() } }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  const chain = chainMethods();
-  for (const fn of Object.values(chain)) {
-    (fn as ReturnType<typeof vi.fn>).mockReturnValue(chain);
-  }
+function buildChain() {
+  const chain: Record<string, ReturnType<typeof vi.fn>> = {
+    select: mockSelect, eq: mockEq, order: mockOrder, limit: mockLimit,
+    insert: mockInsert, single: mockSingle, maybeSingle: mockMaybeSingle, update: mockUpdate,
+  };
+  for (const fn of Object.values(chain)) fn.mockReturnValue(chain);
   mockLimit.mockResolvedValue({ data: [], error: null });
   mockSingle.mockResolvedValue({ data: { id: 'conv-1' }, error: null });
   mockMaybeSingle.mockResolvedValue({ data: null, error: null });
+  return chain;
+}
 
-  const { supabase } = require('@/integrations/supabase/client');
-  supabase.from.mockReturnValue(chain);
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockFrom.mockReturnValue(buildChain());
+  vi.mocked(useAuth).mockReturnValue({ user: null, role: null } as ReturnType<typeof useAuth>);
 });
 
 function createWrapper() {
@@ -71,8 +63,7 @@ describe('useConversations', () => {
   });
 
   it('يجلب عند وجود user', async () => {
-    const { useAuth } = require('@/contexts/AuthContext');
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ user: { id: 'u1' }, role: 'admin' });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1' }, role: 'admin' } as ReturnType<typeof useAuth>);
 
     const { useConversations } = await import('./useMessaging');
     const { result } = renderHook(() => useConversations('inquiry'), { wrapper: createWrapper() });
@@ -83,8 +74,7 @@ describe('useConversations', () => {
 
 describe('useMessages', () => {
   it('معطّل بدون conversationId', async () => {
-    const { useAuth } = require('@/contexts/AuthContext');
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ user: { id: 'u1' }, role: 'admin' });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1' }, role: 'admin' } as ReturnType<typeof useAuth>);
 
     const { useMessages } = await import('./useMessaging');
     const { result } = renderHook(() => useMessages(null), { wrapper: createWrapper() });
@@ -94,8 +84,7 @@ describe('useMessages', () => {
 
 describe('useSendMessage', () => {
   it('يرندر بدون خطأ', async () => {
-    const { useAuth } = require('@/contexts/AuthContext');
-    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ user: { id: 'u1' }, role: 'admin' });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: 'u1' }, role: 'admin' } as ReturnType<typeof useAuth>);
 
     const { useSendMessage } = await import('./useMessaging');
     const { result } = renderHook(() => useSendMessage(), { wrapper: createWrapper() });

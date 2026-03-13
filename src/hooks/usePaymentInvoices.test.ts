@@ -4,38 +4,33 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // --- Mocks ---
+const mockFrom = vi.fn();
+const mockRpc = vi.fn();
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockOrder = vi.fn();
 const mockLimit = vi.fn();
-const mockRpc = vi.fn();
-
-const chainMethods = () => ({
-  select: mockSelect,
-  eq: mockEq,
-  order: mockOrder,
-  limit: mockLimit,
-});
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn(() => chainMethods()),
-    rpc: vi.fn(),
+    from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+function buildChain() {
+  const chain: Record<string, ReturnType<typeof vi.fn>> = {
+    select: mockSelect, eq: mockEq, order: mockOrder, limit: mockLimit,
+  };
+  for (const fn of Object.values(chain)) fn.mockReturnValue(chain);
+  mockLimit.mockResolvedValue({ data: [], error: null });
+  return chain;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  const chain = chainMethods();
-  for (const fn of Object.values(chain)) {
-    (fn as ReturnType<typeof vi.fn>).mockReturnValue(chain);
-  }
-  mockLimit.mockResolvedValue({ data: [], error: null });
-
-  const { supabase } = require('@/integrations/supabase/client');
-  supabase.from.mockReturnValue(chain);
-  supabase.rpc = mockRpc;
+  mockFrom.mockReturnValue(buildChain());
   mockRpc.mockResolvedValue({ data: 3, error: null });
 });
 

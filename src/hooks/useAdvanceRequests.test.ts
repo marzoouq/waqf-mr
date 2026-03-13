@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // --- Mocks ---
+const mockFrom = vi.fn();
 const mockSelect = vi.fn();
 const mockInsert = vi.fn();
 const mockUpdate = vi.fn();
@@ -14,43 +15,28 @@ const mockOrder = vi.fn();
 const mockLimit = vi.fn();
 const mockSingle = vi.fn();
 
-const chainMethods = () => ({
-  select: mockSelect,
-  eq: mockEq,
-  in: mockIn,
-  or: mockOr,
-  order: mockOrder,
-  limit: mockLimit,
-  single: mockSingle,
-});
-
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => chainMethods()),
-  },
+  supabase: { from: (...args: unknown[]) => mockFrom(...args) },
 }));
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('@/utils/notifications', () => ({ notifyAdmins: vi.fn(), notifyUser: vi.fn() }));
 
-// ربط السلسلة
-beforeEach(() => {
-  vi.clearAllMocks();
-  const chain = chainMethods();
-  for (const fn of Object.values(chain)) {
-    (fn as ReturnType<typeof vi.fn>).mockReturnValue(chain);
-  }
+function buildChain() {
+  const chain: Record<string, ReturnType<typeof vi.fn>> = {
+    select: mockSelect, eq: mockEq, in: mockIn, or: mockOr,
+    order: mockOrder, limit: mockLimit, single: mockSingle,
+    insert: mockInsert, update: mockUpdate,
+  };
+  for (const fn of Object.values(chain)) fn.mockReturnValue(chain);
   mockLimit.mockResolvedValue({ data: [], error: null });
   mockSingle.mockResolvedValue({ data: { id: 'test-id' }, error: null });
-  mockSelect.mockReturnValue(chain);
-  mockInsert.mockReturnValue(chain);
-  mockUpdate.mockReturnValue(chain);
+  return chain;
+}
 
-  const { supabase } = require('@/integrations/supabase/client');
-  supabase.from.mockImplementation(() => ({
-    ...chain,
-    insert: mockInsert.mockReturnValue(chain),
-    update: mockUpdate.mockReturnValue(chain),
-  }));
+beforeEach(() => {
+  vi.clearAllMocks();
+  const chain = buildChain();
+  mockFrom.mockReturnValue(chain);
 });
 
 function createWrapper() {
@@ -91,7 +77,7 @@ describe('useMyAdvanceRequests', () => {
 });
 
 describe('usePaidAdvancesTotal', () => {
-  it('يرجع 0 بدون beneficiaryId', async () => {
+  it('معطّل بدون beneficiaryId', async () => {
     const { usePaidAdvancesTotal } = await import('./useAdvanceRequests');
     const { result } = renderHook(() => usePaidAdvancesTotal(undefined), { wrapper: createWrapper() });
     expect(result.current.fetchStatus).toBe('idle');
