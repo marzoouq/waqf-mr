@@ -92,17 +92,16 @@ describe('LoginForm', () => {
 
   it('يعرض حقل رقم الهوية عند اختيار طريقة الهوية', async () => {
     renderForm();
-    const idLabel = screen.getByText('رقم الهوية');
-    await userEvent.click(idLabel);
-    expect(screen.getByLabelText('رقم الهوية الوطنية')).toBeInTheDocument();
+    const idRadio = screen.getByRole('radio', { name: /method-id/ });
+    await userEvent.click(idRadio);
+    expect(screen.getByPlaceholderText('1234567890')).toBeInTheDocument();
   });
 
   // ─── تحقق البريد الإلكتروني ───
 
   it('يظهر خطأ عند إرسال بريد فارغ', async () => {
     renderForm();
-    const passwordInput = screen.getByLabelText('كلمة المرور');
-    await userEvent.type(passwordInput, 'password123');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('يرجى إدخال البريد الإلكتروني');
@@ -111,8 +110,7 @@ describe('LoginForm', () => {
 
   it('يظهر خطأ عند إرسال كلمة مرور فارغة مع بريد', async () => {
     renderForm();
-    const emailInput = screen.getByLabelText('البريد الإلكتروني');
-    await userEvent.type(emailInput, 'test@example.com');
+    await userEvent.type(screen.getByPlaceholderText('example@email.com'), 'test@example.com');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('يرجى إدخال كلمة المرور');
@@ -124,8 +122,8 @@ describe('LoginForm', () => {
   it('يستدعي signIn عند إدخال بريد وكلمة مرور', async () => {
     const signIn = vi.fn(async () => ({ error: null }));
     renderForm({ signIn });
-    await userEvent.type(screen.getByLabelText('البريد الإلكتروني'), 'user@test.com');
-    await userEvent.type(screen.getByLabelText('كلمة المرور'), 'pass123');
+    await userEvent.type(screen.getByPlaceholderText('example@email.com'), 'user@test.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass123');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(signIn).toHaveBeenCalledWith('user@test.com', 'pass123');
@@ -138,8 +136,8 @@ describe('LoginForm', () => {
   it('يظهر خطأ آمن عند فشل signIn', async () => {
     const signIn = vi.fn(async () => ({ error: new Error('bad') }));
     renderForm({ signIn });
-    await userEvent.type(screen.getByLabelText('البريد الإلكتروني'), 'user@test.com');
-    await userEvent.type(screen.getByLabelText('كلمة المرور'), 'wrong');
+    await userEvent.type(screen.getByPlaceholderText('example@email.com'), 'user@test.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'wrong');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('خطأ آمن');
