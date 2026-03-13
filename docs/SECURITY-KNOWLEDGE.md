@@ -54,7 +54,7 @@
 
 | الملاحظة | الحل | تاريخ الحل |
 |----------|------|-----------|
-| `pgcrypto` في schema `public` | تم نقلها إلى `extensions` schema مع تحديث `search_path` لجميع الدوال المتأثرة | 2026-03-13 |
+| `pgcrypto` في schema `public` | تم نقلها إلى `extensions` schema مع تحديث `search_path` لجميع الدوال المتأثرة (6 دوال: `encrypt_pii`, `decrypt_pii`, `encrypt_beneficiary_pii`, `get_active_zatca_certificate`, `lookup_by_national_id`, `encrypt_zatca_private_key`) | 2026-03-13 |
 
 ### قواعد التصنيف العامة
 
