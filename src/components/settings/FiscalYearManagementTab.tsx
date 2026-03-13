@@ -75,7 +75,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
           <AlertDialogCancel onClick={() => setReason('')}>إلغاء</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-amber-600 hover:bg-amber-700"
+            className="bg-caution hover:bg-caution/90"
             disabled={reason.trim().length < 10}
           >
             تأكيد إعادة الفتح
