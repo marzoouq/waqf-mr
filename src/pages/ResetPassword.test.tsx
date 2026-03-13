@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ResetPassword from './ResetPassword';
 
-// متغيرات للتحكم في سلوك المحاكاة
+// متغيرات للتحكم في سلوك المحاكاة — مرفوعة لتعمل مع vi.mock
+const { mockUpdateUser, mockNavigate, mockToastError, mockToastSuccess } = vi.hoisted(() => ({
+  mockUpdateUser: vi.fn(),
+  mockNavigate: vi.fn(),
+  mockToastError: vi.fn(),
+  mockToastSuccess: vi.fn(),
+}));
 let authChangeCallback: ((event: string) => void) | null = null;
-const mockUpdateUser = vi.fn();
-const mockNavigate = vi.fn();
-const mockToastError = vi.fn();
-const mockToastSuccess = vi.fn();
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
