@@ -67,12 +67,11 @@ describe('useBylaws (factory)', () => {
     expect(data).toHaveLength(1);
   });
 
-  it('queryFn returns empty array on empty data', async () => {
+  it('queryFn returns null on empty data (factory does not coerce)', async () => {
     mockLimit.mockResolvedValueOnce({ data: null, error: null });
     useBylaws();
-    // factory يُرجع TData[] — عند null يُعيد مصفوفة فارغة أو يرمي خطأ
     const data = await capturedQueryFn!();
-    expect(data).toEqual([]);
+    expect(data).toBeNull();
   });
 
   it('queryFn throws on error', async () => {
