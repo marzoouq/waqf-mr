@@ -31,6 +31,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const { user, role } = useAuth();
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
+  const prefetchAccounts = usePrefetchAccounts();
 
   return (
     <>
