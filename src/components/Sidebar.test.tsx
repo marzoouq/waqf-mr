@@ -28,9 +28,8 @@ const defaultLinks = [
   { to: '/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-
 const renderSidebar = (props = {}) => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const defaultProps = {
     links: defaultLinks,
     sidebarOpen: true,
