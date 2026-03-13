@@ -4,7 +4,7 @@ import React from 'react';
 
 // ResizeObserver polyfill
 beforeAll(() => {
-  global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
+  (globalThis as Record<string, unknown>).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 });
 
 vi.mock('react-router-dom', () => ({
