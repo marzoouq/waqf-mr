@@ -229,7 +229,7 @@ const Index = () => {
             size="lg"
             className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-all duration-300 rounded-xl font-bold px-8"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowRight className="w-5 h-5" />
             {content.cta_text}
           </Button>
         </div>
