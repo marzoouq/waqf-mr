@@ -1,57 +1,70 @@
 
+# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-# خطة إضافة اختبارات للـ Hooks المتبقية
+## تصنيف المشروع
 
-## الملفات المستهدفة (5 ملفات جديدة)
+هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
 
-### 1. `src/hooks/useAuditLog.test.ts` (~7 اختبارات)
-يختبر:
-- `getTableNameAr`: ترجمة أسماء الجداول المعروفة + إرجاع الاسم الأصلي للمجهولة
-- `getOperationNameAr`: ترجمة العمليات (INSERT/UPDATE/DELETE) + إرجاع الأصلي للمجهولة
-- `useAuditLog`: يرندر بدون خطأ، يمرر الفلاتر (tableName, operation, searchQuery)، يحسب pagination صحيح (`from/to`)
-- تنظيف searchQuery: يزيل الأحرف الخاصة `%_\\(),.*`
+## سياق المستخدمين
 
-### 2. `src/hooks/useRealtimeAlerts.test.ts` (~5 اختبارات)
-يختبر:
-- لا يُشترك إذا لم يوجد user
-- لا يُشترك إذا كان الدور `beneficiary`
-- يُشترك عند `admin` ويسجّل القناة
-- يُشترك عند `accountant`
-- يُنظّف القناة عند unmount (`removeChannel`)
+| الدور | النوع | مستوى الثقة |
+|-------|-------|------------|
+| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
+| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
+| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
+| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
 
-**النمط**: موك لـ `supabase.channel()` يرجع كائن سلسلة `.on().subscribe()` + موك `useAuth`
+## حساسية البيانات
 
-### 3. `src/hooks/useSupportTickets.test.ts` (~8 اختبارات)
-يختبر:
-- `useSupportTickets`: يجلب البيانات، يفلتر بالحالة، يحسب pagination
-- `useTicketReplies`: معطّل بدون ticketId
-- `useCreateTicket`: يستدعي insert + invalidates cache
-- `useUpdateTicketStatus`: يضيف `resolved_at` عند حالة resolved/closed
-- `useAddTicketReply`: يستدعي insert مع sender_id
-- `useRateTicket`: يرندر بدون خطأ
-- `useClientErrors`: يفلتر بـ `event_type = 'client_error'`
-
-### 4. `src/hooks/useAccessLog.test.ts` (~3 اختبارات)
-يختبر:
-- `logAccessEvent`: يستدعي `supabase.rpc('log_access_event')` بالبارامترات الصحيحة
-- يمرر `navigator.userAgent` مقطوعاً إلى 500 حرف
-- لا يرمي خطأ عند فشل RPC (silent fail)
-
-### 5. `src/hooks/usePdfWaqfInfo.test.ts` (~3 اختبارات)
-يختبر:
-- يرجع كائن فارغ عند عدم وجود بيانات
-- يبني `deedNumber` و `court` بالصيغة الصحيحة عند وجود بيانات
-- يمرر `vatNumber` و `logoUrl` من الإعدادات
-
-## النمط المتبع
-- `vi.mock` لـ `supabase`, `sonner`, `AuthContext`
-- `QueryClient` معزول لكل اختبار مع `retry: false`
-- التحقق من نجاح الرندرة (`not.toBeNull()`) بدلاً من البحث عن نصوص عربية
-- `vi.clearAllMocks()` في `beforeEach`
-
-## الإجمالي
 ```text
-ملفات جديدة:     5
-اختبارات جديدة:  ~26
+عالية جداً:
+  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
+  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
+  └─ البريد الإلكتروني وأرقام الهواتف
+
+عالية:
+  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
+  ├─ العقود والفواتير الضريبية (ZATCA)
+  └─ سجل المراجعة الجنائي (audit log)
+
+متوسطة:
+  ├─ بيانات العقارات والوحدات
+  └─ اللوائح الداخلية
 ```
 
+## طبقات الحماية المُطبَّقة فعلياً
+
+1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
+2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
+3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
+4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
+5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
+6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
+
+## توجيهات للماسح الأمني
+
+| الملاحظة | الحكم | السبب |
+|----------|-------|-------|
+| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
+| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
+| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
+
+## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
+
+- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
+- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
+- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
+
+## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
+
+> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
+>
+> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
+>
+> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
+
+## نتائج تم حلها (2026-03-13)
+
+| الملاحظة | الحل |
+|----------|------|
+| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
