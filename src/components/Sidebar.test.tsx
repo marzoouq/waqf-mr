@@ -12,7 +12,11 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/hooks/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
-  useWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' })),
+  useWaqfInfo: vi.fn(() => ({ data: { waqf_name: 'وقف تجريبي', waqf_founder: 'مؤسس', waqf_admin: 'ناظر' }, isLoading: false, error: null })),
+}));
+
+vi.mock('@/hooks/usePrefetchAccounts', () => ({
+  usePrefetchAccounts: () => vi.fn(),
 }));
 
 vi.mock('@/constants', () => ({
