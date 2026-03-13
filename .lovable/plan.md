@@ -1,34 +1,46 @@
 
-# إضافة المساعد الذكي للوحة المستفيد
 
-## التغيير المطلوب
+## خطة إصلاح فشل اختبارات CI (Run Tests workflow)
 
-تغيير واحد فقط في ملف `src/components/AiAssistant.tsx`:
+### المشكلة
+الـ Run Tests workflow يفشل لكن لا يمكننا رؤية تفاصيل الخطأ لأن سجلات GitHub Actions تتطلب تسجيل دخول بصلاحيات admin.
 
-### إزالة قيد الأدوار (سطر 45)
+### الحل: خطوتان
 
-**الحالي:**
-```typescript
-if (role !== 'admin' && role !== 'accountant') return null;
+#### 1. تحسين CI لعرض تفاصيل الأخطاء
+تعديل `.github/workflows/test.yml` لإضافة:
+- `--reporter=verbose` لعرض كل اختبار بالاسم
+- حفظ نتائج الاختبار كـ artifact حتى لو فشلت
+- خطوة إضافية تكتب ملخص الأخطاء في GitHub Summary
+
+```yaml
+- name: Run tests with coverage
+  run: npx vitest run --coverage --reporter=verbose 2>&1 | tee /tmp/test-output.txt
+  continue-on-error: true
+
+- name: Write test summary
+  if: always()
+  run: |
+    echo '## Test Results' >> $GITHUB_STEP_SUMMARY
+    tail -100 /tmp/test-output.txt >> $GITHUB_STEP_SUMMARY
+
+- name: Check test result
+  run: |
+    if grep -q 'Tests.*failed' /tmp/test-output.txt; then
+      echo "Tests failed — see summary above"
+      exit 1
+    fi
 ```
 
-**الجديد:**
-```typescript
-if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
-```
+#### 2. إضافة `@types/qrcode` كـ devDependency
+مكتبة `qrcode` مستخدمة في المشروع بدون أنواع TypeScript، وهذا قد يسبب مشاكل في بعض بيئات الاختبار.
 
-هذا يسمح للمستفيد والواقف باستخدام المساعد الذكي.
+### الملفات المتأثرة
+| الملف | التغيير |
+|-------|---------|
+| `.github/workflows/test.yml` | تحسين عرض الأخطاء + حفظ النتائج |
+| `package.json` | إضافة `@types/qrcode` |
 
----
+### النتيجة المتوقعة
+بعد تطبيق هذه التغييرات، عند الدفع التالي سيظهر ملخص تفصيلي للاختبارات الفاشلة في صفحة الـ workflow على GitHub (في قسم Summary)، مما يسمح بتشخيص المشكلة الفعلية وإصلاحها بدقة.
 
-## لماذا هذا كافٍ؟
-
-- وظيفة الخادم (`ai-assistant`) تدعم جميع الأدوار بالفعل:
-  - تعزل بيانات المستفيد/الواقف تلقائياً (ملخصات مالية عامة فقط)
-  - تستخدم `userClient` مع RLS لمنع تسريب البيانات
-  - تقدم system prompt مخصص لغير الإداريين
-- أوضاع المساعد الثلاثة (محادثة، تحليل، تقرير) تعمل لجميع الأدوار
-
-## الأمان
-
-لا يوجد تأثير أمني -- الحماية مطبقة في الخادم وليس في الواجهة.

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/components/DashboardLayout', () => ({
   default: ({ children }: any) => <div>{children}</div>,
@@ -34,6 +35,8 @@ const mockedUseBylaws = vi.mocked(useBylaws);
 const mockedUseAppSettings = vi.mocked(useAppSettings);
 
 describe('BylawsViewPage', () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
   beforeEach(() => {
     mockedUseBylaws.mockReturnValue({
       data: [
@@ -66,9 +69,11 @@ describe('BylawsViewPage', () => {
     } as any);
 
     render(
-      <MemoryRouter>
-        <BylawsViewPage />
-      </MemoryRouter>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <BylawsViewPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByText('اللائحة غير متاحة حالياً')).toBeInTheDocument();
@@ -76,9 +81,11 @@ describe('BylawsViewPage', () => {
 
   it('renders published bylaws content', () => {
     render(
-      <MemoryRouter>
-        <BylawsViewPage />
-      </MemoryRouter>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter>
+          <BylawsViewPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
 
     expect(screen.getByText('اللائحة التنظيمية')).toBeInTheDocument();

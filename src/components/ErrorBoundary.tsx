@@ -87,7 +87,7 @@ class ErrorBoundary extends Component<Props, State> {
               نعتذر عن هذا الخطأ. يرجى المحاولة مرة أخرى أو العودة للصفحة الرئيسية.
             </p>
             <Button onClick={this.handleReset} className="gradient-primary">
-              العودة للصفحة الرئيسية
+              {this.resetAttempts >= 1 ? 'العودة للصفحة الرئيسية' : 'إعادة المحاولة'}
             </Button>
           </div>
         </div>

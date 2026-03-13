@@ -130,7 +130,7 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 };
 
 // Routes accountant can never access
-const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings'];
+const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca'];
 
 // Dynamic mobile header titles
 const ROUTE_TITLES: Record<string, string> = {
@@ -163,6 +163,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficiary/invoices': 'الفواتير',
   '/beneficiary/bylaws': 'اللائحة التنظيمية',
   '/beneficiary/settings': 'الإعدادات',
+  '/beneficiary/support': 'الدعم الفني',
   '/waqif': 'لوحة الواقف',
 };
 
@@ -294,12 +295,47 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
+  // إعدادات إظهار/إخفاء الأقسام (admin sections_visibility)
+  const defaultAdminSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true };
+  const sectionsVisibility = getJsonSetting('sections_visibility', defaultAdminSections);
+
+  // إعدادات إظهار/إخفاء أقسام المستفيد (beneficiary_sections)
+  const defaultBeneficiarySections = { disclosure: true, share: true, accounts: true, reports: true };
+  const beneficiarySections = getJsonSetting('beneficiary_sections', defaultBeneficiarySections);
+
+  // Map admin sections_visibility keys to route paths
+  const ADMIN_SECTION_KEYS: Record<string, string> = {
+    '/dashboard/properties': 'properties',
+    '/dashboard/contracts': 'contracts',
+    '/dashboard/income': 'income',
+    '/dashboard/expenses': 'expenses',
+    '/dashboard/beneficiaries': 'beneficiaries',
+    '/dashboard/reports': 'reports',
+    '/dashboard/accounts': 'accounts',
+    '/dashboard/users': 'users',
+  };
+
+  // Map beneficiary_sections keys to route paths
+  const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
+    '/beneficiary/disclosure': 'disclosure',
+    '/beneficiary/my-share': 'share',
+    '/beneficiary/carryforward': 'share',
+    '/beneficiary/accounts': 'accounts',
+    '/beneficiary/financial-reports': 'reports',
+  };
+
   const links = useMemo(() => {
     if (role === 'admin') {
-      return allAdminLinks.map(link => {
-        const labelKey = linkLabelKeys[link.to];
-        return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
-      });
+      return allAdminLinks
+        .filter(link => {
+          const sectionKey = ADMIN_SECTION_KEYS[link.to];
+          // If the section has a visibility key, check if it's enabled
+          return !sectionKey || sectionsVisibility[sectionKey] !== false;
+        })
+        .map(link => {
+          const labelKey = linkLabelKeys[link.to];
+          return { ...link, label: (labelKey && menuLabels[labelKey]) || link.label };
+        });
     }
 
     if (role === 'accountant') {
@@ -307,6 +343,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       return allAdminLinks
         .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
         .filter(link => {
+          const sectionKey = ADMIN_SECTION_KEYS[link.to];
+          if (sectionKey && sectionsVisibility[sectionKey] === false) return false;
           const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms[key] !== false;
         })
@@ -319,11 +357,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     // beneficiary or waqif
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
     const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
-    return allBeneficiaryLinks.filter(link => {
-      const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
-      return !key || perms[key] !== false;
-    });
-  }, [role, rolePermissions, menuLabels]);
+    return allBeneficiaryLinks
+      .map(link => {
+        // BUG-G1-3 fix: Replace /beneficiary home with /waqif for waqif role
+        if (role === 'waqif' && link.to === '/beneficiary') {
+          return { ...link, to: '/waqif' };
+        }
+        return link;
+      })
+      .filter(link => {
+        // Apply beneficiary_sections visibility
+        const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
+        if (bsKey && beneficiarySections[bsKey] === false) return false;
+        const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
+        return !key || perms[key] !== false;
+      });
+  }, [role, rolePermissions, menuLabels, sectionsVisibility, beneficiarySections]);
 
   const handleSignOut = async () => {
     setMobileSidebarOpen(false);

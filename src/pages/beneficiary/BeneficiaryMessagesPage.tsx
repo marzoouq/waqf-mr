@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/useMessaging';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -16,6 +17,8 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 const BeneficiaryMessagesPage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
   const { data: supportConversations = [], isLoading: supportLoading } = useConversations('support');
@@ -94,7 +97,7 @@ const BeneficiaryMessagesPage = () => {
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
           <AlertCircle className="w-16 h-16 text-destructive" />
           <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل المراسلات</h2>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
         </div>

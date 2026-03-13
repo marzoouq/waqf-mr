@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error("صيغة البريد الإلكتروني غير صالحة");
     };
     const validatePassword = (p: string) => {
-      if (!p || typeof p !== "string" || p.length < 6 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 6 و 128 حرفاً");
+      if (!p || typeof p !== "string" || p.length < 8 || p.length > 128) throw new Error("كلمة المرور يجب أن تكون بين 8 و 128 حرفاً");
     };
     const validateUuid = (id: string) => {
       if (!id || typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new Error("معرف غير صالح");
@@ -331,8 +331,8 @@ Deno.serve(async (req) => {
             errors.push({ email: u.email || "missing", error: "Invalid or missing email" });
             continue;
           }
-          if (!u.password || typeof u.password !== "string" || u.password.length < 6 || u.password.length > 128) {
-            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 6 و128 حرفاً" });
+          if (!u.password || typeof u.password !== "string" || u.password.length < 8 || u.password.length > 128) {
+            errors.push({ email: u.email, error: "كلمة المرور يجب أن تكون بين 8 و128 حرفاً" });
             continue;
           }
           if (!u.name || typeof u.name !== "string" || u.name.trim().length === 0 || u.name.length > 200) {

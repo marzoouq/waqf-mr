@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
@@ -36,6 +37,8 @@ function toGregorianShort(dateStr: string): string {
 }
 
 const DisclosurePage = () => {
+  const queryClient = useQueryClient();
+  const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { user } = useAuth();
   const isMobile = useIsMobile();
@@ -218,7 +221,7 @@ const DisclosurePage = () => {
           <p className="text-muted-foreground text-center max-w-md">
             لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد. يرجى التواصل مع ناظر الوقف أو المحاولة لاحقاً.
           </p>
-          <Button onClick={() => window.location.reload()} className="gap-2">
+          <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة تحميل
           </Button>
         </div>

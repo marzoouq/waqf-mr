@@ -175,7 +175,8 @@ function processArabicText(text: string): string {
 
 const FONT_BASE_URL = `${Deno.env.get("SUPABASE_URL")!}/storage/v1/object/public/waqf-assets/fonts`;
 
-// Module-level font cache to avoid re-fetching on every invoice
+// Module-level font cache — works within the same Deno Deploy warm isolate.
+// On cold starts, fonts are re-fetched (~200ms). This is acceptable and expected.
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
 
 async function getFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
@@ -208,14 +209,21 @@ interface InvoiceData {
   amount_excluding_vat: number | null;
 }
 
-// ─── ZATCA TLV Encoding ─────────────────────────────────────────
+// ─── ZATCA TLV Encoding (GAP-10 FIX: multi-byte BER length) ────
+function berLength(len: number): Uint8Array {
+  if (len < 128) return new Uint8Array([len]);
+  if (len < 256) return new Uint8Array([0x81, len]);
+  return new Uint8Array([0x82, (len >> 8) & 0xff, len & 0xff]);
+}
+
 function encodeTLV(tag: number, value: string): Uint8Array {
   const encoder = new TextEncoder();
   const valueBytes = encoder.encode(value);
-  const tlv = new Uint8Array(2 + valueBytes.length);
+  const lenBytes = berLength(valueBytes.length);
+  const tlv = new Uint8Array(1 + lenBytes.length + valueBytes.length);
   tlv[0] = tag;
-  tlv[1] = valueBytes.length;
-  tlv.set(valueBytes, 2);
+  tlv.set(lenBytes, 1);
+  tlv.set(valueBytes, 1 + lenBytes.length);
   return tlv;
 }
 
@@ -430,13 +438,30 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   // ── QR Code for VAT invoices ──
   if (isVatInvoice && waqfSettings.vat_registration_number) {
     try {
-      const tlvBase64 = generateZatcaQrTLV(
-        waqfSettings.waqf_name,
-        waqfSettings.vat_registration_number,
-        new Date().toISOString(),
-        invoice.amount,
-        invoice.vat_amount,
-      );
+      const invRecord = invoice as unknown as Record<string, unknown>;
+      
+      // Extract QR TLV from signed XML (the authoritative source with Tags 6-9)
+      let tlvBase64 = "";
+      const zatcaXml = invRecord.zatca_xml ? String(invRecord.zatca_xml) : "";
+      if (zatcaXml) {
+        const qrMatch = zatcaXml.match(
+          /<cac:AdditionalDocumentReference>\s*<cbc:ID>QR<\/cbc:ID>[\s\S]*?<cbc:EmbeddedDocumentBinaryObject[^>]*>([^<]+)<\/cbc:EmbeddedDocumentBinaryObject>/
+        );
+        if (qrMatch && qrMatch[1] && !qrMatch[1].includes("<!--")) {
+          tlvBase64 = qrMatch[1].trim();
+        }
+      }
+      
+      // Fall back to basic Tags 1-5 QR if no signed QR in XML
+      if (!tlvBase64) {
+        tlvBase64 = generateZatcaQrTLV(
+          waqfSettings.waqf_name,
+          waqfSettings.vat_registration_number,
+          new Date().toISOString(),
+          invoice.amount,
+          invoice.vat_amount,
+        );
+      }
 
       // Generate QR code as data URL, then extract PNG bytes
       const qrDataUrl: string = await QRCode.toDataURL(tlvBase64, {

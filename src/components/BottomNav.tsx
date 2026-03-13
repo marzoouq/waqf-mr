@@ -33,7 +33,7 @@ const beneficiaryLinks = [
 ];
 
 const waqifLinks = [
-  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
+  { to: '/waqif', icon: Home, label: 'الرئيسية' },
   { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
   { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
   { to: '/beneficiary/accounts', icon: Wallet, label: 'الحسابات' },

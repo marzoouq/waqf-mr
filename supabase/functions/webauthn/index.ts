@@ -72,6 +72,16 @@ Deno.serve(async (req: Request) => {
       const user = await getAuthUser(req);
       if (!user) return new Response(JSON.stringify({ error: "غير مصرح" }), { status: 401, headers: cors });
 
+      // Rate limiting: 10 requests/minute per user
+      const { data: rlAllowed, error: rlError } = await admin.rpc("check_rate_limit", {
+        p_key: `webauthn:register:${user.id}`,
+        p_limit: 10,
+        p_window_seconds: 60,
+      });
+      if (rlError || rlAllowed === false) {
+        return new Response(JSON.stringify({ error: "طلبات كثيرة، حاول لاحقاً" }), { status: 429, headers: cors });
+      }
+
       // جلب بيانات الاعتماد الموجودة
       const { data: existing } = await admin
         .from("webauthn_credentials")
@@ -176,6 +186,23 @@ Deno.serve(async (req: Request) => {
 
     // ─── تسجيل الدخول بالبصمة: توليد خيارات المصادقة ───
     if (action === "auth-options") {
+      // Rate limiting: 10 طلبات/دقيقة لكل IP
+      const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+        || req.headers.get("x-real-ip")
+        || "unknown";
+      const { data: allowed, error: rlError } = await admin.rpc("check_rate_limit", {
+        p_key: `webauthn:auth:${clientIp}`,
+        p_limit: 10,
+        p_window_seconds: 60,
+      });
+      // Fail-closed: إذا فشل الفحص أو تجاوز الحد → رفض
+      if (rlError || allowed === false) {
+        return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، حاول بعد دقيقة" }), {
+          status: 429,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+
       // تنظيف التحديات القديمة
       await admin.rpc("cleanup_expired_challenges");
 
@@ -200,28 +227,7 @@ Deno.serve(async (req: Request) => {
     if (action === "auth-verify") {
       const { credential, challenge_id } = body;
 
-      // جلب التحدي بواسطة challenge_id المحدد (بدل ORDER BY الأحدث)
-      let challengeRow: { id: string; challenge: string } | null = null;
-
-      if (challenge_id) {
-        const { data } = await admin
-          .from("webauthn_challenges")
-          .select("id, challenge")
-          .eq("id", challenge_id)
-          .eq("type", "authentication")
-          .single();
-        challengeRow = data;
-      } else {
-        // Fallback removed: challenge_id is always provided by the client.
-        // Rejecting requests without it prevents cross-user challenge retrieval.
-        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
-      }
-
-      if (!challengeRow) {
-        return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });
-      }
-
-      // البحث عن بيانات الاعتماد بواسطة credential_id
+      // البحث عن بيانات الاعتماد بواسطة credential_id أولاً
       const credIdBase64 = credential.id;
       const { data: storedCred } = await admin
         .from("webauthn_credentials")
@@ -231,6 +237,38 @@ Deno.serve(async (req: Request) => {
 
       if (!storedCred) {
         return new Response(JSON.stringify({ error: "بيانات الاعتماد غير موجودة" }), { status: 400, headers: cors });
+      }
+
+      // جلب التحدي بواسطة challenge_id وربطه بصاحب بيانات الاعتماد
+      let challengeRow: { id: string; challenge: string; user_id: string | null } | null = null;
+
+      if (challenge_id) {
+        const { data } = await admin
+          .from("webauthn_challenges")
+          .select("id, challenge, user_id")
+          .eq("id", challenge_id)
+          .eq("type", "authentication")
+          .or(`user_id.is.null,user_id.eq.${storedCred.user_id}`)
+          .single();
+        challengeRow = data;
+
+        // ربط التحدي بالمستخدم عند أول تحقق لمنع إعادة استخدامه عبر مستخدم آخر
+        if (challengeRow?.user_id === null) {
+          await admin
+            .from("webauthn_challenges")
+            .update({ user_id: storedCred.user_id })
+            .eq("id", challenge_id)
+            .eq("type", "authentication")
+            .is("user_id", null);
+        }
+      } else {
+        // Fallback removed: challenge_id is always provided by the client.
+        // Rejecting requests without it prevents cross-user challenge retrieval.
+        return new Response(JSON.stringify({ error: "challenge_id مطلوب" }), { status: 400, headers: cors });
+      }
+
+      if (!challengeRow) {
+        return new Response(JSON.stringify({ error: "التحدي منتهي الصلاحية" }), { status: 400, headers: cors });
       }
 
       // تحويل المفتاح العام من base64 إلى Uint8Array

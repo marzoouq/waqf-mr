@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -377,17 +377,11 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">النوع</Label>
-                          <Select value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>{UNIT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })} options={UNIT_TYPES.map(t => ({ value: t, label: t }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الدور</Label>
-                          <Select value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })}>
-                            <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
-                            <SelectContent>{FLOORS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={unitForm.floor || ''} onValueChange={(v) => setUnitForm({ ...unitForm, floor: v })} placeholder="اختر الدور" options={FLOORS.map(f => ({ value: f, label: f }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">المساحة (م²)</Label>
@@ -395,10 +389,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الحالة</Label>
-                          <Select value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>{UNIT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">ملاحظات</Label>
@@ -420,10 +411,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             </div>
                             <div className="space-y-1">
                               <Label className="text-xs">نوع الدفع</Label>
-                              <Select value={unitForm.payment_type || 'annual'} onValueChange={(v) => setUnitForm({ ...unitForm, payment_type: v })}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>{PAYMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                              </Select>
+                              <NativeSelect value={unitForm.payment_type || 'annual'} onValueChange={(v) => setUnitForm({ ...unitForm, payment_type: v })} options={PAYMENT_TYPES} />
                             </div>
                             {unitForm.payment_type === 'multi' && (
                               <div className="space-y-1">
@@ -702,10 +690,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">نوع الدفع</Label>
-                          <Select value={wholeRentalForm.payment_type} onValueChange={(v) => setWholeRentalForm({ ...wholeRentalForm, payment_type: v })}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>{PAYMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                          </Select>
+                          <NativeSelect value={wholeRentalForm.payment_type} onValueChange={(v) => setWholeRentalForm({ ...wholeRentalForm, payment_type: v })} options={PAYMENT_TYPES} />
                         </div>
                         {wholeRentalForm.payment_type === 'multi' && (
                           <div className="space-y-1">
