@@ -58,7 +58,8 @@
 | `pgcrypto` في schema `public` | تم نقلها إلى `extensions` schema مع تحديث `search_path` لجميع الدوال المتأثرة (6 دوال: `encrypt_pii`, `decrypt_pii`, `encrypt_beneficiary_pii`, `get_active_zatca_certificate`, `lookup_by_national_id`, `encrypt_zatca_private_key`) | 2026-03-13 |
 | وصول `waqif` لبيانات PII في `beneficiaries` | إزالة `waqif` من سياسة SELECT على الجدول الأصلي — الواقف يقرأ حصراً من `beneficiaries_safe` (SECURITY DEFINER) | 2026-03-13 |
 | وصول `beneficiary`/`waqif` لهويات المستأجرين في `contracts` | إزالة الدورين من سياسة SELECT على الجدول الأصلي — يقرأون حصراً من `contracts_safe` (SECURITY DEFINER) + تحديث الواجهة لاستخدام `useContractsSafeByFiscalYear` | 2026-03-13 |
-| 27 دالة حساسة مكشوفة لـ `anon` (بما فيها `get_pii_key`) | سحب `EXECUTE` من `anon` و `PUBLIC` لجميع الدوال الحساسة ومنحها لـ `authenticated` فقط. السبب: `CREATE OR REPLACE FUNCTION` يُعيد صلاحيات EXECUTE للافتراضي (`PUBLIC`) مما ألغى REVOKE السابقة | 2026-03-13 |
+| 27 دالة حساسة مكشوفة لـ `anon` (بما فيها `get_pii_key`) | **الحل النهائي**: حماية داخلية في كود الدوال نفسها بدلاً من `REVOKE` (الذي يُلغيه `pg_dump` عند كل نشر). التفاصيل: (1) `get_pii_key()` تُرجع `NULL` عند `auth.uid() IS NULL`، (2) `decrypt_pii()` تُرجع `********` لغير المصرح لهم، (3) `get_beneficiary_decrypted()` و `lookup_by_national_id()` و `get_active_zatca_certificate()` تُطلق استثناء `غير مصرح`. **السبب الجذري**: منصة Lovable Cloud تُنفذ `pg_dump` migration بعد هجرات المطور عند كل نشر، و `CREATE OR REPLACE FUNCTION` يُعيد صلاحيات `EXECUTE` لـ `PUBLIC` تلقائياً مما يُبطل أي `REVOKE` سابق. الحماية الداخلية في كود الدالة لا تتأثر بهذه العملية. | 2026-03-13 |
+| عروض `beneficiaries_safe` / `contracts_safe` مكشوفة لـ `anon` SELECT | تم سحب `SELECT` من `anon` و `PUBLIC` ومنحها لـ `authenticated` فقط (يُطبق عبر migration + حماية في كل نشر) | 2026-03-13 |
 
 ### قواعد التصنيف العامة
 
