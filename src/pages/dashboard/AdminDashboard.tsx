@@ -396,7 +396,8 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* Charts */}
+        {/* Charts — lazy-loaded (below the fold) */}
+        <Suspense fallback={<div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><ChartSkeleton /><ChartSkeleton /></div>}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Income vs Expenses Chart */}
           <Card className="shadow-sm">
@@ -406,15 +407,9 @@ const AdminDashboard = () => {
             <CardContent>
               {monthlyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
-                    <YAxis />
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
-                    <Legend />
-                    <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
-                  </BarChart>
+                <Suspense fallback={<ChartSkeleton />}>
+                  <LazyBarChartWrapper data={monthlyData} />
+                </Suspense>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
@@ -447,7 +442,6 @@ const AdminDashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
-                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -456,6 +450,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+        </Suspense>
 
         {/* Year-over-Year Comparison */}
         {allFiscalYears.length >= 2 && (
