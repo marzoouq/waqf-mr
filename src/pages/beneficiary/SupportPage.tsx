@@ -175,7 +175,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
 
         {/* عرض التقييم الحالي */}
         {ticket.rating && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+          <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">تقييمك:</span>
               <div className="flex items-center gap-0.5">
