@@ -11,7 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
+const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
 
 const ChartSkeleton = () => (
   <div className="h-[300px] flex items-center justify-center">
@@ -326,29 +327,9 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Mini Pie Chart */}
-                <div className="w-[180px] h-[180px] shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'منتظم', value: collectionSummary.onTime },
-                          { name: 'متأخر', value: collectionSummary.late },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={70}
-                        dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        <Cell fill="hsl(var(--success))" />
-                        <Cell fill="hsl(var(--destructive))" />
-                      </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
+                  <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
+                </Suspense>
 
                 {/* Summary Stats */}
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
