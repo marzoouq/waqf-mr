@@ -30,7 +30,7 @@ const operationColor = (op: string) => {
     case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
     case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
     case 'REOPEN': return 'bg-info/15 text-info border-info/30';
-    case 'CLOSE': return 'bg-purple-500/15 text-purple-600 border-purple-500/30';
+    case 'CLOSE': return 'bg-status-special/15 text-status-special-foreground border-status-special/30';
     default: return '';
   }
 };

@@ -14,7 +14,7 @@ const PAGE_SIZE = 20;
 
 const statusMap: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pending: { label: 'قيد المراجعة', color: 'bg-warning/20 text-warning', icon: Clock },
-  approved: { label: 'معتمد', color: 'bg-blue-500/20 text-blue-600', icon: CheckCircle },
+  approved: { label: 'معتمد', color: 'bg-status-approved/20 text-status-approved-foreground', icon: CheckCircle },
   paid: { label: 'مصروف', color: 'bg-success/20 text-success', icon: Banknote },
   rejected: { label: 'مرفوض', color: 'bg-destructive/20 text-destructive', icon: XCircle },
 };

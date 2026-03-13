@@ -553,8 +553,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               ) : (() => {
                                 const ps = getPaymentStatus(tenant, paid);
                                 return ps.status === 'ontime'
-                                  ? <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20">منتظم</Badge>
-                                  : <Badge className="bg-red-500/15 text-red-600 border-red-500/30 hover:bg-red-500/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
+                                  ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20">منتظم</Badge>
+                                  : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
                               })()}
                             </TableCell>
                             <TableCell>

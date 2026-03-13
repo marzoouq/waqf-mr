@@ -39,7 +39,7 @@ const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
 };
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  open: { label: 'مفتوح', color: 'bg-blue-500/20 text-blue-600', icon: Clock },
+  open: { label: 'مفتوح', color: 'bg-status-approved/20 text-status-approved-foreground', icon: Clock },
   in_progress: { label: 'قيد المعالجة', color: 'bg-warning/20 text-warning', icon: ArrowUpCircle },
   resolved: { label: 'تم الحل', color: 'bg-success/20 text-success', icon: CheckCircle },
   closed: { label: 'مغلق', color: 'bg-muted text-muted-foreground', icon: XCircle },
@@ -209,12 +209,12 @@ const SupportDashboardPage = () => {
 
         {/* بطاقات الإحصائيات */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
+          <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-status-approved-foreground" />
           <StatCard icon={ArrowUpCircle} label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
           <StatCard icon={Bug} label="أخطاء 24 ساعة" value={stats?.errorsLast24h ?? 0} color="text-destructive" />
           <StatCard icon={CheckCircle} label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
           <StatCard icon={Activity} label="متوسط الحل" value={avgResolutionTime ?? '—'} color="text-primary" isText />
-          <StatCard icon={Star} label="متوسط التقييم" value={avgRating ? `${avgRating.avg} ★` : '—'} color="text-amber-500" isText />
+          <StatCard icon={Star} label="متوسط التقييم" value={avgRating ? `${avgRating.avg} ★` : '—'} color="text-star-rating" isText />
         </div>
 
         <Tabs defaultValue="tickets" className="space-y-4">
@@ -333,7 +333,7 @@ const SupportDashboardPage = () => {
                               {ticket.rating ? (
                                 <div className="flex items-center gap-0.5">
                                   {[1, 2, 3, 4, 5].map(i => (
-                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                                   ))}
                                 </div>
                               ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -458,10 +458,10 @@ const SupportDashboardPage = () => {
                     <div className="pt-2 border-t">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 text-amber-400" />
+                          <Star className="w-3.5 h-3.5 text-star-rating" />
                           متوسط تقييم الخدمة
                         </span>
-                        <span className="font-bold text-amber-500">{avgRating.avg} ★ ({avgRating.count} تقييم)</span>
+                        <span className="font-bold text-star-rating">{avgRating.avg} ★ ({avgRating.count} تقييم)</span>
                       </div>
                     </div>
                   )}
@@ -670,12 +670,12 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
 
         {/* تقييم المستفيد */}
         {ticket.rating && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+          <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">تقييم المستفيد:</span>
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">({ticket.rating}/5)</span>

@@ -46,7 +46,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="gap-1 text-xs text-amber-600 hover:text-amber-700" disabled={loading}>
+        <Button size="sm" variant="ghost" className="gap-1 text-xs text-caution-foreground hover:text-caution-foreground/80" disabled={loading}>
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3 h-3" />}
           إعادة فتح
         </Button>
@@ -75,7 +75,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
           <AlertDialogCancel onClick={() => setReason('')}>إلغاء</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-amber-600 hover:bg-amber-700"
+            className="bg-caution hover:bg-caution/90"
             disabled={reason.trim().length < 10}
           >
             تأكيد إعادة الفتح
@@ -231,7 +231,7 @@ const FiscalYearManagementTab = () => {
                     <Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
                   </div>
                 </div>
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-caution-foreground">
                   ملاحظ: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.
                 </p>
                 <div className="flex gap-2">

@@ -721,7 +721,7 @@ function ZatcaManagementPage() {
                 {complianceResult.warningMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
-                    {complianceResult.warningMessages.map((w: any, i: number) => (
+                    {complianceResult.warningMessages.map((w: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-secondary/50 rounded p-2 border border-border">
                         <span className="font-mono">{w.code}</span>: {w.message}
                       </div>
@@ -733,7 +733,7 @@ function ZatcaManagementPage() {
                 {complianceResult.errorMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-destructive">أخطاء:</p>
-                    {complianceResult.errorMessages.map((e: any, i: number) => (
+                    {complianceResult.errorMessages.map((e: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-destructive/10 rounded p-2 border border-destructive/20">
                         <span className="font-mono">{e.code}</span>: {e.message}
                       </div>
@@ -745,7 +745,7 @@ function ZatcaManagementPage() {
                 {complianceResult.validationResults?.infoMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">معلومات:</p>
-                    {complianceResult.validationResults.infoMessages.map((m: any, i: number) => (
+                    {complianceResult.validationResults.infoMessages.map((m: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-muted rounded p-2">
                         <span className="font-mono">{m.code}</span>: {m.message}
                       </div>

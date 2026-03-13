@@ -144,6 +144,16 @@
     --warning: 43 90% 55%;
     --info: 200 80% 50%;
 
+    /* ألوان حالات دلالية */
+    --star-rating: 43 96% 56%;
+    --star-rating-foreground: 43 96% 56%;
+    --status-approved: 217 91% 60%;
+    --status-approved-foreground: 217 91% 45%;
+    --status-special: 270 60% 55%;
+    --status-special-foreground: 270 60% 45%;
+    --caution: 38 92% 50%;
+    --caution-foreground: 32 95% 40%;
+
     /* ظلال */
     --shadow-sm: 0 1px 2px 0 hsl(150 30% 15% / 0.05);
     --shadow: 0 4px 6px -1px hsl(150 30% 15% / 0.1);
@@ -183,6 +193,16 @@
     --success: 158 55% 50%;
     --warning: 43 85% 60%;
     --info: 200 75% 55%;
+
+    /* ألوان حالات دلالية - الوضع الداكن */
+    --star-rating: 43 96% 56%;
+    --star-rating-foreground: 43 96% 56%;
+    --status-approved: 217 91% 65%;
+    --status-approved-foreground: 217 91% 65%;
+    --status-special: 270 60% 60%;
+    --status-special-foreground: 270 60% 60%;
+    --caution: 38 92% 55%;
+    --caution-foreground: 38 92% 45%;
   }
 }
 

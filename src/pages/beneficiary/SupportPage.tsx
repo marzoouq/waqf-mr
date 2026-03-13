@@ -22,7 +22,7 @@ import {
 } from '@/hooks/useSupportTickets';
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  open: { label: 'مفتوح', color: 'bg-blue-500/20 text-blue-600', icon: Clock },
+  open: { label: 'مفتوح', color: 'bg-status-approved/20 text-status-approved-foreground', icon: Clock },
   in_progress: { label: 'قيد المعالجة', color: 'bg-warning/20 text-warning', icon: ArrowUpCircle },
   resolved: { label: 'تم الحل', color: 'bg-success/20 text-success', icon: CheckCircle },
   closed: { label: 'مغلق', color: 'bg-muted text-muted-foreground', icon: XCircle },
@@ -92,7 +92,7 @@ const BeneficiarySupportPage = () => {
                           {ticket.rating ? (
                             <div className="flex items-center gap-0.5">
                               {[1, 2, 3, 4, 5].map(i => (
-                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                               ))}
                             </div>
                           ) : (ticket.status === 'resolved' || ticket.status === 'closed') ? (
@@ -175,12 +175,12 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
 
         {/* عرض التقييم الحالي */}
         {ticket.rating && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+          <div className="bg-warning/10 border border-warning/20 rounded-md p-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">تقييمك:</span>
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                 ))}
               </div>
             </div>
@@ -215,7 +215,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
         {/* زر التقييم */}
         {canRate && !showRating && (
           <Button variant="outline" className="gap-2" onClick={() => setShowRating(true)}>
-            <Star className="w-4 h-4 text-amber-400" />
+            <Star className="w-4 h-4 text-star-rating" />
             قيّم الخدمة
           </Button>
         )}
@@ -237,7 +237,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
                   <Star
                     className={`w-8 h-8 transition-colors ${
                       i <= (hoverRating || rating)
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-star-rating text-star-rating'
                         : 'text-muted-foreground/30'
                     }`}
                   />
