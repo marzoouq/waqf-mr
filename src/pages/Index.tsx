@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
+import { Building2, Users, FileText, BarChart3, ArrowRight, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -157,7 +157,7 @@ const Index = () => {
                 size="lg"
                 className="gradient-gold text-primary-foreground gap-3 shadow-gold hover:scale-105 transition-all duration-300 text-lg px-10 py-6 rounded-2xl font-bold"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5" />
                 {content.cta_text}
               </Button>
             </div>
@@ -229,7 +229,7 @@ const Index = () => {
             size="lg"
             className="gradient-gold text-primary-foreground gap-2 shadow-gold hover:scale-105 transition-all duration-300 rounded-xl font-bold px-8"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowRight className="w-5 h-5" />
             {content.cta_text}
           </Button>
         </div>
@@ -237,18 +237,18 @@ const Index = () => {
       <footer className="bg-primary py-8 border-t border-primary-foreground/10" role="contentinfo">
         <div className="container mx-auto px-4 text-center space-y-3">
           <div className="flex items-center justify-center gap-4 flex-wrap text-sm">
-            <button onClick={() => navigate('/privacy')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
+            <Link to="/privacy" className="text-primary-foreground/70 hover:text-secondary transition-colors">
               سياسة الخصوصية
-            </button>
+            </Link>
             <span className="text-primary-foreground/30">|</span>
-            <button onClick={() => navigate('/terms')} className="text-primary-foreground/70 hover:text-secondary transition-colors">
+            <Link to="/terms" className="text-primary-foreground/70 hover:text-secondary transition-colors">
               شروط الاستخدام
-            </button>
+            </Link>
             <span className="text-primary-foreground/30">|</span>
-            <button onClick={() => navigate('/install')} className="text-primary-foreground/70 hover:text-secondary transition-colors inline-flex items-center gap-1">
+            <Link to="/install" className="text-primary-foreground/70 hover:text-secondary transition-colors inline-flex items-center gap-1">
               <Smartphone className="w-3.5 h-3.5" />
               تثبيت التطبيق
-            </button>
+            </Link>
           </div>
           <p className="text-primary-foreground/60 text-sm">
             {content.footer_text.replace('{year}', String(new Date().getFullYear()))}
