@@ -147,8 +147,7 @@ describe('LoginForm', () => {
 
   it('يظهر خطأ عند إرسال هوية فارغة', async () => {
     renderForm();
-    const idRadio = screen.getByRole('radio', { name: /method-id/ });
-    await userEvent.click(idRadio);
+    await userEvent.click(screen.getByText('رقم الهوية'));
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
@@ -158,8 +157,7 @@ describe('LoginForm', () => {
 
   it('يظهر خطأ عند إدخال هوية أقل من 10 أرقام', async () => {
     renderForm();
-    const idRadio = screen.getByRole('radio', { name: /method-id/ });
-    await userEvent.click(idRadio);
+    await userEvent.click(screen.getByText('رقم الهوية'));
     await userEvent.type(screen.getByPlaceholderText('1234567890'), '12345');
     await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
