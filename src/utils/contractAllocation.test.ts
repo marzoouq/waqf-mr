@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generatePaymentDueDates, allocateContractToFiscalYears, getContractSpanInfo } from './contractAllocation';
 
-const fy2024 = { id: 'fy-2024', label: '2024', start_date: '2024-01-01', end_date: '2024-12-31', status: 'open', published: true, created_at: '' };
-const fy2025 = { id: 'fy-2025', label: '2025', start_date: '2025-01-01', end_date: '2025-12-31', status: 'open', published: true, created_at: '' };
+const fy2024 = { id: 'fy-2024', label: '2024', start_date: '2024-01-01', end_date: '2024-12-31', status: 'active' as const, published: true, created_at: '' };
+const fy2025 = { id: 'fy-2025', label: '2025', start_date: '2025-01-01', end_date: '2025-12-31', status: 'active' as const, published: true, created_at: '' };
 
 describe('generatePaymentDueDates', () => {
   it('يولّد 12 تاريخ للعقد الشهري (12 شهر)', () => {

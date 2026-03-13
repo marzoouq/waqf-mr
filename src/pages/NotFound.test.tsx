@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
+import React from 'react';
+
 vi.mock('react-router-dom', () => ({
-  Link: ({ children, ...props }: { children: React.ReactNode; to: string }) => {
-    const React = require('react');
-    return React.createElement('a', { ...props, href: props.to }, children);
-  },
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) =>
+    React.createElement('a', { href: to }, children),
 }));
 
 import NotFound from './NotFound';

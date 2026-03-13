@@ -2,12 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 
 // Mock dependencies
+import React from 'react';
+
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
-  Link: ({ children, ...props }: { children: React.ReactNode; to: string }) => {
-    const React = require('react');
-    return React.createElement('a', { ...props, href: props.to }, children);
-  },
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) =>
+    React.createElement('a', { href: to }, children),
 }));
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
