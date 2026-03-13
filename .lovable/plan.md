@@ -1,70 +1,80 @@
 
-# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## تصنيف المشروع
+# تحليل التعارضات وخطة التنفيذ
 
-هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
+## نتائج فحص التعارضات
 
-## سياق المستخدمين
+### ✅ لا توجد تعارضات — آمن للتنفيذ
 
-| الدور | النوع | مستوى الثقة |
-|-------|-------|------------|
-| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
-| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
-| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
-| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
+| الملف المقترح | الحالة | ملاحظة |
+|--------------|--------|--------|
+| `src/hooks/useAdvanceRequests.test.ts` | **جديد** | لا يوجد ملف اختبار سابق |
+| `src/hooks/usePaymentInvoices.test.ts` | **جديد** | لا يوجد ملف اختبار سابق |
+| `src/hooks/useMessaging.test.ts` | **جديد** | لا يوجد ملف اختبار سابق |
+| `src/components/accounts/CloseYearDialog.test.tsx` | **جديد** | لا يوجد ملف اختبار سابق |
+| `src/components/accounts/AccountsSummaryCards.test.tsx` | **موجود — توسيع** | 6 اختبارات موجودة، سنضيف 3 اختبارات لـ `isClosed`, `usingFallbackPct`, `netAfterZakat` |
+| `src/components/accounts/AccountsSettingsBar.test.tsx` | **موجود — توسيع** | 4 اختبارات موجودة، سنضيف 2 اختبار للزكاة ورقبة الوقف |
 
-## حساسية البيانات
+### الموك الموجود في ملفات أخرى (لا تعارض)
 
+الملفات التالية تستخدم `vi.mock` للـ hooks المطلوبة كتبعيات، وليست اختبارات مباشرة لها:
+- `CarryforwardHistoryPage.test.tsx` → يموك `useAdvanceRequests`
+- `MySharePage.test.tsx` → يموك `useAdvanceRequests`
+- `AdminDashboard.test.tsx` → يموك `usePaymentInvoices`
+- `MessagesPage.test.tsx` → يموك `useMessaging`
+
+هذه لا تتعارض لأن الاختبارات الجديدة ستختبر الـ hooks مباشرة بموك لـ `supabase`.
+
+---
+
+## خطة التنفيذ
+
+### 1. `useAdvanceRequests.test.ts` (~9 اختبارات)
+- موك `supabase` بـ `vi.hoisted` (سلسلة `.from().select().eq().order().limit()`)
+- موك `sonner` و `@/utils/notifications`
+- `useAdvanceRequests`: يرجع بيانات، يفلتر بـ `fiscalYearId`
+- `useMyAdvanceRequests`: معطّل بدون `beneficiaryId`
+- `usePaidAdvancesTotal`: يحسب المجموع، يرجع 0 بدون ID
+- `useCarryforwardBalance`: يحسب المرحّلات النشطة
+- `useCreateAdvanceRequest`: يستدعي insert
+- `useUpdateAdvanceStatus`: يرفض حالات غير صالحة
+
+### 2. `usePaymentInvoices.test.ts` (~7 اختبارات)
+- `usePaymentInvoices`: يجلب بالسنة، معطّل عند `__none__`
+- `useGenerateContractInvoices`: يستدعي RPC
+- `useGenerateAllInvoices`: يستدعي RPC
+- `useMarkInvoicePaid`: يستدعي RPC ويبطل كاش متعدد
+- `useMarkInvoiceUnpaid`: يستدعي RPC
+
+### 3. `useMessaging.test.ts` (~7 اختبارات)
+- موك `AuthContext` و `supabase` (بما فيها `channel` و `removeChannel`)
+- `useConversations`: معطّل بدون user
+- `useMessages`: معطّل بدون conversationId، يعكس الترتيب
+- `useSendMessage`: يرفض الرسائل الفارغة والطويلة (>5000)
+- `useCreateConversation`: يرندر بدون خطأ
+
+### 4. `CloseYearDialog.test.tsx` (~6 اختبارات)
+- عرض العنوان والأزرار
+- عرض الملخص المالي عند `totalIncome > 0`
+- إخفاء الملخص عند `totalIncome=0` و `totalExpenses=0`
+- عرض "جاري الإقفال" عند `isClosing=true`
+- عرض السنة ورقبة الوقف
+- استدعاء `onConfirm`
+
+### 5. توسيع `AccountsSummaryCards.test.tsx` (+3 اختبارات)
+- تنبيه "أرقام تقديرية" عندما `isClosed=false` (الافتراضي)
+- إخفاء التنبيه عندما `isClosed=true`
+- تنبيه النسب الافتراضية عند `usingFallbackPct=true`
+
+### 6. توسيع `AccountsSettingsBar.test.tsx` (+2 اختبار)
+- عرض حقل الزكاة
+- عرض حقل رقبة الوقف
+
+### الإجمالي المتوقع
 ```text
-عالية جداً:
-  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
-  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
-  └─ البريد الإلكتروني وأرقام الهواتف
-
-عالية:
-  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
-  ├─ العقود والفواتير الضريبية (ZATCA)
-  └─ سجل المراجعة الجنائي (audit log)
-
-متوسطة:
-  ├─ بيانات العقارات والوحدات
-  └─ اللوائح الداخلية
+اختبارات جديدة:  ~34 اختبار
+ملفات جديدة:     4 ملفات
+ملفات محدّثة:     2 ملفين
+إجمالي بعد:      ~591+ اختبار
 ```
 
-## طبقات الحماية المُطبَّقة فعلياً
-
-1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
-2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
-3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
-4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
-5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
-6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
-
-## توجيهات للماسح الأمني
-
-| الملاحظة | الحكم | السبب |
-|----------|-------|-------|
-| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
-| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
-| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
-
-## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
-
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
-- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
-- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
-
-## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
-
-> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
->
-> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
->
-> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
-
-## نتائج تم حلها (2026-03-13)
-
-| الملاحظة | الحل |
-|----------|------|
-| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
