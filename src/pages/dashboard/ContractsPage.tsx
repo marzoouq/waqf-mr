@@ -407,9 +407,9 @@ const ContractsPage = () => {
                              const paymentCount = getPaymentCount(contract);
                             const paid = invoicePaidMap.get(contract.id) ?? 0;
                             return (
-                              <div className="space-y-1.5">
+                              <div className="space-y-1.5 w-full">
                                 <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
+                                <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 w-full ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                               </div>
                             );
                           })()}
