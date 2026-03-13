@@ -2,12 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
 vi.mock('jspdf', () => ({
-  default: vi.fn(() => ({
-    text: vi.fn(), save: mockSave, setFont: vi.fn(), setFontSize: vi.fn(),
-    addPage: vi.fn(),
-    internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
-    getNumberOfPages: vi.fn(() => 1), setPage: vi.fn(),
-  })),
+  default: function JsPDFMock() {
+    return {
+      text: vi.fn(), save: mockSave, setFont: vi.fn(), setFontSize: vi.fn(),
+      addPage: vi.fn(),
+      internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
+      getNumberOfPages: vi.fn(() => 1), setPage: vi.fn(),
+    };
+  },
 }));
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 vi.mock('./core', () => ({

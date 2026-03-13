@@ -7,21 +7,23 @@ const mockSetFont = vi.fn();
 const mockSetFontSize = vi.fn();
 let mockDoc: Record<string, unknown>;
 
-vi.mock('jspdf', () => ({
-  default: vi.fn(() => {
-    mockDoc = {
-      text: mockText,
-      save: mockSave,
-      setFont: mockSetFont,
-      setFontSize: mockSetFontSize,
-      addPage: vi.fn(),
-      internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
-      getNumberOfPages: vi.fn(() => 1),
-      setPage: vi.fn(),
-    };
-    return mockDoc;
-  }),
-}));
+vi.mock('jspdf', () => {
+  return {
+    default: function JsPDFMock() {
+      mockDoc = {
+        text: mockText,
+        save: mockSave,
+        setFont: mockSetFont,
+        setFontSize: mockSetFontSize,
+        addPage: vi.fn(),
+        internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
+        getNumberOfPages: vi.fn(() => 1),
+        setPage: vi.fn(),
+      };
+      return mockDoc;
+    },
+  };
+});
 
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 vi.mock('./core', () => ({
