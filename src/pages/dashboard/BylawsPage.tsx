@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
+import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/useBylaws';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
