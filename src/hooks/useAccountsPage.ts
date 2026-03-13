@@ -40,7 +40,7 @@ export function useAccountsPage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
-  const { data: allContracts = [] } = useContracts();
+  const { data: allContracts = [] } = useContractsByFiscalYear('all');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: tenantPayments = [] } = useTenantPayments();
   const { data: allUnits = [] } = useAllUnits();
