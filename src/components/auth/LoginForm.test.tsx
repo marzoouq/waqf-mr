@@ -80,7 +80,7 @@ describe('LoginForm', () => {
   it('يعرض خيارات طريقة الدخول (بريد / هوية)', () => {
     renderForm();
     expect(screen.getByText('طريقة تسجيل الدخول')).toBeInTheDocument();
-    expect(screen.getByLabelText(/method-email/)).toBeInTheDocument();
+    expect(screen.getByRole('radiogroup')).toBeInTheDocument();
   });
 
   it('يعرض مكوّن البصمة', () => {
