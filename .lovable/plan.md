@@ -1,138 +1,70 @@
 
+# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-# تقرير التحقق من نتائج الفحص الأمني — إثبات من قاعدة البيانات الإنتاجية
+## تصنيف المشروع
 
-## ملخص التحقق
+هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
 
-قمت بتنفيذ استعلام مباشر على قاعدة البيانات **الإنتاجية (Live)** باستخدام دالة PostgreSQL الأصلية `has_function_privilege()` — وهي المصدر الوحيد الموثوق لمعرفة الصلاحيات الفعلية.
+## سياق المستخدمين
 
-## النتيجة: التقرير الأصلي كان صحيحاً
+| الدور | النوع | مستوى الثقة |
+|-------|-------|------------|
+| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
+| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
+| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
+| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
 
-**جميع الـ 27 دالة حساسة مكشوفة فعلاً لـ `anon` في بيئة الإنتاج.**
+## حساسية البيانات
 
 ```text
-الدالة                              | anon | authenticated
-------------------------------------|------|-------------
-get_pii_key                         | true | true
-decrypt_pii                         | true | true
-encrypt_pii                         | true | true
-get_beneficiary_decrypted           | true | true
-lookup_by_national_id               | true | true
-get_active_zatca_certificate        | true | true
-close_fiscal_year                   | true | true
-reopen_fiscal_year                  | true | true
-execute_distribution                | true | true
-pay_invoice_and_record_collection   | true | true
-unpay_invoice_and_revert_collection | true | true
-notify_admins                       | true | true
-notify_all_beneficiaries            | true | true
-cron_* (6 دوال)                     | true | true
-reorder_bylaws                      | true | true
-upsert_tenant_payment               | true | true
-upsert_contract_allocations         | true | true
-generate_all_active_invoices        | true | true
-generate_contract_invoices          | true | true
-get_next_icv                        | true | true
-get_max_advance_amount              | true | true
+عالية جداً:
+  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
+  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
+  └─ البريد الإلكتروني وأرقام الهواتف
+
+عالية:
+  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
+  ├─ العقود والفواتير الضريبية (ZATCA)
+  └─ سجل المراجعة الجنائي (audit log)
+
+متوسطة:
+  ├─ بيانات العقارات والوحدات
+  └─ اللوائح الداخلية
 ```
 
-## لماذا المراجعات (migrations) لم تحمِ الدوال
+## طبقات الحماية المُطبَّقة فعلياً
 
-الـ REVOKE statements الموجودة في migrations السابقة **تم إلغاؤها تلقائياً** عندما أُعيد إنشاء الدوال بـ `CREATE OR REPLACE FUNCTION` في migrations لاحقة. في PostgreSQL، إعادة إنشاء الدالة تُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`).
+1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
+2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
+3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
+4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
+5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
+6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
 
-هذا يعني أن:
-- الـ REVOKE في migration `20260226235240` لـ `get_pii_key` — **أُلغي** بـ migration لاحق أعاد إنشاء الدالة
-- الـ REVOKE في migration `20260226235202` لـ `decrypt_pii` — **أُلغي** بنفس السبب
-- وهكذا لجميع الدوال الأخرى
+## توجيهات للماسح الأمني
 
-## خطة الإصلاح (تُضاف للخطة الحالية دون حذف أي شيء)
+| الملاحظة | الحكم | السبب |
+|----------|-------|-------|
+| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
+| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
+| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
 
-### المطلوب: migration واحدة تسحب الصلاحيات نهائياً
+## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
 
-```sql
--- === سحب EXECUTE من anon و PUBLIC لجميع الدوال الحساسة ===
+- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
+- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
+- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
 
--- دوال التشفير (حرج جداً)
-REVOKE EXECUTE ON FUNCTION public.get_pii_key() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.decrypt_pii(text) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.encrypt_pii(text) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.get_beneficiary_decrypted(uuid) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.lookup_by_national_id(text) FROM anon, PUBLIC;
+## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
 
--- دوال ZATCA
-REVOKE EXECUTE ON FUNCTION public.get_active_zatca_certificate() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.get_next_icv() FROM anon, PUBLIC;
+> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
+>
+> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
+>
+> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
 
--- دوال مالية
-REVOKE EXECUTE ON FUNCTION public.close_fiscal_year(uuid, jsonb, numeric) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.reopen_fiscal_year(uuid, text) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.execute_distribution(uuid, uuid) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.pay_invoice_and_record_collection(uuid, numeric) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.unpay_invoice_and_revert_collection(uuid) FROM anon, PUBLIC;
+## نتائج تم حلها (2026-03-13)
 
--- دوال إدارية
-REVOKE EXECUTE ON FUNCTION public.reorder_bylaws(jsonb) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.upsert_tenant_payment(uuid, integer, text, numeric, uuid, uuid, text) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.upsert_contract_allocations(uuid, jsonb) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.generate_all_active_invoices() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.generate_contract_invoices(uuid) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.get_max_advance_amount(uuid, uuid) FROM anon, PUBLIC;
-
--- دوال الإشعارات
-REVOKE EXECUTE ON FUNCTION public.notify_admins(text, text, text, text) FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.notify_all_beneficiaries(text, text, text, text) FROM anon, PUBLIC;
-
--- دوال cron
-REVOKE EXECUTE ON FUNCTION public.cron_auto_expire_contracts() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.cron_check_contract_expiry() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.cron_check_late_payments() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.cron_cleanup_old_notifications() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.cron_archive_old_access_logs() FROM anon, PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.cron_update_overdue_invoices() FROM anon, PUBLIC;
-
--- === منح authenticated فقط ===
-GRANT EXECUTE ON FUNCTION public.get_pii_key() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.decrypt_pii(text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.encrypt_pii(text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_beneficiary_decrypted(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_active_zatca_certificate() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_next_icv() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.close_fiscal_year(uuid, jsonb, numeric) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.reopen_fiscal_year(uuid, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.execute_distribution(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.pay_invoice_and_record_collection(uuid, numeric) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.unpay_invoice_and_revert_collection(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.reorder_bylaws(jsonb) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.upsert_tenant_payment(uuid, integer, text, numeric, uuid, uuid, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.upsert_contract_allocations(uuid, jsonb) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.generate_all_active_invoices() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.generate_contract_invoices(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_max_advance_amount(uuid, uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.notify_admins(text, text, text, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.notify_all_beneficiaries(text, text, text, text) TO authenticated;
-
--- lookup_by_national_id تبقى بدون GRANT لأنها تُستدعى فقط من Edge Function عبر service_role
--- cron functions تبقى بدون GRANT لأنها تُنفذ من pg_cron بصلاحيات postgres
-```
-
-### الدوال المستثناة (تبقى متاحة لـ anon عمداً)
-
-| الدالة | السبب |
-|--------|-------|
-| `get_public_stats` | إحصائيات الصفحة الرئيسية العامة |
-| `has_role` | مستخدمة في سياسات RLS |
-| `is_fiscal_year_accessible` | مستخدمة في سياسات RLS |
-| `log_access_event` | تسجيل محاولات الدخول الفاشلة |
-| `check_rate_limit` | مستخدمة من guard-signup |
-| Trigger functions | لا تُستدعى عبر API |
-
-### تحديث الخطة والتوثيق
-
-- تحديث `docs/SECURITY-KNOWLEDGE.md` بإضافة قسم "نتائج تم حلها" يوثق هذا الإصلاح
-- تحديث `.lovable/plan.md` بإضافة تنبيه عن سلوك `CREATE OR REPLACE` مع GRANT/REVOKE
-- إضافة تعليق في الخطة: **عند أي migration مستقبلية تستخدم `CREATE OR REPLACE FUNCTION`، يجب إعادة REVOKE/GRANT في نفس الـ migration**
-
-### درس مستفاد (يُضاف للخطة)
-
-> **تحذير حرج:** في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`). أي REVOKE سابق يُلغى تلقائياً. الحل: يجب دائماً وضع REVOKE/GRANT في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
-
+| الملاحظة | الحل |
+|----------|------|
+| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
