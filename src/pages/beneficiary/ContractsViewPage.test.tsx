@@ -41,6 +41,9 @@ vi.mock('@/hooks/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: mockContracts, isLoading: false, isError: false, refetch: vi.fn(),
   })),
+  useContractsSafeByFiscalYear: vi.fn(() => ({
+    data: mockContracts, isLoading: false, isError: false, refetch: vi.fn(),
+  })),
 }));
 
 vi.mock('@/hooks/useNotifications', () => ({

@@ -67,8 +67,17 @@ vi.mock('@/hooks/useContracts', () => ({
     ],
     isLoading: false,
   })),
+  useContractsSafeByFiscalYear: vi.fn(() => ({
+    data: [
+      { id: 'c1', contract_number: 'W-001', tenant_name: 'محمد', rent_amount: 50000, status: 'active' },
+    ],
+    isLoading: false,
+  })),
 }));
 
+vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+  useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 15, isLoading: false })),
+}));
 vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu">تصدير</button> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({

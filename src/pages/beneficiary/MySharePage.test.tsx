@@ -47,6 +47,7 @@ vi.mock('@/hooks/useAdvanceRequests', () => ({
 
 vi.mock('@/hooks/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({ data: [] })),
+  useContractsSafeByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
 vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
