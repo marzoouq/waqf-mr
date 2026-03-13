@@ -438,7 +438,7 @@ const SupportDashboardPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <StatRow label="إجمالي التذاكر" value={stats?.totalTickets ?? 0} />
-                  <StatRow label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
+                  <StatRow label="مفتوحة" value={stats?.openTickets ?? 0} color="text-status-approved-foreground" />
                   <StatRow label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
                   <StatRow label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
                   <StatRow label="أولوية عالية/حرجة" value={stats?.highPriorityTickets ?? 0} color="text-destructive" />

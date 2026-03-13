@@ -277,7 +277,7 @@ const FiscalYearManagementTab = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className={`gap-1 text-xs ${fy.published ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                          className={`gap-1 text-xs ${fy.published ? 'text-caution-foreground hover:text-caution-foreground/80' : 'text-success hover:text-success/80'}`}
                           disabled={actionLoading === `pub-${fy.id}`}
                         >
                           {actionLoading === `pub-${fy.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : fy.published ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}

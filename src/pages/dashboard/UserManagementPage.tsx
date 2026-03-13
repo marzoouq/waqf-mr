@@ -187,7 +187,7 @@ const UserManagementPage = () => {
       case 'waqif':
         return <Badge className="bg-accent/20 text-accent-foreground">واقف</Badge>;
       case 'accountant':
-        return <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">محاسب</Badge>;
+        return <Badge className="bg-success/20 text-success">محاسب</Badge>;
       default:
         return <Badge variant="outline">بدون دور</Badge>;
     }

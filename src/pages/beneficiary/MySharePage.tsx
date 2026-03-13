@@ -236,7 +236,7 @@ const MySharePage = () => {
   const getAdvanceStatusBadge = (status: string) => {
     const map: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
       pending: { label: 'قيد المراجعة', cls: 'bg-warning/20 text-warning', icon: Clock },
-      approved: { label: 'معتمد', cls: 'bg-blue-500/20 text-blue-600', icon: CheckCircle },
+      approved: { label: 'معتمد', cls: 'bg-status-approved/20 text-status-approved-foreground', icon: CheckCircle },
       paid: { label: 'مصروف', cls: 'bg-success/20 text-success', icon: Banknote },
       rejected: { label: 'مرفوض', cls: 'bg-destructive/20 text-destructive', icon: XCircle },
     };
