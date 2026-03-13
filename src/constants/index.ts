@@ -47,11 +47,11 @@ export const PAYMENT_TYPES = {
 
 // ─── ألوان شريط التنبيه ───
 export const BANNER_COLORS = [
-  { value: 'amber', label: 'ذهبي', className: 'bg-amber-500' },
-  { value: 'blue', label: 'أزرق', className: 'bg-blue-500' },
-  { value: 'green', label: 'أخضر', className: 'bg-green-600' },
-  { value: 'red', label: 'أحمر', className: 'bg-red-500' },
-  { value: 'purple', label: 'بنفسجي', className: 'bg-purple-500' },
+  { value: 'amber', label: 'ذهبي', className: 'bg-warning' },
+  { value: 'blue', label: 'أزرق', className: 'bg-info' },
+  { value: 'green', label: 'أخضر', className: 'bg-success' },
+  { value: 'red', label: 'أحمر', className: 'bg-destructive' },
+  { value: 'purple', label: 'بنفسجي', className: 'bg-status-special' },
 ] as const;
 
 export const BANNER_COLOR_CLASSES: Record<string, string> = {
