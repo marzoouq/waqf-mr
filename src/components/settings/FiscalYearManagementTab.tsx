@@ -46,7 +46,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="gap-1 text-xs text-amber-600 hover:text-amber-700" disabled={loading}>
+        <Button size="sm" variant="ghost" className="gap-1 text-xs text-caution-foreground hover:text-caution-foreground/80" disabled={loading}>
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Unlock className="w-3 h-3" />}
           إعادة فتح
         </Button>
