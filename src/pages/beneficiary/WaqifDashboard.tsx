@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useProperties } from '@/hooks/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useAllUnits } from '@/hooks/useUnits';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
