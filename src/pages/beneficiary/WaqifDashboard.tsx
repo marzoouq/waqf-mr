@@ -47,7 +47,7 @@ const WaqifDashboard = () => {
     isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const { data: properties = [], isLoading: propLoading } = useProperties();
-  const { data: contracts = [], isLoading: contLoading } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts = [], isLoading: contLoading } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: allBeneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
   const { data: allUnits = [] } = useAllUnits();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');

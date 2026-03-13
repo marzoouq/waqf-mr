@@ -79,7 +79,7 @@ const MySharePage = () => {
   const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
   const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
   const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const { getJsonSetting } = useAppSettings();

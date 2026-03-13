@@ -43,3 +43,30 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
     },
   });
 };
+
+/**
+ * عقود آمنة للمستفيد/الواقف — تقرأ من عرض contracts_safe
+ * تخفي بيانات المستأجر الشخصية (هوية، ضريبي، عنوان)
+ */
+export const useContractsSafeByFiscalYear = (fiscalYearId: string | 'all') => {
+  return useQuery({
+    queryKey: ['contracts_safe', 'fiscal_year', fiscalYearId],
+    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
+    staleTime: 60_000,
+    queryFn: async () => {
+      let query = supabase
+        .from('contracts_safe')
+        .select('*')
+        .order('start_date', { ascending: false });
+      if (fiscalYearId !== 'all') {
+        query = query.eq('fiscal_year_id', fiscalYearId);
+      }
+      if (fiscalYearId === 'all') {
+        query = query.limit(1000);
+      }
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+};
