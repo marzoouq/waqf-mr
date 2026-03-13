@@ -22,8 +22,9 @@ import { Badge } from '@/components/ui/badge';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy-load heavy below-the-fold component
+// Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 
 const ChartSkeleton = () => (
   <div className="h-[300px] flex items-center justify-center">
