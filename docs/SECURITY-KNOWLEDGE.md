@@ -77,5 +77,5 @@
 | `zatca-xml-generator` | `getUser()` | إنشاء XML |
 | `check-contract-expiry` | Cron (خادم) | بدون مصادقة مستخدم |
 | `generate-invoice-pdf` | `getUser()` | نطاق المستخدم |
-| `lookup-national-id` | `getUser()` + rate limiting | بحث محدود |
-| `auth-email-hook` | Hook (Supabase) | بدون مصادقة مستخدم |
+| `lookup-national-id` | عامة + rate limiting + timing-safe | نقطة دخول المصادقة بالهوية — لا تتطلب جلسة مسبقة |
+| `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
