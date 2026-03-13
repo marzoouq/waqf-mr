@@ -50,7 +50,7 @@ const renderSidebar = (props = {}) => {
 describe('SidebarContent', () => {
   it('renders app title', () => {
     renderSidebar();
-    expect(screen.getByText('إدارة الوقف')).toBeInTheDocument();
+    expect(screen.getByText('وقف تجريبي')).toBeInTheDocument();
   });
 
   it('renders navigation links', () => {
