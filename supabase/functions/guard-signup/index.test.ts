@@ -1,5 +1,8 @@
-import "https://deno.land/std@0.224.0/dotenv/load.ts";
+import { loadSync } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
+
+// تحميل .env بدون فحص .env.example
+loadSync({ export: true, allowEmptyValues: true, examplePath: null });
 
 const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
@@ -61,8 +64,6 @@ Deno.test("guard-signup: يرفض طريقة GET", async () => {
 });
 
 Deno.test("guard-signup: يتعامل مع التسجيل المعطل أو الصالح", async () => {
-  // هذا الاختبار يتحقق من أن الدالة ترد بشكل صحيح
-  // قد تكون النتيجة 403 (التسجيل معطل) أو 200 (نجاح) أو 400 (بريد مكرر)
   const res = await fetch(FUNCTION_URL, {
     method: "POST",
     headers: {
@@ -75,7 +76,6 @@ Deno.test("guard-signup: يتعامل مع التسجيل المعطل أو ال
     }),
   });
   const body = await res.json();
-  // يجب أن يكون الرد إما نجاح أو خطأ معروف — ليس 500
   assertEquals(res.status !== 500, true, `Unexpected 500: ${JSON.stringify(body)}`);
   assertExists(body);
 });
