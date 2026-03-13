@@ -193,6 +193,16 @@
     --success: 158 55% 50%;
     --warning: 43 85% 60%;
     --info: 200 75% 55%;
+
+    /* ألوان حالات دلالية - الوضع الداكن */
+    --star-rating: 43 96% 56%;
+    --star-rating-foreground: 43 96% 56%;
+    --status-approved: 217 91% 65%;
+    --status-approved-foreground: 217 91% 65%;
+    --status-special: 270 60% 60%;
+    --status-special-foreground: 270 60% 60%;
+    --caution: 38 92% 55%;
+    --caution-foreground: 38 92% 45%;
   }
 }
 

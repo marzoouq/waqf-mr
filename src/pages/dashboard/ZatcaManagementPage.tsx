@@ -745,7 +745,7 @@ function ZatcaManagementPage() {
                 {complianceResult.validationResults?.infoMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">معلومات:</p>
-                    {complianceResult.validationResults.infoMessages.map((m: any, i: number) => (
+                    {complianceResult.validationResults.infoMessages.map((m: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-muted rounded p-2">
                         <span className="font-mono">{m.code}</span>: {m.message}
                       </div>

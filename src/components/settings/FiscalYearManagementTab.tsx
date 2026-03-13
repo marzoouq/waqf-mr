@@ -231,7 +231,7 @@ const FiscalYearManagementTab = () => {
                     <Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
                   </div>
                 </div>
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-caution-foreground">
                   ملاحظ: السنة الجديدة ستكون <strong>محجوبة</strong> عن المستفيدين تلقائياً — يمكنك نشرها بعد إضافة البيانات.
                 </p>
                 <div className="flex gap-2">

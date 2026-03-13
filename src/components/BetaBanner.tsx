@@ -4,11 +4,11 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 import { DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";
 
 const BANNER_COLORS_SPLIT: Record<string, { bg: string; hover: string }> = {
-  amber: { bg: 'bg-amber-500', hover: 'hover:bg-amber-600' },
-  blue: { bg: 'bg-blue-500', hover: 'hover:bg-blue-600' },
-  green: { bg: 'bg-green-600', hover: 'hover:bg-green-700' },
-  red: { bg: 'bg-red-500', hover: 'hover:bg-red-600' },
-  purple: { bg: 'bg-purple-500', hover: 'hover:bg-purple-600' },
+  amber: { bg: 'bg-warning', hover: 'hover:bg-warning/90' },
+  blue: { bg: 'bg-info', hover: 'hover:bg-info/90' },
+  green: { bg: 'bg-success', hover: 'hover:bg-success/90' },
+  red: { bg: 'bg-destructive', hover: 'hover:bg-destructive/90' },
+  purple: { bg: 'bg-status-special', hover: 'hover:bg-status-special/90' },
 };
 
 const BetaBanner = () => {

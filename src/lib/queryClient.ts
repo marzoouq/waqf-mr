@@ -1,12 +1,13 @@
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const queryCache = new QueryCache({
   onError: (error) => {
     const status = (error as { status?: number })?.status;
     // Don't toast on 401/403 — handled by auth flow
     if (status === 401 || status === 403) return;
-    console.error('[QueryCache] خطأ في جلب البيانات:', error.message);
+    logger.error('[QueryCache] خطأ في جلب البيانات:', error.message);
   },
 });
 

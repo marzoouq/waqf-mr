@@ -232,7 +232,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           />
           {nidAttemptsRemaining !== null && nidAttemptsRemaining <= 3 && (
             <div className={`flex items-center gap-1.5 text-xs mt-1 ${
-              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
+              nidAttemptsRemaining === 0 ? 'text-destructive' : 'text-caution-foreground'
             }`}>
               {nidAttemptsRemaining === 0 ? (
                 <ShieldAlert className="w-3.5 h-3.5 shrink-0" />

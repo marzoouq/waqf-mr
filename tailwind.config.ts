@@ -64,6 +64,19 @@ export default {
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         info: "hsl(var(--info))",
+        "star-rating": "hsl(var(--star-rating))",
+        "status-approved": {
+          DEFAULT: "hsl(var(--status-approved))",
+          foreground: "hsl(var(--status-approved-foreground))",
+        },
+        "status-special": {
+          DEFAULT: "hsl(var(--status-special))",
+          foreground: "hsl(var(--status-special-foreground))",
+        },
+        caution: {
+          DEFAULT: "hsl(var(--caution))",
+          foreground: "hsl(var(--caution-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

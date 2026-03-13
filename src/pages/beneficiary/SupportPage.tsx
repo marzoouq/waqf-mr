@@ -237,7 +237,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
                   <Star
                     className={`w-8 h-8 transition-colors ${
                       i <= (hoverRating || rating)
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-star-rating text-star-rating'
                         : 'text-muted-foreground/30'
                     }`}
                   />
