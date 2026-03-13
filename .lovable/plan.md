@@ -54,3 +54,17 @@
 - **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
 - **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
 - **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
+
+## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
+
+> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
+>
+> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
+>
+> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
+
+## نتائج تم حلها (2026-03-13)
+
+| الملاحظة | الحل |
+|----------|------|
+| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
