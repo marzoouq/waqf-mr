@@ -89,6 +89,8 @@ vi.mock('@/utils/contractAllocation', () => ({
   ]),
 }));
 
+import { useAccountsPage } from './useAccountsPage';
+
 const createWrapper = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return ({ children }: { children: React.ReactNode }) =>
@@ -99,7 +101,6 @@ describe('useAccountsPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('renders without error and returns expected shape', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     expect(result.current).not.toBeNull();
     expect(result.current.totalIncome).toBe(500000);
@@ -107,16 +108,13 @@ describe('useAccountsPage', () => {
   });
 
   it('filters out cancelled contracts', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // c2 is cancelled, should be excluded
     const contractIds = result.current.contracts.map((c: { id: string }) => c.id);
     expect(contractIds).not.toContain('c2');
     expect(contractIds).toContain('c1');
   });
 
   it('statusLabel translates known statuses', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     expect(result.current.statusLabel('active')).toBe('نشط');
     expect(result.current.statusLabel('expired')).toBe('منتهي');
@@ -125,30 +123,25 @@ describe('useAccountsPage', () => {
   });
 
   it('handleAdminPercentChange rejects invalid values', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     result.current.handleAdminPercentChange('150');
     expect(mockToastError).toHaveBeenCalledWith('نسبة الناظر يجب أن تكون رقماً بين 0 و 100');
   });
 
   it('handleAdminPercentChange rejects negative values', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     result.current.handleAdminPercentChange('-5');
     expect(mockToastError).toHaveBeenCalled();
   });
 
   it('handleWaqifPercentChange rejects NaN', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     result.current.handleWaqifPercentChange('abc');
     expect(mockToastError).toHaveBeenCalledWith('نسبة الواقف يجب أن تكون رقماً بين 0 و 100');
   });
 
   it('computes collectionData correctly', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // Only c1 (active) should appear in collectionData
     expect(result.current.collectionData.length).toBe(1);
     const item = result.current.collectionData[0];
     expect(item.tenantName).toBe('أحمد');
@@ -157,40 +150,30 @@ describe('useAccountsPage', () => {
   });
 
   it('computes totalBeneficiaryPercentage', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     expect(result.current.totalBeneficiaryPercentage).toBe(100);
   });
 
   it('getPaymentPerPeriod respects payment_amount when set', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // c1 has payment_amount=null, rent=120000, count=1 → 120000
     const pp = result.current.getPaymentPerPeriod(mockContracts[0]);
     expect(pp).toBe(120000);
   });
 
   it('getExpectedPayments uses allocationMap when available', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // allocateContractToFiscalYears returns allocated_payments: 1
     const ep = result.current.getExpectedPayments(mockContracts[0]);
     expect(ep).toBe(1);
   });
 
-  it('returns role from auth context', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
+  it('returns defined result object', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // The hook doesn't expose role directly but it uses it internally
     expect(result.current).toBeDefined();
   });
 
   it('computes commercialRent based on property type', () => {
-    const { useAccountsPage } = require('./useAccountsPage');
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    // c1 → p1 → property_type='تجاري' → commercial
-    // allocated_amount = 120000
     expect(result.current.commercialRent).toBe(120000);
-    expect(result.current.calculatedVat).toBe(18000); // 120000 * 15%
+    expect(result.current.calculatedVat).toBe(18000);
   });
 });

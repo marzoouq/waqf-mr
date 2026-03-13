@@ -131,7 +131,7 @@ describe('generatePaymentInvoicePDF', () => {
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
-      { waqfName: 'وقف', nazirName: 'ناظر' }, // no vatNumber
+      { waqfName: 'وقف' }, // no vatNumber
     );
     expect(generateZatcaQrTLV).not.toHaveBeenCalled();
   });
