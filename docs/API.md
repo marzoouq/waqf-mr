@@ -175,18 +175,27 @@ const { data } = await supabase.functions.invoke('check-contract-expiry', {
 
 ## 5. `lookup-national-id` — البحث بالهوية الوطنية
 
-**الوصف**: يبحث عن البريد الإلكتروني المرتبط برقم هوية وطنية. مستخدم في صفحة تسجيل الدخول.
+**الوصف**: يبحث عن البريد الإلكتروني المرتبط برقم هوية وطنية (يُرجع البريد مُقنّعاً). يدعم أيضاً تسجيل الدخول المباشر عبر تمرير كلمة المرور.
 
 **المصادقة**: لا يتطلب مصادقة (عام).
 
-**حماية**: Rate limiting — 3 طلبات في الدقيقة لكل IP.
+**حماية**: Rate limiting — 5 طلبات كل 120 ثانية لكل IP + Fail-closed + Timing-safe response (300ms ثابتة).
 
 ```typescript
+// بحث فقط (بدون كلمة مرور)
 const { data } = await supabase.functions.invoke('lookup-national-id', {
   body: { national_id: '1234567890' }
 });
-// نجاح: { email: 'user@example.com' }
-// فشل: { error: 'رقم الهوية غير مسجل في النظام' }
+// نجاح: { found: true, masked_email: 'u***@example.com', remaining: 4 }
+// غير موجود: { found: false, masked_email: null, remaining: 4 }
+// تجاوز الحد: { error: 'تم تجاوز حد المحاولات...', remaining: 0, retry_after: 85 }
+
+// بحث + تسجيل دخول (مع كلمة مرور)
+const { data } = await supabase.functions.invoke('lookup-national-id', {
+  body: { national_id: '1234567890', password: '********' }
+});
+// نجاح: { found: true, masked_email: 'u***@example.com', remaining: 3, session: { access_token, refresh_token } }
+// كلمة مرور خاطئة: { found: true, masked_email: 'u***@example.com', remaining: 3, auth_error: 'كلمة المرور غير صحيحة' }
 ```
 
 ---
