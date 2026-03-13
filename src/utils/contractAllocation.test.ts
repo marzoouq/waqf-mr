@@ -32,15 +32,15 @@ describe('generatePaymentDueDates', () => {
 });
 
 describe('allocateContractToFiscalYears', () => {
-  it('يخصص العقد لسنة مالية واحدة', () => {
+  it('يخصص العقد لسنة مالية واحدة (سنوي)', () => {
     const allocations = allocateContractToFiscalYears(
-      { id: 'c1', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 12000, payment_type: 'monthly' },
+      { id: 'c1', start_date: '2024-03-01', end_date: '2025-03-01', rent_amount: 50000, payment_type: 'annual' },
       [fy2024]
     );
     expect(allocations).toHaveLength(1);
     expect(allocations[0].fiscal_year_id).toBe('fy-2024');
-    expect(allocations[0].allocated_payments).toBe(12);
-    expect(allocations[0].allocated_amount).toBe(12000);
+    expect(allocations[0].allocated_payments).toBe(1);
+    expect(allocations[0].allocated_amount).toBe(50000);
   });
 
   it('يوزع عقد يمتد على سنتين ماليتين', () => {
