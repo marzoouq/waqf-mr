@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockRpc = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: { rpc: mockRpc },
+  supabase: { rpc: vi.fn() },
 }));
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTotalBeneficiaryPercentage } from './useTotalBeneficiaryPercentage';
+import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
+
+const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>;
 
 function createWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

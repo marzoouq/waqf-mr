@@ -7,7 +7,7 @@ const fy2025 = { id: 'fy-2025', label: '2025', start_date: '2025-01-01', end_dat
 describe('generatePaymentDueDates', () => {
   it('يولّد 12 تاريخ للعقد الشهري (12 شهر)', () => {
     const dates = generatePaymentDueDates({
-      id: 'c1', start_date: '2024-01-01', end_date: '2024-12-31',
+      id: 'c1', start_date: '2024-01-01', end_date: '2025-01-01',
       rent_amount: 12000, payment_type: 'monthly',
     });
     expect(dates).toHaveLength(12);
