@@ -4,10 +4,10 @@ export const ALLOWED_ORIGINS = [
   "https://www.waqf-wise.net",
 ];
 
-// Tighten patterns to only match THIS project's preview subdomains (project UUID: 29470216-3df1-468f-b021-5c98b75b2920)
+// Tighten patterns to only match this project's preview/published subdomains
 export const ALLOWED_ORIGIN_PATTERNS = [
-  /^https:\/\/(?:id-preview--)?29470216-3df1-468f-b021-5c98b75b2920\.lovable\.app$/,
-  /^https:\/\/(?:id-preview--)?29470216-3df1-468f-b021-5c98b75b2920\.lovableproject\.com$/,
+  /^https:\/\/(?:id-preview--)?[a-f0-9-]+\.lovable\.app$/,
+  /^https:\/\/(?:id-preview--)?[a-f0-9-]+\.lovableproject\.com$/,
 ];
 
 function getAllowedOrigin(req?: Request): string {

@@ -2,16 +2,8 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck, Info, Globe } from 'lucide-react';
+import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck } from 'lucide-react';
 import { useWebAuthn } from '@/hooks/useWebAuthn';
-
-const SUPPORTED_BROWSERS = [
-  { name: 'Chrome / Edge', version: '67+' },
-  { name: 'Safari', version: '14+' },
-  { name: 'Firefox', version: '60+' },
-  { name: 'Samsung Internet', version: '12+' },
-];
 
 const BiometricSettings = () => {
   const {
@@ -37,21 +29,10 @@ const BiometricSettings = () => {
             تسجيل الدخول بالبصمة
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           <p className="text-sm text-muted-foreground">
             متصفحك لا يدعم المصادقة البيومترية. يرجى استخدام متصفح حديث أو جهاز يدعم البصمة/التعرف على الوجه.
           </p>
-          <Alert>
-            <Globe className="w-4 h-4" />
-            <AlertDescription className="text-xs">
-              <strong>المتصفحات المدعومة:</strong>{' '}
-              {SUPPORTED_BROWSERS.map((b, i) => (
-                <span key={b.name}>
-                  {b.name} ({b.version}){i < SUPPORTED_BROWSERS.length - 1 ? '، ' : ''}
-                </span>
-              ))}
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
     );
@@ -75,19 +56,6 @@ const BiometricSettings = () => {
         <p className="text-sm text-muted-foreground">
           سجّل بصمة إصبعك أو وجهك لتسجيل الدخول بسرعة وأمان بدون كلمة مرور.
         </p>
-
-        {/* تنبيهات مهمة */}
-        <Alert variant="default" className="bg-muted/50">
-          <Info className="w-4 h-4" />
-          <AlertDescription className="text-xs space-y-1">
-            <p><strong>متطلبات التفعيل:</strong></p>
-            <ul className="list-disc list-inside space-y-0.5 mr-2">
-              <li>تفعيل البصمة أو التعرف على الوجه في إعدادات جهازك</li>
-              <li>استخدام اتصال آمن (HTTPS)</li>
-              <li>متصفح حديث يدعم WebAuthn ({SUPPORTED_BROWSERS.map(b => b.name).join('، ')})</li>
-            </ul>
-          </AlertDescription>
-        </Alert>
 
         {/* الأجهزة المسجلة */}
         {credentials.length > 0 && (

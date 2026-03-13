@@ -75,9 +75,6 @@ const DataExportTab = () => {
         toast.info(`لا توجد بيانات في جدول ${label}`);
         return;
       }
-      if (data.length >= 5000) {
-        toast.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
-      }
       const csv = convertToCSV(data);
       const date = new Date().toISOString().slice(0, 10);
       downloadCSV(csv, `${table}_${date}.csv`);

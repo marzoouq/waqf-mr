@@ -5,215 +5,50 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-/**
- * Determine InvoiceTypeCode and name attribute based on invoice_type
- * Standard (B2B): code=388 name=0100000
- * Simplified (B2C): code=388 name=0200000
- * Debit Note: code=383
- * Credit Note: code=381
- */
-function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
-  switch (invoiceType?.toLowerCase()) {
-    case "simplified":
-    case "مبسطة":
-      return { code: "388", name: "0200000" };
-    case "debit_note":
-    case "إشعار مدين":
-      return { code: "383", name: "0100000" };
-    case "credit_note":
-    case "إشعار دائن":
-      return { code: "381", name: "0100000" };
-    case "standard":
-    case "قياسية":
-    default:
-      return { code: "388", name: "0100000" };
-  }
-}
-
-/**
- * Determine VAT category code
- * S = Standard rate (15%)
- * Z = Zero-rated
- * E = Exempt
- * O = Out of scope
- */
-function getVatCategoryCode(vatRate: number): string {
-  if (vatRate > 0) return "S";
-  return "E"; // exempt by default for zero-rate waqf
-}
-
-/**
- * Escape XML special characters
- */
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function buildUBL(
-  inv: Record<string, unknown>,
-  settings: Record<string, string>,
-  previousInvoiceHash: string
-): string {
-  // --- Seller info from settings ---
+function buildUBL(inv: Record<string, unknown>, settings: Record<string, string>): string {
   const vatNumber = settings.vat_number || "";
-  const crn = settings.commercial_registration_number || "";
-  const sellerName = escapeXml(settings.waqf_name || "");
-  const streetName = escapeXml(settings.business_address_street || "");
-  const buildingNumber = settings.business_address_building || "";
-  const cityName = escapeXml(settings.business_address_city || "");
-  const postalZone = settings.business_address_postal || "";
-  const districtName = escapeXml(settings.business_address_district || "");
-  const countrySubentity = escapeXml(settings.business_address_province || "");
-
-  // --- Invoice data ---
-  const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
-  const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
-  // Use invoice created_at time if available, otherwise current time
-  const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
-  const issueTime = createdAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
+  const sellerName = settings.waqf_name || "";
+  const invoiceNumber = inv.invoice_number || "";
+  const issueDate = inv.date || new Date().toISOString().split("T")[0];
   const amountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
   const vatAmount = Number(inv.vat_amount ?? 0);
   const total = amountExVat + vatAmount;
   const vatRate = Number(inv.vat_rate ?? 0);
   const currencyCode = "SAR";
-  const uuid = String(inv.zatca_uuid || crypto.randomUUID());
 
-  // --- Invoice type ---
-  const invoiceType = String(inv.invoice_type || "standard");
-  const typeInfo = getInvoiceTypeInfo(invoiceType);
-  const vatCategoryCode = getVatCategoryCode(vatRate);
-
-  // --- Buyer info (for Standard invoices) ---
-  const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
-  const isSimplified = typeInfo.name === "0200000";
-
-  // --- PIH (Previous Invoice Hash) ---
-  const pih = previousInvoiceHash || "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
-
-  // --- Build XML ---
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-         xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2">
-  <ext:UBLExtensions>
-    <ext:UBLExtension>
-      <ext:ExtensionURI>urn:oasis:names:specification:ubl:dsig:enveloped:xades</ext:ExtensionURI>
-      <ext:ExtensionContent>
-        <!-- Signature will be populated by zatca-signer -->
-      </ext:ExtensionContent>
-    </ext:UBLExtension>
-  </ext:UBLExtensions>
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
   <cbc:ProfileID>reporting:1.0</cbc:ProfileID>
   <cbc:ID>${invoiceNumber}</cbc:ID>
-  <cbc:UUID>${uuid}</cbc:UUID>
+  <cbc:UUID>${inv.zatca_uuid || crypto.randomUUID()}</cbc:UUID>
   <cbc:IssueDate>${issueDate}</cbc:IssueDate>
-  <cbc:IssueTime>${issueTime}</cbc:IssueTime>
-  <cbc:InvoiceTypeCode name="${typeInfo.name}">${typeInfo.code}</cbc:InvoiceTypeCode>
+  <cbc:InvoiceTypeCode name="0100000">388</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>${currencyCode}</cbc:DocumentCurrencyCode>
-  <cbc:TaxCurrencyCode>${currencyCode}</cbc:TaxCurrencyCode>
-  <cac:AdditionalDocumentReference>
-    <cbc:ID>ICV</cbc:ID>
-    <cbc:UUID>${Number(inv.icv || 0)}</cbc:UUID>
-  </cac:AdditionalDocumentReference>
-  <cac:AdditionalDocumentReference>
-    <cbc:ID>PIH</cbc:ID>
-    <cac:Attachment>
-      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain">${pih}</cbc:EmbeddedDocumentBinaryObject>
-    </cac:Attachment>
-  </cac:AdditionalDocumentReference>
-  <cac:AdditionalDocumentReference>
-    <cbc:ID>QR</cbc:ID>
-    <cac:Attachment>
-      <cbc:EmbeddedDocumentBinaryObject mimeCode="text/plain"><!-- QR will be populated by zatca-signer --></cbc:EmbeddedDocumentBinaryObject>
-    </cac:Attachment>
-  </cac:AdditionalDocumentReference>
-  <cac:Signature>
-    <cbc:ID>urn:oasis:names:specification:ubl:signature:Invoice</cbc:ID>
-    <cbc:SignatureMethod>urn:oasis:names:specification:ubl:dsig:enveloped:xades</cbc:SignatureMethod>
-  </cac:Signature>
   <cac:AccountingSupplierParty>
     <cac:Party>
-      <cac:PartyIdentification>
-        <cbc:ID schemeID="CRN">${escapeXml(crn)}</cbc:ID>
-      </cac:PartyIdentification>
-      <cac:PostalAddress>
-        <cbc:StreetName>${streetName}</cbc:StreetName>
-        <cbc:BuildingNumber>${buildingNumber}</cbc:BuildingNumber>
-        <cbc:CitySubdivisionName>${districtName}</cbc:CitySubdivisionName>
-        <cbc:CityName>${cityName}</cbc:CityName>
-        <cbc:PostalZone>${postalZone}</cbc:PostalZone>
-        <cbc:CountrySubentity>${countrySubentity}</cbc:CountrySubentity>
-        <cac:Country>
-          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
-        </cac:Country>
-      </cac:PostalAddress>
+      <cac:PartyIdentification><cbc:ID schemeID="CRN">${vatNumber}</cbc:ID></cac:PartyIdentification>
+      <cac:PartyName><cbc:Name>${sellerName}</cbc:Name></cac:PartyName>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID schemeID="TIN">${escapeXml(vatNumber)}</cbc:CompanyID>
+        <cbc:CompanyID>${vatNumber}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
-      <cac:PartyLegalEntity>
-        <cbc:RegistrationName>${sellerName}</cbc:RegistrationName>
-      </cac:PartyLegalEntity>
     </cac:Party>
-  </cac:AccountingSupplierParty>${!isSimplified ? `
-  <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyIdentification>
-        <cbc:ID schemeID="NAT">${escapeXml(String(inv.buyer_id || ""))}</cbc:ID>
-      </cac:PartyIdentification>
-      <cac:PostalAddress>
-        <cbc:StreetName>${escapeXml(String(inv.buyer_street || ""))}</cbc:StreetName>
-        <cbc:CityName>${escapeXml(String(inv.buyer_city || ""))}</cbc:CityName>
-        <cbc:PostalZone>${escapeXml(String(inv.buyer_postal || ""))}</cbc:PostalZone>
-        <cac:Country>
-          <cbc:IdentificationCode>SA</cbc:IdentificationCode>
-        </cac:Country>
-      </cac:PostalAddress>
-      <cac:PartyTaxScheme>
-        <cbc:CompanyID>${escapeXml(String(inv.buyer_vat || ""))}</cbc:CompanyID>
-        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
-      </cac:PartyTaxScheme>
-      <cac:PartyLegalEntity>
-        <cbc:RegistrationName>${buyerName}</cbc:RegistrationName>
-      </cac:PartyLegalEntity>
-    </cac:Party>
-  </cac:AccountingCustomerParty>` : `
-  <cac:AccountingCustomerParty>
-    <cac:Party>
-      <cac:PartyLegalEntity>
-        <cbc:RegistrationName>${buyerName}</cbc:RegistrationName>
-      </cac:PartyLegalEntity>
-    </cac:Party>
-  </cac:AccountingCustomerParty>`}
-  <cac:Delivery>
-    <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>
-  </cac:Delivery>
-  <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
-  </cac:PaymentMeans>
+  </cac:AccountingSupplierParty>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
     <cac:TaxSubtotal>
       <cbc:TaxableAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxableAmount>
       <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
       <cac:TaxCategory>
-        <cbc:ID>${vatCategoryCode}</cbc:ID>
+        <cbc:ID>S</cbc:ID>
         <cbc:Percent>${vatRate}</cbc:Percent>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:TaxCategory>
     </cac:TaxSubtotal>
   </cac:TaxTotal>
-  <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-  </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
-    <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
     <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxExclusiveAmount>
     <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
     <cbc:PayableAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:PayableAmount>
@@ -222,21 +57,8 @@ function buildUBL(
     <cbc:ID>1</cbc:ID>
     <cbc:InvoicedQuantity unitCode="PCE">1</cbc:InvoicedQuantity>
     <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
-    <cac:TaxTotal>
-      <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-      <cbc:RoundingAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:RoundingAmount>
-    </cac:TaxTotal>
-    <cac:Item>
-      <cbc:Name>${escapeXml(String(inv.description || "إيجار عقاري"))}</cbc:Name>
-      <cac:ClassifiedTaxCategory>
-        <cbc:ID>${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${vatRate}</cbc:Percent>
-        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
-      </cac:ClassifiedTaxCategory>
-    </cac:Item>
-    <cac:Price>
-      <cbc:PriceAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:PriceAmount>
-    </cac:Price>
+    <cac:Item><cbc:Name>إيجار عقاري</cbc:Name></cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:PriceAmount></cac:Price>
   </cac:InvoiceLine>
 </Invoice>`;
 }
@@ -261,7 +83,7 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Check admin/accountant role
+    // Check admin role
     const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id).in("role", ["admin", "accountant"]);
     if (!roles?.length) {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -278,51 +100,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Invoice not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Fetch all ZATCA-relevant settings
-    const settingKeys = [
-      "vat_number", "waqf_name", "commercial_registration_number",
-      "business_address_street", "business_address_building",
-      "business_address_city", "business_address_postal",
-      "business_address_district", "business_address_province",
-    ];
-    const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", settingKeys);
+    // Fetch ZATCA settings
+    const { data: settingsRows } = await admin.from("app_settings").select("key, value").in("key", ["vat_number", "waqf_name"]);
     const settings: Record<string, string> = {};
     (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
-    // Get previous invoice hash for PIH
-    const { data: lastChain } = await admin
-      .from("invoice_chain")
-      .select("invoice_hash")
-      .order("icv", { ascending: false })
-      .limit(1)
-      .single();
-    const previousHash = lastChain?.invoice_hash || "";
+    const xml = buildUBL(inv, settings);
 
-    // For payment_invoices, add tenant_name from contract
-    if (table === "payment_invoices" && inv.contract_id) {
-      const { data: contract } = await admin
-        .from("contracts")
-        .select("tenant_name")
-        .eq("id", inv.contract_id)
-        .single();
-      if (contract) {
-        (inv as Record<string, unknown>).tenant_name = contract.tenant_name;
-      }
-      // Default to simplified for payment invoices
-      if (!inv.invoice_type) {
-        (inv as Record<string, unknown>).invoice_type = "simplified";
-      }
-    }
-
-    const xml = buildUBL(inv as Record<string, unknown>, settings, previousHash);
-
-    // Save XML to invoice — works for both tables if zatca_xml column exists
+    // Save XML to invoice
     if (table === "invoices") {
       await admin.from("invoices").update({ zatca_xml: xml }).eq("id", invoice_id);
-    } else if (table === "payment_invoices") {
-      await admin.from("payment_invoices").update({ zatca_xml: xml } as Record<string, unknown>).eq("id", invoice_id);
     }
-
+    // payment_invoices doesn't have zatca_xml column — store in notes or skip
+    
     return new Response(JSON.stringify({ success: true, xml_length: xml.length }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

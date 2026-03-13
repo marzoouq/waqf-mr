@@ -109,19 +109,19 @@ describe('Public pages smoke tests', () => {
 
   it('renders Unauthorized page', () => {
     renderWithRouter(<Unauthorized />);
-    expect(screen.getByText('غير مصرح بالدخول')).toBeInTheDocument();
+    expect(screen.getByText('غير مصرح')).toBeInTheDocument();
   });
 
   it('renders NotFound page', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     renderWithRouter(<NotFound />, '/missing-page');
-    expect(screen.getByText('الصفحة غير موجودة')).toBeInTheDocument();
+    expect(screen.getByText('عذراً! الصفحة غير موجودة')).toBeInTheDocument();
     spy.mockRestore();
   });
 
   it('renders PrivacyPolicy page', () => {
     renderWithRouter(<PrivacyPolicy />);
-    expect(screen.getAllByText('سياسة الخصوصية').length).toBeGreaterThan(0);
+    expect(screen.getByText('سياسة الخصوصية')).toBeInTheDocument();
   });
 
   it('renders TermsOfUse page', () => {

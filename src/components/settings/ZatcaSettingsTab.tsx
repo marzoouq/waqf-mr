@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Save, FileText, Cpu } from 'lucide-react';
+import { Save, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ZATCA_KEYS = [
@@ -16,12 +16,8 @@ const ZATCA_KEYS = [
   'business_address_street',
   'business_address_city',
   'business_address_postal_code',
-  'business_address_district',
   'default_vat_rate',
-  'zatca_device_serial',
 ] as const;
-
-const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
 
 const ZatcaSettingsTab = () => {
   const { data: settings, isLoading } = useAppSettings();
@@ -51,13 +47,6 @@ const ZatcaSettingsTab = () => {
         toast.error('الرقم الضريبي يجب أن يبدأ وينتهي بالرقم 3');
         return;
       }
-    }
-
-    // Validate device serial format
-    const serial = formData.zatca_device_serial?.trim();
-    if (serial && serial.length > 0 && !DEVICE_SERIAL_REGEX.test(serial)) {
-      toast.error('صيغة معرّف الجهاز غير صحيحة. الصيغة المطلوبة: 1-XXX|2-YYY|3-ZZZ');
-      return;
     }
 
     setSaving(true);
@@ -123,21 +112,13 @@ const ZatcaSettingsTab = () => {
           <CardTitle className="font-display text-lg">عنوان المنشأة</CardTitle>
           <CardDescription>العنوان المطلوب في الفواتير الضريبية</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <CardContent className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
             <Label>الشارع</Label>
             <Input
               value={formData.business_address_street || ''}
               onChange={(e) => setFormData((p) => ({ ...p, business_address_street: e.target.value }))}
               placeholder="اسم الشارع"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>الحي</Label>
-            <Input
-              value={formData.business_address_district || ''}
-              onChange={(e) => setFormData((p) => ({ ...p, business_address_district: e.target.value }))}
-              placeholder="اسم الحي"
             />
           </div>
           <div className="space-y-1.5">
@@ -183,36 +164,6 @@ const ZatcaSettingsTab = () => {
             <p className="text-xs text-muted-foreground">
               الأوقاف السكنية عادةً معفاة (0%)، التجارية خاضعة (15%)
             </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <Cpu className="w-5 h-5" />
-            معرّف الجهاز (Device Serial)
-          </CardTitle>
-          <CardDescription>
-            معرّف فريد للحل التقني يُستخدم عند تسجيل الشهادة مع ZATCA
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1.5 max-w-md">
-            <Label>معرّف الجهاز</Label>
-            <Input
-              value={formData.zatca_device_serial || ''}
-              onChange={(e) => setFormData((p) => ({ ...p, zatca_device_serial: e.target.value }))}
-              placeholder="1-WAQF|2-POS01|3-SN001"
-              dir="ltr"
-              className="font-mono"
-            />
-            <p className="text-xs text-muted-foreground">
-              الصيغة المطلوبة: <code className="bg-muted px-1 rounded">1-اسم_المزود|2-الموديل|3-الرقم_التسلسلي</code>
-            </p>
-            {formData.zatca_device_serial && !DEVICE_SERIAL_REGEX.test(formData.zatca_device_serial.trim()) && (
-              <p className="text-xs text-destructive">⚠️ الصيغة غير صحيحة — يجب أن تتبع النمط: 1-XXX|2-YYY|3-ZZZ</p>
-            )}
           </div>
         </CardContent>
       </Card>

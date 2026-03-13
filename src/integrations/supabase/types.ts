@@ -941,11 +941,8 @@ export type Database = {
           due_date: string
           file_path: string | null
           fiscal_year_id: string | null
-          icv: number | null
           id: string
-          invoice_hash: string | null
           invoice_number: string
-          invoice_type: string | null
           notes: string | null
           paid_amount: number | null
           paid_date: string | null
@@ -956,7 +953,6 @@ export type Database = {
           vat_rate: number
           zatca_status: string | null
           zatca_uuid: string | null
-          zatca_xml: string | null
         }
         Insert: {
           amount?: number
@@ -965,11 +961,8 @@ export type Database = {
           due_date: string
           file_path?: string | null
           fiscal_year_id?: string | null
-          icv?: number | null
           id?: string
-          invoice_hash?: string | null
           invoice_number: string
-          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number | null
           paid_date?: string | null
@@ -980,7 +973,6 @@ export type Database = {
           vat_rate?: number
           zatca_status?: string | null
           zatca_uuid?: string | null
-          zatca_xml?: string | null
         }
         Update: {
           amount?: number
@@ -989,11 +981,8 @@ export type Database = {
           due_date?: string
           file_path?: string | null
           fiscal_year_id?: string | null
-          icv?: number | null
           id?: string
-          invoice_hash?: string | null
           invoice_number?: string
-          invoice_type?: string | null
           notes?: string | null
           paid_amount?: number | null
           paid_date?: string | null
@@ -1004,7 +993,6 @@ export type Database = {
           vat_rate?: number
           zatca_status?: string | null
           zatca_uuid?: string | null
-          zatca_xml?: string | null
         }
         Relationships: [
           {
@@ -1371,7 +1359,6 @@ export type Database = {
           is_active: boolean | null
           private_key: string
           request_id: string | null
-          zatca_secret: string | null
         }
         Insert: {
           certificate: string
@@ -1381,7 +1368,6 @@ export type Database = {
           is_active?: boolean | null
           private_key: string
           request_id?: string | null
-          zatca_secret?: string | null
         }
         Update: {
           certificate?: string
@@ -1391,7 +1377,6 @@ export type Database = {
           is_active?: boolean | null
           private_key?: string
           request_id?: string | null
-          zatca_secret?: string | null
         }
         Relationships: []
       }
@@ -1441,10 +1426,6 @@ export type Database = {
       }
     }
     Functions: {
-      allocate_icv_and_chain: {
-        Args: { p_invoice_hash: string; p_invoice_id: string }
-        Returns: Json
-      }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
