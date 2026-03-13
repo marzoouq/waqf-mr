@@ -129,7 +129,11 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
 };
 
 const BylawsPage = () => {
-  const { data: bylaws, isLoading, updateBylaw, reorderBylaws, createBylaw, deleteBylaw } = useBylaws();
+  const { data: bylaws, isLoading } = useBylawsList();
+  const updateBylaw = useUpdateBylaw();
+  const createBylaw = useCreateBylaw();
+  const deleteBylaw = useDeleteBylaw();
+  const reorderBylaws = useReorderBylaws();
   const { data: settings, updateSetting } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);

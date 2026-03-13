@@ -6,22 +6,20 @@ const mockLimit = vi.fn().mockResolvedValue({
 });
 const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
 const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
-const mockDeleteEq = vi.fn().mockResolvedValue({ error: null });
-const mockUpdateEq = vi.fn().mockResolvedValue({ error: null });
-const mockInsert = vi.fn().mockResolvedValue({ error: null });
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: () => ({
       select: mockSelect,
-      insert: mockInsert,
-      update: () => ({ eq: mockUpdateEq }),
-      delete: () => ({ eq: mockDeleteEq }),
+      insert: () => ({ select: () => ({ maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'new' }, error: null }) }) }),
+      update: () => ({ eq: () => ({ select: () => ({ single: vi.fn().mockResolvedValue({ data: { id: 'b1' }, error: null }) }) }) }),
+      delete: () => ({ eq: vi.fn().mockResolvedValue({ error: null }) }),
     }),
+    rpc: vi.fn().mockResolvedValue({ error: null }),
   },
 }));
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
 
 let capturedQueryFn: (() => Promise<unknown>) | null = null;
 
@@ -31,10 +29,20 @@ vi.mock('@tanstack/react-query', () => ({
     return { data: [], isLoading: false };
   },
   useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function>) => ({
+    mutate: async (...args: unknown[]) => {
+      try {
+        const result = await mutationFn(...args);
+        onSuccess?.(result);
+      } catch (e) {
+        onError?.(e);
+        throw e;
+      }
+    },
     mutateAsync: async (...args: unknown[]) => {
       try {
-        await mutationFn(...args);
-        onSuccess?.();
+        const result = await mutationFn(...args);
+        onSuccess?.(result);
+        return result;
       } catch (e) {
         onError?.(e);
         throw e;
@@ -44,15 +52,13 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 
-import { useBylaws } from './useBylaws';
+import { useBylaws, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws } from './useBylaws';
 
-describe('useBylaws', () => {
-  it('returns query and mutation functions', () => {
+describe('useBylaws (factory)', () => {
+  it('useBylaws returns query result', () => {
     const result = useBylaws();
-    expect(result.updateBylaw).toBeDefined();
-    expect(result.createBylaw).toBeDefined();
-    expect(result.deleteBylaw).toBeDefined();
-    expect(result.reorderBylaws).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(result.isLoading).toBe(false);
   });
 
   it('queryFn fetches bylaws data', async () => {
@@ -64,6 +70,7 @@ describe('useBylaws', () => {
   it('queryFn returns empty array on empty data', async () => {
     mockLimit.mockResolvedValueOnce({ data: null, error: null });
     useBylaws();
+    // factory يُرجع TData[] — عند null يُعيد مصفوفة فارغة أو يرمي خطأ
     const data = await capturedQueryFn!();
     expect(data).toEqual([]);
   });
@@ -72,5 +79,12 @@ describe('useBylaws', () => {
     mockLimit.mockResolvedValueOnce({ data: null, error: { message: 'db error' } });
     useBylaws();
     await expect(capturedQueryFn!()).rejects.toBeDefined();
+  });
+
+  it('separate hooks are exported', () => {
+    expect(useCreateBylaw).toBeDefined();
+    expect(useUpdateBylaw).toBeDefined();
+    expect(useDeleteBylaw).toBeDefined();
+    expect(useReorderBylaws).toBeDefined();
   });
 });
