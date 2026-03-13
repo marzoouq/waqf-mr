@@ -34,7 +34,7 @@ import { toast } from 'sonner';
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },
   medium: { label: 'متوسط', color: 'bg-warning/20 text-warning' },
-  high: { label: 'عالي', color: 'bg-orange-500/20 text-orange-600' },
+  high: { label: 'عالي', color: 'bg-caution/20 text-caution-foreground' },
   critical: { label: 'حرج', color: 'bg-destructive/20 text-destructive' },
 };
 
@@ -438,7 +438,7 @@ const SupportDashboardPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <StatRow label="إجمالي التذاكر" value={stats?.totalTickets ?? 0} />
-                  <StatRow label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
+                  <StatRow label="مفتوحة" value={stats?.openTickets ?? 0} color="text-status-approved-foreground" />
                   <StatRow label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
                   <StatRow label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
                   <StatRow label="أولوية عالية/حرجة" value={stats?.highPriorityTickets ?? 0} color="text-destructive" />

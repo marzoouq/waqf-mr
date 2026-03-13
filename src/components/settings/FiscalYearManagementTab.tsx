@@ -258,8 +258,8 @@ const FiscalYearManagementTab = () => {
                     </Badge>
                     <Badge
                       className={`gap-1 ${fy.published
-                        ? 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700'
-                        : 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-700'}`} 
+                        ? 'bg-success/15 text-success border-success/30'
+                        : 'bg-caution/15 text-caution-foreground border-caution/30'}`} 
                       variant="outline"
                     >
                       {fy.published ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
@@ -277,7 +277,7 @@ const FiscalYearManagementTab = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className={`gap-1 text-xs ${fy.published ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
+                          className={`gap-1 text-xs ${fy.published ? 'text-caution-foreground hover:text-caution-foreground/80' : 'text-success hover:text-success/80'}`}
                           disabled={actionLoading === `pub-${fy.id}`}
                         >
                           {actionLoading === `pub-${fy.id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : fy.published ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}

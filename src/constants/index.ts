@@ -47,19 +47,19 @@ export const PAYMENT_TYPES = {
 
 // ─── ألوان شريط التنبيه ───
 export const BANNER_COLORS = [
-  { value: 'amber', label: 'ذهبي', className: 'bg-amber-500' },
-  { value: 'blue', label: 'أزرق', className: 'bg-blue-500' },
-  { value: 'green', label: 'أخضر', className: 'bg-green-600' },
-  { value: 'red', label: 'أحمر', className: 'bg-red-500' },
-  { value: 'purple', label: 'بنفسجي', className: 'bg-purple-500' },
+  { value: 'amber', label: 'ذهبي', className: 'bg-warning' },
+  { value: 'blue', label: 'أزرق', className: 'bg-info' },
+  { value: 'green', label: 'أخضر', className: 'bg-success' },
+  { value: 'red', label: 'أحمر', className: 'bg-destructive' },
+  { value: 'purple', label: 'بنفسجي', className: 'bg-status-special' },
 ] as const;
 
 export const BANNER_COLOR_CLASSES: Record<string, string> = {
-  amber: 'bg-amber-500 hover:bg-amber-600',
-  blue: 'bg-blue-500 hover:bg-blue-600',
-  green: 'bg-green-600 hover:bg-green-700',
-  red: 'bg-red-500 hover:bg-red-600',
-  purple: 'bg-purple-500 hover:bg-purple-600',
+  amber: 'bg-warning hover:bg-warning/90',
+  blue: 'bg-info hover:bg-info/90',
+  green: 'bg-success hover:bg-success/90',
+  red: 'bg-destructive hover:bg-destructive/90',
+  purple: 'bg-status-special hover:bg-status-special/90',
 };
 
 // ─── إعدادات شريط التنبيه الافتراضية ───
