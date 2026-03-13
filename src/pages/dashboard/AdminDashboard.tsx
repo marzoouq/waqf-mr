@@ -465,23 +465,25 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Year-over-Year Comparison */}
+        {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5" />
-                مقارنة بين السنوات المالية
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <YearOverYearComparison
-                fiscalYears={allFiscalYears}
-                currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                waqfInfo={waqfInfo}
-              />
-            </CardContent>
-          </Card>
+          <Suspense fallback={<ChartSkeleton />}>
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowUpDown className="w-5 h-5" />
+                  مقارنة بين السنوات المالية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <YearOverYearComparison
+                  fiscalYears={allFiscalYears}
+                  currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                  waqfInfo={waqfInfo}
+                />
+              </CardContent>
+            </Card>
+          </Suspense>
         )}
 
         {/* Recent Activity */}
