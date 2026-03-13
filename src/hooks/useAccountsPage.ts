@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useContracts, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
+import { useContractsByFiscalYear, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useBeneficiaries } from '@/hooks/useBeneficiaries';
 import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { useAllUnits } from '@/hooks/useUnits';
@@ -40,7 +40,7 @@ export function useAccountsPage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const { data: accounts = [], isLoading } = useAccounts();
-  const { data: allContracts = [] } = useContracts();
+  const { data: allContracts = [] } = useContractsByFiscalYear('all');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const { data: tenantPayments = [] } = useTenantPayments();
   const { data: allUnits = [] } = useAllUnits();

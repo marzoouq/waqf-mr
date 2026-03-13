@@ -37,7 +37,7 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
   return useQuery({
     queryKey: ['payment_invoices', fiscalYearId],
     enabled: fiscalYearId !== '__none__',
-    staleTime: 30_000,
+    staleTime: 60_000,
     queryFn: async () => {
       let query = supabase
         .from('payment_invoices')
