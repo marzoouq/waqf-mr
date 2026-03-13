@@ -148,8 +148,9 @@ describe('LoginForm', () => {
 
   it('يظهر خطأ عند إرسال هوية فارغة', async () => {
     renderForm();
-    await userEvent.click(screen.getByText('رقم الهوية'));
-    await userEvent.type(screen.getByLabelText('كلمة المرور'), 'pass');
+    const idRadio = screen.getByRole('radio', { name: /method-id/ });
+    await userEvent.click(idRadio);
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('يرجى إدخال رقم الهوية الوطنية');
@@ -158,9 +159,10 @@ describe('LoginForm', () => {
 
   it('يظهر خطأ عند إدخال هوية أقل من 10 أرقام', async () => {
     renderForm();
-    await userEvent.click(screen.getByText('رقم الهوية'));
-    await userEvent.type(screen.getByLabelText('رقم الهوية الوطنية'), '12345');
-    await userEvent.type(screen.getByLabelText('كلمة المرور'), 'pass');
+    const idRadio = screen.getByRole('radio', { name: /method-id/ });
+    await userEvent.click(idRadio);
+    await userEvent.type(screen.getByPlaceholderText('1234567890'), '12345');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'pass');
     fireEvent.submit(screen.getByRole('button', { name: 'تسجيل الدخول' }));
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('رقم الهوية يجب أن يكون 10 أرقام');
