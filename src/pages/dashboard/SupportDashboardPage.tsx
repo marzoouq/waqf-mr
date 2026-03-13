@@ -209,12 +209,12 @@ const SupportDashboardPage = () => {
 
         {/* بطاقات الإحصائيات */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-blue-600" />
+          <StatCard icon={Clock} label="مفتوحة" value={stats?.openTickets ?? 0} color="text-status-approved-foreground" />
           <StatCard icon={ArrowUpCircle} label="قيد المعالجة" value={stats?.inProgressTickets ?? 0} color="text-warning" />
           <StatCard icon={Bug} label="أخطاء 24 ساعة" value={stats?.errorsLast24h ?? 0} color="text-destructive" />
           <StatCard icon={CheckCircle} label="تم حلها" value={stats?.resolvedTickets ?? 0} color="text-success" />
           <StatCard icon={Activity} label="متوسط الحل" value={avgResolutionTime ?? '—'} color="text-primary" isText />
-          <StatCard icon={Star} label="متوسط التقييم" value={avgRating ? `${avgRating.avg} ★` : '—'} color="text-amber-500" isText />
+          <StatCard icon={Star} label="متوسط التقييم" value={avgRating ? `${avgRating.avg} ★` : '—'} color="text-star-rating" isText />
         </div>
 
         <Tabs defaultValue="tickets" className="space-y-4">
