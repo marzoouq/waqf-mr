@@ -9,7 +9,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 // موك supabase channel
 const mockSubscribe = vi.fn().mockReturnValue({});
-const mockOn = vi.fn().mockReturnValue({ on: mockOn, subscribe: mockSubscribe });
+const mockOn: ReturnType<typeof vi.fn> = vi.fn();
 const mockChannel = vi.fn().mockReturnValue({ on: mockOn, subscribe: mockSubscribe });
 const mockRemoveChannel = vi.fn();
 
