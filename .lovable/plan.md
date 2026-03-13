@@ -1,70 +1,44 @@
 
-# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## تصنيف المشروع
+# خطة إصلاح مشاكل العرض في صفحة العقود والفواتير
 
-هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
+## المشاكل المكتشفة
 
-## سياق المستخدمين
+### 1. صفحة العقود — `ContractsPage.tsx`
+- **التبويبات (Tabs)** لا تحتوي على pagination في تبويب `PaymentInvoicesTab` عندما يكون عدد الفواتير أقل من `ITEMS_PER_PAGE` — الـ pagination مخفي بشرط `filtered.length > ITEMS_PER_PAGE` بدلاً من وضعه داخل Card مثل باقي الصفحات
+- **عمود التحصيل في الموبايل** — يعرض `Progress` بدون عرض محدد (`w-` class) مما قد يتسبب في تمدد غير متوقع
+- **تبويب فواتير الدفعات** — الـ `TablePagination` خارج الـ `Card` مما يكسر التناسق البصري مع باقي الجداول
 
-| الدور | النوع | مستوى الثقة |
-|-------|-------|------------|
-| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
-| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
-| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
-| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
+### 2. صفحة الفواتير — `InvoicesPage.tsx`
+- **عدم تعطيل زر الحذف والتعديل في Grid View** — عندما تكون السنة المقفلة (`isClosed`)، الـ `InvoiceGridView` لا يمرر `readOnly={isClosed}` بل يمرر `readOnly` بدون ربطه بـ `isClosed`
+- **Grid View** لا يحتوي على pagination — عند عرض الفواتير في العرض الشبكي لا يوجد ترقيم صفحات
 
-## حساسية البيانات
+### 3. `PaymentInvoicesTab.tsx`
+- **Pagination خارج Card** — موجود خارج الـ Card component مما يكسر التصميم الموحد
 
-```text
-عالية جداً:
-  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
-  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
-  └─ البريد الإلكتروني وأرقام الهواتف
+### 4. `InvoiceGridView.tsx`
+- **لا يدعم `readOnly` فعلياً** — الكارتات لا تزال clickable حتى لو كانت `readOnly=false` (المشكلة في المنطق: `!readOnly && onEdit?.(inv)` صحيحة لكن الكارت لا يزال يظهر `cursor-pointer`)
 
-عالية:
-  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
-  ├─ العقود والفواتير الضريبية (ZATCA)
-  └─ سجل المراجعة الجنائي (audit log)
+## التغييرات المطلوبة
 
-متوسطة:
-  ├─ بيانات العقارات والوحدات
-  └─ اللوائح الداخلية
-```
+### 1. إصلاح InvoicesPage — تمرير `isClosed` إلى GridView
+- في `InvoicesPage.tsx` سطر 327: تمرير `readOnly={isClosed}`
 
-## طبقات الحماية المُطبَّقة فعلياً
+### 2. إصلاح InvoiceGridView — إضافة pagination وإصلاح cursor
+- إضافة props لـ pagination (currentPage, itemsPerPage, onPageChange)
+- إزالة `cursor-pointer` عند `readOnly`
+- إضافة `TablePagination` أسفل الشبكة
 
-1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
-2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
-3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
-4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
-5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
-6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
+### 3. إصلاح PaymentInvoicesTab — نقل Pagination داخل Card
+- نقل `TablePagination` داخل `CardContent` لتتوافق بصرياً مع باقي الجداول
+- إزالة الشرط `filtered.length > ITEMS_PER_PAGE` ليظهر Pagination دائماً (كباقي الصفحات)
 
-## توجيهات للماسح الأمني
+### 4. إصلاح عرض التحصيل في الموبايل بـ ContractsPage
+- إضافة `w-full` للـ Progress في بطاقات الموبايل
 
-| الملاحظة | الحكم | السبب |
-|----------|-------|-------|
-| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
-| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
-| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
+### ملخص الملفات المتأثرة
+1. `src/pages/dashboard/InvoicesPage.tsx` — تمرير `readOnly={isClosed}`
+2. `src/components/invoices/InvoiceGridView.tsx` — إضافة pagination + إصلاح cursor
+3. `src/components/contracts/PaymentInvoicesTab.tsx` — نقل pagination داخل Card
+4. `src/pages/dashboard/ContractsPage.tsx` — تحسين عرض الموبايل
 
-## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
-
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
-- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
-- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
-
-## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
-
-> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
->
-> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
->
-> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
-
-## نتائج تم حلها (2026-03-13)
-
-| الملاحظة | الحل |
-|----------|------|
-| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
