@@ -1,3 +1,4 @@
+import { lazy, Suspense, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
@@ -11,7 +12,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,9 +19,17 @@ import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { Badge } from '@/components/ui/badge';
-import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { Skeleton } from '@/components/ui/skeleton';
 
+// Lazy-load heavy below-the-fold component
+const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+
+const ChartSkeleton = () => (
+  <div className="h-[300px] flex items-center justify-center">
+    <Skeleton className="w-full h-full rounded-lg" />
+  </div>
+);
 
 const ARABIC_MONTHS: Record<string, string> = {
   '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
