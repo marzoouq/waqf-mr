@@ -4,15 +4,17 @@ const mockSave = vi.fn();
 const mockAddPage = vi.fn();
 const mockText = vi.fn();
 vi.mock('jspdf', () => ({
-  default: vi.fn(() => ({
-    text: mockText, save: mockSave, setFont: vi.fn(), setFontSize: vi.fn(),
-    addPage: mockAddPage, setFillColor: vi.fn(), setTextColor: vi.fn(),
-    setDrawColor: vi.fn(), setLineWidth: vi.fn(), line: vi.fn(),
-    roundedRect: vi.fn(), getTextWidth: vi.fn(() => 40),
-    splitTextToSize: vi.fn((text: string) => text.split('\n')),
-    internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
-    getNumberOfPages: vi.fn(() => 1), setPage: vi.fn(),
-  })),
+  default: function JsPDFMock() {
+    return {
+      text: mockText, save: mockSave, setFont: vi.fn(), setFontSize: vi.fn(),
+      addPage: mockAddPage, setFillColor: vi.fn(), setTextColor: vi.fn(),
+      setDrawColor: vi.fn(), setLineWidth: vi.fn(), line: vi.fn(),
+      roundedRect: vi.fn(), getTextWidth: vi.fn(() => 40),
+      splitTextToSize: vi.fn((text: string) => text.split('\n')),
+      internal: { pageSize: { width: 210, height: 297 }, pages: ['', ''] },
+      getNumberOfPages: vi.fn(() => 1), setPage: vi.fn(),
+    };
+  },
 }));
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 vi.mock('./core', () => ({
