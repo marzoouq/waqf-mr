@@ -2,7 +2,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Users, FileText, BarChart3, ArrowLeft, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
+import { Building2, Users, FileText, BarChart3, ArrowRight, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
