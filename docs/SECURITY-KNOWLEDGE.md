@@ -46,7 +46,8 @@
 
 | الملاحظة | السبب |
 |----------|-------|
-| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `security_invoker = true` ترث RLS من الجدول الأصلي |
+| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `SECURITY DEFINER` + `security_barrier` — تتجاوز RLS عمداً لتمويه البيانات الحساسة قبل إرجاعها |
+| `SECURITY DEFINER VIEW` تحذير على العروض الآمنة | مقصود — العروض تقرأ من الجدول الأصلي بصلاحيات المالك لأن الأدوار الخارجية (waqif/beneficiary) ممنوعة من الوصول المباشر للجداول |
 | ثغرات في حزم `devDependencies` (مثل `vite-plugin-pwa`) | أدوات بناء فقط، لا تُشحن مع كود الإنتاج |
 | `verify_jwt = false` في Edge Functions | مقصود — Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً عبر `getUser()` |
 
