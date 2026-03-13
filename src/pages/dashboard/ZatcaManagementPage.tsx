@@ -721,7 +721,7 @@ function ZatcaManagementPage() {
                 {complianceResult.warningMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
-                    {complianceResult.warningMessages.map((w: any, i: number) => (
+                    {complianceResult.warningMessages.map((w: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-secondary/50 rounded p-2 border border-border">
                         <span className="font-mono">{w.code}</span>: {w.message}
                       </div>
