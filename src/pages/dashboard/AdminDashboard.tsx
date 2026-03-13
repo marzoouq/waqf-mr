@@ -32,27 +32,8 @@ const ChartSkeleton = () => (
   </div>
 );
 
-const ARABIC_MONTHS: Record<string, string> = {
-  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-};
-const formatArabicMonth = (month: string) => {
-  const parts = month.split('-');
-  return ARABIC_MONTHS[parts[1]] || month;
-};
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
-
-const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--secondary))',
-  'hsl(var(--info))',
-  'hsl(var(--success))',
-  'hsl(var(--destructive))',
-  'hsl(var(--warning))',
-  'hsl(var(--accent-foreground))',
-  'hsl(var(--muted-foreground))',
-];
+// Collection summary mini-chart colors (kept inline since PieChart is still imported for collection summary)
+const COLLECTION_COLORS = ['hsl(var(--success))', 'hsl(var(--destructive))'];
 
 const AdminDashboard = () => {
   const { role } = useAuth();
