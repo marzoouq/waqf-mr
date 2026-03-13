@@ -11,7 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,8 +22,9 @@ import { Badge } from '@/components/ui/badge';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy-load heavy below-the-fold component
+// Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
+const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 
 const ChartSkeleton = () => (
   <div className="h-[300px] flex items-center justify-center">
@@ -31,27 +32,8 @@ const ChartSkeleton = () => (
   </div>
 );
 
-const ARABIC_MONTHS: Record<string, string> = {
-  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-};
-const formatArabicMonth = (month: string) => {
-  const parts = month.split('-');
-  return ARABIC_MONTHS[parts[1]] || month;
-};
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
-
-const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--secondary))',
-  'hsl(var(--info))',
-  'hsl(var(--success))',
-  'hsl(var(--destructive))',
-  'hsl(var(--warning))',
-  'hsl(var(--accent-foreground))',
-  'hsl(var(--muted-foreground))',
-];
+// Collection summary mini-chart colors (kept inline since PieChart is still imported for collection summary)
+const COLLECTION_COLORS = ['hsl(var(--success))', 'hsl(var(--destructive))'];
 
 const AdminDashboard = () => {
   const { role } = useAuth();
@@ -404,66 +386,10 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Income vs Expenses Chart */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>الدخل والمصروفات الشهرية</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
-                    <YAxis />
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
-                    <Legend />
-                    <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Expense Distribution */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>توزيع المصروفات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {expenseTypes.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={expenseTypes}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                      style={{ fontSize: '12px' }}
-                    >
-                      {expenseTypes.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Charts — lazy-loaded (recharts bundle) */}
+        <Suspense fallback={<ChartSkeleton />}>
+          <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+        </Suspense>
 
         {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
