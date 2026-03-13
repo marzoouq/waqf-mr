@@ -19,7 +19,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
