@@ -1,40 +1,46 @@
 
 
-# تنظيف الأخطاء الأمنية المحلولة
+# نقل pgcrypto من public إلى extensions schema
 
-## نتائج الفحص العميق
+## المشكلة
+الإضافة `pgcrypto` مثبتة في schema `public` وهو ما يخالف أفضل الممارسات الأمنية. يجب نقلها إلى schema `extensions`.
 
-### الحالة الحالية
-جميع النتائج الأمنية (13 نتيجة) مُعلَّمة بالفعل كـ `ignore: true` مع أسباب موثّقة. لا توجد أخطاء مفتوحة (error level) تحتاج إصلاح.
+## التحليل
+الدوال التي تستخدم pgcrypto (عبر `pgp_sym_encrypt`/`pgp_sym_decrypt`/`gen_salt`/`crypt`):
 
-### ملفات الـ Migration المتعلقة بحساب dev-test
+| الدالة | search_path الحالي |
+|--------|-------------------|
+| `encrypt_pii` | `public` |
+| `decrypt_pii` | `public` |
+| `encrypt_beneficiary_pii` (trigger) | `public` |
+| `lookup_by_national_id` | `public, extensions` ✅ |
+| `get_active_zatca_certificate` | `public` |
+| `get_beneficiary_decrypted` | `public` (تستدعي `decrypt_pii`) |
 
-هذه الملفات تحتوي على بيانات اعتماد حساب تجريبي تم حذفه:
+## خطة التنفيذ
 
-| الملف | المحتوى |
-|-------|---------|
-| `20260312132208` | تفعيل التسجيل + إنشاء دور admin لـ dev-test |
-| `20260312132342` | تأكيد بريد dev-test + إعطاء admin role |
-| `20260312132453` | تأكيد البريد (مكرر) |
-| `20260312132621` | حذف دور beneficiary من dev-test |
-| `20260312143820` | **كلمة مرور بنص واضح** `Test1234!` |
+**Migration واحدة** تنفذ 3 خطوات بالترتيب:
 
-**لا يمكن حذف ملفات Migration** — فهي مُطبَّقة على قاعدة البيانات ويعتمد عليها تسلسل الترحيل. حذفها سيكسر البيئة.
+### 1. نقل الإضافة
+```sql
+ALTER EXTENSION pgcrypto SET SCHEMA extensions;
+```
 
-### ما يمكن فعله
+### 2. تحديث search_path للدوال المتأثرة
+إعادة إنشاء 4 دوال بـ `SET search_path TO 'public', 'extensions'`:
+- `encrypt_pii`
+- `decrypt_pii`
+- `encrypt_beneficiary_pii`
+- `get_active_zatca_certificate`
 
-1. **إفراغ محتوى ملفات dev-test** — استبدال الأوامر بتعليقات توضيحية (الملفات مُطبَّقة فعلياً فلن يتأثر شيء)
-2. **التحقق من عدم وجود أي مرجع للحساب في الكود** — ✅ تم التحقق، لا يوجد أي مرجع في ملفات `.ts`/`.tsx`
+(دالة `lookup_by_national_id` لديها بالفعل `public, extensions` — لا تحتاج تعديل)
+(دالة `get_beneficiary_decrypted` تستدعي `decrypt_pii` ولا تستخدم pgcrypto مباشرة — لا تحتاج تعديل)
 
-### الخطة التنفيذية
+### 3. تحديث التوثيق
+- تحديث `docs/SECURITY-KNOWLEDGE.md` لإزالة هذا البند من الإنذارات الكاذبة
+- تحديث ignore reason في نتيجة الفحص الأمني (unignore ثم حل)
 
-**5 ملفات migration** — إفراغ محتواها واستبداله بتعليق `-- cleaned: dev-test account removed` لمنع تسرب بيانات الاعتماد في أي مراجعة مستقبلية للكود:
-
-- `20260312132208` → تعليق
-- `20260312132342` → تعليق
-- `20260312132453` → تعليق
-- `20260312132621` → تعليق
-- `20260312143820` → تعليق (الأهم — يحتوي كلمة المرور)
-
-هذا آمن لأن الأوامر نُفِّذت بالفعل والحساب تم حذفه.
+## المخاطر
+- **منخفضة**: `ALTER EXTENSION SET SCHEMA` ينقل جميع الكائنات تلقائياً. الدوال المحدّثة ستجد pgcrypto عبر search_path الجديد.
+- يتم التنفيذ في transaction واحدة لضمان الاتساق.
 
