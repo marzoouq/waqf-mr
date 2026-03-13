@@ -1,56 +1,69 @@
 
-# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## تصنيف المشروع
+# مراجعة التزام الـ Hooks بنمط createCrudFactory والأنماط الموثقة
 
-هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
+## نتائج المراجعة
 
-## سياق المستخدمين
+### ✅ هوكات تستخدم createCrudFactory بشكل صحيح (7 هوكات)
 
-| الدور | النوع | مستوى الثقة |
-|-------|-------|------------|
-| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
-| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
-| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
-| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
+| الهوك | الجدول | ملاحظات |
+|-------|--------|---------|
+| `useProperties` | properties | مثالي — نمط نظيف |
+| `useAccounts` | accounts | ✅ + هوك مخصص `useAccountByFiscalYear` |
+| `useBeneficiaries` | beneficiaries | ✅ + `onCreateSuccess` + هوكات إضافية آمنة |
+| `useContracts` | contracts | ✅ + `useContractsByFiscalYear` |
+| `useExpenses` | expenses | ✅ + `useExpensesByFiscalYear` |
+| `useIncome` | income | ✅ + `useIncomeByFiscalYear` |
+| `useInvoices` | invoices | ✅ + حذف مخصص (تنظيف Storage) — مبرر |
+| `useUnits` | units | ✅ + حذف مخصص (invalidate مزدوج) — مبرر |
 
-## حساسية البيانات
+### ❌ هوك واحد يجب تحويله: `useBylaws`
 
-```text
-عالية جداً:
-  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
-  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
-  └─ البريد الإلكتروني وأرقام الهواتف
+**المشكلة**: يُنفّذ CRUD يدوياً بالكامل (query + create + update + delete) رغم أن العمليات الأساسية نمطية ويمكن تغطيتها بـ `createCrudFactory`.
 
-عالية:
-  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
-  ├─ العقود والفواتير الضريبية (ZATCA)
-  └─ سجل المراجعة الجنائي (audit log)
+**لكن**: يحتوي على `reorderBylaws` (RPC مخصص) ويُرجع كائناً مُوحّداً `{ ...query, updateBylaw, reorderBylaws, createBylaw, deleteBylaw }` — وهذا نمط مختلف عن التصدير المنفصل.
 
-متوسطة:
-  ├─ بيانات العقارات والوحدات
-  └─ اللوائح الداخلية
-```
+**الإصلاح المقترح**: تحويل الـ CRUD الأساسي إلى `createCrudFactory` مع الإبقاء على `reorderBylaws` كهوك مستقل. تصدير منفصل يتبع النمط الموحد.
 
-## طبقات الحماية المُطبَّقة فعلياً
+### ✅ هوكات لا تحتاج createCrudFactory (مبرر)
 
-1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
-2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
-3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
-4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
-5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
-6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
+| الهوك | السبب |
+|-------|-------|
+| `useAdvanceRequests` | منطق workflow معقد (state machine + إشعارات + atomic transitions) |
+| `useSupportTickets` | pagination + server-side count + ردود + تقييم — ليس CRUD بسيط |
+| `useTenantPayments` | RPC فقط (`upsert_tenant_payment`) — ليس CRUD |
+| `usePaymentInvoices` | RPC متعدد + query مخصص |
+| `useMessaging` | Realtime + conversations + messages — نطاق مختلف |
+| `useNotifications` | Realtime + صوت + browser push — نطاق مختلف |
+| `useContractAllocations` | RPC ذري |
+| `useAuditLog` | query-only + pagination |
+| `useAppSettings` | key-value upsert — ليس CRUD نمطي |
+| `useFiscalYears` | query-only |
+| `useDistribute` | mutation-only (RPC ذري) |
+| Pure hooks | `useComputedFinancials`, `useRawFinancialData`, `useFinancialSummary`, `useRealtimeAlerts`, `useAccessLog` — لا تتفاعل مع CRUD |
 
-## توجيهات للماسح الأمني
+### ⚠️ ملاحظات على الأنماط الموثقة
 
-| الملاحظة | الحكم | السبب |
-|----------|-------|-------|
-| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
-| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
-| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
+1. **`logger` vs `console`**: جميع الهوكات تستخدم `logger` من `@/lib/logger` — ✅ متوافق
+2. **`staleTime`**: جميع الاستعلامات تحدد `staleTime` — ✅ متوافق
+3. **Toast بالعربية**: جميع الرسائل بالعربية — ✅ متوافق
+4. **`invalidateQueries`**: لا يوجد استخدام لـ `window.location.reload()` — ✅ متوافق
+5. **حدود الاستعلام (limit)**: جميع الاستعلامات تحدد `limit` — ✅ متوافق
 
-## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
+---
 
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
-- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
-- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
+## الخطة التنفيذية
+
+**مهمة واحدة**: إعادة كتابة `useBylaws.ts` لاستخدام `createCrudFactory` للعمليات الأساسية (list, create, update, delete) مع الإبقاء على `reorderBylaws` كهوك مستقل.
+
+### التغييرات:
+1. إنشاء factory عبر `createCrudFactory<'waqf_bylaws', BylawEntry>` مع `orderBy: 'sort_order'`, `ascending: true`
+2. تصدير `useBylaws`, `useCreateBylaw`, `useUpdateBylaw`, `useDeleteBylaw` بشكل منفصل
+3. إضافة `useReorderBylaws` كهوك mutation مستقل
+4. تحديث المستهلكين (الصفحات التي تستخدم النمط القديم `useBylaws().createBylaw` إلى الاستيراد المنفصل)
+
+### الملفات المتأثرة:
+- `src/hooks/useBylaws.ts` — إعادة كتابة
+- `src/pages/dashboard/BylawsPage.tsx` — تحديث الاستيرادات
+- `src/pages/beneficiary/BylawsViewPage.tsx` — تحديث الاستيرادات (إن كان يستخدم mutations)
+
