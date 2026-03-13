@@ -180,7 +180,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
               <span className="text-sm font-medium">تقييمك:</span>
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                  <Star key={i} className={`w-4 h-4 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                 ))}
               </div>
             </div>
