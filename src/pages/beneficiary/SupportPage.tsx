@@ -92,7 +92,7 @@ const BeneficiarySupportPage = () => {
                           {ticket.rating ? (
                             <div className="flex items-center gap-0.5">
                               {[1, 2, 3, 4, 5].map(i => (
-                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`} />
+                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
                               ))}
                             </div>
                           ) : (ticket.status === 'resolved' || ticket.status === 'closed') ? (
