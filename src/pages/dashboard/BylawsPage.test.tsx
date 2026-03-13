@@ -19,19 +19,29 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({
 }));
 
 vi.mock('@/hooks/useBylaws', () => ({
-  useBylaws: vi.fn(),
+  useBylawsList: vi.fn(),
+  useCreateBylaw: vi.fn(),
+  useUpdateBylaw: vi.fn(),
+  useDeleteBylaw: vi.fn(),
+  useReorderBylaws: vi.fn(),
 }));
 
 vi.mock('@/hooks/useAppSettings', () => ({
   useAppSettings: vi.fn(),
 }));
 
-import { useBylaws } from '@/hooks/useBylaws';
+import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws } from '@/hooks/useBylaws';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import BylawsPage from './BylawsPage';
 
-const mockedUseBylaws = vi.mocked(useBylaws);
+const mockedUseBylawsList = vi.mocked(useBylawsList);
+const mockedUseCreateBylaw = vi.mocked(useCreateBylaw);
+const mockedUseUpdateBylaw = vi.mocked(useUpdateBylaw);
+const mockedUseDeleteBylaw = vi.mocked(useDeleteBylaw);
+const mockedUseReorderBylaws = vi.mocked(useReorderBylaws);
 const mockedUseAppSettings = vi.mocked(useAppSettings);
+
+const mutationStub = { mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false } as any;
 
 describe('BylawsPage', () => {
   beforeEach(() => {
@@ -40,25 +50,15 @@ describe('BylawsPage', () => {
       updateSetting: { mutateAsync: vi.fn(async () => undefined) },
     } as any);
 
-    mockedUseBylaws.mockReturnValue({
-      data: [],
-      isLoading: false,
-      updateBylaw: { mutate: vi.fn() },
-      reorderBylaws: { mutate: vi.fn() },
-      createBylaw: { mutate: vi.fn() },
-      deleteBylaw: { mutate: vi.fn() },
-    } as any);
+    mockedUseBylawsList.mockReturnValue({ data: [], isLoading: false } as any);
+    mockedUseCreateBylaw.mockReturnValue(mutationStub);
+    mockedUseUpdateBylaw.mockReturnValue(mutationStub);
+    mockedUseDeleteBylaw.mockReturnValue(mutationStub);
+    mockedUseReorderBylaws.mockReturnValue(mutationStub);
   });
 
   it('renders loading state', () => {
-    mockedUseBylaws.mockReturnValueOnce({
-      data: [],
-      isLoading: true,
-      updateBylaw: { mutate: vi.fn() },
-      reorderBylaws: { mutate: vi.fn() },
-      createBylaw: { mutate: vi.fn() },
-      deleteBylaw: { mutate: vi.fn() },
-    } as any);
+    mockedUseBylawsList.mockReturnValueOnce({ data: [], isLoading: true } as any);
 
     render(
       <MemoryRouter>

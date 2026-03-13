@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useBylaws, BylawEntry } from '@/hooks/useBylaws';
+import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/useBylaws';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -129,7 +129,11 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
 };
 
 const BylawsPage = () => {
-  const { data: bylaws, isLoading, updateBylaw, reorderBylaws, createBylaw, deleteBylaw } = useBylaws();
+  const { data: bylaws, isLoading } = useBylawsList();
+  const updateBylaw = useUpdateBylaw();
+  const createBylaw = useCreateBylaw();
+  const deleteBylaw = useDeleteBylaw();
+  const reorderBylaws = useReorderBylaws();
   const { data: settings, updateSetting } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const [editItem, setEditItem] = useState<BylawEntry | null>(null);
