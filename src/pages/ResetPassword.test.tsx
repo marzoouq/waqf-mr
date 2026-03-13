@@ -50,9 +50,12 @@ function renderPage() {
 
 /** محاكاة وصول المستخدم عبر رابط الاسترداد */
 function renderRecoveryPage() {
+function renderRecoveryPage() {
   const result = renderPage();
-  // تشغيل حدث PASSWORD_RECOVERY
-  if (authChangeCallback) authChangeCallback('PASSWORD_RECOVERY');
+  // تشغيل حدث PASSWORD_RECOVERY داخل act لتحديث الحالة
+  act(() => {
+    if (authChangeCallback) authChangeCallback('PASSWORD_RECOVERY');
+  });
   return result;
 }
 
