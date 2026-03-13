@@ -49,4 +49,16 @@ describe('AccountsSettingsBar', () => {
     fireEvent.change(input, { target: { value: '1447-1448هـ' } });
     expect(defaultProps.onFiscalYearChange).toHaveBeenCalledWith('1447-1448هـ');
   });
+
+  it('يعرض حقل الزكاة', () => {
+    render(<AccountsSettingsBar {...defaultProps} />);
+    expect(screen.getByText(/مبلغ الزكاة/)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2000')).toBeInTheDocument();
+  });
+
+  it('يعرض حقل رقبة الوقف الحالي', () => {
+    render(<AccountsSettingsBar {...defaultProps} />);
+    expect(screen.getByText(/رقبة الوقف للعام الحالي/)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('3000')).toBeInTheDocument();
+  });
 });
