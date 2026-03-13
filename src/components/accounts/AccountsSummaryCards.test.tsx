@@ -58,4 +58,19 @@ describe('AccountsSummaryCards', () => {
     expect(screen.getByText('الرصيد المتبقي')).toBeInTheDocument();
     expect(screen.getByText('68,800')).toBeInTheDocument();
   });
+
+  it('يعرض تنبيه أرقام تقديرية عندما isClosed=false', () => {
+    render(<AccountsSummaryCards {...defaultProps} />);
+    expect(screen.getByText(/أرقام تقديرية/)).toBeInTheDocument();
+  });
+
+  it('يخفي تنبيه أرقام تقديرية عندما isClosed=true', () => {
+    render(<AccountsSummaryCards {...defaultProps} isClosed={true} />);
+    expect(screen.queryByText(/أرقام تقديرية/)).not.toBeInTheDocument();
+  });
+
+  it('يعرض تنبيه النسب الافتراضية عند usingFallbackPct=true', () => {
+    render(<AccountsSummaryCards {...defaultProps} usingFallbackPct={true} />);
+    expect(screen.getByText(/النسب الافتراضية/)).toBeInTheDocument();
+  });
 });
