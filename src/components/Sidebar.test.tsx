@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SidebarContent from './Sidebar';
 import { Home, Settings } from 'lucide-react';
 
@@ -23,6 +24,8 @@ const defaultLinks = [
   { to: '/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 const renderSidebar = (props = {}) => {
   const defaultProps = {
     links: defaultLinks,
@@ -33,9 +36,11 @@ const renderSidebar = (props = {}) => {
     ...props,
   };
   return render(
-    <MemoryRouter initialEntries={['/dashboard']}>
-      <SidebarContent {...defaultProps} />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <SidebarContent {...defaultProps} />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 };
 
