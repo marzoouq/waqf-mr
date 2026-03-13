@@ -176,7 +176,7 @@ const ContractsViewPage = () => {
           <div className="space-y-3">
             {contracts.map(contract => {
               const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
-              const property = contract.property;
+                    const property = null; // contracts_safe لا يتضمن ربط العقار
               return (
                 <Card key={contract.id}>
                   <CardContent className="p-4 space-y-2">
