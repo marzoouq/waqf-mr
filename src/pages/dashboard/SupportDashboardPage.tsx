@@ -458,10 +458,10 @@ const SupportDashboardPage = () => {
                     <div className="pt-2 border-t">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 text-amber-400" />
+                          <Star className="w-3.5 h-3.5 text-star-rating" />
                           متوسط تقييم الخدمة
                         </span>
-                        <span className="font-bold text-amber-500">{avgRating.avg} ★ ({avgRating.count} تقييم)</span>
+                        <span className="font-bold text-star-rating">{avgRating.avg} ★ ({avgRating.count} تقييم)</span>
                       </div>
                     </div>
                   )}
