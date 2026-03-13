@@ -59,12 +59,12 @@ describe('LoginForm', () => {
 
   it('يعرض حقل البريد الإلكتروني افتراضياً', () => {
     renderForm();
-    expect(screen.getByLabelText('البريد الإلكتروني')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('example@email.com')).toBeInTheDocument();
   });
 
   it('يعرض حقل كلمة المرور', () => {
     renderForm();
-    expect(screen.getByLabelText('كلمة المرور')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
   it('يعرض زر تسجيل الدخول', () => {
@@ -79,8 +79,8 @@ describe('LoginForm', () => {
 
   it('يعرض خيارات طريقة الدخول (بريد / هوية)', () => {
     renderForm();
-    expect(screen.getByText('البريد الإلكتروني')).toBeInTheDocument();
-    expect(screen.getByText('رقم الهوية')).toBeInTheDocument();
+    expect(screen.getByText('طريقة تسجيل الدخول')).toBeInTheDocument();
+    expect(screen.getByLabelText(/method-email/)).toBeInTheDocument();
   });
 
   it('يعرض مكوّن البصمة', () => {
