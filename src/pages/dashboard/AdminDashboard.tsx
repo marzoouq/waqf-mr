@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
+const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
 
 const ChartSkeleton = () => (
   <div className="h-[300px] flex items-center justify-center">
