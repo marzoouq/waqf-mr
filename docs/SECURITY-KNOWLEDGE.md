@@ -46,7 +46,8 @@
 
 | الملاحظة | السبب |
 |----------|-------|
-| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `security_invoker = true` ترث RLS من الجدول الأصلي |
+| `beneficiaries_safe` / `contracts_safe` بدون RLS | عروض VIEW بـ `SECURITY DEFINER` + `security_barrier` — تتجاوز RLS عمداً لتمويه البيانات الحساسة قبل إرجاعها |
+| `SECURITY DEFINER VIEW` تحذير على العروض الآمنة | مقصود — العروض تقرأ من الجدول الأصلي بصلاحيات المالك لأن الأدوار الخارجية (waqif/beneficiary) ممنوعة من الوصول المباشر للجداول |
 | ثغرات في حزم `devDependencies` (مثل `vite-plugin-pwa`) | أدوات بناء فقط، لا تُشحن مع كود الإنتاج |
 | `verify_jwt = false` في Edge Functions | مقصود — Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً عبر `getUser()` |
 
@@ -55,10 +56,12 @@
 | الملاحظة | الحل | تاريخ الحل |
 |----------|------|-----------|
 | `pgcrypto` في schema `public` | تم نقلها إلى `extensions` schema مع تحديث `search_path` لجميع الدوال المتأثرة (6 دوال: `encrypt_pii`, `decrypt_pii`, `encrypt_beneficiary_pii`, `get_active_zatca_certificate`, `lookup_by_national_id`, `encrypt_zatca_private_key`) | 2026-03-13 |
+| وصول `waqif` لبيانات PII في `beneficiaries` | إزالة `waqif` من سياسة SELECT على الجدول الأصلي — الواقف يقرأ حصراً من `beneficiaries_safe` (SECURITY DEFINER) | 2026-03-13 |
+| وصول `beneficiary`/`waqif` لهويات المستأجرين في `contracts` | إزالة الدورين من سياسة SELECT على الجدول الأصلي — يقرأون حصراً من `contracts_safe` (SECURITY DEFINER) + تحديث الواجهة لاستخدام `useContractsSafeByFiscalYear` | 2026-03-13 |
 
 ### قواعد التصنيف العامة
 
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
+- **إنذار كاذب**: أي ملاحظة `SECURITY DEFINER VIEW` على `beneficiaries_safe` أو `contracts_safe` — مقصود لتجاوز RLS مع تمويه البيانات
 - **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة التي لا تُشحن للإنتاج
 - **خطر مقبول**: إصدارات حزم بدون تحديث متاح upstream
 

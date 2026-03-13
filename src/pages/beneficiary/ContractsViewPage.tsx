@@ -1,7 +1,7 @@
 /**
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
@@ -27,7 +27,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 
 const ContractsViewPage = () => {
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
-  const { data: contracts, isLoading, isError, refetch } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   const isMobile = useIsMobile();
   const pdfWaqfInfo = usePdfWaqfInfo();
 
@@ -176,7 +176,7 @@ const ContractsViewPage = () => {
           <div className="space-y-3">
             {contracts.map(contract => {
               const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
-              const property = contract.property;
+                    const property = null; // contracts_safe لا يتضمن ربط العقار
               return (
                 <Card key={contract.id}>
                   <CardContent className="p-4 space-y-2">
@@ -232,7 +232,7 @@ const ContractsViewPage = () => {
                 <TableBody>
                   {contracts.map(contract => {
                     const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
-                    const property = contract.property;
+                    const property = null;
                     return (
                       <TableRow key={contract.id}>
                         <TableCell className="font-medium">{contract.contract_number}</TableCell>
