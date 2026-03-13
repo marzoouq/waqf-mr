@@ -110,21 +110,12 @@ describe('generatePaymentInvoicePDF', () => {
   });
 
   it('falls back to local save on storage failure', async () => {
-    mockUpload.mockRejectedValueOnce(new Error('network error'));
-    // Re-mock to throw on .from() level
-    vi.doMock('@/integrations/supabase/client', () => ({
-      supabase: {
-        storage: { from: () => ({ upload: () => { throw new Error('fail'); } }) },
-        from: () => ({ update: mockUpdate }),
-      },
-    }));
-    // Since dynamic import caches, test fallback by checking save isn't called in normal flow
-    // The try/catch in the source catches and calls doc.save
+    // Make the entire try block throw by making output throw after upload
+    mockUpload.mockImplementationOnce(() => { throw new Error('network error'); });
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
-    // Normal flow — upload succeeds
-    mockUpload.mockResolvedValue({ error: null });
     const result = await generatePaymentInvoicePDF(makeInvoice());
-    expect(result).not.toBeNull();
+    expect(result).toBeNull(); // fallback returns null
+    expect(mockSave).toHaveBeenCalled(); // falls back to doc.save()
   });
 
   it('does not generate QR without vatNumber in waqfInfo', async () => {
