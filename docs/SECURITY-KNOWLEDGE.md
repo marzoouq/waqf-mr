@@ -61,7 +61,7 @@
 
 ### قواعد التصنيف العامة
 
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
+- **إنذار كاذب**: أي ملاحظة `SECURITY DEFINER VIEW` على `beneficiaries_safe` أو `contracts_safe` — مقصود لتجاوز RLS مع تمويه البيانات
 - **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة التي لا تُشحن للإنتاج
 - **خطر مقبول**: إصدارات حزم بدون تحديث متاح upstream
 
