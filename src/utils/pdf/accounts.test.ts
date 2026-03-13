@@ -2,18 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
 
-vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    setFont: vi.fn(),
-    setFontSize: vi.fn(),
-    text: vi.fn(),
-    setTextColor: vi.fn(),
-    save: mockSave,
-    internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 } },
-    getNumberOfPages: () => 1,
-    setPage: vi.fn(),
-  })),
-}));
+vi.mock('jspdf', () => {
+  const JsPDFMock = function(this: Record<string, unknown>) {
+    this.setFont = vi.fn();
+    this.setFontSize = vi.fn();
+    this.text = vi.fn();
+    this.setTextColor = vi.fn();
+    this.save = mockSave;
+    this.internal = { pageSize: { getWidth: () => 210, getHeight: () => 297 } };
+    this.getNumberOfPages = () => 1;
+    this.setPage = vi.fn();
+  };
+  return { default: JsPDFMock };
+});
 
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 

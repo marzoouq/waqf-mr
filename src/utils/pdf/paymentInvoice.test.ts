@@ -9,20 +9,21 @@ const mockText = vi.fn();
 const mockSetTextColor = vi.fn();
 const mockAddImage = vi.fn();
 
-vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    setFont: mockSetFont,
-    setFontSize: mockSetFontSize,
-    text: mockText,
-    setTextColor: mockSetTextColor,
-    addImage: mockAddImage,
-    save: mockSave,
-    output: mockOutput,
-    internal: { pageSize: { getWidth: () => 210, getHeight: () => 297 } },
-    getNumberOfPages: () => 1,
-    setPage: vi.fn(),
-  })),
-}));
+vi.mock('jspdf', () => {
+  const JsPDFMock = function(this: Record<string, unknown>) {
+    this.setFont = mockSetFont;
+    this.setFontSize = mockSetFontSize;
+    this.text = mockText;
+    this.setTextColor = mockSetTextColor;
+    this.addImage = mockAddImage;
+    this.save = mockSave;
+    this.output = mockOutput;
+    this.internal = { pageSize: { getWidth: () => 210, getHeight: () => 297 } };
+    this.getNumberOfPages = () => 1;
+    this.setPage = vi.fn();
+  };
+  return { default: JsPDFMock };
+});
 
 vi.mock('jspdf-autotable', () => ({ default: vi.fn() }));
 
