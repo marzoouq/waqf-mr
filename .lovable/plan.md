@@ -1,58 +1,46 @@
 
-الخطة: تجهيز نص دعم جاهز للإرسال يتضمن كل المعرفات والرسائل المطلوبة لفك قفل Restore Point يدويًا.
 
-1) استخدم النص التالي كما هو في تذكرة الدعم (يفضّل بالإنجليزية لسرعة المعالجة):
+## خطة إصلاح فشل اختبارات CI (Run Tests workflow)
 
-```text
-Subject: Publish blocked for 24h - stuck restore point lock (CreateRestorePointActivity)
+### المشكلة
+الـ Run Tests workflow يفشل لكن لا يمكننا رؤية تفاصيل الخطأ لأن سجلات GitHub Actions تتطلب تسجيل دخول بصلاحيات admin.
 
-Hello Support Team,
+### الحل: خطوتان
 
-Our project publishing is consistently failing for more than 24 hours with the same backend error, and it appears a restore-point lock is stuck.
+#### 1. تحسين CI لعرض تفاصيل الأخطاء
+تعديل `.github/workflows/test.yml` لإضافة:
+- `--reporter=verbose` لعرض كل اختبار بالاسم
+- حفظ نتائج الاختبار كـ artifact حتى لو فشلت
+- خطوة إضافية تكتب ملخص الأخطاء في GitHub Summary
 
-Project details:
-- Preview URL: https://id-preview--29470216-3df1-468f-b021-5c98b75b2920.lovable.app
-- Published URL: https://waqf-wise-net-lovable-app.lovable.app
+```yaml
+- name: Run tests with coverage
+  run: npx vitest run --coverage --reporter=verbose 2>&1 | tee /tmp/test-output.txt
+  continue-on-error: true
 
-Workflow identifiers:
-- workflowID: publish_29470216-3df1-468f-b021-5c98b75b2920-3ad976bb-5b80-4578-a129-4e1f2c69d425
-- runID: 019ce711-c205-7109-9c8c-4cd465c854cc
+- name: Write test summary
+  if: always()
+  run: |
+    echo '## Test Results' >> $GITHUB_STEP_SUMMARY
+    tail -100 /tmp/test-output.txt >> $GITHUB_STEP_SUMMARY
 
-Full error (key excerpts repeated across retries):
-- failed to initiate restore point: activity error (type: CreateRestorePointActivity ...): (SUPABASE_BAD_REQUEST)
-- supabase bad request: {"message":"Unable to proceed with creating a restore point it appears another is being created"}
-- [DeployIntegrationsActivity] failed project hooks: PublishWorkflow failed ...
-- failed to deploy integrations: activity error (type: DeployIntegrationsActivity ...)
-
-Request:
-Please manually clear/unblock the stuck restore point lock and release any blocked publish workflow for this project, then confirm once it is cleared so we can republish.
-
-We already retried and waited 24+ hours with no change.
-
-Thank you.
+- name: Check test result
+  run: |
+    if grep -q 'Tests.*failed' /tmp/test-output.txt; then
+      echo "Tests failed — see summary above"
+      exit 1
+    fi
 ```
 
-2) لو تريد نسخة عربية للدعم أيضًا، استخدم:
+#### 2. إضافة `@types/qrcode` كـ devDependency
+مكتبة `qrcode` مستخدمة في المشروع بدون أنواع TypeScript، وهذا قد يسبب مشاكل في بعض بيئات الاختبار.
 
-```text
-العنوان: تعذر النشر لأكثر من 24 ساعة بسبب قفل Restore Point عالق
+### الملفات المتأثرة
+| الملف | التغيير |
+|-------|---------|
+| `.github/workflows/test.yml` | تحسين عرض الأخطاء + حفظ النتائج |
+| `package.json` | إضافة `@types/qrcode` |
 
-مرحبًا فريق الدعم،
+### النتيجة المتوقعة
+بعد تطبيق هذه التغييرات، عند الدفع التالي سيظهر ملخص تفصيلي للاختبارات الفاشلة في صفحة الـ workflow على GitHub (في قسم Summary)، مما يسمح بتشخيص المشكلة الفعلية وإصلاحها بدقة.
 
-النشر متعطل بشكل مستمر لأكثر من 24 ساعة، وتظهر نفس رسالة الخطأ التي تشير إلى وجود قفل Restore Point عالق.
-
-المعرّفات:
-- workflowID: publish_29470216-3df1-468f-b021-5c98b75b2920-3ad976bb-5b80-4578-a129-4e1f2c69d425
-- runID: 019ce711-c205-7109-9c8c-4cd465c854cc
-
-الخطأ الكامل (مقتطفات متكررة):
-- failed to initiate restore point ... CreateRestorePointActivity ... SUPABASE_BAD_REQUEST
-- {"message":"Unable to proceed with creating a restore point it appears another is being created"}
-- DeployIntegrationsActivity failed / PublishWorkflow failed
-
-الرجاء فك القفل العالق يدويًا (restore point lock) وتحرير مسار النشر لهذا المشروع، ثم تأكيد المعالجة حتى نعيد النشر.
-
-شكرًا لكم.
-```
-
-3) بعد رد الدعم بفك القفل: أعد النشر مباشرة بنفس النسخة الحالية للتأكد أن العطل كان بنيويًا وليس من الكود.
