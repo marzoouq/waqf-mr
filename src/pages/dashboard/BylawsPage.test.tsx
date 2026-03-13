@@ -19,7 +19,11 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({
 }));
 
 vi.mock('@/hooks/useBylaws', () => ({
-  useBylaws: vi.fn(),
+  useBylawsList: vi.fn(),
+  useCreateBylaw: vi.fn(),
+  useUpdateBylaw: vi.fn(),
+  useDeleteBylaw: vi.fn(),
+  useReorderBylaws: vi.fn(),
 }));
 
 vi.mock('@/hooks/useAppSettings', () => ({
