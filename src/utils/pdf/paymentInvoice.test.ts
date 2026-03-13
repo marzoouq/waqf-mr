@@ -88,7 +88,7 @@ describe('generatePaymentInvoicePDF', () => {
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     const result = await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500, amount: 11500 }),
-      { waqfName: 'وقف تجريبي', nazirName: 'ناظر', vatNumber: '300000000000003' },
+      { waqfName: 'وقف تجريبي', vatNumber: '300000000000003' },
     );
     expect(result).not.toBeNull();
     expect(generateZatcaQrTLV).toHaveBeenCalledWith(expect.objectContaining({
