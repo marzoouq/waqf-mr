@@ -215,7 +215,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
         {/* زر التقييم */}
         {canRate && !showRating && (
           <Button variant="outline" className="gap-2" onClick={() => setShowRating(true)}>
-            <Star className="w-4 h-4 text-amber-400" />
+            <Star className="w-4 h-4 text-star-rating" />
             قيّم الخدمة
           </Button>
         )}
