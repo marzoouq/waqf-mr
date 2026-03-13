@@ -1,8 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render } from '@testing-library/react';
-
-// Mock dependencies
 import React from 'react';
+
+// ResizeObserver polyfill
+beforeAll(() => {
+  global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;
+});
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),

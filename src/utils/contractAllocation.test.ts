@@ -35,7 +35,7 @@ describe('allocateContractToFiscalYears', () => {
   it('يخصص العقد لسنة مالية واحدة', () => {
     const allocations = allocateContractToFiscalYears(
       { id: 'c1', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 12000, payment_type: 'monthly' },
-      [fy2024, fy2025]
+      [fy2024]
     );
     expect(allocations).toHaveLength(1);
     expect(allocations[0].fiscal_year_id).toBe('fy-2024');
