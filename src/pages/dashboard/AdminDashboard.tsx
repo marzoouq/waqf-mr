@@ -386,66 +386,10 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Income vs Expenses Chart */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>الدخل والمصروفات الشهرية</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
-                    <YAxis />
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
-                    <Legend />
-                    <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Expense Distribution */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>توزيع المصروفات</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {expenseTypes.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={expenseTypes}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                      style={{ fontSize: '12px' }}
-                    >
-                      {expenseTypes.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        {/* Charts — lazy-loaded (recharts bundle) */}
+        <Suspense fallback={<ChartSkeleton />}>
+          <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+        </Suspense>
 
         {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
