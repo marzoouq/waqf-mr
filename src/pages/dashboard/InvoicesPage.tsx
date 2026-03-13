@@ -324,7 +324,7 @@ const InvoicesPage = () => {
         </div>
 
         {viewMode === 'grid' ? (
-          <InvoiceGridView invoices={filteredInvoices} onEdit={handleEdit} />
+          <InvoiceGridView invoices={filteredInvoices} onEdit={handleEdit} readOnly={isClosed} />
         ) : (
           <Card className="shadow-sm">
             <CardContent className="p-0">

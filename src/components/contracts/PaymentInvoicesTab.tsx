@@ -307,17 +307,14 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
               </div>
             </>
           )}
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={filtered.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
-
-      {filtered.length > ITEMS_PER_PAGE && (
-        <TablePagination
-          currentPage={currentPage}
-          totalItems={filtered.length}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 }

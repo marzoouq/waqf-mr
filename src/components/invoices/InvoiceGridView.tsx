@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon } from 'lucide-react';
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
-import { useState } from 'react';
+import TablePagination from '@/components/TablePagination';
+import { useState, useMemo } from 'react';
 
 interface InvoiceGridViewProps {
   invoices: Invoice[];
@@ -12,8 +13,16 @@ interface InvoiceGridViewProps {
   readOnly?: boolean;
 }
 
+const ITEMS_PER_PAGE = 12;
+
 const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, readOnly = false }) => {
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return invoices.slice(start, start + ITEMS_PER_PAGE);
+  }, [invoices, currentPage]);
 
   const statusBadgeVariant = (status: string) => {
     if (status === 'paid') return 'default' as const;
@@ -38,10 +47,10 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
   return (
     <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
-      {invoices.map((inv) => (
+      {paginated.map((inv) => (
         <Card
           key={inv.id}
-          className="group hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+          className={`group hover:shadow-md transition-all duration-200 overflow-hidden ${!readOnly ? 'cursor-pointer' : ''}`}
           onClick={() => !readOnly && onEdit?.(inv)}
         >
           {/* Thumbnail / Icon area */}
@@ -101,6 +110,12 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
         </Card>
       ))}
     </div>
+      <TablePagination
+        currentPage={currentPage}
+        totalItems={invoices.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        onPageChange={setCurrentPage}
+      />
       <InvoiceViewer
         open={!!viewerFile}
         onOpenChange={(open) => !open && setViewerFile(null)}
