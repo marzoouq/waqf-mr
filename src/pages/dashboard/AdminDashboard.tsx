@@ -11,7 +11,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+
 import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
