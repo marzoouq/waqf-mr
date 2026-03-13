@@ -14,6 +14,8 @@ import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
 import { useWaqfInfo } from '@/hooks/useAppSettings';
+import { usePrefetchAccounts } from '@/hooks/usePrefetchAccounts';
+import { useWaqfInfo } from '@/hooks/useAppSettings';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
