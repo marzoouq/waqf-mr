@@ -733,7 +733,7 @@ function ZatcaManagementPage() {
                 {complianceResult.errorMessages?.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-destructive">أخطاء:</p>
-                    {complianceResult.errorMessages.map((e: any, i: number) => (
+                    {complianceResult.errorMessages.map((e: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-destructive/10 rounded p-2 border border-destructive/20">
                         <span className="font-mono">{e.code}</span>: {e.message}
                       </div>
