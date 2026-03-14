@@ -91,6 +91,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
 const FiscalYearManagementTab = () => {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const [newFY, setNewFY] = useState({ label: '', start_date: '', end_date: '' });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
