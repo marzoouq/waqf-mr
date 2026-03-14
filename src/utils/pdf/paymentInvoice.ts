@@ -261,7 +261,7 @@ const renderBankDetails = (
   return y;
 };
 
-// رسم QR Code — يظهر دائماً حتى لو VAT = 0
+// رسم QR Code — يظهر دائماً حتى لو VAT = 0 مع retry + fallback مرئي
 const renderQrCode = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo: PdfWaqfInfo | undefined, x: number, y: number, size: number,
@@ -269,7 +269,6 @@ const renderQrCode = async (
   try {
     const vatAmount = invoice.vatAmount ?? 0;
 
-    // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
     const tlvBase64 = generateZatcaQrTLV({
       sellerName: waqfInfo?.waqfName || '',
       vatNumber: waqfInfo?.vatNumber || '',
@@ -278,27 +277,53 @@ const renderQrCode = async (
       vatAmount: vatAmount,
     });
 
-    const qrDataUrl = await generateQrDataUrl(tlvBase64);
+    // محاولة أولى
+    let qrDataUrl = await generateQrDataUrl(tlvBase64);
+
+    // محاولة ثانية إذا فشلت الأولى
+    if (!qrDataUrl) {
+      console.warn('[PDF-QR] First attempt returned null, retrying...');
+      qrDataUrl = await generateQrDataUrl(tlvBase64);
+    }
+
     if (qrDataUrl) {
       doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
     } else {
-      // fallback: عرض نص TLV مختصر
-      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering TLV text fallback');
-      doc.setFont(fontFamily, 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(120, 120, 120);
-      doc.text(`QR: ${tlvBase64.substring(0, 50)}...`, x + size / 2, y + size / 2, { align: 'center' });
-      doc.setTextColor(0, 0, 0);
+      // fallback مرئي: مربع بإطار منقط + نص QR
+      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
+      drawQrPlaceholder(doc, fontFamily, x, y, size, tlvBase64);
     }
   } catch (err) {
-    console.warn('[PDF-QR] Error generating QR code:', err);
-    // fallback صامت — لا نمنع توليد الفاتورة
-    doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    doc.text('QR غير متاح', x + size / 2, y + size / 2, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
+    console.error('[PDF-QR] Error generating QR code:', err);
+    // fallback مرئي
+    drawQrPlaceholder(doc, fontFamily, x, y, size);
   }
+};
+
+// مربع placeholder مرئي عند فشل QR
+const drawQrPlaceholder = (
+  doc: jsPDF, fontFamily: string, x: number, y: number, size: number, tlvBase64?: string,
+) => {
+  // إطار منقط
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineWidth(0.4);
+  doc.rect(x, y, size, size);
+
+  // نص "QR" كبير
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(150, 150, 150);
+  doc.text('QR', x + size / 2, y + size / 2 - 2, { align: 'center' });
+
+  // نص TLV مختصر
+  doc.setFontSize(5);
+  if (tlvBase64) {
+    doc.text(tlvBase64.substring(0, 30) + '...', x + size / 2, y + size / 2 + 4, { align: 'center' });
+  } else {
+    doc.text('غير متاح', x + size / 2, y + size / 2 + 4, { align: 'center' });
+  }
+
+  doc.setTextColor(0, 0, 0);
 };
 
 /* ─── القالب الكلاسيكي (الحالي مُحسَّن) ─── */
@@ -382,7 +407,7 @@ const renderClassic = async (
   doc.setTextColor(0, 0, 0);
 };
 
-/* ─── القالب الضريبي الاحترافي (مطابق للمرجع) ─── */
+/* ─── القالب الضريبي الاحترافي (مطابق للمرجع + ZATCA) ─── */
 const renderTaxProfessional = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
@@ -393,62 +418,79 @@ const renderTaxProfessional = async (
   const vatRate = invoice.vatRate ?? 0;
   const isVat = vatRate > 0;
 
+  // حقل ناقص → نص بلون أحمر خافت
+  const missingText = '(غير مُعرَّف)';
+  const renderField = (label: string, value: string | undefined, xPos: number, yPos: number) => {
+    if (value) {
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${label} : ${value}`, xPos, yPos, { align: 'right' });
+    } else {
+      doc.setTextColor(180, 60, 60); // أحمر خافت
+      doc.text(`${label} : ${missingText}`, xPos, yPos, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+    }
+  };
+
   // ──────────────────────────────────────────────────────────────
-  // الترويسة: مطابقة المرجع (دفترة)
-  //   يسار: عنوان "فاتورة ضريبية" + QR تحته
-  //   وسط-يمين: اسم المنشأة + بياناتها (ضريبي، سجل تجاري، عنوان)
-  //   أقصى اليمين: الشعار (إن وُجد)
+  // الترويسة: مطابقة المرجع (ZATCA)
+  //   يسار: عنوان ثنائي اللغة + رقم الفاتورة + التاريخ + QR تحتهم
+  //   يمين: اسم المنشأة + بياناتها
+  //   أقصى اليمين: الشعار
   // ──────────────────────────────────────────────────────────────
 
   // --- الشعار أقصى اليمين ---
   const logoSize = 24;
   const logoX = pageW - margin - logoSize;
   const logoY = y;
-  let sellerRightEdge = pageW - margin; // الحافة اليمنى لنصوص البائع
+  let sellerRightEdge = pageW - margin;
   if (waqfInfo?.logoUrl) {
     const logoData = await loadLogoBase64(waqfInfo.logoUrl);
     if (logoData) {
       try {
         doc.addImage(logoData, 'PNG', logoX, logoY, logoSize, logoSize);
-        sellerRightEdge = logoX - 4; // إزاحة النصوص لليسار حتى لا تتداخل مع الشعار
-      } catch { /* ignore logo errors */ }
+        sellerRightEdge = logoX - 4;
+      } catch { /* تجاهل أخطاء الشعار */ }
     }
   }
 
-  // --- عنوان "فاتورة ضريبية" أعلى يسار ---
+  // --- عنوان ثنائي اللغة أعلى يسار ---
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(14);
-  doc.setTextColor(22, 101, 52); // أخضر داكن
-  doc.text(isVat ? 'فاتورة ضريبية' : 'فاتورة', margin, y + 4, { align: 'left' });
+  doc.setTextColor(22, 101, 52);
+  const titleAr = isVat ? 'فاتورة ضريبية' : 'فاتورة';
+  const titleEn = isVat ? 'Tax Invoice' : 'Invoice';
+  doc.text(titleAr, margin, y + 4, { align: 'left' });
+  doc.setFontSize(10);
+  doc.text(titleEn, margin, y + 10, { align: 'left' });
   doc.setTextColor(0, 0, 0);
 
-  // --- اسم المنشأة أعلى يمين (بجانب الشعار) ---
+  // رقم الفاتورة والتاريخ تحت العنوان
+  doc.setFont(fontFamily, 'normal');
+  doc.setFontSize(8);
+  doc.text(`Invoice No: ${invoice.invoiceNumber}`, margin, y + 16, { align: 'left' });
+  doc.text(`Date: ${invoice.dueDate}`, margin, y + 21, { align: 'left' });
+
+  // --- اسم المنشأة أعلى يمين ---
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(13);
-  doc.text(waqfInfo?.waqfName || '', sellerRightEdge, y + 4, { align: 'right' });
+  doc.text(waqfInfo?.waqfName || missingText, sellerRightEdge, y + 4, { align: 'right' });
 
-  // --- بيانات البائع تحت الاسم (يمين) ---
-  let sellerY = y + 10;
+  // --- بيانات البائع تحت الاسم (يمين) — تظهر دائماً ---
+  let sellerY = y + 11;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
 
-  if (waqfInfo?.vatNumber) {
-    doc.text(`الرقم الضريبي : ${waqfInfo.vatNumber}`, sellerRightEdge, sellerY, { align: 'right' });
-    sellerY += 5;
-  }
-  if (waqfInfo?.commercialReg) {
-    doc.text(`السجل التجاري : ${waqfInfo.commercialReg}`, sellerRightEdge, sellerY, { align: 'right' });
-    sellerY += 5;
-  }
-  if (waqfInfo?.address) {
-    doc.text(`العنوان : ${waqfInfo.address}`, sellerRightEdge, sellerY, { align: 'right' });
-    sellerY += 5;
-  }
+  renderField('الرقم الضريبي', waqfInfo?.vatNumber, sellerRightEdge, sellerY);
+  sellerY += 5;
+  renderField('السجل التجاري', waqfInfo?.commercialReg, sellerRightEdge, sellerY);
+  sellerY += 5;
+  renderField('العنوان', waqfInfo?.address, sellerRightEdge, sellerY);
+  sellerY += 5;
 
-  // --- QR Code تحت عنوان "فاتورة ضريبية" مباشرة ---
-  const qrSize = 32;
+  // --- QR Code تحت رقم الفاتورة ---
+  const qrSize = 35;
   const qrX = margin;
-  const qrY = y + 10;
+  const qrY = y + 24;
   await renderQrCode(doc, fontFamily, invoice, waqfInfo, qrX, qrY, qrSize);
 
   // أعلى نقطة بين (QR + نصوص البائع + الشعار)
@@ -467,38 +509,36 @@ const renderTaxProfessional = async (
 
   // بيانات الفاتورة (يسار)
   doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(9);
+  doc.text('بيانات الفاتورة', margin, y, { align: 'left' });
+  y += 5;
+  doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
-  doc.text('الرقم', margin + 50, y, { align: 'right' });
-  doc.setFont(fontFamily, 'normal');
-  doc.text(invoice.invoiceNumber, margin, y, { align: 'left' });
-  y += 5;
-  doc.setFont(fontFamily, 'bold');
-  doc.text('التاريخ', margin + 50, y, { align: 'right' });
-  doc.setFont(fontFamily, 'normal');
-  doc.text(invoice.dueDate, margin, y, { align: 'left' });
-  y += 5;
-  doc.setFont(fontFamily, 'bold');
-  doc.text('العقد', margin + 50, y, { align: 'right' });
-  doc.setFont(fontFamily, 'normal');
-  doc.text(invoice.contractNumber, margin, y, { align: 'left' });
-  y += 5;
-  doc.setFont(fontFamily, 'bold');
-  doc.text('العقار', margin + 50, y, { align: 'right' });
-  doc.setFont(fontFamily, 'normal');
-  doc.text(invoice.propertyNumber, margin, y, { align: 'left' });
-  y += 5;
-  doc.setFont(fontFamily, 'bold');
-  doc.text('الدفعة', margin + 50, y, { align: 'right' });
-  doc.setFont(fontFamily, 'normal');
-  doc.text(`${invoice.paymentNumber} من ${invoice.totalPayments}`, margin, y, { align: 'left' });
+
+  const metaItems = [
+    ['رقم العقد', invoice.contractNumber],
+    ['العقار', invoice.propertyNumber],
+    [`الدفعة`, `${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    ['الحالة', statusLabel(invoice.status)],
+  ];
+  if (invoice.paidDate) metaItems.push(['تاريخ السداد', invoice.paidDate]);
+
+  for (const [label, val] of metaItems) {
+    doc.setFont(fontFamily, 'bold');
+    doc.text(`${label}:`, margin + 45, y, { align: 'right' });
+    doc.setFont(fontFamily, 'normal');
+    doc.text(val, margin, y, { align: 'left' });
+    y += 5;
+  }
 
   // بيانات العميل (يمين)
   let clientY = metaStartY;
   doc.setFont(fontFamily, 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(9);
   doc.text('بيانات العميل', pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   doc.setFont(fontFamily, 'normal');
+  doc.setFontSize(8);
   doc.text(`الاسم : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   if (invoice.tenantVatNumber) {
@@ -511,16 +551,6 @@ const renderTaxProfessional = async (
   }
 
   y = Math.max(y, clientY) + 4;
-
-  // الحالة
-  doc.setFont(fontFamily, 'bold');
-  doc.setFontSize(8);
-  doc.text(`الحالة: ${statusLabel(invoice.status)}`, pageW - margin, y, { align: 'right' });
-  if (invoice.paidDate) {
-    doc.setFont(fontFamily, 'normal');
-    doc.text(`تاريخ السداد: ${invoice.paidDate}`, margin, y, { align: 'left' });
-  }
-  y += 6;
 
   // خط فاصل
   doc.setDrawColor(200, 200, 200);
@@ -553,7 +583,6 @@ const renderTaxProfessional = async (
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
   doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', pageW / 2, summaryEndY + 8, { align: 'center' });
-  doc.setTextColor(0, 0, 0);
   doc.setTextColor(0, 0, 0);
 };
 

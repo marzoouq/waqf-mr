@@ -165,4 +165,31 @@ describe('generatePaymentInvoicePDF', () => {
     // بيانات البنك تظهر في PDF
     expect(mockText).toHaveBeenCalledWith(expect.stringContaining('الأهلي'), expect.any(Number), expect.any(Number), expect.any(Object));
   });
+
+  it('renders bilingual title for tax_professional', async () => {
+    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    await generatePaymentInvoicePDF(
+      makeInvoice({ vatRate: 15, vatAmount: 1500 }),
+      { waqfName: 'وقف' },
+      'tax_professional',
+    );
+    // عنوان عربي
+    expect(mockText).toHaveBeenCalledWith('فاتورة ضريبية', expect.any(Number), expect.any(Number), expect.any(Object));
+    // عنوان إنجليزي
+    expect(mockText).toHaveBeenCalledWith('Tax Invoice', expect.any(Number), expect.any(Number), expect.any(Object));
+  });
+
+  it('shows placeholder for missing seller fields', async () => {
+    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    await generatePaymentInvoicePDF(
+      makeInvoice(),
+      { waqfName: 'وقف' }, // بدون vatNumber, commercialReg, address
+      'tax_professional',
+    );
+    // يجب أن يظهر "(غير مُعرَّف)" لكل حقل ناقص
+    expect(mockText).toHaveBeenCalledWith(
+      expect.stringContaining('(غير مُعرَّف)'),
+      expect.any(Number), expect.any(Number), expect.any(Object),
+    );
+  });
 });
