@@ -30,7 +30,7 @@ import ContractFormDialog, { ContractFormData, emptyFormData } from '@/component
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 
-import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
+import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
