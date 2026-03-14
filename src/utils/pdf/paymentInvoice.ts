@@ -261,7 +261,7 @@ const renderBankDetails = (
   return y;
 };
 
-// رسم QR Code — يظهر دائماً حتى لو VAT = 0
+// رسم QR Code — يظهر دائماً حتى لو VAT = 0 مع retry + fallback مرئي
 const renderQrCode = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo: PdfWaqfInfo | undefined, x: number, y: number, size: number,
@@ -269,7 +269,6 @@ const renderQrCode = async (
   try {
     const vatAmount = invoice.vatAmount ?? 0;
 
-    // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
     const tlvBase64 = generateZatcaQrTLV({
       sellerName: waqfInfo?.waqfName || '',
       vatNumber: waqfInfo?.vatNumber || '',
@@ -278,27 +277,53 @@ const renderQrCode = async (
       vatAmount: vatAmount,
     });
 
-    const qrDataUrl = await generateQrDataUrl(tlvBase64);
+    // محاولة أولى
+    let qrDataUrl = await generateQrDataUrl(tlvBase64);
+
+    // محاولة ثانية إذا فشلت الأولى
+    if (!qrDataUrl) {
+      console.warn('[PDF-QR] First attempt returned null, retrying...');
+      qrDataUrl = await generateQrDataUrl(tlvBase64);
+    }
+
     if (qrDataUrl) {
       doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
     } else {
-      // fallback: عرض نص TLV مختصر
-      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering TLV text fallback');
-      doc.setFont(fontFamily, 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(120, 120, 120);
-      doc.text(`QR: ${tlvBase64.substring(0, 50)}...`, x + size / 2, y + size / 2, { align: 'center' });
-      doc.setTextColor(0, 0, 0);
+      // fallback مرئي: مربع بإطار منقط + نص QR
+      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
+      drawQrPlaceholder(doc, fontFamily, x, y, size, tlvBase64);
     }
   } catch (err) {
-    console.warn('[PDF-QR] Error generating QR code:', err);
-    // fallback صامت — لا نمنع توليد الفاتورة
-    doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    doc.text('QR غير متاح', x + size / 2, y + size / 2, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
+    console.error('[PDF-QR] Error generating QR code:', err);
+    // fallback مرئي
+    drawQrPlaceholder(doc, fontFamily, x, y, size);
   }
+};
+
+// مربع placeholder مرئي عند فشل QR
+const drawQrPlaceholder = (
+  doc: jsPDF, fontFamily: string, x: number, y: number, size: number, tlvBase64?: string,
+) => {
+  // إطار منقط
+  doc.setDrawColor(150, 150, 150);
+  doc.setLineWidth(0.4);
+  doc.rect(x, y, size, size);
+
+  // نص "QR" كبير
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(150, 150, 150);
+  doc.text('QR', x + size / 2, y + size / 2 - 2, { align: 'center' });
+
+  // نص TLV مختصر
+  doc.setFontSize(5);
+  if (tlvBase64) {
+    doc.text(tlvBase64.substring(0, 30) + '...', x + size / 2, y + size / 2 + 4, { align: 'center' });
+  } else {
+    doc.text('غير متاح', x + size / 2, y + size / 2 + 4, { align: 'center' });
+  }
+
+  doc.setTextColor(0, 0, 0);
 };
 
 /* ─── القالب الكلاسيكي (الحالي مُحسَّن) ─── */
