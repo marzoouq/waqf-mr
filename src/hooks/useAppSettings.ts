@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
+
 export interface WaqfInfo {
   waqf_name: string;
   waqf_founder: string;
@@ -49,12 +51,21 @@ export const useAppSettings = () => {
   });
 
   const getJsonSetting = <T>(key: string, fallback: T): T => {
-    try {
-      const raw = query.data?.[key];
-      if (raw !== undefined && raw !== null) {
-        return JSON.parse(raw);
-      }
+    const raw = query.data?.[key];
+
+    if (raw === undefined || raw === null) {
       return fallback;
+    }
+
+    const cached = jsonSettingCache.get(key);
+    if (cached && cached.raw === raw) {
+      return cached.parsed as T;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as T;
+      jsonSettingCache.set(key, { raw, parsed });
+      return parsed;
     } catch {
       return fallback;
     }
