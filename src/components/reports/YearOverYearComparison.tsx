@@ -12,12 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
-import { PdfWaqfInfo } from '@/utils/pdf/core';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 interface YearOverYearComparisonProps {
   fiscalYears: FiscalYear[];
   currentFiscalYearId: string;
-  waqfInfo?: PdfWaqfInfo;
 }
 
 const MONTH_NAMES = [
@@ -37,7 +36,8 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   return map;
 }
 
-const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: YearOverYearComparisonProps) => {
+const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYearComparisonProps) => {
+  const waqfInfo = usePdfWaqfInfo();
   const [year1Id, setYear1Id] = useState(currentFiscalYearId);
   const [year2Id, setYear2Id] = useState('');
 

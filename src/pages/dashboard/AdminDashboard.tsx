@@ -19,8 +19,8 @@ import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { Badge } from '@/components/ui/badge';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
@@ -33,14 +33,12 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// Collection summary mini-chart colors (kept inline since PieChart is still imported for collection summary)
-const COLLECTION_COLORS = ['hsl(var(--success))', 'hsl(var(--destructive))'];
 
 const AdminDashboard = () => {
   const { role } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const { data: allFiscalYears = [] } = useFiscalYears();
-  const waqfInfo = usePdfWaqfInfo();
+  const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
+  const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
@@ -66,7 +64,7 @@ const AdminDashboard = () => {
     fiscalYearStatus: fiscalYear?.status,
   });
 
-  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading;
+  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
   // Contracts are already filtered server-side by useContractsByFiscalYear
@@ -103,7 +101,8 @@ const AdminDashboard = () => {
   }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
-  const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
+  const sharesNote = isYearActive ? ' *تقديري' : '';
+  const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
 
   const stats = useMemo(() => [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
@@ -111,11 +110,11 @@ const AdminDashboard = () => {
     { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
     { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses' },
-    { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-    { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-    { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
-    { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue, beneficiaries.length, isYearActive, sharesNote]);
+    { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+    { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+    { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+    { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => b.share_percentage > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
+  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote]);
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
@@ -172,7 +171,7 @@ const AdminDashboard = () => {
       { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio > 100 ? '' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
     ];
   }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue]);
 
@@ -240,6 +239,20 @@ const AdminDashboard = () => {
                   <LinkIcon className="w-3 h-3" />
                   إدارة العقود
                 </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Pending Advance Requests */}
+        {pendingAdvances.length > 0 && (
+          <Alert className="animate-fade-in border-warning/50">
+            <Wallet className="h-4 w-4" />
+            <AlertTitle>طلبات سُلف معلقة</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span>{pendingAdvances.length} طلب سُلفة بانتظار الموافقة</span>
+              <Link to="/dashboard/beneficiaries">
+                <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
               </Link>
             </AlertDescription>
           </Alert>
@@ -406,7 +419,6 @@ const AdminDashboard = () => {
                 <YearOverYearComparison
                   fiscalYears={allFiscalYears}
                   currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                  waqfInfo={waqfInfo}
                 />
               </CardContent>
             </Card>
