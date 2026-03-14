@@ -99,9 +99,9 @@ export function generateZatcaQrTLV(data: ZatcaQrData): string {
 export async function generateQrDataUrl(data: string): Promise<string | null> {
   try {
     return await QRCode.toDataURL(data, {
-      width: 150,
+      width: 300,
       margin: 1,
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel: 'H',
       color: { dark: '#000000', light: '#ffffff' },
     });
   } catch {

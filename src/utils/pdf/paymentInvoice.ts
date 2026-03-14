@@ -269,13 +269,23 @@ const renderQrCode = async (
   try {
     const vatAmount = invoice.vatAmount ?? 0;
 
+    // تحويل التاريخ لصيغة ISO 8601 كاملة كما تشترط ZATCA
+    const rawDate = invoice.paidDate || invoice.dueDate || new Date().toISOString();
+    const isoTimestamp = rawDate.includes('T') ? rawDate : new Date(rawDate + 'T00:00:00Z').toISOString();
+
+    const sellerName = waqfInfo?.waqfName || 'غير محدد';
+    const vatNumber = waqfInfo?.vatNumber || '000000000000000';
+
     const tlvBase64 = generateZatcaQrTLV({
-      sellerName: waqfInfo?.waqfName || '',
-      vatNumber: waqfInfo?.vatNumber || '',
-      timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
+      sellerName,
+      vatNumber,
+      timestamp: isoTimestamp,
       totalWithVat: invoice.amount,
       vatAmount: vatAmount,
     });
+
+    // سجل بيانات QR للتتبع
+    console.info('[PDF-QR] TLV data:', { sellerName, vatNumber, timestamp: isoTimestamp, total: invoice.amount, vat: vatAmount });
 
     // محاولة أولى
     let qrDataUrl = await generateQrDataUrl(tlvBase64);
