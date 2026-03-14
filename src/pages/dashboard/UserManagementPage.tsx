@@ -248,6 +248,16 @@ const UserManagementPage = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
+                  // CRIT-2 fix: تحقق من رقم الهوية (10 أرقام)
+                  if (!/^\d{10}$/.test(createForm.nationalId)) {
+                    toast.error('رقم الهوية يجب أن يتكون من 10 أرقام بالضبط');
+                    return;
+                  }
+                  // CRIT-1 fix: تحقق من طول كلمة المرور
+                  if (createForm.password.length < 8) {
+                    toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+                    return;
+                  }
                   createUser.mutate(createForm);
                 }}
                 className="space-y-4"
