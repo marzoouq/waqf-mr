@@ -564,7 +564,7 @@ const UserManagementPage = () => {
                                 size="sm"
                                 variant="outline"
                                 className="gap-1 text-xs text-destructive hover:text-destructive"
-                                onClick={() => setDeleteUserId(user.id)}
+                                onClick={() => setDeleteTarget({ id: user.id, email: user.email })}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
