@@ -300,10 +300,16 @@ const UserManagementPage = () => {
                   <Input
                     type="text"
                     value={createForm.nationalId}
-                    onChange={(e) => setCreateForm({ ...createForm, nationalId: e.target.value })}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '');
+                      if (v.length <= 10) setCreateForm({ ...createForm, nationalId: v });
+                    }}
                     placeholder="1234567890"
                     dir="ltr"
                     required
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
                   />
                 </div>
                 <div className="space-y-2">
