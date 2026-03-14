@@ -21,6 +21,7 @@ import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'luci
 import { useFiscalYears, type FiscalYear } from '@/hooks/useFiscalYears';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -90,6 +91,7 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
 const FiscalYearManagementTab = () => {
   const { data: fiscalYears = [], isLoading } = useFiscalYears();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const [newFY, setNewFY] = useState({ label: '', start_date: '', end_date: '' });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -128,7 +130,7 @@ const FiscalYearManagementTab = () => {
       duration: 6000,
       action: {
         label: 'فتح الحسابات',
-        onClick: () => window.location.assign('/dashboard/accounts'),
+        onClick: () => navigate('/dashboard/accounts'),
       },
     });
   };
