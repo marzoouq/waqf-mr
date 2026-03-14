@@ -56,10 +56,24 @@ class ErrorBoundary extends Component<Props, State> {
 
   private resetAttempts = 0;
 
+  // كشف أخطاء تحميل الملفات المجزأة (chunk errors)
+  private isChunkError(): boolean {
+    const msg = this.state.error?.message ?? '';
+    return msg.includes('Failed to fetch dynamically imported module') ||
+           msg.includes('Loading chunk');
+  }
+
+  // تحديث التطبيق: مسح كاش الأصول + إعادة تحميل
+  handleForceRefresh = async () => {
+    try {
+      await caches.delete('static-assets');
+    } catch { /* الكاش غير متاح */ }
+    window.location.reload();
+  };
+
   handleReset = () => {
     this.resetAttempts++;
     if (this.resetAttempts >= 2) {
-      // Soft recovery failed twice — hard redirect to prevent infinite loop
       window.location.href = '/';
       return;
     }
@@ -70,6 +84,28 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // واجهة مخصصة لأخطاء تحميل الملفات (تحديث جديد متاح)
+      if (this.isChunkError()) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
+            <div className="max-w-md w-full text-center space-y-6">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground">يوجد تحديث جديد للتطبيق</h1>
+              <p className="text-muted-foreground">
+                تم إصدار نسخة جديدة من التطبيق. يرجى تحديث الصفحة للحصول على أحدث إصدار.
+              </p>
+              <Button onClick={this.handleForceRefresh} className="gradient-primary">
+                <RefreshCw className="w-4 h-4 ml-2" />
+                تحديث التطبيق
+              </Button>
+            </div>
+          </div>
+        );
+      }
+
+      // الواجهة العامة للأخطاء الأخرى
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-6" dir="rtl">
           <div className="max-w-md w-full text-center space-y-6">
@@ -77,7 +113,6 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="w-8 h-8 text-destructive" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">حدث خطأ غير متوقع</h1>
-            {/* عرض الخطأ التقني فقط في وضع التطوير */}
             {import.meta.env.DEV && this.state.error && (
               <p className="text-xs text-destructive bg-destructive/10 rounded-md p-3 font-mono break-all" dir="ltr">
                 [{this.state.error.name}: {this.state.error.message}]
