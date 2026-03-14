@@ -24,6 +24,8 @@ interface ContractAccordionGroupProps {
   onEdit: (contract: Contract) => void;
   onDelete: (contract: Contract) => void;
   onRenew: (contract: Contract) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
