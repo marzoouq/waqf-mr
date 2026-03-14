@@ -267,6 +267,44 @@ const ContractsPage = () => {
 
   
 
+  // تجميع العقود حسب الرقم الأساسي (بدون -R1, -R2, ...)
+  const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
+
+  const groupedContracts = useMemo(() => {
+    const map = new Map<string, Contract[]>();
+    for (const c of contracts) {
+      const base = getBaseNumber(c.contract_number);
+      if (!map.has(base)) map.set(base, []);
+      map.get(base)!.push(c);
+    }
+    // ترتيب العقود داخل كل مجموعة: الأحدث أولاً
+    for (const [, group] of map) {
+      group.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+    }
+    // ترتيب المجموعات: الأحدث أولاً
+    return [...map.entries()].sort((a, b) => {
+      const latestA = new Date(a[1][0].start_date).getTime();
+      const latestB = new Date(b[1][0].start_date).getTime();
+      return latestB - latestA;
+    });
+  }, [contracts]);
+
+  // فلترة المجموعات حسب البحث
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery) return groupedContracts;
+    const q = searchQuery.toLowerCase();
+    return groupedContracts.filter(([, group]) =>
+      group.some(c =>
+        c.contract_number.toLowerCase().includes(q) ||
+        c.tenant_name.toLowerCase().includes(q) ||
+        (c.notes || '').toLowerCase().includes(q) ||
+        getPaymentTypeLabel(c.payment_type).includes(q)
+      )
+    );
+  }, [groupedContracts, searchQuery]);
+
+  const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
+
   const filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
