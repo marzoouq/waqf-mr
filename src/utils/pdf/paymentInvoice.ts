@@ -150,7 +150,9 @@ export const generatePaymentInvoicePDF = async (
   // Upload to Storage instead of local save
   try {
     const pdfBlob = doc.output('blob');
-    const storagePath = `payment-invoices/${invoice.invoiceNumber}.pdf`;
+    // INV-CRIT-1: sanitize المسار لمنع path traversal
+    const safeNumber = sanitizePath(invoice.invoiceNumber);
+    const storagePath = `payment-invoices/${safeNumber}.pdf`;
 
     const { error: uploadError } = await supabase.storage
       .from('invoices')

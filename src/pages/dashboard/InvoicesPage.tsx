@@ -130,7 +130,10 @@ const InvoicesPage = () => {
       if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
       if (selectedFile) {
-        if (editingInvoice?.file_path) await supabase.storage.from('invoices').remove([editingInvoice.file_path]);
+        // INV-CRIT-4: تغليف حذف الملف القديم بـ try/catch — فشل الحذف لا يوقف الحفظ
+        if (editingInvoice?.file_path) {
+          try { await supabase.storage.from('invoices').remove([editingInvoice.file_path]); } catch { /* تجاهل فشل الحذف */ }
+        }
         const { path, name } = await uploadInvoiceFile(selectedFile);
         invoiceData.file_path = path;
         invoiceData.file_name = name;

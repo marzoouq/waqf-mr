@@ -199,7 +199,7 @@ function ZatcaManagementPage() {
       queryClient.invalidateQueries({ queryKey: ['zatca-invoices'] });
       queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
     onSettled: () => setPendingAction(null),
   });
 
