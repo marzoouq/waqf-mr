@@ -67,15 +67,6 @@ const ContractsPage = () => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const ITEMS_PER_PAGE = 10;
 
-  const allExpanded = filteredGroups?.length > 0 && expandedGroups.size >= filteredGroups.length;
-  const toggleAllGroups = () => {
-    if (allExpanded) {
-      setExpandedGroups(new Set());
-    } else {
-      setExpandedGroups(new Set(filteredGroups.map(([base]) => base)));
-    }
-  };
-
   const resetForm = () => {
     setEditingContract(null);
     setFormInitialData(emptyFormData);
