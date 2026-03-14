@@ -81,7 +81,7 @@ const AdminDashboard = () => {
     let onTime = 0;
     let late = 0;
 
-    activeContracts.forEach(contract => {
+    relevantContracts.forEach(contract => {
       const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
       if (contractInvoices.length === 0) return; // no invoices generated yet
 
