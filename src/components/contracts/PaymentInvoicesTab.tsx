@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
+  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -33,6 +35,10 @@ interface PaymentInvoicesTabProps {
 }
 
 type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
+type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
+type SortDir = 'asc' | 'desc';
+
+const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
 
 export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentInvoicesTabProps) {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
@@ -45,15 +51,22 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
-  // INV-CRIT-3: حالة تحميل خاصة بكل زر تسديد
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
-  // INV-CRIT-2: Dialog للدفع الجزئي
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
   const [payAmount, setPayAmount] = useState('');
+  // ترتيب بالأعمدة
+  const [sortKey, setSortKey] = useState<SortKey>('due_date');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  // تسديد جماعي
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkPaying, setBulkPaying] = useState(false);
+  // فلتر نطاق التاريخ
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
   const ITEMS_PER_PAGE = 15;
 
-  // INV-HIGH-2: إعادة الصفحة لـ 1 عند تغيير الفلتر أو البحث
-  useEffect(() => { setCurrentPage(1); }, [filter, search]);
+  useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
 
   const summary = useMemo(() => {
     const total = invoices.length;
@@ -62,7 +75,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const pending = invoices.filter(i => i.status === 'pending').length;
     const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
     const totalAmount = invoices.reduce((s, i) => s + Number(i.amount || 0), 0);
-    // INV-HIGH-1: إصلاح حساب paidAmount — استخدام paid_amount ?? amount للمسددة كلياً
     const paidAmount = invoices
       .filter(i => i.status === 'paid' || i.status === 'partially_paid')
       .reduce((s, i) => s + Number(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
@@ -86,21 +98,89 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         i.contract?.contract_number?.toLowerCase().includes(q)
       );
     }
+
+    // فلتر نطاق التاريخ
+    if (dateFrom) result = result.filter(i => i.due_date >= dateFrom);
+    if (dateTo) result = result.filter(i => i.due_date <= dateTo);
+
     return result;
-  }, [invoices, filter, search]);
+  }, [invoices, filter, search, dateFrom, dateTo]);
+
+  // ترتيب
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'due_date': cmp = a.due_date.localeCompare(b.due_date); break;
+        case 'amount': cmp = Number(a.amount) - Number(b.amount); break;
+        case 'status': cmp = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9); break;
+        case 'payment_number': cmp = a.payment_number - b.payment_number; break;
+      }
+      return sortDir === 'desc' ? -cmp : cmp;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
 
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filtered.slice(start, start + ITEMS_PER_PAGE);
-  }, [filtered, currentPage]);
+    return sorted.slice(start, start + ITEMS_PER_PAGE);
+  }, [sorted, currentPage]);
 
-  // INV-CRIT-2: فتح Dialog التسديد
+  // تجميع الفواتير المُرقّمة حسب العقد (للجدول + الموبايل)
+  const groupedPaginated = useMemo(() => {
+    const grouped = new Map<string, PaymentInvoice[]>();
+    for (const inv of paginated) {
+      const key = inv.contract_id;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push(inv);
+    }
+    return grouped;
+  }, [paginated]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ field }: { field: SortKey }) => {
+    if (sortKey !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
+  // تسديد جماعي
+  const unpaidFiltered = useMemo(() => sorted.filter(i => i.status !== 'paid'), [sorted]);
+  const toggleSelect = (id: string) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleSelectAll = () => {
+    if (selectedIds.size === unpaidFiltered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(unpaidFiltered.map(i => i.id)));
+  };
+
+  const handleBulkPay = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkPaying(true);
+    const ids = [...selectedIds];
+    let done = 0;
+    for (const id of ids) {
+      try {
+        await markPaid.mutateAsync({ invoiceId: id });
+        done++;
+      } catch { /* يتابع */ }
+    }
+    setBulkPaying(false);
+    setSelectedIds(new Set());
+    toast.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
+  }, [selectedIds, markPaid]);
+
   const openPayDialog = (inv: PaymentInvoice) => {
     setPayDialog({ inv });
     setPayAmount(String(Number(inv.amount)));
   };
 
-  // INV-CRIT-2: تنفيذ التسديد (كلي أو جزئي)
   const handlePay = () => {
     if (!payDialog) return;
     const amount = parseFloat(payAmount);
@@ -136,7 +216,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       }, waqfInfo);
 
       if (blobUrl) {
-        // تحميل مباشر عبر <a> لتجنب حظر المتصفح للنوافذ المنبثقة
         const a = document.createElement('a');
         a.href = blobUrl;
         a.download = `فاتورة-${inv.invoice_number}.pdf`;
@@ -171,7 +250,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     <div className="space-y-5">
       <InvoiceStepsGuide />
 
-      {/* INV-CRIT-2: Dialog الدفع الجزئي */}
+      {/* Dialog الدفع الجزئي */}
       <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -267,7 +346,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       </Card>
 
       {/* أدوات */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap">
         <div className="relative max-w-xs flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="بحث بالفاتورة أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
@@ -284,6 +363,20 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             )}
           </SelectContent>
         </Select>
+
+        {/* فلتر نطاق التاريخ */}
+        <div className="flex items-center gap-2">
+          <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
+          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36 text-xs" placeholder="من" />
+          <span className="text-muted-foreground text-xs">—</span>
+          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-xs" placeholder="إلى" />
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
           <Button variant="outline" size="sm" className="gap-2" onClick={() => generateAll.mutate()} disabled={generateAll.isPending}>
             <Zap className="w-4 h-4" />
@@ -304,10 +397,25 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         )}
       </div>
 
+      {/* شريط التسديد الجماعي */}
+      {!isClosed && selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg border border-success/30 bg-success/10">
+          <Check className="w-4 h-4 text-success shrink-0" />
+          <span className="text-sm font-medium">تم تحديد {selectedIds.size} فاتورة</span>
+          <Button size="sm" className="gap-2 mr-auto" onClick={handleBulkPay} disabled={bulkPaying}>
+            {bulkPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+            تسديد المختارة
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+            <X className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      )}
+
       {/* الجدول */}
       <Card className="shadow-sm">
         <CardContent className="p-0">
-          {filtered.length === 0 ? (
+          {sorted.length === 0 ? (
             <div className="py-12 text-center">
               <Receipt className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
               <p className="text-muted-foreground">
@@ -320,122 +428,157 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <>
               {/* Mobile Cards — مجمّعة حسب العقد */}
               <div className="space-y-4 md:hidden px-3 py-2">
-                {(() => {
-                  // تجميع الفواتير المُرقّمة حسب العقد
-                  const grouped = new Map<string, PaymentInvoice[]>();
-                  for (const inv of paginated) {
-                    const key = inv.contract_id;
-                    if (!grouped.has(key)) grouped.set(key, []);
-                    grouped.get(key)!.push(inv);
-                  }
-                  return [...grouped.entries()].map(([contractId, invs]) => {
-                    const first = invs[0];
-                    return (
-                      <div key={contractId} className="space-y-2">
-                        <div className="flex items-center gap-2 px-1">
-                          <span className="text-sm font-bold">{first.contract?.contract_number || '-'}</span>
-                          <span className="text-xs text-muted-foreground">— {first.contract?.tenant_name}</span>
-                        </div>
-                        {invs.map(inv => (
-                          <Card key={inv.id} className={`shadow-sm border-r-4 ${
-                            inv.status === 'paid' ? 'border-r-success/60' :
-                            inv.status === 'overdue' ? 'border-r-destructive/60' :
-                            inv.status === 'partially_paid' ? 'border-r-warning/60' :
-                            'border-r-muted-foreground/30'
-                          }`}>
-                            <CardContent className="p-3 space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
-                                {getStatusBadge(inv.status)}
-                              </div>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
-                                <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
-                                {Number(inv.vat_amount) > 0 && (
-                                  <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Number(inv.vat_amount).toLocaleString()} ر.س</p></div>
-                                )}
-                                {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
-                                  {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
-                                </Button>
-                                {!isClosed && inv.status !== 'paid' && (
-                                  <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
-                                    {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
-                                  </Button>
-                                )}
-                                {!isClosed && inv.status === 'paid' && (
-                                  <Button size="sm" variant="outline" className="gap-1 flex-1 text-muted-foreground" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
-                                    <X className="w-3.5 h-3.5" />إلغاء
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                {[...groupedPaginated.entries()].map(([contractId, invs]) => {
+                  const first = invs[0];
+                  return (
+                    <div key={contractId} className="space-y-2">
+                      <div className="flex items-center gap-2 px-1">
+                        <span className="text-sm font-bold">{first.contract?.contract_number || '-'}</span>
+                        <span className="text-xs text-muted-foreground">— {first.contract?.tenant_name}</span>
                       </div>
-                    );
-                  });
-                })()}
+                      {invs.map(inv => (
+                        <Card key={inv.id} className={`shadow-sm border-r-4 ${
+                          inv.status === 'paid' ? 'border-r-success/60' :
+                          inv.status === 'overdue' ? 'border-r-destructive/60' :
+                          inv.status === 'partially_paid' ? 'border-r-warning/60' :
+                          'border-r-muted-foreground/30'
+                        }`}>
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {!isClosed && inv.status !== 'paid' && (
+                                  <Checkbox
+                                    checked={selectedIds.has(inv.id)}
+                                    onCheckedChange={() => toggleSelect(inv.id)}
+                                  />
+                                )}
+                                <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
+                              </div>
+                              {getStatusBadge(inv.status)}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
+                              <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
+                              {Number(inv.vat_amount) > 0 && (
+                                <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Number(inv.vat_amount).toLocaleString()} ر.س</p></div>
+                              )}
+                              {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
+                                {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
+                              </Button>
+                              {!isClosed && inv.status !== 'paid' && (
+                                <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
+                                  {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
+                                </Button>
+                              )}
+                              {!isClosed && inv.status === 'paid' && (
+                                <Button size="sm" variant="outline" className="gap-1 flex-1 text-muted-foreground" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
+                                  <X className="w-3.5 h-3.5" />إلغاء
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Desktop Table */}
+              {/* Desktop Table — مجمّع حسب العقد */}
               <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
+                      {!isClosed && (
+                        <TableHead className="w-10 text-center">
+                          <Checkbox
+                            checked={unpaidFiltered.length > 0 && selectedIds.size === unpaidFiltered.length}
+                            onCheckedChange={toggleSelectAll}
+                          />
+                        </TableHead>
+                      )}
                       <TableHead className="text-right">رقم الفاتورة</TableHead>
                       <TableHead className="text-right">المستأجر</TableHead>
-                      <TableHead className="text-right">رقم العقد</TableHead>
                       <TableHead className="text-right">العقار</TableHead>
-                      <TableHead className="text-center">رقم الدفعة</TableHead>
-                      <TableHead className="text-right">تاريخ الاستحقاق</TableHead>
-                      <TableHead className="text-right">المبلغ</TableHead>
-                      {/* INV-MED-1: عمود الضريبة */}
+                      <TableHead className="text-center cursor-pointer select-none" onClick={() => toggleSort('payment_number')}>
+                        <span className="inline-flex items-center gap-1">رقم الدفعة <SortIcon field="payment_number" /></span>
+                      </TableHead>
+                      <TableHead className="text-right cursor-pointer select-none" onClick={() => toggleSort('due_date')}>
+                        <span className="inline-flex items-center gap-1">تاريخ الاستحقاق <SortIcon field="due_date" /></span>
+                      </TableHead>
+                      <TableHead className="text-right cursor-pointer select-none" onClick={() => toggleSort('amount')}>
+                        <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" /></span>
+                      </TableHead>
                       <TableHead className="text-right">الضريبة</TableHead>
                       <TableHead className="text-right">تاريخ السداد</TableHead>
-                      <TableHead className="text-center">الحالة</TableHead>
+                      <TableHead className="text-center cursor-pointer select-none" onClick={() => toggleSort('status')}>
+                        <span className="inline-flex items-center gap-1">الحالة <SortIcon field="status" /></span>
+                      </TableHead>
                       <TableHead className="text-center">إجراء</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginated.map(inv => (
-                      <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
-                        <TableCell className="font-medium font-mono text-xs">{inv.invoice_number}</TableCell>
-                        <TableCell>{inv.contract?.tenant_name || '-'}</TableCell>
-                        <TableCell className="text-xs">{inv.contract?.contract_number || '-'}</TableCell>
-                        <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
-                        <TableCell className="text-center">{inv.payment_number}</TableCell>
-                        <TableCell>{inv.due_date}</TableCell>
-                        <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
-                        {/* INV-MED-1: عرض مبلغ الضريبة */}
-                        <TableCell className="text-muted-foreground text-xs">
-                          {Number(inv.vat_amount) > 0 ? `${Number(inv.vat_amount).toLocaleString()} (${inv.vat_rate}%)` : 'معفاة'}
-                        </TableCell>
-                        <TableCell className={inv.paid_date ? 'text-success' : 'text-muted-foreground'}>{inv.paid_date || '-'}</TableCell>
-                        <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
-                              {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                            </Button>
-                            {!isClosed && (
-                              inv.status !== 'paid' ? (
-                                // INV-CRIT-2 + INV-CRIT-3: Dialog جزئي + تعطيل خاص بالصف
-                                <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
-                                  {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
-                                </Button>
-                              ) : (
-                                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground h-8" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
-                                  <X className="w-3.5 h-3.5" />إلغاء
-                                </Button>
-                              )
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {[...groupedPaginated.entries()].map(([contractId, invs]) => {
+                      const first = invs[0];
+                      return (
+                        <>{/* صف عنوان المجموعة */}
+                          <TableRow key={`header-${contractId}`} className="bg-muted/30 hover:bg-muted/40">
+                            <TableCell colSpan={isClosed ? 10 : 11} className="py-2 px-4">
+                              <span className="text-xs font-bold text-foreground">{first.contract?.contract_number || '-'}</span>
+                              <span className="text-xs text-muted-foreground mr-2">— {first.contract?.tenant_name}</span>
+                              <span className="text-xs text-muted-foreground mr-2">• {first.contract?.property?.property_number || ''}</span>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 mr-2">{invs.length} فاتورة</Badge>
+                            </TableCell>
+                          </TableRow>
+                          {invs.map(inv => (
+                            <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
+                              {!isClosed && (
+                                <TableCell className="text-center">
+                                  {inv.status !== 'paid' && (
+                                    <Checkbox
+                                      checked={selectedIds.has(inv.id)}
+                                      onCheckedChange={() => toggleSelect(inv.id)}
+                                    />
+                                  )}
+                                </TableCell>
+                              )}
+                              <TableCell className="font-medium font-mono text-xs">{inv.invoice_number}</TableCell>
+                              <TableCell>{inv.contract?.tenant_name || '-'}</TableCell>
+                              <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
+                              <TableCell className="text-center">{inv.payment_number}</TableCell>
+                              <TableCell>{inv.due_date}</TableCell>
+                              <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
+                              <TableCell className="text-muted-foreground text-xs">
+                                {Number(inv.vat_amount) > 0 ? `${Number(inv.vat_amount).toLocaleString()} (${inv.vat_rate}%)` : 'معفاة'}
+                              </TableCell>
+                              <TableCell className={inv.paid_date ? 'text-success' : 'text-muted-foreground'}>{inv.paid_date || '-'}</TableCell>
+                              <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
+                                    {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                                  </Button>
+                                  {!isClosed && (
+                                    inv.status !== 'paid' ? (
+                                      <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
+                                        {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
+                                      </Button>
+                                    ) : (
+                                      <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground h-8" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
+                                        <X className="w-3.5 h-3.5" />إلغاء
+                                      </Button>
+                                    )
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
@@ -443,7 +586,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           )}
           <TablePagination
             currentPage={currentPage}
-            totalItems={filtered.length}
+            totalItems={sorted.length}
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={setCurrentPage}
           />
