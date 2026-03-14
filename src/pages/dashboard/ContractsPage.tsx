@@ -280,19 +280,41 @@ const ContractsPage = () => {
     });
   }, [contracts]);
 
-  // فلترة المجموعات حسب البحث
+  // عدد العقود النشطة والمنتهية (لعرض الأعداد بجانب الفلتر)
+  const statusCounts = useMemo(() => {
+    let active = 0, expired = 0;
+    for (const [, group] of groupedContracts) {
+      const latestStatus = group[0].status;
+      if (latestStatus === 'active') active++;
+      else expired++;
+    }
+    return { active, expired, all: groupedContracts.length };
+  }, [groupedContracts]);
+
+  // فلترة المجموعات حسب البحث + حالة أحدث عقد
   const filteredGroups = useMemo(() => {
-    if (!searchQuery) return groupedContracts;
-    const q = searchQuery.toLowerCase();
-    return groupedContracts.filter(([, group]) =>
-      group.some(c =>
-        c.contract_number.toLowerCase().includes(q) ||
-        c.tenant_name.toLowerCase().includes(q) ||
-        (c.notes || '').toLowerCase().includes(q) ||
-        getPaymentTypeLabel(c.payment_type).includes(q)
-      )
-    );
-  }, [groupedContracts, searchQuery]);
+    let result = groupedContracts;
+    // فلتر الحالة
+    if (statusFilter !== 'all') {
+      result = result.filter(([, group]) => {
+        const latestStatus = group[0].status;
+        return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
+      });
+    }
+    // فلتر البحث
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(([, group]) =>
+        group.some(c =>
+          c.contract_number.toLowerCase().includes(q) ||
+          c.tenant_name.toLowerCase().includes(q) ||
+          (c.notes || '').toLowerCase().includes(q) ||
+          getPaymentTypeLabel(c.payment_type).includes(q)
+        )
+      );
+    }
+    return result;
+  }, [groupedContracts, searchQuery, statusFilter]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
