@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
-  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download,
+  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   PaymentInvoice,
   usePaymentInvoices,
@@ -38,6 +39,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 15;
 
   const summary = useMemo(() => {
@@ -76,24 +78,38 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, currentPage]);
 
-  const handleDownloadPdf = (inv: PaymentInvoice) => {
-    generatePaymentInvoicePDF({
-      id: inv.id,
-      invoiceNumber: inv.invoice_number,
-      contractNumber: inv.contract?.contract_number || '-',
-      tenantName: inv.contract?.tenant_name || '-',
-      propertyNumber: inv.contract?.property?.property_number || '-',
-      paymentNumber: inv.payment_number,
-      totalPayments: inv.contract?.payment_count || 1,
-      amount: Number(inv.amount),
-      dueDate: inv.due_date,
-      status: inv.status,
-      paidDate: inv.paid_date,
-      paidAmount: inv.paid_amount,
-      notes: inv.notes,
-      vatRate: inv.vat_rate ?? 0,
-      vatAmount: inv.vat_amount ?? 0,
-    }, waqfInfo);
+  const handleDownloadPdf = async (inv: PaymentInvoice) => {
+    setLoadingInvoiceId(inv.id);
+    try {
+      const blobUrl = await generatePaymentInvoicePDF({
+        id: inv.id,
+        invoiceNumber: inv.invoice_number,
+        contractNumber: inv.contract?.contract_number || '-',
+        tenantName: inv.contract?.tenant_name || '-',
+        propertyNumber: inv.contract?.property?.property_number || '-',
+        paymentNumber: inv.payment_number,
+        totalPayments: inv.contract?.payment_count || 1,
+        amount: Number(inv.amount),
+        dueDate: inv.due_date,
+        status: inv.status,
+        paidDate: inv.paid_date,
+        paidAmount: inv.paid_amount,
+        notes: inv.notes,
+        vatRate: inv.vat_rate ?? 0,
+        vatAmount: inv.vat_amount ?? 0,
+      }, waqfInfo);
+
+      if (blobUrl) {
+        window.open(blobUrl, '_blank');
+        toast.success('تم تصدير الفاتورة بنجاح');
+      } else {
+        toast.info('تم حفظ الفاتورة محلياً');
+      }
+    } catch {
+      toast.error('حدث خطأ أثناء تصدير الفاتورة');
+    } finally {
+      setLoadingInvoiceId(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -239,8 +255,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)}>
-                          <Download className="w-3.5 h-3.5" />PDF
+                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
+                          {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
                         </Button>
                         {!isClosed && inv.status !== 'paid' && (
                           <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
@@ -284,8 +300,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF">
-                              <Download className="w-3.5 h-3.5" />
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
+                              {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                             </Button>
                             {!isClosed && (
                               inv.status !== 'paid' ? (
