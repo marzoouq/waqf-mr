@@ -6,7 +6,8 @@
 const isDev = import.meta.env.DEV;
 
 /** Lazy import to avoid circular deps — Promise caching prevents race condition */
-type LogAccessFn = (e: { event_type: string; metadata?: Record<string, unknown> }) => Promise<void>;
+type AccessEventType = 'login_failed' | 'login_success' | 'logout' | 'unauthorized_access' | 'idle_logout' | 'role_fetch' | 'client_error';
+type LogAccessFn = (e: { event_type: AccessEventType; metadata?: Record<string, unknown> }) => Promise<void>;
 let _logAccessPromise: Promise<LogAccessFn> | null = null;
 const getLogAccess = (): Promise<LogAccessFn> => {
   if (!_logAccessPromise) {
@@ -27,9 +28,8 @@ export const logger = {
       getLogAccess().then(log => log({
         event_type: 'client_error',
         metadata: {
-          message: String(args[0] ?? '').substring(0, 500),
-          stack: errObj?.stack?.substring(0, 1000),
-          error_name: errObj?.name,
+    message: String(args[0] ?? '').substring(0, 500),
+    error_name: errObj?.name,
         },
       })).catch(() => {});
     }
