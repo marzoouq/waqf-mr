@@ -14,7 +14,7 @@ import {
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
-  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays,
+  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -25,6 +25,7 @@ import {
   useMarkInvoiceUnpaid,
 } from '@/hooks/usePaymentInvoices';
 import { generatePaymentInvoicePDF, generateOverdueInvoicesPDF } from '@/utils/pdf';
+import type { InvoiceTemplate } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
@@ -63,7 +64,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   // فلتر نطاق التاريخ
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
+  // قالب الفاتورة
+  const [invoiceTemplate, setInvoiceTemplate] = useState<InvoiceTemplate>('tax_professional');
   const ITEMS_PER_PAGE = 15;
 
   useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
@@ -213,7 +215,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         notes: inv.notes,
         vatRate: inv.vat_rate ?? 0,
         vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo);
+      }, waqfInfo, invoiceTemplate);
 
       if (blobUrl) {
         const a = document.createElement('a');
@@ -374,7 +376,20 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
               <X className="w-3.5 h-3.5" />
             </Button>
-          )}
+        )}
+
+        {/* اختيار قالب الفاتورة */}
+        <Select value={invoiceTemplate} onValueChange={v => setInvoiceTemplate(v as InvoiceTemplate)}>
+          <SelectTrigger className="w-48">
+            <FileText className="w-4 h-4 ml-1 shrink-0" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tax_professional">ضريبي احترافي</SelectItem>
+            <SelectItem value="classic">كلاسيكي</SelectItem>
+            <SelectItem value="compact">مختصر</SelectItem>
+          </SelectContent>
+        </Select>
         </div>
 
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
