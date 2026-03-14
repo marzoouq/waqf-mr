@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+const jsonSettingCache = new Map<string, { raw: string; parsed: unknown }>();
 
 export interface WaqfInfo {
   waqf_name: string;
