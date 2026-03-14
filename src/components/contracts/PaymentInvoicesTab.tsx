@@ -653,6 +653,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewPdf(inv)} title="معاينة الفاتورة" disabled={loadingInvoiceId === inv.id}>
+                                    {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
                                     {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                                   </Button>
