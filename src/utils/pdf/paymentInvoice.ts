@@ -373,7 +373,7 @@ const renderClassic = async (
   doc.setTextColor(0, 0, 0);
 };
 
-/* ─── القالب الضريبي الاحترافي ─── */
+/* ─── القالب الضريبي الاحترافي (مطابق للمرجع) ─── */
 const renderTaxProfessional = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
@@ -381,62 +381,122 @@ const renderTaxProfessional = async (
   const pageW = doc.internal.pageSize.width;
   const margin = 14;
   let y = 14;
+  const vatRate = invoice.vatRate ?? 0;
+  const isVat = vatRate > 0;
 
-  // === الترويسة: شعار + اسم + QR ===
-  // عنوان "فاتورة ضريبية"
+  // === صف 1: "فاتورة ضريبية" (يسار) + اسم المنشأة + بياناتها (يمين) ===
+  // عنوان "فاتورة ضريبية" — أعلى يسار
   doc.setFont(fontFamily, 'bold');
-  doc.setFontSize(16);
-  doc.text('فاتورة ضريبية', pageW / 2, y + 4, { align: 'center' });
-  y += 10;
+  doc.setFontSize(14);
+  doc.text(isVat ? 'فاتورة ضريبية' : 'فاتورة', margin, y + 4, { align: 'left' });
 
-  // خط فاصل أخضر
-  doc.setDrawColor(22, 101, 52);
-  doc.setLineWidth(1);
-  doc.line(margin, y, pageW - margin, y);
-  y += 6;
+  // اسم المنشأة — أعلى يمين
+  doc.setFontSize(14);
+  doc.text(waqfInfo?.waqfName || '', pageW - margin, y + 4, { align: 'right' });
+  y += 8;
 
-  // شعار (أعلى يمين)
+  // بيانات البائع تحت الاسم (يمين)
+  doc.setFont(fontFamily, 'normal');
+  doc.setFontSize(8);
+  if (waqfInfo?.vatNumber) {
+    doc.text(`الرقم الضريبي : ${waqfInfo.vatNumber}`, pageW - margin, y, { align: 'right' });
+    y += 4;
+  }
+  if (waqfInfo?.commercialReg) {
+    doc.text(`السجل التجاري : ${waqfInfo.commercialReg}`, pageW - margin, y, { align: 'right' });
+    y += 4;
+  }
+  if (waqfInfo?.address) {
+    doc.text(waqfInfo.address, pageW - margin, y, { align: 'right' });
+    y += 4;
+  }
+
+  // QR Code — أعلى يسار (بجانب عنوان "فاتورة ضريبية")
+  const qrSize = 30;
+  const qrX = margin;
+  const qrY = 20;
+  await renderQrCode(doc, fontFamily, invoice, waqfInfo, qrX, qrY, qrSize);
+
+  // شعار — يمين بجانب بيانات البائع
   if (waqfInfo?.logoUrl) {
     const logoData = await loadLogoBase64(waqfInfo.logoUrl);
     if (logoData) {
-      try { doc.addImage(logoData, 'PNG', pageW - margin - 22, y - 2, 22, 22); } catch { /* ignore */ }
+      try { doc.addImage(logoData, 'PNG', pageW - margin - 55, 16, 22, 22); } catch { /* ignore */ }
     }
   }
 
-  // بيانات البائع (يمين)
-  const sellerEndY = renderSellerInfo(doc, fontFamily, waqfInfo, y, pageW);
+  y = Math.max(y, qrY + qrSize + 4);
+
+  // خط فاصل
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageW - margin, y);
+  y += 6;
+
+  // === صف 2: رقم الفاتورة + التاريخ (يسار) | بيانات العميل (يمين) ===
+  const metaStartY = y;
 
   // بيانات الفاتورة (يسار)
-  renderInvoiceMeta(doc, fontFamily, invoice, y, pageW);
-
-  y = Math.max(sellerEndY, y + 25) + 4;
-
-  // خط فاصل خفيف
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.3);
-  doc.line(margin, y, pageW - margin, y);
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(8);
+  doc.text('الرقم', margin + 50, y, { align: 'right' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(invoice.invoiceNumber, margin, y, { align: 'left' });
   y += 5;
+  doc.setFont(fontFamily, 'bold');
+  doc.text('التاريخ', margin + 50, y, { align: 'right' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(invoice.dueDate, margin, y, { align: 'left' });
+  y += 5;
+  doc.setFont(fontFamily, 'bold');
+  doc.text('العقد', margin + 50, y, { align: 'right' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(invoice.contractNumber, margin, y, { align: 'left' });
+  y += 5;
+  doc.setFont(fontFamily, 'bold');
+  doc.text('العقار', margin + 50, y, { align: 'right' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(invoice.propertyNumber, margin, y, { align: 'left' });
+  y += 5;
+  doc.setFont(fontFamily, 'bold');
+  doc.text('الدفعة', margin + 50, y, { align: 'right' });
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`${invoice.paymentNumber} من ${invoice.totalPayments}`, margin, y, { align: 'left' });
 
-  // بيانات العميل
-  y = renderBuyerInfo(doc, fontFamily, invoice, y, pageW);
-  y += 4;
+  // بيانات العميل (يمين)
+  let clientY = metaStartY;
+  doc.setFont(fontFamily, 'normal');
+  doc.setFontSize(8);
+  doc.text(`العميل : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
+  clientY += 5;
+  if (invoice.tenantVatNumber) {
+    doc.text(`الرقم الضريبي : ${invoice.tenantVatNumber}`, pageW - margin, clientY, { align: 'right' });
+    clientY += 5;
+  }
+  if (invoice.tenantAddress) {
+    doc.text(`العنوان : ${invoice.tenantAddress}`, pageW - margin, clientY, { align: 'right' });
+    clientY += 5;
+  }
+
+  y = Math.max(y, clientY) + 6;
 
   // الحالة
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(8);
-  doc.text(`الحالة: ${statusLabel(invoice.status)}`, margin, y, { align: 'left' });
+  doc.text(`الحالة: ${statusLabel(invoice.status)}`, pageW - margin, y, { align: 'right' });
   if (invoice.paidDate) {
     doc.setFont(fontFamily, 'normal');
-    doc.text(`  |  تاريخ السداد: ${invoice.paidDate}`, margin + 30, y, { align: 'left' });
+    doc.text(`تاريخ السداد: ${invoice.paidDate}`, margin, y, { align: 'left' });
   }
   y += 6;
 
   // خط فاصل
   doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
   doc.line(margin, y, pageW - margin, y);
   y += 4;
 
-  // جدول البنود (8 أعمدة)
+  // === جدول البنود (8 أعمدة) ===
   renderLineItemsTable(doc, fontFamily, invoice, y);
   const tableEndY = getLastAutoTableY(doc, y + 40);
 
@@ -446,27 +506,22 @@ const renderTaxProfessional = async (
   // بيانات الدفع
   summaryEndY = renderBankDetails(doc, fontFamily, waqfInfo, summaryEndY + 2, pageW);
 
-  // QR Code (أسفل يسار)
-  const vatRate = invoice.vatRate ?? 0;
-  if (vatRate > 0 && waqfInfo?.vatNumber) {
-    await renderQrCode(doc, fontFamily, invoice, waqfInfo, margin, summaryEndY + 4, 35);
-  }
-
   // ملاحظات
   if (invoice.notes) {
     doc.setFont(fontFamily, 'normal');
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`ملاحظات: ${invoice.notes}`, pageW - margin, summaryEndY + 10, { align: 'right' });
+    doc.text(`ملاحظات: ${invoice.notes}`, pageW - margin, summaryEndY + 6, { align: 'right' });
     doc.setTextColor(0, 0, 0);
+    summaryEndY += 10;
   }
 
   // ملاحظة إلكترونية
-  const bottomY = summaryEndY + (vatRate > 0 ? 44 : 16);
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', pageW / 2, bottomY, { align: 'center' });
+  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', pageW / 2, summaryEndY + 8, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
   doc.setTextColor(0, 0, 0);
 };
 
