@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
-  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2,
+  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
