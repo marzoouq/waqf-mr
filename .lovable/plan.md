@@ -1,87 +1,59 @@
 
-# خطة التطوير — نظام وقف مرزوق بن علي الثبيتي
 
-> **آخر تحديث:** 2026-03-14 | **الإصدار:** v2.9.0+
+# خطة إصلاح المشاكل الحقيقية من التقرير الجنائي
 
----
+## تحليل التقرير — الحقيقي مقابل الإنذارات الكاذبة
 
-## ✅ مُنجز — إصلاحات البنية التحتية (2026-03-14)
+| المشكلة | الحالة | السبب |
+|---------|--------|-------|
+| CRIT-AI-1 | ✅ حقيقي | `getSession()` مستخدم في AiAssistant |
+| CRIT-AI-2 | ✅ حقيقي | لا cooldown على إرسال الرسائل |
+| HIGH-VITE-NEW-1 | ✅ حقيقي | `/functions/v1/` غير مشمولة بـ NetworkOnly |
+| HIGH-PWA-1 | ✅ حقيقي | `changelog.json` يُقرأ من كاش قديم |
+| HIGH-THEME-1 | ✅ حقيقي | MutationObserver بدون disconnect |
+| MED-PWA-1 | ✅ حقيقي | fetch بدون AbortController |
+| CRIT-CLIENT-1 | ❌ لا يُنفَّذ | `client.ts` ملف تلقائي محظور التعديل |
+| HIGH-APP-1 | ❌ إنذار كاذب | منطق `chunk_retry` صحيح — يُمسح عند نجاح التحميل ويُعالَج عند الفشل المتكرر |
+| HIGH-APP-2 | ❌ إنذار كاذب | `SecurityGuard` ليس في `DeferredRender` — يُحمَّل مباشرة مع `Suspense` فقط |
+| HIGH-PWA-2 | ❌ مُصلح سابقاً | `skipWaiting: false` مُطبَّق بالفعل |
+| HIGH-APP-3 | ❌ إنذار كاذب | `DeferredRender` يشمل `AiAssistant` فقط — لا `SecurityGuard` |
+| CRIT-MAIN-1 | ⚠️ مقبول | `reload()` يحدث بعد اكتمال جميع عمليات الكاش الـ async — وقبل render React |
+| MED-AI-1 | ℹ️ تحسين مستقبلي | حفظ المحادثات في DB — ميزة وليس خلل |
+| MED-LOGGER-1 | ℹ️ مقبول | `error_name` معلومة عامة لا تُشكل خطراً |
 
-- [x] إزالة Supabase URL المكشوف من `index.html`
-- [x] تحسين CSP: إضافة `worker-src 'self'` و `manifest-src 'self'`
-- [x] إزالة `<meta name="keywords">`
-- [x] تحديث `robots.txt` لمنع فهرسة المسارات المحمية
-- [x] `skipWaiting: false` في PWA لحماية البيانات النشطة
-- [x] توسيع `navigateFallbackDenylist` في PWA
-- [x] تعطيل sourcemaps في production
-- [x] إضافة `jspdf`/`recharts` لـ `manualChunks`
-- [x] إضافة `lcov` reporter لـ vitest coverage
-- [x] إضافة `^` لـ `next-themes` في package.json
+## الإصلاحات (6 تغييرات في 4 ملفات)
 
----
+### 1. `src/components/AiAssistant.tsx` — 3 إصلاحات
 
-## 📋 مهام مؤجلة — أمان (تدريجي)
+- **استبدال `getSession()` بـ `supabase.functions.invoke`** — يُرسل JWT تلقائياً بدون الحاجة لجلب token يدوياً. لكن بما أن المساعد يستخدم SSE streaming، سنستخرج token من `getUser()` مباشرة عبر الجلسة النشطة بدلاً من `getSession()`
+- **إضافة cooldown 2 ثانية** بين الرسائل لمنع استنزاف API
+- **تعطيل زر الإرسال** أثناء الـ cooldown
 
-### 🔴 حرج — `strictNullChecks: true`
-- **الملف:** `tsconfig.json` + `tsconfig.app.json`
-- **المخاطر:** `null/undefined` يُعامَلان كأرقام صالحة → حسابات مالية بـ `NaN`
-- **الخطة:** تفعيل تدريجي مع إصلاح الأخطاء الناتجة ملف بملف
-- **التقدير:** 2-4 أيام عمل
+### 2. `vite.config.ts` — إصلاح واحد
 
-### 🟠 عالي — `strict: true` + `noImplicitAny: true`
-- **الملف:** `tsconfig.app.json`
-- **الوضع الحالي:** `strict: false` بينما `tsconfig.node.json` = `strict: true`
-- **الخطة:** تفعيل بعد `strictNullChecks`
+- إضافة `/functions/v1/` لـ `NetworkOnly` في runtimeCaching
 
-### 🟡 متوسط — CSP كـ HTTP Header
-- **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`
-- **الحل:** إضافة `Content-Security-Policy` كـ HTTP Response Header عبر Edge Function أو Cloudflare Worker
-- **المتطلب:** إعداد خادم وسيط
+### 3. `src/components/PwaUpdateNotifier.tsx` — إصلاحان
 
-### 🟡 متوسط — إزالة `unsafe-inline` من `style-src`
-- **المشكلة:** CSS Injection ممكن نظرياً
-- **المتطلب:** nonce-based CSP يحتاج تعديل في Vite build pipeline
+- إضافة `cache: 'no-store'` + query string لـ cache-busting عند جلب `changelog.json`
+- إضافة `AbortController` مع cleanup في `useEffect`
 
----
+### 4. `src/components/ThemeColorPicker.tsx` — إصلاح واحد
 
-## 📋 مهام مؤجلة — أداء
+- إرجاع دالة cleanup من `initThemeFromStorage` لفصل `MutationObserver`
+- تعديل `src/main.tsx` لا يلزم لأن `initThemeFromStorage` تُنفَّذ مرة واحدة عند بدء التطبيق — لكن يجب على الأقل حفظ reference للـ observer للتوثيق
 
-### 🟡 ضغط `og-image.png`
-- **الحجم الحالي:** 903KB — المعيار: < 200KB
-- **الحل:** ضغط بـ WebP أو أدوات ضغط صور
+### 5. توثيق في `docs/FINAL-AUDIT-REPORT.md`
 
-### 🟡 تقليل كاش PWA للأصول الثابتة
-- **الوضع الحالي:** `StaleWhileRevalidate` = 30 يوم
-- **الحل:** تقليل إلى 7 أيام أو `CacheFirst` للأصول ذات hash
+إضافة قسم بالمشاكل المكتشفة في هذه الجلسة مع تصنيفها (مُصلحة / إنذار كاذب / مستقبلية).
 
-### 🟡 نقل `vite-plugin-pwa` لـ `devDependencies`
-- **الوضع:** هي أداة build فقط لكنها في `dependencies`
-- **الحل:** نقل يدوي في `package.json`
+## الملفات المتأثرة
 
----
+```text
+src/components/AiAssistant.tsx      ← حذف getSession + cooldown
+vite.config.ts                      ← NetworkOnly لـ /functions/v1/
+src/components/PwaUpdateNotifier.tsx ← cache-busting + AbortController
+src/components/ThemeColorPicker.tsx  ← observer.disconnect
+docs/FINAL-AUDIT-REPORT.md          ← توثيق
+```
 
-## 📋 مهام مؤجلة — CI/CD
-
-- [ ] توحيد ملفات lock: اختيار `npm` أو `bun` وحذف الآخر
-- [ ] مزامنة إصدار `package-lock.json` مع `package.json`
-- [ ] إضافة `coverage.thresholds` (حد أدنى 60%) بعد استقرار التغطية
-- [ ] تفعيل `noUnusedLocals` و `noUnusedParameters` تدريجياً
-- [ ] إضافة integration tests لـ Edge Functions
-- [ ] إضافة فحص migrations قبل الدمج في CI
-
----
-
-## 📋 مهام مؤجلة — ZATCA
-
-- [ ] إضافة FK على `invoice_chain.invoice_id` → `invoices.id`
-- [ ] نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings`
-- [ ] إضافة Edge Function لاستقبال Webhook callback من ZATCA
-
----
-
-## 📋 مهام مؤجلة — UX
-
-- [ ] مقارنة سنة بسنة في KPI Dashboard
-- [ ] فلتر تحصيل العقود حسب الفترة
-- [ ] تصدير Excel بالإضافة لـ PDF
-- [ ] تصنيف الإشعارات (مالية / نظام / عقود)
