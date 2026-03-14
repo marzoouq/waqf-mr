@@ -266,25 +266,37 @@ const renderQrCode = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo: PdfWaqfInfo | undefined, x: number, y: number, size: number,
 ) => {
-  const vatAmount = invoice.vatAmount ?? 0;
+  try {
+    const vatAmount = invoice.vatAmount ?? 0;
 
-  // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
-  const tlvBase64 = generateZatcaQrTLV({
-    sellerName: waqfInfo?.waqfName || '',
-    vatNumber: waqfInfo?.vatNumber || '',
-    timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
-    totalWithVat: invoice.amount,
-    vatAmount: vatAmount,
-  });
+    // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
+    const tlvBase64 = generateZatcaQrTLV({
+      sellerName: waqfInfo?.waqfName || '',
+      vatNumber: waqfInfo?.vatNumber || '',
+      timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
+      totalWithVat: invoice.amount,
+      vatAmount: vatAmount,
+    });
 
-  const qrDataUrl = await generateQrDataUrl(tlvBase64);
-  if (qrDataUrl) {
-    doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
-  } else {
+    const qrDataUrl = await generateQrDataUrl(tlvBase64);
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
+    } else {
+      // fallback: عرض نص TLV مختصر
+      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering TLV text fallback');
+      doc.setFont(fontFamily, 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`QR: ${tlvBase64.substring(0, 50)}...`, x + size / 2, y + size / 2, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+    }
+  } catch (err) {
+    console.warn('[PDF-QR] Error generating QR code:', err);
+    // fallback صامت — لا نمنع توليد الفاتورة
     doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`TLV: ${tlvBase64.substring(0, 60)}...`, x + size / 2, y + size / 2, { align: 'center' });
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
+    doc.text('QR غير متاح', x + size / 2, y + size / 2, { align: 'center' });
     doc.setTextColor(0, 0, 0);
   }
 };
