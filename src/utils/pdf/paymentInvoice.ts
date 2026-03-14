@@ -117,7 +117,8 @@ export const generatePaymentInvoicePDF = async (
     const tlvBase64 = generateZatcaQrTLV({
       sellerName: waqfInfo.waqfName || '',
       vatNumber: waqfInfo.vatNumber,
-      timestamp: new Date().toISOString(),
+      // INV-HIGH-4: استخدام تاريخ الفاتورة لا وقت التحميل — متطلب ZATCA
+      timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
       totalWithVat: invoice.amount,
       vatAmount: vatAmount,
     });
