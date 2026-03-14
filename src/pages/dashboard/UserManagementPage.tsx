@@ -178,7 +178,8 @@ const UserManagementPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم حذف المستخدم');
-      setDeleteUserId(null);
+      setDeleteTarget(null);
+      setCurrentPage(1);
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
