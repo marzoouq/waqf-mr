@@ -376,7 +376,20 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
               <X className="w-3.5 h-3.5" />
             </Button>
-          )}
+        )}
+
+        {/* اختيار قالب الفاتورة */}
+        <Select value={invoiceTemplate} onValueChange={v => setInvoiceTemplate(v as InvoiceTemplate)}>
+          <SelectTrigger className="w-48">
+            <FileText className="w-4 h-4 ml-1 shrink-0" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tax_professional">ضريبي احترافي</SelectItem>
+            <SelectItem value="classic">كلاسيكي</SelectItem>
+            <SelectItem value="compact">مختصر</SelectItem>
+          </SelectContent>
+        </Select>
         </div>
 
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (

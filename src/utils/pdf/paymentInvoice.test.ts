@@ -8,6 +8,9 @@ const mockSetFontSize = vi.fn();
 const mockText = vi.fn();
 const mockSetTextColor = vi.fn();
 const mockAddImage = vi.fn();
+const mockSetDrawColor = vi.fn();
+const mockSetLineWidth = vi.fn();
+const mockLine = vi.fn();
 
 vi.mock('jspdf', () => {
   const JsPDFMock = function(this: Record<string, unknown>) {
@@ -16,6 +19,9 @@ vi.mock('jspdf', () => {
     this.text = mockText;
     this.setTextColor = mockSetTextColor;
     this.addImage = mockAddImage;
+    this.setDrawColor = mockSetDrawColor;
+    this.setLineWidth = mockSetLineWidth;
+    this.line = mockLine;
     this.save = mockSave;
     this.output = mockOutput;
     this.internal = { pageSize: { getWidth: () => 210, getHeight: () => 297 } };
@@ -31,6 +37,7 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(true),
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),
+  loadLogoBase64: vi.fn().mockResolvedValue(null),
   TABLE_HEAD_GREEN: [0, 128, 0],
   baseTableStyles: () => ({}),
   headStyles: () => ({}),
@@ -76,12 +83,24 @@ const makeInvoice = (overrides: Partial<PaymentInvoicePdfData> = {}): PaymentInv
 describe('generatePaymentInvoicePDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('generates PDF without VAT and uploads to storage', async () => {
+  it('generates PDF with default template and uploads', async () => {
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
-    expect(result).not.toBeNull(); // returns blob URL
+    expect(result).not.toBeNull();
     expect(mockUpload).toHaveBeenCalled();
-    expect(mockSave).not.toHaveBeenCalled(); // no local fallback
+    expect(mockSave).not.toHaveBeenCalled();
+  });
+
+  it('generates PDF with classic template', async () => {
+    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const result = await generatePaymentInvoicePDF(makeInvoice(), undefined, 'classic');
+    expect(result).not.toBeNull();
+  });
+
+  it('generates PDF with compact template', async () => {
+    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    const result = await generatePaymentInvoicePDF(makeInvoice(), undefined, 'compact');
+    expect(result).not.toBeNull();
   });
 
   it('generates PDF with VAT and adds QR code', async () => {
@@ -110,12 +129,11 @@ describe('generatePaymentInvoicePDF', () => {
   });
 
   it('falls back to local save on storage failure', async () => {
-    // Make the entire try block throw by making output throw after upload
     mockUpload.mockImplementationOnce(() => { throw new Error('network error'); });
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
-    expect(result).toBeNull(); // fallback returns null
-    expect(mockSave).toHaveBeenCalled(); // falls back to doc.save()
+    expect(result).toBeNull();
+    expect(mockSave).toHaveBeenCalled();
   });
 
   it('does not generate QR without vatNumber in waqfInfo', async () => {
@@ -123,7 +141,7 @@ describe('generatePaymentInvoicePDF', () => {
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
-      { waqfName: 'وقف' }, // no vatNumber
+      { waqfName: 'وقف' },
     );
     expect(generateZatcaQrTLV).not.toHaveBeenCalled();
   });
@@ -133,5 +151,16 @@ describe('generatePaymentInvoicePDF', () => {
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     await generatePaymentInvoicePDF(makeInvoice());
     expect(mockUpdate).toHaveBeenCalledWith({ file_path: 'payment-invoices/INV-001.pdf' });
+  });
+
+  it('renders bank details with tax_professional template', async () => {
+    const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
+    await generatePaymentInvoicePDF(
+      makeInvoice(),
+      { waqfName: 'وقف', bankName: 'الأهلي', bankIBAN: 'SA0000' },
+      'tax_professional',
+    );
+    // بيانات البنك تظهر في PDF
+    expect(mockText).toHaveBeenCalledWith(expect.stringContaining('الأهلي'), expect.any(Number), expect.any(Number), expect.any(Object));
   });
 });

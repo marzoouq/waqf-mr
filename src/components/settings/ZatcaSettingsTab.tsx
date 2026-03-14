@@ -220,6 +220,45 @@ const ZatcaSettingsTab = () => {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-display text-lg flex items-center gap-2">
+            <Landmark className="w-5 h-5" />
+            بيانات الحساب البنكي
+          </CardTitle>
+          <CardDescription>تظهر في الفواتير لتسهيل عملية الدفع</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label>اسم البنك</Label>
+            <Input
+              value={formData.waqf_bank_name || ''}
+              onChange={(e) => setFormData((p) => ({ ...p, waqf_bank_name: e.target.value }))}
+              placeholder="مثال: البنك الأهلي السعودي"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>رقم الحساب</Label>
+            <Input
+              value={formData.waqf_bank_account || ''}
+              onChange={(e) => setFormData((p) => ({ ...p, waqf_bank_account: e.target.value }))}
+              placeholder="رقم الحساب البنكي"
+              dir="ltr"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>IBAN</Label>
+            <Input
+              value={formData.waqf_bank_iban || ''}
+              onChange={(e) => setFormData((p) => ({ ...p, waqf_bank_iban: e.target.value }))}
+              placeholder="SA00 0000 0000 0000 0000 0000"
+              dir="ltr"
+              className="font-mono"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Button onClick={handleSave} disabled={saving} className="gap-2">
         <Save className="w-4 h-4" />
         {saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات الضريبة'}
