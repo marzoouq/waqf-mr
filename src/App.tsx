@@ -129,6 +129,11 @@ function App() {
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <SwUpdateBanner />
+                </Suspense>
+              </ErrorBoundary>
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
