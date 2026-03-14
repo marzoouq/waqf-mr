@@ -18,6 +18,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { ShieldCheck, FileText, Link2, RefreshCw, Send, CheckCircle, XCircle, Clock, AlertTriangle, Loader2, FileCode, PenTool, ArrowUpCircle, ClipboardCheck } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PageHeaderCard from '@/components/PageHeaderCard';
