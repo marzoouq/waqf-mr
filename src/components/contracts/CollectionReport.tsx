@@ -307,8 +307,8 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           {sendingAlerts ? 'جاري الإرسال...' : 'إرسال تنبيهات التأخير'}
         </Button>
         <ExportMenu
-          hidePrint
-          onExportPdf={() => generateCollectionReportPDF(filteredRows, summary, pdfWaqfInfo)}
+          hidePdf
+          onPrint={() => window.print()}
         />
       </div>
 
