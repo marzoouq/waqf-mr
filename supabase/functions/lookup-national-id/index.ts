@@ -79,9 +79,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate remaining attempts after this request
-    const usedCount = (currentCount?.count ?? 0) + 1;
-    const remaining = Math.max(0, RATE_LIMIT - usedCount);
+    // Calculate remaining attempts: check_rate_limit already incremented the counter,
+    // so re-read to get the accurate post-increment value
+    const { data: updatedCount } = await supabase
+      .from('rate_limits')
+      .select('count')
+      .eq('key', rateLimitKey)
+      .maybeSingle();
+    const remaining = Math.max(0, RATE_LIMIT - (updatedCount?.count ?? 1));
 
     const body = await req.json();
     const rawId = body.national_id;
