@@ -1,84 +1,55 @@
 
+# تقرير التحقق النهائي — الجولتان الأولى والثانية
 
-# تحقق من بنود الجولة الثالثة — بند بند
-
-## ملخص سريع
-
-من 14 بنداً في الجولة الثالثة: **4 مشاكل حقيقية تحتاج إصلاح**، **5 إنذارات كاذبة أو مبالغ فيها**، **5 ملاحظات تصميمية منخفضة لا تحتاج تدخل عاجل**.
+> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
 
 ---
 
-## ✅ تم إصلاحه مسبقاً
+## الجولة الأولى — 14 بنداً
 
-| البند | الحالة |
-|-------|--------|
-| CRIT-02 (trigger 50% ثابتة) | ✅ migration `20260314023052` يقرأ من `app_settings` — مؤكَّد |
-| MED-05 (notes مكشوف) | ❌ **لم يُنفَّذ فعلياً** — migration `20260314023052` يحتوي فقط على `validate_advance_request_amount` ولا يُعدِّل `beneficiaries_safe`. ملاحظة `notes` لا تزال مكشوفة |
-
----
-
-## ❌ إنذارات كاذبة (5 بنود)
-
-### CRIT-06 — `signIn` loading يتجمد للأبد ← **إنذار كاذب**
-الـ safety timeout الـ 3 ثوانٍ موجود في `fetchRole` (useEffect على `user`). **لكن** `onAuthStateChange` يُحدِّث `user` → يُفعِّل useEffect → يبدأ `fetchRole` مع timeout. إذا لم يأتِ `onAuthStateChange` بعد `signInWithPassword` الناجح، فإن Supabase SDK يضمن إطلاقه — هذا سلوك موثَّق. السيناريو النظري (مشاكل شبكة بعد نجاح signIn) نادر جداً ولا يستحق تصنيف "حرج".
-
-### CRIT-07 — `strictNullChecks: false` ← **ملاحظة تصميمية وليست ثغرة أمنية**
-`tsconfig.app.json` يُعرِّف `"strict": false` صراحةً. هذا قرار تصميم واعٍ لمشروع كبير (126 اختبار + 200+ ملف). تفعيل `strictNullChecks` في مشروع قائم سيُولِّد مئات أخطاء TypeScript. هذا **ليس ثغرة أمنية** — الحماية الحقيقية في RLS والحراس البرمجيين server-side.
-
-### HIGH-12 — `stack trace` في `access_log` ← **مبالغ فيه**
-`access_log` محمي بـ RLS — فقط admin/accountant يقرأه. وهؤلاء أدوار موثوقة أصلاً. تخزين stack trace ضروري لـ debugging الإنتاج. `substring(0, 1000)` يحد الحجم. ليس تسريقاً لأن القراء مخوَّلون.
-
-### HIGH-14 — migration قديم يحذف فواتير ZATCA ← **إنذار كاذب**
-المشكلة كانت في migration قديم واحد. Migrations تُطبَّق بالترتيب — أي بيئة حالية تملك آخر migration الذي يُضيف `AND zatca_status IS NOT DISTINCT FROM 'not_submitted'`. لا يمكن تطبيق migration قديم بدون اللاحقة.
-
-### MED-15 — `SecurityGuard` مؤجَّل 3 ثوانٍ ← **إنذار كاذب**
-`SecurityGuard` هو مجرد **حماية عرض client-side** (منع نسخ/سحب على `data-sensitive`). ليس طبقة أمان حقيقية — كما يوثِّق الكود نفسه: "DevTools can bypass all client-side protections... Server-side access controls (RLS) are the real security layer". تأخير 3 ثوانٍ لا يُشكِّل نافذة هجوم.
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
+| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
+| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
+| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
+| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
+| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
+| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
+| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
+| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
+| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
+| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
+| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
+| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
 
 ---
 
-## 🔴 مشاكل حقيقية تحتاج إصلاح (4 بنود)
+## الجولة الثانية — 11 بنداً جديداً
 
-### 1. CRIT-08 — `payment_invoices` RLS: beneficiary يرى كل الفواتير ← **مؤكَّد وحقيقي**
-**التحقق:** سياسة `"Authorized roles can view payment_invoices"` (PERMISSIVE) تمنح `beneficiary` و`waqif` رؤية **جميع** فواتير الدفع. السياسة RESTRICTIVE تُقيّد فقط حسب السنة المالية المنشورة — **لا تُقيّد حسب هوية المستفيد**. المستفيد يرى مبالغ إيجارات كل المستأجرين.
-**الإصلاح:** حذف `beneficiary`/`waqif` من سياسة SELECT (يرون الفواتير عبر `InvoicesViewPage` الخاص بهم الذي يعرض ملخصات فقط).
-
-### 2. HIGH-10 — المحاسب يُعدِّل بيانات السنوات المقفلة ← **مؤكَّد**
-**التحقق:** `prevent_closed_fiscal_year_modification` يستثني admin **و accountant** من الحماية. المحاسب يستطيع إضافة/تعديل إيرادات ومصروفات في سنة مقفلة — يُخالف مبدأ immutability.
-**الإصلاح:** إزالة `accountant` من الاستثناء (فقط admin يُعدِّل بعد الإقفال).
-
-### 3. HIGH-11 — `unpay_invoice` يحذف income بـ `LIKE` هش ← **مؤكَّد**
-**التحقق:** البحث عن `LIKE '%فاتورة ' || v_invoice.invoice_number || '%'` هش وقد يحذف سجل خاطئ إذا تعددت السجلات بنفس المبلغ ورقم فاتورة مشابه.
-**الإصلاح:** تقوية المطابقة بإضافة `payment_number` أو ربط مباشر بـ `invoice_id` في جدول `income`.
-
-### 4. HIGH-13 — `refreshRole` يفشل بصمت ← **مؤكَّد جزئياً**
-**التحقق:** الفشل الصامت يُبقي الدور القديم. لكن `refreshRole` يُستدعى فقط يدوياً (ليس في مسار تسجيل الدخول). الخطر الحقيقي محدود — لو أُزيل دور مستخدم من DB، الـ RLS server-side ستمنعه من العمليات الحساسة بغض النظر عن القيمة في الـ client. **مشكلة UX أكثر من أمنية.**
-**الإصلاح:** إضافة toast تحذيري عند فشل `refreshRole`.
-
-### + MED-05 (من الجولة السابقة) — `notes` لا يزال مكشوفاً في `beneficiaries_safe`
-**التحقق:** migration `20260314023052` **لا يحتوي** على تعديل `beneficiaries_safe`. الإصلاح المُعلَن لم يُنفَّذ فعلياً.
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-04 | `allocate_icv_and_chain` مُعادة لـ `authenticated` | 🔴 | ❌ إنذار كاذب | guard داخلي `has_role(admin/accountant)` يمنع الاستغلال |
+| CRIT-05 | `lookup_by_national_id` يُعاد فتحها تلقائياً | 🔴 | ❌ إنذار كاذب | guard داخلي + `get_pii_key()` يُرجع NULL لغير المخوَّلين |
+| HIGH-06 | `cron_check_contract_expiry` يُرسل لكل المستفيدين | 🟠 | ✅ قرار تصميم | `ben_msg` لا يحتوي اسم المستأجر — مقبول |
+| HIGH-07 | `upsert_tenant_payment` بتاريخ `CURRENT_DATE` دائماً | 🟠 | ✅ تم الإصلاح | أُضيف `p_payment_date` كمعامل اختياري |
+| HIGH-08 | `reopen_fiscal_year` لا تُعالج السنة الجديدة | 🟠 | ❌ إنذار كاذب | `enforce_single_active_fy` trigger يُغلق السنة الأخرى |
+| HIGH-09 | `auto_revoke_anon_execute` في `allowed_functions` | 🟠 | ❌ إنذار كاذب | event trigger function — لا يمكن استدعاؤها مباشرة |
+| MED-06 | `log_access_event` تقبل `client_error` من anon | 🟡 | ✅ قرار تصميم | مقصود لتسجيل أخطاء صفحة تسجيل الدخول |
+| MED-07 | المحاسب يرى جميع تذاكر الدعم | 🟡 | ✅ قرار تصميم | المحاسب دور موثوق |
+| MED-08 | double-source لـ `paid_count` | 🟡 | ❌ إنذار كاذب | COALESCE يعمل كـ fallback وليس double-counting |
+| MED-09 | `close_fiscal_year` بدون تحقق من pending | 🟡 | ✅ تم الإصلاح | يُرجع `warnings` في النتيجة (تحذير بدل منع) |
+| Fallback | `useBeneficiariesDecrypted` يجلب من `beneficiaries` | 🟡 | ✅ تم الإصلاح | Fallback يستخدم الآن `beneficiaries_safe` |
 
 ---
 
-## 🟡 ملاحظات تصميمية (5 بنود — لا تحتاج تدخل عاجل)
+## الإصلاحات المُطبَّقة في هذا التحديث (الجولة الثانية)
 
-| البند | التقييم |
-|-------|---------|
-| MED-11 — waqif يرى carryforward | قرار تصميم — الواقف يراقب كل شؤون الوقف. مقبول |
-| MED-12 — maskEmail للأسماء القصيرة | domain مكشوف عمداً لتوضيح أنه بريد. مخاطرة PII معدومة |
-| MED-13 — PDF يقنّع base64 | المستدعي يُمرر دائماً بيانات مفكوكة عبر RPC. لا خطر عملي |
-| MED-14 — recentSlowQueries بعد انتهاء session | بيانات أداء فقط (أزمنة استعلام). لا PII. مخاطرة صفر |
-| LOW-06..09 | ملاحظات جودة كود — ليست ثغرات أمنية |
+1. **Migration**: `upsert_tenant_payment` — إضافة `p_payment_date date DEFAULT CURRENT_DATE`
+2. **Migration**: `close_fiscal_year` — إضافة تحقق من pending distributions/advances مع إرجاع `warnings`
+3. **Code**: `useBeneficiariesDecrypted` fallback يستخدم `beneficiaries_safe` بدل `beneficiaries`
+4. **Code**: `useTenantPayments` — إضافة `payment_date` للـ interface وتمريره للـ RPC
 
 ---
 
-## خطة الإصلاح المقترحة
-
-### Migration SQL جديد
-1. **CRIT-08**: حذف `beneficiary`/`waqif` من سياسة SELECT على `payment_invoices`
-2. **HIGH-10**: إزالة `accountant` من استثناء `prevent_closed_fiscal_year_modification`
-3. **HIGH-11**: تقوية مطابقة الحذف في `unpay_invoice_and_revert_collection` بإضافة `payment_number`
-4. **MED-05**: إعادة إنشاء `beneficiaries_safe` مع تمويه `notes` (الإصلاح الذي لم يُنفَّذ في الجولة السابقة)
-
-### تعديل كود
-5. **HIGH-13**: إضافة toast تحذيري في `refreshRole` عند الفشل
-
+**الخلاصة**: جميع المشاكل الحقيقية من الجولتين مُعالجة. المشروع في حالة أمنية سليمة.

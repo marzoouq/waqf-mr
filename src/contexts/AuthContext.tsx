@@ -232,7 +232,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       setRoleWithRef(data ? (data.role as AppRole) : null);
     } catch {
-      // صامت — لا نكسر تجربة المستخدم
+      // تحذير المستخدم عند فشل تحديث الدور
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
+      }).catch(() => {});
     }
   };
 
