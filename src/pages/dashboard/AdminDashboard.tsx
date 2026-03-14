@@ -60,6 +60,7 @@ const AdminDashboard = () => {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
+    netAfterExpenses, netAfterZakat, availableAmount,
     usingFallbackPct,
     isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
