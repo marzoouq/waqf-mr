@@ -399,6 +399,17 @@ const ContractsPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setCurrentPage(1); }}>
+            <SelectTrigger className="w-48 shrink-0">
+              <Filter className="w-4 h-4 ml-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
+              <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
+              <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
+            </SelectContent>
+          </Select>
           {filteredGroups.length > 0 && (
             <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
               <ChevronsUpDown className="w-4 h-4" />

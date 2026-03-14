@@ -318,39 +318,66 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             </div>
           ) : (
             <>
-              {/* Mobile Cards */}
-              <div className="space-y-3 md:hidden px-3 py-2">
-                {paginated.map(inv => (
-                  <Card key={inv.id} className={`shadow-sm ${inv.status === 'overdue' ? 'border-destructive/30' : ''}`}>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-bold text-sm">{inv.invoice_number}</span>
-                          <p className="text-xs text-muted-foreground">{inv.contract?.tenant_name}</p>
+              {/* Mobile Cards — مجمّعة حسب العقد */}
+              <div className="space-y-4 md:hidden px-3 py-2">
+                {(() => {
+                  // تجميع الفواتير المُرقّمة حسب العقد
+                  const grouped = new Map<string, PaymentInvoice[]>();
+                  for (const inv of paginated) {
+                    const key = inv.contract_id;
+                    if (!grouped.has(key)) grouped.set(key, []);
+                    grouped.get(key)!.push(inv);
+                  }
+                  return [...grouped.entries()].map(([contractId, invs]) => {
+                    const first = invs[0];
+                    return (
+                      <div key={contractId} className="space-y-2">
+                        <div className="flex items-center gap-2 px-1">
+                          <span className="text-sm font-bold">{first.contract?.contract_number || '-'}</span>
+                          <span className="text-xs text-muted-foreground">— {first.contract?.tenant_name}</span>
                         </div>
-                        {getStatusBadge(inv.status)}
+                        {invs.map(inv => (
+                          <Card key={inv.id} className={`shadow-sm border-r-4 ${
+                            inv.status === 'paid' ? 'border-r-success/60' :
+                            inv.status === 'overdue' ? 'border-r-destructive/60' :
+                            inv.status === 'partially_paid' ? 'border-r-warning/60' :
+                            'border-r-muted-foreground/30'
+                          }`}>
+                            <CardContent className="p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
+                                {getStatusBadge(inv.status)}
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
+                                <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
+                                {Number(inv.vat_amount) > 0 && (
+                                  <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Number(inv.vat_amount).toLocaleString()} ر.س</p></div>
+                                )}
+                                {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
+                                  {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
+                                </Button>
+                                {!isClosed && inv.status !== 'paid' && (
+                                  <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
+                                    {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
+                                  </Button>
+                                )}
+                                {!isClosed && inv.status === 'paid' && (
+                                  <Button size="sm" variant="outline" className="gap-1 flex-1 text-muted-foreground" onClick={() => markUnpaid.mutate(inv.id)} disabled={markUnpaid.isPending}>
+                                    <X className="w-3.5 h-3.5" />إلغاء
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
-                        <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Number(inv.amount).toLocaleString()} ر.س</p></div>
-                        {Number(inv.vat_amount) > 0 && (
-                          <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Number(inv.vat_amount).toLocaleString()} ر.س</p></div>
-                        )}
-                        {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
-                          {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
-                        </Button>
-                        {!isClosed && inv.status !== 'paid' && (
-                          <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
-                            {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    );
+                  });
+                })()}
               </div>
 
               {/* Desktop Table */}

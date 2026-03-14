@@ -411,8 +411,26 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                   </TableBody>
                 </Table>
               </div>
+
+              {/* شريط ملخص المجاميع */}
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-t text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-muted-foreground">الإجمالي: <span className="font-bold text-foreground">{summary.totalExpected.toLocaleString()} ر.س</span></span>
+                  <span className="text-muted-foreground">المحصّل: <span className="font-bold text-success">{summary.totalCollected.toLocaleString()} ر.س</span></span>
+                  {summary.totalOverdue > 0 && (
+                    <span className="text-muted-foreground">المتأخر: <span className="font-bold text-destructive">{summary.totalOverdue.toLocaleString()} ر.س</span></span>
+                  )}
+                </div>
+                <span className="text-muted-foreground">{filteredRows.length} عقد</span>
+              </div>
             </>
           )}
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={filteredRows.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>
