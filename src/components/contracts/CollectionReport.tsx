@@ -375,7 +375,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRows.map(row => (
+                    {filteredRows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(row => (
                       <TableRow key={row.contract.id} className={row.overdue > 0 ? 'bg-destructive/5' : ''}>
                         <TableCell className="font-medium">
                           {row.contract.contract_number}
