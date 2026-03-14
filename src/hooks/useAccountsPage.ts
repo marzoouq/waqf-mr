@@ -283,6 +283,27 @@ export function useAccountsPage() {
     const paymentPerPeriod = getPaymentPerPeriod(contract);
     const totalCollected = paymentPerPeriod * paidMonths;
     const arrears = paymentPerPeriod * expectedPayments - totalCollected;
+
+    // حساب شفافية التخصيص عبر السنوات
+    const start = new Date(contract.start_date);
+    const end = new Date(contract.end_date);
+    const totalMonths = Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+    let totalContractPayments: number;
+    if (contract.payment_type === 'monthly') totalContractPayments = totalMonths;
+    else if (contract.payment_type === 'quarterly') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 3));
+    else if (contract.payment_type === 'semi_annual' || contract.payment_type === 'semi-annual') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 6));
+    else if (contract.payment_type === 'annual') totalContractPayments = Math.max(1, Math.ceil(totalMonths / 12));
+    else if (contract.payment_type === 'multi') totalContractPayments = contract.payment_count || 1;
+    else totalContractPayments = 1;
+
+    const spansMultipleYears = allocationMap.has(contract.id) && expectedPayments < totalContractPayments;
+    const allocatedToOtherYears = spansMultipleYears ? totalContractPayments - expectedPayments : 0;
+
+    let allocationNote = '';
+    if (spansMultipleYears) {
+      allocationNote = `${expectedPayments} من ${totalContractPayments} دفعة في هذه السنة • ${allocatedToOtherYears} دفعات في سنة أخرى`;
+    }
+
     return {
       index: index + 1,
       tenantName: contract.tenant_name,
@@ -293,8 +314,14 @@ export function useAccountsPage() {
       arrears,
       status: arrears <= 0 ? 'مكتمل' : 'متأخر',
       notes: paymentInfo?.notes || '',
+      // حقول شفافية التخصيص
+      spansMultipleYears,
+      totalContractPayments,
+      allocatedToThisYear: expectedPayments,
+      allocatedToOtherYears,
+      allocationNote,
     };
-  }), [contracts, paymentMap, getExpectedPayments, getPaymentPerPeriod]);
+  }), [contracts, paymentMap, getExpectedPayments, getPaymentPerPeriod, allocationMap]);
 
   const totalCollectedAll = collectionData.reduce((sum, d) => sum + d.totalCollected, 0);
   const totalArrearsAll = collectionData.reduce((sum, d) => sum + d.arrears, 0);

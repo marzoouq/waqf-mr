@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Wallet, Pencil, Check, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Wallet, Pencil, Check, X, CalendarRange } from 'lucide-react';
 
 export interface CollectionItem {
   index: number;
@@ -15,6 +16,12 @@ export interface CollectionItem {
   arrears: number;
   status: string;
   notes: string;
+  // حقول شفافية التخصيص
+  spansMultipleYears?: boolean;
+  totalContractPayments?: number;
+  allocatedToThisYear?: number;
+  allocatedToOtherYears?: number;
+  allocationNote?: string;
 }
 
 interface EditData {
