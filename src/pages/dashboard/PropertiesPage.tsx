@@ -48,7 +48,7 @@ const PropertiesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
   const [formData, setFormData] = useState({
-    property_number: '', property_type: '', location: '', area: '', description: '',
+    property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
