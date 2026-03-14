@@ -19,3 +19,5 @@ export { generateComprehensiveBeneficiaryPDF } from './comprehensiveBeneficiary'
 export type { ComprehensiveBeneficiaryData } from './comprehensiveBeneficiary';
 export { generatePaymentInvoicePDF } from './paymentInvoice';
 export type { PaymentInvoicePdfData, InvoiceTemplate } from './paymentInvoice';
+export { generateAnnualReportPDF as generateAnnualAchievementsPDF } from './annualReport';
+export type { AnnualReportPdfData } from './annualReport';

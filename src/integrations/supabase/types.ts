@@ -277,6 +277,89 @@ export type Database = {
           },
         ]
       }
+      annual_report_items: {
+        Row: {
+          content: string
+          created_at: string
+          fiscal_year_id: string
+          id: string
+          property_id: string | null
+          section_type: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          fiscal_year_id: string
+          id?: string
+          property_id?: string | null
+          section_type?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          fiscal_year_id?: string
+          id?: string
+          property_id?: string | null
+          section_type?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_report_items_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "annual_report_items_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      annual_report_status: {
+        Row: {
+          created_at: string
+          fiscal_year_id: string
+          id: string
+          published_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          fiscal_year_id: string
+          id?: string
+          published_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          fiscal_year_id?: string
+          id?: string
+          published_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_report_status_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: true
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           created_at: string

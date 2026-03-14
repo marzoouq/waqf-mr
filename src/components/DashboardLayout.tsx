@@ -71,6 +71,7 @@ const allAdminLinks = [
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
+  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -88,6 +89,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
+  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
@@ -113,6 +115,7 @@ const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/bylaws': 'bylaws',
   '/dashboard/messages': 'messages',
   '/dashboard/audit-log': 'audit_log',
+  '/dashboard/annual-report': 'annual_report',
 };
 
 const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
@@ -127,6 +130,7 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
   '/beneficiary/bylaws': 'bylaws',
   '/beneficiary/messages': 'messages',
   '/beneficiary/notifications': 'notifications',
+  '/beneficiary/annual-report': 'annual_report',
 };
 
 // Routes accountant can never access
@@ -149,6 +153,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/audit-log': 'سجل المراجعة',
   '/dashboard/bylaws': 'اللائحة التنظيمية',
   '/dashboard/zatca': 'إدارة ZATCA',
+  '/dashboard/annual-report': 'التقرير السنوي',
   '/dashboard/support': 'الدعم الفني',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
@@ -164,6 +169,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficiary/bylaws': 'اللائحة التنظيمية',
   '/beneficiary/settings': 'الإعدادات',
   '/beneficiary/support': 'الدعم الفني',
+  '/beneficiary/annual-report': 'التقرير السنوي',
   '/waqif': 'لوحة الواقف',
 };
 

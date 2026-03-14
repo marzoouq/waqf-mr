@@ -68,6 +68,7 @@ const AuditLogPage = lazyWithRetry(() => import("./pages/dashboard/AuditLogPage"
 const BylawsPage = lazyWithRetry(() => import("./pages/dashboard/BylawsPage"));
 const ZatcaManagementPage = lazyWithRetry(() => import("./pages/dashboard/ZatcaManagementPage"));
 const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/SupportDashboardPage"));
+const AnnualReportPage = lazyWithRetry(() => import("./pages/dashboard/AnnualReportPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));
@@ -85,6 +86,7 @@ const ContractsViewPage = lazyWithRetry(() => import("./pages/beneficiary/Contra
 const CarryforwardHistoryPage = lazyWithRetry(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
 const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDashboard"));
 const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
+const AnnualReportViewPage = lazyWithRetry(() => import("./pages/beneficiary/AnnualReportViewPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
@@ -165,6 +167,7 @@ function App() {
                     <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
                     <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
                     <Route path="/dashboard/support" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><SupportDashboardPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AnnualReportPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
                     <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
@@ -182,6 +185,7 @@ function App() {
                     <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/support" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif', 'accountant']}><BeneficiarySupportPage /></ProtectedRoute>} />
+                    <Route path="/beneficiary/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AnnualReportViewPage /></ProtectedRoute>} />
 
                     {/* Catch-all Route */}
                     <Route path="*" element={<NotFound />} />
