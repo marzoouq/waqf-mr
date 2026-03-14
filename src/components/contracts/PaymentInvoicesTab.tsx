@@ -39,6 +39,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 15;
 
   const summary = useMemo(() => {
