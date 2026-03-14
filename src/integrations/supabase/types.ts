@@ -1622,7 +1622,7 @@ export type Database = {
         Args: {
           p_account_data: Json
           p_fiscal_year_id: string
-          p_waqf_corpus_manual: number
+          p_waqf_corpus_manual?: number
         }
         Returns: Json
       }
