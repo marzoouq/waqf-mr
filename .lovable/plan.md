@@ -1,40 +1,87 @@
 
+# خطة التطوير — نظام وقف مرزوق بن علي الثبيتي
 
-# تحسين فواتير العقود — 5 تحسينات
+> **آخر تحديث:** 2026-03-14 | **الإصدار:** v2.9.0+
 
-## 1. أزرار إجراء في دفعات الـ Accordion (`ContractAccordionGroup.tsx`)
+---
 
-حالياً الدفعات داخل العقد المنسدل تعرض الحالة والمبلغ فقط. التحسين: إضافة أيقونات صغيرة لكل دفعة (تسديد ✓ / إلغاء ✗ / تحميل PDF ↓).
+## ✅ مُنجز — إصلاحات البنية التحتية (2026-03-14)
 
-- إضافة props: `onPayInvoice`, `onUnpayInvoice`, `onDownloadInvoice`, `isClosed` للمكوّن
-- عرض الأزرار بجانب كل دفعة بحسب حالتها
+- [x] إزالة Supabase URL المكشوف من `index.html`
+- [x] تحسين CSP: إضافة `worker-src 'self'` و `manifest-src 'self'`
+- [x] إزالة `<meta name="keywords">`
+- [x] تحديث `robots.txt` لمنع فهرسة المسارات المحمية
+- [x] `skipWaiting: false` في PWA لحماية البيانات النشطة
+- [x] توسيع `navigateFallbackDenylist` في PWA
+- [x] تعطيل sourcemaps في production
+- [x] إضافة `jspdf`/`recharts` لـ `manualChunks`
+- [x] إضافة `lcov` reporter لـ vitest coverage
+- [x] إضافة `^` لـ `next-themes` في package.json
 
-## 2. تجميع جدول الفواتير في Desktop (`PaymentInvoicesTab.tsx`)
+---
 
-الموبايل مُجمَّع حسب العقد لكن Desktop لا يزال جدول مسطح. التحسين: إضافة صفوف عناوين (header rows) تفصل بين العقود المختلفة في الجدول.
+## 📋 مهام مؤجلة — أمان (تدريجي)
 
-- تجميع `paginated` بـ `contract_id`
-- إدراج صف عنوان `colSpan` لكل مجموعة يعرض رقم العقد واسم المستأجر
+### 🔴 حرج — `strictNullChecks: true`
+- **الملف:** `tsconfig.json` + `tsconfig.app.json`
+- **المخاطر:** `null/undefined` يُعامَلان كأرقام صالحة → حسابات مالية بـ `NaN`
+- **الخطة:** تفعيل تدريجي مع إصلاح الأخطاء الناتجة ملف بملف
+- **التقدير:** 2-4 أيام عمل
 
-## 3. ترتيب بالأعمدة (`PaymentInvoicesTab.tsx`)
+### 🟠 عالي — `strict: true` + `noImplicitAny: true`
+- **الملف:** `tsconfig.app.json`
+- **الوضع الحالي:** `strict: false` بينما `tsconfig.node.json` = `strict: true`
+- **الخطة:** تفعيل بعد `strictNullChecks`
 
-إضافة `sortKey` و `sortDir` state + أيقونات ترتيب على رؤوس الأعمدة (تاريخ الاستحقاق، المبلغ، الحالة).
+### 🟡 متوسط — CSP كـ HTTP Header
+- **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`
+- **الحل:** إضافة `Content-Security-Policy` كـ HTTP Response Header عبر Edge Function أو Cloudflare Worker
+- **المتطلب:** إعداد خادم وسيط
 
-## 4. تسديد جماعي (`PaymentInvoicesTab.tsx`)
+### 🟡 متوسط — إزالة `unsafe-inline` من `style-src`
+- **المشكلة:** CSS Injection ممكن نظرياً
+- **المتطلب:** nonce-based CSP يحتاج تعديل في Vite build pipeline
 
-- إضافة `Checkbox` لكل فاتورة غير مسددة
-- زر "تسديد المختارة" يظهر عند تحديد فواتير
-- تنفيذ متتابع مع شريط تقدم
+---
 
-## 5. فلتر نطاق التاريخ (`PaymentInvoicesTab.tsx`)
+## 📋 مهام مؤجلة — أداء
 
-إضافة حقلي تاريخ (من/إلى) بجانب البحث لفلترة الفواتير حسب `due_date`.
+### 🟡 ضغط `og-image.png`
+- **الحجم الحالي:** 903KB — المعيار: < 200KB
+- **الحل:** ضغط بـ WebP أو أدوات ضغط صور
 
-## الملفات المتأثرة
+### 🟡 تقليل كاش PWA للأصول الثابتة
+- **الوضع الحالي:** `StaleWhileRevalidate` = 30 يوم
+- **الحل:** تقليل إلى 7 أيام أو `CacheFirst` للأصول ذات hash
 
-```text
-src/components/contracts/ContractAccordionGroup.tsx ← أزرار إجراء للدفعات
-src/components/contracts/PaymentInvoicesTab.tsx     ← تجميع Desktop + ترتيب + تسديد جماعي + فلتر تاريخ
-src/pages/dashboard/ContractsPage.tsx              ← تمرير callbacks جديدة للـ Accordion
-```
+### 🟡 نقل `vite-plugin-pwa` لـ `devDependencies`
+- **الوضع:** هي أداة build فقط لكنها في `dependencies`
+- **الحل:** نقل يدوي في `package.json`
 
+---
+
+## 📋 مهام مؤجلة — CI/CD
+
+- [ ] توحيد ملفات lock: اختيار `npm` أو `bun` وحذف الآخر
+- [ ] مزامنة إصدار `package-lock.json` مع `package.json`
+- [ ] إضافة `coverage.thresholds` (حد أدنى 60%) بعد استقرار التغطية
+- [ ] تفعيل `noUnusedLocals` و `noUnusedParameters` تدريجياً
+- [ ] إضافة integration tests لـ Edge Functions
+- [ ] إضافة فحص migrations قبل الدمج في CI
+
+---
+
+## 📋 مهام مؤجلة — ZATCA
+
+- [ ] إضافة FK على `invoice_chain.invoice_id` → `invoices.id`
+- [ ] نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings`
+- [ ] إضافة Edge Function لاستقبال Webhook callback من ZATCA
+
+---
+
+## 📋 مهام مؤجلة — UX
+
+- [ ] مقارنة سنة بسنة في KPI Dashboard
+- [ ] فلتر تحصيل العقود حسب الفترة
+- [ ] تصدير Excel بالإضافة لـ PDF
+- [ ] تصنيف الإشعارات (مالية / نظام / عقود)

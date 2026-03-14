@@ -1,6 +1,6 @@
 /**
  * مكوّن عرض مجموعة عقود مُجمَّعة حسب الرقم الأساسي
- * يعرض: الصف الرئيسي (آخر عقد) → ينسدل ← تاريخ الإصدارات + الدفعات
+ * يعرض: الصف الرئيسي (آخر عقد) → ينسدل ← تاريخ الإصدارات + الدفعات مع أزرار إجراء
  */
 import { useMemo } from 'react';
 import { Contract } from '@/types/database';
@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ChevronDown, Edit, Trash2, RefreshCw, Receipt, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ChevronDown, Edit, Trash2, RefreshCw, Receipt, CheckCircle, Clock, AlertCircle, Check, X, Download, Loader2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getPaymentCount, getPaymentTypeLabel } from '@/utils/contractHelpers';
 
@@ -24,6 +24,12 @@ interface ContractAccordionGroupProps {
   onEdit: (contract: Contract) => void;
   onDelete: (contract: Contract) => void;
   onRenew: (contract: Contract) => void;
+  onPayInvoice?: (inv: PaymentInvoice) => void;
+  onUnpayInvoice?: (invoiceId: string) => void;
+  onDownloadInvoice?: (inv: PaymentInvoice) => void;
+  loadingInvoiceId?: string | null;
+  payingInvoiceId?: string | null;
+  isClosed?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -59,6 +65,12 @@ const ContractAccordionGroup = ({
   onEdit,
   onDelete,
   onRenew,
+  onPayInvoice,
+  onUnpayInvoice,
+  onDownloadInvoice,
+  loadingInvoiceId,
+  payingInvoiceId,
+  isClosed,
   open,
   onOpenChange,
 }: ContractAccordionGroupProps) => {
@@ -124,7 +136,7 @@ const ContractAccordionGroup = ({
         <div className="border-t border-border bg-muted/30">
           {/* قائمة إصدارات العقد */}
           <div className="divide-y divide-border/50">
-            {contracts.map((contract, idx) => {
+            {contracts.map((contract) => {
               const st = statusConfig[contract.status] || { label: contract.status, className: 'bg-muted' };
               const isExpired = expiredIds.has(contract.id);
               return (
@@ -166,7 +178,7 @@ const ContractAccordionGroup = ({
             })}
           </div>
 
-          {/* دفعات العقد الأحدث */}
+          {/* دفعات العقد الأحدث مع أزرار إجراء */}
           {latestInvoices.length > 0 && (
             <div className="border-t border-border px-5 py-3 space-y-2">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
@@ -189,6 +201,44 @@ const ContractAccordionGroup = ({
                     }`}>
                       {invoiceStatusLabel[inv.status] || inv.status}
                     </span>
+                    {/* أزرار الإجراء */}
+                    <div className="flex gap-0.5 mr-1">
+                      {onDownloadInvoice && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-6 h-6"
+                          onClick={() => onDownloadInvoice(inv)}
+                          title="تحميل PDF"
+                          disabled={loadingInvoiceId === inv.id}
+                        >
+                          {loadingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                        </Button>
+                      )}
+                      {!isClosed && inv.status !== 'paid' && onPayInvoice && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-6 h-6 text-success hover:text-success/80"
+                          onClick={() => onPayInvoice(inv)}
+                          title="تسديد"
+                          disabled={payingInvoiceId === inv.id}
+                        >
+                          {payingInvoiceId === inv.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                        </Button>
+                      )}
+                      {!isClosed && inv.status === 'paid' && onUnpayInvoice && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-6 h-6 text-muted-foreground"
+                          onClick={() => onUnpayInvoice(inv.id)}
+                          title="إلغاء التسديد"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

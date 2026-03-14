@@ -459,6 +459,7 @@ const ContractsPage = () => {
                   onEdit={handleEdit}
                   onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
                   onRenew={handleRenew}
+                  isClosed={isClosed}
                   open={expandedGroups.has(baseNumber)}
                   onOpenChange={(isOpen) => {
                     setExpandedGroups(prev => {
