@@ -12,12 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
-import { PdfWaqfInfo } from '@/utils/pdf/core';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 
 interface YearOverYearComparisonProps {
   fiscalYears: FiscalYear[];
   currentFiscalYearId: string;
-  waqfInfo?: PdfWaqfInfo;
 }
 
 const MONTH_NAMES = [
