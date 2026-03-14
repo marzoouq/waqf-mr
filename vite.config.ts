@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'script-defer',
+      injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       workbox: {
         cleanupOutdatedCaches: true,
