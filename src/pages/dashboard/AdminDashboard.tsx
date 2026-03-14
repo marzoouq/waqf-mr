@@ -73,7 +73,7 @@ const AdminDashboard = () => {
   const fyContracts = contracts;
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
   const collectionSummary = useMemo(() => {
