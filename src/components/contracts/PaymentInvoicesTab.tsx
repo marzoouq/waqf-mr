@@ -255,8 +255,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)}>
-                          <Download className="w-3.5 h-3.5" />PDF
+                        <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
+                          {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
                         </Button>
                         {!isClosed && inv.status !== 'paid' && (
                           <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => markPaid.mutate({ invoiceId: inv.id, paidAmount: Number(inv.amount) })} disabled={markPaid.isPending}>
