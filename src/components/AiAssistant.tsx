@@ -59,6 +59,11 @@ const AiAssistant = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
+    // حماية من الإرسال المتكرر — cooldown بين الرسائل
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+    lastSendTimeRef.current = now;
+
     if (!AI_URL) {
       setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '❌ خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.' }]);
       setInput('');
