@@ -21,6 +21,7 @@ import {
 import { generatePaymentInvoicePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
+import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
