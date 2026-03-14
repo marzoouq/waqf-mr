@@ -292,7 +292,7 @@ const UserManagementPage = () => {
                     placeholder="••••••••"
                     dir="ltr"
                     required
-                    minLength={6}
+                    minLength={8}
                   />
                 </div>
                 <div className="space-y-2">
