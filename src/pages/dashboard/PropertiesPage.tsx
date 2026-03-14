@@ -58,8 +58,9 @@ const PropertiesPage = () => {
   const summary = useMemo(() => {
     const totalProperties = properties.length;
     const totalUnitsCount = allUnits.length;
-    const rentedUnitIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-    const wholePropertyIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && !c.unit_id).map(c => c.property_id));
+    // حساب الوحدات المؤجرة بناءً على العقود النشطة فقط (لتجنب احتساب عقود منتهية/ملغاة)
+    const rentedUnitIds = new Set(contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id));
+    const wholePropertyIds = new Set(contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id));
 
     let totalRented = 0;
     let totalVacant = 0;
