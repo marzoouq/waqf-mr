@@ -8,53 +8,83 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, type ComponentType } from "react";
 import { Loader2 } from "lucide-react";
 
+// ─── تعافي تلقائي عند فشل تحميل chunk قديم ───
+function lazyWithRetry(importFn: () => Promise<{ default: ComponentType<any> }>) {
+  return lazy(() =>
+    importFn().catch((error: Error) => {
+      const isChunkError =
+        error.message.includes('Failed to fetch dynamically imported module') ||
+        error.message.includes('Loading chunk') ||
+        error.message.includes('error loading dynamically imported module');
+
+      if (isChunkError) {
+        const retried = sessionStorage.getItem('chunk_retry');
+        if (!retried) {
+          sessionStorage.setItem('chunk_retry', '1');
+          // مسح كاش الأصول القديمة فقط
+          caches.delete('static-assets').catch(() => {});
+          window.location.reload();
+          // إرجاع وعد لا ينتهي لمنع عرض خطأ قبل إعادة التحميل
+          return new Promise(() => {});
+        }
+        // إذا فشلت المحاولة الثانية، أزل الحارس وارمي الخطأ
+        sessionStorage.removeItem('chunk_retry');
+      }
+      throw error;
+    })
+  );
+}
+
+// مسح حارس إعادة المحاولة عند التحميل الناجح
+sessionStorage.removeItem('chunk_retry');
+
 // Pages - Lazy loaded
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Unauthorized = lazy(() => import("./pages/Unauthorized"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
-const InstallApp = lazy(() => import("./pages/InstallApp"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const Unauthorized = lazyWithRetry(() => import("./pages/Unauthorized"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const PrivacyPolicy = lazyWithRetry(() => import("./pages/PrivacyPolicy"));
+const TermsOfUse = lazyWithRetry(() => import("./pages/TermsOfUse"));
+const InstallApp = lazyWithRetry(() => import("./pages/InstallApp"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 
 // Admin Dashboard Pages - Lazy loaded
-const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
-const PropertiesPage = lazy(() => import("./pages/dashboard/PropertiesPage"));
-const ContractsPage = lazy(() => import("./pages/dashboard/ContractsPage"));
-const IncomePage = lazy(() => import("./pages/dashboard/IncomePage"));
-const ExpensesPage = lazy(() => import("./pages/dashboard/ExpensesPage"));
-const BeneficiariesPage = lazy(() => import("./pages/dashboard/BeneficiariesPage"));
-const ReportsPage = lazy(() => import("./pages/dashboard/ReportsPage"));
-const AccountsPage = lazy(() => import("./pages/dashboard/AccountsPage"));
-const UserManagementPage = lazy(() => import("./pages/dashboard/UserManagementPage"));
-const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
-const MessagesPage = lazy(() => import("./pages/dashboard/MessagesPage"));
-const InvoicesPage = lazy(() => import("./pages/dashboard/InvoicesPage"));
-const AuditLogPage = lazy(() => import("./pages/dashboard/AuditLogPage"));
-const BylawsPage = lazy(() => import("./pages/dashboard/BylawsPage"));
-const ZatcaManagementPage = lazy(() => import("./pages/dashboard/ZatcaManagementPage"));
-const SupportDashboardPage = lazy(() => import("./pages/dashboard/SupportDashboardPage"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/dashboard/AdminDashboard"));
+const PropertiesPage = lazyWithRetry(() => import("./pages/dashboard/PropertiesPage"));
+const ContractsPage = lazyWithRetry(() => import("./pages/dashboard/ContractsPage"));
+const IncomePage = lazyWithRetry(() => import("./pages/dashboard/IncomePage"));
+const ExpensesPage = lazyWithRetry(() => import("./pages/dashboard/ExpensesPage"));
+const BeneficiariesPage = lazyWithRetry(() => import("./pages/dashboard/BeneficiariesPage"));
+const ReportsPage = lazyWithRetry(() => import("./pages/dashboard/ReportsPage"));
+const AccountsPage = lazyWithRetry(() => import("./pages/dashboard/AccountsPage"));
+const UserManagementPage = lazyWithRetry(() => import("./pages/dashboard/UserManagementPage"));
+const SettingsPage = lazyWithRetry(() => import("./pages/dashboard/SettingsPage"));
+const MessagesPage = lazyWithRetry(() => import("./pages/dashboard/MessagesPage"));
+const InvoicesPage = lazyWithRetry(() => import("./pages/dashboard/InvoicesPage"));
+const AuditLogPage = lazyWithRetry(() => import("./pages/dashboard/AuditLogPage"));
+const BylawsPage = lazyWithRetry(() => import("./pages/dashboard/BylawsPage"));
+const ZatcaManagementPage = lazyWithRetry(() => import("./pages/dashboard/ZatcaManagementPage"));
+const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/SupportDashboardPage"));
 
 // Beneficiary Pages - Lazy loaded
-const BeneficiaryDashboard = lazy(() => import("./pages/beneficiary/BeneficiaryDashboard"));
-const DisclosurePage = lazy(() => import("./pages/beneficiary/DisclosurePage"));
-const MySharePage = lazy(() => import("./pages/beneficiary/MySharePage"));
-const FinancialReportsPage = lazy(() => import("./pages/beneficiary/FinancialReportsPage"));
-const AccountsViewPage = lazy(() => import("./pages/beneficiary/AccountsViewPage"));
-const BeneficiarySettingsPage = lazy(() => import("./pages/beneficiary/BeneficiarySettingsPage"));
-const BeneficiaryMessagesPage = lazy(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
-const InvoicesViewPage = lazy(() => import("./pages/beneficiary/InvoicesViewPage"));
-const NotificationsPage = lazy(() => import("./pages/beneficiary/NotificationsPage"));
-const BylawsViewPage = lazy(() => import("./pages/beneficiary/BylawsViewPage"));
-const PropertiesViewPage = lazy(() => import("./pages/beneficiary/PropertiesViewPage"));
-const ContractsViewPage = lazy(() => import("./pages/beneficiary/ContractsViewPage"));
-const CarryforwardHistoryPage = lazy(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
-const WaqifDashboard = lazy(() => import("./pages/beneficiary/WaqifDashboard"));
-const BeneficiarySupportPage = lazy(() => import("./pages/beneficiary/SupportPage"));
+const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));
+const DisclosurePage = lazyWithRetry(() => import("./pages/beneficiary/DisclosurePage"));
+const MySharePage = lazyWithRetry(() => import("./pages/beneficiary/MySharePage"));
+const FinancialReportsPage = lazyWithRetry(() => import("./pages/beneficiary/FinancialReportsPage"));
+const AccountsViewPage = lazyWithRetry(() => import("./pages/beneficiary/AccountsViewPage"));
+const BeneficiarySettingsPage = lazyWithRetry(() => import("./pages/beneficiary/BeneficiarySettingsPage"));
+const BeneficiaryMessagesPage = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryMessagesPage"));
+const InvoicesViewPage = lazyWithRetry(() => import("./pages/beneficiary/InvoicesViewPage"));
+const NotificationsPage = lazyWithRetry(() => import("./pages/beneficiary/NotificationsPage"));
+const BylawsViewPage = lazyWithRetry(() => import("./pages/beneficiary/BylawsViewPage"));
+const PropertiesViewPage = lazyWithRetry(() => import("./pages/beneficiary/PropertiesViewPage"));
+const ContractsViewPage = lazyWithRetry(() => import("./pages/beneficiary/ContractsViewPage"));
+const CarryforwardHistoryPage = lazyWithRetry(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
+const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDashboard"));
+const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazy(() => import("./components/AiAssistant"));
