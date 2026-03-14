@@ -405,7 +405,6 @@ const AdminDashboard = () => {
                 <YearOverYearComparison
                   fiscalYears={allFiscalYears}
                   currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                  waqfInfo={waqfInfo}
                 />
               </CardContent>
             </Card>
