@@ -692,12 +692,12 @@ const UserManagementPage = () => {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>تأكيد حذف المستخدم</AlertDialogTitle>
               <AlertDialogDescription>
-                هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.
+                هل أنت متأكد من حذف المستخدم <strong dir="ltr">{deleteTarget?.email}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -705,8 +705,8 @@ const UserManagementPage = () => {
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => {
-                  if (deleteUserId) {
-                    deleteUser.mutate(deleteUserId);
+                  if (deleteTarget) {
+                    deleteUser.mutate(deleteTarget.id);
                   }
                 }}
               >
