@@ -90,7 +90,10 @@ const AnnualReportPage = () => {
       const sectionItems = grouped[data.section_type as keyof typeof grouped] || [];
       createItem.mutate({
         fiscal_year_id: fiscalYearId,
-        ...data,
+        title: data.title,
+        content: data.content,
+        section_type: data.section_type,
+        property_id: data.property_id ?? null,
         sort_order: sectionItems.length,
       }, { onSuccess: () => { setDialogOpen(false); } });
     }
