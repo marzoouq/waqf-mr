@@ -22,6 +22,8 @@ interface UpsertPaymentParams {
     property_id: string;
     fiscal_year_id: string | null;
     tenant_name: string;
+    /** تاريخ الدفعة — الافتراضي تاريخ اليوم */
+    payment_date?: string;
   };
 }
 
@@ -52,6 +54,7 @@ export const useUpsertTenantPayment = () => {
         p_property_id: payment.auto_income?.property_id ?? null,
         p_fiscal_year_id: payment.auto_income?.fiscal_year_id ?? null,
         p_tenant_name: payment.auto_income?.tenant_name ?? null,
+        p_payment_date: payment.auto_income?.payment_date ?? null,
       });
       if (error) throw error;
       return data;
