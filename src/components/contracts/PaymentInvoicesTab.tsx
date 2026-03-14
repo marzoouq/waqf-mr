@@ -29,6 +29,8 @@ import type { InvoiceTemplate } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Link } from 'react-router-dom';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
@@ -293,6 +295,19 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   return (
     <div className="space-y-5">
       <InvoiceStepsGuide />
+
+      {/* تنبيه بيانات ناقصة للفاتورة الضريبية */}
+      {(!waqfInfo.vatNumber || !waqfInfo.commercialReg || !waqfInfo.address) && (
+        <Alert className="border-warning/50 bg-warning/10">
+          <AlertTriangle className="w-4 h-4 text-warning" />
+          <AlertDescription className="text-sm">
+            لضمان امتثال الفاتورة الضريبية، يرجى إكمال بيانات المنشأة (الرقم الضريبي، السجل التجاري، العنوان) في{' '}
+            <Link to="/dashboard/settings" className="underline font-medium text-primary hover:text-primary/80">
+              الإعدادات
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Dialog معاينة الفاتورة */}
       <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>

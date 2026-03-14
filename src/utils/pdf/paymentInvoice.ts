@@ -266,25 +266,37 @@ const renderQrCode = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo: PdfWaqfInfo | undefined, x: number, y: number, size: number,
 ) => {
-  const vatAmount = invoice.vatAmount ?? 0;
+  try {
+    const vatAmount = invoice.vatAmount ?? 0;
 
-  // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
-  const tlvBase64 = generateZatcaQrTLV({
-    sellerName: waqfInfo?.waqfName || '',
-    vatNumber: waqfInfo?.vatNumber || '',
-    timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
-    totalWithVat: invoice.amount,
-    vatAmount: vatAmount,
-  });
+    // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
+    const tlvBase64 = generateZatcaQrTLV({
+      sellerName: waqfInfo?.waqfName || '',
+      vatNumber: waqfInfo?.vatNumber || '',
+      timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
+      totalWithVat: invoice.amount,
+      vatAmount: vatAmount,
+    });
 
-  const qrDataUrl = await generateQrDataUrl(tlvBase64);
-  if (qrDataUrl) {
-    doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
-  } else {
+    const qrDataUrl = await generateQrDataUrl(tlvBase64);
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
+    } else {
+      // fallback: عرض نص TLV مختصر
+      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering TLV text fallback');
+      doc.setFont(fontFamily, 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`QR: ${tlvBase64.substring(0, 50)}...`, x + size / 2, y + size / 2, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+    }
+  } catch (err) {
+    console.warn('[PDF-QR] Error generating QR code:', err);
+    // fallback صامت — لا نمنع توليد الفاتورة
     doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`TLV: ${tlvBase64.substring(0, 60)}...`, x + size / 2, y + size / 2, { align: 'center' });
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
+    doc.text('QR غير متاح', x + size / 2, y + size / 2, { align: 'center' });
     doc.setTextColor(0, 0, 0);
   }
 };
@@ -381,56 +393,76 @@ const renderTaxProfessional = async (
   const vatRate = invoice.vatRate ?? 0;
   const isVat = vatRate > 0;
 
-  // === صف 1: "فاتورة ضريبية" (يسار) + اسم المنشأة + بياناتها (يمين) ===
-  // عنوان "فاتورة ضريبية" — أعلى يسار
-  doc.setFont(fontFamily, 'bold');
-  doc.setFontSize(14);
-  doc.text(isVat ? 'فاتورة ضريبية' : 'فاتورة', margin, y + 4, { align: 'left' });
+  // ──────────────────────────────────────────────────────────────
+  // الترويسة: مطابقة المرجع (دفترة)
+  //   يسار: عنوان "فاتورة ضريبية" + QR تحته
+  //   وسط-يمين: اسم المنشأة + بياناتها (ضريبي، سجل تجاري، عنوان)
+  //   أقصى اليمين: الشعار (إن وُجد)
+  // ──────────────────────────────────────────────────────────────
 
-  // اسم المنشأة — أعلى يمين
-  doc.setFontSize(14);
-  doc.text(waqfInfo?.waqfName || '', pageW - margin, y + 4, { align: 'right' });
-  y += 8;
-
-  // بيانات البائع تحت الاسم (يمين)
-  doc.setFont(fontFamily, 'normal');
-  doc.setFontSize(8);
-  if (waqfInfo?.vatNumber) {
-    doc.text(`الرقم الضريبي : ${waqfInfo.vatNumber}`, pageW - margin, y, { align: 'right' });
-    y += 4;
-  }
-  if (waqfInfo?.commercialReg) {
-    doc.text(`السجل التجاري : ${waqfInfo.commercialReg}`, pageW - margin, y, { align: 'right' });
-    y += 4;
-  }
-  if (waqfInfo?.address) {
-    doc.text(waqfInfo.address, pageW - margin, y, { align: 'right' });
-    y += 4;
-  }
-
-  // QR Code — أعلى يسار (بجانب عنوان "فاتورة ضريبية")
-  const qrSize = 30;
-  const qrX = margin;
-  const qrY = 20;
-  await renderQrCode(doc, fontFamily, invoice, waqfInfo, qrX, qrY, qrSize);
-
-  // شعار — يمين بجانب بيانات البائع
+  // --- الشعار أقصى اليمين ---
+  const logoSize = 24;
+  const logoX = pageW - margin - logoSize;
+  const logoY = y;
+  let sellerRightEdge = pageW - margin; // الحافة اليمنى لنصوص البائع
   if (waqfInfo?.logoUrl) {
     const logoData = await loadLogoBase64(waqfInfo.logoUrl);
     if (logoData) {
-      try { doc.addImage(logoData, 'PNG', pageW - margin - 55, 16, 22, 22); } catch { /* ignore */ }
+      try {
+        doc.addImage(logoData, 'PNG', logoX, logoY, logoSize, logoSize);
+        sellerRightEdge = logoX - 4; // إزاحة النصوص لليسار حتى لا تتداخل مع الشعار
+      } catch { /* ignore logo errors */ }
     }
   }
 
-  y = Math.max(y, qrY + qrSize + 4);
+  // --- عنوان "فاتورة ضريبية" أعلى يسار ---
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(22, 101, 52); // أخضر داكن
+  doc.text(isVat ? 'فاتورة ضريبية' : 'فاتورة', margin, y + 4, { align: 'left' });
+  doc.setTextColor(0, 0, 0);
 
-  // خط فاصل
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.5);
+  // --- اسم المنشأة أعلى يمين (بجانب الشعار) ---
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(13);
+  doc.text(waqfInfo?.waqfName || '', sellerRightEdge, y + 4, { align: 'right' });
+
+  // --- بيانات البائع تحت الاسم (يمين) ---
+  let sellerY = y + 10;
+  doc.setFont(fontFamily, 'normal');
+  doc.setFontSize(8);
+
+  if (waqfInfo?.vatNumber) {
+    doc.text(`الرقم الضريبي : ${waqfInfo.vatNumber}`, sellerRightEdge, sellerY, { align: 'right' });
+    sellerY += 5;
+  }
+  if (waqfInfo?.commercialReg) {
+    doc.text(`السجل التجاري : ${waqfInfo.commercialReg}`, sellerRightEdge, sellerY, { align: 'right' });
+    sellerY += 5;
+  }
+  if (waqfInfo?.address) {
+    doc.text(`العنوان : ${waqfInfo.address}`, sellerRightEdge, sellerY, { align: 'right' });
+    sellerY += 5;
+  }
+
+  // --- QR Code تحت عنوان "فاتورة ضريبية" مباشرة ---
+  const qrSize = 32;
+  const qrX = margin;
+  const qrY = y + 10;
+  await renderQrCode(doc, fontFamily, invoice, waqfInfo, qrX, qrY, qrSize);
+
+  // أعلى نقطة بين (QR + نصوص البائع + الشعار)
+  y = Math.max(sellerY, qrY + qrSize + 2, logoY + logoSize + 2);
+
+  // خط فاصل أخضر
+  doc.setDrawColor(22, 101, 52);
+  doc.setLineWidth(0.6);
   doc.line(margin, y, pageW - margin, y);
   y += 6;
 
-  // === صف 2: رقم الفاتورة + التاريخ (يسار) | بيانات العميل (يمين) ===
+  // ──────────────────────────────────────────────────────────────
+  // صف 2: بيانات الفاتورة (يسار) | بيانات العميل (يمين)
+  // ──────────────────────────────────────────────────────────────
   const metaStartY = y;
 
   // بيانات الفاتورة (يسار)
@@ -462,9 +494,12 @@ const renderTaxProfessional = async (
 
   // بيانات العميل (يمين)
   let clientY = metaStartY;
-  doc.setFont(fontFamily, 'normal');
+  doc.setFont(fontFamily, 'bold');
   doc.setFontSize(8);
-  doc.text(`العميل : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
+  doc.text('بيانات العميل', pageW - margin, clientY, { align: 'right' });
+  clientY += 5;
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`الاسم : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   if (invoice.tenantVatNumber) {
     doc.text(`الرقم الضريبي : ${invoice.tenantVatNumber}`, pageW - margin, clientY, { align: 'right' });
@@ -475,7 +510,7 @@ const renderTaxProfessional = async (
     clientY += 5;
   }
 
-  y = Math.max(y, clientY) + 6;
+  y = Math.max(y, clientY) + 4;
 
   // الحالة
   doc.setFont(fontFamily, 'bold');
