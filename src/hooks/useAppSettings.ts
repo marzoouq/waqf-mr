@@ -57,14 +57,14 @@ export const useAppSettings = () => {
       return fallback;
     }
 
-    const cached = jsonCacheRef.current.get(key);
+    const cached = jsonSettingCache.get(key);
     if (cached && cached.raw === raw) {
       return cached.parsed as T;
     }
 
     try {
       const parsed = JSON.parse(raw) as T;
-      jsonCacheRef.current.set(key, { raw, parsed });
+      jsonSettingCache.set(key, { raw, parsed });
       return parsed;
     } catch {
       return fallback;
