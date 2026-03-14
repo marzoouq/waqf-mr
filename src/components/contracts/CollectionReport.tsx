@@ -307,6 +307,10 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           <Bell className="w-4 h-4" />
           {sendingAlerts ? 'جاري الإرسال...' : 'إرسال تنبيهات التأخير'}
         </Button>
+        <ExportMenu
+          hidePrint
+          onExportPdf={() => generateCollectionReportPDF(filteredRows, summary, pdfWaqfInfo)}
+        />
       </div>
 
       {/* جدول التفاصيل */}
