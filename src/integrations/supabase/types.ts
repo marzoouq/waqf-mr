@@ -1480,7 +1480,7 @@ export type Database = {
           id?: string | null
           name?: string | null
           national_id?: never
-          notes?: string | null
+          notes?: never
           phone?: never
           share_percentage?: number | null
           updated_at?: string | null
@@ -1493,7 +1493,7 @@ export type Database = {
           id?: string | null
           name?: string | null
           national_id?: never
-          notes?: string | null
+          notes?: never
           phone?: never
           share_percentage?: number | null
           updated_at?: string | null
