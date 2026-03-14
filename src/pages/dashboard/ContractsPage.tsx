@@ -424,6 +424,14 @@ const ContractsPage = () => {
                   onEdit={handleEdit}
                   onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
                   onRenew={handleRenew}
+                  open={expandedGroups.has(baseNumber)}
+                  onOpenChange={(isOpen) => {
+                    setExpandedGroups(prev => {
+                      const next = new Set(prev);
+                      if (isOpen) next.add(baseNumber); else next.delete(baseNumber);
+                      return next;
+                    });
+                  }}
                 />
               ))}
             <TablePagination currentPage={currentPage} totalItems={filteredGroups.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
