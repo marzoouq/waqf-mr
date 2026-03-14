@@ -10,7 +10,7 @@ import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus } from 'lucide-react';
+import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -64,6 +64,7 @@ const ContractsPage = () => {
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
@@ -291,6 +292,15 @@ const ContractsPage = () => {
     );
   }, [groupedContracts, searchQuery]);
 
+  const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
+  const toggleAllGroups = () => {
+    if (allExpanded) {
+      setExpandedGroups(new Set());
+    } else {
+      setExpandedGroups(new Set(filteredGroups.map(([base]) => base)));
+    }
+  };
+
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
 
   const filteredContracts = contracts.filter((c) => {
@@ -365,6 +375,12 @@ const ContractsPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          {filteredGroups.length > 0 && (
+            <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
+              <ChevronsUpDown className="w-4 h-4" />
+              {allExpanded ? 'طي الكل' : 'توسيع الكل'}
+            </Button>
+          )}
         </div>
 
         {isClosed && (
@@ -408,6 +424,14 @@ const ContractsPage = () => {
                   onEdit={handleEdit}
                   onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
                   onRenew={handleRenew}
+                  open={expandedGroups.has(baseNumber)}
+                  onOpenChange={(isOpen) => {
+                    setExpandedGroups(prev => {
+                      const next = new Set(prev);
+                      if (isOpen) next.add(baseNumber); else next.delete(baseNumber);
+                      return next;
+                    });
+                  }}
                 />
               ))}
             <TablePagination currentPage={currentPage} totalItems={filteredGroups.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />

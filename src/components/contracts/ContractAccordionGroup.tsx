@@ -24,6 +24,8 @@ interface ContractAccordionGroupProps {
   onEdit: (contract: Contract) => void;
   onDelete: (contract: Contract) => void;
   onRenew: (contract: Contract) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -57,6 +59,8 @@ const ContractAccordionGroup = ({
   onEdit,
   onDelete,
   onRenew,
+  open,
+  onOpenChange,
 }: ContractAccordionGroupProps) => {
   // أحدث عقد = العقد الرئيسي المعروض
   const latest = contracts[0];
@@ -74,7 +78,7 @@ const ContractAccordionGroup = ({
   const hasExpired = contracts.some(c => expiredIds.has(c.id));
 
   return (
-    <Collapsible className="border border-border rounded-lg overflow-hidden">
+    <Collapsible open={open} onOpenChange={onOpenChange} className="border border-border rounded-lg overflow-hidden">
       <CollapsibleTrigger asChild>
         <button
           type="button"
