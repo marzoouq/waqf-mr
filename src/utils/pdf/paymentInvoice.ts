@@ -608,11 +608,9 @@ const renderCompact = async (
     endY += 5;
   }
 
-  // QR مصغّر
-  if (isVat && waqfInfo?.vatNumber) {
-    await renderQrCode(doc, fontFamily, invoice, waqfInfo, (pageW - 25) / 2, endY, 25);
-    endY += 28;
-  }
+  // QR مصغّر — يظهر دائماً
+  await renderQrCode(doc, fontFamily, invoice, waqfInfo, (pageW - 25) / 2, endY, 25);
+  endY += 28;
 
   // ملاحظة
   doc.setFont(fontFamily, 'normal');
