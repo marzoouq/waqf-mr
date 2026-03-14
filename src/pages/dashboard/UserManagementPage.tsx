@@ -51,7 +51,8 @@ const UserManagementPage = () => {
   const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string } | null>(null);
+  const [toggling, setToggling] = useState(false);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
