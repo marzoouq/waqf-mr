@@ -1699,6 +1699,7 @@ export type Database = {
           email: string
         }[]
       }
+      mask_audit_fields: { Args: { p_data: Json }; Returns: Json }
       notify_admins: {
         Args: {
           p_link?: string
