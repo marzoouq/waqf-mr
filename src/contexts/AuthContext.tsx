@@ -6,7 +6,7 @@
  * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
  */
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
@@ -21,8 +21,8 @@ interface AuthContextType {
   session: Session | null;
   role: AppRole | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
   signOut: () => Promise<void>;
   refreshRole: () => Promise<void>;
 }

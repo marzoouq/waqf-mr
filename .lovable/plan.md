@@ -1,64 +1,70 @@
 
+# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-# إصلاح المشاكل الخمس المتبقية من التقرير الجنائي
+## تصنيف المشروع
 
-## 1. BUG-05 — `window.location.assign` في `useRealtimeAlerts.ts`
+هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
 
-**الحالة الحالية:** السطران 45 و81 يستخدمان `window.location.assign` مما يُعيد تحميل الصفحة بالكامل ويفقد React Query cache.
+## سياق المستخدمين
 
-**الإصلاح:** بما أن الـ hook ليس داخل Router context (لا يمكن استخدام `useNavigate` في callback)، الحل المتوافق مع القرار المعماري الموثق (استبدال reload بـ invalidateQueries) هو تمرير `navigate` function كمعامل للـ hook، ثم استخدامها في callbacks الـ toast.
+| الدور | النوع | مستوى الثقة |
+|-------|-------|------------|
+| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
+| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
+| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
+| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
 
-**التغيير:**
-- تعديل signature الـ hook لقبول `navigate` كمعامل اختياري
-- استبدال `window.location.assign(path)` بـ `navigate(path)` عند توفره
-- تحديث الاستدعاء في `DashboardLayout.tsx` لتمرير `useNavigate()`
+## حساسية البيانات
 
-## 2. BUG-08 — Race condition في `logger.ts`
+```text
+عالية جداً:
+  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
+  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
+  └─ البريد الإلكتروني وأرقام الهواتف
 
-**الحالة الحالية:** إذا استُدعيت `logger.error` مرتين بالتوازي، `getLogAccess` يُنفذ dynamic import مرتين.
+عالية:
+  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
+  ├─ العقود والفواتير الضريبية (ZATCA)
+  └─ سجل المراجعة الجنائي (audit log)
 
-**الإصلاح:** استخدام Promise caching بدل null check — تخزين الـ Promise نفسه وليس النتيجة:
-
-```typescript
-let _logAccessPromise: Promise<typeof logAccessEvent> | null = null;
-const getLogAccess = () => {
-  if (!_logAccessPromise) {
-    _logAccessPromise = import('@/hooks/useAccessLog').then(m => m.logAccessEvent);
-  }
-  return _logAccessPromise;
-};
+متوسطة:
+  ├─ بيانات العقارات والوحدات
+  └─ اللوائح الداخلية
 ```
 
-## 3. BUG-09 — نوع `AuthError` في `AuthContext.tsx`
+## طبقات الحماية المُطبَّقة فعلياً
 
-**الحالة الحالية:** `signIn` يُعلن عن إرجاع `Promise<{ error: Error | null }>` لكن Supabase يُرجع `AuthError`.
+1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
+2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
+3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
+4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
+5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
+6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
 
-**الإصلاح:** تغيير النوع في الـ interface إلى `AuthError | Error | null` باستيراد `AuthError` من `@supabase/supabase-js`.
+## توجيهات للماسح الأمني
 
-## 4. BUG-10 — CSP `unsafe-inline` في `index.html`
+| الملاحظة | الحكم | السبب |
+|----------|-------|-------|
+| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
+| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
+| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
 
-**الحالة الحالية:** `script-src 'self' 'unsafe-inline'` يُلغي حماية XSS.
+## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
 
-**الواقع:** Vite يحقن inline scripts (مثل PWA register script-defer). بدون `unsafe-inline` سيفشل التطبيق. الحل الأنظف هو إزالة `unsafe-inline` من `script-src` فقط وإضافة `'wasm-unsafe-eval'` إذا لزم، مع الاحتفاظ بـ `'unsafe-inline'` في `style-src` (مطلوب لـ Tailwind).
+- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
+- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
+- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
 
-**لكن** بما أن Vite PWA plugin يحقن `<script>` مباشرة بـ `injectRegister: 'script-defer'`، فإن إزالة `unsafe-inline` ستكسر تسجيل الـ SW. الحل: تغيير `injectRegister` إلى `'script'` مع `type: 'module'` أو ببساطة الإبقاء مع تعليق يشرح السبب. **القرار:** إزالة `unsafe-inline` من `script-src` وتغيير `injectRegister` إلى `'auto'` (يستخدم ملف JS خارجي بدل inline script).
+## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
 
-## 5. BUG-11 — كاش البيانات المالية في PWA
+> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
+>
+> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
+>
+> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
 
-**الحالة الحالية:** Supabase REST API يُخزَّن في PWA cache لمدة 5 دقائق — بيانات مالية حساسة.
+## نتائج تم حلها (2026-03-13)
 
-**الإصلاح:** تغيير handler من `NetworkFirst` إلى `NetworkOnly` — البيانات المالية يجب أن تُجلب دائماً من الشبكة. React Query يتولى الكاش في الذاكرة.
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|---|---|
-| `src/hooks/useRealtimeAlerts.ts` | قبول `navigate` + استبدال `window.location.assign` |
-| `src/components/DashboardLayout.tsx` | تمرير `useNavigate()` للـ hook |
-| `src/lib/logger.ts` | Promise caching لمنع race condition |
-| `src/contexts/AuthContext.tsx` | تصحيح نوع `AuthError` |
-| `index.html` | إزالة `unsafe-inline` من `script-src` |
-| `vite.config.ts` | تغيير `injectRegister` + Supabase API إلى `NetworkOnly` |
-
+| الملاحظة | الحل |
+|----------|------|
+| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |

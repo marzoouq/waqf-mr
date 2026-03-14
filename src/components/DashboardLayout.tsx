@@ -173,7 +173,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const showAll = SHOW_ALL_ROUTES.includes(location.pathname);
-  useRealtimeAlerts();
+  useRealtimeAlerts(navigate);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
     catch { return false; }

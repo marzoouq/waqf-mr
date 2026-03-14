@@ -3,7 +3,7 @@
  * يستمع لتغييرات على جداول support_tickets و contracts
  * وينبّه المستخدم عبر toast + إشعار في قاعدة البيانات
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ const CONTRACT_STATUS_LABELS: Record<string, string> = {
   renewed: 'مجدد',
 };
 
-export const useRealtimeAlerts = () => {
+export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
   const { user, role } = useAuth();
   const subscribedRef = useRef(false);
 
@@ -42,7 +42,7 @@ export const useRealtimeAlerts = () => {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
-            onClick: () => window.location.assign('/dashboard/support'),
+            onClick: () => navigate ? navigate('/dashboard/support') : window.location.assign('/dashboard/support'),
           },
           duration: 8000,
         });
@@ -78,7 +78,7 @@ export const useRealtimeAlerts = () => {
             description: `عقد ${newC.contract_number} (${newC.tenant_name}): ${oldLabel} ← ${newLabel}`,
             action: {
               label: 'عرض',
-              onClick: () => window.location.assign('/dashboard/contracts'),
+              onClick: () => navigate ? navigate('/dashboard/contracts') : window.location.assign('/dashboard/contracts'),
             },
             duration: 8000,
           });
@@ -108,5 +108,5 @@ export const useRealtimeAlerts = () => {
       subscribedRef.current = false;
       supabase.removeChannel(channel);
     };
-  }, [user?.id, role]);
+  }, [user?.id, role, navigate]);
 };

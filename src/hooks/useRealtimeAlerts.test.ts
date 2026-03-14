@@ -45,8 +45,9 @@ describe('useRealtimeAlerts', () => {
 
   it('يُشترك عند admin', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'u1' }, role: 'admin' });
+    const mockNavigate = vi.fn();
     const { useRealtimeAlerts } = await import('./useRealtimeAlerts');
-    renderHook(() => useRealtimeAlerts());
+    renderHook(() => useRealtimeAlerts(mockNavigate));
     expect(mockChannel).toHaveBeenCalledWith('admin-realtime-alerts-u1');
     expect(mockSubscribe).toHaveBeenCalled();
   });

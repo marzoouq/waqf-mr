@@ -5,14 +5,14 @@
  */
 const isDev = import.meta.env.DEV;
 
-/** Lazy import to avoid circular deps */
-let _logAccess: ((e: { event_type: string; metadata?: Record<string, unknown> }) => Promise<void>) | null = null;
-const getLogAccess = async () => {
-  if (!_logAccess) {
-    const mod = await import('@/hooks/useAccessLog');
-    _logAccess = mod.logAccessEvent;
+/** Lazy import to avoid circular deps — Promise caching prevents race condition */
+type LogAccessFn = (e: { event_type: string; metadata?: Record<string, unknown> }) => Promise<void>;
+let _logAccessPromise: Promise<LogAccessFn> | null = null;
+const getLogAccess = (): Promise<LogAccessFn> => {
+  if (!_logAccessPromise) {
+    _logAccessPromise = import('@/hooks/useAccessLog').then(m => m.logAccessEvent);
   }
-  return _logAccess;
+  return _logAccessPromise;
 };
 
 export const logger = {

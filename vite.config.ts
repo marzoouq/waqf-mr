@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'script-defer',
+      injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       workbox: {
         cleanupOutdatedCaches: true,
@@ -58,13 +58,7 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api',
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 }, // 5 minutes for financial data freshness
-              cacheableResponse: { statuses: [200] }, // exclude opaque (status 0) responses
-            },
+            handler: 'NetworkOnly', // بيانات مالية حساسة — لا تُخزَّن في كاش PWA. React Query يتولى الكاش في الذاكرة
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
