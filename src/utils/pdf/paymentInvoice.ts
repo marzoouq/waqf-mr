@@ -362,8 +362,7 @@ const renderClassic = async (
   // QR Code — يظهر دائماً
   await renderQrCode(doc, fontFamily, invoice, waqfInfo, 82.5, finalY + 2, 45);
 
-  // ملاحظة
-  const noteY = (isVat && waqfInfo?.vatNumber) ? finalY + 52 : finalY + 16;
+  const noteY = finalY + 52;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
