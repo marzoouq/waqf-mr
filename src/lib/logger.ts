@@ -28,9 +28,8 @@ export const logger = {
       getLogAccess().then(log => log({
         event_type: 'client_error',
         metadata: {
-          message: String(args[0] ?? '').substring(0, 500),
-          stack: errObj?.stack?.substring(0, 1000),
-          error_name: errObj?.name,
+    message: String(args[0] ?? '').substring(0, 500),
+    error_name: errObj?.name,
         },
       })).catch(() => {});
     }
