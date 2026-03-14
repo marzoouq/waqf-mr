@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
-  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2,
+  Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -18,7 +18,7 @@ import {
   useMarkInvoicePaid,
   useMarkInvoiceUnpaid,
 } from '@/hooks/usePaymentInvoices';
-import { generatePaymentInvoicePDF } from '@/utils/pdf';
+import { generatePaymentInvoicePDF, generateOverdueInvoicesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
@@ -228,6 +228,18 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           <Button variant="outline" size="sm" className="gap-2" onClick={() => generateAll.mutate()} disabled={generateAll.isPending}>
             <Zap className="w-4 h-4" />
             {generateAll.isPending ? 'جاري التوليد...' : 'توليد فواتير جميع العقود'}
+          </Button>
+        )}
+        {summary.overdue > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => generateOverdueInvoicesPDF(invoices, waqfInfo)}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <FileDown className="w-4 h-4" />
+            تصدير المتأخرة PDF ({summary.overdue})
           </Button>
         )}
       </div>

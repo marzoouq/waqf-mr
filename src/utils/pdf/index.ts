@@ -6,7 +6,7 @@ export { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, 
 export { generateIncomePDF, generateExpensesPDF } from './expenses';
 export { generateAccountsPDF, generateDistributionsPDF } from './accounts';
 export { generateMySharePDF, generateDisclosurePDF } from './beneficiary';
-export { generateInvoicesViewPDF } from './invoices';
+export { generateInvoicesViewPDF, generateOverdueInvoicesPDF } from './invoices';
 export { generateYearComparisonPDF } from './comparison';
 export type { YearComparisonPdfData } from './comparison';
 export { generateForensicAuditPDF } from './forensicAudit';

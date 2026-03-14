@@ -2,9 +2,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
-  TABLE_HEAD_GREEN,
+  TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
 } from './core';
+import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -58,4 +59,64 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
   doc.save('invoices-report.pdf');
+};
+
+/**
+ * تصدير تقرير PDF بالفواتير المتأخرة فقط
+ */
+export const generateOverdueInvoicesPDF = async (
+  invoices: PaymentInvoice[],
+  waqfInfo?: PdfWaqfInfo,
+) => {
+  const overdue = invoices.filter(i => i.status === 'overdue');
+  if (overdue.length === 0) return;
+
+  const doc = new jsPDF();
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+
+  const startY = await addHeader(doc, fontFamily, waqfInfo);
+
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(18);
+  doc.text('تقرير الفواتير المتأخرة', 105, startY + 5, { align: 'center' });
+
+  const totalAmount = overdue.reduce((s, i) => s + Number(i.amount || 0), 0);
+  const today = new Date();
+
+  // ملخص
+  doc.setFontSize(11);
+  doc.setFont(fontFamily, 'normal');
+  doc.text(`عدد الفواتير المتأخرة: ${overdue.length}`, 195, startY + 16, { align: 'right' });
+  doc.text(`إجمالي المبالغ المتأخرة: ${totalAmount.toLocaleString()} ر.س`, 195, startY + 23, { align: 'right' });
+
+  const calcDaysLate = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const diff = Math.floor((today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  };
+
+  autoTable(doc, {
+    startY: startY + 30,
+    head: [['#', 'رقم الفاتورة', 'المستأجر', 'رقم العقد', 'العقار', 'تاريخ الاستحقاق', 'المبلغ', 'أيام التأخر']],
+    body: overdue.map((inv, i) => [
+      i + 1,
+      inv.invoice_number,
+      inv.contract?.tenant_name || '-',
+      inv.contract?.contract_number || '-',
+      inv.contract?.property?.property_number || '-',
+      inv.due_date,
+      `${Number(inv.amount).toLocaleString()} ر.س`,
+      calcDaysLate(inv.due_date),
+    ]),
+    foot: [['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, '']],
+    theme: 'striped',
+    ...headStyles(TABLE_HEAD_RED, fontFamily),
+    ...footStyles(TABLE_HEAD_RED, fontFamily),
+    ...baseTableStyles(fontFamily),
+  });
+
+  addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save('overdue-invoices-report.pdf');
 };
