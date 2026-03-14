@@ -25,6 +25,7 @@ import { useState, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import TablePagination from '@/components/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
