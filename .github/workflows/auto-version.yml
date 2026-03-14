@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: auto-version
+  cancel-in-progress: false
+
 jobs:
   bump-version:
     runs-on: ubuntu-latest
