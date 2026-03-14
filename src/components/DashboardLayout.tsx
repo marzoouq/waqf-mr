@@ -151,6 +151,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/audit-log': 'سجل المراجعة',
   '/dashboard/bylaws': 'اللائحة التنظيمية',
   '/dashboard/zatca': 'إدارة ZATCA',
+  '/dashboard/annual-report': 'التقرير السنوي',
   '/dashboard/support': 'الدعم الفني',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
