@@ -223,6 +223,7 @@ const UserManagementPage = () => {
             <Switch
               checked={registrationEnabled}
               onCheckedChange={toggleRegistration}
+              disabled={toggling}
             />
           </CardContent>
         </Card>
