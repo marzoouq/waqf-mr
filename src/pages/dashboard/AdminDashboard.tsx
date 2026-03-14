@@ -208,6 +208,26 @@ const AdminDashboard = () => {
           </Alert>
         )}
 
+        {/* Expiring Contracts Warning (within 30 days) */}
+        {(() => {
+          const expiringContracts = fyContracts.filter(c => {
+            const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
+            return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+          });
+          return expiringContracts.length > 0 ? (
+            <Alert className="animate-fade-in border-warning/50">
+              <Clock className="h-4 w-4" />
+              <AlertTitle>عقود تنتهي قريباً</AlertTitle>
+              <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span>{expiringContracts.length} عقد ينتهي خلال 30 يوماً ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
+                <Link to="/dashboard/contracts">
+                  <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
+                </Link>
+              </AlertDescription>
+            </Alert>
+          ) : null;
+        })()}
+
         {/* Orphaned Contracts Warning */}
         {orphanedContracts.length > 0 && (
           <Alert variant="destructive" className="animate-fade-in">
