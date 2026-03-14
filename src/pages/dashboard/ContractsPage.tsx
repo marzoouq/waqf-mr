@@ -375,6 +375,12 @@ const ContractsPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          {filteredGroups.length > 0 && (
+            <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
+              <ChevronsUpDown className="w-4 h-4" />
+              {allExpanded ? 'طي الكل' : 'توسيع الكل'}
+            </Button>
+          )}
         </div>
 
         {isClosed && (
