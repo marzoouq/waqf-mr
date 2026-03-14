@@ -402,6 +402,23 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                         <TableCell className="text-center">
                           <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
                             {row.paid}/{row.paymentCount}
+                            {row.spansMultipleYears && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="inline-flex items-center gap-0.5 mr-1 cursor-help">
+                                      <CalendarRange className="w-3 h-3 text-warning inline" />
+                                      <span className="text-muted-foreground text-[10px]">/{row.totalContractPayments}</span>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs text-right">
+                                    <p className="font-bold mb-1">عقد ممتد على أكثر من سنة</p>
+                                    <p>المخصص لهذه السنة: {row.paymentCount} دفعات</p>
+                                    <p>إجمالي العقد: {row.totalContractPayments} دفعة</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                           </span>
                           {row.overdue > 0 && (
                             <span className="text-xs text-destructive block">({row.overdue} متأخرة)</span>
