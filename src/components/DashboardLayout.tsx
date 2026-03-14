@@ -71,6 +71,7 @@ const allAdminLinks = [
   { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
+  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
