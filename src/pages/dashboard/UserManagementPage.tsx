@@ -624,7 +624,7 @@ const UserManagementPage = () => {
                   size="sm"
                   className="gap-1"
                   onClick={() => editingUser && updateEmail.mutate({ userId: editingUser.id, email: editEmail })}
-                  disabled={updateEmail.isPending}
+                  disabled={updateEmail.isPending || editEmail === editingUser?.email}
                 >
                   <Mail className="w-3 h-3" />
                   تحديث البريد
