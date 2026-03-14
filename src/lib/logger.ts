@@ -6,7 +6,8 @@
 const isDev = import.meta.env.DEV;
 
 /** Lazy import to avoid circular deps — Promise caching prevents race condition */
-type LogAccessFn = (e: { event_type: string; metadata?: Record<string, unknown> }) => Promise<void>;
+type AccessEventType = 'login_failed' | 'login_success' | 'logout' | 'unauthorized_access' | 'idle_logout' | 'role_fetch' | 'client_error';
+type LogAccessFn = (e: { event_type: AccessEventType; metadata?: Record<string, unknown> }) => Promise<void>;
 let _logAccessPromise: Promise<LogAccessFn> | null = null;
 const getLogAccess = (): Promise<LogAccessFn> => {
   if (!_logAccessPromise) {
