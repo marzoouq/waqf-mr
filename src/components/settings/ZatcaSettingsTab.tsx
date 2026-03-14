@@ -19,6 +19,9 @@ const ZATCA_KEYS = [
   'business_address_district',
   'default_vat_rate',
   'zatca_device_serial',
+  'waqf_bank_name',
+  'waqf_bank_account',
+  'waqf_bank_iban',
 ] as const;
 
 const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
