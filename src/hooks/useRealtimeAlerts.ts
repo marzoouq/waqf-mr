@@ -42,7 +42,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
-            onClick: () => window.location.assign('/dashboard/support'),
+            onClick: () => navigate ? navigate('/dashboard/support') : window.location.assign('/dashboard/support'),
           },
           duration: 8000,
         });
