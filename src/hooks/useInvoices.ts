@@ -171,9 +171,10 @@ export const useGenerateInvoicePdf = () => {
   return useMutation({
     mutationFn: async (invoiceIds: string[]) => {
       const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('يجب تسجيل الدخول أولاً');
       const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
         body: { invoice_ids: invoiceIds },
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
       return data as { results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] };
