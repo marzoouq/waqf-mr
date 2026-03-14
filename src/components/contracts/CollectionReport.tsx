@@ -11,6 +11,7 @@ import { Contract } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
+import TablePagination from '@/components/TablePagination';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
@@ -71,6 +72,8 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [sendingAlerts, setSendingAlerts] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
   const pdfWaqfInfo = usePdfWaqfInfo();
 
   const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
@@ -303,6 +306,10 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
           <Bell className="w-4 h-4" />
           {sendingAlerts ? 'جاري الإرسال...' : 'إرسال تنبيهات التأخير'}
         </Button>
+        <ExportMenu
+          hidePdf
+          onPrint={() => window.print()}
+        />
       </div>
 
       {/* جدول التفاصيل */}
@@ -317,7 +324,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             <>
               {/* Mobile Cards */}
               <div className="space-y-3 md:hidden px-3 py-2">
-                {filteredRows.map(row => (
+                {filteredRows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(row => (
                   <Card key={row.contract.id} className={`shadow-sm ${row.overdue > 0 ? 'border-destructive/30' : ''}`}>
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
@@ -367,7 +374,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRows.map(row => (
+                    {filteredRows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(row => (
                       <TableRow key={row.contract.id} className={row.overdue > 0 ? 'bg-destructive/5' : ''}>
                         <TableCell className="font-medium">
                           {row.contract.contract_number}
@@ -403,8 +410,26 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                   </TableBody>
                 </Table>
               </div>
+
+              {/* شريط ملخص المجاميع */}
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-t text-sm">
+                <div className="flex items-center gap-4">
+                  <span className="text-muted-foreground">الإجمالي: <span className="font-bold text-foreground">{summary.totalExpected.toLocaleString()} ر.س</span></span>
+                  <span className="text-muted-foreground">المحصّل: <span className="font-bold text-success">{summary.totalCollected.toLocaleString()} ر.س</span></span>
+                  {summary.totalOverdue > 0 && (
+                    <span className="text-muted-foreground">المتأخر: <span className="font-bold text-destructive">{summary.totalOverdue.toLocaleString()} ر.س</span></span>
+                  )}
+                </div>
+                <span className="text-muted-foreground">{filteredRows.length} عقد</span>
+              </div>
             </>
           )}
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={filteredRows.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>

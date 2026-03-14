@@ -10,7 +10,8 @@ import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown } from 'lucide-react';
+import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
@@ -65,6 +66,7 @@ const ContractsPage = () => {
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
@@ -278,19 +280,41 @@ const ContractsPage = () => {
     });
   }, [contracts]);
 
-  // فلترة المجموعات حسب البحث
+  // عدد العقود النشطة والمنتهية (لعرض الأعداد بجانب الفلتر)
+  const statusCounts = useMemo(() => {
+    let active = 0, expired = 0;
+    for (const [, group] of groupedContracts) {
+      const latestStatus = group[0].status;
+      if (latestStatus === 'active') active++;
+      else expired++;
+    }
+    return { active, expired, all: groupedContracts.length };
+  }, [groupedContracts]);
+
+  // فلترة المجموعات حسب البحث + حالة أحدث عقد
   const filteredGroups = useMemo(() => {
-    if (!searchQuery) return groupedContracts;
-    const q = searchQuery.toLowerCase();
-    return groupedContracts.filter(([, group]) =>
-      group.some(c =>
-        c.contract_number.toLowerCase().includes(q) ||
-        c.tenant_name.toLowerCase().includes(q) ||
-        (c.notes || '').toLowerCase().includes(q) ||
-        getPaymentTypeLabel(c.payment_type).includes(q)
-      )
-    );
-  }, [groupedContracts, searchQuery]);
+    let result = groupedContracts;
+    // فلتر الحالة
+    if (statusFilter !== 'all') {
+      result = result.filter(([, group]) => {
+        const latestStatus = group[0].status;
+        return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
+      });
+    }
+    // فلتر البحث
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(([, group]) =>
+        group.some(c =>
+          c.contract_number.toLowerCase().includes(q) ||
+          c.tenant_name.toLowerCase().includes(q) ||
+          (c.notes || '').toLowerCase().includes(q) ||
+          getPaymentTypeLabel(c.payment_type).includes(q)
+        )
+      );
+    }
+    return result;
+  }, [groupedContracts, searchQuery, statusFilter]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
@@ -375,6 +399,17 @@ const ContractsPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setCurrentPage(1); }}>
+            <SelectTrigger className="w-48 shrink-0">
+              <Filter className="w-4 h-4 ml-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
+              <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
+              <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
+            </SelectContent>
+          </Select>
           {filteredGroups.length > 0 && (
             <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
               <ChevronsUpDown className="w-4 h-4" />
