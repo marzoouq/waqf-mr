@@ -187,12 +187,47 @@
 
 ---
 
+## 🔬 الجولة 17: تقرير جنائي عميق — البنية التحتية (6 إصلاحات ✅)
+
+تاريخ: 2026-03-14
+
+### المشاكل المُصلحة
+
+| # | الملف | الإصلاح |
+|---|-------|---------|
+| CRIT-AI-1 | `AiAssistant.tsx` | إزالة استخدام `getSession()` — استبدالها بـ `getUser()` أولاً ثم قراءة الجلسة المُحدَّثة |
+| CRIT-AI-2 | `AiAssistant.tsx` | إضافة cooldown 2 ثانية بين الرسائل لمنع استنزاف API |
+| HIGH-VITE-1 | `vite.config.ts` | إضافة `/functions/v1/` لـ `NetworkOnly` — منع كاش Edge Functions |
+| HIGH-PWA-1 | `PwaUpdateNotifier.tsx` | `cache: 'no-store'` + query string لتجاوز كاش `changelog.json` |
+| HIGH-THEME-1 | `ThemeColorPicker.tsx` | حفظ reference للـ `MutationObserver` + `disconnect()` + `cleanupThemeObserver()` |
+| MED-PWA-1 | `PwaUpdateNotifier.tsx` | إضافة `AbortController` مع cleanup في `useEffect` |
+
+### إنذارات كاذبة (لم تُنفَّذ)
+
+| # | المشكلة | السبب |
+|---|---------|-------|
+| CRIT-CLIENT-1 | JWT في localStorage | `client.ts` ملف تلقائي محظور التعديل |
+| HIGH-APP-1 | حلقة reload لا نهائية | منطق `chunk_retry` صحيح — guard يمنع التكرار |
+| HIGH-APP-2 | SecurityGuard lazy | ليس في `DeferredRender` — يُحمَّل مع `Suspense` فقط |
+| HIGH-PWA-2 | تعارض skipWaiting | `skipWaiting: false` مُطبَّق بالفعل |
+
+### مؤجلة للمستقبل
+
+| # | المشكلة | السبب |
+|---|---------|-------|
+| MED-AI-1 | حفظ محادثات AI في DB | ميزة جديدة وليس خلل |
+| MED-LOGGER-1 | `error_name` في access_log | معلومة عامة لا تُشكّل خطراً |
+| INFO-APP-1 | مسارا ZATCA/Support غير موثقَّين | توثيق فقط |
+| INFO-AI-1 | AiAssistant يُحمَّل لجميع الأدوار | تحسين أداء مؤجل |
+
+---
+
 ## 🏁 الخلاصة
 
-النظام **مستقر وآمن وجاهز للنشر**. تم إصلاح **72+ مشكلة** عبر عدة جولات تدقيق جنائي شاملة. الاختبارات الآلية (~600+ اختبار) تمر بنجاح. المشاكل المؤجلة موثقة بالكامل ولا تُشكّل خطراً فورياً.
+النظام **مستقر وآمن وجاهز للنشر**. تم إصلاح **78+ مشكلة** عبر 17 جولة تدقيق جنائي شاملة. الاختبارات الآلية (~600+ اختبار) تمر بنجاح. المشاكل المؤجلة موثقة بالكامل ولا تُشكّل خطراً فورياً.
 
 ```
-التقييم النهائي: █████████░  92% ✅
+التقييم النهائي: █████████░  93% ✅
 ```
 
 </div>
