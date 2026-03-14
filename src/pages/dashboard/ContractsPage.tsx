@@ -252,16 +252,8 @@ const ContractsPage = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active': return <span className="px-2 py-1 rounded-full text-xs bg-success/20 text-success">نشط</span>;
-      case 'expired': return <span className="px-2 py-1 rounded-full text-xs bg-destructive/20 text-destructive">منتهي</span>;
-      case 'pending': return <span className="px-2 py-1 rounded-full text-xs bg-warning/20 text-warning">معلق</span>;
-      default: return <span className="px-2 py-1 rounded-full text-xs bg-muted">{status}</span>;
-    }
-  };
 
-  
+
 
   // تجميع العقود حسب الرقم الأساسي (بدون -R1, -R2, ...)
   const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
