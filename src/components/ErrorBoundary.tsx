@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
 
