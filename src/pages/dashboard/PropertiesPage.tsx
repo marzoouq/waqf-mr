@@ -121,6 +121,7 @@ const PropertiesPage = () => {
     setFormData({
       property_number: property.property_number, property_type: property.property_type,
       location: property.location, area: property.area.toString(), description: property.description || '',
+      vat_exempt: (property as any).vat_exempt ?? false,
     });
     setIsOpen(true);
   };
