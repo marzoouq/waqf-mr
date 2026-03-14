@@ -16,7 +16,7 @@ const CONTRACT_STATUS_LABELS: Record<string, string> = {
   renewed: 'مجدد',
 };
 
-export const useRealtimeAlerts = () => {
+export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
   const { user, role } = useAuth();
   const subscribedRef = useRef(false);
 
