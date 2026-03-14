@@ -33,8 +33,6 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// Collection summary mini-chart colors (kept inline since PieChart is still imported for collection summary)
-const COLLECTION_COLORS = ['hsl(var(--success))', 'hsl(var(--destructive))'];
 
 const AdminDashboard = () => {
   const { role } = useAuth();
