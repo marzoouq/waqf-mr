@@ -22,6 +22,8 @@ interface UpsertPaymentParams {
     property_id: string;
     fiscal_year_id: string | null;
     tenant_name: string;
+    /** تاريخ الدفعة — الافتراضي تاريخ اليوم */
+    payment_date?: string;
   };
 }
 
