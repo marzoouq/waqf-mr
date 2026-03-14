@@ -32,6 +32,8 @@ type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 interface CollectionRow {
   contract: Contract;
   paymentCount: number;
+  totalContractPayments: number;
+  spansMultipleYears: boolean;
   paid: number;
   expected: number;
   overdue: number;
