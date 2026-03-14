@@ -30,6 +30,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+// HIGH-4: تعقيم الوصف ضد CSV Injection
+const sanitizeDescription = (value: string): string => {
+  if (!value) return value;
+  return value.replace(/^[=+\-@\t\r]+/, '');
+};
+
 const InvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
