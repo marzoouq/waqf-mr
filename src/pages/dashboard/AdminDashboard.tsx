@@ -244,6 +244,20 @@ const AdminDashboard = () => {
           </Alert>
         )}
 
+        {/* Pending Advance Requests */}
+        {pendingAdvances.length > 0 && (
+          <Alert className="animate-fade-in border-warning/50">
+            <Wallet className="h-4 w-4" />
+            <AlertTitle>طلبات سُلف معلقة</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span>{pendingAdvances.length} طلب سُلفة بانتظار الموافقة</span>
+              <Link to="/dashboard/beneficiaries">
+                <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Stats Grid */}
         {isLoading ? <StatsGridSkeleton /> : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
