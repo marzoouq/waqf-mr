@@ -439,6 +439,10 @@ const NotificationsTab = () => {
   const defaults = { contract_expiry: true, contract_expiry_days: 30, payment_delays: true, email_notifications: false };
   const settings = getJsonSetting('notification_settings', defaults);
 
+  // FIX: حالة محلية لحقل الأيام لمنع إرسال طلب DB عند كل ضغطة
+  const [expiryDays, setExpiryDays] = useState(settings.contract_expiry_days);
+  useEffect(() => { setExpiryDays(settings.contract_expiry_days); }, [settings.contract_expiry_days]);
+
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
   });
