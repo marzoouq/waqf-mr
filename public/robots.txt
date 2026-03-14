@@ -1,8 +1,14 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard/
+Disallow: /beneficiary/
+Disallow: /unauthorized
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard/
+Disallow: /beneficiary/
+Disallow: /unauthorized
 
 User-agent: Twitterbot
 Allow: /
@@ -12,5 +18,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /beneficiary/
+Disallow: /unauthorized
 
 Sitemap: https://waqf-wise.net/sitemap.xml

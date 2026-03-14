@@ -27,7 +27,7 @@ export default defineConfig({
         "src/vite-env.d.ts",
         "src/vite-pwa.d.ts",
       ],
-      reporter: ["text", "text-summary", "json"],
+      reporter: ["text", "text-summary", "json", "lcov"],
     },
   },
   resolve: {
