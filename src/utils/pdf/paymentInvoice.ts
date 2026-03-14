@@ -37,6 +37,9 @@ const statusLabel = (s: string) => {
   }
 };
 
+// INV-CRIT-1: sanitize مسار الملف لمنع path traversal
+const sanitizePath = (name: string) => name.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+
 export const generatePaymentInvoicePDF = async (
   invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
