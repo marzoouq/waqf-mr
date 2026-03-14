@@ -1,64 +1,55 @@
 
+# تقرير التحقق النهائي — الجولتان الأولى والثانية
 
-# تحقق من بنود الجولة السادسة
-
-## ملخص
-
-من 11 بنداً: **2 مشكلتان حرجتان حقيقيتان**، **1 عالية مؤكدة**، **3 إنذارات كاذبة**، **5 ملاحظات تصميمية**.
+> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
 
 ---
 
-## إنذارات كاذبة
+## الجولة الأولى — 14 بنداً
 
-**HIGH-26 (Timing Oracle):** الرد 429 لا يكشف وجود الهوية — يكشف فقط حالة Rate Limit. لا فائدة للمهاجم من التمييز الزمني بين "محدود" و"غير محدود".
-
-**HIGH-27 (TOCTOU في useSendMessage):** تغيير `participant_id` أثناء إرسال رسالة يتطلب عملية admin متزامنة — سيناريو نظري بحت. الإشعار الخاطئ لا يكشف بيانات حساسة.
-
-**MED-29 (stack trace في access_log):** سبق مناقشته في الجولة الثالثة (HIGH-12) — access_log محمي بـ RLS لـ admin فقط. أدوار موثوقة.
-
----
-
-## مشاكل حقيقية
-
-### 1. CRIT-14 — `lookup_by_national_id` معطلة كلياً ← مؤكَّد وحرج
-
-الفحص `IF auth.uid() IS NULL THEN RAISE EXCEPTION` يمنع الدالة من العمل عند استدعائها من Edge Function عبر `serviceRoleKey` (لأن `auth.uid()` تُرجع NULL مع service_role). **ميزة تسجيل الدخول بالهوية الوطنية مكسورة**.
-
-### 2. CRIT-15 — Event Trigger يُعيد منح EXECUTE لـ authenticated ← مؤكَّد
-
-Migration `20260313194456` يُعيد إنشاء `lookup_by_national_id` بـ `CREATE OR REPLACE` → يُفعِّل event trigger `auto_revoke_anon_execute` → يمنح `EXECUTE TO authenticated` تلقائياً. أي مستخدم مسجل يستطيع استدعاء الدالة مباشرة متجاوزاً Rate Limiting في Edge Function.
-
-### 3. HIGH-25 — Race condition في check_rate_limit ← مؤكَّد جزئياً
-
-عندما `NOT FOUND` (سجل جديد)، الدالة تُدرج وتُرجع `false` (غير محدود) بدون تحقق من الحد. طلبان متزامنان لمفتاح جديد كلاهما يمرّان. لكن بعد الإدراج الأول، `SELECT FOR UPDATE` يقفل الصف. الخطر محدود بالطلب الأول فقط.
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
+| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
+| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
+| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
+| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
+| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
+| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
+| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
+| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
+| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
+| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
+| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
+| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
 
 ---
 
-## ملاحظات تصميمية (لا تحتاج تدخل عاجل)
+## الجولة الثانية — 11 بنداً جديداً
 
-| البند | التقييم |
-|-------|---------|
-| HIGH-28 — Google Fonts في print | يُبطئ الطباعة offline لكن لا يكسر الوظيفة الأساسية. الخطوط Amiri موجودة محلياً في `public/fonts/` |
-| MED-26 — Full table scan | مقبول حالياً مع عدد مستفيدين صغير |
-| MED-27 — accountant لا يرى محادثات | قرار تصميم — المحاسب ليس طرفاً في المراسلات |
-| MED-28 — لا pagination للرسائل | تحسين UX مستقبلي |
-| MED-30 — ALTER FUNCTION يُفعِّل trigger | يُحل ضمن إصلاح CRIT-15 |
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-04 | `allocate_icv_and_chain` مُعادة لـ `authenticated` | 🔴 | ❌ إنذار كاذب | guard داخلي `has_role(admin/accountant)` يمنع الاستغلال |
+| CRIT-05 | `lookup_by_national_id` يُعاد فتحها تلقائياً | 🔴 | ❌ إنذار كاذب | guard داخلي + `get_pii_key()` يُرجع NULL لغير المخوَّلين |
+| HIGH-06 | `cron_check_contract_expiry` يُرسل لكل المستفيدين | 🟠 | ✅ قرار تصميم | `ben_msg` لا يحتوي اسم المستأجر — مقبول |
+| HIGH-07 | `upsert_tenant_payment` بتاريخ `CURRENT_DATE` دائماً | 🟠 | ✅ تم الإصلاح | أُضيف `p_payment_date` كمعامل اختياري |
+| HIGH-08 | `reopen_fiscal_year` لا تُعالج السنة الجديدة | 🟠 | ❌ إنذار كاذب | `enforce_single_active_fy` trigger يُغلق السنة الأخرى |
+| HIGH-09 | `auto_revoke_anon_execute` في `allowed_functions` | 🟠 | ❌ إنذار كاذب | event trigger function — لا يمكن استدعاؤها مباشرة |
+| MED-06 | `log_access_event` تقبل `client_error` من anon | 🟡 | ✅ قرار تصميم | مقصود لتسجيل أخطاء صفحة تسجيل الدخول |
+| MED-07 | المحاسب يرى جميع تذاكر الدعم | 🟡 | ✅ قرار تصميم | المحاسب دور موثوق |
+| MED-08 | double-source لـ `paid_count` | 🟡 | ❌ إنذار كاذب | COALESCE يعمل كـ fallback وليس double-counting |
+| MED-09 | `close_fiscal_year` بدون تحقق من pending | 🟡 | ✅ تم الإصلاح | يُرجع `warnings` في النتيجة (تحذير بدل منع) |
+| Fallback | `useBeneficiariesDecrypted` يجلب من `beneficiaries` | 🟡 | ✅ تم الإصلاح | Fallback يستخدم الآن `beneficiaries_safe` |
 
 ---
 
-## خطة الإصلاح
+## الإصلاحات المُطبَّقة في هذا التحديث (الجولة الثانية)
 
-### Migration SQL واحد:
+1. **Migration**: `upsert_tenant_payment` — إضافة `p_payment_date date DEFAULT CURRENT_DATE`
+2. **Migration**: `close_fiscal_year` — إضافة تحقق من pending distributions/advances مع إرجاع `warnings`
+3. **Code**: `useBeneficiariesDecrypted` fallback يستخدم `beneficiaries_safe` بدل `beneficiaries`
+4. **Code**: `useTenantPayments` — إضافة `payment_date` للـ interface وتمريره للـ RPC
 
-1. **CRIT-14:** إزالة فحص `auth.uid() IS NULL` من `lookup_by_national_id` — الحماية عبر REVOKE (الدالة مصممة لـ service_role فقط)
+---
 
-2. **CRIT-15 + MED-30:** تحديث `auto_revoke_anon_execute` لإضافة قائمة استثناء `service_role_only_functions` تشمل:
-   - `lookup_by_national_id`
-   - `get_pii_key`
-   - `decrypt_pii`
-   - `get_active_zatca_certificate`
-   
-   هذه الدوال لا تحصل على `GRANT EXECUTE TO authenticated` عند إعادة إنشائها. ثم `REVOKE EXECUTE ON lookup_by_national_id FROM authenticated` صريحاً.
-
-3. **HIGH-25:** تحديث `check_rate_limit` — عند `NOT FOUND`، بعد الإدراج، إعادة قراءة العداد والتحقق من الحد قبل إرجاع النتيجة.
-
+**الخلاصة**: جميع المشاكل الحقيقية من الجولتين مُعالجة. المشروع في حالة أمنية سليمة.
