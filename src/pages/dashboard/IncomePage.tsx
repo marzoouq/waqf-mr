@@ -52,8 +52,10 @@ const IncomePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    const amount = parseFloat(formData.amount);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
     const incomeData: Record<string, unknown> = {
-      source: formData.source, amount: parseFloat(formData.amount), date: formData.date,
+      source: formData.source, amount, date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
     if (!editingIncome && fiscalYear?.id) {

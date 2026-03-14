@@ -1,87 +1,75 @@
 
+# تقرير التحقق النهائي — الجولات 1-7
 
-# تحليل بنود فحص لوحة الناظر
+> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
 
-## التحقق من الكود الفعلي
+---
 
-### CRIT-A — `getSession()` في `callAdminApi` و `BeneficiariesPage` — **إنذار كاذب**
+## الجولة الأولى — 14 بنداً
 
-Edge Function `admin-manage-users` تتحقق من المستخدم عبر `getUser()` (سطر 37):
-```
-const { data: userData, error: userError } = await userClient.auth.getUser();
-```
-ثم تتحقق من دور admin عبر service role client (سطر 49-54). إذا زُوِّر token في localStorage، `getUser()` سترفضه. هذا هو النمط الصحيح المعتمد في المشروع (الحصول على token من `getSession` ← إرساله ← التحقق server-side بـ `getUser`). تم تأكيد هذا في الجولة السابعة (CRIT-16/17).
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
+| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
+| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
+| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
+| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
+| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
+| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
+| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
+| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
+| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
+| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
+| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
+| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
 
-### HIGH-A — أرقام مشوهة عند `fiscalYearId='all'` — **إنذار كاذب**
+---
 
-`useRawFinancialData` يحوّل `fiscalYearId` إلى `'all'` عند القيم الخاصة (سطر 14). عند `'all'`:
-- يجلب كل الإيرادات والمصروفات
-- `currentAccount` يكون `null` (لا يتطابق مع أي `fiscal_year_id`)
-- يمر إلى `calculateFinancials()` (سطر 128-139) الذي يحسب من البيانات الخام مباشرة
+## الجولة الثانية — 11 بنداً جديداً
 
-هذا سلوك مقصود — عند "كل السنوات" لا يوجد حساب ختامي واحد، فالنظام يحسب إجمالي كل السنوات. `fiscalYearStatus = undefined` يعني `isClosed = false`، فلا تُحسب الحصص — وهذا صحيح لعرض إجمالي.
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-04 | `allocate_icv_and_chain` مُعادة لـ `authenticated` | 🔴 | ❌ إنذار كاذب | guard داخلي `has_role(admin/accountant)` يمنع الاستغلال |
+| CRIT-05 | `lookup_by_national_id` يُعاد فتحها تلقائياً | 🔴 | ❌ إنذار كاذب | guard داخلي + `get_pii_key()` يُرجع NULL لغير المخوَّلين |
+| HIGH-06 | `cron_check_contract_expiry` يُرسل لكل المستفيدين | 🟠 | ✅ قرار تصميم | `ben_msg` لا يحتوي اسم المستأجر — مقبول |
+| HIGH-07 | `upsert_tenant_payment` بتاريخ `CURRENT_DATE` دائماً | 🟠 | ✅ تم الإصلاح | أُضيف `p_payment_date` كمعامل اختياري |
+| HIGH-08 | `reopen_fiscal_year` لا تُعالج السنة الجديدة | 🟠 | ❌ إنذار كاذب | `enforce_single_active_fy` trigger يُغلق السنة الأخرى |
+| HIGH-09 | `auto_revoke_anon_execute` في `allowed_functions` | 🟠 | ❌ إنذار كاذب | event trigger function — لا يمكن استدعاؤها مباشرة |
+| MED-06 | `log_access_event` تقبل `client_error` من anon | 🟡 | ✅ قرار تصميم | مقصود لتسجيل أخطاء صفحة تسجيل الدخول |
+| MED-07 | المحاسب يرى جميع تذاكر الدعم | 🟡 | ✅ قرار تصميم | المحاسب دور موثوق |
+| MED-08 | double-source لـ `paid_count` | 🟡 | ❌ إنذار كاذب | COALESCE يعمل كـ fallback وليس double-counting |
+| MED-09 | `close_fiscal_year` بدون تحقق من pending | 🟡 | ✅ تم الإصلاح | يُرجع `warnings` في النتيجة (تحذير بدل منع) |
+| Fallback | `useBeneficiariesDecrypted` يجلب من `beneficiaries` | 🟡 | ✅ تم الإصلاح | Fallback يستخدم الآن `beneficiaries_safe` |
 
-### HIGH-B — `getSession()` في `usePaymentInvoices` — **إنذار كاذب**
+---
 
-نفس تحليل CRIT-A. لم يتم التحقق من وجود `getSession` في `usePaymentInvoices` أصلاً — هذا hook يستعلم مباشرة من Supabase client بدون Edge Function.
+## الجولة السادسة — إصلاح `logger.ts`
 
-### HIGH-C — لا تحقق من حد أقصى للمبالغ — **مشكلة حقيقية (متوسطة)**
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| LOG-01 | `stack` trace يُرسل لـ `access_log` — يكشف مسارات الكود | 🟠 | ✅ تم الإصلاح | حُذف `stack` من metadata |
+| LOG-02 | `LogAccessFn` type يستخدم `string` بدل union type | 🟡 | ✅ تم الإصلاح | أُضيف `AccessEventType` union type |
 
-`parseFloat(formData.amount)` يقبل أي رقم بدون تحقق من أنه موجب أو ضمن حد معقول. لكن الخطورة متوسطة لأن:
-- فقط admin و accountant يستطيعون الإدخال (RLS)
-- هم أدوار موثوقة
-- إدخال مبلغ سالب أو ضخم خطأ بشري لا هجوم
+---
 
-**الإصلاح مفيد كحماية**: إضافة `amount > 0 && amount <= 999_999_999` في validation.
+## الجولة السابعة — 11 بنداً (الكل إنذارات كاذبة)
 
-### HIGH-D — `CloseYearDialog` لا يتحقق من الدور داخلياً — **إنذار كاذب**
-
-- `handleCloseYear` في `useAccountsPage.ts` سطر 348: `if (role !== 'admin') return`
-- RPC `close_fiscal_year` سطر 85: `IF NOT has_role(auth.uid(), 'admin') AND NOT has_role(auth.uid(), 'accountant') THEN RAISE EXCEPTION`
-- الحماية ثلاثية: UI → handler → RPC. React DevTools لا يستطيع تجاوز handler أو RPC.
-
-ملاحظة: RPC يسمح للمحاسب أيضاً — هذا **تناقض مقصود** (RPC أكثر تسامحاً من UI). لكن ليس ثغرة.
-
-### HIGH-E — `availableAmount < 0` يُعرض بلا تحذير — **ملاحظة تصميمية**
-
-القيم السالبة تحدث فعلاً عندما المصروفات تتجاوز الإيرادات. عرضها بقيمة سالبة هو **معلومة دقيقة** — العجز حقيقي. إضافة تحذير مرئي مفيدة كـ UX لكنها ليست خطأ.
-
-### HIGH-F — فلترة المستخدمين client-side — **ملاحظة أداء**
-
-`list_users` يجلب كل المستخدمين ثم يُفلتر على `beneficiary`. الحل الأمثل هو فلترة server-side. لكن هذا مسألة أداء لا أمن — البيانات المُرجعة (email + id فقط) مرئية لـ admin بالفعل. عدد المستخدمين في نظام وقف عادة < 50.
-
-### MED-A — orphanedContracts لا يكتشف سنوات محذوفة — **ملاحظة تصميمية**
-
-السنوات المالية لا تُحذف في هذا النظام (لا يوجد زر حذف). الحالة الوحيدة هي `fiscal_year_id = null`. الفلتر الحالي كافٍ.
-
-### MED-B إلى MED-F — ملاحظات تصميمية/أداء متنوعة
-
-- MED-B: يحتاج تحقق — لكنه سيناريو نادر
-- MED-C: تنظيم كود لا أمن
-- MED-D: Storage policies هي الطبقة الصحيحة
-- MED-E: الفلترة تتم **server-side** عبر `q.eq('type', type)` سطر 19 — **إنذار كاذب**
-- MED-F: العقود الملغاة ليست نشطة فعلاً في حساب التحصيل لأن `activeContracts = fyContracts.filter(c => c.status === 'active')` في AdminDashboard
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-16 | `getSession()` في `useWebAuthn` | 🔴 | ❌ إنذار كاذب | Client-side — RLS تُفلتر بـ `auth.uid()` من JWT الفعلي |
+| CRIT-17 | `getSession()` في `useGenerateInvoicePdf` | 🔴 | ❌ إنذار كاذب | Token يُتحقق منه server-side بـ `getUser()` |
+| HIGH-29 | `URL.createObjectURL` بدون cleanup | 🟠 | ❌ إنذار كاذب | `revokeObjectURL` موجود في InvoiceViewer و PaymentInvoicesTab |
+| HIGH-30 | CSS injection عبر ThemeColorPicker | 🟠 | ❌ إنذار كاذب | يُخزَّن معرّف الثيم فقط — يُبحث في مصفوفة ثابتة |
+| HIGH-31 | أحداث مكررة في `useIdleTimeout` | 🟠 | ❌ إنذار كاذب | Cleanup صحيح في useEffect — نمط React قياسي |
+| HIGH-32 | `selectedId` بدون UUID validation | 🟠 | ❌ إنذار كاذب | استعلامات مُعلَّمة + فحص تطابق مع السنوات الموجودة |
+| MED-31 | Mock في AuthContext.test لا يتحقق من جلب الدور | 🟡 | ❌ ملاحظة اختبارات | لا تؤثر على الإنتاج |
+| MED-32 | اختبارات edgeFunctionAuth تختبر نفسها | 🟡 | ❌ ملاحظة اختبارات | تحسين مستقبلي |
+| MED-33 | `limit(100)` في useAdvanceRequests | 🟡 | ❌ تصميم مقصود | سقف كافٍ لسنة مالية واحدة |
+| MED-34 | clearToasts عند logout | 🟡 | ❌ سلوك مقصود | حذف الإشعارات عند الخروج متوقع |
+| MED-35 | رفع PDF بدون client-side auth check | 🟡 | ❌ تصميم صحيح | Storage RLS كافٍ |
 
 ---
 
 ## الخلاصة
 
-من 13 بنداً: **1 مشكلة متوسطة حقيقية** (validation المبالغ)، **12 إنذار كاذب أو ملاحظة تصميمية**.
-
-## خطة الإصلاح
-
-تعديل ملفين:
-
-### 1. `src/pages/dashboard/IncomePage.tsx`
-إضافة validation على المبلغ قبل الإرسال:
-```typescript
-const amount = parseFloat(formData.amount);
-if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) {
-  toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999');
-  return;
-}
-```
-
-### 2. `src/pages/dashboard/ExpensesPage.tsx`
-نفس الـ validation على المبلغ.
-
+**جميع المشاكل الحقيقية من 7 جولات مُعالجة. المشروع في حالة أمنية سليمة.**
