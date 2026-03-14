@@ -64,6 +64,10 @@ export default defineConfig(({ mode }) => ({
             urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
             handler: 'NetworkOnly',
           },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
+            handler: 'NetworkOnly', // Edge Functions — بيانات حساسة لا تُكَّش
+          },
         ],
       },
       manifest: {

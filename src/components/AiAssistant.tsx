@@ -22,6 +22,8 @@ const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placehold
   report: { label: 'إعداد تقرير', icon: FileText, placeholder: 'اطلب إعداد تقرير...', welcome: 'اطلب إعداد تقرير وسأجهزه لك بصياغة احترافية' },
 };
 
+const SEND_COOLDOWN_MS = 2000;
+
 const AiAssistant = () => {
   const { user, role } = useAuth();
 
@@ -30,6 +32,7 @@ const AiAssistant = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<ChatMode>('chat');
+  const lastSendTimeRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -56,6 +59,11 @@ const AiAssistant = () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
+    // حماية من الإرسال المتكرر — cooldown بين الرسائل
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+    lastSendTimeRef.current = now;
+
     if (!AI_URL) {
       setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '❌ خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.' }]);
       setInput('');
@@ -75,13 +83,14 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
-      // تحديث الجلسة لضمان صلاحية الـ token
+      // التحقق من المستخدم واستخراج token من الجلسة النشطة
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError || !currentUser) {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       }
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      // استخدام الجلسة المُحدَّثة من onAuthStateChange — آمنة لأن getUser() أثبت صلاحيتها
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       if (!token) {
         throw new Error('انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً');
       }
