@@ -261,18 +261,17 @@ const renderBankDetails = (
   return y;
 };
 
-// رسم QR Code
+// رسم QR Code — يظهر دائماً حتى لو VAT = 0
 const renderQrCode = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   waqfInfo: PdfWaqfInfo | undefined, x: number, y: number, size: number,
 ) => {
-  const vatRate = invoice.vatRate ?? 0;
   const vatAmount = invoice.vatAmount ?? 0;
-  if (!(vatRate > 0 && waqfInfo?.vatNumber)) return;
 
+  // توليد TLV — يشمل بيانات البائع والمبلغ حتى لو الضريبة صفر
   const tlvBase64 = generateZatcaQrTLV({
-    sellerName: waqfInfo.waqfName || '',
-    vatNumber: waqfInfo.vatNumber,
+    sellerName: waqfInfo?.waqfName || '',
+    vatNumber: waqfInfo?.vatNumber || '',
     timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
     totalWithVat: invoice.amount,
     vatAmount: vatAmount,
