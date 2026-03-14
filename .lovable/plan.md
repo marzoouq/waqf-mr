@@ -1,57 +1,87 @@
 
-# التقرير الشامل النهائي — نظام وقف مرزوق بن علي الثبيتي
+# خطة التطوير — نظام وقف مرزوق بن علي الثبيتي
 
-> **تاريخ: 2026-03-14 | الإصدار: v2.9.0**
-> **النتيجة الإجمالية: 26/26 مشكلة مُصلحة ✅ + 4 فهارس أداء + تحسين has_role**
+> **آخر تحديث:** 2026-03-14 | **الإصدار:** v2.9.0+
 
 ---
 
-## الجولة الأولى: 12 مشكلة أصلية (12/12 ✅)
+## ✅ مُنجز — إصلاحات البنية التحتية (2026-03-14)
 
-| # | المشكلة | الحالة |
-|---|---------|--------|
-| CRIT-1 | `invoices` RLS = `USING(true)` | ✅ |
-| MED-1 | `payment_invoices` بدون `AS RESTRICTIVE` | ✅ |
-| CRIT-2 | تناقض Storage Policy مع accountant | ✅ |
-| SEC-MED-3 | لا validation على `vat_amount <= amount` | ✅ |
-| CRIT-3 | `file.type` من client — قابل للتزوير | ✅ |
-| CRIT-4 | ترتيب الحذف: Storage قبل DB | ✅ |
-| CRIT-5 | `download()` بدون TTL أو فحص مالك | ✅ |
-| HIGH-1 | `ALLOWED_MIME_TYPES` مكرر في مكانين | ✅ |
-| HIGH-2 | `getSession()` بدلاً من `getUser()` | ✅ |
-| HIGH-3 | `invoice_number` بدون UNIQUE | ✅ |
-| HIGH-4 | `description` بدون تعقيم → CSV Injection | ✅ |
-| CRIT-4 UI | `storage.remove()` بدون error handling | ✅ |
+- [x] إزالة Supabase URL المكشوف من `index.html`
+- [x] تحسين CSP: إضافة `worker-src 'self'` و `manifest-src 'self'`
+- [x] إزالة `<meta name="keywords">`
+- [x] تحديث `robots.txt` لمنع فهرسة المسارات المحمية
+- [x] `skipWaiting: false` في PWA لحماية البيانات النشطة
+- [x] توسيع `navigateFallbackDenylist` في PWA
+- [x] تعطيل sourcemaps في production
+- [x] إضافة `jspdf`/`recharts` لـ `manualChunks`
+- [x] إضافة `lcov` reporter لـ vitest coverage
+- [x] إضافة `^` لـ `next-themes` في package.json
 
-## الجولة الثانية: 10 مشاكل جنائية (10/10 ✅)
+---
 
-| # | المشكلة | الحالة |
-|---|---------|--------|
-| NEW-CRIT-1 | `lookup_by_national_id` بدون فحص دور | ✅ |
-| NEW-CRIT-2 | Event Trigger لا يشمل `ALTER FUNCTION` | ✅ |
-| NEW-CRIT-3 | المحاسب لا يرى `zatca_certificates` و `invoice_chain` | ✅ |
-| NEW-HIGH-1 | dedup يُخفي إشعار المستفيد | ✅ |
-| NEW-HIGH-2 | `support_tickets` UPDATE بدون `WITH CHECK` | ✅ |
-| NEW-HIGH-3 | `support_ticket_replies` INSERT بدون شرط status | ✅ |
-| NEW-HIGH-4 | `get_next_icv()` بدون قفل — Race Condition | ✅ |
-| NEW-MED-1 | `pg_cron` ازدواجية | ✅ قرار معماري |
-| NEW-MED-2 | `support_tickets` بدون `audit_trigger` | ✅ |
-| NEW-MED-3 | `pgp_sym_encrypt/decrypt` بدون schema prefix | ✅ |
+## 📋 مهام مؤجلة — أمان (تدريجي)
 
-## الجولة الثالثة: إصلاحات نهائية (4/4 ✅)
+### 🔴 حرج — `strictNullChecks: true`
+- **الملف:** `tsconfig.json` + `tsconfig.app.json`
+- **المخاطر:** `null/undefined` يُعامَلان كأرقام صالحة → حسابات مالية بـ `NaN`
+- **الخطة:** تفعيل تدريجي مع إصلاح الأخطاء الناتجة ملف بملف
+- **التقدير:** 2-4 أيام عمل
 
-| # | المشكلة | الحالة |
-|---|---------|--------|
-| ZATCA-3 | `zatca_certificates.private_key` نص عادي | ✅ trigger `trg_encrypt_zatca_private_key` |
-| SEC-2 | `audit_trigger_func` يُسرّب PII في حقول حرة | ✅ `mask_audit_fields()` يُقنّع notes/description/content |
-| M-6 | `beneficiaries_safe` تعارض security_invoker | ✅ `security_invoker = true` (معيار v2) |
-| PERF-4 | `has_role` بدون PARALLEL SAFE | ✅ |
+### 🟠 عالي — `strict: true` + `noImplicitAny: true`
+- **الملف:** `tsconfig.app.json`
+- **الوضع الحالي:** `strict: false` بينما `tsconfig.node.json` = `strict: true`
+- **الخطة:** تفعيل بعد `strictNullChecks`
 
-## فهارس الأداء المضافة
+### 🟡 متوسط — CSP كـ HTTP Header
+- **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`
+- **الحل:** إضافة `Content-Security-Policy` كـ HTTP Response Header عبر Edge Function أو Cloudflare Worker
+- **المتطلب:** إعداد خادم وسيط
 
-| الفهرس | الجدول |
-|--------|--------|
-| `idx_income_fy_date` | `income(fiscal_year_id, date)` |
-| `idx_expenses_fy_date` | `expenses(fiscal_year_id, date)` |
-| `idx_notifications_user_read` | `notifications(user_id, is_read, created_at)` |
-| `idx_audit_log_table_date` | `audit_log(table_name, created_at)` |
+### 🟡 متوسط — إزالة `unsafe-inline` من `style-src`
+- **المشكلة:** CSS Injection ممكن نظرياً
+- **المتطلب:** nonce-based CSP يحتاج تعديل في Vite build pipeline
+
+---
+
+## 📋 مهام مؤجلة — أداء
+
+### 🟡 ضغط `og-image.png`
+- **الحجم الحالي:** 903KB — المعيار: < 200KB
+- **الحل:** ضغط بـ WebP أو أدوات ضغط صور
+
+### 🟡 تقليل كاش PWA للأصول الثابتة
+- **الوضع الحالي:** `StaleWhileRevalidate` = 30 يوم
+- **الحل:** تقليل إلى 7 أيام أو `CacheFirst` للأصول ذات hash
+
+### 🟡 نقل `vite-plugin-pwa` لـ `devDependencies`
+- **الوضع:** هي أداة build فقط لكنها في `dependencies`
+- **الحل:** نقل يدوي في `package.json`
+
+---
+
+## 📋 مهام مؤجلة — CI/CD
+
+- [ ] توحيد ملفات lock: اختيار `npm` أو `bun` وحذف الآخر
+- [ ] مزامنة إصدار `package-lock.json` مع `package.json`
+- [ ] إضافة `coverage.thresholds` (حد أدنى 60%) بعد استقرار التغطية
+- [ ] تفعيل `noUnusedLocals` و `noUnusedParameters` تدريجياً
+- [ ] إضافة integration tests لـ Edge Functions
+- [ ] إضافة فحص migrations قبل الدمج في CI
+
+---
+
+## 📋 مهام مؤجلة — ZATCA
+
+- [ ] إضافة FK على `invoice_chain.invoice_id` → `invoices.id`
+- [ ] نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings`
+- [ ] إضافة Edge Function لاستقبال Webhook callback من ZATCA
+
+---
+
+## 📋 مهام مؤجلة — UX
+
+- [ ] مقارنة سنة بسنة في KPI Dashboard
+- [ ] فلتر تحصيل العقود حسب الفترة
+- [ ] تصدير Excel بالإضافة لـ PDF
+- [ ] تصنيف الإشعارات (مالية / نظام / عقود)
