@@ -294,6 +294,41 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     <div className="space-y-5">
       <InvoiceStepsGuide />
 
+      {/* Dialog معاينة الفاتورة */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>معاينة فاتورة {previewInvoiceNumber}</DialogTitle>
+            <DialogDescription>معاينة الفاتورة قبل التحميل</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-md border"
+                title="معاينة الفاتورة"
+              />
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closePreview}>إغلاق</Button>
+            {previewUrl && (
+              <Button className="gap-2" onClick={() => {
+                const a = document.createElement('a');
+                a.href = previewUrl;
+                a.download = `فاتورة-${previewInvoiceNumber}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                toast.success('تم تحميل الفاتورة');
+              }}>
+                <Download className="w-4 h-4" />تحميل
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog الدفع الجزئي */}
       <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
         <DialogContent className="max-w-sm">
