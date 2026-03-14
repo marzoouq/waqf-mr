@@ -56,8 +56,10 @@ const ExpensesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.expense_type || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    const amount = parseFloat(formData.amount);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
     const expenseData: Record<string, unknown> = {
-      expense_type: formData.expense_type, amount: parseFloat(formData.amount), date: formData.date,
+      expense_type: formData.expense_type, amount, date: formData.date,
       property_id: formData.property_id || undefined, description: formData.description || undefined,
     };
     if (!editingExpense && fiscalYear?.id) {
