@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -48,7 +49,7 @@ const PropertiesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
   const [formData, setFormData] = useState({
-    property_number: '', property_type: '', location: '', area: '', description: '',
+    property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
@@ -87,7 +88,7 @@ const PropertiesPage = () => {
   }, [properties, allUnits, contracts, expenses]);
 
   const resetForm = () => {
-    setFormData({ property_number: '', property_type: '', location: '', area: '', description: '' });
+    setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
     setEditingProperty(null);
   };
 
@@ -100,6 +101,7 @@ const PropertiesPage = () => {
     const propertyData = {
       property_number: formData.property_number, property_type: formData.property_type,
       location: formData.location, area: parseFloat(formData.area), description: formData.description || undefined,
+      vat_exempt: formData.vat_exempt,
     };
     try {
       if (editingProperty) {
@@ -120,6 +122,7 @@ const PropertiesPage = () => {
     setFormData({
       property_number: property.property_number, property_type: property.property_type,
       location: property.location, area: property.area.toString(), description: property.description || '',
+      vat_exempt: (property as any).vat_exempt ?? false,
     });
     setIsOpen(true);
   };
@@ -165,6 +168,13 @@ const PropertiesPage = () => {
                   <div className="space-y-2"><Label>الموقع *</Label><Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="المدينة، الحي، الشارع" /></div>
                   <div className="space-y-2"><Label>المساحة (م²) *</Label><Input type="number" value={formData.area} onChange={(e) => setFormData({ ...formData, area: e.target.value })} placeholder="100" /></div>
                   <div className="space-y-2"><Label>الوصف</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي للعقار" /></div>
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">معفى من الضريبة (سكني)</Label>
+                      <p className="text-xs text-muted-foreground">العقارات السكنية معفاة من VAT حسب نظام ZATCA</p>
+                    </div>
+                    <Switch checked={formData.vat_exempt} onCheckedChange={(checked) => setFormData({ ...formData, vat_exempt: checked })} />
+                  </div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={createProperty.isPending || updateProperty.isPending}>{editingProperty ? 'تحديث' : 'إضافة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
@@ -238,7 +248,12 @@ const PropertiesPage = () => {
               <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                      {(property as any).vat_exempt && (
+                        <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
+                      )}
+                    </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)} aria-label="تعديل العقار"><Edit className="w-4 h-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive" aria-label="حذف العقار"><Trash2 className="w-4 h-4" /></Button>

@@ -1088,6 +1088,7 @@ export type Database = {
           property_number: string
           property_type: string
           updated_at: string
+          vat_exempt: boolean
         }
         Insert: {
           area: number
@@ -1098,6 +1099,7 @@ export type Database = {
           property_number: string
           property_type: string
           updated_at?: string
+          vat_exempt?: boolean
         }
         Update: {
           area?: number
@@ -1108,6 +1110,7 @@ export type Database = {
           property_number?: string
           property_type?: string
           updated_at?: string
+          vat_exempt?: boolean
         }
         Relationships: []
       }
