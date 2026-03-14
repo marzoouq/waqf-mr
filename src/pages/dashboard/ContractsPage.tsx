@@ -292,6 +292,15 @@ const ContractsPage = () => {
     );
   }, [groupedContracts, searchQuery]);
 
+  const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
+  const toggleAllGroups = () => {
+    if (allExpanded) {
+      setExpandedGroups(new Set());
+    } else {
+      setExpandedGroups(new Set(filteredGroups.map(([base]) => base)));
+    }
+  };
+
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
 
   const filteredContracts = contracts.filter((c) => {
