@@ -59,6 +59,8 @@ const ContractAccordionGroup = ({
   onEdit,
   onDelete,
   onRenew,
+  open,
+  onOpenChange,
 }: ContractAccordionGroupProps) => {
   // أحدث عقد = العقد الرئيسي المعروض
   const latest = contracts[0];
