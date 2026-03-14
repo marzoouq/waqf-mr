@@ -89,6 +89,7 @@ const allBeneficiaryLinks = [
   { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
   { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
   { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
+  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
