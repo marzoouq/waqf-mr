@@ -115,6 +115,7 @@ const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/bylaws': 'bylaws',
   '/dashboard/messages': 'messages',
   '/dashboard/audit-log': 'audit_log',
+  '/dashboard/annual-report': 'annual_report',
 };
 
 const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
