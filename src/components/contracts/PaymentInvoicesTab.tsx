@@ -100,7 +100,14 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       }, waqfInfo);
 
       if (blobUrl) {
-        window.open(blobUrl, '_blank');
+        // تحميل مباشر عبر <a> لتجنب حظر المتصفح للنوافذ المنبثقة
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `فاتورة-${inv.invoice_number}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(blobUrl);
         toast.success('تم تصدير الفاتورة بنجاح');
       } else {
         toast.info('تم حفظ الفاتورة محلياً');
