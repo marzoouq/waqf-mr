@@ -83,13 +83,14 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
-      // تحديث الجلسة لضمان صلاحية الـ token
+      // التحقق من المستخدم واستخراج token من الجلسة النشطة
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError || !currentUser) {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       }
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      // استخدام الجلسة المُحدَّثة من onAuthStateChange — آمنة لأن getUser() أثبت صلاحيتها
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       if (!token) {
         throw new Error('انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً');
       }

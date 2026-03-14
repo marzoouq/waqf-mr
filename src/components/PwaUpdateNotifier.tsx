@@ -46,6 +46,7 @@ const PwaUpdateNotifier = () => {
   const [newEntries, setNewEntries] = useState<ChangelogEntry[]>([]);
 
   useEffect(() => {
+    const controller = new AbortController();
     try {
       const raw = localStorage.getItem(UPDATE_FLAG_KEY);
       if (!raw) return;
@@ -54,10 +55,14 @@ const PwaUpdateNotifier = () => {
       const { ts } = JSON.parse(raw);
       if (Date.now() - ts >= UPDATE_TTL) return;
 
-      // Fetch changelog from external JSON
-      fetch('/changelog.json')
+      // جلب سجل التحديثات مع تجاوز الكاش
+      fetch(`/changelog.json?v=${Date.now()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      })
         .then(res => res.json())
         .then((changelog: ChangelogEntry[]) => {
+          if (controller.signal.aborted) return;
           const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || '0.0.0';
           const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
           const entries = filtered.length > 0 ? filtered : [changelog[0]];
@@ -78,6 +83,8 @@ const PwaUpdateNotifier = () => {
         })
         .catch(() => {});
     } catch {}
+
+    return () => controller.abort();
   }, []);
 
   if (newEntries.length === 0) return null;

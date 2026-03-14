@@ -331,6 +331,9 @@ const resetTheme = () => {
   allKeys.forEach(key => document.documentElement.style.removeProperty(`--${key}`));
 };
 
+// مرجع للـ observer لإمكانية إيقافه عند الحاجة
+let themeObserver: MutationObserver | null = null;
+
 export const initThemeFromStorage = () => {
   try {
     const savedId = localStorage.getItem(THEME_KEY);
@@ -340,8 +343,11 @@ export const initThemeFromStorage = () => {
     }
   } catch { /* ignore */ }
 
-  // Watch for dark mode toggle changes
-  const observer = new MutationObserver(() => {
+  // إيقاف أي observer سابق لمنع التكرار
+  themeObserver?.disconnect();
+
+  // مراقبة تبديل الوضع الليلي/النهاري
+  themeObserver = new MutationObserver(() => {
     try {
       const savedId = localStorage.getItem(THEME_KEY);
       if (savedId && savedId !== 'islamic-green') {
@@ -350,7 +356,13 @@ export const initThemeFromStorage = () => {
       }
     } catch { /* ignore */ }
   });
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+};
+
+/** إيقاف مراقب تغيير الثيم — يُستخدم عند إلغاء التحميل */
+export const cleanupThemeObserver = () => {
+  themeObserver?.disconnect();
+  themeObserver = null;
 };
 
 const ThemeColorPicker = () => {
