@@ -36,7 +36,8 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   return map;
 }
 
-const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId, waqfInfo }: YearOverYearComparisonProps) => {
+const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYearComparisonProps) => {
+  const waqfInfo = usePdfWaqfInfo();
   const [year1Id, setYear1Id] = useState(currentFiscalYearId);
   const [year2Id, setYear2Id] = useState('');
 
