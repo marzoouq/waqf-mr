@@ -3,7 +3,7 @@
  * يستمع لتغييرات على جداول support_tickets و contracts
  * وينبّه المستخدم عبر toast + إشعار في قاعدة البيانات
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
