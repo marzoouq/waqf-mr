@@ -1,67 +1,87 @@
 
+# خطة التطوير — نظام وقف مرزوق بن علي الثبيتي
 
-# خطة التوثيق الشامل — المشاكل المتبقية والتحسينات المستقبلية
+> **آخر تحديث:** 2026-03-14 | **الإصدار:** v2.9.0+
 
-## الهدف
+---
 
-تحديث `.lovable/plan.md` و `docs/FINAL-AUDIT-REPORT.md` لتوثيق جميع المشاكل المكتشفة في الفحص الجنائي الأخير للبنية التحتية، مع تنفيذ الإصلاحات الممكنة مباشرة.
+## ✅ مُنجز — إصلاحات البنية التحتية (2026-03-14)
 
-## الإصلاحات القابلة للتنفيذ الآن (8 إصلاحات)
+- [x] إزالة Supabase URL المكشوف من `index.html`
+- [x] تحسين CSP: إضافة `worker-src 'self'` و `manifest-src 'self'`
+- [x] إزالة `<meta name="keywords">`
+- [x] تحديث `robots.txt` لمنع فهرسة المسارات المحمية
+- [x] `skipWaiting: false` في PWA لحماية البيانات النشطة
+- [x] توسيع `navigateFallbackDenylist` في PWA
+- [x] تعطيل sourcemaps في production
+- [x] إضافة `jspdf`/`recharts` لـ `manualChunks`
+- [x] إضافة `lcov` reporter لـ vitest coverage
+- [x] إضافة `^` لـ `next-themes` في package.json
 
-| # | الملف | الإصلاح |
-|---|-------|---------|
-| 1 | `index.html` | إزالة `dns-prefetch` و `preconnect` بالرابط المكشوف |
-| 2 | `index.html` | إضافة `worker-src 'self'` و `manifest-src 'self'` لـ CSP |
-| 3 | `index.html` | إزالة `<meta name="keywords">` |
-| 4 | `public/robots.txt` | منع فهرسة `/dashboard/` و `/beneficiary/` و `/unauthorized` |
-| 5 | `vite.config.ts` | `skipWaiting: false` لحماية البيانات النشطة |
-| 6 | `vite.config.ts` | توسيع `navigateFallbackDenylist` |
-| 7 | `vite.config.ts` | `sourcemap: false` في production |
-| 8 | `vite.config.ts` | إضافة `jspdf` و `recharts` لـ `manualChunks` |
-| 9 | `vitest.config.ts` | إضافة `lcov` reporter |
-| 10 | `package.json` | نقل `vite-plugin-pwa` لـ `devDependencies` + إضافة `^` لـ `next-themes` |
+---
 
-## التوثيق المستقبلي (لا يُنفَّذ الآن)
+## 📋 مهام مؤجلة — أمان (تدريجي)
 
-سيُضاف قسم جديد في `.lovable/plan.md` يوثق:
+### 🔴 حرج — `strictNullChecks: true`
+- **الملف:** `tsconfig.json` + `tsconfig.app.json`
+- **المخاطر:** `null/undefined` يُعامَلان كأرقام صالحة → حسابات مالية بـ `NaN`
+- **الخطة:** تفعيل تدريجي مع إصلاح الأخطاء الناتجة ملف بملف
+- **التقدير:** 2-4 أيام عمل
 
-### أمان مستقبلي
-- `strictNullChecks: true` — يتطلب إصلاح مئات الأخطاء تدريجياً
-- CSP كـ HTTP header بدل `<meta>` (يحتاج إعداد خادم)
-- `unsafe-inline` في `style-src` — يحتاج nonce-based CSP
-- WebAuthn `auth-options` بدون JWT
+### 🟠 عالي — `strict: true` + `noImplicitAny: true`
+- **الملف:** `tsconfig.app.json`
+- **الوضع الحالي:** `strict: false` بينما `tsconfig.node.json` = `strict: true`
+- **الخطة:** تفعيل بعد `strictNullChecks`
 
-### أداء مستقبلي
-- ضغط `og-image.png` (903KB → ~80KB)
-- تقليل كاش `StaleWhileRevalidate` من 30 يوم لـ 7 أيام
+### 🟡 متوسط — CSP كـ HTTP Header
+- **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`
+- **الحل:** إضافة `Content-Security-Policy` كـ HTTP Response Header عبر Edge Function أو Cloudflare Worker
+- **المتطلب:** إعداد خادم وسيط
 
-### CI/CD مستقبلي
-- توحيد ملفات lock (npm vs bun)
-- مزامنة إصدار `package-lock.json`
-- فحص migrations قبل الدمج
-- integration tests لـ Edge Functions
-- coverage thresholds
+### 🟡 متوسط — إزالة `unsafe-inline` من `style-src`
+- **المشكلة:** CSS Injection ممكن نظرياً
+- **المتطلب:** nonce-based CSP يحتاج تعديل في Vite build pipeline
 
-### UX مستقبلي
-- مقارنة سنة بسنة في KPI
-- فلتر تحصيل العقود
-- تصدير Excel
-- تصنيف الإشعارات
+---
 
-### ZATCA مستقبلي
-- FK على `invoice_chain.invoice_id`
-- `seller_name`/`seller_vat` في جدول `invoices`
-- Webhook callback من ZATCA
+## 📋 مهام مؤجلة — أداء
 
-## الملفات المتأثرة
+### 🟡 ضغط `og-image.png`
+- **الحجم الحالي:** 903KB — المعيار: < 200KB
+- **الحل:** ضغط بـ WebP أو أدوات ضغط صور
 
-```text
-index.html           ← إزالة URL + تحسين CSP + إزالة keywords
-vite.config.ts       ← skipWaiting:false + sourcemap:false + chunks + denylist
-vitest.config.ts     ← lcov reporter
-public/robots.txt    ← منع فهرسة المسارات المحمية
-package.json         ← نقل vite-plugin-pwa + ^ next-themes
-.lovable/plan.md     ← توثيق شامل محدّث
-docs/FINAL-AUDIT-REPORT.md ← إضافة قسم المشاكل المستقبلية
-```
+### 🟡 تقليل كاش PWA للأصول الثابتة
+- **الوضع الحالي:** `StaleWhileRevalidate` = 30 يوم
+- **الحل:** تقليل إلى 7 أيام أو `CacheFirst` للأصول ذات hash
 
+### 🟡 نقل `vite-plugin-pwa` لـ `devDependencies`
+- **الوضع:** هي أداة build فقط لكنها في `dependencies`
+- **الحل:** نقل يدوي في `package.json`
+
+---
+
+## 📋 مهام مؤجلة — CI/CD
+
+- [ ] توحيد ملفات lock: اختيار `npm` أو `bun` وحذف الآخر
+- [ ] مزامنة إصدار `package-lock.json` مع `package.json`
+- [ ] إضافة `coverage.thresholds` (حد أدنى 60%) بعد استقرار التغطية
+- [ ] تفعيل `noUnusedLocals` و `noUnusedParameters` تدريجياً
+- [ ] إضافة integration tests لـ Edge Functions
+- [ ] إضافة فحص migrations قبل الدمج في CI
+
+---
+
+## 📋 مهام مؤجلة — ZATCA
+
+- [ ] إضافة FK على `invoice_chain.invoice_id` → `invoices.id`
+- [ ] نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings`
+- [ ] إضافة Edge Function لاستقبال Webhook callback من ZATCA
+
+---
+
+## 📋 مهام مؤجلة — UX
+
+- [ ] مقارنة سنة بسنة في KPI Dashboard
+- [ ] فلتر تحصيل العقود حسب الفترة
+- [ ] تصدير Excel بالإضافة لـ PDF
+- [ ] تصنيف الإشعارات (مالية / نظام / عقود)

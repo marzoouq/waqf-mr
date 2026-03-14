@@ -26,10 +26,10 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       workbox: {
         cleanupOutdatedCaches: true,
-        skipWaiting: true,
+        skipWaiting: false,
         clientsClaim: true,
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/~oauth/],
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /\.(?:png|jpg|jpeg|svg|gif|ico|webp)$/, /^\/fonts\//],
         globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
@@ -118,10 +118,12 @@ export default defineConfig(({ mode }) => ({
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-query': ['@tanstack/react-query'],
           'vendor-markdown': ['react-markdown'],
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+          'vendor-charts': ['recharts'],
         },
       },
     },
-    chunkSizeWarningLimit: 600,
-    sourcemap: 'hidden',
+    chunkSizeWarningLimit: 500,
+    sourcemap: false,
   },
 }));
