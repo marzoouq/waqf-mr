@@ -385,146 +385,46 @@ const ContractsPage = () => {
           </div>
         )}
 
-        <Card className="shadow-sm">
-          <CardContent className="p-0">
-            {isLoading ? (
-              <TableSkeleton rows={5} cols={6} />
-            ) : filteredContracts.length === 0 ? (
-              <div className="py-12 text-center">
-                <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p>
-                {!searchQuery && contracts.length === 0 && fiscalYearId !== 'all' && fiscalYears.length > 1 && (
-                  <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-info/30 bg-info/10 text-info text-sm">
-                    <Info className="w-4 h-4 shrink-0" />
-                    <span>
-                      لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
-                      <button type="button" className="underline font-semibold hover:opacity-80" onClick={() => setFiscalYearId('all')}>جميع السنوات</button>
-                      {' '}أو اختر سنة مالية أخرى من القائمة أعلاه.
-                    </span>
-                  </div>
-                )}
+        {/* عرض العقود المُجمَّعة */}
+        {isLoading ? (
+          <TableSkeleton rows={5} cols={6} />
+        ) : filteredGroups.length === 0 ? (
+          <div className="py-12 text-center">
+            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقود مسجلة'}</p>
+            {!searchQuery && contracts.length === 0 && fiscalYearId !== 'all' && fiscalYears.length > 1 && (
+              <div className="mt-4 mx-auto max-w-md flex items-center gap-2 p-3 rounded-lg border border-info/30 bg-info/10 text-info text-sm">
+                <Info className="w-4 h-4 shrink-0" />
+                <span>
+                  لا توجد عقود في هذه السنة المالية. جرّب التبديل إلى{' '}
+                  <button type="button" className="underline font-semibold hover:opacity-80" onClick={() => setFiscalYearId('all')}>جميع السنوات</button>
+                  {' '}أو اختر سنة مالية أخرى من القائمة أعلاه.
+                </span>
               </div>
-            ) : (
-              <>
-                {/* Mobile Cards */}
-                <div className="space-y-3 md:hidden px-3 py-2">
-                  {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
-                    <Card key={contract.id} className="shadow-sm">
-                      <CardContent className="p-4 space-y-3">
-                        {contract.status === 'expired' && (
-                          <div className="flex items-center gap-2 pb-2 border-b border-destructive/20">
-                            <Checkbox checked={selectedForRenewal.has(contract.id)} onCheckedChange={() => toggleSelection(contract.id)} />
-                            <span className="text-xs text-destructive">اختر للتجديد</span>
-                          </div>
-                        )}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-bold text-sm">{contract.contract_number}</span>
-                              {getStatusBadge(contract.status)}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">{contract.tenant_name}</p>
-                          </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-success hover:text-success/80" onClick={() => handleRenew(contract)} title="تجديد العقد" aria-label="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(contract)} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{contract.property?.property_number || '-'}</p></div>
-                          <div><p className="text-[10px] text-muted-foreground">الوحدة</p><p className="text-sm font-medium">{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'كامل'}</p></div>
-                          <div><p className="text-[10px] text-muted-foreground">البداية</p><p className="text-sm font-medium">{contract.start_date}</p></div>
-                          <div><p className="text-[10px] text-muted-foreground">النهاية</p><p className="text-sm font-medium">{contract.end_date}</p></div>
-                          <div><p className="text-[10px] text-muted-foreground">الإيجار السنوي</p><p className="text-sm font-medium">{Number(contract.rent_amount).toLocaleString()} ر.س</p></div>
-                          <div><p className="text-[10px] text-muted-foreground">نوع الدفع</p><p className="text-sm font-medium">{getPaymentTypeLabel(contract.payment_type)}</p></div>
-                        </div>
-                        {/* التحصيل (من الفواتير) */}
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <span className="text-xs text-muted-foreground">التحصيل</span>
-                          {(() => {
-                             const paymentCount = getPaymentCount(contract);
-                            const paid = invoicePaidMap.get(contract.id) ?? 0;
-                            return (
-                              <div className="space-y-1.5 w-full">
-                                <span className={`text-sm font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 w-full ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                {/* Desktop Table */}
-                <div className="overflow-x-auto hidden md:block">
-                  <Table className="min-w-[1000px]">
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        {expiredContracts.length > 0 && <TableHead className="text-center w-10"></TableHead>}
-                        <TableHead className="text-right">رقم العقد</TableHead><TableHead className="text-right">العقار</TableHead>
-                        <TableHead className="text-right">الوحدة</TableHead>
-                        <TableHead className="text-right">المستأجر</TableHead><TableHead className="text-right">تاريخ البداية</TableHead>
-                        <TableHead className="text-right">تاريخ النهاية</TableHead><TableHead className="text-right">الإيجار السنوي</TableHead>
-                        <TableHead className="text-right">نوع الدفع</TableHead><TableHead className="text-right">قيمة الدفعة</TableHead>
-                        <TableHead className="text-right">التحصيل</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead><TableHead className="text-right">إجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredContracts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((contract) => (
-                        <TableRow key={contract.id}>
-                          {expiredContracts.length > 0 && (
-                            <TableCell className="text-center">
-                              {contract.status === 'expired' ? (
-                                <Checkbox checked={selectedForRenewal.has(contract.id)} onCheckedChange={() => toggleSelection(contract.id)} />
-                              ) : null}
-                            </TableCell>
-                          )}
-                          <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                          <TableCell>{contract.property?.property_number || '-'}</TableCell>
-                          <TableCell>{contract.unit ? `وحدة ${contract.unit.unit_number}` : 'العقار كامل'}</TableCell>
-                          <TableCell>{contract.tenant_name}</TableCell>
-                          <TableCell>{contract.start_date}</TableCell>
-                          <TableCell>{contract.end_date}</TableCell>
-                          <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell>
-                            {getPaymentTypeLabel(contract.payment_type)}
-                          </TableCell>
-                          <TableCell>{contract.payment_amount ? `${Number(contract.payment_amount).toLocaleString()} ر.س` : '-'}</TableCell>
-                          <TableCell>
-                            {(() => {
-                              const paymentCount = getPaymentCount(contract);
-                              const paid = invoicePaidMap.get(contract.id) ?? 0;
-                              return (
-                                <div className="space-y-1.5">
-                                  <span className={`text-sm font-bold min-w-[3rem] text-center block ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>{paid}/{paymentCount}</span>
-                                  <Progress value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0} className={`h-1.5 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
-                                </div>
-                              );
-                            })()}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(contract.status)}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-success hover:text-success/80" onClick={() => handleRenew(contract)} aria-label="تجديد العقد"><RefreshCw className="w-4 h-4" /></Button>
-                              </TooltipTrigger><TooltipContent>تجديد العقد</TooltipContent></Tooltip></TooltipProvider>
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(contract)} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: contract.id, name: `العقد ${contract.contract_number}` })} className="text-destructive hover:text-destructive" aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
             )}
-            <TablePagination currentPage={currentPage} totalItems={filteredContracts.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
-          </CardContent>
-        </Card>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredGroups
+              .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+              .map(([baseNumber, group]) => (
+                <ContractAccordionGroup
+                  key={baseNumber}
+                  baseNumber={baseNumber}
+                  contracts={group}
+                  invoices={paymentInvoices}
+                  invoicePaidMap={invoicePaidMap}
+                  expiredIds={expiredIds}
+                  selectedForRenewal={selectedForRenewal}
+                  onToggleSelection={toggleSelection}
+                  onEdit={handleEdit}
+                  onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
+                  onRenew={handleRenew}
+                />
+              ))}
+            <TablePagination currentPage={currentPage} totalItems={filteredGroups.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
+          </div>
+        )}
           </TabsContent>
 
           <TabsContent value="invoices">
