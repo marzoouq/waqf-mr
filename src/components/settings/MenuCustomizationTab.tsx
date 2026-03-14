@@ -51,7 +51,11 @@ const MenuCustomizationTab = () => {
   const labels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
   const [form, setForm] = useState<MenuLabels>(labels);
 
-  useEffect(() => { setForm(labels); }, [labels]);
+  // FIX: استقرار المرجع لمنع إعادة الضبط المتكررة
+  useEffect(() => {
+    const next = JSON.stringify(labels);
+    setForm((prev) => JSON.stringify(prev) === next ? prev : labels);
+  }, [labels]);
 
   const handleChange = (key: keyof MenuLabels, value: string) => {
     setForm(prev => ({ ...prev, [key]: value }));

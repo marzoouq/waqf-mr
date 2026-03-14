@@ -295,15 +295,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
-  // إعدادات إظهار/إخفاء الأقسام (admin sections_visibility)
-  const defaultAdminSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true };
+  // إعدادات إظهار/إخفاء الأقسام (admin sections_visibility) — FIX: إضافة الأقسام الناقصة
+  const defaultAdminSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true };
   const sectionsVisibility = getJsonSetting('sections_visibility', defaultAdminSections);
 
-  // إعدادات إظهار/إخفاء أقسام المستفيد (beneficiary_sections)
-  const defaultBeneficiarySections = { disclosure: true, share: true, accounts: true, reports: true };
+  // إعدادات إظهار/إخفاء أقسام المستفيد — FIX: إضافة الأقسام الناقصة
+  const defaultBeneficiarySections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true };
   const beneficiarySections = getJsonSetting('beneficiary_sections', defaultBeneficiarySections);
 
-  // Map admin sections_visibility keys to route paths
+  // Map admin sections_visibility keys to route paths — FIX: إضافة المسارات الناقصة
   const ADMIN_SECTION_KEYS: Record<string, string> = {
     '/dashboard/properties': 'properties',
     '/dashboard/contracts': 'contracts',
@@ -313,15 +313,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     '/dashboard/reports': 'reports',
     '/dashboard/accounts': 'accounts',
     '/dashboard/users': 'users',
+    '/dashboard/invoices': 'invoices',
+    '/dashboard/bylaws': 'bylaws',
+    '/dashboard/messages': 'messages',
+    '/dashboard/audit-log': 'audit_log',
   };
 
-  // Map beneficiary_sections keys to route paths
+  // Map beneficiary_sections keys to route paths — FIX: إضافة المسارات الناقصة
   const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
+    '/beneficiary/properties': 'properties',
+    '/beneficiary/contracts': 'contracts',
     '/beneficiary/disclosure': 'disclosure',
     '/beneficiary/my-share': 'share',
     '/beneficiary/carryforward': 'share',
     '/beneficiary/accounts': 'accounts',
     '/beneficiary/financial-reports': 'reports',
+    '/beneficiary/invoices': 'invoices',
+    '/beneficiary/bylaws': 'bylaws',
+    '/beneficiary/messages': 'messages',
+    '/beneficiary/notifications': 'notifications',
   };
 
   const links = useMemo(() => {

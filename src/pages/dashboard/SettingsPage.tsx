@@ -322,16 +322,17 @@ const WaqfSettingsTab = () => {
   );
 };
 
-// === Sections Visibility Tab ===
+// === Sections Visibility Tab (FIX: إضافة الأقسام الناقصة) ===
 const SectionsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true };
+  const defaultSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true };
   const sections = getJsonSetting('sections_visibility', defaultSections);
 
   const labels: Record<string, string> = {
     properties: 'العقارات', contracts: 'العقود', income: 'الدخل', expenses: 'المصروفات',
     beneficiaries: 'المستفيدين', reports: 'التقارير', accounts: 'الحسابات', users: 'إدارة المستخدمين',
+    invoices: 'الفواتير', bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', audit_log: 'سجل المراجعة',
   };
 
   const toggle = (key: string) => {
@@ -344,7 +345,7 @@ const SectionsTab = () => {
     <Card>
       <CardHeader>
         <CardTitle className="font-display text-lg">أقسام لوحة التحكم</CardTitle>
-        <CardDescription>إظهار أو إخفاء أقسام من القائمة الجانبية</CardDescription>
+        <CardDescription>إظهار أو إخفاء أقسام من القائمة الجانبية (يؤثر على الناظر والمحاسب)</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {Object.entries(labels).map(([key, label]) => (
@@ -358,15 +359,17 @@ const SectionsTab = () => {
   );
 };
 
-// === Beneficiary Interface Tab ===
+// === Beneficiary Interface Tab (FIX: إضافة الأقسام الناقصة) ===
 const BeneficiaryTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { disclosure: true, share: true, accounts: true, reports: true };
+  const defaultSections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true };
   const sections = getJsonSetting('beneficiary_sections', defaultSections);
 
   const labels: Record<string, string> = {
-    disclosure: 'الإفصاح السنوي', share: 'حصتي من الريع', accounts: 'الحسابات الختامية', reports: 'التقارير المالية',
+    properties: 'العقارات', contracts: 'العقود', disclosure: 'الإفصاح السنوي', share: 'حصتي من الريع',
+    accounts: 'الحسابات الختامية', reports: 'التقارير المالية', invoices: 'الفواتير',
+    bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', notifications: 'سجل الإشعارات',
   };
 
   const toggle = (key: string) => {
@@ -379,7 +382,7 @@ const BeneficiaryTab = () => {
     <Card>
       <CardHeader>
         <CardTitle className="font-display text-lg">واجهة المستفيد</CardTitle>
-        <CardDescription>التحكم بالأقسام الظاهرة للمستفيدين</CardDescription>
+        <CardDescription>التحكم بالأقسام الظاهرة للمستفيدين والواقف</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {Object.entries(labels).map(([key, label]) => (
@@ -435,6 +438,10 @@ const NotificationsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
   const defaults = { contract_expiry: true, contract_expiry_days: 30, payment_delays: true, email_notifications: false };
   const settings = getJsonSetting('notification_settings', defaults);
+
+  // FIX: حالة محلية لحقل الأيام لمنع إرسال طلب DB عند كل ضغطة
+  const [expiryDays, setExpiryDays] = useState(settings.contract_expiry_days);
+  useEffect(() => { setExpiryDays(settings.contract_expiry_days); }, [settings.contract_expiry_days]);
 
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
@@ -493,8 +500,9 @@ const NotificationsTab = () => {
             <Label>عدد الأيام قبل الانتهاء</Label>
             <Input
               type="number"
-              value={settings.contract_expiry_days}
-              onChange={(e) => updateJsonSetting('notification_settings', { ...settings, contract_expiry_days: parseInt(e.target.value) || 30 })}
+              value={expiryDays}
+              onChange={(e) => setExpiryDays(parseInt(e.target.value) || 30)}
+              onBlur={() => updateJsonSetting('notification_settings', { ...settings, contract_expiry_days: expiryDays })}
               className="w-32"
               min={1}
               max={365}

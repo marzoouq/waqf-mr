@@ -22,8 +22,11 @@ const AdvanceSettingsTab = () => {
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (form.min_amount < 0) return;
-    if (form.max_percentage < 1 || form.max_percentage > 100) return;
+    // السماح بالحفظ عند التعطيل (لحفظ حالة enabled=false)
+    if (form.enabled) {
+      if (form.min_amount < 0) return;
+      if (form.max_percentage < 1 || form.max_percentage > 100) return;
+    }
     setSaving(true);
     try {
       await updateJsonSetting('advance_settings', form);
@@ -85,7 +88,8 @@ const AdvanceSettingsTab = () => {
           <p className="text-xs text-muted-foreground">النسبة القصوى من الحصة التقديرية التي يمكن طلبها كسلفة (الافتراضي: 50%)</p>
         </div>
 
-        <Button onClick={handleSave} disabled={saving || !form.enabled} className="gap-2">
+        {/* FIX: زر الحفظ لم يعد معطلاً عند تعطيل السُلف */}
+        <Button onClick={handleSave} disabled={saving} className="gap-2">
           <Save className="w-4 h-4" />
           {saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات السُلف'}
         </Button>
