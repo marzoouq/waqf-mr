@@ -19,7 +19,6 @@ export interface WaqfInfo {
 
 export const useAppSettings = () => {
   const queryClient = useQueryClient();
-  const jsonCacheRef = useRef<Map<string, { raw: string; parsed: unknown }>>(new Map());
 
   const query = useQuery({
     queryKey: ['app-settings-all'],
