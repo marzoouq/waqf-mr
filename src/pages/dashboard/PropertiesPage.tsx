@@ -248,7 +248,12 @@ const PropertiesPage = () => {
               <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{property.property_number}</CardTitle>
+                      {(property as any).vat_exempt && (
+                        <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
+                      )}
+                    </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={(e) => handleEdit(property, e)} aria-label="تعديل العقار"><Edit className="w-4 h-4" /></Button>
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: property.id, name: `العقار ${property.property_number}` }); }} className="text-destructive hover:text-destructive" aria-label="حذف العقار"><Trash2 className="w-4 h-4" /></Button>
