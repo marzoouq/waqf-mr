@@ -64,7 +64,17 @@ const ContractsPage = () => {
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const ITEMS_PER_PAGE = 10;
+
+  const allExpanded = filteredGroups?.length > 0 && expandedGroups.size >= filteredGroups.length;
+  const toggleAllGroups = () => {
+    if (allExpanded) {
+      setExpandedGroups(new Set());
+    } else {
+      setExpandedGroups(new Set(filteredGroups.map(([base]) => base)));
+    }
+  };
 
   const resetForm = () => {
     setEditingContract(null);
