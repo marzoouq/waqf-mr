@@ -42,10 +42,10 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /\/assets\/.+\.(?:js|css)$/i,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'static-assets',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
           {
