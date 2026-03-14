@@ -51,7 +51,8 @@ const UserManagementPage = () => {
   const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string } | null>(null);
+  const [toggling, setToggling] = useState(false);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -69,12 +70,15 @@ const UserManagementPage = () => {
   });
 
   const toggleRegistration = async (enabled: boolean) => {
+    setToggling(true);
     try {
       await callAdminApi({ action: 'toggle_registration', enabled });
       queryClient.invalidateQueries({ queryKey: ['registration-enabled'] });
       toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     } catch (e: unknown) {
       toast.error(getSafeErrorMessage(e));
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -113,6 +117,7 @@ const UserManagementPage = () => {
       toast.success('تم إنشاء المستخدم بنجاح');
       setIsCreateOpen(false);
       setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
+      setCurrentPage(1);
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
@@ -173,7 +178,8 @@ const UserManagementPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('تم حذف المستخدم');
-      setDeleteUserId(null);
+      setDeleteTarget(null);
+      setCurrentPage(1);
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
@@ -217,6 +223,7 @@ const UserManagementPage = () => {
             <Switch
               checked={registrationEnabled}
               onCheckedChange={toggleRegistration}
+              disabled={toggling}
             />
           </CardContent>
         </Card>
@@ -241,6 +248,16 @@ const UserManagementPage = () => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
+                  // CRIT-2 fix: تحقق من رقم الهوية (10 أرقام)
+                  if (!/^\d{10}$/.test(createForm.nationalId)) {
+                    toast.error('رقم الهوية يجب أن يتكون من 10 أرقام بالضبط');
+                    return;
+                  }
+                  // CRIT-1 fix: تحقق من طول كلمة المرور
+                  if (createForm.password.length < 8) {
+                    toast.error('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+                    return;
+                  }
                   createUser.mutate(createForm);
                 }}
                 className="space-y-4"
@@ -275,7 +292,7 @@ const UserManagementPage = () => {
                     placeholder="••••••••"
                     dir="ltr"
                     required
-                    minLength={6}
+                    minLength={8}
                   />
                 </div>
                 <div className="space-y-2">
@@ -283,10 +300,16 @@ const UserManagementPage = () => {
                   <Input
                     type="text"
                     value={createForm.nationalId}
-                    onChange={(e) => setCreateForm({ ...createForm, nationalId: e.target.value })}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, '');
+                      if (v.length <= 10) setCreateForm({ ...createForm, nationalId: v });
+                    }}
                     placeholder="1234567890"
                     dir="ltr"
                     required
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
                   />
                 </div>
                 <div className="space-y-2">
@@ -390,14 +413,14 @@ const UserManagementPage = () => {
                             <p className="text-[10px] text-muted-foreground">آخر دخول</p>
                             <p className="text-sm font-medium">
                               {user.last_sign_in_at
-                                ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                                ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })
                                 : 'لم يسجل دخول'}
                             </p>
                           </div>
                           <div>
                             <p className="text-[10px] text-muted-foreground">تاريخ الإنشاء</p>
                             <p className="text-sm font-medium">
-                              {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                              {new Date(user.created_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })}
                             </p>
                           </div>
                         </div>
@@ -445,7 +468,7 @@ const UserManagementPage = () => {
                               size="sm"
                               variant="outline"
                               className="gap-1 text-xs h-8 text-destructive hover:text-destructive"
-                              onClick={() => setDeleteUserId(user.id)}
+                              onClick={() => setDeleteTarget({ id: user.id, email: user.email })}
                               aria-label={`حذف ${user.email}`}
                             >
                               <Trash2 className="w-3 h-3" />
@@ -497,7 +520,7 @@ const UserManagementPage = () => {
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {user.last_sign_in_at
-                            ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                            ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })
                             : 'لم يسجل دخول'}
                         </TableCell>
                         <TableCell>
@@ -541,7 +564,7 @@ const UserManagementPage = () => {
                                 size="sm"
                                 variant="outline"
                                 className="gap-1 text-xs text-destructive hover:text-destructive"
-                                onClick={() => setDeleteUserId(user.id)}
+                                onClick={() => setDeleteTarget({ id: user.id, email: user.email })}
                               >
                                 <Trash2 className="w-3 h-3" />
                               </Button>
@@ -601,7 +624,7 @@ const UserManagementPage = () => {
                   size="sm"
                   className="gap-1"
                   onClick={() => editingUser && updateEmail.mutate({ userId: editingUser.id, email: editEmail })}
-                  disabled={updateEmail.isPending}
+                  disabled={updateEmail.isPending || editEmail === editingUser?.email}
                 >
                   <Mail className="w-3 h-3" />
                   تحديث البريد
@@ -654,7 +677,7 @@ const UserManagementPage = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
                   dir="ltr"
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
               <Button
@@ -669,12 +692,12 @@ const UserManagementPage = () => {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>تأكيد حذف المستخدم</AlertDialogTitle>
               <AlertDialogDescription>
-                هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.
+                هل أنت متأكد من حذف المستخدم <strong dir="ltr">{deleteTarget?.email}</strong>؟ لا يمكن التراجع عن هذا الإجراء.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -682,8 +705,8 @@ const UserManagementPage = () => {
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => {
-                  if (deleteUserId) {
-                    deleteUser.mutate(deleteUserId);
+                  if (deleteTarget) {
+                    deleteUser.mutate(deleteTarget.id);
                   }
                 }}
               >
