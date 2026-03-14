@@ -114,7 +114,7 @@ const AdminDashboard = () => {
     { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
     { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
     { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => b.share_percentage > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue, beneficiaries.length, isYearActive, sharesNote]);
+  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote]);
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
