@@ -26,6 +26,7 @@ import {
 } from '@/hooks/usePaymentInvoices';
 import { generatePaymentInvoicePDF, generateOverdueInvoicesPDF } from '@/utils/pdf';
 import type { InvoiceTemplate } from '@/utils/pdf';
+import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 
