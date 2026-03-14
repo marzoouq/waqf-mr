@@ -18,6 +18,7 @@ export interface WaqfInfo {
 
 export const useAppSettings = () => {
   const queryClient = useQueryClient();
+  const jsonCacheRef = useRef<Map<string, { raw: string; parsed: unknown }>>(new Map());
 
   const query = useQuery({
     queryKey: ['app-settings-all'],
@@ -50,12 +51,21 @@ export const useAppSettings = () => {
   });
 
   const getJsonSetting = <T>(key: string, fallback: T): T => {
-    try {
-      const raw = query.data?.[key];
-      if (raw !== undefined && raw !== null) {
-        return JSON.parse(raw);
-      }
+    const raw = query.data?.[key];
+
+    if (raw === undefined || raw === null) {
       return fallback;
+    }
+
+    const cached = jsonCacheRef.current.get(key);
+    if (cached && cached.raw === raw) {
+      return cached.parsed as T;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as T;
+      jsonCacheRef.current.set(key, { raw, parsed });
+      return parsed;
     } catch {
       return fallback;
     }
