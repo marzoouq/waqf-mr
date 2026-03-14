@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Wallet, Pencil, Check, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Wallet, Pencil, Check, X, CalendarRange } from 'lucide-react';
 
 export interface CollectionItem {
   index: number;
@@ -15,6 +16,12 @@ export interface CollectionItem {
   arrears: number;
   status: string;
   notes: string;
+  // حقول شفافية التخصيص
+  spansMultipleYears?: boolean;
+  totalContractPayments?: number;
+  allocatedToThisYear?: number;
+  allocatedToOtherYears?: number;
+  allocationNote?: string;
 }
 
 interface EditData {
@@ -105,7 +112,29 @@ const AccountsCollectionTable = ({
                         />
                       ) : `${item.paymentPerPeriod.toLocaleString()} ريال`}
                     </TableCell>
-                    <TableCell className="text-center">{item.expectedPayments}</TableCell>
+                    <TableCell className="text-center">
+                      {item.spansMultipleYears ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 cursor-help">
+                                <CalendarRange className="w-3.5 h-3.5 text-warning" />
+                                <span className="font-bold">{item.expectedPayments}</span>
+                                <span className="text-muted-foreground text-xs">/ {item.totalContractPayments}</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs text-right">
+                              <p className="font-bold mb-1">هذا العقد يمتد على أكثر من سنة مالية</p>
+                              <p>المخصص لهذه السنة: {item.allocatedToThisYear} دفعات</p>
+                              <p>المخصص لسنة أخرى: {item.allocatedToOtherYears} دفعات</p>
+                              <p className="text-muted-foreground mt-1">إجمالي العقد: {item.totalContractPayments} دفعة</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        item.expectedPayments
+                      )}
+                    </TableCell>
                     <TableCell className="text-center">
                       {isEditing ? (
                         <Input

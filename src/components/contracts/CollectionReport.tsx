@@ -6,7 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell, CalendarRange } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Contract } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,6 +32,8 @@ type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
 interface CollectionRow {
   contract: Contract;
   paymentCount: number;
+  totalContractPayments: number;
+  spansMultipleYears: boolean;
   paid: number;
   expected: number;
   overdue: number;
@@ -144,9 +147,14 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
       else if (paid > 0) status = 'partial';
       else status = 'not_started';
 
+      const contractPaymentCountTotal = getPaymentCount(contract);
+      const spansMultipleYears = useDynamicAllocation && allocatedPayments < contractPaymentCountTotal;
+
       return {
         contract,
         paymentCount: allocatedPayments,
+        totalContractPayments: contractPaymentCountTotal,
+        spansMultipleYears,
         paid,
         expected,
         overdue,
@@ -339,7 +347,12 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><span className="text-muted-foreground text-xs">الدفعات</span>
-                          <p className="font-medium">{row.paid}/{row.paymentCount}</p>
+                          <p className="font-medium">
+                            {row.paid}/{row.paymentCount}
+                            {row.spansMultipleYears && (
+                              <span className="text-muted-foreground text-[10px] mr-1">({row.totalContractPayments} إجمالي)</span>
+                            )}
+                          </p>
                         </div>
                         <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
                         <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
@@ -389,6 +402,23 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                         <TableCell className="text-center">
                           <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
                             {row.paid}/{row.paymentCount}
+                            {row.spansMultipleYears && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="inline-flex items-center gap-0.5 mr-1 cursor-help">
+                                      <CalendarRange className="w-3 h-3 text-warning inline" />
+                                      <span className="text-muted-foreground text-[10px]">/{row.totalContractPayments}</span>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs text-right">
+                                    <p className="font-bold mb-1">عقد ممتد على أكثر من سنة</p>
+                                    <p>المخصص لهذه السنة: {row.paymentCount} دفعات</p>
+                                    <p>إجمالي العقد: {row.totalContractPayments} دفعة</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                           </span>
                           {row.overdue > 0 && (
                             <span className="text-xs text-destructive block">({row.overdue} متأخرة)</span>
