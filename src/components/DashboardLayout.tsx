@@ -129,6 +129,7 @@ const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
   '/beneficiary/bylaws': 'bylaws',
   '/beneficiary/messages': 'messages',
   '/beneficiary/notifications': 'notifications',
+  '/beneficiary/annual-report': 'annual_report',
 };
 
 // Routes accountant can never access
