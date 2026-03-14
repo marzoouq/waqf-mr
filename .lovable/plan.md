@@ -1,70 +1,99 @@
 
-# إرشادات المعرفة الأمنية — نظام إدارة وقف مرزوق بن علي الثبيتي
+# تقرير الفحص الجنائي الموسّع — 2026-03-14
 
-## تصنيف المشروع
+> آخر فحص: 2026-03-14 | الإصدار: بعد إصلاح get_pii_key + view grants
 
-هذا **نظام إنتاجي حقيقي** يتعامل مع بيانات حساسة وليس نموذجاً أولياً أو بيئة تجريبية.
+---
 
-## سياق المستخدمين
+## 🔴 ثغرة حرجة تم اكتشافها وإصلاحها
 
-| الدور | النوع | مستوى الثقة |
-|-------|-------|------------|
-| ناظر الوقف (admin) | مستخدم داخلي موثوق | عالي |
-| محاسب (accountant) | مستخدم داخلي موثوق | عالي |
-| مستفيد (beneficiary) | مستخدم خارجي | متوسط — قراءة فقط لبياناته |
-| واقف (waqif) | مستخدم خارجي | متوسط — قراءة فقط |
+### CVE-INT-001 — `get_pii_key` مكشوف لجميع المستخدمين المسجلين
+**الخطورة**: حرجة 🔴
+**الحالة**: ✅ تم الإصلاح
 
-## حساسية البيانات
+**المشكلة**: دالة `get_pii_key()` كانت `SECURITY DEFINER` وتتحقق فقط من `auth.uid() IS NULL`. أي مستفيد أو واقف مسجّل يمكنه استدعاء `SELECT public.get_pii_key()` والحصول على مفتاح تشفير AES-256 الخام، مما يُمكّنه من فك تشفير جميع أرقام الهويات والحسابات البنكية.
 
-```text
-عالية جداً:
-  ├─ أرقام الهوية الوطنية (مشفرة AES-256)
-  ├─ أرقام الحسابات البنكية (مشفرة AES-256)
-  └─ البريد الإلكتروني وأرقام الهواتف
+**الإصلاح**: أُضيف فحص `has_role(auth.uid(), 'admin')` و `has_role(auth.uid(), 'accountant')` — غير ذلك يعيد `NULL`.
 
-عالية:
-  ├─ البيانات المالية (إيرادات، مصروفات، حصص)
-  ├─ العقود والفواتير الضريبية (ZATCA)
-  └─ سجل المراجعة الجنائي (audit log)
+### CVE-INT-002 — صلاحيات مفرطة على العروض الآمنة
+**الخطورة**: متوسطة 🟠
+**الحالة**: ✅ تم الإصلاح
 
-متوسطة:
-  ├─ بيانات العقارات والوحدات
-  └─ اللوائح الداخلية
-```
+**المشكلة**: `beneficiaries_safe` و `contracts_safe` كان لدى `authenticated` صلاحيات `ALL` (INSERT, UPDATE, DELETE, SELECT). رغم أن العروض لا تسمح عملياً بالكتابة، هذا ينتهك مبدأ أقل صلاحية.
 
-## طبقات الحماية المُطبَّقة فعلياً
+**الإصلاح**: `REVOKE ALL` ثم `GRANT SELECT` فقط لـ `authenticated` و `service_role`.
 
-1. **المصادقة**: تسجيل مقيّد عبر `guard-signup` + تحقق بالبريد الإلكتروني
-2. **التفويض**: أدوار في `user_roles` + سياسات RLS تقييدية على 25 جدول
-3. **التشفير**: AES-256 للبيانات الشخصية عبر `pgcrypto`
-4. **العزل**: كل مستفيد يرى بياناته فقط، السنوات غير المنشورة محجوبة
-5. **Edge Functions**: مصادقة يدوية عبر `getUser()` مع تقييد معدل الطلبات
-6. **سجل المراجعة**: غير قابل للتعديل أو الحذف، مع تمويه تلقائي للبيانات الحساسة
+---
 
-## توجيهات للماسح الأمني
+## ✅ حالة الإصلاحات السابقة (مُتحقق منها)
 
-| الملاحظة | الحكم | السبب |
-|----------|-------|-------|
-| `beneficiaries_safe` بدون RLS | إنذار كاذب | عرض VIEW بـ `security_invoker` يرث RLS من الجدول الأصلي |
-| `vite-plugin-pwa` ثغرة عالية | خطر مقبول | أداة بناء في `devDependencies` فقط، لا تُشحن للإنتاج |
-| `verify_jwt = false` في Edge Functions | مقصود | Lovable Cloud يستخدم نظام مفاتيح توقيع مختلف، المصادقة تتم يدوياً |
+| الإصلاح | الوصف | الحالة |
+|---|---|---|
+| BUG-05 | `navigate` بدل `window.location.assign` | ✅ |
+| BUG-08 | Promise caching في logger | ✅ |
+| BUG-09 | `AuthError` type في AuthContext | ✅ |
+| BUG-10 | CSP `unsafe-inline` إزالة من script-src | ✅ |
+| BUG-11 | `NetworkOnly` لـ Supabase REST/Auth | ✅ |
+| NEW-01 | FiscalYearManagementTab → navigate | ✅ |
 
-## ما يجب أن يُعلَّم كإنذار كاذب مقابل ما يتطلب إجراء
+---
 
-- **إنذار كاذب**: أي ملاحظة على عروض VIEW تملك `security_invoker = true`
-- **إنذار كاذب**: ثغرات في حزم `devDependencies` البحتة
-- **يتطلب إجراء فوري**: أي جدول جديد بدون RLS، أي Edge Function بدون مصادقة، أي تسريب لـ PII غير مشفر
+## ✅ فحص الدوال الحساسة — صلاحيات EXECUTE
 
-## ⚠️ تحذير حرج — سلوك PostgreSQL مع GRANT/REVOKE
+| الدالة | anon | authenticated | حراس داخلية |
+|---|---|---|---|
+| `get_pii_key` | ❌ | ✅ | admin/accountant فقط ✅ |
+| `decrypt_pii` | ❌ | ✅ | admin/accountant فقط ✅ |
+| `encrypt_pii` | ❌ | ✅ | مشغّل فقط (trigger) ✅ |
+| `close_fiscal_year` | ❌ | ✅ | — |
+| `execute_distribution` | ❌ | ✅ | — |
+| `reopen_fiscal_year` | ❌ | ✅ | — |
+| `allocate_icv_and_chain` | ❌ | ✅ | — |
+| `check_rate_limit` | ✅ (مطلوب) | ✅ | — |
+| `log_access_event` | ✅ (مطلوب) | ✅ | — |
+| `has_role` | ✅ (مطلوب لـ RLS) | ✅ | — |
 
-> في PostgreSQL، أمر `CREATE OR REPLACE FUNCTION` **يُعيد صلاحيات EXECUTE إلى الافتراضي (`PUBLIC`)**. أي REVOKE سابق يُلغى تلقائياً.
->
-> **القاعدة الذهبية:** يجب دائماً وضع `REVOKE`/`GRANT` في **نهاية كل migration** تُنشئ أو تُعدّل دالة حساسة.
->
-> تم اكتشاف هذا في 2026-03-13 عندما أثبت فحص `has_function_privilege()` أن 27 دالة حساسة (بما فيها `get_pii_key`) كانت مكشوفة لـ `anon` رغم وجود REVOKE في migrations سابقة.
+---
 
-## نتائج تم حلها (2026-03-13)
+## ✅ فحص صلاحيات العروض
 
-| الملاحظة | الحل |
-|----------|------|
-| 27 دالة حساسة مكشوفة لـ `anon` | migration لسحب EXECUTE من anon/PUBLIC ومنحها لـ authenticated فقط |
+| العرض | anon | authenticated | service_role |
+|---|---|---|---|
+| `beneficiaries_safe` | ❌ | SELECT فقط ✅ | ALL |
+| `contracts_safe` | ❌ | SELECT فقط ✅ | ALL |
+
+---
+
+## ✅ فحص الأمان العام
+
+- **pgcrypto**: في schema `extensions` ✅
+- **RLS**: مفعّل على جميع الجداول الـ 28 ✅
+- **audit_log**: محمي من INSERT/UPDATE/DELETE ✅
+- **access_log**: محمي من INSERT/UPDATE/DELETE ✅
+- **guard-signup**: rate limiting + rollback + email confirm ✅
+- **CSP**: `script-src 'self'` بدون `unsafe-inline` ✅
+- **PWA**: Supabase API → `NetworkOnly` ✅
+
+## ⚠️ ثغرات devDependencies (خطر مقبول)
+
+| الحزمة | الخطورة | الحكم |
+|---|---|---|
+| vite-plugin-pwa | عالية | devDependency — لا تُشحن للإنتاج |
+| workbox-build | عالية | devDependency |
+| serialize-javascript | عالية | devDependency (عبر workbox) |
+| @rollup/plugin-terser | عالية | devDependency |
+
+## ✅ فحص `window.location` المتبقية
+
+| الموقع | النوع | الحكم |
+|---|---|---|
+| `useRealtimeAlerts.ts` | fallback فقط | مقبول (navigate أولاً) |
+| `App.tsx` chunk retry | `reload()` | مقصود — لا بديل |
+| `main.tsx` PWA update | `reload()` | مقصود |
+| `ErrorBoundary.tsx` | `reload()` / `href` | مقصود — error recovery |
+| `DashboardLayout.tsx` idle | `href` | مقصود — hard logout |
+| `Auth.tsx` signOut | `reload()` | مقصود — حالة استثنائية |
+
+---
+
+**الخلاصة**: تم اكتشاف وإصلاح ثغرة حرجة في `get_pii_key` كانت تسمح لأي مستخدم مسجّل باستخراج مفتاح التشفير. المشروع الآن في حالة أمنية سليمة.
