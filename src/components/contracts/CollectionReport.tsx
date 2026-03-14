@@ -347,7 +347,12 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div><span className="text-muted-foreground text-xs">الدفعات</span>
-                          <p className="font-medium">{row.paid}/{row.paymentCount}</p>
+                          <p className="font-medium">
+                            {row.paid}/{row.paymentCount}
+                            {row.spansMultipleYears && (
+                              <span className="text-muted-foreground text-[10px] mr-1">({row.totalContractPayments} إجمالي)</span>
+                            )}
+                          </p>
                         </div>
                         <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
                         <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
