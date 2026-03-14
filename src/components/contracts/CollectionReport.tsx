@@ -147,9 +147,14 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
       else if (paid > 0) status = 'partial';
       else status = 'not_started';
 
+      const contractPaymentCountTotal = getPaymentCount(contract);
+      const spansMultipleYears = useDynamicAllocation && allocatedPayments < contractPaymentCountTotal;
+
       return {
         contract,
         paymentCount: allocatedPayments,
+        totalContractPayments: contractPaymentCountTotal,
+        spansMultipleYears,
         paid,
         expected,
         overdue,
