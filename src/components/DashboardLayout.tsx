@@ -167,6 +167,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficiary/bylaws': 'اللائحة التنظيمية',
   '/beneficiary/settings': 'الإعدادات',
   '/beneficiary/support': 'الدعم الفني',
+  '/beneficiary/annual-report': 'التقرير السنوي',
   '/waqif': 'لوحة الواقف',
 };
 

@@ -8,16 +8,16 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
   accountant: {
     properties: true, contracts: true, income: true, expenses: true,
     beneficiaries: true, reports: true, accounts: true, invoices: true,
-    bylaws: true, messages: true, audit_log: true,
+    bylaws: true, messages: true, audit_log: true, annual_report: true,
   },
   beneficiary: {
     properties: true, contracts: true, disclosure: true, share: true,
     reports: true, accounts: true, invoices: true, bylaws: true, messages: true,
-    notifications: true,
+    notifications: true, annual_report: true,
   },
   waqif: {
     properties: true, contracts: true, disclosure: false,
     reports: true, accounts: true, bylaws: true,
-    share: false, notifications: true,
+    share: false, notifications: true, annual_report: true,
   },
 };

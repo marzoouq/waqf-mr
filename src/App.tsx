@@ -185,6 +185,7 @@ function App() {
                     <Route path="/beneficiary/bylaws" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><BylawsViewPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/carryforward" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><CarryforwardHistoryPage /></ProtectedRoute>} />
                     <Route path="/beneficiary/support" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif', 'accountant']}><BeneficiarySupportPage /></ProtectedRoute>} />
+                    <Route path="/beneficiary/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary', 'waqif']}><AnnualReportViewPage /></ProtectedRoute>} />
 
                     {/* Catch-all Route */}
                     <Route path="*" element={<NotFound />} />
