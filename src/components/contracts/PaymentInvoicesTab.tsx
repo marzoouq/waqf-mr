@@ -14,7 +14,7 @@ import {
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
-  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, FileText,
+  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, FileText, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -54,6 +54,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewInvoiceNumber, setPreviewInvoiceNumber] = useState('');
   const [payAmount, setPayAmount] = useState('');
   // ترتيب بالأعمدة
   const [sortKey, setSortKey] = useState<SortKey>('due_date');
@@ -236,6 +238,46 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     }
   };
 
+  const handlePreviewPdf = async (inv: PaymentInvoice) => {
+    setLoadingInvoiceId(inv.id);
+    try {
+      const blobUrl = await generatePaymentInvoicePDF({
+        id: inv.id,
+        invoiceNumber: inv.invoice_number,
+        contractNumber: inv.contract?.contract_number || '-',
+        tenantName: inv.contract?.tenant_name || '-',
+        propertyNumber: inv.contract?.property?.property_number || '-',
+        paymentNumber: inv.payment_number,
+        totalPayments: inv.contract?.payment_count || 1,
+        amount: Number(inv.amount),
+        dueDate: inv.due_date,
+        status: inv.status,
+        paidDate: inv.paid_date,
+        paidAmount: inv.paid_amount,
+        notes: inv.notes,
+        vatRate: inv.vat_rate ?? 0,
+        vatAmount: inv.vat_amount ?? 0,
+      }, waqfInfo, invoiceTemplate);
+
+      if (blobUrl) {
+        setPreviewUrl(blobUrl);
+        setPreviewInvoiceNumber(inv.invoice_number);
+      } else {
+        toast.info('تعذرت المعاينة — تم حفظ الفاتورة محلياً');
+      }
+    } catch {
+      toast.error('حدث خطأ أثناء توليد المعاينة');
+    } finally {
+      setLoadingInvoiceId(null);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewInvoiceNumber('');
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid': return <Badge className="bg-success/20 text-success border-0 gap-1"><CheckCircle2 className="w-3 h-3" />مسددة</Badge>;
@@ -251,6 +293,41 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   return (
     <div className="space-y-5">
       <InvoiceStepsGuide />
+
+      {/* Dialog معاينة الفاتورة */}
+      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>معاينة فاتورة {previewInvoiceNumber}</DialogTitle>
+            <DialogDescription>معاينة الفاتورة قبل التحميل</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            {previewUrl && (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full rounded-md border"
+                title="معاينة الفاتورة"
+              />
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closePreview}>إغلاق</Button>
+            {previewUrl && (
+              <Button className="gap-2" onClick={() => {
+                const a = document.createElement('a');
+                a.href = previewUrl;
+                a.download = `فاتورة-${previewInvoiceNumber}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                toast.success('تم تحميل الفاتورة');
+              }}>
+                <Download className="w-4 h-4" />تحميل
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog الدفع الجزئي */}
       <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
@@ -480,6 +557,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                             </div>
                             <div className="flex gap-2">
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewPdf(inv)} disabled={loadingInvoiceId === inv.id}>
+                                {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}معاينة
+                              </Button>
                               <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
                                 {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
                               </Button>
@@ -573,6 +653,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewPdf(inv)} title="معاينة الفاتورة" disabled={loadingInvoiceId === inv.id}>
+                                    {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
                                     {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                                   </Button>

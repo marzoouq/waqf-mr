@@ -136,14 +136,16 @@ describe('generatePaymentInvoicePDF', () => {
     expect(mockSave).toHaveBeenCalled();
   });
 
-  it('does not generate QR without vatNumber in waqfInfo', async () => {
+  it('generates QR even without vatNumber (uses empty string)', async () => {
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     const { generateZatcaQrTLV } = await import('@/utils/zatcaQr');
     await generatePaymentInvoicePDF(
       makeInvoice({ vatRate: 15, vatAmount: 1500 }),
       { waqfName: 'وقف' },
     );
-    expect(generateZatcaQrTLV).not.toHaveBeenCalled();
+    expect(generateZatcaQrTLV).toHaveBeenCalledWith(expect.objectContaining({
+      vatNumber: '',
+    }));
   });
 
   it('updates file_path in DB after successful upload', async () => {
