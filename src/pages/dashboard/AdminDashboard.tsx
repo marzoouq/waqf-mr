@@ -77,7 +77,7 @@ const AdminDashboard = () => {
 
   // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
   const collectionSummary = useMemo(() => {
-    const activeContracts = fyContracts.filter(c => c.status === 'active');
+    const relevantContracts = fyContracts.filter(c => c.status === 'active' || c.status === 'expired');
     let onTime = 0;
     let late = 0;
 
