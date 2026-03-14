@@ -1,99 +1,36 @@
 
-# تقرير الفحص الجنائي الموسّع — 2026-03-14
+# تقرير التحقق النهائي — 2026-03-14
 
-> آخر فحص: 2026-03-14 | الإصدار: بعد إصلاح get_pii_key + view grants
-
----
-
-## 🔴 ثغرة حرجة تم اكتشافها وإصلاحها
-
-### CVE-INT-001 — `get_pii_key` مكشوف لجميع المستخدمين المسجلين
-**الخطورة**: حرجة 🔴
-**الحالة**: ✅ تم الإصلاح
-
-**المشكلة**: دالة `get_pii_key()` كانت `SECURITY DEFINER` وتتحقق فقط من `auth.uid() IS NULL`. أي مستفيد أو واقف مسجّل يمكنه استدعاء `SELECT public.get_pii_key()` والحصول على مفتاح تشفير AES-256 الخام، مما يُمكّنه من فك تشفير جميع أرقام الهويات والحسابات البنكية.
-
-**الإصلاح**: أُضيف فحص `has_role(auth.uid(), 'admin')` و `has_role(auth.uid(), 'accountant')` — غير ذلك يعيد `NULL`.
-
-### CVE-INT-002 — صلاحيات مفرطة على العروض الآمنة
-**الخطورة**: متوسطة 🟠
-**الحالة**: ✅ تم الإصلاح
-
-**المشكلة**: `beneficiaries_safe` و `contracts_safe` كان لدى `authenticated` صلاحيات `ALL` (INSERT, UPDATE, DELETE, SELECT). رغم أن العروض لا تسمح عملياً بالكتابة، هذا ينتهك مبدأ أقل صلاحية.
-
-**الإصلاح**: `REVOKE ALL` ثم `GRANT SELECT` فقط لـ `authenticated` و `service_role`.
+> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
 
 ---
 
-## ✅ حالة الإصلاحات السابقة (مُتحقق منها)
+## ✅ جميع البنود — الحالة النهائية
 
-| الإصلاح | الوصف | الحالة |
-|---|---|---|
-| BUG-05 | `navigate` بدل `window.location.assign` | ✅ |
-| BUG-08 | Promise caching في logger | ✅ |
-| BUG-09 | `AuthError` type في AuthContext | ✅ |
-| BUG-10 | CSP `unsafe-inline` إزالة من script-src | ✅ |
-| BUG-11 | `NetworkOnly` لـ Supabase REST/Auth | ✅ |
-| NEW-01 | FiscalYearManagementTab → navigate | ✅ |
-
----
-
-## ✅ فحص الدوال الحساسة — صلاحيات EXECUTE
-
-| الدالة | anon | authenticated | حراس داخلية |
-|---|---|---|---|
-| `get_pii_key` | ❌ | ✅ | admin/accountant فقط ✅ |
-| `decrypt_pii` | ❌ | ✅ | admin/accountant فقط ✅ |
-| `encrypt_pii` | ❌ | ✅ | مشغّل فقط (trigger) ✅ |
-| `close_fiscal_year` | ❌ | ✅ | — |
-| `execute_distribution` | ❌ | ✅ | — |
-| `reopen_fiscal_year` | ❌ | ✅ | — |
-| `allocate_icv_and_chain` | ❌ | ✅ | — |
-| `check_rate_limit` | ✅ (مطلوب) | ✅ | — |
-| `log_access_event` | ✅ (مطلوب) | ✅ | — |
-| `has_role` | ✅ (مطلوب لـ RLS) | ✅ | — |
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
+| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
+| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
+| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
+| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
+| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
+| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
+| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
+| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
+| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
+| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
+| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
+| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
 
 ---
 
-## ✅ فحص صلاحيات العروض
+## الإصلاحات المُطبَّقة في هذا التحديث
 
-| العرض | anon | authenticated | service_role |
-|---|---|---|---|
-| `beneficiaries_safe` | ❌ | SELECT فقط ✅ | ALL |
-| `contracts_safe` | ❌ | SELECT فقط ✅ | ALL |
-
----
-
-## ✅ فحص الأمان العام
-
-- **pgcrypto**: في schema `extensions` ✅
-- **RLS**: مفعّل على جميع الجداول الـ 28 ✅
-- **audit_log**: محمي من INSERT/UPDATE/DELETE ✅
-- **access_log**: محمي من INSERT/UPDATE/DELETE ✅
-- **guard-signup**: rate limiting + rollback + email confirm ✅
-- **CSP**: `script-src 'self'` بدون `unsafe-inline` ✅
-- **PWA**: Supabase API → `NetworkOnly` ✅
-
-## ⚠️ ثغرات devDependencies (خطر مقبول)
-
-| الحزمة | الخطورة | الحكم |
-|---|---|---|
-| vite-plugin-pwa | عالية | devDependency — لا تُشحن للإنتاج |
-| workbox-build | عالية | devDependency |
-| serialize-javascript | عالية | devDependency (عبر workbox) |
-| @rollup/plugin-terser | عالية | devDependency |
-
-## ✅ فحص `window.location` المتبقية
-
-| الموقع | النوع | الحكم |
-|---|---|---|
-| `useRealtimeAlerts.ts` | fallback فقط | مقبول (navigate أولاً) |
-| `App.tsx` chunk retry | `reload()` | مقصود — لا بديل |
-| `main.tsx` PWA update | `reload()` | مقصود |
-| `ErrorBoundary.tsx` | `reload()` / `href` | مقصود — error recovery |
-| `DashboardLayout.tsx` idle | `href` | مقصود — hard logout |
-| `Auth.tsx` signOut | `reload()` | مقصود — حالة استثنائية |
+1. **Migration**: إعادة إنشاء `beneficiaries_safe` مع تمويه `notes` لغير admin/accountant
+2. **Migration**: مزامنة `validate_advance_request_amount` trigger مع `app_settings['advance_max_percentage']`
+3. **Code**: إضافة null check لـ `session.access_token` في `useInvoices.ts`
 
 ---
 
-**الخلاصة**: تم اكتشاف وإصلاح ثغرة حرجة في `get_pii_key` كانت تسمح لأي مستخدم مسجّل باستخراج مفتاح التشفير. المشروع الآن في حالة أمنية سليمة.
+**الخلاصة**: جميع المشاكل الحقيقية مُعالجة. المشروع في حالة أمنية سليمة.
