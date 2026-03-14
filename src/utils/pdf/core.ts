@@ -11,6 +11,11 @@ export interface PdfWaqfInfo {
   court?: string;
   logoUrl?: string;
   vatNumber?: string;
+  commercialReg?: string;
+  address?: string;
+  bankName?: string;
+  bankAccount?: string;
+  bankIBAN?: string;
 }
 
 // Module-level font cache to avoid re-fetching on every PDF generation
