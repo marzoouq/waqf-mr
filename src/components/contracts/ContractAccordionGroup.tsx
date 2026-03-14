@@ -76,7 +76,7 @@ const ContractAccordionGroup = ({
   const hasExpired = contracts.some(c => expiredIds.has(c.id));
 
   return (
-    <Collapsible className="border border-border rounded-lg overflow-hidden">
+    <Collapsible open={open} onOpenChange={onOpenChange} className="border border-border rounded-lg overflow-hidden">
       <CollapsibleTrigger asChild>
         <button
           type="button"
