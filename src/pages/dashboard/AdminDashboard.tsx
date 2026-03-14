@@ -432,7 +432,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...fyContracts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5).map((contract) => (
+                {[...fyContracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
