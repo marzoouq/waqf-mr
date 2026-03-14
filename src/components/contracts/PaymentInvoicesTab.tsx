@@ -215,7 +215,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         notes: inv.notes,
         vatRate: inv.vat_rate ?? 0,
         vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo);
+      }, waqfInfo, invoiceTemplate);
 
       if (blobUrl) {
         const a = document.createElement('a');
