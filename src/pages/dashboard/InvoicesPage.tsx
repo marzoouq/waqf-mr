@@ -62,8 +62,7 @@ const InvoicesPage = () => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
 
-  const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  // HIGH-1: ثوابت ALLOWED_MIME_TYPES و MAX_FILE_SIZE مستوردة من useInvoices
   const ITEMS_PER_PAGE = 10;
 
   const validateAndSetFile = (file: File) => {
