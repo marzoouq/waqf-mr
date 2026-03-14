@@ -413,7 +413,7 @@ const UserManagementPage = () => {
                             <p className="text-[10px] text-muted-foreground">آخر دخول</p>
                             <p className="text-sm font-medium">
                               {user.last_sign_in_at
-                                ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA')
+                                ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })
                                 : 'لم يسجل دخول'}
                             </p>
                           </div>
