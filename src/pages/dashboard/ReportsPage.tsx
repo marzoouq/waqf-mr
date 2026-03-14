@@ -630,7 +630,6 @@ const ReportsPage = () => {
             <YearOverYearComparison
               fiscalYears={fiscalYears}
               currentFiscalYearId={fiscalYearId}
-              waqfInfo={pdfWaqfInfo}
             />
           </TabsContent>
         </Tabs>
