@@ -19,8 +19,8 @@ import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { Badge } from '@/components/ui/badge';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
