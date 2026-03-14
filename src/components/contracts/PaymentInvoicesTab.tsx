@@ -21,6 +21,7 @@ import {
 import { generatePaymentInvoicePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
+import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
@@ -133,6 +134,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
   return (
     <div className="space-y-5">
+      <InvoiceStepsGuide />
       {/* بطاقات الملخص */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="shadow-sm">
