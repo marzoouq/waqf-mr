@@ -124,7 +124,7 @@ const InvoicesPage = () => {
         invoice_number: formData.invoice_number || null, invoice_type: formData.invoice_type,
         amount: parseFloat(formData.amount) || 0, date: formData.date,
         property_id: formData.property_id || null, contract_id: formData.contract_id || null,
-        description: formData.description || null, status: formData.status,
+        description: sanitizeDescription(formData.description) || null, status: formData.status,
       };
       if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
