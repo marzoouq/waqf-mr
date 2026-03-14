@@ -86,6 +86,7 @@ const ContractsViewPage = lazyWithRetry(() => import("./pages/beneficiary/Contra
 const CarryforwardHistoryPage = lazyWithRetry(() => import("./pages/beneficiary/CarryforwardHistoryPage"));
 const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDashboard"));
 const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
+const AnnualReportViewPage = lazyWithRetry(() => import("./pages/beneficiary/AnnualReportViewPage"));
 
 // AI Assistant & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
