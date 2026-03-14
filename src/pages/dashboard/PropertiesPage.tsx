@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import DashboardLayout from '@/components/DashboardLayout';
