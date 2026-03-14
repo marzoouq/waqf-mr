@@ -68,6 +68,7 @@ const AuditLogPage = lazyWithRetry(() => import("./pages/dashboard/AuditLogPage"
 const BylawsPage = lazyWithRetry(() => import("./pages/dashboard/BylawsPage"));
 const ZatcaManagementPage = lazyWithRetry(() => import("./pages/dashboard/ZatcaManagementPage"));
 const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/SupportDashboardPage"));
+const AnnualReportPage = lazyWithRetry(() => import("./pages/dashboard/AnnualReportPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));
