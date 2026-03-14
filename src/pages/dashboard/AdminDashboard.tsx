@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -73,15 +73,15 @@ const AdminDashboard = () => {
   const fyContracts = contracts;
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = fyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + Number(c.rent_amount), 0);
 
   // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
   const collectionSummary = useMemo(() => {
-    const activeContracts = fyContracts.filter(c => c.status === 'active');
+    const relevantContracts = fyContracts.filter(c => c.status === 'active' || c.status === 'expired');
     let onTime = 0;
     let late = 0;
 
-    activeContracts.forEach(contract => {
+    relevantContracts.forEach(contract => {
       const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
       if (contractInvoices.length === 0) return; // no invoices generated yet
 
@@ -105,17 +105,17 @@ const AdminDashboard = () => {
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
 
-  const stats = [
+  const stats = useMemo(() => [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
     { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
     { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
-    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/income' },
+    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income' },
     { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses' },
     { title: `حصة الناظر${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
     { title: `حصة الواقف${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
     { title: `ريع الوقف للمستفيدين${sharesNote}`, value: isYearActive ? 'تُحسب عند الإقفال' : `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
     { title: 'عدد المستفيدين', value: beneficiaries.length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-  ];
+  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, adminShare, waqifShare, waqfRevenue, beneficiaries.length, isYearActive, sharesNote]);
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
@@ -164,7 +164,7 @@ const AdminDashboard = () => {
     const collectionRate = collectionSummary.percentage;
     const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
     const totalUnitsCount = allUnits.length;
-    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContractsCount > 0 ? 100 : 0);
+    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : 0;
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
@@ -207,6 +207,26 @@ const AdminDashboard = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Expiring Contracts Warning (within 30 days) */}
+        {(() => {
+          const expiringContracts = fyContracts.filter(c => {
+            const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
+            return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+          });
+          return expiringContracts.length > 0 ? (
+            <Alert className="animate-fade-in border-warning/50">
+              <Clock className="h-4 w-4" />
+              <AlertTitle>عقود تنتهي قريباً</AlertTitle>
+              <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span>{expiringContracts.length} عقد ينتهي خلال 30 يوماً ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
+                <Link to="/dashboard/contracts">
+                  <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
+                </Link>
+              </AlertDescription>
+            </Alert>
+          ) : null;
+        })()}
 
         {/* Orphaned Contracts Warning */}
         {orphanedContracts.length > 0 && (
@@ -395,8 +415,11 @@ const AdminDashboard = () => {
 
         {/* Recent Activity */}
         <Card className="shadow-sm">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>آخر العقود</CardTitle>
+            <Link to="/dashboard/contracts">
+              <Button variant="ghost" size="sm">عرض الكل</Button>
+            </Link>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             <Table className="min-w-[400px]">
@@ -409,7 +432,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...fyContracts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5).map((contract) => (
+                {[...fyContracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
