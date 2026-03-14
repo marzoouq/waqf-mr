@@ -677,7 +677,7 @@ const UserManagementPage = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
                   dir="ltr"
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
               <Button
