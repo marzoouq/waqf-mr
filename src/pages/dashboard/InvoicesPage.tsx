@@ -116,6 +116,8 @@ const InvoicesPage = () => {
     e.preventDefault();
     if (!formData.invoice_type || !formData.date) { toast.error('يرجى ملء الحقول المطلوبة'); return; }
     if (!editingInvoice && !selectedFile) { toast.error('يرجى رفع ملف الفاتورة'); return; }
+    // INV-MED-3: منع إنشاء فاتورة بمبلغ صفر
+    if (!(parseFloat(formData.amount) > 0)) { toast.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
 
     try {
       setUploading(true);
