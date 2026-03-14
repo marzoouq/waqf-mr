@@ -116,6 +116,8 @@ const InvoicesPage = () => {
     e.preventDefault();
     if (!formData.invoice_type || !formData.date) { toast.error('يرجى ملء الحقول المطلوبة'); return; }
     if (!editingInvoice && !selectedFile) { toast.error('يرجى رفع ملف الفاتورة'); return; }
+    // INV-MED-3: منع إنشاء فاتورة بمبلغ صفر
+    if (!(parseFloat(formData.amount) > 0)) { toast.error('يرجى إدخال مبلغ أكبر من صفر'); return; }
 
     try {
       setUploading(true);
@@ -128,7 +130,10 @@ const InvoicesPage = () => {
       if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
       if (selectedFile) {
-        if (editingInvoice?.file_path) await supabase.storage.from('invoices').remove([editingInvoice.file_path]);
+        // INV-CRIT-4: تغليف حذف الملف القديم بـ try/catch — فشل الحذف لا يوقف الحفظ
+        if (editingInvoice?.file_path) {
+          try { await supabase.storage.from('invoices').remove([editingInvoice.file_path]); } catch { /* تجاهل فشل الحذف */ }
+        }
         const { path, name } = await uploadInvoiceFile(selectedFile);
         invoiceData.file_path = path;
         invoiceData.file_name = name;

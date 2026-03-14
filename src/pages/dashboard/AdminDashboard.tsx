@@ -27,9 +27,11 @@ const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverY
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
 
+// DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
-  <div className="h-[300px] flex items-center justify-center">
-    <Skeleton className="w-full h-full rounded-lg" />
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Skeleton className="h-[300px] w-full rounded-lg" />
+    <Skeleton className="h-[300px] w-full rounded-lg" />
   </div>
 );
 

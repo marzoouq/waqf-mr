@@ -37,6 +37,9 @@ const statusLabel = (s: string) => {
   }
 };
 
+// INV-CRIT-1: sanitize مسار الملف لمنع path traversal
+const sanitizePath = (name: string) => name.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+
 export const generatePaymentInvoicePDF = async (
   invoice: PaymentInvoicePdfData,
   waqfInfo?: PdfWaqfInfo,
@@ -114,7 +117,8 @@ export const generatePaymentInvoicePDF = async (
     const tlvBase64 = generateZatcaQrTLV({
       sellerName: waqfInfo.waqfName || '',
       vatNumber: waqfInfo.vatNumber,
-      timestamp: new Date().toISOString(),
+      // INV-HIGH-4: استخدام تاريخ الفاتورة لا وقت التحميل — متطلب ZATCA
+      timestamp: (invoice.paidDate || invoice.dueDate || new Date().toISOString()),
       totalWithVat: invoice.amount,
       vatAmount: vatAmount,
     });
@@ -146,7 +150,9 @@ export const generatePaymentInvoicePDF = async (
   // Upload to Storage instead of local save
   try {
     const pdfBlob = doc.output('blob');
-    const storagePath = `payment-invoices/${invoice.invoiceNumber}.pdf`;
+    // INV-CRIT-1: sanitize المسار لمنع path traversal
+    const safeNumber = sanitizePath(invoice.invoiceNumber);
+    const storagePath = `payment-invoices/${safeNumber}.pdf`;
 
     const { error: uploadError } = await supabase.storage
       .from('invoices')
