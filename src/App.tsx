@@ -90,6 +90,7 @@ const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/S
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
+const SwUpdateBanner = lazyWithRetry(() => import("./components/SwUpdateBanner"));
 
 function PageLoader() {
   return (
@@ -128,6 +129,11 @@ function App() {
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <ErrorBoundary>
+                <Suspense fallback={null}>
+                  <SwUpdateBanner />
+                </Suspense>
+              </ErrorBoundary>
               <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
