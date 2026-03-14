@@ -64,7 +64,7 @@ const AdminDashboard = () => {
     fiscalYearStatus: fiscalYear?.status,
   });
 
-  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading;
+  const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
   // Contracts are already filtered server-side by useContractsByFiscalYear
