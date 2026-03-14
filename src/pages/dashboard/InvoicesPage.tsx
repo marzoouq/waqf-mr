@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf } from '@/hooks/useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
@@ -29,6 +29,12 @@ import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+// HIGH-4: تعقيم الوصف ضد CSV Injection
+const sanitizeDescription = (value: string): string => {
+  if (!value) return value;
+  return value.replace(/^[=+\-@\t\r]+/, '');
+};
 
 const InvoicesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -62,8 +68,7 @@ const InvoicesPage = () => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   }, [previewUrl]);
 
-  const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  // HIGH-1: ثوابت ALLOWED_MIME_TYPES و MAX_FILE_SIZE مستوردة من useInvoices
   const ITEMS_PER_PAGE = 10;
 
   const validateAndSetFile = (file: File) => {
@@ -125,7 +130,7 @@ const InvoicesPage = () => {
         invoice_number: formData.invoice_number || null, invoice_type: formData.invoice_type,
         amount: parseFloat(formData.amount) || 0, date: formData.date,
         property_id: formData.property_id || null, contract_id: formData.contract_id || null,
-        description: formData.description || null, status: formData.status,
+        description: sanitizeDescription(formData.description) || null, status: formData.status,
       };
       if (!editingInvoice && fiscalYear?.id) invoiceData.fiscal_year_id = fiscalYear.id;
 
