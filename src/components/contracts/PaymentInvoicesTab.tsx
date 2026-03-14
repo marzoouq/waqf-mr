@@ -230,6 +230,18 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             {generateAll.isPending ? 'جاري التوليد...' : 'توليد فواتير جميع العقود'}
           </Button>
         )}
+        {summary.overdue > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => generateOverdueInvoicesPDF(invoices, waqfInfo)}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <FileDown className="w-4 h-4" />
+            تصدير المتأخرة PDF ({summary.overdue})
+          </Button>
+        )}
       </div>
 
       {/* الجدول */}
