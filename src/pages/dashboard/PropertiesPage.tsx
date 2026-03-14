@@ -87,7 +87,7 @@ const PropertiesPage = () => {
   }, [properties, allUnits, contracts, expenses]);
 
   const resetForm = () => {
-    setFormData({ property_number: '', property_type: '', location: '', area: '', description: '' });
+    setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
     setEditingProperty(null);
   };
 
