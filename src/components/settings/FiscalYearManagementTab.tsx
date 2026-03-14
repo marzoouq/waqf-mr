@@ -130,7 +130,7 @@ const FiscalYearManagementTab = () => {
       duration: 6000,
       action: {
         label: 'فتح الحسابات',
-        onClick: () => window.location.assign('/dashboard/accounts'),
+        onClick: () => navigate('/dashboard/accounts'),
       },
     });
   };
