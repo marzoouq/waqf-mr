@@ -100,6 +100,7 @@ const PropertiesPage = () => {
     const propertyData = {
       property_number: formData.property_number, property_type: formData.property_type,
       location: formData.location, area: parseFloat(formData.area), description: formData.description || undefined,
+      vat_exempt: formData.vat_exempt,
     };
     try {
       if (editingProperty) {
