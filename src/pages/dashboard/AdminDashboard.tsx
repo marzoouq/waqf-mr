@@ -101,7 +101,8 @@ const AdminDashboard = () => {
   }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
-  const sharesNote = isYearActive ? ' (بعد الإقفال)' : '';
+  const sharesNote = isYearActive ? ' *تقديري' : '';
+  const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
 
   const stats = useMemo(() => [
     { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
