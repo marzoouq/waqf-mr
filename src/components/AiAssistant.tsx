@@ -22,6 +22,8 @@ const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placehold
   report: { label: 'إعداد تقرير', icon: FileText, placeholder: 'اطلب إعداد تقرير...', welcome: 'اطلب إعداد تقرير وسأجهزه لك بصياغة احترافية' },
 };
 
+const SEND_COOLDOWN_MS = 2000;
+
 const AiAssistant = () => {
   const { user, role } = useAuth();
 
@@ -30,6 +32,7 @@ const AiAssistant = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<ChatMode>('chat');
+  const lastSendTimeRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
