@@ -93,9 +93,11 @@ export function printShareReport(params: PrintShareReportParams) {
     <p class="footer">تمت الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — نظام إدارة الوقف</p>
   </body></html>`);
 
+  printWindow.document.close();
   printWindow.onload = () => {
     printWindow.focus();
     printWindow.print();
   };
-  printWindow.document.close();
+  // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
+  printWindow.onafterprint = () => printWindow.close();
 }

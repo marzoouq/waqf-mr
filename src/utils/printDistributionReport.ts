@@ -172,4 +172,6 @@ export function printDistributionReport(params: PrintDistributionParams) {
   printWindow.document.close();
   printWindow.focus();
   setTimeout(() => printWindow.print(), 500);
+  // إغلاق النافذة تلقائياً بعد الطباعة أو الإلغاء
+  printWindow.onafterprint = () => printWindow.close();
 }

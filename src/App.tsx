@@ -87,9 +87,9 @@ const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
 
 // AI Assistant & Security - Lazy loaded
-const AiAssistant = lazy(() => import("./components/AiAssistant"));
-const SecurityGuard = lazy(() => import("./components/SecurityGuard"));
-const PwaUpdateNotifier = lazy(() => import("./components/PwaUpdateNotifier"));
+const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
+const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
+const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
 
 function PageLoader() {
   return (

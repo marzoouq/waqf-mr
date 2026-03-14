@@ -97,7 +97,12 @@ export const useRealtimeAlerts = () => {
           duration: 6000,
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          logger.warn('[RealtimeAlerts] Channel error/timeout, will retry on next render');
+          subscribedRef.current = false;
+        }
+      });
 
     return () => {
       subscribedRef.current = false;
