@@ -500,8 +500,9 @@ const NotificationsTab = () => {
             <Label>عدد الأيام قبل الانتهاء</Label>
             <Input
               type="number"
-              value={settings.contract_expiry_days}
-              onChange={(e) => updateJsonSetting('notification_settings', { ...settings, contract_expiry_days: parseInt(e.target.value) || 30 })}
+              value={expiryDays}
+              onChange={(e) => setExpiryDays(parseInt(e.target.value) || 30)}
+              onBlur={() => updateJsonSetting('notification_settings', { ...settings, contract_expiry_days: expiryDays })}
               className="w-32"
               min={1}
               max={365}
