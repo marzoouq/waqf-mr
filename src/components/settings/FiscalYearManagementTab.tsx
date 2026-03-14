@@ -21,6 +21,7 @@ import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'luci
 import { useFiscalYears, type FiscalYear } from '@/hooks/useFiscalYears';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
