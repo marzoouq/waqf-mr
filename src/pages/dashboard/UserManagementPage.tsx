@@ -70,12 +70,15 @@ const UserManagementPage = () => {
   });
 
   const toggleRegistration = async (enabled: boolean) => {
+    setToggling(true);
     try {
       await callAdminApi({ action: 'toggle_registration', enabled });
       queryClient.invalidateQueries({ queryKey: ['registration-enabled'] });
       toast.success(enabled ? 'تم تفعيل التسجيل العام' : 'تم إيقاف التسجيل العام');
     } catch (e: unknown) {
       toast.error(getSafeErrorMessage(e));
+    } finally {
+      setToggling(false);
     }
   };
 
