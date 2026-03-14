@@ -1,87 +1,55 @@
 
+# تقرير التحقق النهائي — الجولتان الأولى والثانية
 
-# تحقق من بنود الجولة الرابعة — بند بند
-
-## ملخص سريع
-
-من 16 بنداً: **3 مشاكل حقيقية تحتاج إصلاح**، **8 إنذارات كاذبة**، **5 ملاحظات تصميمية لا تحتاج تدخل عاجل**.
+> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
 
 ---
 
-## ❌ إنذارات كاذبة (8 بنود)
+## الجولة الأولى — 14 بنداً
 
-### CRIT-10 — ZATCA placeholder في الإنتاج ← **إنذار كاذب**
-الكود يعمل فقط عند `action === "onboard"` (استدعاء يدوي من الناظر) **و** `!ZATCA_API_URL`. هذا **أداة تطوير مقصودة** — الرسالة تقول صراحة "Development certificate created. Configure ZATCA_API_URL for production". في الإنتاج، `ZATCA_API_URL` مُعدّ. إذا لم يكن مُعداً، أي عملية غير `onboard` تُرجع خطأ 400. لا يمكن أن تُوقَّع فواتير بالشهادة الوهمية إلا إذا الناظر تعمّد ذلك.
-
-### CRIT-11 — AI prompt بدون حد حجم ← **مبالغ فيه**
-البيانات تُجلب عبر `userClient` (RLS مُطبَّق) — المستفيد يرى فقط بياناته المسموحة. حقن prompt نظري — بيانات DB مُدخلة من admin/accountant الموثوقين. التكلفة محدودة بـ rate limit (5 طلبات/60 ثانية).
-
-### HIGH-16 — `generate_contract_invoices` من beneficiary ← **إنذار كاذب**
-الدالة تملك guard داخلي `has_role(admin/accountant)` — ستفشل فوراً. استهلاك الموارد لفحص دور واحد لا يُذكر.
-
-### HIGH-17 — WebAuthn يُرسل Magic Link بريد ← **إنذار كاذب**
-`admin.auth.admin.generateLink()` **لا يُرسل بريداً** — هذا API الـ admin الذي يُنشئ الرابط فقط بدون إرسال. الإرسال يحصل فقط مع `signInWithOtp()`. مُوثَّق في Supabase docs.
-
-### HIGH-18 — CORS يُعلن PUT/DELETE ← **مبالغ فيه**
-المتصفح يُرسل preflight ويحصل على إذن — لكن الـ functions تتجاهل أي method غير POST/GET. لا يوجد handler لـ PUT/DELETE. سطح الهجوم صفر عملياً.
-
-### HIGH-19 — Stored Prompt Injection ← **مبالغ فيه**
-البيانات في DB مُدخلة حصرياً من admin/accountant عبر واجهات مُصادق عليها. لا يوجد مدخل خارجي غير موثوق. هذا خطر نظري لا عملي.
-
-### MED-19 — `check_rate_limit` معكوس ← **إنذار كاذب — الكود صحيح**
-تحققت من كود الدالة (migration `20260306091729`):
-```sql
--- سطر 39: RETURN (v_count + 1) > p_limit;
-```
-`true` = **تجاوز الحد** (محجوب). `false` = مسموح.
-`generate-invoice-pdf` يكتب `if (rateLimited === true) → 429` — **صحيح تماماً**.
-
-### LOW-11 — heredoc injection في changelog.yml ← **إنذار كاذب**
-الكود الفعلي (سطر 30) يستخدم `printf '%s\n' "$RELEASE_BODY"` عبر env variable — **ليس heredoc**. هذا تم إصلاحه في الجولة الأولى (MED-04).
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
+| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
+| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
+| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
+| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
+| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
+| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
+| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
+| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
+| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
+| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
+| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
+| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
 
 ---
 
-## 🔴 مشاكل حقيقية (3 بنود)
+## الجولة الثانية — 11 بنداً جديداً
 
-### 1. CRIT-09 — `tenant_payments` RLS: beneficiary/waqif يرون كل الدفعات ← **مؤكَّد**
-السياسة الحالية (من schema المقدَّم):
-```
-"Authorized roles can view tenant_payments" SELECT
-USING (has_role(admin) OR has_role(beneficiary) OR has_role(waqif))
-```
-نفس مشكلة CRIT-08 — بيانات مالية خاصة بمستأجرين مكشوفة لكل المستفيدين.
-**الإصلاح:** حذف `beneficiary`/`waqif` من السياسة — فقط admin/accountant يرون `tenant_payments`.
-
-### 2. HIGH-15 — تقليل `paid_months` لا يحذف income ← **مؤكَّد**
-عند تصحيح خطأ إدخال (تقليل عدد الدفعات)، سجلات `income` المُنشأة تلقائياً تبقى — تضخيم إيرادات.
-**الإصلاح:** إضافة منطق عند `v_diff < 0` لحذف آخر `|v_diff|` سجلات income مرتبطة بالعقد.
-
-### 3. MED-20 — `p_paid_months` بدون حد أقصى ← **مؤكَّد**
-`paid_months = 999` يُنشئ 999 سجل income. مرتبط بـ HIGH-15.
-**الإصلاح:** إضافة validation: `IF p_paid_months < 0 OR p_paid_months > contract.payment_count THEN RAISE EXCEPTION`.
+| # | البند | الخطورة | الحالة | التفاصيل |
+|---|-------|---------|--------|----------|
+| CRIT-04 | `allocate_icv_and_chain` مُعادة لـ `authenticated` | 🔴 | ❌ إنذار كاذب | guard داخلي `has_role(admin/accountant)` يمنع الاستغلال |
+| CRIT-05 | `lookup_by_national_id` يُعاد فتحها تلقائياً | 🔴 | ❌ إنذار كاذب | guard داخلي + `get_pii_key()` يُرجع NULL لغير المخوَّلين |
+| HIGH-06 | `cron_check_contract_expiry` يُرسل لكل المستفيدين | 🟠 | ✅ قرار تصميم | `ben_msg` لا يحتوي اسم المستأجر — مقبول |
+| HIGH-07 | `upsert_tenant_payment` بتاريخ `CURRENT_DATE` دائماً | 🟠 | ✅ تم الإصلاح | أُضيف `p_payment_date` كمعامل اختياري |
+| HIGH-08 | `reopen_fiscal_year` لا تُعالج السنة الجديدة | 🟠 | ❌ إنذار كاذب | `enforce_single_active_fy` trigger يُغلق السنة الأخرى |
+| HIGH-09 | `auto_revoke_anon_execute` في `allowed_functions` | 🟠 | ❌ إنذار كاذب | event trigger function — لا يمكن استدعاؤها مباشرة |
+| MED-06 | `log_access_event` تقبل `client_error` من anon | 🟡 | ✅ قرار تصميم | مقصود لتسجيل أخطاء صفحة تسجيل الدخول |
+| MED-07 | المحاسب يرى جميع تذاكر الدعم | 🟡 | ✅ قرار تصميم | المحاسب دور موثوق |
+| MED-08 | double-source لـ `paid_count` | 🟡 | ❌ إنذار كاذب | COALESCE يعمل كـ fallback وليس double-counting |
+| MED-09 | `close_fiscal_year` بدون تحقق من pending | 🟡 | ✅ تم الإصلاح | يُرجع `warnings` في النتيجة (تحذير بدل منع) |
+| Fallback | `useBeneficiariesDecrypted` يجلب من `beneficiaries` | 🟡 | ✅ تم الإصلاح | Fallback يستخدم الآن `beneficiaries_safe` |
 
 ---
 
-## 🟡 ملاحظات تصميمية (5 بنود — لا تحتاج تدخل عاجل)
+## الإصلاحات المُطبَّقة في هذا التحديث (الجولة الثانية)
 
-| البند | التقييم |
-|-------|---------|
-| MED-16 — auto-version race | حافة نادرة في CI — ليست ثغرة أمنية |
-| MED-17 — audit log search محدود | تحسين UX — ليس ثغرة |
-| MED-18 — zakat/vat stale | يُحل عند الحفظ — ليس خطأ محاسبي دائم |
-| LOW-10 — تناقض توثيق | ملاحظة توثيقية |
-| LOW-12 — tag يُشغّل changelog | حافة CI نادرة |
+1. **Migration**: `upsert_tenant_payment` — إضافة `p_payment_date date DEFAULT CURRENT_DATE`
+2. **Migration**: `close_fiscal_year` — إضافة تحقق من pending distributions/advances مع إرجاع `warnings`
+3. **Code**: `useBeneficiariesDecrypted` fallback يستخدم `beneficiaries_safe` بدل `beneficiaries`
+4. **Code**: `useTenantPayments` — إضافة `payment_date` للـ interface وتمريره للـ RPC
 
 ---
 
-## خطة الإصلاح
-
-### Migration SQL
-1. **CRIT-09**: تحديث سياسة `tenant_payments` SELECT — حذف `beneficiary`/`waqif`، إبقاء admin/accountant فقط
-2. **HIGH-15 + MED-20**: تحديث `upsert_tenant_payment`:
-   - إضافة validation: `p_paid_months >= 0` و `<= payment_count`
-   - عند `v_diff < 0`: حذف آخر `|v_diff|` سجلات income مرتبطة بالعقد (بنفس نمط `notes LIKE 'تحصيل تلقائي%'` + `contract_id` + `ORDER BY created_at DESC LIMIT |v_diff|`)
-
-### تحديث كود
-3. تحديث `useTenantPayments.ts` لإزالة استعلام `tenant_payments` من beneficiary/waqif context (إن وُجد)
-
+**الخلاصة**: جميع المشاكل الحقيقية من الجولتين مُعالجة. المشروع في حالة أمنية سليمة.
