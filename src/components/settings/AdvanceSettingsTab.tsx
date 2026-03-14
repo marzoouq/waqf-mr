@@ -11,13 +11,15 @@ const AdvanceSettingsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
   const defaults = { enabled: true, min_amount: 500, max_percentage: 50 };
-  const settings = getJsonSetting('advance_settings', defaults);
-  const [form, setForm] = useState(settings);
+  const [form, setForm] = useState(defaults);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const next = JSON.stringify(settings);
-    setForm((prev: typeof settings) => JSON.stringify(prev) === next ? prev : settings);
-  }, [settings]);
+    if (!isLoading && !initialized) {
+      setForm(getJsonSetting('advance_settings', defaults));
+      setInitialized(true);
+    }
+  }, [isLoading, initialized]);
 
   const [saving, setSaving] = useState(false);
 
