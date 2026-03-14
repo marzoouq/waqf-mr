@@ -55,7 +55,7 @@ export const useAnnualReportItems = (fiscalYearId?: string) => {
 export const useCreateReportItem = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (item: Omit<AnnualReportItem, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (item: Omit<AnnualReportItem, 'id' | 'created_at' | 'updated_at'> & { property_id?: string | null }) => {
       const { data, error } = await supabase
         .from('annual_report_items')
         .insert(item as never)
