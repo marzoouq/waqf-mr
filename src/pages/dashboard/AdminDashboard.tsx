@@ -415,8 +415,11 @@ const AdminDashboard = () => {
 
         {/* Recent Activity */}
         <Card className="shadow-sm">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>آخر العقود</CardTitle>
+            <Link to="/dashboard/contracts">
+              <Button variant="ghost" size="sm">عرض الكل</Button>
+            </Link>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             <Table className="min-w-[400px]">
