@@ -117,6 +117,7 @@ const UserManagementPage = () => {
       toast.success('تم إنشاء المستخدم بنجاح');
       setIsCreateOpen(false);
       setCreateForm({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
+      setCurrentPage(1);
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
   });
