@@ -1,55 +1,77 @@
 
-# تقرير التحقق النهائي — الجولتان الأولى والثانية
 
-> آخر تحديث: 2026-03-14 | جميع الإصلاحات مُطبَّقة
+# تحقق من بنود الجولة الخامسة — بند بند
 
----
+## ملخص سريع
 
-## الجولة الأولى — 14 بنداً
-
-| # | البند | الخطورة | الحالة | التفاصيل |
-|---|-------|---------|--------|----------|
-| CRIT-01 | `beneficiaries_safe` / `contracts_safe` بـ `security_invoker=false` | 🔴 | ✅ قرار تصميم موثَّق | شفافية مقصودة — `notes` تم تمويهها لغير admin/accountant |
-| CRIT-02 | تناقض trigger (50% ثابتة) vs RPC (من app_settings) | 🔴 | ✅ تم الإصلاح | Trigger يقرأ الآن من `app_settings['advance_max_percentage']` |
-| CRIT-03 | `getSession()` في WebAuthn | 🔴 | ❌ إنذار كاذب | Client-side مقبول — RLS تحمي server-side |
-| HIGH-01 | race condition في `auto-version.yml` | 🟠 | ✅ مُصلح مسبقاً | `concurrency` block موجود |
-| HIGH-02 | double-counting في `lookup-national-id` | 🟠 | ✅ مُصلح مسبقاً | re-read بعد `check_rate_limit` |
-| HIGH-03 | `contracts_safe` بدون فائدة من `security_barrier` | 🟠 | ✅ قرار تصميم | مرتبط بـ CRIT-01 |
-| HIGH-04 | `ai-assistant` يستخدم serviceClient | 🟠 | ❌ إنذار كاذب | مقصود — تصفية حسب الدور |
-| HIGH-05 | `session?.access_token` قد يكون undefined | 🟠 | ✅ تم الإصلاح | null check + رسالة واضحة |
-| MED-01 | `waqf_bylaws` سياسة `TO public` | 🟡 | ❌ إنذار كاذب | `has_role()` في USING تمنع anon |
-| MED-02 | trigger السُلف INSERT فقط | 🟡 | ❌ إنذار كاذب | trigger منفصل على UPDATE + RLS |
-| MED-03 | `access_log` INSERT مفتوح | 🟡 | ✅ مُصلح مسبقاً | `WITH CHECK (false)` |
-| MED-04 | changelog heredoc | 🟡 | ✅ مُصلح مسبقاً | `printf` عبر env variable |
-| MED-05 | `notes` في `beneficiaries_safe` مكشوف | 🟡 | ✅ تم الإصلاح | CASE WHEN يُخفيها لغير admin/accountant |
+من 12 بنداً: **4 مشاكل حقيقية تحتاج إصلاح**، **4 إنذارات كاذبة أو مبالغ فيها**، **4 ملاحظات تصميمية لا تحتاج تدخل عاجل**.
 
 ---
 
-## الجولة الثانية — 11 بنداً جديداً
+## إنذارات كاذبة (4 بنود)
 
-| # | البند | الخطورة | الحالة | التفاصيل |
-|---|-------|---------|--------|----------|
-| CRIT-04 | `allocate_icv_and_chain` مُعادة لـ `authenticated` | 🔴 | ❌ إنذار كاذب | guard داخلي `has_role(admin/accountant)` يمنع الاستغلال |
-| CRIT-05 | `lookup_by_national_id` يُعاد فتحها تلقائياً | 🔴 | ❌ إنذار كاذب | guard داخلي + `get_pii_key()` يُرجع NULL لغير المخوَّلين |
-| HIGH-06 | `cron_check_contract_expiry` يُرسل لكل المستفيدين | 🟠 | ✅ قرار تصميم | `ben_msg` لا يحتوي اسم المستأجر — مقبول |
-| HIGH-07 | `upsert_tenant_payment` بتاريخ `CURRENT_DATE` دائماً | 🟠 | ✅ تم الإصلاح | أُضيف `p_payment_date` كمعامل اختياري |
-| HIGH-08 | `reopen_fiscal_year` لا تُعالج السنة الجديدة | 🟠 | ❌ إنذار كاذب | `enforce_single_active_fy` trigger يُغلق السنة الأخرى |
-| HIGH-09 | `auto_revoke_anon_execute` في `allowed_functions` | 🟠 | ❌ إنذار كاذب | event trigger function — لا يمكن استدعاؤها مباشرة |
-| MED-06 | `log_access_event` تقبل `client_error` من anon | 🟡 | ✅ قرار تصميم | مقصود لتسجيل أخطاء صفحة تسجيل الدخول |
-| MED-07 | المحاسب يرى جميع تذاكر الدعم | 🟡 | ✅ قرار تصميم | المحاسب دور موثوق |
-| MED-08 | double-source لـ `paid_count` | 🟡 | ❌ إنذار كاذب | COALESCE يعمل كـ fallback وليس double-counting |
-| MED-09 | `close_fiscal_year` بدون تحقق من pending | 🟡 | ✅ تم الإصلاح | يُرجع `warnings` في النتيجة (تحذير بدل منع) |
-| Fallback | `useBeneficiariesDecrypted` يجلب من `beneficiaries` | 🟡 | ✅ تم الإصلاح | Fallback يستخدم الآن `beneficiaries_safe` |
+### CRIT-12 — pg_cron في مخططين مختلفين -- **إنذار كاذب**
+`CREATE EXTENSION IF NOT EXISTS` تتجاهل الأمر إذا كان الامتداد مُثبتاً. في Supabase Cloud، `pg_cron` مُثبت مسبقاً في `pg_catalog`. كل الأوامر اللاحقة no-op. أما `cron.schedule` فإنها تُحدِّث المهمة إذا كان الاسم موجوداً (upsert behavior). لا توجد مهام مكررة.
+
+### HIGH-20 — paid_months بين السنوات -- **ملاحظة تصميمية وليست ثغرة**
+`tenant_payments.paid_months` هو **عداد إجمالي تراكمي بتصميم مقصود** -- يمثل إجمالي ما دُفع من عقد واحد عبر كل فترته. `cron_check_late_payments` يحسب `expected_payments` نسبياً من بداية العقد حتى اليوم -- المقارنة صحيحة مع العداد التراكمي.
+
+### HIGH-21 — notify_all_beneficiaries تفشل صامتة -- **مبالغ فيه**
+`execute_distribution` تُستدعى دائماً من authenticated context (admin/accountant عبر الواجهة). `notify_all_beneficiaries` تتحقق من `has_role(auth.uid(), 'admin/accountant')` -- نفس المستدعي. لن تفشل إلا في حالة نظرية (service_role context) غير مستخدمة حالياً. الـ `EXCEPTION WHEN OTHERS THEN NULL` معالجة مقصودة لعدم كسر transaction التوزيع.
+
+### MED-25 — sessionStorage chunk_retry -- **إنذار كاذب**
+`sessionStorage.removeItem('chunk_retry')` يُنفَّذ عند تحميل `App.tsx` الناجح -- يعني أن الـ chunk الرئيسي حُمِّل بنجاح. الصفحات الفرعية تستخدم `lazyWithRetry` بشكل مستقل. لا توجد حلقة لا نهائية.
 
 ---
 
-## الإصلاحات المُطبَّقة في هذا التحديث (الجولة الثانية)
+## مشاكل حقيقية تحتاج إصلاح (4 بنود)
 
-1. **Migration**: `upsert_tenant_payment` — إضافة `p_payment_date date DEFAULT CURRENT_DATE`
-2. **Migration**: `close_fiscal_year` — إضافة تحقق من pending distributions/advances مع إرجاع `warnings`
-3. **Code**: `useBeneficiariesDecrypted` fallback يستخدم `beneficiaries_safe` بدل `beneficiaries`
-4. **Code**: `useTenantPayments` — إضافة `payment_date` للـ interface وتمريره للـ RPC
+### 1. CRIT-13 + HIGH-24 -- `contracts_safe` و `beneficiaries_safe` بـ `security_invoker = false` -- **مؤكَّد وخطير**
+
+**التحقق:** آخر حالة للعروض:
+- `beneficiaries_safe`: migration `20260314024401` (الأخير) أعاد إنشاءها بـ `security_invoker = false` -- **نحن أنفسنا فعلنا هذا في إصلاح MED-05!**
+- `contracts_safe`: migration `20260313162017` يُعيِّنها بـ `security_invoker = false` ولم يتغير بعدها.
+
+**الأثر:** كلا العرضين يتجاوزان RLS على الجداول الأصلية. أي `authenticated` يرى **جميع الصفوف** بغض النظر عن سياسات `is_fiscal_year_accessible` أو عزل المستفيدين.
+
+**السبب التصميمي الأصلي:** المستفيد يحتاج رؤية أسماء جميع المستفيدين (لصفحة التوزيع)، والعقود العامة. لكن `security_invoker = false` يكشف أيضاً صفوف السنوات غير المنشورة.
+
+**الإصلاح:** إعادة العروض لـ `security_invoker = true` مع إضافة سياسة RLS مناسبة على `beneficiaries` تسمح لكل `authenticated` بقراءة الأعمدة غير الحساسة (name, share_percentage) + تعديل `contracts` RLS لتسمح للمستفيدين/الواقف بالقراءة عبر `is_fiscal_year_accessible` فقط.
+
+### 2. HIGH-22 -- validate_advance_request_amount على INSERT فقط -- **مؤكَّد**
+**التحقق:** آخر تعريف للـ trigger في migration `20260301124911` هو `BEFORE INSERT` فقط. Migration `20260314023052` يُعيد تعريف الدالة لكن **لا يُعيد إنشاء الـ trigger**. أي `UPDATE` على `amount` يتجاوز التحقق.
+
+**الإصلاح:** إعادة إنشاء الـ trigger بـ `BEFORE INSERT OR UPDATE`.
+
+### 3. HIGH-23 -- close_fiscal_year لا تتحقق من تداخل السنوات -- **مؤكَّد جزئياً**
+**التحقق:** Migration `20260314023741` (إصلاحنا السابق) يحتوي `close_fiscal_year` المُحدَّث لكنه **لا يتحقق من تداخل المدد** عند إنشاء السنة التالية. يعتمد على `enforce_single_active_fy` trigger الذي يُغلق السنة النشطة الأخرى -- لكن هذا لا يمنع تداخل التواريخ.
+
+**الإصلاح:** إضافة فحص `EXISTS` قبل إنشاء السنة التالية.
+
+### 4. MED-23 -- cron_check_contract_expiry يكشف tenant_name -- **مؤكَّد جزئياً**
+**التحقق:** الكود الفعلي الحالي (من DB functions) يُرسل `ben_msg` (بدون tenant_name) للمستفيدين و`msg` (مع tenant_name) للأدمن. **لكن** migration القديم `20260225042354` كان يرسل `msg` (مع tenant_name) لجميع المستفيدين. Migration لاحق أصلح هذا. الحالة الحالية **آمنة**.
 
 ---
 
-**الخلاصة**: جميع المشاكل الحقيقية من الجولتين مُعالجة. المشروع في حالة أمنية سليمة.
+## ملاحظات تصميمية (4 بنود -- لا تحتاج تدخل عاجل)
+
+| البند | التقييم |
+|-------|---------|
+| MED-21 -- سقف 12 لعقود monthly | العقود في النظام سنوية (12 شهر max). تصميم مقصود |
+| MED-22 -- available_amount لا يُحفظ | يُحسب ديناميكياً من الأعمدة المحفوظة. لا خطأ |
+| MED-24 -- DEFAULT PRIVILEGES | مقصود مع وجود event trigger `auto_revoke_anon_execute` كحماية إضافية |
+
+---
+
+## خطة الإصلاح
+
+### Migration SQL واحد يشمل:
+
+1. **CRIT-13 + HIGH-24**: إعادة إنشاء `beneficiaries_safe` و `contracts_safe` بـ `security_invoker = true` مع:
+   - إضافة سياسة RLS على `beneficiaries` تسمح لـ `beneficiary`/`waqif` بقراءة الأسماء والنسب فقط (SELECT)
+   - إضافة سياسة RLS على `contracts` تسمح لـ `beneficiary`/`waqif` بالقراءة عبر `is_fiscal_year_accessible` فقط
+
+2. **HIGH-22**: إعادة إنشاء trigger `validate_advance_request_amount_trigger` بـ `BEFORE INSERT OR UPDATE`
+
+3. **HIGH-23**: إضافة فحص تداخل التواريخ في `close_fiscal_year` قبل إنشاء السنة التالية
+
