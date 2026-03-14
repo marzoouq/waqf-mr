@@ -420,7 +420,7 @@ const UserManagementPage = () => {
                           <div>
                             <p className="text-[10px] text-muted-foreground">تاريخ الإنشاء</p>
                             <p className="text-sm font-medium">
-                              {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                              {new Date(user.created_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })}
                             </p>
                           </div>
                         </div>
