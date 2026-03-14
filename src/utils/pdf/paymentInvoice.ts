@@ -359,10 +359,8 @@ const renderClassic = async (
   // بيانات الدفع
   renderBankDetails(doc, fontFamily, waqfInfo, finalY, pageW);
 
-  // QR Code
-  if (isVat && waqfInfo?.vatNumber) {
-    await renderQrCode(doc, fontFamily, invoice, waqfInfo, 82.5, finalY + 2, 45);
-  }
+  // QR Code — يظهر دائماً
+  await renderQrCode(doc, fontFamily, invoice, waqfInfo, 82.5, finalY + 2, 45);
 
   // ملاحظة
   const noteY = (isVat && waqfInfo?.vatNumber) ? finalY + 52 : finalY + 16;
