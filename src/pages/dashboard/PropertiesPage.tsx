@@ -167,6 +167,13 @@ const PropertiesPage = () => {
                   <div className="space-y-2"><Label>الموقع *</Label><Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="المدينة، الحي، الشارع" /></div>
                   <div className="space-y-2"><Label>المساحة (م²) *</Label><Input type="number" value={formData.area} onChange={(e) => setFormData({ ...formData, area: e.target.value })} placeholder="100" /></div>
                   <div className="space-y-2"><Label>الوصف</Label><Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي للعقار" /></div>
+                  <div className="flex items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">معفى من الضريبة (سكني)</Label>
+                      <p className="text-xs text-muted-foreground">العقارات السكنية معفاة من VAT حسب نظام ZATCA</p>
+                    </div>
+                    <Switch checked={formData.vat_exempt} onCheckedChange={(checked) => setFormData({ ...formData, vat_exempt: checked })} />
+                  </div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={createProperty.isPending || updateProperty.isPending}>{editingProperty ? 'تحديث' : 'إضافة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
