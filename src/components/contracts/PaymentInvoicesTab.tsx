@@ -14,7 +14,7 @@ import {
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
-  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays,
+  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
