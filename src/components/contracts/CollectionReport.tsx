@@ -325,7 +325,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             <>
               {/* Mobile Cards */}
               <div className="space-y-3 md:hidden px-3 py-2">
-                {filteredRows.map(row => (
+                {filteredRows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(row => (
                   <Card key={row.contract.id} className={`shadow-sm ${row.overdue > 0 ? 'border-destructive/30' : ''}`}>
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
