@@ -231,6 +231,28 @@ const PropertiesPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقارات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          {/* P-8: فلتر نوع العقار */}
+          {uniqueTypes.length > 1 && (
+            <NativeSelect
+              value={typeFilter}
+              onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}
+              options={[
+                { value: 'all', label: 'كل الأنواع' },
+                ...uniqueTypes.map(t => ({ value: t, label: t })),
+              ]}
+            />
+          )}
+          {/* P-8: فلتر نسبة الإشغال */}
+          <NativeSelect
+            value={occupancyFilter}
+            onValueChange={(v) => { setOccupancyFilter(v); setCurrentPage(1); }}
+            options={[
+              { value: 'all', label: 'كل الإشغالات' },
+              { value: 'full', label: 'مشغول بالكامل' },
+              { value: 'partial', label: 'مشغول جزئياً' },
+              { value: 'empty', label: 'شاغر' },
+            ]}
+          />
         </div>
 
         <PropertySummaryCards summary={summary} isLoading={summaryLoading} />
