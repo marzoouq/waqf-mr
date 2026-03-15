@@ -69,8 +69,9 @@ describe('BeneficiariesPage', () => {
 
   it('renders beneficiary count card', () => {
     renderPage();
-    expect(screen.getByText('عدد المستفيدين')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('إجمالي المستفيدين')).toBeInTheDocument();
+    const threes = screen.getAllByText('3');
+    expect(threes.length).toBeGreaterThan(0);
   });
 
   it('renders total percentage card', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 beforeAll(() => {
@@ -9,6 +10,10 @@ beforeAll(() => {
 const mockUseAuth = vi.fn();
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
+}));
+
+vi.mock('@/hooks/useUnreadMessages', () => ({
+  useUnreadMessages: () => 0,
 }));
 
 vi.mock('react-router-dom', () => ({

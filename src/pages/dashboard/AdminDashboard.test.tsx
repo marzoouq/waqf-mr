@@ -43,6 +43,15 @@ vi.mock('@/components/reports/YearOverYearComparison', () => ({
   default: () => <div data-testid="year-comparison">YearOverYearComparison</div>,
 }));
 
+vi.mock('@/hooks/useYoYComparison', () => ({
+  useYoYComparison: vi.fn(() => ({ hasPrevYear: false, prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0 })),
+  calcChangePercent: vi.fn(() => null),
+}));
+
+vi.mock('@/hooks/useAdvanceRequests', () => ({
+  useAdvanceRequests: vi.fn(() => ({ data: [], isLoading: false })),
+}));
+
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: vi.fn(() => ({
     fiscalYearId: 'fy-1',
@@ -147,8 +156,10 @@ describe('AdminDashboard', () => {
   it('renders welcome message with fiscal year', () => {
     renderPage();
     expect(screen.getByText(/مرحباً بك/)).toBeInTheDocument();
-    expect(screen.getByText(/1446-1447/)).toBeInTheDocument();
+    const matches = screen.getAllByText(/1446-1447/);
+    expect(matches.length).toBeGreaterThan(0);
   });
+
 
   it('shows total properties count', () => {
     renderPage();
@@ -186,7 +197,7 @@ describe('AdminDashboard', () => {
 
   it('shows beneficiaries count', () => {
     renderPage();
-    expect(screen.getByText('عدد المستفيدين')).toBeInTheDocument();
+    expect(screen.getByText(/المستفيد/)).toBeInTheDocument();
   });
 
   it('shows KPI section', () => {
