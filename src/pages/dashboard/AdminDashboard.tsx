@@ -328,6 +328,13 @@ const AdminDashboard = () => {
           </Card>
         )}
 
+        {/* D-3: ويدجت السنة المالية */}
+        <FiscalYearWidget
+          fiscalYear={fiscalYear}
+          totalIncome={totalIncome}
+          contractualRevenue={contractualRevenue}
+        />
+
         {/* Quick Actions for Accountant */}
         {role === 'accountant' && (
           <Card className="shadow-sm">
