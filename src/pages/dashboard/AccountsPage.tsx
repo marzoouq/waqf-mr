@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,9 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
 import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
