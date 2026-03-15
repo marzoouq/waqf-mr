@@ -654,6 +654,14 @@ const ReportsPage = () => {
               fiscalYear={fiscalYear}
             />
           </TabsContent>
+
+          <TabsContent value="overdue" className="space-y-6">
+            <OverdueTenantsReport
+              contracts={contracts}
+              paymentInvoices={paymentInvoices}
+              properties={properties}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
