@@ -74,16 +74,17 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const saveBudget = useMutation({
     mutationFn: async ({ expenseType, amount }: { expenseType: string; amount: number }) => {
       const existing = budgetMap.get(expenseType);
+      const db = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
       if (existing) {
-        const { error } = await supabase
-          .from('expense_budgets' as 'expenses')
-          .update({ budget_amount: amount, updated_at: new Date().toISOString() } as Record<string, unknown>)
+        const { error } = await db
+          .from('expense_budgets')
+          .update({ budget_amount: amount, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('expense_budgets' as 'expenses')
-          .insert({ fiscal_year_id: fiscalYearId, expense_type: expenseType, budget_amount: amount } as Record<string, unknown>);
+        const { error } = await db
+          .from('expense_budgets')
+          .insert({ fiscal_year_id: fiscalYearId, expense_type: expenseType, budget_amount: amount });
         if (error) throw error;
       }
     },
