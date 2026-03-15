@@ -286,6 +286,9 @@ const AdminDashboard = () => {
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
                       <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
+                      {('yoyChange' in stat) && stat.yoyChange !== undefined && (
+                        <YoYBadge changePercent={stat.yoyChange} invertColor={stat.invertColor} className="mt-0.5" />
+                      )}
                     </div>
                     <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
                       <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
