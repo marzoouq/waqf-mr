@@ -448,6 +448,7 @@ const ContractsPage = () => {
               <SelectItem value="semi_annual">نصف سنوي</SelectItem>
               <SelectItem value="annual">سنوي</SelectItem>
             </SelectContent>
+          </Select>
           {filteredGroups.length > 0 && (
             <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
               <ChevronsUpDown className="w-4 h-4" />
