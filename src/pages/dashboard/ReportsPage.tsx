@@ -343,6 +343,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">مقارنة سنوية</span>
               <span className="sm:hidden">مقارنة</span>
             </TabsTrigger>
+            <TabsTrigger value="cashflow" className="text-xs sm:text-sm">
+              <Banknote className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">التدفق النقدي</span>
+              <span className="sm:hidden">نقدي</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="financial" className="space-y-6">
