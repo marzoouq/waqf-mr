@@ -67,6 +67,8 @@ const ContractsPage = () => {
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [propertyFilter, setPropertyFilter] = useState<string>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
