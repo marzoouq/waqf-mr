@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,11 @@ import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYea
 import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
+import AdvancedFiltersBar, { FilterState, EMPTY_FILTERS } from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -22,6 +23,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+type SortField = 'amount' | 'date' | 'source' | null;
+type SortDir = 'asc' | 'desc';
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -36,6 +40,9 @@ const IncomePage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -80,9 +87,30 @@ const IncomePage = () => {
     }
   };
 
+  // ترتيب حسب العمود
+  const handleSort = useCallback((field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+    setCurrentPage(1);
+  }, [sortField]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
   const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
 
-  // بطاقات الملخص مع useMemo بدل IIFE
+  // قائمة المصادر الفريدة للفلتر
+  const uniqueSources = useMemo(() => {
+    const sources = new Set(income.map((i) => i.source));
+    return Array.from(sources).sort();
+  }, [income]);
+
   const summaryCards = useMemo(() => {
     const count = income.length;
     const avg = count > 0 ? Math.round(totalIncome / count) : 0;
@@ -94,11 +122,37 @@ const IncomePage = () => {
     return { count, avg, topSource, topSourceAmount };
   }, [income, totalIncome]);
 
-  const filteredIncome = income.filter((item) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return item.source.toLowerCase().includes(q) || (item.notes || '').toLowerCase().includes(q) || item.date.includes(q);
-  });
+  // تطبيق الفلاتر + البحث + الترتيب
+  const filteredIncome = useMemo(() => {
+    let result = income.filter((item) => {
+      // بحث نصي
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!item.source.toLowerCase().includes(q) && !(item.notes || '').toLowerCase().includes(q) && !item.date.includes(q)) return false;
+      }
+      // فلتر المصدر
+      if (filters.category && item.source !== filters.category) return false;
+      // فلتر العقار
+      if (filters.propertyId && item.property_id !== filters.propertyId) return false;
+      // نطاق التاريخ
+      if (filters.dateFrom && item.date < filters.dateFrom) return false;
+      if (filters.dateTo && item.date > filters.dateTo) return false;
+      return true;
+    });
+
+    // ترتيب
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (sortField === 'amount') cmp = Number(a.amount) - Number(b.amount);
+        else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
+        else if (sortField === 'source') cmp = a.source.localeCompare(b.source, 'ar');
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return result;
+  }, [income, searchQuery, filters, sortField, sortDir]);
 
   return (
     <DashboardLayout>
@@ -174,9 +228,20 @@ const IncomePage = () => {
           </div>
         )}
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+        {/* بحث + فلاتر */}
+        <div className="space-y-3">
+          <div className="relative max-w-md">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+          </div>
+          <AdvancedFiltersBar
+            filters={filters}
+            onFiltersChange={(f) => { setFilters(f); setCurrentPage(1); }}
+            categories={uniqueSources}
+            categoryLabel="المصادر"
+            categoryPlaceholder="كل المصادر"
+            properties={properties}
+          />
         </div>
 
         <Card className="shadow-sm">
@@ -184,7 +249,7 @@ const IncomePage = () => {
             {isLoading ? (
               <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
             ) : filteredIncome.length === 0 ? (
-              <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
+              <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery || filters.category || filters.propertyId || filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
               <>
               {/* Mobile Cards */}
@@ -215,9 +280,18 @@ const IncomePage = () => {
               <div className="overflow-x-auto hidden md:block"><Table className="min-w-[650px]">
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">المصدر</TableHead><TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead><TableHead className="text-right">العقار</TableHead>
-                    <TableHead className="text-right">ملاحظات</TableHead><TableHead className="text-right">إجراءات</TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('source')}>
+                      <span className="inline-flex items-center gap-1">المصدر <SortIcon field="source" /></span>
+                    </TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('amount')}>
+                      <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" /></span>
+                    </TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('date')}>
+                      <span className="inline-flex items-center gap-1">التاريخ <SortIcon field="date" /></span>
+                    </TableHead>
+                    <TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right">ملاحظات</TableHead>
+                    <TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
