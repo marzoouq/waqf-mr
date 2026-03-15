@@ -43,6 +43,15 @@ vi.mock('@/components/reports/YearOverYearComparison', () => ({
   default: () => <div data-testid="year-comparison">YearOverYearComparison</div>,
 }));
 
+vi.mock('@/hooks/useYoYComparison', () => ({
+  useYoYComparison: vi.fn(() => ({ hasPrevYear: false, prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0 })),
+  calcChangePercent: vi.fn(() => null),
+}));
+
+vi.mock('@/hooks/useAdvanceRequests', () => ({
+  useAdvanceRequests: vi.fn(() => ({ data: [], isLoading: false })),
+}));
+
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: vi.fn(() => ({
     fiscalYearId: 'fy-1',
