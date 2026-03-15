@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
+import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote, Scale } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
@@ -352,6 +353,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">التدفق النقدي</span>
               <span className="sm:hidden">نقدي</span>
             </TabsTrigger>
+            <TabsTrigger value="balance" className="text-xs sm:text-sm">
+              <Scale className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">الميزانية العمومية</span>
+              <span className="sm:hidden">ميزانية</span>
+            </TabsTrigger>
             <TabsTrigger value="overdue" className="text-xs sm:text-sm">
               <FileText className="w-4 h-4 ml-1 sm:ml-2" />
               <span className="hidden sm:inline">المتأخرون</span>
@@ -652,6 +658,28 @@ const ReportsPage = () => {
               income={income}
               expenses={expenses}
               fiscalYear={fiscalYear}
+            />
+          </TabsContent>
+
+          <TabsContent value="balance" className="space-y-6">
+            <BalanceSheetReport
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              vatAmount={vatAmount}
+              zakatAmount={zakatAmount}
+              adminShare={adminShare}
+              waqifShare={waqifShare}
+              waqfRevenue={waqfRevenue}
+              waqfCorpusPrevious={waqfCorpusPrevious}
+              waqfCorpusManual={waqfCorpusManual}
+              distributionsAmount={distributionsAmount}
+              availableAmount={availableAmount}
+              remainingBalance={remainingBalance}
+              grandTotal={grandTotal}
+              netAfterExpenses={netAfterExpenses}
+              netAfterVat={netAfterVat}
+              netAfterZakat={netAfterZakat}
+              fiscalYearLabel={fiscalYear?.label}
             />
           </TabsContent>
 

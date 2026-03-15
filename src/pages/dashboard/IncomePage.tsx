@@ -12,7 +12,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -112,6 +112,23 @@ const IncomePage = () => {
   const uniqueSources = useMemo(() => {
     const sources = new Set(income.map((i) => i.source));
     return Array.from(sources).sort();
+  }, [income]);
+
+  // I-4: تنبيه الإيراد الناقص — كشف أشهر أقل من 20% من المتوسط
+  const lowIncomeMonths = useMemo(() => {
+    if (income.length < 3) return []; // لا فائدة من المقارنة مع أقل من 3 سجلات
+    const monthMap = new Map<string, number>();
+    income.forEach((i) => {
+      const month = i.date.slice(0, 7); // YYYY-MM
+      monthMap.set(month, (monthMap.get(month) || 0) + Number(i.amount));
+    });
+    if (monthMap.size < 2) return [];
+    const values = Array.from(monthMap.values());
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const threshold = avg * 0.2; // 20% من المتوسط
+    return Array.from(monthMap.entries())
+      .filter(([, amount]) => amount < threshold)
+      .map(([month, amount]) => ({ month, amount, avg: Math.round(avg) }));
   }, [income]);
 
   const summaryCards = useMemo(() => {
@@ -234,6 +251,28 @@ const IncomePage = () => {
         {/* I-3 + I-8: رسم بياني الدخل الشهري */}
         {!isLoading && income.length > 0 && (
           <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} />
+        )}
+
+        {/* I-4: تنبيه الإيراد الناقص */}
+        {!isLoading && lowIncomeMonths.length > 0 && (
+          <Card className="shadow-sm border-warning/50 bg-warning/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-warning">تنبيه: إيرادات منخفضة في {lowIncomeMonths.length} {lowIncomeMonths.length === 1 ? 'شهر' : 'أشهر'}</p>
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    {lowIncomeMonths.map((m) => (
+                      <p key={m.month}>
+                        شهر <span className="font-medium">{m.month}</span>: {m.amount.toLocaleString('ar-SA')} ر.س
+                        <span className="text-destructive"> (أقل من 20% من المتوسط: {m.avg.toLocaleString('ar-SA')} ر.س)</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* بحث + فلاتر */}
