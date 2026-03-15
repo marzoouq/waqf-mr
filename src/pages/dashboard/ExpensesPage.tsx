@@ -17,6 +17,7 @@ import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import AdvancedFiltersBar, { FilterState, EMPTY_FILTERS } from '@/components/filters/AdvancedFiltersBar';
+import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
