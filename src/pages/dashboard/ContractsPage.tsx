@@ -539,6 +539,10 @@ const ContractsPage = () => {
         )}
           </TabsContent>
 
+          <TabsContent value="accruals">
+            <MonthlyAccrualTable contracts={contracts} isLoading={isLoading} />
+          </TabsContent>
+
           <TabsContent value="invoices">
             <PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed} />
           </TabsContent>
