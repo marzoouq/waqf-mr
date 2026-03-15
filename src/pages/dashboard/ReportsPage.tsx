@@ -696,6 +696,20 @@ const ReportsPage = () => {
               properties={properties}
             />
           </TabsContent>
+
+          <TabsContent value="zakat" className="space-y-6">
+            <ZakatEstimationReport
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              vatAmount={vatAmount}
+              netAfterVat={netAfterVat}
+              zakatAmount={zakatAmount}
+              netAfterZakat={netAfterZakat}
+              waqfCorpusPrevious={waqfCorpusPrevious}
+              grandTotal={grandTotal}
+              fiscalYearLabel={fiscalYear?.label}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
