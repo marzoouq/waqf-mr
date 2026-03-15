@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
 import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
@@ -47,6 +48,9 @@ const PropertiesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // P-8: فلاتر إضافية
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [occupancyFilter, setOccupancyFilter] = useState<string>('all');
   const ITEMS_PER_PAGE = 9;
   const [formData, setFormData] = useState({
     property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
@@ -138,11 +142,48 @@ const PropertiesPage = () => {
     }
   };
 
+  // P-8: أنواع العقارات الفريدة
+  const uniqueTypes = useMemo(() => {
+    const types = new Set(properties.map(p => p.property_type));
+    return Array.from(types).sort();
+  }, [properties]);
+
+  // حساب نسبة الإشغال لكل عقار (لاستخدامها في الفلتر)
+  const propertyOccupancy = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of properties) {
+      const pUnits = allUnits.filter(u => u.property_id === p.id);
+      const propContracts = contracts.filter(c => c.property_id === p.id);
+      const rentedIds = new Set(propContracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
+      const hasWhole = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
+      const total = pUnits.length;
+      if (total > 0) {
+        const rented = hasWhole && rentedIds.size === 0 ? total : pUnits.filter(u => rentedIds.has(u.id)).length;
+        map.set(p.id, Math.round((rented / total) * 100));
+      } else {
+        map.set(p.id, hasWhole ? 100 : 0);
+      }
+    }
+    return map;
+  }, [properties, allUnits, contracts, isSpecificYear]);
+
   const filteredProperties = properties.filter((p) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return p.property_number.toLowerCase().includes(q) || p.property_type.toLowerCase().includes(q) ||
-      p.location.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
+    // بحث نصي
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!p.property_number.toLowerCase().includes(q) && !p.property_type.toLowerCase().includes(q) &&
+        !p.location.toLowerCase().includes(q) && !(p.description || '').toLowerCase().includes(q)) return false;
+    }
+    // P-8: فلتر النوع
+    if (typeFilter !== 'all' && p.property_type !== typeFilter) return false;
+    // P-8: فلتر الإشغال
+    if (occupancyFilter !== 'all') {
+      const occ = propertyOccupancy.get(p.id) ?? 0;
+      if (occupancyFilter === 'full' && occ < 100) return false;
+      if (occupancyFilter === 'partial' && (occ <= 0 || occ >= 100)) return false;
+      if (occupancyFilter === 'empty' && occ > 0) return false;
+    }
+    return true;
   });
 
   return (
@@ -191,6 +232,28 @@ const PropertiesPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقارات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
+          {/* P-8: فلتر نوع العقار */}
+          {uniqueTypes.length > 1 && (
+            <NativeSelect
+              value={typeFilter}
+              onValueChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}
+              options={[
+                { value: 'all', label: 'كل الأنواع' },
+                ...uniqueTypes.map(t => ({ value: t, label: t })),
+              ]}
+            />
+          )}
+          {/* P-8: فلتر نسبة الإشغال */}
+          <NativeSelect
+            value={occupancyFilter}
+            onValueChange={(v) => { setOccupancyFilter(v); setCurrentPage(1); }}
+            options={[
+              { value: 'all', label: 'كل الإشغالات' },
+              { value: 'full', label: 'مشغول بالكامل' },
+              { value: 'partial', label: 'مشغول جزئياً' },
+              { value: 'empty', label: 'شاغر' },
+            ]}
+          />
         </div>
 
         <PropertySummaryCards summary={summary} isLoading={summaryLoading} />

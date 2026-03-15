@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
+import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +40,7 @@ const ReportsPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || undefined);
   // reportRef removed (N10 — was unused)
 
   const selectedFiscalYearLabel = fiscalYear?.label;
@@ -349,6 +352,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">التدفق النقدي</span>
               <span className="sm:hidden">نقدي</span>
             </TabsTrigger>
+            <TabsTrigger value="overdue" className="text-xs sm:text-sm">
+              <FileText className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">المتأخرون</span>
+              <span className="sm:hidden">متأخرون</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="financial" className="space-y-6">
@@ -644,6 +652,14 @@ const ReportsPage = () => {
               income={income}
               expenses={expenses}
               fiscalYear={fiscalYear}
+            />
+          </TabsContent>
+
+          <TabsContent value="overdue" className="space-y-6">
+            <OverdueTenantsReport
+              contracts={contracts}
+              paymentInvoices={paymentInvoices}
+              properties={properties}
             />
           </TabsContent>
         </Tabs>

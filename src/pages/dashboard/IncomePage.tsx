@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import IncomeMonthlyChart from '@/components/dashboard/IncomeMonthlyChart';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
@@ -33,6 +35,7 @@ const IncomePage = () => {
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
@@ -226,6 +229,11 @@ const IncomePage = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* I-3 + I-8: رسم بياني الدخل الشهري */}
+        {!isLoading && income.length > 0 && (
+          <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} />
         )}
 
         {/* بحث + فلاتر */}
