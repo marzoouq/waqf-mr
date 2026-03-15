@@ -370,12 +370,47 @@ const UserManagementPage = () => {
           </Alert>
         )}
 
+        {/* U-7: شريط البحث والفلاتر */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث بالبريد الإلكتروني..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              className="pr-10"
+              dir="ltr"
+            />
+          </div>
+          <NativeSelect
+            value={roleFilter}
+            onValueChange={setRoleFilter}
+            options={[
+              { value: 'all', label: 'كل الأدوار' },
+              { value: 'admin', label: 'ناظر' },
+              { value: 'accountant', label: 'محاسب' },
+              { value: 'beneficiary', label: 'مستفيد' },
+              { value: 'waqif', label: 'واقف' },
+              { value: 'none', label: 'بدون دور' },
+            ]}
+          />
+          <NativeSelect
+            value={statusFilterUser}
+            onValueChange={setStatusFilterUser}
+            options={[
+              { value: 'all', label: 'كل الحالات' },
+              { value: 'confirmed', label: 'مفعّل' },
+              { value: 'unconfirmed', label: 'غير مفعّل' },
+            ]}
+          />
+        </div>
+
         {/* Users Table */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              المستخدمون ({totalUsers})
+              المستخدمون ({users.length}{users.length !== totalUsers ? ` من ${totalUsers}` : ''})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
