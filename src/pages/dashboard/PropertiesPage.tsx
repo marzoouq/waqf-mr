@@ -47,6 +47,9 @@ const PropertiesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // P-8: فلاتر إضافية
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [occupancyFilter, setOccupancyFilter] = useState<string>('all');
   const ITEMS_PER_PAGE = 9;
   const [formData, setFormData] = useState({
     property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
