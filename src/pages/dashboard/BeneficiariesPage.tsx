@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBeneficiaries, useBeneficiariesDecrypted, useCreateBeneficiary, useUpdateBeneficiary, useDeleteBeneficiary } from '@/hooks/useBeneficiaries';
 import { Beneficiary } from '@/types/database';
-import { Users, Percent, Search } from 'lucide-react';
+import { Users, Percent, Search, AlertTriangle, Wallet, UserCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -112,6 +112,8 @@ const BeneficiariesPage = () => {
   };
 
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const activeBeneficiaries = beneficiaries.filter(b => Number(b.share_percentage) > 0).length;
+  const percentageExceeds = totalPercentage > 100;
 
   const filteredBeneficiaries = beneficiaries.filter((b) => {
     if (!searchQuery) return true;
@@ -144,8 +146,8 @@ const BeneficiariesPage = () => {
 
           <TabsContent value="beneficiaries" className="space-y-5 mt-4">
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {Array.from({ length: 2 }).map((_, i) => (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <Card key={i} className="shadow-sm">
                     <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
                       <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
@@ -158,20 +160,42 @@ const BeneficiariesPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <Card className="shadow-sm">
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
-                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">عدد المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
                     </div>
                   </CardContent>
                 </Card>
                 <Card className="shadow-sm">
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
-                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-secondary/20 rounded-xl flex items-center justify-center"><Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" /></div>
-                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p><p className="text-xl sm:text-3xl font-bold">{totalPercentage.toFixed(2)}%</p></div>
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/10 rounded-xl flex items-center justify-center"><UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-success" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">نشطون (نسبة {'>'} 0)</p><p className="text-xl sm:text-3xl font-bold text-success">{activeBeneficiaries}</p></div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className={`shadow-sm ${percentageExceeds ? 'border-destructive/50' : ''}`}>
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className={`w-9 h-9 sm:w-12 sm:h-12 ${percentageExceeds ? 'bg-destructive/10' : 'bg-secondary/20'} rounded-xl flex items-center justify-center`}>
+                        {percentageExceeds ? <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" /> : <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />}
+                      </div>
+                      <div>
+                        <p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p>
+                        <p className={`text-xl sm:text-3xl font-bold ${percentageExceeds ? 'text-destructive' : ''}`}>{totalPercentage.toFixed(2)}%</p>
+                        {percentageExceeds && <p className="text-[10px] text-destructive">تجاوز 100%!</p>}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-xl flex items-center justify-center"><Wallet className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" /></div>
+                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">متوسط الحصة</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length > 0 ? (totalPercentage / beneficiaries.length).toFixed(1) : 0}%</p></div>
                     </div>
                   </CardContent>
                 </Card>

@@ -67,6 +67,8 @@ const ContractsPage = () => {
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [propertyFilter, setPropertyFilter] = useState<string>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
@@ -301,6 +303,18 @@ const ContractsPage = () => {
         return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
       });
     }
+    // C-8: فلتر العقار
+    if (propertyFilter !== 'all') {
+      result = result.filter(([, group]) =>
+        group.some(c => c.property_id === propertyFilter)
+      );
+    }
+    // C-8: فلتر نوع الدفع
+    if (paymentTypeFilter !== 'all') {
+      result = result.filter(([, group]) =>
+        group.some(c => c.payment_type === paymentTypeFilter)
+      );
+    }
     // فلتر البحث
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -314,7 +328,7 @@ const ContractsPage = () => {
       );
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
@@ -408,6 +422,31 @@ const ContractsPage = () => {
               <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
               <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
               <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
+            </SelectContent>
+          </Select>
+          {/* C-8: فلتر العقار */}
+          <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-48 shrink-0">
+              <SelectValue placeholder="كل العقارات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل العقارات</SelectItem>
+              {properties.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* C-8: فلتر نوع الدفع */}
+          <Select value={paymentTypeFilter} onValueChange={(v) => { setPaymentTypeFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-40 shrink-0">
+              <SelectValue placeholder="نوع الدفع" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنواع</SelectItem>
+              <SelectItem value="monthly">شهري</SelectItem>
+              <SelectItem value="quarterly">ربع سنوي</SelectItem>
+              <SelectItem value="semi_annual">نصف سنوي</SelectItem>
+              <SelectItem value="annual">سنوي</SelectItem>
             </SelectContent>
           </Select>
           {filteredGroups.length > 0 && (

@@ -17,6 +17,7 @@ import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
 import AdvancedFiltersBar, { FilterState, EMPTY_FILTERS } from '@/components/filters/AdvancedFiltersBar';
+import ExpensesPieChart from '@/components/expenses/ExpensesPieChart';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -179,6 +180,9 @@ const ExpensesPage = () => {
         )}
 
         <ExpenseSummaryCards expenses={expenses} totalExpenses={totalExpenses} documentedCount={documentedCount} documentationRate={documentationRate} isLoading={isLoading} />
+
+        {/* E-8: رسم بياني دائري للمصروفات */}
+        <ExpensesPieChart expenses={expenses} isLoading={isLoading} />
 
         {/* بحث + فلاتر */}
         <div className="space-y-3">
