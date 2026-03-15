@@ -69,7 +69,7 @@ describe('BeneficiariesPage', () => {
 
   it('renders beneficiary count card', () => {
     renderPage();
-    expect(screen.getByText('عدد المستفيدين')).toBeInTheDocument();
+    expect(screen.getByText('إجمالي المستفيدين')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
