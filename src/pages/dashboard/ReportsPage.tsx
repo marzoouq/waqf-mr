@@ -40,6 +40,7 @@ const ReportsPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || undefined);
   // reportRef removed (N10 — was unused)
 
   const selectedFiscalYearLabel = fiscalYear?.label;
