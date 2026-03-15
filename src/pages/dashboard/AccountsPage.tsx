@@ -26,6 +26,18 @@ import CloseYearDialog from '@/components/accounts/CloseYearDialog';
 const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(page.fiscalYearId || 'all');
+  const { data: advanceRequests = [] } = useAdvanceRequests(page.fiscalYearId !== 'all' ? page.fiscalYearId : undefined);
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+
+  const unpaidInvoices = useMemo(() =>
+    paymentInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').length,
+    [paymentInvoices]
+  );
+  const pendingAdvances = useMemo(() =>
+    advanceRequests.filter(r => r.status === 'pending').length,
+    [advanceRequests]
+  );
 
   return (
     <DashboardLayout>
