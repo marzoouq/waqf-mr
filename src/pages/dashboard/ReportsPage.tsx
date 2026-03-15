@@ -661,6 +661,28 @@ const ReportsPage = () => {
             />
           </TabsContent>
 
+          <TabsContent value="balance" className="space-y-6">
+            <BalanceSheetReport
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              vatAmount={vatAmount}
+              zakatAmount={zakatAmount}
+              adminShare={adminShare}
+              waqifShare={waqifShare}
+              waqfRevenue={waqfRevenue}
+              waqfCorpusPrevious={waqfCorpusPrevious}
+              waqfCorpusManual={waqfCorpusManual}
+              distributionsAmount={distributionsAmount}
+              availableAmount={availableAmount}
+              remainingBalance={remainingBalance}
+              grandTotal={grandTotal}
+              netAfterExpenses={netAfterExpenses}
+              netAfterVat={netAfterVat}
+              netAfterZakat={netAfterZakat}
+              fiscalYearLabel={fiscalYear?.label}
+            />
+          </TabsContent>
+
           <TabsContent value="overdue" className="space-y-6">
             <OverdueTenantsReport
               contracts={contracts}
