@@ -44,7 +44,7 @@ const AnnualReportPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: income = [] } = useIncomeByFiscalYear(fiscalYearId || 'all');
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId || 'all');
-  const { data: contracts = [] } = useContracts();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const waqfInfo = usePdfWaqfInfo();
 
   const createItem = useCreateReportItem();
