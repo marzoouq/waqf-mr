@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useYoYComparison, calcChangePercent } from '@/hooks/useYoYComparison';
+import YoYBadge from '@/components/dashboard/YoYBadge';
+import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
 import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
@@ -67,6 +70,9 @@ const AdminDashboard = () => {
     fiscalYearStatus: fiscalYear?.status,
   });
 
+  // D-1: مقارنة YoY
+  const yoy = useYoYComparison(fiscalYearId === 'all' ? undefined : fiscalYearId);
+
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
@@ -107,19 +113,25 @@ const AdminDashboard = () => {
   const sharesNote = isYearActive ? ' *تقديري' : '';
   const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
 
-  const stats = useMemo(() => [
-    { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
-    { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
-    { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
-    { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income' },
-    { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses' },
-    { title: `صافي الريع${sharesNote}`, value: `${netAfterExpenses.toLocaleString()} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts' },
-    { title: `المتاح للتوزيع${sharesNote}`, value: `${(isYearActive ? Math.max(0, netAfterZakat) : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-    { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-    { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-    { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
-    { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => b.share_percentage > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-  ], [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote]);
+  const stats = useMemo(() => {
+    const incomeChange = yoy.hasPrevYear ? calcChangePercent(totalIncome, yoy.prevTotalIncome) : null;
+    const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
+    const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
+
+    return [
+      { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
+      { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
+      { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
+      { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
+      { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
+      { title: `صافي الريع${sharesNote}`, value: `${netAfterExpenses.toLocaleString()} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
+      { title: `المتاح للتوزيع${sharesNote}`, value: `${(isYearActive ? Math.max(0, netAfterZakat) : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
+      { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+      { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+      { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+      { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => b.share_percentage > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
+    ];
+  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote, yoy]);
 
   // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
@@ -274,6 +286,9 @@ const AdminDashboard = () => {
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
                       <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
+                      {('yoyChange' in stat) && stat.yoyChange !== undefined && (
+                        <YoYBadge changePercent={stat.yoyChange} invertColor={stat.invertColor} className="mt-0.5" />
+                      )}
                     </div>
                     <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
                       <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
@@ -312,6 +327,13 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* D-3: ويدجت السنة المالية */}
+        <FiscalYearWidget
+          fiscalYear={fiscalYear}
+          totalIncome={totalIncome}
+          contractualRevenue={contractualRevenue}
+        />
 
         {/* Quick Actions for Accountant */}
         {role === 'accountant' && (

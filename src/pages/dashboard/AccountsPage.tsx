@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,9 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
+import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
 import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';
@@ -22,6 +26,18 @@ import CloseYearDialog from '@/components/accounts/CloseYearDialog';
 const AccountsPage = () => {
   const { role } = useAuth();
   const page = useAccountsPage();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(page.fiscalYearId || 'all');
+  const { data: advanceRequests = [] } = useAdvanceRequests(page.fiscalYearId !== 'all' ? page.fiscalYearId : undefined);
+  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
+
+  const unpaidInvoices = useMemo(() =>
+    paymentInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').length,
+    [paymentInvoices]
+  );
+  const pendingAdvances = useMemo(() =>
+    advanceRequests.filter(r => r.status === 'pending').length,
+    [advanceRequests]
+  );
 
   return (
     <DashboardLayout>
@@ -207,6 +223,10 @@ const AccountsPage = () => {
           netAfterExpenses={page.netAfterExpenses}
           availableAmount={page.availableAmount}
           distributionsAmount={page.manualDistributions}
+          hasAccount={!!page.currentAccount}
+          pendingAdvances={pendingAdvances}
+          unpaidInvoices={unpaidInvoices}
+          beneficiaryPercentage={totalBenPct}
         />
       </div>
     </DashboardLayout>
