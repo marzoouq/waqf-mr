@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import CashFlowReport from '@/components/reports/CashFlowReport';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
