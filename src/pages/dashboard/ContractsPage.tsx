@@ -350,7 +350,7 @@ const ContractsPage = () => {
       );
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
