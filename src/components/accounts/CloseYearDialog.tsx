@@ -2,6 +2,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import CloseYearChecklist, { buildClosureChecklist, type ChecklistItem } from './CloseYearChecklist';
+import { useMemo } from 'react';
 
 interface CloseYearDialogProps {
   open: boolean;
@@ -16,6 +18,11 @@ interface CloseYearDialogProps {
   netAfterExpenses?: number;
   availableAmount?: number;
   distributionsAmount?: number;
+  /** A-1: checklist data */
+  hasAccount?: boolean;
+  pendingAdvances?: number;
+  unpaidInvoices?: number;
+  beneficiaryPercentage?: number;
 }
 
 const SummaryRow = ({ label, value, className }: { label: string; value: number; className?: string }) => (
@@ -29,13 +36,30 @@ const CloseYearDialog = ({
   open, onOpenChange, onConfirm, isClosing, fyLabel, waqfCorpusManual,
   totalIncome = 0, totalExpenses = 0, netAfterExpenses = 0,
   availableAmount = 0, distributionsAmount = 0,
-}: CloseYearDialogProps) => (
+  hasAccount = false, pendingAdvances = 0, unpaidInvoices = 0, beneficiaryPercentage = 0,
+}: CloseYearDialogProps) => {
+  // A-1: بناء قائمة التحقق
+  const checklist = useMemo(() => buildClosureChecklist({
+    totalIncome,
+    totalExpenses,
+    hasAccount,
+    distributionsAmount,
+    availableAmount,
+    pendingAdvances,
+    unpaidInvoices,
+    beneficiaryPercentage,
+  }), [totalIncome, totalExpenses, hasAccount, distributionsAmount, availableAmount, pendingAdvances, unpaidInvoices, beneficiaryPercentage]);
+
+  return (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>تأكيد إقفال السنة المالية</AlertDialogTitle>
         <AlertDialogDescription asChild>
           <div className="space-y-3 text-sm text-muted-foreground">
+            {/* A-1: قائمة التحقق */}
+            <CloseYearChecklist items={checklist} />
+
             {/* M-01: Financial summary before confirmation */}
             {(totalIncome > 0 || totalExpenses > 0) && (
               <ul className="space-y-1.5 rounded-md border p-3 bg-muted/30">
@@ -71,6 +95,7 @@ const CloseYearDialog = ({
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
-);
+  );
+};
 
 export default CloseYearDialog;
