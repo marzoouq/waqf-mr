@@ -97,9 +97,27 @@ const UserManagementPage = () => {
       };
     },
   });
-  const users = usersResult.users;
+  const allUsers = usersResult.users;
   const totalUsers = usersResult.total;
   const nextPage = usersResult.nextPage;
+
+  // U-7: فلترة المستخدمين محلياً
+  const users = useMemo(() => {
+    let result = allUsers;
+    if (userSearch) {
+      const q = userSearch.toLowerCase();
+      result = result.filter(u => u.email.toLowerCase().includes(q));
+    }
+    if (roleFilter !== 'all') {
+      result = result.filter(u => (u.role || 'none') === roleFilter);
+    }
+    if (statusFilterUser === 'confirmed') {
+      result = result.filter(u => !!u.email_confirmed_at);
+    } else if (statusFilterUser === 'unconfirmed') {
+      result = result.filter(u => !u.email_confirmed_at);
+    }
+    return result;
+  }, [allUsers, userSearch, roleFilter, statusFilterUser]);
 
   // تحقق وقائي: كشف المستفيدين بدون بريد أو بدون ربط بحساب مستخدم
   const { data: orphanedBeneficiaries = [] } = useQuery({

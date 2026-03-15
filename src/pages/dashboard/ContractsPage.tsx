@@ -444,6 +444,7 @@ const ContractsPage = () => {
               <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
               <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
               <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
+              <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
             </SelectContent>
           </Select>
           {/* C-8: فلتر العقار */}

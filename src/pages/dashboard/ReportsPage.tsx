@@ -637,6 +637,14 @@ const ReportsPage = () => {
               currentFiscalYearId={fiscalYearId}
             />
           </TabsContent>
+
+          <TabsContent value="cashflow" className="space-y-6">
+            <CashFlowReport
+              income={income}
+              expenses={expenses}
+              fiscalYear={fiscalYear}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
