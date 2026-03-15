@@ -10,7 +10,7 @@ import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter } from 'lucide-react';
+import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
@@ -30,6 +30,7 @@ import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractFormDialog, { ContractFormData, emptyFormData } from '@/components/contracts/ContractFormDialog';
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
+import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
 
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 
@@ -397,8 +398,9 @@ const ContractsPage = () => {
         />
 
         <Tabs defaultValue="contracts" className="space-y-4">
-          <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
+            <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" /><span className="hidden sm:inline">الاستحقاقات</span><span className="sm:hidden">شهري</span></TabsTrigger>
             <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" /><span className="hidden sm:inline">فواتير الدفعات</span><span className="sm:hidden">الفواتير</span></TabsTrigger>
             <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" /><span className="hidden sm:inline">تقرير التحصيل</span><span className="sm:hidden">التحصيل</span></TabsTrigger>
           </TabsList>
@@ -535,6 +537,10 @@ const ContractsPage = () => {
             <TablePagination currentPage={currentPage} totalItems={filteredGroups.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
           </div>
         )}
+          </TabsContent>
+
+          <TabsContent value="accruals">
+            <MonthlyAccrualTable contracts={contracts} isLoading={isLoading} />
           </TabsContent>
 
           <TabsContent value="invoices">

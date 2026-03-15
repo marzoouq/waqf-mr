@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle, Search } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle, Search, Link2 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -129,6 +129,35 @@ const UserManagementPage = () => {
         .or('email.is.null,email.eq.,user_id.is.null');
       return data || [];
     },
+  });
+
+  // U-1: جلب المستفيدين غير المربوطين لربطهم بمستخدمين
+  const { data: unlinkedBeneficiaries = [] } = useQuery({
+    queryKey: ['unlinked-beneficiaries'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('beneficiaries')
+        .select('id, name, user_id')
+        .is('user_id', null);
+      return data || [];
+    },
+  });
+
+  // U-1: ربط مستخدم بمستفيد
+  const linkBeneficiary = useMutation({
+    mutationFn: async ({ beneficiaryId, userId }: { beneficiaryId: string; userId: string }) => {
+      const { error } = await supabase
+        .from('beneficiaries')
+        .update({ user_id: userId })
+        .eq('id', beneficiaryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
+      toast.success('تم ربط المستخدم بالمستفيد بنجاح');
+    },
+    onError: () => toast.error('فشل ربط المستخدم بالمستفيد'),
   });
 
   const createUser = useMutation({
@@ -714,6 +743,29 @@ const UserManagementPage = () => {
                   تحديث الدور
                 </Button>
               </div>
+              {/* U-1: ربط المستخدم بمستفيد */}
+              {editingUser && (editingUser.role === 'beneficiary' || editRole === 'beneficiary') && unlinkedBeneficiaries.length > 0 && (
+                <div className="space-y-2 border-t pt-4">
+                  <Label className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    ربط بمستفيد
+                  </Label>
+                  <NativeSelect
+                    value=""
+                    onValueChange={(beneficiaryId) => {
+                      if (beneficiaryId && editingUser) {
+                        linkBeneficiary.mutate({ beneficiaryId, userId: editingUser.id });
+                      }
+                    }}
+                    placeholder="اختر مستفيد للربط"
+                    options={unlinkedBeneficiaries.map(b => ({
+                      value: b.id,
+                      label: b.name,
+                    }))}
+                  />
+                  <p className="text-xs text-muted-foreground">اختر المستفيد لربطه بهذا الحساب (المستفيدون غير المربوطين فقط)</p>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

@@ -712,6 +712,41 @@ export type Database = {
           },
         ]
       }
+      expense_budgets: {
+        Row: {
+          budget_amount: number
+          created_at: string
+          expense_type: string
+          fiscal_year_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          budget_amount?: number
+          created_at?: string
+          expense_type: string
+          fiscal_year_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          budget_amount?: number
+          created_at?: string
+          expense_type?: string
+          fiscal_year_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_budgets_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
