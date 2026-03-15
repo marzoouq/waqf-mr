@@ -70,6 +70,9 @@ const AdminDashboard = () => {
     fiscalYearStatus: fiscalYear?.status,
   });
 
+  // D-1: مقارنة YoY
+  const yoy = useYoYComparison(fiscalYearId === 'all' ? undefined : fiscalYearId);
+
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
