@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
+import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote, Scale } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
@@ -363,6 +364,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">المتأخرون</span>
               <span className="sm:hidden">متأخرون</span>
             </TabsTrigger>
+            <TabsTrigger value="zakat" className="text-xs sm:text-sm">
+              <Calculator className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">تقدير الزكاة</span>
+              <span className="sm:hidden">زكاة</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="financial" className="space-y-6">
@@ -688,6 +694,20 @@ const ReportsPage = () => {
               contracts={contracts}
               paymentInvoices={paymentInvoices}
               properties={properties}
+            />
+          </TabsContent>
+
+          <TabsContent value="zakat" className="space-y-6">
+            <ZakatEstimationReport
+              totalIncome={totalIncome}
+              totalExpenses={totalExpenses}
+              vatAmount={vatAmount}
+              netAfterVat={netAfterVat}
+              zakatAmount={zakatAmount}
+              netAfterZakat={netAfterZakat}
+              waqfCorpusPrevious={waqfCorpusPrevious}
+              grandTotal={grandTotal}
+              fiscalYearLabel={fiscalYear?.label}
             />
           </TabsContent>
         </Tabs>

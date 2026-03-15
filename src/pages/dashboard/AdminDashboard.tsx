@@ -29,6 +29,8 @@ import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
+const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
+const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 
 // DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
@@ -426,6 +428,16 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* D-4: خريطة حرارية للتحصيل الشهري */}
+        <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+          <CollectionHeatmap income={income} />
+        </Suspense>
+
+        {/* D-5: جدول الإجراءات المعلقة */}
+        <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+          <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+        </Suspense>
 
         {/* Charts — lazy-loaded (recharts bundle) */}
         <Suspense fallback={<ChartSkeleton />}>

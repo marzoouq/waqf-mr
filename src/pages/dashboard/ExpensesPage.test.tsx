@@ -44,6 +44,7 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }))
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/utils/pdf', () => ({ generateExpensesPDF: vi.fn() }));
 vi.mock('@/components/expenses/ExpenseAttachments', () => ({ default: () => <div>مرفقات</div> }));
+vi.mock('@/components/expenses/ExpenseBudgetBar', () => ({ default: () => <div>ميزانية</div> }));
 
 import ExpensesPage from './ExpensesPage';
 
