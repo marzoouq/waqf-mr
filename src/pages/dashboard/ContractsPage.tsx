@@ -303,6 +303,18 @@ const ContractsPage = () => {
         return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
       });
     }
+    // C-8: فلتر العقار
+    if (propertyFilter !== 'all') {
+      result = result.filter(([, group]) =>
+        group.some(c => c.property_id === propertyFilter)
+      );
+    }
+    // C-8: فلتر نوع الدفع
+    if (paymentTypeFilter !== 'all') {
+      result = result.filter(([, group]) =>
+        group.some(c => c.payment_type === paymentTypeFilter)
+      );
+    }
     // فلتر البحث
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -316,7 +328,7 @@ const ContractsPage = () => {
       );
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
