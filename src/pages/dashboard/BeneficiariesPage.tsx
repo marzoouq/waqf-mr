@@ -112,6 +112,8 @@ const BeneficiariesPage = () => {
   };
 
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const activeBeneficiaries = beneficiaries.filter(b => Number(b.share_percentage) > 0).length;
+  const percentageExceeds = totalPercentage > 100;
 
   const filteredBeneficiaries = beneficiaries.filter((b) => {
     if (!searchQuery) return true;
