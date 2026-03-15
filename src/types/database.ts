@@ -7,6 +7,7 @@ export interface Property {
   location: string;
   area: number;
   description?: string;
+  vat_exempt?: boolean;
   created_at: string;
   updated_at: string;
 }
