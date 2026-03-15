@@ -185,6 +185,9 @@ const ExpensesPage = () => {
         {/* E-8: رسم بياني دائري للمصروفات */}
         <ExpensesPieChart expenses={expenses} isLoading={isLoading} />
 
+        {/* E-2: ميزانية تقديرية للمصروفات */}
+        <ExpenseBudgetBar expenses={expenses} fiscalYearId={fiscalYearId} isClosed={isClosed} />
+
         {/* بحث + فلاتر */}
         <div className="space-y-3">
           <div className="relative max-w-md">
