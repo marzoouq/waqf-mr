@@ -230,6 +230,11 @@ const IncomePage = () => {
           </div>
         )}
 
+        {/* I-3 + I-8: رسم بياني الدخل الشهري */}
+        {!isLoading && income.length > 0 && (
+          <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} />
+        )}
+
         {/* بحث + فلاتر */}
         <div className="space-y-3">
           <div className="relative max-w-md">
