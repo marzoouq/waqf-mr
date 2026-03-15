@@ -43,6 +43,7 @@ const waqifLinks = [
 const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
   const { role } = useAuth();
   const location = useLocation();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   const navLinks = role === 'admin'
     ? adminLinks
