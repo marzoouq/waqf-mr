@@ -5,12 +5,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  Building2, Home, FileText, Wallet, Users, BarChart3,
-  DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
-  Bell, ShieldCheck, BookOpen, Menu, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset,
-} from 'lucide-react';
+import { BookOpen, Menu, Lock } from 'lucide-react';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
@@ -30,148 +25,16 @@ import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
+import {
+  linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
+  SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
+  ACCOUNTANT_EXCLUDED_ROUTES, defaultAdminSections, defaultBeneficiarySections,
+  ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, ROUTE_TITLES,
+} from '@/components/dashboard-layout/constants';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-
-// Map link keys to menu_labels keys
-const linkLabelKeys: Record<string, keyof MenuLabels> = {
-  '/dashboard': 'home',
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/users': 'users',
-  '/dashboard/settings': 'settings',
-  '/dashboard/messages': 'messages',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/audit-log': 'audit_log',
-  '/dashboard/bylaws': 'bylaws',
-  '/beneficiary': 'beneficiary_view',
-};
-
-const allAdminLinks = [
-  { to: '/dashboard', icon: Home, label: 'الرئيسية' },
-  { to: '/dashboard/properties', icon: Building2, label: 'العقارات' },
-  { to: '/dashboard/contracts', icon: FileText, label: 'العقود' },
-  { to: '/dashboard/income', icon: DollarSign, label: 'الدخل' },
-  { to: '/dashboard/expenses', icon: Receipt, label: 'المصروفات' },
-  { to: '/dashboard/beneficiaries', icon: Users, label: 'المستفيدين' },
-  { to: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
-  { to: '/dashboard/accounts', icon: Wallet, label: 'الحسابات' },
-  { to: '/dashboard/users', icon: UserCog, label: 'إدارة المستخدمين' },
-  { to: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
-  { to: '/dashboard/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/dashboard/invoices', icon: FileText, label: 'الفواتير' },
-  { to: '/dashboard/audit-log', icon: ShieldCheck, label: 'سجل المراجعة' },
-  { to: '/dashboard/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
-  { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
-  { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
-  { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
-];
-
-const allBeneficiaryLinks = [
-  { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
-  { to: '/beneficiary/properties', icon: Building2, label: 'العقارات' },
-  { to: '/beneficiary/contracts', icon: FileText, label: 'العقود' },
-  { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح السنوي' },
-  { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي من الريع' },
-  { to: '/beneficiary/carryforward', icon: ArrowDownUp, label: 'الترحيلات والخصومات' },
-  { to: '/beneficiary/financial-reports', icon: BarChart3, label: 'التقارير المالية' },
-  { to: '/beneficiary/accounts', icon: Calculator, label: 'الحسابات الختامية' },
-  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
-  { to: '/beneficiary/notifications', icon: Bell, label: 'سجل الإشعارات' },
-  { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
-  { to: '/beneficiary/bylaws', icon: BookOpen, label: 'اللائحة التنظيمية' },
-  { to: '/beneficiary/support', icon: Headset, label: 'الدعم الفني' },
-  { to: '/beneficiary/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
-  { to: '/beneficiary/settings', icon: Settings, label: 'الإعدادات' },
-];
-
-// Routes that support "All Years" filter (beneficiary routes excluded to enforce published-year restriction)
-const SHOW_ALL_ROUTES = [
-  '/dashboard/income',
-  '/dashboard/expenses',
-  '/dashboard/contracts',
-  '/dashboard/properties',
-  '/dashboard/invoices',
-  '/dashboard/audit-log',
-];
-
-const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/bylaws': 'bylaws',
-  '/dashboard/messages': 'messages',
-  '/dashboard/audit-log': 'audit_log',
-  '/dashboard/annual-report': 'annual_report',
-};
-
-const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
-  '/beneficiary/properties': 'properties',
-  '/beneficiary/contracts': 'contracts',
-  '/beneficiary/disclosure': 'disclosure',
-  '/beneficiary/my-share': 'share',
-  '/beneficiary/carryforward': 'share',
-  '/beneficiary/financial-reports': 'reports',
-  '/beneficiary/accounts': 'accounts',
-  '/beneficiary/invoices': 'invoices',
-  '/beneficiary/bylaws': 'bylaws',
-  '/beneficiary/messages': 'messages',
-  '/beneficiary/notifications': 'notifications',
-  '/beneficiary/annual-report': 'annual_report',
-};
-
-// Routes accountant can never access
-const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca'];
-
-// Dynamic mobile header titles
-const ROUTE_TITLES: Record<string, string> = {
-  '/dashboard': 'الرئيسية',
-  '/dashboard/properties': 'العقارات',
-  '/dashboard/contracts': 'العقود',
-  '/dashboard/income': 'الدخل',
-  '/dashboard/expenses': 'المصروفات',
-  '/dashboard/beneficiaries': 'المستفيدين',
-  '/dashboard/reports': 'التقارير',
-  '/dashboard/accounts': 'الحسابات',
-  '/dashboard/users': 'إدارة المستخدمين',
-  '/dashboard/settings': 'الإعدادات',
-  '/dashboard/messages': 'المراسلات',
-  '/dashboard/invoices': 'الفواتير',
-  '/dashboard/audit-log': 'سجل المراجعة',
-  '/dashboard/bylaws': 'اللائحة التنظيمية',
-  '/dashboard/zatca': 'إدارة ZATCA',
-  '/dashboard/annual-report': 'التقرير السنوي',
-  '/dashboard/support': 'الدعم الفني',
-  '/beneficiary': 'الرئيسية',
-  '/beneficiary/properties': 'العقارات',
-  '/beneficiary/contracts': 'العقود',
-  '/beneficiary/disclosure': 'الإفصاح السنوي',
-  '/beneficiary/my-share': 'حصتي من الريع',
-  '/beneficiary/carryforward': 'الترحيلات والخصومات',
-  '/beneficiary/financial-reports': 'التقارير المالية',
-  '/beneficiary/accounts': 'الحسابات الختامية',
-  '/beneficiary/messages': 'المراسلات',
-  '/beneficiary/notifications': 'سجل الإشعارات',
-  '/beneficiary/invoices': 'الفواتير',
-  '/beneficiary/bylaws': 'اللائحة التنظيمية',
-  '/beneficiary/settings': 'الإعدادات',
-  '/beneficiary/support': 'الدعم الفني',
-  '/beneficiary/annual-report': 'التقرير السنوي',
-  '/waqif': 'لوحة الواقف',
-};
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, session, role, signOut } = useAuth();

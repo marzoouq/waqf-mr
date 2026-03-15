@@ -89,7 +89,7 @@ export const useUpdateReportItem = () => {
       return data;
     },
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ['annual_report_items'] });
+      qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
       toast.success('تم تحديث العنصر');
     },
     onError: () => toast.error('فشل في تحديث العنصر'),
@@ -178,17 +178,26 @@ export const useIncomeComparison = () => {
       if (fyErr) throw fyErr;
       if (!years?.length) return [];
 
-      // جلب الدخل لكل سنة
-      const results: IncomeComparison[] = [];
-      for (const fy of years) {
-        const { data: incomeData, error: incErr } = await supabase
-          .from('income')
-          .select('amount')
-          .eq('fiscal_year_id', fy.id);
-        if (incErr) throw incErr;
-        const total = (incomeData || []).reduce((sum, r) => sum + Number(r.amount), 0);
-        results.push({ label: fy.label, total });
+      // جلب كل الدخل لهذه السنوات في استعلام واحد (بدلاً من N+1)
+      const yearIds = years.map(y => y.id);
+      const { data: allIncome, error: incErr } = await supabase
+        .from('income')
+        .select('fiscal_year_id, amount')
+        .in('fiscal_year_id', yearIds);
+      if (incErr) throw incErr;
+
+      // تجميع الدخل حسب السنة المالية
+      const totalsMap = new Map<string, number>();
+      for (const row of allIncome || []) {
+        const current = totalsMap.get(row.fiscal_year_id!) || 0;
+        totalsMap.set(row.fiscal_year_id!, current + Number(row.amount));
       }
+
+      const results: IncomeComparison[] = years.map(fy => ({
+        label: fy.label,
+        total: totalsMap.get(fy.id) || 0,
+      }));
+
       return results.reverse(); // الأقدم أولاً
     },
     staleTime: 5 * 60_000,
