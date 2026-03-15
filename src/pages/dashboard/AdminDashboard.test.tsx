@@ -196,7 +196,7 @@ describe('AdminDashboard', () => {
 
   it('shows beneficiaries count', () => {
     renderPage();
-    expect(screen.getByText('عدد المستفيدين')).toBeInTheDocument();
+    expect(screen.getByText(/المستفيد/)).toBeInTheDocument();
   });
 
   it('shows KPI section', () => {

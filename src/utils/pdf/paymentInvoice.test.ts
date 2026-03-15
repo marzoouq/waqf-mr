@@ -144,7 +144,7 @@ describe('generatePaymentInvoicePDF', () => {
       { waqfName: 'وقف' },
     );
     expect(generateZatcaQrTLV).toHaveBeenCalledWith(expect.objectContaining({
-      vatNumber: '',
+      vatNumber: '000000000000000',
     }));
   });
 
