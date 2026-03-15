@@ -429,6 +429,16 @@ const AdminDashboard = () => {
           </Card>
         )}
 
+        {/* D-4: خريطة حرارية للتحصيل الشهري */}
+        <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+          <CollectionHeatmap income={income} />
+        </Suspense>
+
+        {/* D-5: جدول الإجراءات المعلقة */}
+        <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+          <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+        </Suspense>
+
         {/* Charts — lazy-loaded (recharts bundle) */}
         <Suspense fallback={<ChartSkeleton />}>
           <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
