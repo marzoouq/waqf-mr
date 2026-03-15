@@ -364,6 +364,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">المتأخرون</span>
               <span className="sm:hidden">متأخرون</span>
             </TabsTrigger>
+            <TabsTrigger value="zakat" className="text-xs sm:text-sm">
+              <Calculator className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">تقدير الزكاة</span>
+              <span className="sm:hidden">زكاة</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="financial" className="space-y-6">
