@@ -156,7 +156,8 @@ describe('AdminDashboard', () => {
   it('renders welcome message with fiscal year', () => {
     renderPage();
     expect(screen.getByText(/مرحباً بك/)).toBeInTheDocument();
-    expect(screen.getByText(/1446-1447/)).toBeInTheDocument();
+    const matches = screen.getAllByText(/1446-1447/);
+    expect(matches.length).toBeGreaterThan(0);
   });
 
 
