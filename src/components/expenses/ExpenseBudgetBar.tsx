@@ -38,8 +38,8 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
     queryKey: ['expense_budgets', fiscalYearId],
     enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('expense_budgets' as 'expenses')
+      const { data, error } = await (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> })
+        .from('expense_budgets')
         .select('*')
         .eq('fiscal_year_id', fiscalYearId);
       if (error) throw error;
