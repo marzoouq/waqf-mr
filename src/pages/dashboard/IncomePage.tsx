@@ -253,6 +253,28 @@ const IncomePage = () => {
           <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} />
         )}
 
+        {/* I-4: تنبيه الإيراد الناقص */}
+        {!isLoading && lowIncomeMonths.length > 0 && (
+          <Card className="shadow-sm border-warning/50 bg-warning/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-warning">تنبيه: إيرادات منخفضة في {lowIncomeMonths.length} {lowIncomeMonths.length === 1 ? 'شهر' : 'أشهر'}</p>
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    {lowIncomeMonths.map((m) => (
+                      <p key={m.month}>
+                        شهر <span className="font-medium">{m.month}</span>: {m.amount.toLocaleString('ar-SA')} ر.س
+                        <span className="text-destructive"> (أقل من 20% من المتوسط: {m.avg.toLocaleString('ar-SA')} ر.س)</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* بحث + فلاتر */}
         <div className="space-y-3">
           <div className="relative max-w-md">
