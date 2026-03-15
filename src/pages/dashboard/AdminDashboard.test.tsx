@@ -159,6 +159,7 @@ describe('AdminDashboard', () => {
     expect(screen.getByText(/1446-1447/)).toBeInTheDocument();
   });
 
+
   it('shows total properties count', () => {
     renderPage();
     expect(screen.getByText('إجمالي العقارات')).toBeInTheDocument();
