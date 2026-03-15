@@ -55,6 +55,10 @@ const UserManagementPage = () => {
   const [toggling, setToggling] = useState(false);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // U-7: بحث وفلتر
+  const [userSearch, setUserSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilterUser, setStatusFilterUser] = useState<string>('all');
 
   // BUG-11 fix: استخدام useQuery بدلاً من useEffect + setState
   const { data: registrationEnabled = false } = useQuery({
