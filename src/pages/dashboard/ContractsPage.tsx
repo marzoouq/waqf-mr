@@ -282,7 +282,20 @@ const ContractsPage = () => {
     });
   }, [contracts]);
 
-  // عدد العقود النشطة والمنتهية (لعرض الأعداد بجانب الفلتر)
+  // C-5: حساب العقود المتأخرة عن السداد > 30 يوم
+  const overdueContractIds = useMemo(() => {
+    const ids = new Set<string>();
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 3600 * 1000;
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'overdue' || (inv.status === 'pending' && new Date(inv.due_date).getTime() + thirtyDays < now)) {
+        ids.add(inv.contract_id);
+      }
+    }
+    return ids;
+  }, [paymentInvoices]);
+
+  // عدد العقود النشطة والمنتهية والمتأخرة (لعرض الأعداد بجانب الفلتر)
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0;
     for (const [, group] of groupedContracts) {
@@ -290,8 +303,12 @@ const ContractsPage = () => {
       if (latestStatus === 'active') active++;
       else expired++;
     }
-    return { active, expired, all: groupedContracts.length };
-  }, [groupedContracts]);
+    // عدد المجموعات التي تحتوي على عقد متأخر
+    const overdue = groupedContracts.filter(([, group]) =>
+      group.some(c => overdueContractIds.has(c.id))
+    ).length;
+    return { active, expired, all: groupedContracts.length, overdue };
+  }, [groupedContracts, overdueContractIds]);
 
   // فلترة المجموعات حسب البحث + حالة أحدث عقد
   const filteredGroups = useMemo(() => {
