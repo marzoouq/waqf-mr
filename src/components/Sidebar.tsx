@@ -32,6 +32,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
   const prefetchAccounts = usePrefetchAccounts();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <>
