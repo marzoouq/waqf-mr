@@ -223,6 +223,10 @@ const AccountsPage = () => {
           netAfterExpenses={page.netAfterExpenses}
           availableAmount={page.availableAmount}
           distributionsAmount={page.manualDistributions}
+          hasAccount={!!page.currentAccount}
+          pendingAdvances={pendingAdvances}
+          unpaidInvoices={unpaidInvoices}
+          beneficiaryPercentage={totalBenPct}
         />
       </div>
     </DashboardLayout>
