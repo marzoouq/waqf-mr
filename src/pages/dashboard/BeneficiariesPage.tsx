@@ -146,8 +146,8 @@ const BeneficiariesPage = () => {
 
           <TabsContent value="beneficiaries" className="space-y-5 mt-4">
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {Array.from({ length: 2 }).map((_, i) => (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <Card key={i} className="shadow-sm">
                     <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
                       <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
