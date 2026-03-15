@@ -66,7 +66,7 @@ const ContractsPage = () => {
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const ITEMS_PER_PAGE = 10;
@@ -282,7 +282,20 @@ const ContractsPage = () => {
     });
   }, [contracts]);
 
-  // عدد العقود النشطة والمنتهية (لعرض الأعداد بجانب الفلتر)
+  // C-5: حساب العقود المتأخرة عن السداد > 30 يوم
+  const overdueContractIds = useMemo(() => {
+    const ids = new Set<string>();
+    const now = Date.now();
+    const thirtyDays = 30 * 24 * 3600 * 1000;
+    for (const inv of paymentInvoices) {
+      if (inv.status === 'overdue' || (inv.status === 'pending' && new Date(inv.due_date).getTime() + thirtyDays < now)) {
+        ids.add(inv.contract_id);
+      }
+    }
+    return ids;
+  }, [paymentInvoices]);
+
+  // عدد العقود النشطة والمنتهية والمتأخرة (لعرض الأعداد بجانب الفلتر)
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0;
     for (const [, group] of groupedContracts) {
@@ -290,14 +303,23 @@ const ContractsPage = () => {
       if (latestStatus === 'active') active++;
       else expired++;
     }
-    return { active, expired, all: groupedContracts.length };
-  }, [groupedContracts]);
+    // عدد المجموعات التي تحتوي على عقد متأخر
+    const overdue = groupedContracts.filter(([, group]) =>
+      group.some(c => overdueContractIds.has(c.id))
+    ).length;
+    return { active, expired, all: groupedContracts.length, overdue };
+  }, [groupedContracts, overdueContractIds]);
 
   // فلترة المجموعات حسب البحث + حالة أحدث عقد
   const filteredGroups = useMemo(() => {
     let result = groupedContracts;
     // فلتر الحالة
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'overdue') {
+      // C-5: عرض العقود المتأخرة عن السداد فقط
+      result = result.filter(([, group]) =>
+        group.some(c => overdueContractIds.has(c.id))
+      );
+    } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
         const latestStatus = group[0].status;
         return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
@@ -328,7 +350,7 @@ const ContractsPage = () => {
       );
     }
     return result;
-  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter]);
+  }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds]);
 
   const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
   const toggleAllGroups = () => {
@@ -422,6 +444,7 @@ const ContractsPage = () => {
               <SelectItem value="all">الكل ({statusCounts.all})</SelectItem>
               <SelectItem value="active">نشط ({statusCounts.active})</SelectItem>
               <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
+              <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
             </SelectContent>
           </Select>
           {/* C-8: فلتر العقار */}

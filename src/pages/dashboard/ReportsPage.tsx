@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import CashFlowReport from '@/components/reports/CashFlowReport';
 // N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
@@ -343,6 +344,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">مقارنة سنوية</span>
               <span className="sm:hidden">مقارنة</span>
             </TabsTrigger>
+            <TabsTrigger value="cashflow" className="text-xs sm:text-sm">
+              <Banknote className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">التدفق النقدي</span>
+              <span className="sm:hidden">نقدي</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="financial" className="space-y-6">
@@ -630,6 +636,14 @@ const ReportsPage = () => {
             <YearOverYearComparison
               fiscalYears={fiscalYears}
               currentFiscalYearId={fiscalYearId}
+            />
+          </TabsContent>
+
+          <TabsContent value="cashflow" className="space-y-6">
+            <CashFlowReport
+              income={income}
+              expenses={expenses}
+              fiscalYear={fiscalYear}
             />
           </TabsContent>
         </Tabs>

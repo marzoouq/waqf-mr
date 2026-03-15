@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Settings, Lock, Unlock, AlertTriangle, Search } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -55,6 +55,10 @@ const UserManagementPage = () => {
   const [toggling, setToggling] = useState(false);
   const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // U-7: بحث وفلتر
+  const [userSearch, setUserSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilterUser, setStatusFilterUser] = useState<string>('all');
 
   // BUG-11 fix: استخدام useQuery بدلاً من useEffect + setState
   const { data: registrationEnabled = false } = useQuery({
@@ -93,9 +97,27 @@ const UserManagementPage = () => {
       };
     },
   });
-  const users = usersResult.users;
+  const allUsers = usersResult.users;
   const totalUsers = usersResult.total;
   const nextPage = usersResult.nextPage;
+
+  // U-7: فلترة المستخدمين محلياً
+  const users = useMemo(() => {
+    let result = allUsers;
+    if (userSearch) {
+      const q = userSearch.toLowerCase();
+      result = result.filter(u => u.email.toLowerCase().includes(q));
+    }
+    if (roleFilter !== 'all') {
+      result = result.filter(u => (u.role || 'none') === roleFilter);
+    }
+    if (statusFilterUser === 'confirmed') {
+      result = result.filter(u => !!u.email_confirmed_at);
+    } else if (statusFilterUser === 'unconfirmed') {
+      result = result.filter(u => !u.email_confirmed_at);
+    }
+    return result;
+  }, [allUsers, userSearch, roleFilter, statusFilterUser]);
 
   // تحقق وقائي: كشف المستفيدين بدون بريد أو بدون ربط بحساب مستخدم
   const { data: orphanedBeneficiaries = [] } = useQuery({
@@ -348,12 +370,47 @@ const UserManagementPage = () => {
           </Alert>
         )}
 
+        {/* U-7: شريط البحث والفلاتر */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث بالبريد الإلكتروني..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              className="pr-10"
+              dir="ltr"
+            />
+          </div>
+          <NativeSelect
+            value={roleFilter}
+            onValueChange={setRoleFilter}
+            options={[
+              { value: 'all', label: 'كل الأدوار' },
+              { value: 'admin', label: 'ناظر' },
+              { value: 'accountant', label: 'محاسب' },
+              { value: 'beneficiary', label: 'مستفيد' },
+              { value: 'waqif', label: 'واقف' },
+              { value: 'none', label: 'بدون دور' },
+            ]}
+          />
+          <NativeSelect
+            value={statusFilterUser}
+            onValueChange={setStatusFilterUser}
+            options={[
+              { value: 'all', label: 'كل الحالات' },
+              { value: 'confirmed', label: 'مفعّل' },
+              { value: 'unconfirmed', label: 'غير مفعّل' },
+            ]}
+          />
+        </div>
+
         {/* Users Table */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              المستخدمون ({totalUsers})
+              المستخدمون ({users.length}{users.length !== totalUsers ? ` من ${totalUsers}` : ''})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
