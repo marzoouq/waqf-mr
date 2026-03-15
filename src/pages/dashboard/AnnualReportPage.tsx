@@ -22,7 +22,7 @@ import {
 import { useProperties } from '@/hooks/useProperties';
 import { useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useContracts } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
