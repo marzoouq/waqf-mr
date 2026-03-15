@@ -131,6 +131,35 @@ const UserManagementPage = () => {
     },
   });
 
+  // U-1: جلب المستفيدين غير المربوطين لربطهم بمستخدمين
+  const { data: unlinkedBeneficiaries = [] } = useQuery({
+    queryKey: ['unlinked-beneficiaries'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('beneficiaries')
+        .select('id, name, user_id')
+        .is('user_id', null);
+      return data || [];
+    },
+  });
+
+  // U-1: ربط مستخدم بمستفيد
+  const linkBeneficiary = useMutation({
+    mutationFn: async ({ beneficiaryId, userId }: { beneficiaryId: string; userId: string }) => {
+      const { error } = await supabase
+        .from('beneficiaries')
+        .update({ user_id: userId })
+        .eq('id', beneficiaryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unlinked-beneficiaries'] });
+      queryClient.invalidateQueries({ queryKey: ['orphaned-beneficiaries'] });
+      toast.success('تم ربط المستخدم بالمستفيد بنجاح');
+    },
+    onError: () => toast.error('فشل ربط المستخدم بالمستفيد'),
+  });
+
   const createUser = useMutation({
     mutationFn: (data: { email: string; password: string; role: string; nationalId: string; name: string }) =>
       callAdminApi({ action: 'create_user', ...data }),
