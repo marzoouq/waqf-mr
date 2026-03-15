@@ -181,6 +181,9 @@ const ExpensesPage = () => {
 
         <ExpenseSummaryCards expenses={expenses} totalExpenses={totalExpenses} documentedCount={documentedCount} documentationRate={documentationRate} isLoading={isLoading} />
 
+        {/* E-8: رسم بياني دائري للمصروفات */}
+        <ExpensesPieChart expenses={expenses} isLoading={isLoading} />
+
         {/* بحث + فلاتر */}
         <div className="space-y-3">
           <div className="relative max-w-md">
