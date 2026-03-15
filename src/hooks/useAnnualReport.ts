@@ -89,7 +89,7 @@ export const useUpdateReportItem = () => {
       return data;
     },
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ['annual_report_items'] });
+      qc.invalidateQueries({ queryKey: ['annual_report_items'], exact: false });
       toast.success('تم تحديث العنصر');
     },
     onError: () => toast.error('فشل في تحديث العنصر'),

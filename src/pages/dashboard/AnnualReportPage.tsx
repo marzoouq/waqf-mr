@@ -99,15 +99,19 @@ const AnnualReportPage = () => {
     }
   }, [fiscalYearId, editingItem, grouped, createItem, updateItem]);
 
-  // إعادة الترتيب
-  const handleReorder = useCallback((id: string, direction: 'up' | 'down') => {
+  // إعادة الترتيب — mutateAsync متتابع لتجنب race condition
+  const handleReorder = useCallback(async (id: string, direction: 'up' | 'down') => {
     const sectionItems = grouped[activeTab as keyof typeof grouped];
     if (!sectionItems) return;
     const idx = sectionItems.findIndex(i => i.id === id);
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sectionItems.length) return;
-    updateItem.mutate({ id: sectionItems[idx].id, sort_order: sectionItems[swapIdx].sort_order });
-    updateItem.mutate({ id: sectionItems[swapIdx].id, sort_order: sectionItems[idx].sort_order });
+    try {
+      await updateItem.mutateAsync({ id: sectionItems[idx].id, sort_order: sectionItems[swapIdx].sort_order });
+      await updateItem.mutateAsync({ id: sectionItems[swapIdx].id, sort_order: sectionItems[idx].sort_order });
+    } catch {
+      // خطأ يُعالج في onError الخاص بالـ mutation
+    }
   }, [grouped, activeTab, updateItem]);
 
   // تصدير PDF
