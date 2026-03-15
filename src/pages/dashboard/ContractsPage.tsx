@@ -314,7 +314,12 @@ const ContractsPage = () => {
   const filteredGroups = useMemo(() => {
     let result = groupedContracts;
     // فلتر الحالة
-    if (statusFilter !== 'all') {
+    if (statusFilter === 'overdue') {
+      // C-5: عرض العقود المتأخرة عن السداد فقط
+      result = result.filter(([, group]) =>
+        group.some(c => overdueContractIds.has(c.id))
+      );
+    } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
         const latestStatus = group[0].status;
         return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
