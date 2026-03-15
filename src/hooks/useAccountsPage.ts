@@ -184,12 +184,14 @@ export function useAccountsPage() {
 
   const isCommercialContract = (contract: typeof contracts[0]) => {
     if (!residentialVatExempt) return true;
+    // تحقق من علم الإعفاء الضريبي على العقار أولاً
+    const property = properties.find(p => p.id === contract.property_id);
+    if (property?.vat_exempt) return false;
     if (contract.unit_id) {
       const unit = allUnits.find(u => u.id === contract.unit_id);
       if (unit?.unit_type === 'محل') return true;
       if (unit?.unit_type === 'شقة') return false;
     }
-    const property = properties.find(p => p.id === contract.property_id);
     if (property?.property_type === 'تجاري') return true;
     return false;
   };
