@@ -424,6 +424,30 @@ const ContractsPage = () => {
               <SelectItem value="expired">منتهي ({statusCounts.expired})</SelectItem>
             </SelectContent>
           </Select>
+          {/* C-8: فلتر العقار */}
+          <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-48 shrink-0">
+              <SelectValue placeholder="كل العقارات" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل العقارات</SelectItem>
+              {properties.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.property_number} - {p.location}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* C-8: فلتر نوع الدفع */}
+          <Select value={paymentTypeFilter} onValueChange={(v) => { setPaymentTypeFilter(v); setCurrentPage(1); }}>
+            <SelectTrigger className="w-40 shrink-0">
+              <SelectValue placeholder="نوع الدفع" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الأنواع</SelectItem>
+              <SelectItem value="monthly">شهري</SelectItem>
+              <SelectItem value="quarterly">ربع سنوي</SelectItem>
+              <SelectItem value="semi_annual">نصف سنوي</SelectItem>
+              <SelectItem value="annual">سنوي</SelectItem>
+            </SelectContent>
           {filteredGroups.length > 0 && (
             <Button variant="outline" size="sm" className="gap-2 shrink-0" onClick={toggleAllGroups}>
               <ChevronsUpDown className="w-4 h-4" />
