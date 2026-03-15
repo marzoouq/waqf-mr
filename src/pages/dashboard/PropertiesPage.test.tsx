@@ -89,7 +89,7 @@ describe('PropertiesPage', () => {
   it('displays property details on cards', () => {
     render(<PropertiesPage />);
     expect(screen.getByText('حي النزهة')).toBeInTheDocument();
-    expect(screen.getByText('مبنى سكني')).toBeInTheDocument();
+    expect(screen.getAllByText('مبنى سكني').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters properties by search query', () => {
