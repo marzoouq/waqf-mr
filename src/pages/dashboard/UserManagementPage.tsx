@@ -743,6 +743,29 @@ const UserManagementPage = () => {
                   تحديث الدور
                 </Button>
               </div>
+              {/* U-1: ربط المستخدم بمستفيد */}
+              {editingUser && (editingUser.role === 'beneficiary' || editRole === 'beneficiary') && unlinkedBeneficiaries.length > 0 && (
+                <div className="space-y-2 border-t pt-4">
+                  <Label className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    ربط بمستفيد
+                  </Label>
+                  <NativeSelect
+                    value=""
+                    onValueChange={(beneficiaryId) => {
+                      if (beneficiaryId && editingUser) {
+                        linkBeneficiary.mutate({ beneficiaryId, userId: editingUser.id });
+                      }
+                    }}
+                    placeholder="اختر مستفيد للربط"
+                    options={unlinkedBeneficiaries.map(b => ({
+                      value: b.id,
+                      label: b.name,
+                    }))}
+                  />
+                  <p className="text-xs text-muted-foreground">اختر المستفيد لربطه بهذا الحساب (المستفيدون غير المربوطين فقط)</p>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
