@@ -29,6 +29,8 @@ import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
+const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
+const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 
 // DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
