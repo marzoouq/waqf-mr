@@ -6,6 +6,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;
@@ -42,6 +43,7 @@ const waqifLinks = [
 const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
   const { role } = useAuth();
   const location = useLocation();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   const navLinks = role === 'admin'
     ? adminLinks
@@ -69,7 +71,14 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
                 active ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              <link.icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} aria-hidden="true" />
+              <div className="relative">
+                <link.icon className={cn('w-5 h-5', active && 'stroke-[2.5]')} aria-hidden="true" />
+                {link.to.includes('/messages') && unreadCount > 0 && (
+                  <span className="absolute -top-1 -left-1 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium leading-none">{link.label}</span>
             </Link>
           );

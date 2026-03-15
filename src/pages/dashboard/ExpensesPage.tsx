@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,14 @@ import { useProperties } from '@/hooks/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
-import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock } from 'lucide-react';
+import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
+import AdvancedFiltersBar, { FilterState, EMPTY_FILTERS } from '@/components/filters/AdvancedFiltersBar';
 import { generateExpensesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -24,6 +25,9 @@ import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+type SortField = 'amount' | 'date' | 'expense_type' | null;
+type SortDir = 'asc' | 'desc';
 
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -39,6 +43,9 @@ const ExpensesPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -84,7 +91,28 @@ const ExpensesPage = () => {
     }
   };
 
+  const handleSort = useCallback((field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+    setCurrentPage(1);
+  }, [sortField]);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
   const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+
+  // قائمة أنواع المصروفات الفريدة
+  const uniqueTypes = useMemo(() => {
+    const types = new Set(expenses.map((e) => e.expense_type));
+    return Array.from(types).sort();
+  }, [expenses]);
 
   const { expenseInvoiceMap, documentedCount, documentationRate } = useMemo(() => {
     const map = new Map<string, number>();
@@ -98,11 +126,32 @@ const ExpensesPage = () => {
     return { expenseInvoiceMap: map, documentedCount: documented, documentationRate: rate };
   }, [allInvoices, expenses]);
 
-  const filteredExpenses = expenses.filter((item) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return item.expense_type.toLowerCase().includes(q) || (item.description || '').toLowerCase().includes(q) || item.date.includes(q);
-  });
+  // تطبيق الفلاتر + البحث + الترتيب
+  const filteredExpenses = useMemo(() => {
+    let result = expenses.filter((item) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!item.expense_type.toLowerCase().includes(q) && !(item.description || '').toLowerCase().includes(q) && !item.date.includes(q)) return false;
+      }
+      if (filters.category && item.expense_type !== filters.category) return false;
+      if (filters.propertyId && item.property_id !== filters.propertyId) return false;
+      if (filters.dateFrom && item.date < filters.dateFrom) return false;
+      if (filters.dateTo && item.date > filters.dateTo) return false;
+      return true;
+    });
+
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (sortField === 'amount') cmp = Number(a.amount) - Number(b.amount);
+        else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
+        else if (sortField === 'expense_type') cmp = a.expense_type.localeCompare(b.expense_type, 'ar');
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return result;
+  }, [expenses, searchQuery, filters, sortField, sortDir]);
 
   return (
     <DashboardLayout>
@@ -131,9 +180,20 @@ const ExpensesPage = () => {
 
         <ExpenseSummaryCards expenses={expenses} totalExpenses={totalExpenses} documentedCount={documentedCount} documentationRate={documentationRate} isLoading={isLoading} />
 
-        <div className="relative max-w-md">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="بحث في المصروفات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+        {/* بحث + فلاتر */}
+        <div className="space-y-3">
+          <div className="relative max-w-md">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="بحث في المصروفات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+          </div>
+          <AdvancedFiltersBar
+            filters={filters}
+            onFiltersChange={(f) => { setFilters(f); setCurrentPage(1); }}
+            categories={uniqueTypes}
+            categoryLabel="الأنواع"
+            categoryPlaceholder="كل الأنواع"
+            properties={properties}
+          />
         </div>
 
         <Card className="shadow-sm">
@@ -141,7 +201,7 @@ const ExpensesPage = () => {
             {isLoading ? (
               <TableSkeleton rows={5} cols={5} />
             ) : filteredExpenses.length === 0 ? (
-              <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
+              <div className="py-12 text-center"><TrendingDown className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery || filters.category || filters.propertyId || filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد مصروفات مسجلة'}</p></div>
             ) : (
               <>
               {/* Mobile Cards */}
@@ -190,10 +250,19 @@ const ExpensesPage = () => {
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="text-right w-8"></TableHead>
-                    <TableHead className="text-right">النوع</TableHead><TableHead className="text-right">المبلغ</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead><TableHead className="text-right">العقار</TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('expense_type')}>
+                      <span className="inline-flex items-center gap-1">النوع <SortIcon field="expense_type" /></span>
+                    </TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('amount')}>
+                      <span className="inline-flex items-center gap-1">المبلغ <SortIcon field="amount" /></span>
+                    </TableHead>
+                    <TableHead className="text-right cursor-pointer select-none" onClick={() => handleSort('date')}>
+                      <span className="inline-flex items-center gap-1">التاريخ <SortIcon field="date" /></span>
+                    </TableHead>
+                    <TableHead className="text-right">العقار</TableHead>
                     <TableHead className="text-right">المرفقات</TableHead>
-                    <TableHead className="text-right">الوصف</TableHead><TableHead className="text-right">إجراءات</TableHead>
+                    <TableHead className="text-right">الوصف</TableHead>
+                    <TableHead className="text-right">إجراءات</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

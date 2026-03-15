@@ -10,11 +10,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
+import { Building2, LogOut, Menu, X, ChevronLeft, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
 import { useWaqfInfo } from '@/hooks/useAppSettings';
 import { usePrefetchAccounts } from '@/hooks/usePrefetchAccounts';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface SidebarContentProps {
   links: Array<{ to: string; icon: React.ComponentType<{ className?: string }>; label: string }>;
@@ -31,6 +32,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
   const prefetchAccounts = usePrefetchAccounts();
+  const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
     <>
@@ -87,6 +89,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             >
               <link.icon className="w-5 h-5 flex-shrink-0" />
               <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
+              {/* عداد الرسائل غير المقروءة */}
+              {link.to.includes('/messages') && unreadCount > 0 && (
+                <span className="mr-auto bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
 
