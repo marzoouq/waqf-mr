@@ -353,6 +353,11 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">التدفق النقدي</span>
               <span className="sm:hidden">نقدي</span>
             </TabsTrigger>
+            <TabsTrigger value="balance" className="text-xs sm:text-sm">
+              <Scale className="w-4 h-4 ml-1 sm:ml-2" />
+              <span className="hidden sm:inline">الميزانية العمومية</span>
+              <span className="sm:hidden">ميزانية</span>
+            </TabsTrigger>
             <TabsTrigger value="overdue" className="text-xs sm:text-sm">
               <FileText className="w-4 h-4 ml-1 sm:ml-2" />
               <span className="hidden sm:inline">المتأخرون</span>
