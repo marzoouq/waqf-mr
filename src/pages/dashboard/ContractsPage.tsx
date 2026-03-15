@@ -30,6 +30,7 @@ import ContractStatsCards from '@/components/contracts/ContractStatsCards';
 import ContractFormDialog, { ContractFormData, emptyFormData } from '@/components/contracts/ContractFormDialog';
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
+import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
 
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 
