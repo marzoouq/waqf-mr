@@ -114,6 +114,23 @@ const IncomePage = () => {
     return Array.from(sources).sort();
   }, [income]);
 
+  // I-4: تنبيه الإيراد الناقص — كشف أشهر أقل من 20% من المتوسط
+  const lowIncomeMonths = useMemo(() => {
+    if (income.length < 3) return []; // لا فائدة من المقارنة مع أقل من 3 سجلات
+    const monthMap = new Map<string, number>();
+    income.forEach((i) => {
+      const month = i.date.slice(0, 7); // YYYY-MM
+      monthMap.set(month, (monthMap.get(month) || 0) + Number(i.amount));
+    });
+    if (monthMap.size < 2) return [];
+    const values = Array.from(monthMap.values());
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const threshold = avg * 0.2; // 20% من المتوسط
+    return Array.from(monthMap.entries())
+      .filter(([, amount]) => amount < threshold)
+      .map(([month, amount]) => ({ month, amount, avg: Math.round(avg) }));
+  }, [income]);
+
   const summaryCards = useMemo(() => {
     const count = income.length;
     const avg = count > 0 ? Math.round(totalIncome / count) : 0;
