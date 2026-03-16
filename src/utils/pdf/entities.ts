@@ -68,7 +68,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
       c.tenant_name,
       c.start_date,
       c.end_date,
-      `${Number(c.rent_amount).toLocaleString()} ر.س`,
+      `${safeNumber(c.rent_amount).toLocaleString()} ر.س`,
       statusLabel(c.status),
     ]),
     theme: 'striped',
