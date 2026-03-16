@@ -525,9 +525,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                     <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
                                     <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
                                       onClick={() => {
-                                        const rent = Number(tenant.rent_amount);
-                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (Number(tenant.payment_amount) || rent / 12)
-                                          : tenant.payment_type === 'multi' ? (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1))
+                                        const rent = safeNumber(tenant.rent_amount);
+                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
+                                          : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
                                           : rent / 12;
                                         upsertPayment.mutate({
                                           contract_id: tenant.contract_id,
