@@ -53,11 +53,14 @@
 
 ---
 
-## 📋 مهام مؤجلة — أمان (تدريجي)
+## ✅ مُنجز — مهام أمان وCI/CD (2026-03-16)
 
-### 🟡 متوسط — CSP كـ HTTP Header
-- **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`
-- **الحل:** إضافة `Content-Security-Policy` كـ HTTP Response Header عبر Edge Function أو Cloudflare Worker
+- [x] CSP كـ HTTP Header — موثّق في `docs/SECURITY-KNOWLEDGE.md`
+- [x] تفعيل `noUnusedLocals` و `noUnusedParameters` — مفعّل في `tsconfig.app.json`
+- [x] إضافة `coverage.thresholds` (حد أدنى 60%) — مفعّل في `vitest.config.ts`
+- [x] استبدال جميع أنماط `Number()` المتبقية بـ `safeNumber()` في 8 ملفات مالية حرجة
+
+## 📋 مهام مؤجلة — أمان (تدريجي)
 
 ### 🟡 متوسط — إزالة `unsafe-inline` من `style-src`
 - **المشكلة:** CSS Injection ممكن نظرياً
@@ -69,8 +72,6 @@
 
 - [ ] توحيد ملفات lock: اختيار `npm` أو `bun` وحذف الآخر
 - [ ] مزامنة إصدار `package-lock.json` مع `package.json`
-- [ ] إضافة `coverage.thresholds` (حد أدنى 60%) بعد استقرار التغطية
-- [ ] تفعيل `noUnusedLocals` و `noUnusedParameters` تدريجياً
 - [ ] إضافة integration tests لـ Edge Functions
 - [ ] إضافة فحص migrations قبل الدمج في CI
 
