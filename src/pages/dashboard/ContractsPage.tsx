@@ -365,7 +365,7 @@ const ContractsPage = () => {
 
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
 
-  const filteredContracts = contracts.filter((c) => {
+  const _filteredContracts = contracts.filter((c) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q);
