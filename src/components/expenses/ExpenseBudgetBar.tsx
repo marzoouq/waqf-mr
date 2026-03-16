@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Target } from 'lucide-react';
 import { Expense } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';

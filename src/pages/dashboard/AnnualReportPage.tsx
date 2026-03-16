@@ -3,6 +3,7 @@
  * تتضمن: ملخص تلقائي + مقارنة دخل + 4 تبويبات CRUD + نشر
  */
 import { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

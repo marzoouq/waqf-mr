@@ -19,6 +19,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 import {
   AlertDialog,
   AlertDialogAction,
