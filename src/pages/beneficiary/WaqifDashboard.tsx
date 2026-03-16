@@ -3,6 +3,7 @@
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
 import { useState, useEffect, useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +57,7 @@ const WaqifDashboard = () => {
 
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
-  const contractualRevenue = activeContracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+  const contractualRevenue = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
   /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
@@ -94,11 +95,11 @@ const WaqifDashboard = () => {
     const months: Record<string, { income: number; expenses: number }> = {};
     income.forEach(item => {
       const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += Number(item.amount); }
+      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += safeNumber(item.amount); }
     });
     expenses.forEach(item => {
       const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += Number(item.amount); }
+      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += safeNumber(item.amount); }
     });
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
   }, [income, expenses]);
@@ -187,7 +188,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'القابل للتوزيع', value: `${Number(availableAmount || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'القابل للتوزيع', value: `${safeNumber(availableAmount).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
@@ -239,7 +240,7 @@ const WaqifDashboard = () => {
               ].map((row, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <span className={`font-bold ${row.cls}`}>{Number(row.value || 0).toLocaleString()} ر.س</span>
+                  <span className={`font-bold ${row.cls}`}>{safeNumber(row.value).toLocaleString()} ر.س</span>
                 </div>
               ))}
             </CardContent>

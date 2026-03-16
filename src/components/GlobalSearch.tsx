@@ -3,6 +3,7 @@
  * يتيح البحث عبر العقارات والعقود والمستفيدين والمصروفات
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { Search, Building2, FileText, Users, Receipt, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -145,7 +146,7 @@ const GlobalSearch = () => {
             searchResults.push({
               id: e.id,
               title: e.expense_type,
-              subtitle: `${Number(e.amount).toLocaleString()} ر.س${e.description ? ` — ${e.description}` : ''}`,
+              subtitle: `${safeNumber(e.amount).toLocaleString()} ر.س${e.description ? ` — ${e.description}` : ''}`,
               type: 'expense',
               path: `${basePath}/expenses`,
             });

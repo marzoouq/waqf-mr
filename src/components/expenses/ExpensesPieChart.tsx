@@ -2,6 +2,7 @@
  * E-8: رسم بياني دائري لتوزيع المصروفات حسب النوع.
  */
 import { lazy, Suspense, useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PieChart as PieChartIcon } from 'lucide-react';
@@ -19,7 +20,7 @@ const ExpensesPieChart: React.FC<ExpensesPieChartProps> = ({ expenses, isLoading
     const map = new Map<string, number>();
     expenses.forEach(e => {
       const type = e.expense_type || 'أخرى';
-      map.set(type, (map.get(type) || 0) + Number(e.amount));
+      map.set(type, (map.get(type) || 0) + safeNumber(e.amount));
     });
     return [...map.entries()]
       .map(([name, value]) => ({ name, value }))

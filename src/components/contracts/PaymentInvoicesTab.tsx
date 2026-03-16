@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -80,11 +81,11 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const overdue = invoices.filter(i => i.status === 'overdue').length;
     const pending = invoices.filter(i => i.status === 'pending').length;
     const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
-    const totalAmount = invoices.reduce((s, i) => s + Number(i.amount || 0), 0);
+    const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
     const paidAmount = invoices
       .filter(i => i.status === 'paid' || i.status === 'partially_paid')
-      .reduce((s, i) => s + Number(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
-    const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.amount || 0), 0);
+      .reduce((s, i) => s + safeNumber(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
+    const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + safeNumber(i.amount), 0);
     const collectionRate = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
     return { total, paid, overdue, pending, partiallyPaid, totalAmount, paidAmount, overdueAmount, collectionRate };
   }, [invoices]);
@@ -119,7 +120,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       let cmp = 0;
       switch (sortKey) {
         case 'due_date': cmp = a.due_date.localeCompare(b.due_date); break;
-        case 'amount': cmp = Number(a.amount) - Number(b.amount); break;
+        case 'amount': cmp = safeNumber(a.amount) - safeNumber(b.amount); break;
         case 'status': cmp = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9); break;
         case 'payment_number': cmp = a.payment_number - b.payment_number; break;
       }
@@ -184,7 +185,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
   const openPayDialog = (inv: PaymentInvoice) => {
     setPayDialog({ inv });
-    setPayAmount(String(Number(inv.amount)));
+    setPayAmount(String(safeNumber(inv.amount)));
   };
 
   const handlePay = () => {

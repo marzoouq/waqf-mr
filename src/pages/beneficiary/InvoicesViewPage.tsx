@@ -1,4 +1,5 @@
 import DashboardLayout from '@/components/DashboardLayout';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +57,7 @@ const InvoicesViewPage = () => {
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
           invoice_number: inv.invoice_number,
-          amount: Number(inv.amount),
+          amount: safeNumber(inv.amount),
           date: inv.date,
           property_number: inv.property?.property_number || '-',
           status: inv.status,
@@ -153,7 +154,7 @@ const InvoicesViewPage = () => {
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
                           <TableCell>{item.invoice_number || '-'}</TableCell>
-                          <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-medium">{safeNumber(item.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>

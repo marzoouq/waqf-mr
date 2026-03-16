@@ -355,7 +355,7 @@ const InvoicesPage = () => {
                     getSubtitle={(item) => item.invoice_number || undefined}
                     getBadge={(item) => <Badge variant={statusBadgeVariant(item.status)}>{INVOICE_STATUS_LABELS[item.status] || item.status}</Badge>}
                     getFields={(item) => [
-                      { label: 'المبلغ', value: `${Number(item.amount).toLocaleString()} ر.س` },
+                      { label: 'المبلغ', value: `${safeNumber(item.amount).toLocaleString()} ر.س` },
                       { label: 'التاريخ', value: item.date },
                       { label: 'العقار', value: item.property?.property_number || '-' },
                       { label: 'الملف', value: item.file_path ? (item.file_name || 'موجود') : 'لا يوجد' },
@@ -383,7 +383,7 @@ const InvoicesPage = () => {
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
                           <TableCell>{item.invoice_number || '-'}</TableCell>
-                          <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-medium">{safeNumber(item.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell><Badge variant={statusBadgeVariant(item.status)}>{INVOICE_STATUS_LABELS[item.status] || item.status}</Badge></TableCell>

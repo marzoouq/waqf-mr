@@ -2,6 +2,7 @@
  * صفحة تاريخ الترحيلات والفروق المخصومة من حصة المستفيد
  */
 import DashboardLayout from '@/components/DashboardLayout';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -61,9 +62,9 @@ const CarryforwardHistoryPage = () => {
   const { data: activeBalance = 0 } = useCarryforwardBalance(beneficiary?.id ?? undefined);
 
   const paidAdvances = advances.filter(a => a.status === 'paid');
-  const totalPaidAdvances = paidAdvances.reduce((s, a) => s + Number(a.amount), 0);
+  const totalPaidAdvances = paidAdvances.reduce((s, a) => s + safeNumber(a.amount), 0);
   const settledCF = carryforwards.filter(c => c.status === 'settled');
-  const totalSettled = settledCF.reduce((s, c) => s + Number(c.amount), 0);
+  const totalSettled = settledCF.reduce((s, c) => s + safeNumber(c.amount), 0);
 
   if (loadingBen || loadingCF || loadingAdv) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
@@ -197,7 +198,7 @@ const CarryforwardHistoryPage = () => {
                         <TableCell>{fyLabel(cf.from_fiscal_year_id)}</TableCell>
                         <TableCell>{fyLabel(cf.to_fiscal_year_id)}</TableCell>
                         <TableCell className="font-medium text-destructive">
-                          {Number(cf.amount).toLocaleString('ar-SA')} ر.س
+                          {safeNumber(cf.amount).toLocaleString('ar-SA')} ر.س
                         </TableCell>
                         <TableCell>
                           <Badge variant={cf.status === 'active' ? 'destructive' : 'default'} className="text-xs">
@@ -242,7 +243,7 @@ const CarryforwardHistoryPage = () => {
                     {paidAdvances.map(adv => (
                       <TableRow key={adv.id}>
                         <TableCell className="font-medium">
-                          {Number(adv.amount).toLocaleString('ar-SA')} ر.س
+                          {safeNumber(adv.amount).toLocaleString('ar-SA')} ر.س
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[250px] truncate">
                           {adv.reason || '—'}

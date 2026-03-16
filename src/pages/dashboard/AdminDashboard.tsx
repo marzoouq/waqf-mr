@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
@@ -82,7 +83,7 @@ const AdminDashboard = () => {
   const fyContracts = contracts;
 
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + Number(c.rent_amount), 0);
+  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
   // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
   const collectionSummary = useMemo(() => {
@@ -142,14 +143,14 @@ const AdminDashboard = () => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].income += Number(item.amount);
+        months[month].income += safeNumber(item.amount);
       }
     });
     expenses.forEach(item => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].expenses += Number(item.amount);
+        months[month].expenses += safeNumber(item.amount);
       }
     });
     return Object.entries(months)
@@ -166,7 +167,7 @@ const AdminDashboard = () => {
     const types: Record<string, number> = {};
     expenses.forEach(item => {
       const type = item.expense_type || 'أخرى';
-      types[type] = (types[type] || 0) + Number(item.amount);
+      types[type] = (types[type] || 0) + safeNumber(item.amount);
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
@@ -487,7 +488,7 @@ const AdminDashboard = () => {
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
-                    <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{safeNumber(contract.rent_amount).toLocaleString()} ر.س</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         contract.status === 'active' 
