@@ -7,6 +7,7 @@ import {
   groupIncomeBySource,
   groupExpensesByType,
 } from '@/utils/accountsCalculations';
+import { safeNumber, safePercent } from '@/utils/safeNumber';
 
 interface ComputedParams {
   income: Income[];
