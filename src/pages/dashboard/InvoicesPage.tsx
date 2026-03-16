@@ -222,7 +222,7 @@ const InvoicesPage = () => {
               try {
                 await generateInvoicesViewPDF(filteredInvoices.map(inv => ({
                   invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
-                  invoice_number: inv.invoice_number, amount: Number(inv.amount), date: inv.date,
+                  invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
                   property_number: inv.property?.property_number || '-', status: inv.status,
                 })), pdfWaqfInfo);
                 toast.success('تم تحميل ملف PDF بنجاح');

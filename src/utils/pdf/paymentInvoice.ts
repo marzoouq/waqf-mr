@@ -305,7 +305,7 @@ const renderQrCode = async (
       drawQrPlaceholder(doc, fontFamily, x, y, size, tlvBase64);
     }
   } catch (err) {
-    console.error('[PDF-QR] Error generating QR code:', err);
+    logger.error('[PDF-QR] Error generating QR code:', err);
     // fallback مرئي
     drawQrPlaceholder(doc, fontFamily, x, y, size);
   }
