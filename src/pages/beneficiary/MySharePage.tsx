@@ -170,7 +170,7 @@ const MySharePage = () => {
   const handlePrintReport = () => {
     if (!currentBeneficiary) return;
     printShareReport({
-      beneficiaryName: currentBeneficiary.name,
+      beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare,
       myShare,
       paidAdvancesTotal,
