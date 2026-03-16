@@ -29,8 +29,9 @@ const formatArabicMonth = (month: unknown) => {
     '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
     '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
   };
-  const parts = month.split('-');
-  return arabicMonths[parts[1]] || month;
+  const s = String(month ?? '');
+  const parts = s.split('-');
+  return arabicMonths[parts[1]] || s;
 };
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
