@@ -264,8 +264,8 @@ const ReportsPage = () => {
                 incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
                 expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
                 beneficiaries: distributionData.map(d => ({
-                  name: d.name,
-                  share_percentage: d.percentage,
+                  name: d.name ?? 'غير معروف',
+                  share_percentage: d.percentage ?? 0,
                   amount: d.amount,
                 })),
                 adminPct,
