@@ -111,6 +111,7 @@ const renderBuyerInfo = (
 };
 
 // رسم معلومات الفاتورة (رقم + تاريخ + عقد + عقار)
+// @ts-expect-error — محجوز للاستخدام المستقبلي
 const renderInvoiceMeta = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number, _pageW: number, compact = false,
