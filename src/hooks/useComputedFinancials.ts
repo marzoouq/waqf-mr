@@ -57,19 +57,16 @@ export const useComputedFinancials = ({
     waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
     usingFallbackPct,
   } = useMemo(() => {
-    const adminPctRaw = settings?.admin_share_percentage
-      ? parseFloat(settings.admin_share_percentage) : NaN;
-    const _adminPct = Number.isFinite(adminPctRaw) ? adminPctRaw : 10;
-    const waqifPctRaw = settings?.waqif_share_percentage
-      ? parseFloat(settings.waqif_share_percentage) : NaN;
-    const _waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
+    const _adminPct = safePercent(settings?.admin_share_percentage, 10);
+    const _waqifPct = safePercent(settings?.waqif_share_percentage, 5);
     // F5: تتبع استخدام القيم الافتراضية
-    const _usingFallback = !Number.isFinite(adminPctRaw) || !Number.isFinite(waqifPctRaw);
-    const _zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-    const _vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
-    const _waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
-    const _waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
-    const _distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+    const _usingFallback = (settings?.admin_share_percentage == null || settings.admin_share_percentage === '')
+      || (settings?.waqif_share_percentage == null || settings.waqif_share_percentage === '');
+    const _zakatAmount = currentAccount ? safeNumber(currentAccount.zakat_amount) : 0;
+    const _vatAmount = currentAccount ? safeNumber(currentAccount.vat_amount) : 0;
+    const _waqfCorpusPrevious = currentAccount ? safeNumber(currentAccount.waqf_corpus_previous) : 0;
+    const _waqfCorpusManual = currentAccount ? safeNumber(currentAccount.waqf_corpus_manual) : 0;
+    const _distributionsAmount = currentAccount ? safeNumber(currentAccount.distributions_amount) : 0;
     return {
       adminPct: _adminPct, waqifPct: _waqifPct, zakatAmount: _zakatAmount,
       vatAmount: _vatAmount, waqfCorpusPrevious: _waqfCorpusPrevious,
