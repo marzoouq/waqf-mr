@@ -32,9 +32,9 @@ const ARABIC_MONTHS: Record<string, string> = {
   '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
   '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
 };
-const formatArabicMonth = (month: string) => {
-  const parts = month.split('-');
-  return ARABIC_MONTHS[parts[1]] || month;
+const formatArabicMonth = (month: unknown) => {
+  const parts = String(month ?? '').split('-');
+  return ARABIC_MONTHS[parts[1]] || String(month);
 };
 
 const WaqifDashboard = () => {
