@@ -123,6 +123,6 @@ export const groupExpensesByType = (expenses: Expense[]): Record<string, number>
 
 /** Compute totals from raw records */
 export const computeTotals = (income: Income[], expenses: Expense[]) => ({
-  totalIncome: income.reduce((sum, item) => sum + Number(item.amount), 0),
-  totalExpenses: expenses.reduce((sum, item) => sum + Number(item.amount), 0),
+  totalIncome: income.reduce((sum, item) => sum + safeNumber(item.amount), 0),
+  totalExpenses: expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0),
 });

@@ -103,19 +103,19 @@ export const useComputedFinancials = ({
       }
 
       // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
-      const storedNetAfterVat = Number(currentAccount.net_after_vat);
-      const storedZakat = Number(currentAccount.zakat_amount || 0);
+      const storedNetAfterVat = safeNumber(currentAccount.net_after_vat);
+      const storedZakat = safeNumber(currentAccount.zakat_amount);
       // H3 fix: use stored values for shareBase in closed years to match stored adminShare
       // K-08 fix: consistent variable naming for stored values
-      const storedAdminShare = Number(currentAccount.admin_share);
-      const storedWaqifShare = Number(currentAccount.waqif_share);
-      const storedWaqfRevenue = Number(currentAccount.waqf_revenue);
+      const storedAdminShare = safeNumber(currentAccount.admin_share);
+      const storedWaqifShare = safeNumber(currentAccount.waqif_share);
+      const storedWaqfRevenue = safeNumber(currentAccount.waqf_revenue);
       return {
         grandTotal,
-        netAfterExpenses: Number(currentAccount.net_after_expenses),
+        netAfterExpenses: safeNumber(currentAccount.net_after_expenses),
         netAfterVat: storedNetAfterVat,
         netAfterZakat: storedNetAfterVat - storedZakat,
-        shareBase: Number(currentAccount.total_income) - Number(currentAccount.total_expenses) - storedZakat,
+        shareBase: safeNumber(currentAccount.total_income) - safeNumber(currentAccount.total_expenses) - storedZakat,
         adminShare: storedAdminShare,
         waqifShare: storedWaqifShare,
         waqfRevenue: storedWaqfRevenue,
