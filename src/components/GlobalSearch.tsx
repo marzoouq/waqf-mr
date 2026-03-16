@@ -3,6 +3,7 @@
  * يتيح البحث عبر العقارات والعقود والمستفيدين والمصروفات
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { Search, Building2, FileText, Users, Receipt, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
