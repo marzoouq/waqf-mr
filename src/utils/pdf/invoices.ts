@@ -82,7 +82,7 @@ export const generateOverdueInvoicesPDF = async (
   doc.setFontSize(18);
   doc.text('تقرير الفواتير المتأخرة', 105, startY + 5, { align: 'center' });
 
-  const totalAmount = overdue.reduce((s, i) => s + Number(i.amount || 0), 0);
+  const totalAmount = overdue.reduce((s, i) => s + safeNumber(i.amount), 0);
   const today = new Date();
 
   // ملخص
