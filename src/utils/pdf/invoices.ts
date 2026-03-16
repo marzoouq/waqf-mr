@@ -36,7 +36,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
     }
   };
 
-  const total = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+  const total = invoices.reduce((sum, i) => sum + safeNumber(i.amount), 0);
 
   autoTable(doc, {
     startY: startY + 14,
