@@ -188,7 +188,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'القابل للتوزيع', value: `${Number(availableAmount || 0).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'القابل للتوزيع', value: `${safeNumber(availableAmount).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
