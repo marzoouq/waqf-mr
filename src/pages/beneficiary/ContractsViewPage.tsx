@@ -203,7 +203,7 @@ const ContractsViewPage = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">من</span>
-                      <span>{formatDate(contract.start_date)}</span>
+                      <span>{formatDate(contract.start_date ?? '')}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">إلى</span>
