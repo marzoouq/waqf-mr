@@ -88,7 +88,7 @@ const DistributeDialog = ({
   const carryforwardByBeneficiary = useMemo(() => {
     const map: Record<string, number> = {};
     for (const cf of activeCarryforwards) {
-      map[cf.beneficiary_id] = (map[cf.beneficiary_id] || 0) + Number(cf.amount);
+      map[cf.beneficiary_id] = (map[cf.beneficiary_id] || 0) + safeNumber(cf.amount);
     }
     return map;
   }, [activeCarryforwards]);
