@@ -184,7 +184,7 @@ const MySharePage = () => {
     if (!currentBeneficiary) return;
     try {
       await generateComprehensiveBeneficiaryPDF({
-        beneficiaryName: currentBeneficiary.name,
+        beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: selectedFY?.label || '',
         totalIncome,
         totalExpenses,
