@@ -136,6 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               user_id: user.id,
               metadata: { role: data.role, duration_ms: duration, attempts, status: 'success' },
             });
+            // AL-1: فحص تسجيل الدخول من جهاز جديد
+            checkNewDeviceLogin(user.id, user.email);
             return;
           }
 
