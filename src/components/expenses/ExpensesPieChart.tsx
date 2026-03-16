@@ -20,7 +20,7 @@ const ExpensesPieChart: React.FC<ExpensesPieChartProps> = ({ expenses, isLoading
     const map = new Map<string, number>();
     expenses.forEach(e => {
       const type = e.expense_type || 'أخرى';
-      map.set(type, (map.get(type) || 0) + Number(e.amount));
+      map.set(type, (map.get(type) || 0) + safeNumber(e.amount));
     });
     return [...map.entries()]
       .map(([name, value]) => ({ name, value }))

@@ -146,7 +146,7 @@ const GlobalSearch = () => {
             searchResults.push({
               id: e.id,
               title: e.expense_type,
-              subtitle: `${Number(e.amount).toLocaleString()} ر.س${e.description ? ` — ${e.description}` : ''}`,
+              subtitle: `${safeNumber(e.amount).toLocaleString()} ر.س${e.description ? ` — ${e.description}` : ''}`,
               type: 'expense',
               path: `${basePath}/expenses`,
             });

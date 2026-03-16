@@ -144,9 +144,9 @@ function monthsBetween(a: Date, b: Date): number {
 }
 
 function getPaymentAmount(contract: ContractInfo): number {
-  if (contract.payment_amount != null) return Number(contract.payment_amount); // L-08 fix: respect 0
+  if (contract.payment_amount != null) return safeNumber(contract.payment_amount); // L-08 fix: respect 0
   const count = getPaymentCount(contract);
-  return Number(contract.rent_amount) / count;
+  return safeNumber(contract.rent_amount) / count;
 }
 
 function daysBetween(a: Date, b: Date): number {

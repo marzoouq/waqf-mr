@@ -185,7 +185,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
   const openPayDialog = (inv: PaymentInvoice) => {
     setPayDialog({ inv });
-    setPayAmount(String(Number(inv.amount)));
+    setPayAmount(String(safeNumber(inv.amount)));
   };
 
   const handlePay = () => {
