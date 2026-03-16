@@ -293,7 +293,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number, name: string) => [`${value.toLocaleString()} ر.س`, name]}
+                  formatter={(value: number | undefined, name: string) => [`${(value ?? 0).toLocaleString()} ر.س`, name]}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
