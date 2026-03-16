@@ -22,6 +22,7 @@ const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalY
 const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
+const BulkMessagingTab = lazy(() => import('@/components/settings/BulkMessagingTab'));
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
