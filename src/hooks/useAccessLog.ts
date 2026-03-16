@@ -11,10 +11,10 @@ export const logAccessEvent = async (event: {
   try {
     await supabase.rpc('log_access_event', {
       p_event_type: event.event_type,
-      p_email: event.email ?? undefined,
-      p_user_id: event.user_id ?? undefined,
-      p_target_path: event.target_path ?? undefined,
-      p_device_info: navigator.userAgent?.substring(0, 500) ?? undefined,
+      p_email: event.email ?? null,
+      p_user_id: event.user_id ?? null,
+      p_target_path: event.target_path ?? null,
+      p_device_info: navigator.userAgent?.substring(0, 500) ?? null,
       p_metadata: (event.metadata ?? {}) as Json,
     });
   } catch {
