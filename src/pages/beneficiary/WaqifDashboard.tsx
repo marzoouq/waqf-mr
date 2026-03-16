@@ -321,7 +321,7 @@ const WaqifDashboard = () => {
                       >
                         {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number) => v.toLocaleString() + ' ر.س'} />
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => (v ?? 0).toLocaleString() + ' ر.س'} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

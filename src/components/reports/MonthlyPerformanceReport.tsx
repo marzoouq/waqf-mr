@@ -137,7 +137,7 @@ const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerfo
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number | undefined, name: string) => [
+                  formatter={(value: number | undefined, name: string | undefined) => [
                     `${(value ?? 0).toLocaleString()} ر.س`,
                     name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
                   ]}

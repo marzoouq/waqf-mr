@@ -76,7 +76,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
               <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip
                 contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-                formatter={(value: number | undefined, name: string) => [
+                formatter={(value: number | undefined, name: string | undefined) => [
                   `${(value ?? 0).toLocaleString()} ر.س`,
                   name === 'actual' ? 'الفعلي' : 'المتوقع',
                 ]}

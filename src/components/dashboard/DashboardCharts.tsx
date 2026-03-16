@@ -11,9 +11,9 @@ const ARABIC_MONTHS: Record<string, string> = {
   '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
 };
 
-const formatArabicMonth = (month: string | number | React.ReactNode) => {
-  const parts = String(month).split('-');
-  return ARABIC_MONTHS[parts[1]] || month;
+const formatArabicMonth = (month: unknown) => {
+  const parts = String(month ?? '').split('-');
+  return ARABIC_MONTHS[parts[1]] || String(month);
 };
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };

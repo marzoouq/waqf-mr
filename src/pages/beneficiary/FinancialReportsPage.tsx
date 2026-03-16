@@ -23,7 +23,7 @@ const COLORS = [
   'hsl(var(--warning))', 'hsl(var(--chart-4))', 'hsl(var(--primary))',
 ];
 
-const formatArabicMonth = (month: string) => {
+const formatArabicMonth = (month: unknown) => {
   const arabicMonths: Record<string, string> = {
     '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
     '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
