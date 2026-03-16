@@ -133,8 +133,11 @@ Deno.serve(async (req) => {
 
     // Ensure consistent response time regardless of result
     const elapsed = Date.now() - startTime;
-    if (elapsed < fixedDelay) {
-      await new Promise(r => setTimeout(r, fixedDelay - elapsed));
+    // Progressive delay: base 300ms + 200ms per attempt used
+    const progressiveDelay = fixedDelay + ((RATE_LIMIT - remaining) * 200);
+    const targetDelay = Math.max(fixedDelay, progressiveDelay);
+    if (elapsed < targetDelay) {
+      await new Promise(r => setTimeout(r, targetDelay - elapsed));
     }
 
     // Not found — identical response structure
@@ -143,6 +146,16 @@ Deno.serve(async (req) => {
         JSON.stringify({ found: false, masked_email: null, remaining }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // تسجيل البحث الناجح في سجل الوصول
+    try {
+      await supabase.rpc('log_access_event', {
+        p_event_type: 'national_id_lookup',
+        p_metadata: { ip: clientIp, found: true },
+      });
+    } catch (_) {
+      // لا نفشل الطلب بسبب التسجيل
     }
 
     // If password provided, perform server-side authentication
