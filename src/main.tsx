@@ -9,35 +9,55 @@ import { initThemeFromStorage } from "./components/ThemeColorPicker";
 initThemeFromStorage();
 
 
-// ─── PWA: Purge ALL stale caches on version change ───
-const APP_CACHE_VERSION = import.meta.env.VITE_APP_VERSION || '0.0.0';
+// ─── PWA/cache guard: preview يجب أن يتجاوز أي كاش قديم دائماً ───
+const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
 const CACHE_VERSION_KEY = 'pwa_cache_version';
+const PREVIEW_CACHE_KEY = 'preview_cache_cleared_for';
+const isPreviewHost = window.location.hostname.endsWith('.lovable.app') || window.location.hostname.endsWith('.lovableproject.com');
 
 (async () => {
   try {
-    const stored = localStorage.getItem(CACHE_VERSION_KEY);
-    if (stored && stored !== APP_CACHE_VERSION) {
-      const names = await caches.keys();
-      await Promise.all(names.map(n => caches.delete(n)));
+    if (isPreviewHost) {
+      const clearedFor = sessionStorage.getItem(PREVIEW_CACHE_KEY);
+      if (clearedFor !== APP_BUILD_ID) {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(r => r.unregister()));
+        }
 
-      // Update SW instead of unregister to maintain offline support
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map(r => r.update()));
+        const names = await caches.keys();
+        await Promise.all(names.map((name) => caches.delete(name)));
+        sessionStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
+        window.location.reload();
+        return;
       }
 
-      localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
-      // Use localStorage with timestamp so toast survives tab close
+      localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
+      return;
+    }
+
+    const stored = localStorage.getItem(CACHE_VERSION_KEY);
+    if (stored && stored !== APP_BUILD_ID) {
+      const names = await caches.keys();
+      await Promise.all(names.map((name) => caches.delete(name)));
+
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((registration) => registration.update()));
+      }
+
+      localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
       try {
         localStorage.setItem('pwa_just_updated', JSON.stringify({
-          version: APP_CACHE_VERSION,
+          version: APP_BUILD_ID,
           ts: Date.now(),
         }));
       } catch {}
       window.location.reload();
       return;
     }
-    localStorage.setItem(CACHE_VERSION_KEY, APP_CACHE_VERSION);
+
+    localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
   } catch {
     // caches API unavailable (e.g. incognito) — ignore
   }
