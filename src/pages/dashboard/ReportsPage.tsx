@@ -54,7 +54,7 @@ const ReportsPage = () => {
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
-    incomeBySource, expensesByType, expensesByTypeExcludingVat,
+    incomeBySource, expensesByTypeExcludingVat,
     isLoading,
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
