@@ -49,7 +49,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
                 <YAxis />
-                <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                 <Legend />
                 <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
