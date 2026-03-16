@@ -97,7 +97,7 @@ const DistributeDialog = ({
     // === Largest Remainder algorithm for precise share allocation ===
     // F-AUDIT: استخدام مجموع النسب الفعلي (totalPercentage) بدلاً من 100 الثابتة
     // لضمان التناسق مع get_max_advance_amount و validate_advance_request_amount في DB
-    const totalPercentage = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+    const totalPercentage = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
     if (totalPercentage === 0 || availableAmount === 0) {
       return beneficiaries.map(b => ({
         beneficiary_id: b.id, beneficiary_name: b.name, beneficiary_user_id: b.user_id,
