@@ -24,7 +24,7 @@ import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
 
 const ITEMS_PER_PAGE = 9;
 
-interface AuthUser { id: string; email: string; }
+
 
 const BeneficiariesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
