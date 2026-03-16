@@ -301,7 +301,7 @@ const renderQrCode = async (
       doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
     } else {
       // fallback مرئي: مربع بإطار منقط + نص QR
-      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
+      logger.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
       drawQrPlaceholder(doc, fontFamily, x, y, size, tlvBase64);
     }
   } catch (err) {
