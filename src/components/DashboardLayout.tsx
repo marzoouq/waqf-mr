@@ -28,8 +28,7 @@ import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
-  ACCOUNTANT_EXCLUDED_ROUTES, defaultAdminSections, defaultBeneficiarySections,
-  ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, ROUTE_TITLES,
+  ACCOUNTANT_EXCLUDED_ROUTES, ROUTE_TITLES,
 } from '@/components/dashboard-layout/constants';
 
 interface DashboardLayoutProps {
