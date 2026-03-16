@@ -99,7 +99,7 @@ const WaqifDashboard = () => {
     });
     expenses.forEach(item => {
       const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += Number(item.amount); }
+      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += safeNumber(item.amount); }
     });
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
   }, [income, expenses]);
