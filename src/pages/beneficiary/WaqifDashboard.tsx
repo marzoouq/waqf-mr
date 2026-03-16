@@ -240,7 +240,7 @@ const WaqifDashboard = () => {
               ].map((row, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <span className={`font-bold ${row.cls}`}>{Number(row.value || 0).toLocaleString()} ر.س</span>
+                  <span className={`font-bold ${row.cls}`}>{safeNumber(row.value).toLocaleString()} ر.س</span>
                 </div>
               ))}
             </CardContent>

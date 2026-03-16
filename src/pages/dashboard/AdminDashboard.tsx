@@ -488,7 +488,7 @@ const AdminDashboard = () => {
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
-                    <TableCell>{Number(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{safeNumber(contract.rent_amount).toLocaleString()} ر.س</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         contract.status === 'active' 

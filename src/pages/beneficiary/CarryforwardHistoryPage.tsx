@@ -243,7 +243,7 @@ const CarryforwardHistoryPage = () => {
                     {paidAdvances.map(adv => (
                       <TableRow key={adv.id}>
                         <TableCell className="font-medium">
-                          {Number(adv.amount).toLocaleString('ar-SA')} ر.س
+                          {safeNumber(adv.amount).toLocaleString('ar-SA')} ر.س
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[250px] truncate">
                           {adv.reason || '—'}

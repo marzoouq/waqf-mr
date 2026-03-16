@@ -154,7 +154,7 @@ const InvoicesViewPage = () => {
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
                           <TableCell>{item.invoice_number || '-'}</TableCell>
-                          <TableCell className="font-medium">{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-medium">{safeNumber(item.amount).toLocaleString()} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>
