@@ -80,7 +80,7 @@ const renderSellerInfo = (
 };
 
 // رسم بيانات المشتري
-const renderBuyerInfo = (
+const _renderBuyerInfo = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number, pageW: number, compact = false,
 ) => {
