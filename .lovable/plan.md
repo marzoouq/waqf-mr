@@ -361,8 +361,8 @@
 | Z-5 | سجل تفصيلي لكل فاتورة ZATCA | 🟠 | ❌ |
 | Z-6 | Webhook من ZATCA لتحديث الحالة | 🟡 | ❌ |
 | Z-7 | اختبار الاتصال بـ ZATCA من الواجهة | 🟡 | ❌ |
-| Z-8 | إضافة FK على `invoice_chain.invoice_id` → `invoices.id` | 🟠 | ❌ |
-| Z-9 | نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings` | 🟠 | ❌ |
+| Z-8 | إضافة FK على `invoice_chain.invoice_id` (polymorphic trigger) | 🟠 | ✅ 2026-03-16 |
+| Z-9 | نقل `seller_name`/`seller_vat` من hardcoded إلى `app_settings` | 🟠 | ✅ 2026-03-16 (كان مُطبّقاً) |
 
 ---
 
