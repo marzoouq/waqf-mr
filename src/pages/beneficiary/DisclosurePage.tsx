@@ -344,7 +344,7 @@ const DisclosurePage = () => {
                 ))}
                 <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
                   <span>الإجمالي</span>
-                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</span>
+                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0).toLocaleString()} ر.س</span>
                 </div>
               </div>
             ) : (
