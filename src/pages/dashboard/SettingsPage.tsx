@@ -714,6 +714,10 @@ const SettingsPage = () => {
               <Megaphone className="w-4 h-4" />
               إشعارات جماعية
             </TabsTrigger>
+            <TabsTrigger value="bulk-message" className="gap-1.5 text-xs md:text-sm">
+              <MessageSquare className="w-4 h-4" />
+              رسائل جماعية
+            </TabsTrigger>
             <TabsTrigger value="export" className="gap-1.5 text-xs md:text-sm">
               <Download className="w-4 h-4" />
               تصدير البيانات
