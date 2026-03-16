@@ -8,6 +8,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
