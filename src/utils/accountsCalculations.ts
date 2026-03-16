@@ -116,7 +116,7 @@ export const groupIncomeBySource = (income: Income[]): Record<string, number> =>
 export const groupExpensesByType = (expenses: Expense[]): Record<string, number> => {
   return expenses.reduce((acc, item) => {
     const type = item.expense_type || 'غير محدد';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
+    acc[type] = (acc[type] || 0) + safeNumber(item.amount);
     return acc;
   }, {} as Record<string, number>);
 };
