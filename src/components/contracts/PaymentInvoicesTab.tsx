@@ -120,7 +120,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       let cmp = 0;
       switch (sortKey) {
         case 'due_date': cmp = a.due_date.localeCompare(b.due_date); break;
-        case 'amount': cmp = Number(a.amount) - Number(b.amount); break;
+        case 'amount': cmp = safeNumber(a.amount) - safeNumber(b.amount); break;
         case 'status': cmp = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9); break;
         case 'payment_number': cmp = a.payment_number - b.payment_number; break;
       }
