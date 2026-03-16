@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -43,13 +44,13 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
           const existing = contractOverdue.get(inv.contract_id);
           if (existing) {
             existing.count++;
-            existing.totalAmount += Number(inv.amount);
+            existing.totalAmount += safeNumber(inv.amount);
             if (inv.due_date < existing.oldestDue) existing.oldestDue = inv.due_date;
             if (daysPast > existing.maxDays) existing.maxDays = daysPast;
           } else {
             contractOverdue.set(inv.contract_id, {
               count: 1,
-              totalAmount: Number(inv.amount),
+              totalAmount: safeNumber(inv.amount),
               oldestDue: inv.due_date,
               maxDays: daysPast,
             });

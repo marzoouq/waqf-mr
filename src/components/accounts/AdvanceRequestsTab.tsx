@@ -9,6 +9,7 @@ import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from 
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { safeNumber } from '@/utils/safeNumber';
 
 const PAGE_SIZE = 20;
 
@@ -111,7 +112,7 @@ const AdvanceRequestsTab = () => {
                 {paginatedRequests.map(req => (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
-                    <TableCell>{Number(req.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{safeNumber(req.amount).toLocaleString()} ر.س</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>

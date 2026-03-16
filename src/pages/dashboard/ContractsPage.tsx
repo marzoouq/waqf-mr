@@ -233,7 +233,7 @@ const ContractsPage = () => {
         const match = num.match(/-R(\d+)$/);
         const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
         const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
-        const paymentAmount = Number(contract.rent_amount) / paymentCount;
+        const paymentAmount = safeNumber(contract.rent_amount) / paymentCount;
 
         const newContract: Record<string, unknown> = {
           contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || null,

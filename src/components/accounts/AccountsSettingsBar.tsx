@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface AccountsSettingsBarProps {
   fiscalYear: string;
@@ -78,7 +79,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={waqfCorpusPrevious}
-              onChange={(e) => onWaqfCorpusPreviousChange(Number(e.target.value))}
+              onChange={(e) => onWaqfCorpusPreviousChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
@@ -88,7 +89,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={manualVat}
-              onChange={(e) => onManualVatChange(Number(e.target.value))}
+              onChange={(e) => onManualVatChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
@@ -98,7 +99,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={zakatAmount}
-              onChange={(e) => onZakatAmountChange(Number(e.target.value))}
+              onChange={(e) => onZakatAmountChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
@@ -108,7 +109,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={waqfCorpusManual}
-              onChange={(e) => onWaqfCorpusManualChange(Number(e.target.value))}
+              onChange={(e) => onWaqfCorpusManualChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
@@ -118,7 +119,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={manualDistributions}
-              onChange={(e) => onManualDistributionsChange(Number(e.target.value))}
+              onChange={(e) => onManualDistributionsChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />

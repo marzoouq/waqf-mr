@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -84,7 +85,7 @@ export function printShareReport(params: PrintShareReportParams) {
         ${filteredDistributions.map(d => `<tr>
           <td>${new Date(d.date).toLocaleDateString('ar-SA')}</td>
           <td>${d.account?.fiscal_year || '—'}</td>
-          <td>${Number(d.amount).toLocaleString()} ر.س</td>
+          <td>${safeNumber(d.amount).toLocaleString()} ر.س</td>
           <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : d.status}</td>
         </tr>`).join('')}
       </table>

@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { maskBankAccount, maskNationalId } from '@/utils/maskData';
+import { safeNumber } from '@/utils/safeNumber';
 import {
   PdfWaqfInfo, UnitPdfRow, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
@@ -68,7 +69,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
       c.tenant_name,
       c.start_date,
       c.end_date,
-      `${Number(c.rent_amount).toLocaleString()} ر.س`,
+      `${safeNumber(c.rent_amount).toLocaleString()} ر.س`,
       statusLabel(c.status),
     ]),
     theme: 'striped',
@@ -92,7 +93,7 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
   doc.setFontSize(18);
   doc.text('تقرير المستفيدين', 105, startY + 5, { align: 'center' });
 
-  const total = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const total = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
 
   autoTable(doc, {
     startY: startY + 14,

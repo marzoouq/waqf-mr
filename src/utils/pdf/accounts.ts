@@ -6,6 +6,7 @@ import {
   baseTableStyles, headStyles, footStyles,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { safeNumber } from '@/utils/safeNumber';
 
 /* ───── تقرير توزيع الحصص ───── */
 export const generateDistributionsPDF = async (data: {
@@ -67,7 +68,7 @@ export const generateDistributionsPDF = async (data: {
 
   const bodyRows = data.distributions.map(d => [
     d.beneficiary_name,
-    `${Number(d.share_percentage).toFixed(6)}%`,
+    `${safeNumber(d.share_percentage).toFixed(6)}%`,
     d.share_amount.toLocaleString(),
     d.advances_paid > 0 ? `(${d.advances_paid.toLocaleString()})` : '—',
     d.carryforward_deducted > 0 ? `(${d.carryforward_deducted.toLocaleString()})` : '—',
@@ -150,8 +151,8 @@ export const generateAccountsPDF = async (data: {
     body: data.contracts.map(c => [
       c.contract_number,
       c.tenant_name,
-      `${Number(c.rent_amount).toLocaleString()}`,
-      `${Math.round(Number(c.rent_amount) / 12).toLocaleString()}`,
+      `${safeNumber(c.rent_amount).toLocaleString()}`,
+      `${Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()}`,
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -245,7 +246,7 @@ export const generateAccountsPDF = async (data: {
   y = getLastAutoTableY(doc, 240) + 10;
 
   // Beneficiaries
-  const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const totalBenPct = data.beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
   const distAmount = data.distributionsAmount || 0;
   doc.setFont(fontFamily, 'bold');
   doc.text('حصص المستفيدين', 105, y, { align: 'center' });
@@ -254,8 +255,8 @@ export const generateAccountsPDF = async (data: {
     head: [['المستفيد', 'النسبة', 'المبلغ']],
     body: data.beneficiaries.map(b => [
       b.name,
-      `${Number(b.share_percentage).toFixed(6)}%`,
-      totalBenPct > 0 ? (distAmount * Number(b.share_percentage) / totalBenPct).toLocaleString() : '0',
+      `${safeNumber(b.share_percentage).toFixed(6)}%`,
+      totalBenPct > 0 ? (distAmount * safeNumber(b.share_percentage) / totalBenPct).toLocaleString() : '0',
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),

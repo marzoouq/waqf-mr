@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
 import type { Contract } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface AccountsContractsTableProps {
   contracts: Contract[];
@@ -53,7 +54,7 @@ const AccountsContractsTable = ({
                   <TableCell>{contract.tenant_name}</TableCell>
                   <TableCell className="font-bold text-primary">{getPaymentPerPeriod(contract).toLocaleString()} ريال</TableCell>
                   <TableCell className="text-center">{getExpectedPayments(contract)}</TableCell>
-                  <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
+                  <TableCell className="font-bold text-primary">{safeNumber(contract.rent_amount).toLocaleString()} ريال</TableCell>
                   <TableCell>{statusLabel(contract.status)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">

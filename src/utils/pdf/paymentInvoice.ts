@@ -8,6 +8,7 @@ import {
 import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
 import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+import { logger } from '@/lib/logger';
 
 export type InvoiceTemplate = 'classic' | 'tax_professional' | 'compact';
 
@@ -285,14 +286,14 @@ const renderQrCode = async (
     });
 
     // سجل بيانات QR للتتبع
-    console.info('[PDF-QR] TLV data:', { sellerName, vatNumber, timestamp: isoTimestamp, total: invoice.amount, vat: vatAmount });
+    logger.info('[PDF-QR] TLV data:', { sellerName, vatNumber, timestamp: isoTimestamp, total: invoice.amount, vat: vatAmount });
 
     // محاولة أولى
     let qrDataUrl = await generateQrDataUrl(tlvBase64);
 
     // محاولة ثانية إذا فشلت الأولى
     if (!qrDataUrl) {
-      console.warn('[PDF-QR] First attempt returned null, retrying...');
+      logger.warn('[PDF-QR] First attempt returned null, retrying...');
       qrDataUrl = await generateQrDataUrl(tlvBase64);
     }
 
@@ -300,11 +301,11 @@ const renderQrCode = async (
       doc.addImage(qrDataUrl, 'PNG', x, y, size, size);
     } else {
       // fallback مرئي: مربع بإطار منقط + نص QR
-      console.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
+      logger.warn('[PDF-QR] generateQrDataUrl returned null — rendering visible fallback');
       drawQrPlaceholder(doc, fontFamily, x, y, size, tlvBase64);
     }
   } catch (err) {
-    console.error('[PDF-QR] Error generating QR code:', err);
+    logger.error('[PDF-QR] Error generating QR code:', err);
     // fallback مرئي
     drawQrPlaceholder(doc, fontFamily, x, y, size);
   }

@@ -18,6 +18,7 @@ import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { getPaymentCount } from '@/utils/contractHelpers';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface CollectionReportProps {
   contracts: Contract[];
@@ -109,7 +110,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
   const rows: CollectionRow[] = useMemo(() => {
     return relevantContracts.map(contract => {
       const contractPaymentCount = getPaymentCount(contract);
-      const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
+      const perPayment = contract.payment_amount || (safeNumber(contract.rent_amount) / contractPaymentCount);
       const paid = invoicePaidMap.get(contract.id) ?? 0;
 
       let allocatedPayments: number;
@@ -121,7 +122,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             id: contract.id,
             start_date: contract.start_date,
             end_date: contract.end_date,
-            rent_amount: Number(contract.rent_amount),
+            rent_amount: safeNumber(contract.rent_amount),
             payment_type: contract.payment_type,
             payment_count: contract.payment_count,
             payment_amount: contract.payment_amount ?? undefined,
@@ -133,7 +134,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
         allocatedAmount = fyAlloc?.allocated_amount ?? 0;
       } else {
         allocatedPayments = contractPaymentCount;
-        allocatedAmount = Number(contract.rent_amount);
+        allocatedAmount = safeNumber(contract.rent_amount);
       }
 
       const expected = useDynamicAllocation ? allocatedPayments : getExpectedPaymentsFallback(contract);

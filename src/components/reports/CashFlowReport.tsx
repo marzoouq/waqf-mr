@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
@@ -39,14 +40,14 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
           const d = new Date(item.date);
           return d.getFullYear() === year && d.getMonth() === month;
         })
-        .reduce((sum, item) => sum + Number(item.amount), 0);
+        .reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
       const monthExpenses = expenses
         .filter(item => {
           const d = new Date(item.date);
           return d.getFullYear() === year && d.getMonth() === month;
         })
-        .reduce((sum, item) => sum + Number(item.amount), 0);
+        .reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
       const net = monthIncome - monthExpenses;
       cumulative += net;

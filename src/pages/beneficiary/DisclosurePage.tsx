@@ -8,6 +8,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
@@ -113,11 +114,11 @@ const DisclosurePage = () => {
 
   const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   const pendingAmount = filteredDistributions
     .filter(d => d.status === 'pending')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   const handleDownloadPDF = async () => {
     try {
@@ -170,13 +171,13 @@ const DisclosurePage = () => {
         contracts: contracts.map(c => ({
           contract_number: c.contract_number ?? '',
           tenant_name: c.tenant_name ?? '',
-          rent_amount: Number(c.rent_amount),
+          rent_amount: safeNumber(c.rent_amount),
           status: c.status ?? '',
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
           fiscalYear: d.account?.fiscal_year || '-',
-          amount: Number(d.amount),
+          amount: safeNumber(d.amount),
           status: d.status,
         })),
       }, pdfWaqfInfo);
@@ -336,14 +337,14 @@ const DisclosurePage = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
                     <div className="flex justify-between text-xs">
-                      <span>سنوي: {Number(c.rent_amount).toLocaleString()} ر.س</span>
-                      <span>شهري: {Math.round(Number(c.rent_amount) / 12).toLocaleString()} ر.س</span>
+                      <span>سنوي: {safeNumber(c.rent_amount).toLocaleString()} ر.س</span>
+                      <span>شهري: {Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()} ر.س</span>
                     </div>
                   </div>
                 ))}
                 <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
                   <span>الإجمالي</span>
-                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</span>
+                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0).toLocaleString()} ر.س</span>
                 </div>
               </div>
             ) : (
