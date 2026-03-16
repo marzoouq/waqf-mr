@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { safeNumber } from '@/utils/safeNumber';
 
 /**
  * Returns the global sum of all beneficiary share percentages

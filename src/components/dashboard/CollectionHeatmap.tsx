@@ -3,6 +3,7 @@
  * تعرض المبالغ المحصّلة شهرياً بتدرج لوني يعكس حجم التحصيل
  */
 import { useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
