@@ -179,7 +179,7 @@ const FinancialReportsPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 11 }} width={50} />
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {incomeVsExpenses.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
