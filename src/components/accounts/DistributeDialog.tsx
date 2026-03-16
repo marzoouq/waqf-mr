@@ -33,7 +33,7 @@ interface DistributeDialogProps {
 
 const DistributeDialog = ({
   open, onOpenChange, beneficiaries, availableAmount,
-  totalBeneficiaryPercentage, accountId, fiscalYearId, fiscalYearLabel,
+  totalBeneficiaryPercentage: _tbp, accountId, fiscalYearId, fiscalYearLabel,
 }: DistributeDialogProps) => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const distribute = useDistributeShares();

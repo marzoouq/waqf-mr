@@ -54,7 +54,7 @@ const ReportsPage = () => {
     grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, waqfRevenue,
     availableAmount, remainingBalance,
-    incomeBySource, expensesByType, expensesByTypeExcludingVat,
+    incomeBySource, expensesByTypeExcludingVat,
     isLoading,
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
@@ -506,7 +506,7 @@ const ReportsPage = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
                         <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
-                          {incomeSourceData.map((entry, index) => (
+                          {incomeSourceData.map((_entry, index) => (
                             <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
                         </Pie>
@@ -680,7 +680,7 @@ const ReportsPage = () => {
               waqfCorpusManual={waqfCorpusManual}
               distributionsAmount={distributionsAmount}
               availableAmount={availableAmount}
-              remainingBalance={remainingBalance}
+              
               grandTotal={grandTotal}
               netAfterExpenses={netAfterExpenses}
               netAfterVat={netAfterVat}

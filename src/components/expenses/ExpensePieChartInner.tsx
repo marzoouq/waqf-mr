@@ -20,7 +20,6 @@ interface DataItem {
 }
 
 const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
-  const total = data.reduce((s, d) => s + d.value, 0);
 
   return (
     <ResponsiveContainer width="100%" height={280}>

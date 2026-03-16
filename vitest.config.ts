@@ -28,6 +28,12 @@ export default defineConfig({
         "src/vite-pwa.d.ts",
       ],
       reporter: ["text", "text-summary", "json", "lcov"],
+      thresholds: {
+        statements: 60,
+        branches: 60,
+        functions: 60,
+        lines: 60,
+      },
     },
   },
   resolve: {

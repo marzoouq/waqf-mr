@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, Legend, Area, AreaChart,
+  Legend, Area, AreaChart,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const MONTH_NAMES = [
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
-const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerformanceReportProps) => {
+const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReportProps) => {
   const monthlyData = useMemo(() => {
     const monthMap = new Map<string, { income: number; expenses: number; month: number; year: number }>();
 

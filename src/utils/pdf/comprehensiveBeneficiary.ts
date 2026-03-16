@@ -50,7 +50,7 @@ export interface ComprehensiveBeneficiaryData {
 
 // Use centralized getLastAutoTableY from pdfHelpers
 
-const ensureSpace = (doc: jsPDF, needed: number, fontFamily: string, waqfInfo?: PdfWaqfInfo): number => {
+const ensureSpace = (doc: jsPDF, needed: number, _fontFamily: string, _waqfInfo?: PdfWaqfInfo): number => {
   const pageH = doc.internal.pageSize.height;
   const currentY = getLastAutoTableY(doc) + 10;
   if (currentY + needed > pageH - 30) {

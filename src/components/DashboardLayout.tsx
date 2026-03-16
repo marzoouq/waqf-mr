@@ -28,8 +28,7 @@ import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
-  ACCOUNTANT_EXCLUDED_ROUTES, defaultAdminSections, defaultBeneficiarySections,
-  ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS, ROUTE_TITLES,
+  ACCOUNTANT_EXCLUDED_ROUTES, ROUTE_TITLES,
 } from '@/components/dashboard-layout/constants';
 
 interface DashboardLayoutProps {
@@ -37,7 +36,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { user, session, role, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const { fiscalYearId, setFiscalYearId, fiscalYear, isClosed } = useFiscalYear();
   const location = useLocation();
   const navigate = useNavigate();
@@ -209,7 +208,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
           // If the section has a visibility key, check if it's enabled
-          return !sectionKey || sectionsVisibility[sectionKey] !== false;
+          return !sectionKey || (sectionsVisibility as Record<string, boolean>)[sectionKey] !== false;
         })
         .map(link => {
           const labelKey = linkLabelKeys[link.to];
@@ -223,7 +222,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
-          if (sectionKey && sectionsVisibility[sectionKey] === false) return false;
+          if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
           const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms[key] !== false;
         })
@@ -247,7 +246,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       .filter(link => {
         // Apply beneficiary_sections visibility
         const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
-        if (bsKey && beneficiarySections[bsKey] === false) return false;
+        if (bsKey && (beneficiarySections as Record<string, boolean>)[bsKey] === false) return false;
         const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
         return !key || perms[key] !== false;
       });

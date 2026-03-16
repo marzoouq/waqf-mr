@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Users, FileText, BarChart3, ArrowRight, Shield, Wallet, Star, ChevronDown, Smartphone } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';

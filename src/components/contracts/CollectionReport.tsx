@@ -77,7 +77,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
   const [sendingAlerts, setSendingAlerts] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
-  const pdfWaqfInfo = usePdfWaqfInfo();
+  const _pdfWaqfInfo = usePdfWaqfInfo();
 
   const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
 

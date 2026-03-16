@@ -68,7 +68,7 @@ function exportToCsv(filename: string, headers: string[], rows: string[][]) {
 }
 
 const SupportDashboardPage = () => {
-  const { user, role } = useAuth();
+  const { role } = useAuth();
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');

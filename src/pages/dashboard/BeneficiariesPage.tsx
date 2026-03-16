@@ -24,7 +24,7 @@ import AdvanceRequestsTab from '@/components/accounts/AdvanceRequestsTab';
 
 const ITEMS_PER_PAGE = 9;
 
-interface AuthUser { id: string; email: string; }
+
 
 const BeneficiariesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -67,7 +67,7 @@ const BeneficiariesPage = () => {
     const linkedUserIds = new Set(
       beneficiaries.filter(b => b.user_id && b.id !== editingBeneficiary?.id).map(b => b.user_id)
     );
-    return users.filter(u => !linkedUserIds.has(u.id));
+    return users.filter((u: { id: string }) => !linkedUserIds.has(u.id));
   }, [users, beneficiaries, editingBeneficiary]);
 
   const resetForm = () => {

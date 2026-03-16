@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
-import { Card, CardContent } from '@/components/ui/card';
+import {} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +11,7 @@ import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
+import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
@@ -37,7 +37,7 @@ import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
 
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
@@ -365,7 +365,8 @@ const ContractsPage = () => {
 
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
 
-  const filteredContracts = contracts.filter((c) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- مستخدم في الـ search في المستقبل
+  void contracts.filter((c) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q);

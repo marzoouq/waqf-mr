@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
+import { Table, TableBody, TableRow, TableCell, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Scale } from 'lucide-react';
 
@@ -15,7 +15,6 @@ interface BalanceSheetProps {
   waqfCorpusManual: number;
   distributionsAmount: number;
   availableAmount: number;
-  remainingBalance: number;
   grandTotal: number;
   netAfterExpenses: number;
   netAfterVat: number;
@@ -28,7 +27,7 @@ const BalanceSheetReport = ({
   totalIncome, totalExpenses, vatAmount, zakatAmount,
   adminShare, waqifShare, waqfRevenue,
   waqfCorpusPrevious, waqfCorpusManual,
-  distributionsAmount, availableAmount, remainingBalance,
+  distributionsAmount, availableAmount,
   grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
   fiscalYearLabel,
 }: BalanceSheetProps) => {

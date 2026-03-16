@@ -336,7 +336,7 @@ const SectionsTab = () => {
   };
 
   const toggle = (key: string) => {
-    updateJsonSetting('sections_visibility', { ...sections, [key]: !sections[key] });
+    updateJsonSetting('sections_visibility', { ...sections, [key]: !(sections as Record<string, boolean>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
@@ -351,7 +351,7 @@ const SectionsTab = () => {
         {Object.entries(labels).map(([key, label]) => (
           <div key={key} className="flex items-center justify-between py-2 border-b border-border last:border-0">
             <span className="text-sm font-medium">{label}</span>
-            <Switch checked={sections[key] ?? true} onCheckedChange={() => toggle(key)} />
+            <Switch checked={(sections as Record<string, boolean>)[key] ?? true} onCheckedChange={() => toggle(key)} />
           </div>
         ))}
       </CardContent>
@@ -373,7 +373,7 @@ const BeneficiaryTab = () => {
   };
 
   const toggle = (key: string) => {
-    updateJsonSetting('beneficiary_sections', { ...sections, [key]: !sections[key] });
+    updateJsonSetting('beneficiary_sections', { ...sections, [key]: !(sections as Record<string, boolean>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
@@ -388,7 +388,7 @@ const BeneficiaryTab = () => {
         {Object.entries(labels).map(([key, label]) => (
           <div key={key} className="flex items-center justify-between py-2 border-b border-border last:border-0">
             <span className="text-sm font-medium">{label}</span>
-            <Switch checked={sections[key] ?? true} onCheckedChange={() => toggle(key)} />
+            <Switch checked={(sections as Record<string, boolean>)[key] ?? true} onCheckedChange={() => toggle(key)} />
           </div>
         ))}
       </CardContent>
@@ -476,7 +476,7 @@ const NotificationsTab = () => {
   };
 
   const toggleField = (key: string) => {
-    updateJsonSetting('notification_settings', { ...settings, [key]: !settings[key] });
+    updateJsonSetting('notification_settings', { ...settings, [key]: !(settings as Record<string, boolean | number>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Shield, FileText, Home } from 'lucide-react';
+import { Shield, FileText, Home } from 'lucide-react';
 
 /**
  * فوتر موحد لصفحات سياسة الخصوصية وشروط الاستخدام

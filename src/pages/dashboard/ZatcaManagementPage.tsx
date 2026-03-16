@@ -222,7 +222,7 @@ function ZatcaManagementPage() {
   const handleProductionUpgrade = async () => {
     setProductionLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'production' } });
+      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'production' } });
       if (error) throw error;
       toast.success('✅ تمت الترقية لشهادة الإنتاج بنجاح');
       queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
