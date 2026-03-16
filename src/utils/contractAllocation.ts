@@ -6,6 +6,7 @@
  */
 
 import type { FiscalYear } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface ContractInfo {
   id: string;
