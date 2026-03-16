@@ -107,7 +107,7 @@ export const generateOverdueInvoicesPDF = async (
       inv.contract?.contract_number || '-',
       inv.contract?.property?.property_number || '-',
       inv.due_date,
-      `${Number(inv.amount).toLocaleString()} ر.س`,
+      `${safeNumber(inv.amount).toLocaleString()} ر.س`,
       calcDaysLate(inv.due_date),
     ]),
     foot: [['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, '']],
