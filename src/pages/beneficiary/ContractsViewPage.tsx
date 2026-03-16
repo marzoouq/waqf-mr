@@ -232,7 +232,7 @@ const ContractsViewPage = () => {
                 <TableBody>
                   {contracts.map(contract => {
                     const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
-                     const property: { property_number?: string } | null = null;
+                     const property = null as { property_number?: string } | null;
                     return (
                       <TableRow key={contract.id}>
                          <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
