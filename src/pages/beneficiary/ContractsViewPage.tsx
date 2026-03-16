@@ -235,12 +235,12 @@ const ContractsViewPage = () => {
                     const property = null;
                     return (
                       <TableRow key={contract.id}>
-                        <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                        <TableCell>{contract.tenant_name}</TableCell>
-                        <TableCell>{property?.property_number || '-'}</TableCell>
-                        <TableCell>{formatCurrency(contract.rent_amount)}</TableCell>
-                        <TableCell>{formatDate(contract.start_date)}</TableCell>
-                        <TableCell>{formatDate(contract.end_date)}</TableCell>
+                         <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
+                        <TableCell>{contract.tenant_name ?? ''}</TableCell>
+                        <TableCell>{(property as { property_number?: string })?.property_number || '-'}</TableCell>
+                        <TableCell>{formatCurrency(contract.rent_amount ?? 0)}</TableCell>
+                        <TableCell>{formatDate(contract.start_date ?? '')}</TableCell>
+                        <TableCell>{formatDate(contract.end_date ?? '')}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <Badge variant={st.variant}>{st.label}</Badge>

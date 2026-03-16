@@ -26,7 +26,7 @@ describe('AccountsContractsTable', () => {
   const defaultProps = {
     contracts: [mockContract],
     getPaymentPerPeriod: (c: Contract) => Number(c.payment_amount) || 0,
-    getExpectedPayments: (c: Contract) => c.payment_count,
+    getExpectedPayments: (c: Contract) => c.payment_count ?? 0,
     totalPaymentPerPeriod: 5000,
     totalAnnualRent: 60000,
     statusLabel: (s: string) => s === 'active' ? 'ساري' : s,
