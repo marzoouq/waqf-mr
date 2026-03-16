@@ -198,7 +198,7 @@ const CarryforwardHistoryPage = () => {
                         <TableCell>{fyLabel(cf.from_fiscal_year_id)}</TableCell>
                         <TableCell>{fyLabel(cf.to_fiscal_year_id)}</TableCell>
                         <TableCell className="font-medium text-destructive">
-                          {Number(cf.amount).toLocaleString('ar-SA')} ر.س
+                          {safeNumber(cf.amount).toLocaleString('ar-SA')} ر.س
                         </TableCell>
                         <TableCell>
                           <Badge variant={cf.status === 'active' ? 'destructive' : 'default'} className="text-xs">
