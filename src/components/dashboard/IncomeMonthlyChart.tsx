@@ -23,7 +23,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
     // حساب الإيراد المتوقع الشهري من العقود النشطة
     const activeContracts = contracts.filter(c => c.status === 'active');
     const monthlyExpected = activeContracts.reduce((sum, c) => {
-      const rent = Number(c.rent_amount);
+      const rent = safeNumber(c.rent_amount);
       // تحويل الإيجار السنوي إلى شهري
       return sum + (rent / 12);
     }, 0);
