@@ -72,7 +72,7 @@ describe('AccountsCollectionTable', () => {
       <AccountsCollectionTable
         {...defaultProps}
         editingIndex={0}
-        editData={{ tenantName: 'أحمد', monthlyRent: 5000, paidMonths: 10, status: 'متأخر' }}
+        editData={{ contractId: 'test-id', tenantName: 'أحمد', monthlyRent: 5000, paidMonths: 10, status: 'متأخر' }}
       />
     );
     // Should have input fields
