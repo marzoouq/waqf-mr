@@ -21,7 +21,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ queryFn, enabled }: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
+  useQuery: ({ enabled }: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
     if (enabled === false) return { data: undefined, isLoading: false };
     return { data: [], isLoading: false };
   },
