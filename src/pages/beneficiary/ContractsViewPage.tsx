@@ -175,7 +175,7 @@ const ContractsViewPage = () => {
         ) : isMobile ? (
           <div className="space-y-3">
             {contracts.map(contract => {
-              const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
+               const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                     const property = null; // contracts_safe لا يتضمن ربط العقار
               return (
                 <Card key={contract.id}>
