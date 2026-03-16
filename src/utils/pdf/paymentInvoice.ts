@@ -110,9 +110,9 @@ const _renderBuyerInfo = (
 };
 
 // رسم معلومات الفاتورة (رقم + تاريخ + عقد + عقار)
-const renderInvoiceMeta = (
+const _renderInvoiceMeta = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
-  startY: number, pageW: number, compact = false,
+  startY: number, _pageW: number, compact = false,
 ) => {
   const margin = 18;
   let y = startY;

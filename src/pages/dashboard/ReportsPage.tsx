@@ -680,7 +680,7 @@ const ReportsPage = () => {
               waqfCorpusManual={waqfCorpusManual}
               distributionsAmount={distributionsAmount}
               availableAmount={availableAmount}
-              remainingBalance={remainingBalance}
+              remainingBalance={remainingBalance ?? 0}
               grandTotal={grandTotal}
               netAfterExpenses={netAfterExpenses}
               netAfterVat={netAfterVat}

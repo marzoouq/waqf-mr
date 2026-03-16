@@ -16,7 +16,6 @@ interface BalanceSheetProps {
   distributionsAmount: number;
   availableAmount: number;
   grandTotal: number;
-  grandTotal: number;
   netAfterExpenses: number;
   netAfterVat: number;
   netAfterZakat: number;

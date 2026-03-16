@@ -476,7 +476,7 @@ const NotificationsTab = () => {
   };
 
   const toggleField = (key: string) => {
-    updateJsonSetting('notification_settings', { ...settings, [key]: !settings[key] });
+    updateJsonSetting('notification_settings', { ...settings, [key]: !(settings as Record<string, boolean | number>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
