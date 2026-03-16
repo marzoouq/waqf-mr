@@ -207,7 +207,7 @@ const ContractsViewPage = () => {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">إلى</span>
-                      <span>{formatDate(contract.end_date)}</span>
+                      <span>{formatDate(contract.end_date ?? '')}</span>
                     </div>
                   </CardContent>
                 </Card>
