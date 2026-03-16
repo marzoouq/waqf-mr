@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Wallet, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface Account {
   id: string;
