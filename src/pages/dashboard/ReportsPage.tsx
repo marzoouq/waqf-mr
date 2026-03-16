@@ -505,7 +505,7 @@ const ReportsPage = () => {
                   {incomeSourceData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
-                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
+                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
