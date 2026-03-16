@@ -121,4 +121,61 @@ END IF;
 ```
 
 هذا النهج **لا يتأثر بإعادة إنشاء الدوال** لأن الحماية جزء من كود الدالة المُصدَّر مع pg_dump.
-| `auth-email-hook` | Hook (Supabase) + webhook signature | بدون مصادقة مستخدم |
+
+## سياسة أمان المحتوى (CSP)
+
+### الوضع الحالي
+
+CSP مُعرَّفة كـ `<meta http-equiv>` في `index.html` (سطر 6). هذا يوفر حماية جيدة لكنه **أقل أماناً** من HTTP Header لأن:
+- `meta` tag لا يدعم `frame-ancestors` و `report-uri`
+- يمكن تجاوزه نظرياً عبر حقن HTML قبل العلامة
+
+### السياسة المُطبَّقة
+
+```
+default-src 'self';
+script-src 'self' https://*.supabase.co;
+style-src 'self' 'unsafe-inline';
+font-src 'self' data:;
+img-src 'self' data: blob: https://*.supabase.co;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+frame-src 'self' blob:;
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+worker-src 'self';
+manifest-src 'self';
+```
+
+### الترقية المُوصى بها — HTTP Header
+
+عند النشر على خادم يدعم ترويسات مخصصة (Netlify / Vercel / Cloudflare)، يُفضل نقل CSP إلى HTTP Header:
+
+**Netlify** (`_headers`):
+```
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none';
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+```
+
+**Vercel** (`vercel.json`):
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://*.supabase.co; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none';"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**ملاحظة**: على Lovable Cloud، CSP عبر `meta` tag هو الخيار الوحيد المتاح حالياً. عند الانتقال لاستضافة مخصصة، يجب تطبيق HTTP Header وإزالة `meta` tag من `index.html`.
