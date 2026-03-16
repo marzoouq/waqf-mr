@@ -81,8 +81,7 @@ const DistributeDialog = ({
   const advancesByBeneficiary = useMemo(() => {
     const map: Record<string, number> = {};
     for (const adv of paidAdvances) {
-      map[adv.beneficiary_id] = (map[adv.beneficiary_id] || 0) + Number(adv.amount);
-    }
+      map[adv.beneficiary_id] = (map[adv.beneficiary_id] || 0) + safeNumber(adv.amount);
     return map;
   }, [paidAdvances]);
 
