@@ -16,7 +16,7 @@ interface IncomeChartProps {
  * المتوقع = مجموع إيجارات العقود النشطة مقسّمة على عدد الأشهر
  */
 const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps) => {
-  const chartData = useMemo(() => {
+  const chartData: Array<{ month: string; actual: number; expected: number; gap: number }> = useMemo(() => {
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
 
     // حساب الإيراد المتوقع الشهري من العقود النشطة
@@ -27,7 +27,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
       return sum + (rent / 12);
     }, 0);
 
-    const months = [];
+    const months: Array<{ month: string; actual: number; expected: number; gap: number }> = [];
     for (let i = 0; i < 12; i++) {
       const monthDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
       const year = monthDate.getFullYear();

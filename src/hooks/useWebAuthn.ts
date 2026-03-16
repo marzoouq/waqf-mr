@@ -82,8 +82,9 @@ export function useWebAuthn() {
       return [];
     }
 
-    setCredentials(data || []);
-    return data || [];
+    const mapped = (data || []).map(c => ({ ...c, device_name: c.device_name ?? '' }));
+    setCredentials(mapped);
+    return mapped;
   }, []);
 
   // تسجيل بصمة جديدة

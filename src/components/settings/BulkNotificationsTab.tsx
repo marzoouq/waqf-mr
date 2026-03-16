@@ -56,7 +56,7 @@ const BulkNotificationsTab = () => {
           p_title: title.trim(),
           p_message: message.trim(),
           p_type: type,
-          p_link: link.trim() || null,
+          p_link: link.trim() || undefined,
         });
         if (error) throw error;
         toast.success(`تم إرسال الإشعار لجميع المستفيدين (${beneficiaries.length})`);

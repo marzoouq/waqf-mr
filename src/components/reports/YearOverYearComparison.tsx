@@ -356,7 +356,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                     cx="50%"
                     cy="50%"
                     labelLine={true}
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
                     outerRadius={85}
                     dataKey="value"
                     style={{ fontSize: '11px' }}
