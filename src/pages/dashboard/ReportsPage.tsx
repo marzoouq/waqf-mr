@@ -90,8 +90,8 @@ const ReportsPage = () => {
       expensesByType: expenseTypeData.map(d => ({ type: d.name, amount: d.value })),
       incomeBySource: incomeSourceData.map(d => ({ source: d.name, amount: d.value })),
       beneficiaries: distributionData.map(d => ({
-        name: d.name,
-        percentage: d.percentage,
+        name: d.name ?? 'غير معروف',
+        percentage: d.percentage ?? 0,
         amount: d.amount,
       })),
     }, pdfWaqfInfo);
