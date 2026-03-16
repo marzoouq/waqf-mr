@@ -21,6 +21,7 @@ const BeneficiaryMessagesPage = () => {
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
+  const { data: broadcastConversations = [] } = useConversations('broadcast');
   const { data: supportConversations = [], isLoading: supportLoading } = useConversations('support');
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
@@ -34,7 +35,10 @@ const BeneficiaryMessagesPage = () => {
   const [chatSubject, setChatSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const conversations = activeTab === 'chat' ? chatConversations : supportConversations;
+  // دمج محادثات البث مع المحادثات العادية وترتيبها زمنياً
+  const allChatConversations = [...chatConversations, ...broadcastConversations]
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  const conversations = activeTab === 'chat' ? allChatConversations : supportConversations;
   const { data: messages = [] } = useMessages(selectedConv?.id || null);
   const isLoading = chatLoading || supportLoading;
 

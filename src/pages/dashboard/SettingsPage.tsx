@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
@@ -22,6 +22,7 @@ const FiscalYearManagementTab = lazy(() => import('@/components/settings/FiscalY
 const BulkNotificationsTab = lazy(() => import('@/components/settings/BulkNotificationsTab'));
 const MenuCustomizationTab = lazy(() => import('@/components/settings/MenuCustomizationTab'));
 const BannerSettingsTab = lazy(() => import('@/components/settings/BannerSettingsTab'));
+const BulkMessagingTab = lazy(() => import('@/components/settings/BulkMessagingTab'));
 const RolePermissionsTab = lazy(() => import('@/components/settings/RolePermissionsTab'));
 const BiometricSettings = lazy(() => import('@/components/settings/BiometricSettings'));
 const AdvanceSettingsTab = lazy(() => import('@/components/settings/AdvanceSettingsTab'));
@@ -664,6 +665,7 @@ const SettingsPage = () => {
                 <SelectItem value="fiscal">السنوات المالية</SelectItem>
                 <SelectItem value="notifications">الإشعارات</SelectItem>
                 <SelectItem value="bulk-notify">إشعارات جماعية</SelectItem>
+                <SelectItem value="bulk-message">رسائل جماعية</SelectItem>
                 <SelectItem value="export">تصدير البيانات</SelectItem>
                 <SelectItem value="banner">شريط التنبيه</SelectItem>
                 <SelectItem value="role-permissions">صلاحيات الأدوار</SelectItem>
@@ -712,6 +714,10 @@ const SettingsPage = () => {
               <Megaphone className="w-4 h-4" />
               إشعارات جماعية
             </TabsTrigger>
+            <TabsTrigger value="bulk-message" className="gap-1.5 text-xs md:text-sm">
+              <MessageSquare className="w-4 h-4" />
+              رسائل جماعية
+            </TabsTrigger>
             <TabsTrigger value="export" className="gap-1.5 text-xs md:text-sm">
               <Download className="w-4 h-4" />
               تصدير البيانات
@@ -750,6 +756,7 @@ const SettingsPage = () => {
           <TabsContent value="fiscal"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><FiscalYearManagementTab /></Suspense></TabsContent>
           <TabsContent value="notifications"><NotificationsTab /></TabsContent>
           <TabsContent value="bulk-notify"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BulkNotificationsTab /></Suspense></TabsContent>
+          <TabsContent value="bulk-message"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BulkMessagingTab /></Suspense></TabsContent>
           <TabsContent value="export"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><DataExportTab /></Suspense></TabsContent>
           <TabsContent value="banner"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><BannerSettingsTab /></Suspense></TabsContent>
           <TabsContent value="role-permissions"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><RolePermissionsTab /></Suspense></TabsContent>
