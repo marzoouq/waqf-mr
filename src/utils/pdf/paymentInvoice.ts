@@ -286,7 +286,7 @@ const renderQrCode = async (
     });
 
     // سجل بيانات QR للتتبع
-    console.info('[PDF-QR] TLV data:', { sellerName, vatNumber, timestamp: isoTimestamp, total: invoice.amount, vat: vatAmount });
+    logger.info('[PDF-QR] TLV data:', { sellerName, vatNumber, timestamp: isoTimestamp, total: invoice.amount, vat: vatAmount });
 
     // محاولة أولى
     let qrDataUrl = await generateQrDataUrl(tlvBase64);
