@@ -34,7 +34,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
           dataKey="value"
           nameKey="name"
           paddingAngle={2}
-          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+          label={({ name, percent }) => `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`}
           labelLine={false}
         >
           {data.map((_, index) => (

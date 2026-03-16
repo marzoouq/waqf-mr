@@ -15,9 +15,9 @@ const mockContract: Contract = {
   end_date: '2024-12-31',
   status: 'active',
   property_id: 'p1',
-  unit_id: null,
-  fiscal_year_id: null,
-  notes: null,
+  unit_id: undefined,
+  fiscal_year_id: undefined,
+  notes: undefined,
   created_at: '',
   updated_at: '',
 };
