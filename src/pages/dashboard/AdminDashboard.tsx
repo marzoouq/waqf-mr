@@ -150,7 +150,7 @@ const AdminDashboard = () => {
       const month = item.date?.substring(0, 7);
       if (month) {
         if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].expenses += Number(item.amount);
+        months[month].expenses += safeNumber(item.amount);
       }
     });
     return Object.entries(months)
