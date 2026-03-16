@@ -198,7 +198,7 @@ const FinancialReportsPage = () => {
               {distributionData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
