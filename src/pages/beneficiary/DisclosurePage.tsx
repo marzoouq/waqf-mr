@@ -337,8 +337,8 @@ const DisclosurePage = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
                     <div className="flex justify-between text-xs">
-                      <span>سنوي: {Number(c.rent_amount).toLocaleString()} ر.س</span>
-                      <span>شهري: {Math.round(Number(c.rent_amount) / 12).toLocaleString()} ر.س</span>
+                      <span>سنوي: {safeNumber(c.rent_amount).toLocaleString()} ر.س</span>
+                      <span>شهري: {Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()} ر.س</span>
                     </div>
                   </div>
                 ))}
