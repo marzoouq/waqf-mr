@@ -11,8 +11,8 @@ const ARABIC_MONTHS: Record<string, string> = {
   '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
 };
 
-const formatArabicMonth = (month: string) => {
-  const parts = month.split('-');
+const formatArabicMonth = (month: string | number | React.ReactNode) => {
+  const parts = String(month).split('-');
   return ARABIC_MONTHS[parts[1]] || month;
 };
 
