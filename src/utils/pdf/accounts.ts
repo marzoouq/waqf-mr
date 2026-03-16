@@ -68,7 +68,7 @@ export const generateDistributionsPDF = async (data: {
 
   const bodyRows = data.distributions.map(d => [
     d.beneficiary_name,
-    `${Number(d.share_percentage).toFixed(6)}%`,
+    `${safeNumber(d.share_percentage).toFixed(6)}%`,
     d.share_amount.toLocaleString(),
     d.advances_paid > 0 ? `(${d.advances_paid.toLocaleString()})` : '—',
     d.carryforward_deducted > 0 ? `(${d.carryforward_deducted.toLocaleString()})` : '—',
