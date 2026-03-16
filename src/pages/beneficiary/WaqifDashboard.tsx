@@ -57,7 +57,7 @@ const WaqifDashboard = () => {
 
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
-  const contractualRevenue = activeContracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+  const contractualRevenue = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
   /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
