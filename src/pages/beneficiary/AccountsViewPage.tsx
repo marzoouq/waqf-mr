@@ -128,7 +128,7 @@ const AccountsViewPage = () => {
                   waqfRevenue,
                    beneficiaries: beneficiaries.map(b => ({
                     name: b.name ?? 'غير معروف',
-                    share_percentage: Number(b.share_percentage),
+                    share_percentage: safeNumber(b.share_percentage),
                   })),
                   vatAmount,
                   zakatAmount,
