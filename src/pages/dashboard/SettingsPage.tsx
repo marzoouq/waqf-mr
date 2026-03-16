@@ -336,7 +336,7 @@ const SectionsTab = () => {
   };
 
   const toggle = (key: string) => {
-    updateJsonSetting('sections_visibility', { ...sections, [key]: !sections[key] });
+    updateJsonSetting('sections_visibility', { ...sections, [key]: !(sections as Record<string, boolean>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
