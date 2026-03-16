@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { safeNumber } from '@/utils/safeNumber';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, FileText, ImageIcon } from 'lucide-react';
