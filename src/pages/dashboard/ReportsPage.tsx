@@ -560,7 +560,7 @@ const ReportsPage = () => {
                       {distributionData.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{formatPercentage(item.percentage)}</TableCell>
+                          <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
                           <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
                         </TableRow>
                       ))}
