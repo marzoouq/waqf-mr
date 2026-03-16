@@ -3,7 +3,7 @@
  * Extracted from AccountsPage.tsx for modularity
  */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/useAccounts';
+import { useAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useAccounts';
 import { useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContractsByFiscalYear, useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
