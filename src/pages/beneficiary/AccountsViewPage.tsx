@@ -56,7 +56,7 @@ const AccountsViewPage = () => {
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
 
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? availableAmount * Number(currentBeneficiary.share_percentage) / totalBenPct
+    ? availableAmount * safeNumber(currentBeneficiary.share_percentage) / totalBenPct
     : 0;
 
   if (noPublishedYears) {

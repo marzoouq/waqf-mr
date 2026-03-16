@@ -95,7 +95,7 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
               )}
             </div>
             <p className="text-lg font-bold text-primary">
-              {Number(inv.amount).toLocaleString()} ر.س
+              {safeNumber(inv.amount).toLocaleString()} ر.س
             </p>
             <p className="text-xs text-muted-foreground">{inv.date}</p>
             {inv.property?.property_number && (
