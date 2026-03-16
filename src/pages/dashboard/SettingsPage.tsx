@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings } from 'lucide-react';
+import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
