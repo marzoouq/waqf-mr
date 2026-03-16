@@ -20,7 +20,7 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const ITEMS_PER_PAGE = 15;
 
