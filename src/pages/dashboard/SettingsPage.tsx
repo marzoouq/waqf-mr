@@ -373,7 +373,7 @@ const BeneficiaryTab = () => {
   };
 
   const toggle = (key: string) => {
-    updateJsonSetting('beneficiary_sections', { ...sections, [key]: !sections[key] });
+    updateJsonSetting('beneficiary_sections', { ...sections, [key]: !(sections as Record<string, boolean>)[key] });
   };
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
