@@ -118,7 +118,7 @@ const DisclosurePage = () => {
 
   const pendingAmount = filteredDistributions
     .filter(d => d.status === 'pending')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   const handleDownloadPDF = async () => {
     try {
