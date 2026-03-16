@@ -6,6 +6,7 @@ import {
   baseTableStyles, headStyles, footStyles,
 } from './core';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import { safeNumber } from '@/utils/safeNumber';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
