@@ -10,7 +10,7 @@ const { mockSelect, mockRpc } = vi.hoisted(() => ({
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn((table: string) => ({
+    from: vi.fn((_table: string) => ({
       select: mockSelect,
     })),
     rpc: mockRpc,
