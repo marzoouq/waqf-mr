@@ -8,6 +8,7 @@ import {
 import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
 import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+import { logger } from '@/lib/logger';
 
 export type InvoiceTemplate = 'classic' | 'tax_professional' | 'compact';
 
