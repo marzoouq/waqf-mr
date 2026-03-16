@@ -107,7 +107,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
 export const groupIncomeBySource = (income: Income[]): Record<string, number> => {
   return income.reduce((acc, item) => {
     const source = item.source || 'غير محدد';
-    acc[source] = (acc[source] || 0) + Number(item.amount);
+    acc[source] = (acc[source] || 0) + safeNumber(item.amount);
     return acc;
   }, {} as Record<string, number>);
 };
