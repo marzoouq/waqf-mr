@@ -95,7 +95,7 @@ const WaqifDashboard = () => {
     const months: Record<string, { income: number; expenses: number }> = {};
     income.forEach(item => {
       const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += Number(item.amount); }
+      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += safeNumber(item.amount); }
     });
     expenses.forEach(item => {
       const month = item.date?.substring(0, 7);
