@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
-  TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
+  TABLE_HEAD_GOLD,
   baseTableStyles, headStyles,
 } from './core';
 import autoTable from 'jspdf-autotable';

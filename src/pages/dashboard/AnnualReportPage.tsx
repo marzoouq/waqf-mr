@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Trophy, AlertTriangle, Lightbulb, Building2, FileDown, Printer,
-  Send, FileEdit, Loader2, Plus, DollarSign, Receipt, FileText, Users,
+  Send, FileEdit, Loader2, Plus, DollarSign, Receipt, FileText,
 } from 'lucide-react';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import {

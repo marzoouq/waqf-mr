@@ -3,7 +3,7 @@
  */
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo, TABLE_HEAD_GREEN } from './core';
+import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo } from './core';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 

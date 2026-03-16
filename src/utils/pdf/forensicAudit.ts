@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addFooter, addHeaderToAllPages,
-  baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
+  baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
