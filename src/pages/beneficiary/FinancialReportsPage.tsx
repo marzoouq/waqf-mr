@@ -203,7 +203,7 @@ const FinancialReportsPage = () => {
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => value.toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
