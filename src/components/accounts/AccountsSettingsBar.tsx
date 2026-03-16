@@ -79,7 +79,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={waqfCorpusPrevious}
-              onChange={(e) => onWaqfCorpusPreviousChange(Number(e.target.value))}
+              onChange={(e) => onWaqfCorpusPreviousChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
