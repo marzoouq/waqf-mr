@@ -99,7 +99,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={zakatAmount}
-              onChange={(e) => onZakatAmountChange(Number(e.target.value))}
+              onChange={(e) => onZakatAmountChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
