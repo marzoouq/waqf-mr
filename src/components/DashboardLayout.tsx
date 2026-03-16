@@ -208,7 +208,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
           // If the section has a visibility key, check if it's enabled
-          return !sectionKey || sectionsVisibility[sectionKey] !== false;
+          return !sectionKey || (sectionsVisibility as Record<string, boolean>)[sectionKey] !== false;
         })
         .map(link => {
           const labelKey = linkLabelKeys[link.to];
