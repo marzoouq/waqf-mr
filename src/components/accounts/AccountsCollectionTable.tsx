@@ -25,7 +25,7 @@ export interface CollectionItem {
 }
 
 interface EditData {
-  contractId?: string;
+  contractId: string;
   tenantName: string;
   monthlyRent: number;
   paidMonths: number;
