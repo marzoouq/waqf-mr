@@ -40,7 +40,7 @@ const CollectionHeatmap = ({ income }: CollectionHeatmapProps) => {
     const amounts = new Array(12).fill(0);
     income.forEach(item => {
       const month = new Date(item.date).getMonth();
-      amounts[month] += Number(item.amount) || 0;
+      amounts[month] += safeNumber(item.amount);
     });
     return amounts;
   }, [income]);

@@ -38,7 +38,7 @@ const BeneficiaryDashboard = () => {
 
   // ── Derived financials (computed only when data is valid) ──
   const currentBeneficiary = useMemo(() => benError ? undefined : beneficiaries.find(b => b.user_id === user?.id), [beneficiaries, user?.id, benError]);
-  const safeAvailable = Number(availableAmount) || 0;
+  const safeAvailable = safeNumber(availableAmount);
   const myShare = currentBeneficiary && totalBenPct > 0
     ? safeAvailable * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;

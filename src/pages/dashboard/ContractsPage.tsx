@@ -373,8 +373,8 @@ const ContractsPage = () => {
   const stats = useMemo(() => {
     const active = contracts.filter(c => c.status === 'active');
     const expired = contracts.filter(c => c.status === 'expired');
-    const totalRent = contracts.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
-    const activeRent = active.reduce((sum, c) => sum + (Number(c.rent_amount) || 0), 0);
+    const totalRent = contracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+    const activeRent = active.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
     const now = new Date().getTime();
     const soon = active.filter(c => {
       const days = (new Date(c.end_date).getTime() - now) / (1000 * 3600 * 24);
