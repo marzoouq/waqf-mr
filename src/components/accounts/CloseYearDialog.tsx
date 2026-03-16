@@ -2,7 +2,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import CloseYearChecklist, { buildClosureChecklist, type ChecklistItem } from './CloseYearChecklist';
+import CloseYearChecklist, { buildClosureChecklist } from './CloseYearChecklist';
 import { useMemo } from 'react';
 
 interface CloseYearDialogProps {

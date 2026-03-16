@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React from 'react';
 import { Building2 } from 'lucide-react';
 import PageHeaderCard from './PageHeaderCard';

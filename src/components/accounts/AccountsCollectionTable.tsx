@@ -52,7 +52,7 @@ interface AccountsCollectionTableProps {
 const AccountsCollectionTable = ({
   contracts, collectionData, editingIndex, editData, setEditData,
   onStartEdit, onCancelEdit, onSaveEdit,
-  totalExpectedPayments, totalPaidMonths, totalCollectedAll, totalArrearsAll,
+  totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll, totalArrearsAll,
   isUpdatePending, isUpsertPending,
 }: AccountsCollectionTableProps) => {
   return (

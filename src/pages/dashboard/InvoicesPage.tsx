@@ -58,7 +58,7 @@ const InvoicesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState('');
+  const [_fileError, setFileError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

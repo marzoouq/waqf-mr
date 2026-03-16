@@ -232,7 +232,7 @@ const VALID_TRANSITIONS_TO: Record<string, string[]> = {
 export const useUpdateAdvanceStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status, rejection_reason, beneficiary_user_id, amount }: {
+    mutationFn: async ({ id, status, rejection_reason }: {
       id: string; status: string; rejection_reason?: string;
       beneficiary_user_id?: string; amount?: number;
     }) => {

@@ -45,7 +45,7 @@ const AccountsViewPage = () => {
     grandTotal,
     availableAmount,
     incomeBySource,
-    expensesByType,
+    expensesByType: _ebt,
     expensesByTypeExcludingVat,
     remainingBalance,
     isLoading: finLoading,
