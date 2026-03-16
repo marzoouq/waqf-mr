@@ -111,7 +111,7 @@ const AdvanceRequestsTab = () => {
                 {paginatedRequests.map(req => (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
-                    <TableCell>{Number(req.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{safeNumber(req.amount).toLocaleString()} ر.س</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>

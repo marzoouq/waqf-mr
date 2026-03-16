@@ -92,7 +92,7 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
   doc.setFontSize(18);
   doc.text('تقرير المستفيدين', 105, startY + 5, { align: 'center' });
 
-  const total = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const total = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
 
   autoTable(doc, {
     startY: startY + 14,

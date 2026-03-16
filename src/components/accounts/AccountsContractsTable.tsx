@@ -53,7 +53,7 @@ const AccountsContractsTable = ({
                   <TableCell>{contract.tenant_name}</TableCell>
                   <TableCell className="font-bold text-primary">{getPaymentPerPeriod(contract).toLocaleString()} ريال</TableCell>
                   <TableCell className="text-center">{getExpectedPayments(contract)}</TableCell>
-                  <TableCell className="font-bold text-primary">{Number(contract.rent_amount).toLocaleString()} ريال</TableCell>
+                  <TableCell className="font-bold text-primary">{safeNumber(contract.rent_amount).toLocaleString()} ريال</TableCell>
                   <TableCell>{statusLabel(contract.status)}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">

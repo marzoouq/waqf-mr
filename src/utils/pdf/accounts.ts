@@ -246,7 +246,7 @@ export const generateAccountsPDF = async (data: {
   y = getLastAutoTableY(doc, 240) + 10;
 
   // Beneficiaries
-  const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+  const totalBenPct = data.beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
   const distAmount = data.distributionsAmount || 0;
   doc.setFont(fontFamily, 'bold');
   doc.text('حصص المستفيدين', 105, y, { align: 'center' });
@@ -255,8 +255,8 @@ export const generateAccountsPDF = async (data: {
     head: [['المستفيد', 'النسبة', 'المبلغ']],
     body: data.beneficiaries.map(b => [
       b.name,
-      `${Number(b.share_percentage).toFixed(6)}%`,
-      totalBenPct > 0 ? (distAmount * Number(b.share_percentage) / totalBenPct).toLocaleString() : '0',
+      `${safeNumber(b.share_percentage).toFixed(6)}%`,
+      totalBenPct > 0 ? (distAmount * safeNumber(b.share_percentage) / totalBenPct).toLocaleString() : '0',
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),

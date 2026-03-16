@@ -134,7 +134,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
         allocatedAmount = fyAlloc?.allocated_amount ?? 0;
       } else {
         allocatedPayments = contractPaymentCount;
-        allocatedAmount = Number(contract.rent_amount);
+        allocatedAmount = safeNumber(contract.rent_amount);
       }
 
       const expected = useDynamicAllocation ? allocatedPayments : getExpectedPaymentsFallback(contract);
