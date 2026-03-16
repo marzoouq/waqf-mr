@@ -18,6 +18,7 @@ import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { getPaymentCount } from '@/utils/contractHelpers';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface CollectionReportProps {
   contracts: Contract[];
