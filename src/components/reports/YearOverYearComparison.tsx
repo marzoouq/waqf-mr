@@ -8,6 +8,7 @@ import {
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Badge } from '@/components/ui/badge';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
