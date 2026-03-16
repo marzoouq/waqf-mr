@@ -199,7 +199,7 @@ const ContractsViewPage = () => {
                     )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">الإيجار</span>
-                      <span className="font-medium">{formatCurrency(contract.rent_amount)}</span>
+                      <span className="font-medium">{formatCurrency(contract.rent_amount ?? 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">من</span>
