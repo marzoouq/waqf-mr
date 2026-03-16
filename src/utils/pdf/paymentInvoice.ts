@@ -80,6 +80,7 @@ const renderSellerInfo = (
 };
 
 // رسم بيانات المشتري
+// @ts-expect-error — محجوز للاستخدام المستقبلي
 const renderBuyerInfo = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number, pageW: number, compact = false,
