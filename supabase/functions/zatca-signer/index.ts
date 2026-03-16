@@ -584,6 +584,7 @@ Deno.serve(async (req) => {
     const { data: chainResult, error: chainErr } = await admin.rpc("allocate_icv_and_chain", {
       p_invoice_id: invoice_id,
       p_invoice_hash: placeholderHash,
+      p_source_table: table,
     });
 
     if (chainErr) {
