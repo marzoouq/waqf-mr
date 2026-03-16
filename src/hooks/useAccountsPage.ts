@@ -47,7 +47,7 @@ export function useAccountsPage() {
   const { data: properties = [] } = useProperties();
   const appSettings = useAppSettings();
   const createAccount = useCreateAccount();
-  const updateAccount = useUpdateAccount();
+  
   const deleteAccount = useDeleteAccount();
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
