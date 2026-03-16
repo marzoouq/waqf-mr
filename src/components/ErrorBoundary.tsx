@@ -39,8 +39,8 @@ class ErrorBoundary extends Component<Props, State> {
 
       supabase.rpc('log_access_event', {
         p_event_type: 'client_error',
-        p_target_path: typeof window !== 'undefined' ? window.location.pathname : null,
-        p_device_info: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : null,
+        p_target_path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+        p_device_info: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 500) : undefined,
         p_metadata: metadata,
       }).then(() => { /* reported */ }, () => {
         // Supabase unavailable — persist locally as fallback

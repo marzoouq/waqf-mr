@@ -4,6 +4,7 @@
  */
 
 import { Income, Expense } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 
 export interface FinancialParams {
   totalIncome: number;
@@ -106,7 +107,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
 export const groupIncomeBySource = (income: Income[]): Record<string, number> => {
   return income.reduce((acc, item) => {
     const source = item.source || 'غير محدد';
-    acc[source] = (acc[source] || 0) + Number(item.amount);
+    acc[source] = (acc[source] || 0) + safeNumber(item.amount);
     return acc;
   }, {} as Record<string, number>);
 };
@@ -115,13 +116,13 @@ export const groupIncomeBySource = (income: Income[]): Record<string, number> =>
 export const groupExpensesByType = (expenses: Expense[]): Record<string, number> => {
   return expenses.reduce((acc, item) => {
     const type = item.expense_type || 'غير محدد';
-    acc[type] = (acc[type] || 0) + Number(item.amount);
+    acc[type] = (acc[type] || 0) + safeNumber(item.amount);
     return acc;
   }, {} as Record<string, number>);
 };
 
 /** Compute totals from raw records */
 export const computeTotals = (income: Income[], expenses: Expense[]) => ({
-  totalIncome: income.reduce((sum, item) => sum + Number(item.amount), 0),
-  totalExpenses: expenses.reduce((sum, item) => sum + Number(item.amount), 0),
+  totalIncome: income.reduce((sum, item) => sum + safeNumber(item.amount), 0),
+  totalExpenses: expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0),
 });

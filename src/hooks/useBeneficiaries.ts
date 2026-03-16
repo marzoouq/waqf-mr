@@ -48,7 +48,7 @@ export const useBeneficiariesDecrypted = () => {
     queryFn: async () => {
       if (!isAuthorized) return [];
       const { data, error } = await supabase.rpc('get_beneficiary_decrypted', {
-        p_beneficiary_id: null,
+        p_beneficiary_id: null as unknown as string,
       });
       if (error) {
         // fallback to regular query if RPC fails

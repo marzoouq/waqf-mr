@@ -77,7 +77,7 @@ const DisclosurePage = () => {
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
+    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
@@ -168,10 +168,10 @@ const DisclosurePage = () => {
         incomeBySource,
         expensesByType: expensesByTypeExcludingVat,
         contracts: contracts.map(c => ({
-          contract_number: c.contract_number,
-          tenant_name: c.tenant_name,
+          contract_number: c.contract_number ?? '',
+          tenant_name: c.tenant_name ?? '',
           rent_amount: Number(c.rent_amount),
-          status: c.status,
+          status: c.status ?? '',
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,

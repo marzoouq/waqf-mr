@@ -53,7 +53,7 @@ export function useWebAuthn() {
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false })
           .limit(20);
-        if (!cancelled && creds) setCredentials(creds);
+        if (!cancelled && creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
       } else {
         localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
       }
@@ -82,8 +82,9 @@ export function useWebAuthn() {
       return [];
     }
 
-    setCredentials(data || []);
-    return data || [];
+    const mapped = (data || []).map(c => ({ ...c, device_name: c.device_name ?? '' }));
+    setCredentials(mapped);
+    return mapped;
   }, []);
 
   // تسجيل بصمة جديدة

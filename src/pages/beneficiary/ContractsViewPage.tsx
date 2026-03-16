@@ -35,8 +35,8 @@ const ContractsViewPage = () => {
   const in90Days = useMemo(() => new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000), [now]);
 
   const isExpiringSoon = useCallback(
-    (c: { status: string; end_date: string }) =>
-      c.status === 'active' && new Date(c.end_date) <= in90Days,
+    (c: { status: string | null; end_date: string | null }) =>
+      c.status === 'active' && !!c.end_date && new Date(c.end_date) <= in90Days,
     [in90Days],
   );
 
@@ -96,12 +96,12 @@ const ContractsViewPage = () => {
             try {
               await generateContractsPDF(
                 (contracts ?? []).map(c => ({
-                  contract_number: c.contract_number,
-                  tenant_name: c.tenant_name,
-                  start_date: c.start_date,
-                  end_date: c.end_date,
-                  rent_amount: c.rent_amount,
-                  status: c.status,
+                  contract_number: c.contract_number ?? '',
+                  tenant_name: c.tenant_name ?? '',
+                  start_date: c.start_date ?? '',
+                  end_date: c.end_date ?? '',
+                  rent_amount: c.rent_amount ?? 0,
+                  status: c.status ?? '',
                 })),
                 pdfWaqfInfo
               );
@@ -175,15 +175,15 @@ const ContractsViewPage = () => {
         ) : isMobile ? (
           <div className="space-y-3">
             {contracts.map(contract => {
-              const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
-                    const property = null; // contracts_safe لا يتضمن ربط العقار
+               const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
+                    const property: { property_number?: string } | null = null; // contracts_safe لا يتضمن ربط العقار
               return (
                 <Card key={contract.id}>
                   <CardContent className="p-4 space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-bold text-foreground">{contract.contract_number}</p>
-                        <p className="text-sm text-muted-foreground">{contract.tenant_name}</p>
+                        <p className="font-bold text-foreground">{contract.contract_number ?? ''}</p>
+                        <p className="text-sm text-muted-foreground">{contract.tenant_name ?? ''}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge variant={st.variant}>{st.label}</Badge>
@@ -195,19 +195,19 @@ const ContractsViewPage = () => {
                       </div>
                     </div>
                     {property && (
-                      <p className="text-sm text-muted-foreground">العقار: {property.property_number}</p>
+                      <p className="text-sm text-muted-foreground">العقار: {(property as { property_number?: string })?.property_number || '-'}</p>
                     )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">الإيجار</span>
-                      <span className="font-medium">{formatCurrency(contract.rent_amount)}</span>
+                      <span className="font-medium">{formatCurrency(contract.rent_amount ?? 0)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">من</span>
-                      <span>{formatDate(contract.start_date)}</span>
+                      <span>{formatDate(contract.start_date ?? '')}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">إلى</span>
-                      <span>{formatDate(contract.end_date)}</span>
+                      <span>{formatDate(contract.end_date ?? '')}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -231,16 +231,16 @@ const ContractsViewPage = () => {
                 </TableHeader>
                 <TableBody>
                   {contracts.map(contract => {
-                    const st = statusMap[contract.status] || { label: contract.status, variant: 'outline' as const };
-                    const property = null;
+                    const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
+                     const property = null as { property_number?: string } | null;
                     return (
                       <TableRow key={contract.id}>
-                        <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                        <TableCell>{contract.tenant_name}</TableCell>
+                         <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
+                        <TableCell>{contract.tenant_name ?? ''}</TableCell>
                         <TableCell>{property?.property_number || '-'}</TableCell>
-                        <TableCell>{formatCurrency(contract.rent_amount)}</TableCell>
-                        <TableCell>{formatDate(contract.start_date)}</TableCell>
-                        <TableCell>{formatDate(contract.end_date)}</TableCell>
+                        <TableCell>{formatCurrency(contract.rent_amount ?? 0)}</TableCell>
+                        <TableCell>{formatDate(contract.start_date ?? '')}</TableCell>
+                        <TableCell>{formatDate(contract.end_date ?? '')}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <Badge variant={st.variant}>{st.label}</Badge>

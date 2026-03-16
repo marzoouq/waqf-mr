@@ -49,12 +49,12 @@ export const useUpsertTenantPayment = () => {
       const { data, error } = await supabase.rpc('upsert_tenant_payment', {
         p_contract_id: payment.contract_id,
         p_paid_months: payment.paid_months,
-        p_notes: payment.notes ?? null,
+        p_notes: payment.notes ?? undefined,
         p_payment_amount: payment.auto_income?.payment_amount ?? 0,
-        p_property_id: payment.auto_income?.property_id ?? null,
-        p_fiscal_year_id: payment.auto_income?.fiscal_year_id ?? null,
-        p_tenant_name: payment.auto_income?.tenant_name ?? null,
-        p_payment_date: payment.auto_income?.payment_date ?? null,
+        p_property_id: payment.auto_income?.property_id ?? undefined,
+        p_fiscal_year_id: payment.auto_income?.fiscal_year_id ?? undefined,
+        p_tenant_name: payment.auto_income?.tenant_name ?? undefined,
+        p_payment_date: payment.auto_income?.payment_date ?? undefined,
       });
       if (error) throw error;
       return data;

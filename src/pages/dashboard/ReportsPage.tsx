@@ -42,7 +42,7 @@ const ReportsPage = () => {
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || undefined);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
   // reportRef removed (N10 — was unused)
 
   const selectedFiscalYearLabel = fiscalYear?.label;
@@ -67,11 +67,11 @@ const ReportsPage = () => {
 
   // Beneficiary distributions
   // G2 fix: حساب الحصة كنسبة تناسبية من مجموع النسب (متوافق مع MySharePage)
-  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
+  const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0);
   const distributionData = beneficiaries.map((b) => ({
-    name: b.name,
-    amount: totalBeneficiaryPercentage > 0 ? (beneficiariesShare * b.share_percentage) / totalBeneficiaryPercentage : 0,
-    percentage: b.share_percentage,
+    name: b.name ?? 'غير معروف',
+    amount: totalBeneficiaryPercentage > 0 ? (beneficiariesShare * (b.share_percentage ?? 0)) / totalBeneficiaryPercentage : 0,
+    percentage: b.share_percentage ?? 0,
   }));
 
 
@@ -90,8 +90,8 @@ const ReportsPage = () => {
       expensesByType: expenseTypeData.map(d => ({ type: d.name, amount: d.value })),
       incomeBySource: incomeSourceData.map(d => ({ source: d.name, amount: d.value })),
       beneficiaries: distributionData.map(d => ({
-        name: d.name,
-        percentage: d.percentage,
+        name: d.name ?? 'غير معروف',
+        percentage: d.percentage ?? 0,
         amount: d.amount,
       })),
     }, pdfWaqfInfo);
@@ -264,8 +264,8 @@ const ReportsPage = () => {
                 incomeBySource: Object.fromEntries(incomeSourceData.map(d => [d.name, d.value])),
                 expensesByType: Object.fromEntries(expenseTypeData.map(d => [d.name, d.value])),
                 beneficiaries: distributionData.map(d => ({
-                  name: d.name,
-                  share_percentage: d.percentage,
+                  name: d.name ?? 'غير معروف',
+                  share_percentage: d.percentage ?? 0,
                   amount: d.amount,
                 })),
                 adminPct,
@@ -505,7 +505,7 @@ const ReportsPage = () => {
                   {incomeSourceData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
                       <PieChart>
-                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
+                        <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine={true} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
                           {incomeSourceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
@@ -560,13 +560,13 @@ const ReportsPage = () => {
                       {distributionData.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{formatPercentage(item.percentage)}</TableCell>
+                          <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
                           <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
                         <TableCell>الإجمالي</TableCell>
-                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0))}</TableCell>
+                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0))}</TableCell>
                         <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     </TableBody>

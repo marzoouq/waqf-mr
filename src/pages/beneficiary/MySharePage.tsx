@@ -75,10 +75,10 @@ const MySharePage = () => {
   });
 
   // سُلف المستفيد
-  const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id);
-  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
-  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
-  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
+   const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id ?? undefined);
+  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id ?? undefined, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id ?? undefined, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
@@ -88,7 +88,7 @@ const MySharePage = () => {
   const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
+    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
@@ -110,8 +110,8 @@ const MySharePage = () => {
     if (!currentBeneficiary) return;
     try {
       await generateMySharePDF({
-        beneficiaryName: currentBeneficiary.name,
-        sharePercentage: currentBeneficiary.share_percentage,
+        beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
+        sharePercentage: currentBeneficiary.share_percentage ?? 0,
         myShare,
         totalReceived,
         pendingAmount,
@@ -152,8 +152,8 @@ const MySharePage = () => {
         fiscalYearLabel: selectedFY?.label || '',
         availableAmount: beneficiariesShare,
         distributions: [{
-          beneficiary_name: currentBeneficiary.name,
-          share_percentage: currentBeneficiary.share_percentage,
+          beneficiary_name: currentBeneficiary.name ?? 'غير معروف',
+          share_percentage: currentBeneficiary.share_percentage ?? 0,
           share_amount: shareAmount,
           advances_paid: advances,
           carryforward_deducted: Math.round(actualCarryforward * 100) / 100,
@@ -170,7 +170,7 @@ const MySharePage = () => {
   const handlePrintReport = () => {
     if (!currentBeneficiary) return;
     printShareReport({
-      beneficiaryName: currentBeneficiary.name,
+      beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
       beneficiariesShare,
       myShare,
       paidAdvancesTotal,
@@ -184,7 +184,7 @@ const MySharePage = () => {
     if (!currentBeneficiary) return;
     try {
       await generateComprehensiveBeneficiaryPDF({
-        beneficiaryName: currentBeneficiary.name,
+        beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
         fiscalYear: selectedFY?.label || '',
         totalIncome,
         totalExpenses,
@@ -204,10 +204,10 @@ const MySharePage = () => {
         incomeBySource,
         expensesByType: expensesByTypeExcludingVat,
         contracts: contracts.map(c => ({
-          contract_number: c.contract_number,
-          tenant_name: c.tenant_name,
+          contract_number: c.contract_number ?? '',
+          tenant_name: c.tenant_name ?? '',
           rent_amount: Number(c.rent_amount),
-          status: c.status,
+          status: c.status ?? '',
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,

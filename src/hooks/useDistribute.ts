@@ -44,7 +44,7 @@ export const useDistributeShares = () => {
       }));
       const { data, error } = await supabase.rpc('execute_distribution', {
         p_account_id: account_id,
-        p_fiscal_year_id: fiscal_year_id || null,
+        p_fiscal_year_id: fiscal_year_id || undefined,
         p_total_distributed: total_distributed,
         p_distributions: sanitized,
       });

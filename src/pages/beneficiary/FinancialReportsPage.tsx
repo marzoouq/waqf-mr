@@ -66,7 +66,7 @@ const FinancialReportsPage = () => {
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
+    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;
 
   const incomeVsExpenses = useMemo(() => [
@@ -111,8 +111,8 @@ const FinancialReportsPage = () => {
         expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: currentBeneficiary ? [{
-          name: currentBeneficiary.name,
-          percentage: Number(currentBeneficiary.share_percentage),
+          name: currentBeneficiary.name ?? 'غير معروف',
+          percentage: Number(currentBeneficiary.share_percentage ?? 0),
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
@@ -198,7 +198,7 @@ const FinancialReportsPage = () => {
               {distributionData.some(d => d.value > 0) ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {distributionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
@@ -224,7 +224,7 @@ const FinancialReportsPage = () => {
               {incomePieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                  <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {incomePieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
@@ -247,7 +247,7 @@ const FinancialReportsPage = () => {
               {expensesPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {expensesPieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}

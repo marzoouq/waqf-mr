@@ -317,7 +317,7 @@ const WaqifDashboard = () => {
                     <PieChart>
                       <Pie
                         data={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
-                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" startAngle={90} endAngle={-270} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" startAngle={90} endAngle={-270} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                       >
                         {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>

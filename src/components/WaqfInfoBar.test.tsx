@@ -78,8 +78,8 @@ describe('WaqfInfoBar URL cleanup logic', () => {
     const logoPreview: string | null = null;
 
     // Should not throw
-    if (logoPreview && logoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(logoPreview);
+    if (logoPreview && (logoPreview as string).startsWith('blob:')) {
+      URL.revokeObjectURL(logoPreview as string);
     }
 
     expect(revokedUrls).toHaveLength(0);

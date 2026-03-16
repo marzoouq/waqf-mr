@@ -377,7 +377,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">النوع</Label>
-                          <NativeSelect value={unitForm.unit_type} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })} options={UNIT_TYPES.map(t => ({ value: t, label: t }))} />
+                          <NativeSelect value={unitForm.unit_type ?? ''} onValueChange={(v) => setUnitForm({ ...unitForm, unit_type: v })} options={UNIT_TYPES.map(t => ({ value: t, label: t }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الدور</Label>
@@ -389,7 +389,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">الحالة</Label>
-                          <NativeSelect value={unitForm.status} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
+                          <NativeSelect value={unitForm.status ?? ''} onValueChange={(v) => setUnitForm({ ...unitForm, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">ملاحظات</Label>

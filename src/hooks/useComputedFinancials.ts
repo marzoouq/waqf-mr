@@ -7,6 +7,7 @@ import {
   groupIncomeBySource,
   groupExpensesByType,
 } from '@/utils/accountsCalculations';
+import { safeNumber, safePercent } from '@/utils/safeNumber';
 
 interface ComputedParams {
   income: Income[];
@@ -56,19 +57,16 @@ export const useComputedFinancials = ({
     waqfCorpusPrevious, waqfCorpusManual, distributionsAmount,
     usingFallbackPct,
   } = useMemo(() => {
-    const adminPctRaw = settings?.admin_share_percentage
-      ? parseFloat(settings.admin_share_percentage) : NaN;
-    const _adminPct = Number.isFinite(adminPctRaw) ? adminPctRaw : 10;
-    const waqifPctRaw = settings?.waqif_share_percentage
-      ? parseFloat(settings.waqif_share_percentage) : NaN;
-    const _waqifPct = Number.isFinite(waqifPctRaw) ? waqifPctRaw : 5;
+    const _adminPct = safePercent(settings?.admin_share_percentage, 10);
+    const _waqifPct = safePercent(settings?.waqif_share_percentage, 5);
     // F5: تتبع استخدام القيم الافتراضية
-    const _usingFallback = !Number.isFinite(adminPctRaw) || !Number.isFinite(waqifPctRaw);
-    const _zakatAmount = currentAccount ? Number(currentAccount.zakat_amount || 0) : 0;
-    const _vatAmount = currentAccount ? Number(currentAccount.vat_amount || 0) : 0;
-    const _waqfCorpusPrevious = currentAccount ? Number(currentAccount.waqf_corpus_previous || 0) : 0;
-    const _waqfCorpusManual = currentAccount ? Number(currentAccount.waqf_corpus_manual || 0) : 0;
-    const _distributionsAmount = currentAccount ? Number(currentAccount.distributions_amount || 0) : 0;
+    const _usingFallback = (settings?.admin_share_percentage == null || settings.admin_share_percentage === '')
+      || (settings?.waqif_share_percentage == null || settings.waqif_share_percentage === '');
+    const _zakatAmount = currentAccount ? safeNumber(currentAccount.zakat_amount) : 0;
+    const _vatAmount = currentAccount ? safeNumber(currentAccount.vat_amount) : 0;
+    const _waqfCorpusPrevious = currentAccount ? safeNumber(currentAccount.waqf_corpus_previous) : 0;
+    const _waqfCorpusManual = currentAccount ? safeNumber(currentAccount.waqf_corpus_manual) : 0;
+    const _distributionsAmount = currentAccount ? safeNumber(currentAccount.distributions_amount) : 0;
     return {
       adminPct: _adminPct, waqifPct: _waqifPct, zakatAmount: _zakatAmount,
       vatAmount: _vatAmount, waqfCorpusPrevious: _waqfCorpusPrevious,
@@ -105,19 +103,19 @@ export const useComputedFinancials = ({
       }
 
       // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
-      const storedNetAfterVat = Number(currentAccount.net_after_vat);
-      const storedZakat = Number(currentAccount.zakat_amount || 0);
+      const storedNetAfterVat = safeNumber(currentAccount.net_after_vat);
+      const storedZakat = safeNumber(currentAccount.zakat_amount);
       // H3 fix: use stored values for shareBase in closed years to match stored adminShare
       // K-08 fix: consistent variable naming for stored values
-      const storedAdminShare = Number(currentAccount.admin_share);
-      const storedWaqifShare = Number(currentAccount.waqif_share);
-      const storedWaqfRevenue = Number(currentAccount.waqf_revenue);
+      const storedAdminShare = safeNumber(currentAccount.admin_share);
+      const storedWaqifShare = safeNumber(currentAccount.waqif_share);
+      const storedWaqfRevenue = safeNumber(currentAccount.waqf_revenue);
       return {
         grandTotal,
-        netAfterExpenses: Number(currentAccount.net_after_expenses),
+        netAfterExpenses: safeNumber(currentAccount.net_after_expenses),
         netAfterVat: storedNetAfterVat,
         netAfterZakat: storedNetAfterVat - storedZakat,
-        shareBase: Number(currentAccount.total_income) - Number(currentAccount.total_expenses) - storedZakat,
+        shareBase: safeNumber(currentAccount.total_income) - safeNumber(currentAccount.total_expenses) - storedZakat,
         adminShare: storedAdminShare,
         waqifShare: storedWaqifShare,
         waqfRevenue: storedWaqfRevenue,

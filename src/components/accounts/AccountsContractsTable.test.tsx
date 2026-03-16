@@ -15,9 +15,9 @@ const mockContract: Contract = {
   end_date: '2024-12-31',
   status: 'active',
   property_id: 'p1',
-  unit_id: null,
-  fiscal_year_id: null,
-  notes: null,
+  unit_id: undefined,
+  fiscal_year_id: undefined,
+  notes: undefined,
   created_at: '',
   updated_at: '',
 };
@@ -26,7 +26,7 @@ describe('AccountsContractsTable', () => {
   const defaultProps = {
     contracts: [mockContract],
     getPaymentPerPeriod: (c: Contract) => Number(c.payment_amount) || 0,
-    getExpectedPayments: (c: Contract) => c.payment_count,
+    getExpectedPayments: (c: Contract) => c.payment_count ?? 0,
     totalPaymentPerPeriod: 5000,
     totalAnnualRent: 60000,
     statusLabel: (s: string) => s === 'active' ? 'ساري' : s,
