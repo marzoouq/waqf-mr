@@ -6,6 +6,7 @@ import {
   baseTableStyles, headStyles, footStyles,
 } from './core';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import { safeNumber } from '@/utils/safeNumber';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -35,7 +36,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
     }
   };
 
-  const total = invoices.reduce((sum, i) => sum + Number(i.amount), 0);
+  const total = invoices.reduce((sum, i) => sum + safeNumber(i.amount), 0);
 
   autoTable(doc, {
     startY: startY + 14,
@@ -44,7 +45,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       i + 1,
       item.invoice_type,
       item.invoice_number || '-',
-      `${Number(item.amount).toLocaleString()} ر.س`,
+      `${safeNumber(item.amount).toLocaleString()} ر.س`,
       item.date,
       item.property_number || '-',
       statusLabel(item.status),
@@ -81,7 +82,7 @@ export const generateOverdueInvoicesPDF = async (
   doc.setFontSize(18);
   doc.text('تقرير الفواتير المتأخرة', 105, startY + 5, { align: 'center' });
 
-  const totalAmount = overdue.reduce((s, i) => s + Number(i.amount || 0), 0);
+  const totalAmount = overdue.reduce((s, i) => s + safeNumber(i.amount), 0);
   const today = new Date();
 
   // ملخص
@@ -106,7 +107,7 @@ export const generateOverdueInvoicesPDF = async (
       inv.contract?.contract_number || '-',
       inv.contract?.property?.property_number || '-',
       inv.due_date,
-      `${Number(inv.amount).toLocaleString()} ر.س`,
+      `${safeNumber(inv.amount).toLocaleString()} ر.س`,
       calcDaysLate(inv.due_date),
     ]),
     foot: [['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, '']],

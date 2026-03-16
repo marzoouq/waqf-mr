@@ -15,6 +15,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { safeNumber } from '@/utils/safeNumber';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();
@@ -56,7 +57,7 @@ const AccountsViewPage = () => {
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
 
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? availableAmount * Number(currentBeneficiary.share_percentage) / totalBenPct
+    ? availableAmount * safeNumber(currentBeneficiary.share_percentage) / totalBenPct
     : 0;
 
   if (noPublishedYears) {
@@ -127,7 +128,7 @@ const AccountsViewPage = () => {
                   waqfRevenue,
                    beneficiaries: beneficiaries.map(b => ({
                     name: b.name ?? 'غير معروف',
-                    share_percentage: Number(b.share_percentage),
+                    share_percentage: safeNumber(b.share_percentage),
                   })),
                   vatAmount,
                   zakatAmount,

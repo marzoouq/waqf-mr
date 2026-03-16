@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ClipboardList, ArrowLeft } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface PendingAction {
   type: 'advance' | 'zatca';
@@ -34,7 +35,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           type: 'advance',
           label: 'طلب سُلفة معلق',
           detail: r.reason || 'بدون سبب',
-          amount: Number(r.amount),
+          amount: safeNumber(r.amount),
           link: '/dashboard/beneficiaries',
         });
       });
@@ -48,7 +49,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           type: 'zatca',
           label: 'فاتورة غير مُرسلة لـ ZATCA',
           detail: inv.invoice_number,
-          amount: Number(inv.amount),
+          amount: safeNumber(inv.amount),
           link: '/dashboard/contracts',
         });
       });

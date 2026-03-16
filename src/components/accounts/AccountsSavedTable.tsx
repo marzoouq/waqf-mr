@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Wallet, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface Account {
   id: string;
@@ -56,11 +57,11 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
               {accounts.map((account) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.fiscal_year}</TableCell>
-                  <TableCell className="text-success">+{Number(account.total_income).toLocaleString()}</TableCell>
-                  <TableCell className="text-destructive">-{Number(account.total_expenses).toLocaleString()}</TableCell>
-                  <TableCell>{Number(account.admin_share).toLocaleString()}</TableCell>
-                  <TableCell>{Number(account.waqif_share).toLocaleString()}</TableCell>
-                  <TableCell className="text-primary font-medium">{Number(account.waqf_revenue).toLocaleString()}</TableCell>
+                  <TableCell className="text-success">+{safeNumber(account.total_income).toLocaleString()}</TableCell>
+                  <TableCell className="text-destructive">-{safeNumber(account.total_expenses).toLocaleString()}</TableCell>
+                  <TableCell>{safeNumber(account.admin_share).toLocaleString()}</TableCell>
+                  <TableCell>{safeNumber(account.waqif_share).toLocaleString()}</TableCell>
+                  <TableCell className="text-primary font-medium">{safeNumber(account.waqf_revenue).toLocaleString()}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => onDeleteAccount(account.id, `حساب ${account.fiscal_year}`)} className="text-destructive hover:text-destructive">
                       <Trash2 className="w-4 h-4" />

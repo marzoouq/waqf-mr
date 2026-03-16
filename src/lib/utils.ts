@@ -7,5 +7,5 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Format a percentage value to 2 decimal places with a % suffix. */
 export function formatPercentage(value: number): string {
-  return `${Number(value).toFixed(2)}%`;
+  return `${(Number.isFinite(value) ? value : 0).toFixed(2)}%`;
 }

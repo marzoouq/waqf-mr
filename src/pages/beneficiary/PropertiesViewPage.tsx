@@ -13,6 +13,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { safeNumber } from '@/utils/safeNumber';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Building2, MapPin, Layers, AlertCircle, RefreshCw, Home, DoorOpen, Ruler, TrendingUp, CircleDollarSign, Receipt, Wallet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,10 +60,10 @@ const PropertiesViewPage = () => {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
-    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + Number(c.rent_amount), 0);
-    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0);
     const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
-    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + Number(e.amount), 0);
+    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
     const netIncome = activeIncome - totalExpensesAll;
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
@@ -234,24 +235,24 @@ const PropertiesViewPage = () => {
 
               // الإيرادات التعاقدية (جميع العقود المرتبطة)
               const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
-              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
               // الدخل النشط (العقود النشطة فقط)
               const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
-              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
+              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
               // الشهري محسوب حسب نوع الدفع
               const monthlyRent = activeContracts.reduce((sum, c) => {
-                const rent = Number(c.rent_amount);
-                if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
+                const rent = safeNumber(c.rent_amount);
+                if (c.payment_type === 'monthly') return sum + (safeNumber(c.payment_amount) || rent / 12);
                 if (c.payment_type === 'quarterly') return sum + rent / 4;
                 if (c.payment_type === 'semi_annual') return sum + rent / 6;
-                if (c.payment_type === 'multi') return sum + (Number(c.payment_amount) || rent / (c.payment_count || 1));
+                if (c.payment_type === 'multi') return sum + (safeNumber(c.payment_amount) || rent / (c.payment_count || 1));
                 return sum + rent / 12; // annual or default
               }, 0);
 
               const propExpenses = expenses.filter(e => e.property_id === property.id);
-              const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+              const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
               const netIncome = activeAnnualRent - totalExpenses;
 
               const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';

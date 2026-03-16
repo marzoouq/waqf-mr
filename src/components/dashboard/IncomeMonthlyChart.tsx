@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -22,7 +23,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
     // حساب الإيراد المتوقع الشهري من العقود النشطة
     const activeContracts = contracts.filter(c => c.status === 'active');
     const monthlyExpected = activeContracts.reduce((sum, c) => {
-      const rent = Number(c.rent_amount);
+      const rent = safeNumber(c.rent_amount);
       // تحويل الإيجار السنوي إلى شهري
       return sum + (rent / 12);
     }, 0);
@@ -38,7 +39,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
           const d = new Date(item.date);
           return d.getFullYear() === year && d.getMonth() === month;
         })
-        .reduce((sum, item) => sum + Number(item.amount), 0);
+        .reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
       months.push({
         month: MONTH_NAMES[month],

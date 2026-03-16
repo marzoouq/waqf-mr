@@ -12,6 +12,7 @@ import { printDistributionReport } from '@/utils/printDistributionReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface Beneficiary {
   id: string;
@@ -80,7 +81,7 @@ const DistributeDialog = ({
   const advancesByBeneficiary = useMemo(() => {
     const map: Record<string, number> = {};
     for (const adv of paidAdvances) {
-      map[adv.beneficiary_id] = (map[adv.beneficiary_id] || 0) + Number(adv.amount);
+      map[adv.beneficiary_id] = (map[adv.beneficiary_id] || 0) + safeNumber(adv.amount);
     }
     return map;
   }, [paidAdvances]);
@@ -88,7 +89,7 @@ const DistributeDialog = ({
   const carryforwardByBeneficiary = useMemo(() => {
     const map: Record<string, number> = {};
     for (const cf of activeCarryforwards) {
-      map[cf.beneficiary_id] = (map[cf.beneficiary_id] || 0) + Number(cf.amount);
+      map[cf.beneficiary_id] = (map[cf.beneficiary_id] || 0) + safeNumber(cf.amount);
     }
     return map;
   }, [activeCarryforwards]);
@@ -97,7 +98,7 @@ const DistributeDialog = ({
     // === Largest Remainder algorithm for precise share allocation ===
     // F-AUDIT: استخدام مجموع النسب الفعلي (totalPercentage) بدلاً من 100 الثابتة
     // لضمان التناسق مع get_max_advance_amount و validate_advance_request_amount في DB
-    const totalPercentage = beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
+    const totalPercentage = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
     if (totalPercentage === 0 || availableAmount === 0) {
       return beneficiaries.map(b => ({
         beneficiary_id: b.id, beneficiary_name: b.name, beneficiary_user_id: b.user_id,
@@ -109,7 +110,7 @@ const DistributeDialog = ({
     // Step 1: Calculate raw shares and floor them to 2 decimals
     // F-AUDIT fix: normalize by totalPercentage (not hardcoded 100) to match DB RPC behavior
     const rawShares = beneficiaries.map(b => {
-      const exact = availableAmount * Number(b.share_percentage) / totalPercentage;
+      const exact = availableAmount * safeNumber(b.share_percentage) / totalPercentage;
       const floored = Math.floor(exact * 100) / 100;
       return { id: b.id, exact, floored, remainder: exact - floored };
     });

@@ -8,6 +8,7 @@ import {
   Legend, LineChart, Line, PieChart, Pie, Cell,
 } from 'recharts';
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Badge } from '@/components/ui/badge';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
@@ -31,7 +32,7 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   for (const item of items) {
     const d = new Date(item.date);
     const month = d.getMonth();
-    map.set(month, (map.get(month) || 0) + Number(item.amount));
+    map.set(month, (map.get(month) || 0) + safeNumber(item.amount));
   }
   return map;
 }

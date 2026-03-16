@@ -4,9 +4,10 @@
  * 
  * إصلاح معماري: فصل جلب الدور عن onAuthStateChange لتجنب race condition
  * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
+ * تحسين HMR: نقل useAuth و AuthContext إلى ملف مستقل (useAuthContext.ts)
  */
-import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
@@ -15,30 +16,10 @@ import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { queryClient } from '@/lib/queryClient';
 import { clearToasts } from '@/hooks/use-toast';
+import { AuthContext } from '@/hooks/useAuthContext';
 
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  role: AppRole | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | Error | null }>;
-  signOut: () => Promise<void>;
-  refreshRole: () => Promise<void>;
-}
-
-const fallbackAuthContext: AuthContextType = {
-  user: null,
-  session: null,
-  role: null,
-  loading: true,
-  signIn: async () => ({ error: new Error('تعذر تهيئة المصادقة') }),
-  signUp: async () => ({ error: new Error('تعذر تهيئة المصادقة') }),
-  signOut: async () => {},
-  refreshRole: async () => {},
-};
-
-const AuthContext = createContext<AuthContextType>(fallbackAuthContext);
+// إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
+export { useAuth } from '@/hooks/useAuthContext';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -65,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUserId = currentSession?.user?.id ?? null;
 
         // حماية ضد الأحداث المتكررة لنفس المستخدم (INITIAL_SESSION + SIGNED_IN)
-        // roleRef.current يقرأ القيمة الحالية دائماً (لا يتأثر بالـ closure)
         if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && newUserId && newUserId === lastUserIdRef.current && roleRef.current) {
           logger.info('[Auth] onAuthStateChange: duplicate event ignored for same user', event);
           return;
@@ -194,8 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       setLoading(false);
     }
-    // fetchRole (triggered by onAuthStateChange) will set loading=false.
-    // fetchRole already has a 3s safety timeout — no need for a redundant setTimeout here.
     return { error };
   };
 
@@ -243,7 +221,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       setRoleWithRef(data ? (data.role as AppRole) : null);
     } catch {
-      // تحذير المستخدم عند فشل تحديث الدور
       import('@/hooks/use-toast').then(({ toast }) => {
         toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
       }).catch(() => {});
@@ -256,11 +233,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === fallbackAuthContext) {
-    logger.error('[Auth] useAuth called outside AuthProvider');
-  }
-  return context;
-};
