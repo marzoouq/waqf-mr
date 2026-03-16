@@ -60,7 +60,7 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
 }));
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
-vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu">تصدير</button> }));
+vi.mock('@/components/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
 vi.mock('@/components/FiscalYearSelector', () => ({ default: () => <div data-testid="fiscal-year-selector" /> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({ generateAccountsPDF: vi.fn().mockResolvedValue(undefined) }));

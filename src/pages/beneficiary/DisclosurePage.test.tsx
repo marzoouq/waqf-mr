@@ -78,7 +78,7 @@ vi.mock('@/hooks/useContracts', () => ({
 vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 15, isLoading: false })),
 }));
-vi.mock('@/components/ExportMenu', () => ({ default: (props: any) => <button data-testid="export-menu">تصدير</button> }));
+vi.mock('@/components/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
 vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/utils/pdf', () => ({
   generateDisclosurePDF: vi.fn().mockResolvedValue(undefined),

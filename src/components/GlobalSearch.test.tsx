@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import React from 'react';
 
 // ResizeObserver polyfill
 beforeAll(() => {

@@ -21,7 +21,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { useTenantPayments, useUpsertTenantPayment } from './useTenantPayments';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+
 
 const wrapper = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

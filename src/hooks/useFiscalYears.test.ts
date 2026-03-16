@@ -16,7 +16,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 }));
 
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ queryFn, enabled }: { queryFn: () => Promise<unknown>; enabled: boolean }) => {
+  useQuery: ({ enabled }: { queryFn: () => Promise<unknown>; enabled: boolean }) => {
     if (!enabled) return { data: undefined, isLoading: false };
     return { data: mockFiscalYears, isLoading: false };
   },

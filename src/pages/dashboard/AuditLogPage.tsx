@@ -134,7 +134,7 @@ const AuditLogPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
-  const _isMobile = useIsMobile();
+  const isMobile = useIsMobile();
   const waqfInfo = usePdfWaqfInfo();
 
   const { data: auditData, isLoading } = useAuditLog({
