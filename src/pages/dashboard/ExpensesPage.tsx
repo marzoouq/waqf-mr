@@ -108,7 +108,7 @@ const ExpensesPage = () => {
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  const totalExpenses = expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
   // قائمة أنواع المصروفات الفريدة
   const uniqueTypes = useMemo(() => {
