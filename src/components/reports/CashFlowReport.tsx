@@ -40,7 +40,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
           const d = new Date(item.date);
           return d.getFullYear() === year && d.getMonth() === month;
         })
-        .reduce((sum, item) => sum + Number(item.amount), 0);
+        .reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
       const monthExpenses = expenses
         .filter(item => {
