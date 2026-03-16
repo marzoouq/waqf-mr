@@ -145,7 +145,7 @@ const ExpensesPage = () => {
     if (sortField) {
       result = [...result].sort((a, b) => {
         let cmp = 0;
-        if (sortField === 'amount') cmp = Number(a.amount) - Number(b.amount);
+        if (sortField === 'amount') cmp = safeNumber(a.amount) - safeNumber(b.amount);
         else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
         else if (sortField === 'expense_type') cmp = a.expense_type.localeCompare(b.expense_type, 'ar');
         return sortDir === 'asc' ? cmp : -cmp;

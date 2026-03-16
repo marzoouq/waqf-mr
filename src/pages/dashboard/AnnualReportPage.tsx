@@ -68,8 +68,8 @@ const AnnualReportPage = () => {
   }), [items]);
 
   // بطاقات ملخصة
-  const totalIncome = useMemo(() => income.reduce((s, r) => s + Number(r.amount), 0), [income]);
-  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + Number(r.amount), 0), [expenses]);
+  const totalIncome = useMemo(() => income.reduce((s, r) => s + safeNumber(r.amount), 0), [income]);
+  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = [

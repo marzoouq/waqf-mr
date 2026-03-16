@@ -52,7 +52,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const spentByType = useMemo(() => {
     const map = new Map<string, number>();
     expenses.forEach(e => {
-      map.set(e.expense_type, (map.get(e.expense_type) || 0) + Number(e.amount));
+      map.set(e.expense_type, (map.get(e.expense_type) || 0) + safeNumber(e.amount));
     });
     return map;
   }, [expenses]);

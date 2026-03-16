@@ -568,9 +568,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       })}
                       {(() => {
                         const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
-                          const rent = Number(t.rent_amount);
-                          if (t.payment_type === 'monthly') return Number(t.payment_amount) || rent / 12;
-                          if (t.payment_type === 'multi') return Number(t.payment_amount) || rent / (t.payment_count || 1);
+                          const rent = safeNumber(t.rent_amount);
+                          if (t.payment_type === 'monthly') return safeNumber(t.payment_amount) || rent / 12;
+                          if (t.payment_type === 'multi') return safeNumber(t.payment_amount) || rent / (t.payment_count || 1);
                           return rent / 12;
                         };
                         let totalAnnual = 0;
@@ -578,15 +578,15 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         units.forEach(u => {
                           const t = getTenant(u.id);
                           if (t) {
-                            totalAnnual += Number(t.rent_amount);
+                            totalAnnual += safeNumber(t.rent_amount);
                             totalMonthly += getMonthlyForTenant(t);
                           }
                         });
                         wholePropertyContracts.forEach(wc => {
-                          totalAnnual += Number(wc.rent_amount);
-                          const rent = Number(wc.rent_amount);
-                          if (wc.payment_type === 'monthly') totalMonthly += Number(wc.payment_amount) || rent / 12;
-                          else if (wc.payment_type === 'multi') totalMonthly += Number(wc.payment_amount) || rent / (wc.payment_count || 1);
+                          totalAnnual += safeNumber(wc.rent_amount);
+                          const rent = safeNumber(wc.rent_amount);
+                          if (wc.payment_type === 'monthly') totalMonthly += safeNumber(wc.payment_amount) || rent / 12;
+                          else if (wc.payment_type === 'multi') totalMonthly += safeNumber(wc.payment_amount) || rent / (wc.payment_count || 1);
                           else totalMonthly += rent / 12;
                         });
                         return (
