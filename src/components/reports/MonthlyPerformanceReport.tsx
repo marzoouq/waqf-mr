@@ -28,7 +28,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       const d = new Date(item.date);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const existing = monthMap.get(key) || { income: 0, expenses: 0, month: d.getMonth(), year: d.getFullYear() };
-      existing.income += Number(item.amount);
+      existing.income += safeNumber(item.amount);
       monthMap.set(key, existing);
     }
 
