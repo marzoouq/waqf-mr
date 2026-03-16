@@ -86,10 +86,26 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
+/** قيمة احتياطية آمنة تُستخدم عند فقدان السياق مؤقتاً (تحديث chunk / HMR) */
+const FALLBACK: FiscalYearContextType = {
+  fiscalYearId: '__none__',
+  setFiscalYearId: () => {},
+  fiscalYear: null,
+  fiscalYears: [],
+  isClosed: false,
+  isLoading: true,
+  noPublishedYears: false,
+};
+
 export const useFiscalYear = () => {
   const context = useContext(FiscalYearContext);
   if (!context) {
-    throw new Error('useFiscalYear must be used within FiscalYearProvider');
+    // بدلاً من الانهيار الكامل، نسجل تحذير ونعيد قيمة آمنة
+    // هذا يحدث عادةً عند تحميل chunk قديم بعد تحديث التطبيق
+    if (import.meta.env.DEV) {
+      console.warn('[FiscalYearContext] استُدعي useFiscalYear خارج FiscalYearProvider — إعادة قيمة احتياطية');
+    }
+    return FALLBACK;
   }
   return context;
 };
