@@ -81,11 +81,11 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const overdue = invoices.filter(i => i.status === 'overdue').length;
     const pending = invoices.filter(i => i.status === 'pending').length;
     const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
-    const totalAmount = invoices.reduce((s, i) => s + Number(i.amount || 0), 0);
+    const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
     const paidAmount = invoices
       .filter(i => i.status === 'paid' || i.status === 'partially_paid')
-      .reduce((s, i) => s + Number(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
-    const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.amount || 0), 0);
+      .reduce((s, i) => s + safeNumber(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
+    const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + safeNumber(i.amount), 0);
     const collectionRate = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
     return { total, paid, overdue, pending, partiallyPaid, totalAmount, paidAmount, overdueAmount, collectionRate };
   }, [invoices]);
