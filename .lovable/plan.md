@@ -1,7 +1,19 @@
 
 # خطة التطوير — نظام وقف مرزوق بن علي الثبيتي
 
-> **آخر تحديث:** 2026-03-15 | **الإصدار:** v2.10.0+
+> **آخر تحديث:** 2026-03-16 | **الإصدار:** v2.10.0+
+
+---
+
+## ✅ مُنجز — فحص جنائي هجين 2026-03-16
+
+- [x] SEC-FIX: إصلاح `callAdminApi` — إضافة `getUser()` قبل `getSession()` في `UserManagementPage` و `BeneficiariesPage`
+- [x] DB-FIX: إضافة `ON DELETE CASCADE/SET NULL` على 29 مفتاح أجنبي حرج
+- [x] DOC: توثيق استثناء `contracts_safe` كـ Security Definer View مقصود
+
+### ⚠️ استثناءات أمنية مُعتمدة
+- **`contracts_safe` (Security Definer View):** مقصود — المستفيدون أُزيلوا من RLS على `contracts`، والـ View يفرض التحكم داخلياً عبر `has_role()` في `WHERE`. لا يحتاج إصلاح.
+- **`beneficiaries_safe`:** يستخدم `security_barrier=true` + `security_invoker=true` لإخفاء PII. سليم.
 
 ---
 
