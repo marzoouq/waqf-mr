@@ -222,7 +222,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => !ACCOUNTANT_EXCLUDED_ROUTES.includes(link.to))
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
-          if (sectionKey && sectionsVisibility[sectionKey] === false) return false;
+          if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
           const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms[key] !== false;
         })
