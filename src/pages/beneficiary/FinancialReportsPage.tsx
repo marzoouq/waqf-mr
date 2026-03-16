@@ -111,8 +111,8 @@ const FinancialReportsPage = () => {
         expensesByType: Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => ({ type, amount })),
         incomeBySource: Object.entries(incomeBySource).map(([source, amount]) => ({ source, amount })),
         beneficiaries: currentBeneficiary ? [{
-          name: currentBeneficiary.name,
-          percentage: Number(currentBeneficiary.share_percentage),
+          name: currentBeneficiary.name ?? 'غير معروف',
+          percentage: Number(currentBeneficiary.share_percentage ?? 0),
           amount: myShare,
         }] : [],
       }, pdfWaqfInfo);
