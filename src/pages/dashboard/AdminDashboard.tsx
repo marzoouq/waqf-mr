@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
