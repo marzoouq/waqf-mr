@@ -510,7 +510,7 @@ const ReportsPage = () => {
                             <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number) => `${value.toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                        <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
