@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings } from 'lucide-react';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface AccountsSettingsBarProps {
   fiscalYear: string;
