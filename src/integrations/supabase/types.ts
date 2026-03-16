@@ -898,6 +898,7 @@ export type Database = {
           invoice_hash: string
           invoice_id: string
           previous_hash: string
+          source_table: string
         }
         Insert: {
           created_at?: string | null
@@ -906,6 +907,7 @@ export type Database = {
           invoice_hash: string
           invoice_id: string
           previous_hash?: string
+          source_table?: string
         }
         Update: {
           created_at?: string | null
@@ -914,6 +916,7 @@ export type Database = {
           invoice_hash?: string
           invoice_id?: string
           previous_hash?: string
+          source_table?: string
         }
         Relationships: []
       }
@@ -1730,10 +1733,19 @@ export type Database = {
       }
     }
     Functions: {
-      allocate_icv_and_chain: {
-        Args: { p_invoice_hash: string; p_invoice_id: string }
-        Returns: Json
-      }
+      allocate_icv_and_chain:
+        | {
+            Args: { p_invoice_hash: string; p_invoice_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_invoice_hash: string
+              p_invoice_id: string
+              p_source_table?: string
+            }
+            Returns: Json
+          }
       check_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
