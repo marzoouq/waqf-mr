@@ -35,7 +35,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           type: 'advance',
           label: 'طلب سُلفة معلق',
           detail: r.reason || 'بدون سبب',
-          amount: Number(r.amount),
+          amount: safeNumber(r.amount),
           link: '/dashboard/beneficiaries',
         });
       });
