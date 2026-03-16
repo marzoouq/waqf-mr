@@ -22,6 +22,8 @@ const MONTH_LABELS = [
 /** حساب المبلغ الشهري المستحق بناءً على نوع الدفع */
 const getMonthlyAmount = (contract: Contract): number => {
   const rent = Number(contract.rent_amount) || 0;
+  // rent_amount = إجمالي الإيجار السنوي دائماً — نقسمه على 12 بغض النظر عن payment_type
+  // payment_type يحدد فقط عدد الدفعات/الأقساط وليس المبلغ الإجمالي
   return rent / 12;
 };
 

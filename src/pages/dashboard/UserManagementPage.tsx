@@ -30,8 +30,11 @@ interface ManagedUser {
 }
 
 const callAdminApi = async (body: Record<string, unknown>) => {
+  // التحقق من صلاحية المستخدم أولاً (لا نثق بـ getSession وحدها)
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) throw new Error("يجب تسجيل الدخول أولاً");
+  if (!session?.access_token) throw new Error("انتهت الجلسة — أعد تسجيل الدخول");
   const res = await supabase.functions.invoke('admin-manage-users', {
     body,
     headers: { Authorization: `Bearer ${session.access_token}` },

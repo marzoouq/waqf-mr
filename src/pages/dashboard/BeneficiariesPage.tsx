@@ -41,6 +41,9 @@ const BeneficiariesPage = () => {
     staleTime: 60_000,
     enabled: isOpen,
     queryFn: async () => {
+      // التحقق من صلاحية المستخدم أولاً
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
       const { data: { session } } = await supabase.auth.getSession();
       const { data, error } = await supabase.functions.invoke('admin-manage-users', {
         body: { action: 'list_users' },
