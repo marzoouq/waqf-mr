@@ -355,7 +355,7 @@ const InvoicesPage = () => {
                     getSubtitle={(item) => item.invoice_number || undefined}
                     getBadge={(item) => <Badge variant={statusBadgeVariant(item.status)}>{INVOICE_STATUS_LABELS[item.status] || item.status}</Badge>}
                     getFields={(item) => [
-                      { label: 'المبلغ', value: `${Number(item.amount).toLocaleString()} ر.س` },
+                      { label: 'المبلغ', value: `${safeNumber(item.amount).toLocaleString()} ر.س` },
                       { label: 'التاريخ', value: item.date },
                       { label: 'العقار', value: item.property?.property_number || '-' },
                       { label: 'الملف', value: item.file_path ? (item.file_name || 'موجود') : 'لا يوجد' },
