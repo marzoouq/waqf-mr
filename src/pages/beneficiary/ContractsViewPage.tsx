@@ -182,8 +182,8 @@ const ContractsViewPage = () => {
                   <CardContent className="p-4 space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-bold text-foreground">{contract.contract_number}</p>
-                        <p className="text-sm text-muted-foreground">{contract.tenant_name}</p>
+                        <p className="font-bold text-foreground">{contract.contract_number ?? ''}</p>
+                        <p className="text-sm text-muted-foreground">{contract.tenant_name ?? ''}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge variant={st.variant}>{st.label}</Badge>
