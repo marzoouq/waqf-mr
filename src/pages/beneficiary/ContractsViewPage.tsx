@@ -35,8 +35,8 @@ const ContractsViewPage = () => {
   const in90Days = useMemo(() => new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000), [now]);
 
   const isExpiringSoon = useCallback(
-    (c: { status: string; end_date: string }) =>
-      c.status === 'active' && new Date(c.end_date) <= in90Days,
+    (c: { status: string | null; end_date: string | null }) =>
+      c.status === 'active' && !!c.end_date && new Date(c.end_date) <= in90Days,
     [in90Days],
   );
 
