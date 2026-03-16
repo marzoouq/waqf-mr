@@ -351,7 +351,7 @@ const SectionsTab = () => {
         {Object.entries(labels).map(([key, label]) => (
           <div key={key} className="flex items-center justify-between py-2 border-b border-border last:border-0">
             <span className="text-sm font-medium">{label}</span>
-            <Switch checked={sections[key] ?? true} onCheckedChange={() => toggle(key)} />
+            <Switch checked={(sections as Record<string, boolean>)[key] ?? true} onCheckedChange={() => toggle(key)} />
           </div>
         ))}
       </CardContent>
