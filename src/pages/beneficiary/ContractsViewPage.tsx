@@ -195,7 +195,7 @@ const ContractsViewPage = () => {
                       </div>
                     </div>
                     {property && (
-                      <p className="text-sm text-muted-foreground">العقار: {property.property_number}</p>
+                      <p className="text-sm text-muted-foreground">العقار: {(property as { property_number?: string })?.property_number || '-'}</p>
                     )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">الإيجار</span>
