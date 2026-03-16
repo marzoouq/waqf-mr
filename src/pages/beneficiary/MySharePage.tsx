@@ -75,10 +75,10 @@ const MySharePage = () => {
   });
 
   // سُلف المستفيد
-  const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id);
-  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
-  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id, fiscalYearId === 'all' ? undefined : fiscalYearId);
-  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id);
+   const { data: myAdvances = [] } = useMyAdvanceRequests(currentBeneficiary?.id ?? undefined);
+  const { data: paidAdvancesTotal = 0 } = usePaidAdvancesTotal(currentBeneficiary?.id ?? undefined, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: carryforwardBalance = 0 } = useCarryforwardBalance(currentBeneficiary?.id ?? undefined, fiscalYearId === 'all' ? undefined : fiscalYearId);
+  const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
   const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
