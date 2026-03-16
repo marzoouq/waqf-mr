@@ -62,9 +62,9 @@ const CarryforwardHistoryPage = () => {
   const { data: activeBalance = 0 } = useCarryforwardBalance(beneficiary?.id ?? undefined);
 
   const paidAdvances = advances.filter(a => a.status === 'paid');
-  const totalPaidAdvances = paidAdvances.reduce((s, a) => s + Number(a.amount), 0);
+  const totalPaidAdvances = paidAdvances.reduce((s, a) => s + safeNumber(a.amount), 0);
   const settledCF = carryforwards.filter(c => c.status === 'settled');
-  const totalSettled = settledCF.reduce((s, c) => s + Number(c.amount), 0);
+  const totalSettled = settledCF.reduce((s, c) => s + safeNumber(c.amount), 0);
 
   if (loadingBen || loadingCF || loadingAdv) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
