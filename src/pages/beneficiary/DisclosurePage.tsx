@@ -177,7 +177,7 @@ const DisclosurePage = () => {
         distributions: filteredDistributions.map(d => ({
           date: d.date,
           fiscalYear: d.account?.fiscal_year || '-',
-          amount: Number(d.amount),
+          amount: safeNumber(d.amount),
           status: d.status,
         })),
       }, pdfWaqfInfo);
