@@ -44,7 +44,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
           const existing = contractOverdue.get(inv.contract_id);
           if (existing) {
             existing.count++;
-            existing.totalAmount += Number(inv.amount);
+            existing.totalAmount += safeNumber(inv.amount);
             if (inv.due_date < existing.oldestDue) existing.oldestDue = inv.due_date;
             if (daysPast > existing.maxDays) existing.maxDays = daysPast;
           } else {
