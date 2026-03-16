@@ -665,6 +665,7 @@ const SettingsPage = () => {
                 <SelectItem value="fiscal">السنوات المالية</SelectItem>
                 <SelectItem value="notifications">الإشعارات</SelectItem>
                 <SelectItem value="bulk-notify">إشعارات جماعية</SelectItem>
+                <SelectItem value="bulk-message">رسائل جماعية</SelectItem>
                 <SelectItem value="export">تصدير البيانات</SelectItem>
                 <SelectItem value="banner">شريط التنبيه</SelectItem>
                 <SelectItem value="role-permissions">صلاحيات الأدوار</SelectItem>
