@@ -27,7 +27,18 @@ interface AuthContextType {
   refreshRole: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const fallbackAuthContext: AuthContextType = {
+  user: null,
+  session: null,
+  role: null,
+  loading: true,
+  signIn: async () => ({ error: new Error('تعذر تهيئة المصادقة') }),
+  signUp: async () => ({ error: new Error('تعذر تهيئة المصادقة') }),
+  signOut: async () => {},
+  refreshRole: async () => {},
+};
+
+const AuthContext = createContext<AuthContextType>(fallbackAuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -248,8 +259,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (context === fallbackAuthContext) {
+    logger.error('[Auth] useAuth called outside AuthProvider');
   }
   return context;
 };

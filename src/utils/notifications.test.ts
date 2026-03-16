@@ -32,14 +32,14 @@ describe('notifications utilities', () => {
       });
     });
 
-    it('uses default type and null link', async () => {
+    it('uses default type and undefined link', async () => {
       notifyAllBeneficiaries('t', 'm');
       await vi.waitFor(() => {
         expect(mockRpc).toHaveBeenCalledWith('notify_all_beneficiaries', {
           p_title: 't',
           p_message: 'm',
           p_type: 'info',
-          p_link: null,
+          p_link: undefined,
         });
       });
     });
