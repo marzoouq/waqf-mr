@@ -53,7 +53,7 @@ export function useWebAuthn() {
           .eq('user_id', session.user.id)
           .order('created_at', { ascending: false })
           .limit(20);
-        if (!cancelled && creds) setCredentials(creds);
+        if (!cancelled && creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
       } else {
         localStorage.removeItem(BIOMETRIC_ENABLED_KEY);
       }
