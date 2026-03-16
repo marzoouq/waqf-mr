@@ -501,9 +501,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
                                 <span className="font-medium">
                                   {(() => {
-                                    const rent = Number(tenant.rent_amount);
-                                    if (tenant.payment_type === 'monthly') return (Number(tenant.payment_amount) || rent / 12);
-                                    if (tenant.payment_type === 'multi') return (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1));
+                                    const rent = safeNumber(tenant.rent_amount);
+                                    if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
+                                    if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
                                     return rent / 12;
                                   })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
                                 </span>
