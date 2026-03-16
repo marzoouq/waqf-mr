@@ -110,7 +110,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
   const rows: CollectionRow[] = useMemo(() => {
     return relevantContracts.map(contract => {
       const contractPaymentCount = getPaymentCount(contract);
-      const perPayment = contract.payment_amount || (Number(contract.rent_amount) / contractPaymentCount);
+      const perPayment = contract.payment_amount || (safeNumber(contract.rent_amount) / contractPaymentCount);
       const paid = invoicePaidMap.get(contract.id) ?? 0;
 
       let allocatedPayments: number;
