@@ -152,8 +152,8 @@ const MySharePage = () => {
         fiscalYearLabel: selectedFY?.label || '',
         availableAmount: beneficiariesShare,
         distributions: [{
-          beneficiary_name: currentBeneficiary.name,
-          share_percentage: currentBeneficiary.share_percentage,
+          beneficiary_name: currentBeneficiary.name ?? 'غير معروف',
+          share_percentage: currentBeneficiary.share_percentage ?? 0,
           share_amount: shareAmount,
           advances_paid: advances,
           carryforward_deducted: Math.round(actualCarryforward * 100) / 100,
