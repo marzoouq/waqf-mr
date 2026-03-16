@@ -12,6 +12,7 @@ import { printDistributionReport } from '@/utils/printDistributionReport';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface Beneficiary {
   id: string;
