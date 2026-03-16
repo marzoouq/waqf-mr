@@ -167,7 +167,7 @@ const AdminDashboard = () => {
     const types: Record<string, number> = {};
     expenses.forEach(item => {
       const type = item.expense_type || 'أخرى';
-      types[type] = (types[type] || 0) + Number(item.amount);
+      types[type] = (types[type] || 0) + safeNumber(item.amount);
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
