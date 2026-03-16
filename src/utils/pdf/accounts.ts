@@ -6,6 +6,7 @@ import {
   baseTableStyles, headStyles, footStyles,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { safeNumber } from '@/utils/safeNumber';
 
 /* ───── تقرير توزيع الحصص ───── */
 export const generateDistributionsPDF = async (data: {
