@@ -132,8 +132,8 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
-                  formatter={(value: number, name: string) => [
-                    `${value.toLocaleString()} ر.س`,
+                  formatter={(value: number | undefined, name: string) => [
+                    `${(value ?? 0).toLocaleString()} ر.س`,
                     name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
                   ]}
                 />

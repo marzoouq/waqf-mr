@@ -275,7 +275,7 @@ const FinancialReportsPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} width={50} />
-                  <Tooltip formatter={(value: number) => Math.round(value).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                  <Tooltip formatter={(value: number | undefined) => Math.round(value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                   <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

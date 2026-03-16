@@ -40,7 +40,7 @@ const IncomeComparisonChart: React.FC = () => {
               <XAxis dataKey="label" className="text-xs" />
               <YAxis tickFormatter={(v: number) => formatAmount(v)} className="text-xs" />
               <Tooltip
-                formatter={(v: number) => [formatAmount(v) + ' ر.س', 'الدخل']}
+                formatter={(v: number | undefined) => [formatAmount(v ?? 0) + ' ر.س', 'الدخل']}
                 contentStyle={{ direction: 'rtl', fontFamily: 'Tajawal' }}
               />
               <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
