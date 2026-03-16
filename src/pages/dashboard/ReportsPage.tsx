@@ -566,7 +566,7 @@ const ReportsPage = () => {
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
                         <TableCell>الإجمالي</TableCell>
-                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0))}</TableCell>
+                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0))}</TableCell>
                         <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
                       </TableRow>
                     </TableBody>

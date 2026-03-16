@@ -37,7 +37,7 @@ export const notifyAdmins = (
       p_title: title,
       p_message: message,
       p_type: type,
-      p_link: link ?? null,
+      p_link: link ?? undefined,
     })
     .then(({ error }) => {
       if (error) logger.error('Failed to notify admins:', error);

@@ -247,7 +247,7 @@ const FinancialReportsPage = () => {
               {expensesPieData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <RePieChart>
-                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${(percent * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
+                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                     {expensesPieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}

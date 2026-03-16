@@ -19,7 +19,7 @@ const mkIncome = (source: string, amount: number, date = '2024-06-01'): Income =
 
 const mkExpense = (type: string, amount: number, desc?: string): Expense => ({
   id: id(), expense_type: type, amount, date: '2024-06-01', created_at: '2024-06-01',
-  description: desc ?? null,
+  description: desc ?? undefined,
 });
 
 const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'accounts'> => ({

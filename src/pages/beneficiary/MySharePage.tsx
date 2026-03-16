@@ -204,10 +204,10 @@ const MySharePage = () => {
         incomeBySource,
         expensesByType: expensesByTypeExcludingVat,
         contracts: contracts.map(c => ({
-          contract_number: c.contract_number,
-          tenant_name: c.tenant_name,
+          contract_number: c.contract_number ?? '',
+          tenant_name: c.tenant_name ?? '',
           rent_amount: Number(c.rent_amount),
-          status: c.status,
+          status: c.status ?? '',
         })),
         distributions: filteredDistributions.map(d => ({
           date: d.date,
