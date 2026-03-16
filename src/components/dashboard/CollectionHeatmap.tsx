@@ -3,6 +3,7 @@
  * تعرض المبالغ المحصّلة شهرياً بتدرج لوني يعكس حجم التحصيل
  */
 import { useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
@@ -40,7 +41,7 @@ const CollectionHeatmap = ({ income }: CollectionHeatmapProps) => {
     const amounts = new Array(12).fill(0);
     income.forEach(item => {
       const month = new Date(item.date).getMonth();
-      amounts[month] += Number(item.amount) || 0;
+      amounts[month] += safeNumber(item.amount);
     });
     return amounts;
   }, [income]);

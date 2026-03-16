@@ -42,18 +42,18 @@
 
 ---
 
+## ✅ مُنجز — تفعيل strict TypeScript (2026-03-16)
+
+- [x] إنشاء `safeNumber` و `safePercent` في `src/utils/safeNumber.ts`
+- [x] استبدال جميع أنماط `Number(x) || 0` بـ `safeNumber()` في الملفات المالية والمكونات
+- [x] تفعيل `strictNullChecks: true` وإصلاح أخطاء الترجمة (~35 ملف)
+- [x] تفعيل `strict: true` بالكامل (يشمل `noImplicitAny`, `strictBindCallApply`, إلخ)
+- [x] إصلاح أخطاء recharts formatter types عبر `number | undefined` و `string | undefined`
+- [x] إصلاح نوع `EditData` في `AccountsCollectionTable` لتتطابق مع `useAccountsPage`
+
+---
+
 ## 📋 مهام مؤجلة — أمان (تدريجي)
-
-### 🔴 حرج — `strictNullChecks: true`
-- **الملف:** `tsconfig.json` + `tsconfig.app.json`
-- **المخاطر:** `null/undefined` يُعامَلان كأرقام صالحة → حسابات مالية بـ `NaN`
-- **الخطة:** تفعيل تدريجي مع إصلاح الأخطاء الناتجة ملف بملف
-- **التقدير:** 2-4 أيام عمل
-
-### 🟠 عالي — `strict: true` + `noImplicitAny: true`
-- **الملف:** `tsconfig.app.json`
-- **الوضع الحالي:** `strict: false` بينما `tsconfig.node.json` = `strict: true`
-- **الخطة:** تفعيل بعد `strictNullChecks`
 
 ### 🟡 متوسط — CSP كـ HTTP Header
 - **المشكلة:** CSP عبر `<meta>` لا تدعم `frame-ancestors` ولا `report-to`

@@ -4,6 +4,7 @@
  */
 import { useMemo } from 'react';
 import { Contract } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,7 @@ const MONTH_LABELS = [
 
 /** حساب المبلغ الشهري المستحق بناءً على نوع الدفع */
 const getMonthlyAmount = (contract: Contract): number => {
-  const rent = Number(contract.rent_amount) || 0;
+  const rent = safeNumber(contract.rent_amount);
   // rent_amount = إجمالي الإيجار السنوي دائماً — نقسمه على 12 بغض النظر عن payment_type
   // payment_type يحدد فقط عدد الدفعات/الأقساط وليس المبلغ الإجمالي
   return rent / 12;

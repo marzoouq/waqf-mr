@@ -7,6 +7,7 @@ import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { safeNumber } from '@/utils/safeNumber';
 import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +39,7 @@ const BeneficiaryDashboard = () => {
 
   // ── Derived financials (computed only when data is valid) ──
   const currentBeneficiary = useMemo(() => benError ? undefined : beneficiaries.find(b => b.user_id === user?.id), [beneficiaries, user?.id, benError]);
-  const safeAvailable = Number(availableAmount) || 0;
+  const safeAvailable = safeNumber(availableAmount);
   const myShare = currentBeneficiary && totalBenPct > 0
     ? safeAvailable * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;

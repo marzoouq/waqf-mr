@@ -137,8 +137,8 @@ const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerfo
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number, name: string) => [
-                    `${value.toLocaleString()} ر.س`,
+                  formatter={(value: number | undefined, name: string | undefined) => [
+                    `${(value ?? 0).toLocaleString()} ر.س`,
                     name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
                   ]}
                   labelFormatter={(label) => label}
@@ -166,7 +166,7 @@ const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerfo
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number) => [`${value.toLocaleString()} ر.س`, 'صافي الدخل']}
+                  formatter={(value: number | undefined) => [`${(value ?? 0).toLocaleString()} ر.س`, 'صافي الدخل']}
                 />
                 <defs>
                   <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">

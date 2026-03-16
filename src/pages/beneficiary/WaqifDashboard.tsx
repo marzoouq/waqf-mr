@@ -32,9 +32,9 @@ const ARABIC_MONTHS: Record<string, string> = {
   '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
   '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
 };
-const formatArabicMonth = (month: string) => {
-  const parts = month.split('-');
-  return ARABIC_MONTHS[parts[1]] || month;
+const formatArabicMonth = (month: unknown) => {
+  const parts = String(month ?? '').split('-');
+  return ARABIC_MONTHS[parts[1]] || String(month);
 };
 
 const WaqifDashboard = () => {
@@ -295,7 +295,7 @@ const WaqifDashboard = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v.toLocaleString()} />
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number) => v.toLocaleString() + ' ر.س'} labelFormatter={formatArabicMonth} />
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number | undefined) => (v ?? 0).toLocaleString() + ' ر.س'} labelFormatter={formatArabicMonth} />
                       <Bar dataKey="income" name="الدخل" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="expenses" name="المصروفات" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                     </BarChart>
@@ -321,7 +321,7 @@ const WaqifDashboard = () => {
                       >
                         {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number) => v.toLocaleString() + ' ر.س'} />
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => (v ?? 0).toLocaleString() + ' ر.س'} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

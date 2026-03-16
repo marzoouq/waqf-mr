@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { safeNumber } from '@/utils/safeNumber';
 
 /**
  * Returns the global sum of all beneficiary share percentages
@@ -13,7 +14,7 @@ export const useTotalBeneficiaryPercentage = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_total_beneficiary_percentage');
       if (error) throw error;
-      return Number(data) || 0;
+      return safeNumber(data);
     },
     staleTime: 60_000,
   });
