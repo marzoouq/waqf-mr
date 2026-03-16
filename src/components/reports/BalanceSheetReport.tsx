@@ -15,7 +15,7 @@ interface BalanceSheetProps {
   waqfCorpusManual: number;
   distributionsAmount: number;
   availableAmount: number;
-  remainingBalance: number;
+  grandTotal: number;
   grandTotal: number;
   netAfterExpenses: number;
   netAfterVat: number;
