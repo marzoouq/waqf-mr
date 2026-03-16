@@ -82,11 +82,11 @@ describe('useUpsertTenantPayment', () => {
     expect(toast.success).toHaveBeenCalledWith('تم حفظ بيانات التحصيل');
   });
 
-  it('passes notes as null when not provided', async () => {
+  it('passes notes as undefined when not provided', async () => {
     const { result } = renderHook(() => useUpsertTenantPayment(), { wrapper: wrapper() });
     await result.current.mutateAsync({ contract_id: 'c-1', paid_months: 3 });
     expect(mockRpc).toHaveBeenCalledWith('upsert_tenant_payment', expect.objectContaining({
-      p_notes: null,
+      p_notes: undefined,
     }));
   });
 

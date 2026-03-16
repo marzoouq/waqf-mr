@@ -42,9 +42,9 @@ describe('logAccessEvent', () => {
 
     expect(mockRpc).toHaveBeenCalledWith('log_access_event', expect.objectContaining({
       p_event_type: 'logout',
-      p_email: null,
-      p_user_id: null,
-      p_target_path: null,
+      p_email: undefined,
+      p_user_id: undefined,
+      p_target_path: undefined,
       p_metadata: {},
     }));
   });
