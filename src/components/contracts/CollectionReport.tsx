@@ -122,7 +122,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             id: contract.id,
             start_date: contract.start_date,
             end_date: contract.end_date,
-            rent_amount: Number(contract.rent_amount),
+            rent_amount: safeNumber(contract.rent_amount),
             payment_type: contract.payment_type,
             payment_count: contract.payment_count,
             payment_amount: contract.payment_amount ?? undefined,
