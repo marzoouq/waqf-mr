@@ -898,6 +898,7 @@ export type Database = {
           invoice_hash: string
           invoice_id: string
           previous_hash: string
+          source_table: string
         }
         Insert: {
           created_at?: string | null
@@ -906,6 +907,7 @@ export type Database = {
           invoice_hash: string
           invoice_id: string
           previous_hash?: string
+          source_table?: string
         }
         Update: {
           created_at?: string | null
@@ -914,6 +916,7 @@ export type Database = {
           invoice_hash?: string
           invoice_id?: string
           previous_hash?: string
+          source_table?: string
         }
         Relationships: []
       }
