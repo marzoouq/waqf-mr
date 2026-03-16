@@ -96,12 +96,12 @@ const ContractsViewPage = () => {
             try {
               await generateContractsPDF(
                 (contracts ?? []).map(c => ({
-                  contract_number: c.contract_number,
-                  tenant_name: c.tenant_name,
-                  start_date: c.start_date,
-                  end_date: c.end_date,
-                  rent_amount: c.rent_amount,
-                  status: c.status,
+                  contract_number: c.contract_number ?? '',
+                  tenant_name: c.tenant_name ?? '',
+                  start_date: c.start_date ?? '',
+                  end_date: c.end_date ?? '',
+                  rent_amount: c.rent_amount ?? 0,
+                  status: c.status ?? '',
                 })),
                 pdfWaqfInfo
               );
