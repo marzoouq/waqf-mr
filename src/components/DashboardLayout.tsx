@@ -246,7 +246,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       .filter(link => {
         // Apply beneficiary_sections visibility
         const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
-        if (bsKey && beneficiarySections[bsKey] === false) return false;
+        if (bsKey && (beneficiarySections as Record<string, boolean>)[bsKey] === false) return false;
         const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
         return !key || perms[key] !== false;
       });

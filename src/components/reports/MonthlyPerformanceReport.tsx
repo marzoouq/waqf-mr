@@ -20,7 +20,7 @@ const MONTH_NAMES = [
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
 
-const MonthlyPerformanceReport = ({ income, expenses, fiscalYear }: MonthlyPerformanceReportProps) => {
+const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReportProps) => {
   const monthlyData = useMemo(() => {
     const monthMap = new Map<string, { income: number; expenses: number; month: number; year: number }>();
 

@@ -10,7 +10,7 @@ import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 
 import { Contract } from '@/types/database';
-import { Trash2, FileText, Edit, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
+import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';

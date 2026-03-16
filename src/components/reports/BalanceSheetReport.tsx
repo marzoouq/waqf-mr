@@ -28,7 +28,7 @@ const BalanceSheetReport = ({
   totalIncome, totalExpenses, vatAmount, zakatAmount,
   adminShare, waqifShare, waqfRevenue,
   waqfCorpusPrevious, waqfCorpusManual,
-  distributionsAmount, availableAmount, remainingBalance,
+  distributionsAmount, availableAmount, _remainingBalance,
   grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
   fiscalYearLabel,
 }: BalanceSheetProps) => {
