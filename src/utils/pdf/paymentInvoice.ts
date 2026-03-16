@@ -293,7 +293,7 @@ const renderQrCode = async (
 
     // محاولة ثانية إذا فشلت الأولى
     if (!qrDataUrl) {
-      console.warn('[PDF-QR] First attempt returned null, retrying...');
+      logger.warn('[PDF-QR] First attempt returned null, retrying...');
       qrDataUrl = await generateQrDataUrl(tlvBase64);
     }
 
