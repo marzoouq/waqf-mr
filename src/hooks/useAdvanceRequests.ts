@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { notifyAdmins, notifyUser } from '@/utils/notifications';
+import { safeNumber } from '@/utils/safeNumber';
 
 export interface AdvanceRequest {
   id: string;
@@ -96,7 +97,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
       }
       const { data, error } = await query.limit(1000);
       if (error) throw error;
-      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + safeNumber(r.amount), 0);
     },
     enabled: !!beneficiaryId,
   });
@@ -125,7 +126,7 @@ export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: st
 
       const { data, error } = await query.limit(1000);
       if (error) throw error;
-      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + Number(r.amount), 0);
+      return (data ?? []).reduce((sum: number, r: { amount: string | number }) => sum + safeNumber(r.amount), 0);
     },
     enabled: !!beneficiaryId,
   });

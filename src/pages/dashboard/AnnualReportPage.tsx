@@ -3,6 +3,7 @@
  * تتضمن: ملخص تلقائي + مقارنة دخل + 4 تبويبات CRUD + نشر
  */
 import { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -68,8 +69,8 @@ const AnnualReportPage = () => {
   }), [items]);
 
   // بطاقات ملخصة
-  const totalIncome = useMemo(() => income.reduce((s, r) => s + Number(r.amount), 0), [income]);
-  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + Number(r.amount), 0), [expenses]);
+  const totalIncome = useMemo(() => income.reduce((s, r) => s + safeNumber(r.amount), 0), [income]);
+  const totalExpenses = useMemo(() => expenses.reduce((s, r) => s + safeNumber(r.amount), 0), [expenses]);
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = [

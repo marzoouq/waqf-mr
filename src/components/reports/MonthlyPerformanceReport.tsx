@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import {
@@ -28,7 +29,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       const d = new Date(item.date);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const existing = monthMap.get(key) || { income: 0, expenses: 0, month: d.getMonth(), year: d.getFullYear() };
-      existing.income += Number(item.amount);
+      existing.income += safeNumber(item.amount);
       monthMap.set(key, existing);
     }
 
@@ -36,7 +37,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       const d = new Date(item.date);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const existing = monthMap.get(key) || { income: 0, expenses: 0, month: d.getMonth(), year: d.getFullYear() };
-      existing.expenses += Number(item.amount);
+      existing.expenses += safeNumber(item.amount);
       monthMap.set(key, existing);
     }
 

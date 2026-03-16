@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { safeNumber } from '@/utils/safeNumber';
 
 // ---------------------------------------------------------------------------
 // أنواع البيانات
@@ -190,7 +191,7 @@ export const useIncomeComparison = () => {
       const totalsMap = new Map<string, number>();
       for (const row of allIncome || []) {
         const current = totalsMap.get(row.fiscal_year_id!) || 0;
-        totalsMap.set(row.fiscal_year_id!, current + Number(row.amount));
+        totalsMap.set(row.fiscal_year_id!, current + safeNumber(row.amount));
       }
 
       const results: IncomeComparison[] = years.map(fy => ({

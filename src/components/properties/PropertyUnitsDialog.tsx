@@ -19,6 +19,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { safeNumber } from '@/utils/safeNumber';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -501,9 +502,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
                                 <span className="font-medium">
                                   {(() => {
-                                    const rent = Number(tenant.rent_amount);
-                                    if (tenant.payment_type === 'monthly') return (Number(tenant.payment_amount) || rent / 12);
-                                    if (tenant.payment_type === 'multi') return (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1));
+                                    const rent = safeNumber(tenant.rent_amount);
+                                    if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
+                                    if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
                                     return rent / 12;
                                   })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
                                 </span>
@@ -525,9 +526,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                     <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
                                     <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
                                       onClick={() => {
-                                        const rent = Number(tenant.rent_amount);
-                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (Number(tenant.payment_amount) || rent / 12)
-                                          : tenant.payment_type === 'multi' ? (Number(tenant.payment_amount) || rent / (tenant.payment_count || 1))
+                                        const rent = safeNumber(tenant.rent_amount);
+                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
+                                          : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
                                           : rent / 12;
                                         upsertPayment.mutate({
                                           contract_id: tenant.contract_id,
@@ -568,9 +569,9 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       })}
                       {(() => {
                         const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
-                          const rent = Number(t.rent_amount);
-                          if (t.payment_type === 'monthly') return Number(t.payment_amount) || rent / 12;
-                          if (t.payment_type === 'multi') return Number(t.payment_amount) || rent / (t.payment_count || 1);
+                          const rent = safeNumber(t.rent_amount);
+                          if (t.payment_type === 'monthly') return safeNumber(t.payment_amount) || rent / 12;
+                          if (t.payment_type === 'multi') return safeNumber(t.payment_amount) || rent / (t.payment_count || 1);
                           return rent / 12;
                         };
                         let totalAnnual = 0;
@@ -578,15 +579,15 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         units.forEach(u => {
                           const t = getTenant(u.id);
                           if (t) {
-                            totalAnnual += Number(t.rent_amount);
+                            totalAnnual += safeNumber(t.rent_amount);
                             totalMonthly += getMonthlyForTenant(t);
                           }
                         });
                         wholePropertyContracts.forEach(wc => {
-                          totalAnnual += Number(wc.rent_amount);
-                          const rent = Number(wc.rent_amount);
-                          if (wc.payment_type === 'monthly') totalMonthly += Number(wc.payment_amount) || rent / 12;
-                          else if (wc.payment_type === 'multi') totalMonthly += Number(wc.payment_amount) || rent / (wc.payment_count || 1);
+                          totalAnnual += safeNumber(wc.rent_amount);
+                          const rent = safeNumber(wc.rent_amount);
+                          if (wc.payment_type === 'monthly') totalMonthly += safeNumber(wc.payment_amount) || rent / 12;
+                          else if (wc.payment_type === 'multi') totalMonthly += safeNumber(wc.payment_amount) || rent / (wc.payment_count || 1);
                           else totalMonthly += rent / 12;
                         });
                         return (

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -108,7 +109,7 @@ const ExpensesPage = () => {
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
-  const totalExpenses = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  const totalExpenses = expenses.reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
   // قائمة أنواع المصروفات الفريدة
   const uniqueTypes = useMemo(() => {
@@ -145,7 +146,7 @@ const ExpensesPage = () => {
     if (sortField) {
       result = [...result].sort((a, b) => {
         let cmp = 0;
-        if (sortField === 'amount') cmp = Number(a.amount) - Number(b.amount);
+        if (sortField === 'amount') cmp = safeNumber(a.amount) - safeNumber(b.amount);
         else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
         else if (sortField === 'expense_type') cmp = a.expense_type.localeCompare(b.expense_type, 'ar');
         return sortDir === 'asc' ? cmp : -cmp;

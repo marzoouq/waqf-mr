@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Target } from 'lucide-react';
 import { Expense } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const spentByType = useMemo(() => {
     const map = new Map<string, number>();
     expenses.forEach(e => {
-      map.set(e.expense_type, (map.get(e.expense_type) || 0) + Number(e.amount));
+      map.set(e.expense_type, (map.get(e.expense_type) || 0) + safeNumber(e.amount));
     });
     return map;
   }, [expenses]);
