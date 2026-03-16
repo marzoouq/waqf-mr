@@ -66,7 +66,7 @@ const FinancialReportsPage = () => {
   const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
   const beneficiariesShare = availableAmount;
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
+    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;
 
   const incomeVsExpenses = useMemo(() => [
