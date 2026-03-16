@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { maskBankAccount, maskNationalId } from '@/utils/maskData';
+import { safeNumber } from '@/utils/safeNumber';
 import {
   PdfWaqfInfo, UnitPdfRow, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,

@@ -9,6 +9,7 @@ import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from 
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
+import { safeNumber } from '@/utils/safeNumber';
 
 const PAGE_SIZE = 20;
 

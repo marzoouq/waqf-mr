@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { FileText, Pencil, Trash2 } from 'lucide-react';
 import type { Contract } from '@/types/database';
+import { safeNumber } from '@/utils/safeNumber';
 
 interface AccountsContractsTableProps {
   contracts: Contract[];
