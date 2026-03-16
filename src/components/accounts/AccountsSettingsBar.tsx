@@ -89,7 +89,7 @@ const AccountsSettingsBar = ({
             <Input
               type="number"
               value={manualVat}
-              onChange={(e) => onManualVatChange(Number(e.target.value))}
+              onChange={(e) => onManualVatChange(safeNumber(e.target.value))}
               className="h-8 w-28"
               min={0}
             />
