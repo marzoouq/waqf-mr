@@ -60,10 +60,10 @@ const PropertiesViewPage = () => {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
-    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + Number(c.rent_amount), 0);
-    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0);
     const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
-    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + Number(e.amount), 0);
+    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
     const netIncome = activeIncome - totalExpensesAll;
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
