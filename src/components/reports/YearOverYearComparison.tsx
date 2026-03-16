@@ -32,7 +32,7 @@ function buildMonthlyMap(items: Array<{ date: string; amount: number }>) {
   for (const item of items) {
     const d = new Date(item.date);
     const month = d.getMonth();
-    map.set(month, (map.get(month) || 0) + Number(item.amount));
+    map.set(month, (map.get(month) || 0) + safeNumber(item.amount));
   }
   return map;
 }

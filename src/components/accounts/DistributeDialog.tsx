@@ -110,7 +110,7 @@ const DistributeDialog = ({
     // Step 1: Calculate raw shares and floor them to 2 decimals
     // F-AUDIT fix: normalize by totalPercentage (not hardcoded 100) to match DB RPC behavior
     const rawShares = beneficiaries.map(b => {
-      const exact = availableAmount * Number(b.share_percentage) / totalPercentage;
+      const exact = availableAmount * safeNumber(b.share_percentage) / totalPercentage;
       const floored = Math.floor(exact * 100) / 100;
       return { id: b.id, exact, floored, remainder: exact - floored };
     });

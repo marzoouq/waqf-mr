@@ -49,7 +49,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           type: 'zatca',
           label: 'فاتورة غير مُرسلة لـ ZATCA',
           detail: inv.invoice_number,
-          amount: Number(inv.amount),
+          amount: safeNumber(inv.amount),
           link: '/dashboard/contracts',
         });
       });
