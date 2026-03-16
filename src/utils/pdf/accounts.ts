@@ -151,8 +151,8 @@ export const generateAccountsPDF = async (data: {
     body: data.contracts.map(c => [
       c.contract_number,
       c.tenant_name,
-      `${Number(c.rent_amount).toLocaleString()}`,
-      `${Math.round(Number(c.rent_amount) / 12).toLocaleString()}`,
+      `${safeNumber(c.rent_amount).toLocaleString()}`,
+      `${Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()}`,
     ]),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
