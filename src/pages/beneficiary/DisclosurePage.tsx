@@ -171,7 +171,7 @@ const DisclosurePage = () => {
         contracts: contracts.map(c => ({
           contract_number: c.contract_number ?? '',
           tenant_name: c.tenant_name ?? '',
-          rent_amount: Number(c.rent_amount),
+          rent_amount: safeNumber(c.rent_amount),
           status: c.status ?? '',
         })),
         distributions: filteredDistributions.map(d => ({
