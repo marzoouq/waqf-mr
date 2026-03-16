@@ -21,6 +21,7 @@ const BeneficiaryMessagesPage = () => {
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
+  const { data: broadcastConversations = [] } = useConversations('broadcast');
   const { data: supportConversations = [], isLoading: supportLoading } = useConversations('support');
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
