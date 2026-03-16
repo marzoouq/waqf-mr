@@ -57,7 +57,7 @@ const InvoicesViewPage = () => {
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
           invoice_number: inv.invoice_number,
-          amount: Number(inv.amount),
+          amount: safeNumber(inv.amount),
           date: inv.date,
           property_number: inv.property?.property_number || '-',
           status: inv.status,
