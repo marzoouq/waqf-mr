@@ -88,7 +88,7 @@ const MySharePage = () => {
   const beneficiariesShare = availableAmount;
 
   const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * currentBeneficiary.share_percentage / totalBenPct
+    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
     : 0;
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
