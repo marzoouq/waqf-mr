@@ -597,7 +597,7 @@ const renderTaxProfessional = async (
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(14);
   doc.setTextColor(22, 101, 52);
-  const titleAr = isVat ? 'فاتورة ضريبية' : 'فاتورة';
+  const titleAr = isVat ? rs('فاتورة ضريبية') : rs('فاتورة');
   const titleEn = isVat ? 'Tax Invoice' : 'Invoice';
   doc.text(titleAr, margin, y + 4, { align: 'left' });
   doc.setFontSize(10);
