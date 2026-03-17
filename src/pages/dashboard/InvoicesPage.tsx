@@ -253,8 +253,11 @@ const InvoicesPage = () => {
         <PageHeaderCard
           title="إدارة الفواتير"
           icon={FileText}
-          description="رفع وإدارة فواتير المصروفات والمشتريات — فواتير دفعات الإيجار تُدار من صفحة العقود"
+          description="إدارة وإصدار الفواتير الضريبية — يمكنك إنشاء فاتورة من قالب أو رفع فاتورة موجودة"
           actions={<>
+            <Button variant="outline" className="gap-2" onClick={() => setTemplateOpen(true)} disabled={isClosed}>
+              <FileText className="w-4 h-4" />إنشاء من قالب
+            </Button>
             {(() => {
               const withoutFiles = invoices.filter(inv => !inv.file_path);
               return withoutFiles.length > 0 ? (
