@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /\.(?:png|jpg|jpeg|svg|gif|ico|webp)$/, /^\/fonts\//],
-        globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2,ttf}'],
         runtimeCaching: [
           {
             urlPattern: /\/fonts\/.+\.(?:woff2?|ttf)$/i,
