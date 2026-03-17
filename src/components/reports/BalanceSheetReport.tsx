@@ -69,7 +69,7 @@ const BalanceSheetReport = ({
               {waqfCorpusPrevious > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">رقبة الوقف المرحّلة</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(waqfCorpusPrevious)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(waqfCorpusPrevious)} ر.س</TableCell>
                 </TableRow>
               )}
               <TableRow>
