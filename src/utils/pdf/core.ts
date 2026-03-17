@@ -174,8 +174,6 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
 export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
   if (!waqfInfo?.waqfName) return;
 
-  // استيراد ديناميكي غير ممكن في sync — نستخدم الاستيراد المباشر
-  const { reshapeArabic: rs } = require('./arabicReshaper');
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
