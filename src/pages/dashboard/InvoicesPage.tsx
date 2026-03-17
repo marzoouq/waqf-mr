@@ -11,6 +11,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
+import InvoicePreviewDialog, { type InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -64,6 +65,29 @@ const InvoicesPage = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
+  const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
+
+  // بناء بيانات المعاينة من فاتورة
+  const buildPreviewData = (inv: Invoice): InvoicePreviewData => ({
+    invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
+    date: inv.date,
+    type: safeNumber(inv.vat_rate) > 0 ? 'standard' : 'simplified',
+    sellerName: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+    sellerAddress: pdfWaqfInfo.address,
+    sellerVatNumber: pdfWaqfInfo.vatNumber,
+    sellerCR: pdfWaqfInfo.commercialReg,
+    buyerName: inv.contract?.tenant_name || '-',
+    items: [{
+      description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
+      quantity: 1,
+      unitPrice: safeNumber(inv.amount) - safeNumber(inv.vat_amount),
+      vatRate: safeNumber(inv.vat_rate),
+    }],
+    notes: inv.description || undefined,
+    status: inv.status,
+    bankName: pdfWaqfInfo.bankName,
+    bankIBAN: pdfWaqfInfo.bankIBAN,
+  });
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
@@ -400,6 +424,7 @@ const InvoicesPage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" onClick={() => setPreviewInvoice(buildPreviewData(item))} aria-label="معاينة"><Eye className="w-4 h-4 text-primary" /></Button>
                               <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
                               <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
@@ -428,6 +453,7 @@ const InvoicesPage = () => {
           </AlertDialogContent>
         </AlertDialog>
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />
+        <InvoicePreviewDialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)} invoice={previewInvoice} />
       </div>
     </DashboardLayout>
   );
