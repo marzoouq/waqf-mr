@@ -13,16 +13,41 @@ const ZATCA_URLS: Record<string, string> = {
 
 /** تحديد URL البوابة تلقائياً بناءً على اختيار المنصة في الإعدادات */
 async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
-  // الأولوية 1: متغير البيئة إذا عُيّن صراحةً
   if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
-
-  // الأولوية 2: قراءة zatca_platform من app_settings
   const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
   const platform = data?.value || "sandbox";
   return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
 }
 
 import { getCorsHeaders } from "../_shared/cors.ts";
+
+// ─── تسجيل عمليات ZATCA في السجل التاريخي ───
+async function logZatcaOperation(
+  admin: ReturnType<typeof createClient>,
+  opts: {
+    operation_type: string;
+    status: string;
+    request_summary?: Record<string, unknown>;
+    response_summary?: Record<string, unknown>;
+    error_message?: string;
+    invoice_id?: string;
+    user_id?: string;
+  },
+) {
+  try {
+    await admin.from("zatca_operation_log").insert({
+      operation_type: opts.operation_type,
+      status: opts.status,
+      request_summary: opts.request_summary || {},
+      response_summary: opts.response_summary || {},
+      error_message: opts.error_message || null,
+      invoice_id: opts.invoice_id || null,
+      user_id: opts.user_id || null,
+    });
+  } catch (e) {
+    console.error("Failed to log ZATCA operation:", e);
+  }
+}
 
 // ─── ASN.1 DER Encoding Helpers ───
 
@@ -117,55 +142,31 @@ function asn1Ia5String(str: string): Uint8Array {
   return asn1Wrap(0x16, encoded);
 }
 
-/**
- * Build X509 Extensions for ZATCA CSR:
- * - SubjectAlternativeName (OID 2.5.29.17) with directoryName containing UID
- * - CertificateTemplateName (OID 1.3.6.1.4.1.311.20.2) for environment
- *
- * ZATCA requires SAN as a directoryName with UID attribute (OID 0.9.2342.19200300.100.1.1)
- * containing the device serial in format: 1-{SolutionName}|2-{UnitType}|3-{SerialNumber}
- */
 function buildCsrExtensions(solutionName: string, isProduction: boolean, deviceSerial: string): Uint8Array {
-  // --- Extension 1: SubjectAlternativeName (SAN) ---
-  // ZATCA spec: SAN must use directoryName [4] with UID attribute
   const sanValue = deviceSerial || `1-${solutionName}|2-1|3-${crypto.randomUUID()}`;
-
-  // UID OID: 0.9.2342.19200300.100.1.1
   const uidAttr = asn1Set([
     asn1Sequence([
-      asn1Oid([0, 9, 2342, 19200300, 100, 1, 1]), // UID
+      asn1Oid([0, 9, 2342, 19200300, 100, 1, 1]),
       asn1Utf8String(sanValue),
     ]),
   ]);
-  // directoryName is context tag [4] (constructed) in GeneralName
   const dirName = asn1Context(4, asn1Sequence([uidAttr]));
-
-  const sanExtValue = asn1OctetString(
-    asn1Sequence([dirName])
-  );
+  const sanExtValue = asn1OctetString(asn1Sequence([dirName]));
   const sanExtension = asn1Sequence([
-    asn1Oid([2, 5, 29, 17]), // subjectAltName
+    asn1Oid([2, 5, 29, 17]),
     sanExtValue,
   ]);
-
-  // --- Extension 2: CertificateTemplateName ---
   const templateName = isProduction ? "ZATCA-Code-Signing" : "PREZATCA-Code-Signing";
-  const templateExtValue = asn1OctetString(
-    asn1Ia5String(templateName)
-  );
+  const templateExtValue = asn1OctetString(asn1Ia5String(templateName));
   const templateExtension = asn1Sequence([
-    asn1Oid([1, 3, 6, 1, 4, 1, 311, 20, 2]), // certificateTemplateName
+    asn1Oid([1, 3, 6, 1, 4, 1, 311, 20, 2]),
     templateExtValue,
   ]);
-
-  // Wrap both extensions in a SEQUENCE, then in extensionRequest attribute
   const extensionsSeq = asn1Sequence([sanExtension, templateExtension]);
-
-  // extensionRequest attribute (OID 1.2.840.113549.1.9.14)
   return asn1Context(0,
     asn1Sequence([
       asn1Sequence([
-        asn1Oid([1, 2, 840, 113549, 1, 9, 14]), // extensionRequest
+        asn1Oid([1, 2, 840, 113549, 1, 9, 14]),
         asn1Set([extensionsSeq]),
       ]),
     ])
@@ -186,8 +187,8 @@ function buildDistinguishedName(attrs: { oid: number[]; value: string }[]): Uint
 
 function buildEcSpki(publicKey: Uint8Array): Uint8Array {
   const algId = asn1Sequence([
-    asn1Oid([1, 2, 840, 10045, 2, 1]),   // ecPublicKey
-    asn1Oid([1, 2, 840, 10045, 3, 1, 7]), // prime256v1 (P-256)
+    asn1Oid([1, 2, 840, 10045, 2, 1]),
+    asn1Oid([1, 2, 840, 10045, 3, 1, 7]),
   ]);
   return asn1Sequence([algId, asn1BitString(publicKey)]);
 }
@@ -216,7 +217,6 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
-/** Convert DER bytes to PEM with proper headers */
 function derToPem(der: Uint8Array, label: string): string {
   const b64 = btoa(String.fromCharCode(...der));
   const lines: string[] = [];
@@ -226,7 +226,6 @@ function derToPem(der: Uint8Array, label: string): string {
   return `-----BEGIN ${label}-----\n${lines.join("\n")}\n-----END ${label}-----`;
 }
 
-// ─── Common ZATCA Headers ───
 const ZATCA_COMMON_HEADERS = {
   "Content-Type": "application/json",
   "Accept": "application/json",
@@ -263,7 +262,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    // تحديد URL البوابة ديناميكياً
     const ZATCA_API_URL = await resolveZatcaUrl(admin);
 
     if (!ZATCA_API_URL && action !== "onboard" && action !== "test-connection") {
@@ -273,6 +271,12 @@ Deno.serve(async (req) => {
     // ─── اختبار الاتصال ───
     if (action === "test-connection") {
       if (!ZATCA_API_URL) {
+        await logZatcaOperation(admin, {
+          operation_type: "test-connection",
+          status: "error",
+          error_message: "لم يتم تحديد URL البوابة",
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ connected: false, error: "لم يتم تحديد URL البوابة" }), {
           status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -282,9 +286,15 @@ Deno.serve(async (req) => {
           method: "GET",
           headers: { "Accept": "application/json", "Accept-Version": "V2" },
         });
-        // أي رد (حتى 405/401) يعني الخادم يستجيب
         const reachable = testRes.status > 0;
-        await testRes.text(); // استهلاك الرد لمنع تسريب الموارد
+        await testRes.text();
+        await logZatcaOperation(admin, {
+          operation_type: "test-connection",
+          status: reachable ? "success" : "error",
+          request_summary: { url: ZATCA_API_URL },
+          response_summary: { status_code: testRes.status, connected: reachable },
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({
           connected: reachable,
           url: ZATCA_API_URL,
@@ -292,10 +302,18 @@ Deno.serve(async (req) => {
           tested_at: new Date().toISOString(),
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
+        const errMsg = (fetchErr as Error).message;
+        await logZatcaOperation(admin, {
+          operation_type: "test-connection",
+          status: "error",
+          request_summary: { url: ZATCA_API_URL },
+          error_message: errMsg,
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({
           connected: false,
           url: ZATCA_API_URL,
-          error: (fetchErr as Error).message,
+          error: errMsg,
           tested_at: new Date().toISOString(),
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
@@ -312,14 +330,19 @@ Deno.serve(async (req) => {
           request_id: `DEV-${Date.now()}`,
           is_active: true,
         });
-
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "success",
+          request_summary: { mode: "development" },
+          response_summary: { message: "Development certificate created" },
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({
           success: true,
           message: "Development certificate created. Configure ZATCA_API_URL for production onboarding.",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // قراءة OTP من app_settings (المُدخل من واجهة الإعدادات) أو من env كبديل احتياطي
       let otp = "";
       const { data: otpRows } = await admin.from("app_settings").select("key, value")
         .in("key", ["zatca_otp_1"]);
@@ -331,12 +354,17 @@ Deno.serve(async (req) => {
       }
 
       if (!otp) {
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "error",
+          error_message: "رمز التفعيل OTP مطلوب",
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ error: "رمز التفعيل OTP مطلوب. أدخله من صفحة إعدادات ZATCA أو عيّنه كمتغير بيئة." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Fetch seller info for CSR subject
       const { data: settingsRows } = await admin.from("app_settings").select("key, value")
         .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial", "zatca_solution_name"]);
       const settings: Record<string, string> = {};
@@ -348,28 +376,33 @@ Deno.serve(async (req) => {
       const solutionName = settings.zatca_solution_name || "WaqfManagement";
       const isProduction = ZATCA_API_URL.includes("gw-fatoora.zatca.gov.sa");
 
-      // Validate required identity fields before contacting ZATCA
       const missingFields: string[] = [];
       if (!deviceSerial) missingFields.push("zatca_device_serial (الرقم التسلسلي للجهاز)");
       if (!vatNumber) missingFields.push("vat_registration_number (الرقم الضريبي)");
       if (!orgName) missingFields.push("waqf_name (اسم المنشأة)");
 
       if (missingFields.length > 0) {
+        const errMsg = `لا يمكن بدء عملية الربط بدون: ${missingFields.join("، ")}`;
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "error",
+          error_message: errMsg,
+          request_summary: { missing_fields: missingFields },
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({
-          error: `لا يمكن بدء عملية الربط (Onboarding) بدون تعيين الحقول التالية في الإعدادات: ${missingFields.join("، ")}. يرجى إدخالها من صفحة الإعدادات أولاً.`,
+          error: `${errMsg}. يرجى إدخالها من صفحة الإعدادات أولاً.`,
         }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      // Auto-generate ECDSA P-256 private key (no need for ZATCA_PRIVATE_KEY env var)
       let csrPem: string;
       let privBytes: Uint8Array;
       let privKeyHex: string;
       try {
-        privBytes = p256.utils.randomPrivateKey(); // 32 bytes
+        privBytes = p256.utils.randomPrivateKey();
         privKeyHex = Array.from(privBytes).map(b => b.toString(16).padStart(2, "0")).join("");
         const pubKey = p256.getPublicKey(privBytes, false);
 
-        // ZATCA spec: CN = Device Serial, O = Organization, SERIALNUMBER = VAT TIN
         const subject = buildDistinguishedName([
           { oid: [2, 5, 4, 6], value: "SA" },
           { oid: [2, 5, 4, 10], value: orgName },
@@ -378,8 +411,6 @@ Deno.serve(async (req) => {
         ]);
 
         const spki = buildEcSpki(pubKey);
-
-        // Build X509 Extensions (SAN + CertificateTemplateName)
         const extensions = buildCsrExtensions(solutionName, isProduction, deviceSerial);
 
         const certReqInfo = asn1Sequence([
@@ -395,14 +426,19 @@ Deno.serve(async (req) => {
 
         const csrDer = asn1Sequence([
           certReqInfo,
-          asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]), // ecdsaWithSHA256
+          asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]),
           asn1BitString(sigDer),
         ]);
 
-        // FIX: Convert DER to base64 (ZATCA expects base64-encoded CSR, not PEM with headers)
         csrPem = btoa(String.fromCharCode(...csrDer));
       } catch (csrErr) {
         console.error("CSR generation error:", csrErr);
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "error",
+          error_message: "فشل توليد طلب الشهادة (CSR)",
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR)" }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -420,6 +456,14 @@ Deno.serve(async (req) => {
 
         if (!csrResponse.ok) {
           const errText = await csrResponse.text();
+          await logZatcaOperation(admin, {
+            operation_type: "onboard",
+            status: "error",
+            request_summary: { url: `${ZATCA_API_URL}/compliance`, org: orgName },
+            response_summary: { status_code: csrResponse.status },
+            error_message: errText,
+            user_id: user.id,
+          });
           return new Response(JSON.stringify({ error: `ZATCA API error: ${errText}` }), {
             status: csrResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -427,18 +471,22 @@ Deno.serve(async (req) => {
 
         const csrData = await csrResponse.json();
 
-        // FIX #1: Store ZATCA's secret separately from the private key
-        // csrData.secret = the secret ZATCA returns for auth in subsequent requests
-        // privateKey = the local ECDSA key used for signing invoices
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
-
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: csrData.binarySecurityToken || "",
-          private_key: privKeyHex,         // Auto-generated ECDSA key (encrypted by DB trigger)
-          zatca_secret: csrData.secret || "", // ZATCA-provided secret for Authorization header
+          private_key: privKeyHex,
+          zatca_secret: csrData.secret || "",
           request_id: csrData.requestID || "",
           is_active: true,
+        });
+
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "success",
+          request_summary: { url: `${ZATCA_API_URL}/compliance`, org: orgName, platform: isProduction ? "production" : "sandbox" },
+          response_summary: { request_id: csrData.requestID, certificate_type: "compliance" },
+          user_id: user.id,
         });
 
         return new Response(JSON.stringify({
@@ -447,13 +495,20 @@ Deno.serve(async (req) => {
           certificate_type: "compliance",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        return new Response(JSON.stringify({ error: `Failed to reach ZATCA API: ${(fetchErr as Error).message}` }), {
+        const errMsg = `Failed to reach ZATCA API: ${(fetchErr as Error).message}`;
+        await logZatcaOperation(admin, {
+          operation_type: "onboard",
+          status: "error",
+          error_message: errMsg,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    // ─── Compliance Check (send test invoices before production) ───
+    // ─── Compliance Check ───
     if (action === "compliance-check") {
       const { invoice_id, table } = body;
       if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
@@ -462,6 +517,13 @@ Deno.serve(async (req) => {
 
       const { data: certData } = await admin.rpc("get_active_zatca_certificate");
       if (!certData || certData.error) {
+        await logZatcaOperation(admin, {
+          operation_type: "compliance-check",
+          status: "error",
+          error_message: "لا توجد شهادة امتثال نشطة",
+          invoice_id,
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ error: "لا توجد شهادة امتثال نشطة. أكمل Onboarding أولاً." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -473,7 +535,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get invoice
       const { data: inv } = await admin.from(table).select("*").eq("id", invoice_id).single();
       if (!inv) {
         return new Response(JSON.stringify({ error: "الفاتورة غير موجودة" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -505,9 +566,22 @@ Deno.serve(async (req) => {
         });
 
         const complianceData = await complianceRes.json().catch(() => ({}));
-
-        // توحيد بنية الرد — استخراج validationResults من المستوى الصحيح
         const vr = complianceData?.validationResults || {};
+
+        await logZatcaOperation(admin, {
+          operation_type: "compliance-check",
+          status: complianceRes.ok ? "success" : "error",
+          request_summary: { invoice_id, table },
+          response_summary: {
+            status_code: complianceRes.status,
+            warnings: (vr.warningMessages || []).length,
+            errors: (vr.errorMessages || []).length,
+          },
+          error_message: complianceRes.ok ? undefined : JSON.stringify(vr.errorMessages || []).slice(0, 500),
+          invoice_id,
+          user_id: user.id,
+        });
+
         return new Response(JSON.stringify({
           success: complianceRes.ok,
           status: complianceRes.status,
@@ -517,16 +591,30 @@ Deno.serve(async (req) => {
           infoMessages: vr.infoMessages || complianceData?.infoMessages || [],
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
+        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
+        await logZatcaOperation(admin, {
+          operation_type: "compliance-check",
+          status: "error",
+          error_message: errMsg,
+          invoice_id,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    // ─── Production Certificate (upgrade from compliance to production) ───
+    // ─── Production Certificate ───
     if (action === "production") {
       const { data: certData } = await admin.rpc("get_active_zatca_certificate");
       if (!certData || certData.error) {
+        await logZatcaOperation(admin, {
+          operation_type: "production",
+          status: "error",
+          error_message: "لا توجد شهادة امتثال نشطة",
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ error: "لا توجد شهادة امتثال نشطة. أكمل Onboarding أولاً." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -534,7 +622,6 @@ Deno.serve(async (req) => {
 
       const requestId = certData.request_id || "";
       const bst = certData.certificate || "";
-      // FIX #1: Use zatca_secret (from ZATCA) not private_key for auth
       const secret = certData.zatca_secret || "";
 
       try {
@@ -549,6 +636,14 @@ Deno.serve(async (req) => {
 
         if (!prodResponse.ok) {
           const errText = await prodResponse.text();
+          await logZatcaOperation(admin, {
+            operation_type: "production",
+            status: "error",
+            request_summary: { url: `${ZATCA_API_URL}/production/csids` },
+            response_summary: { status_code: prodResponse.status },
+            error_message: errText,
+            user_id: user.id,
+          });
           return new Response(JSON.stringify({ error: `ZATCA Production error: ${errText}` }), {
             status: prodResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -556,15 +651,22 @@ Deno.serve(async (req) => {
 
         const prodData = await prodResponse.json();
 
-        // Deactivate compliance cert, activate production cert
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
         await admin.from("zatca_certificates").insert({
           certificate_type: "production",
           certificate: prodData.binarySecurityToken || "",
-          private_key: certData.private_key,         // Same local key for signing
-          zatca_secret: prodData.secret || "",        // New production secret from ZATCA
+          private_key: certData.private_key,
+          zatca_secret: prodData.secret || "",
           request_id: prodData.requestID || "",
           is_active: true,
+        });
+
+        await logZatcaOperation(admin, {
+          operation_type: "production",
+          status: "success",
+          request_summary: { url: `${ZATCA_API_URL}/production/csids` },
+          response_summary: { request_id: prodData.requestID, certificate_type: "production" },
+          user_id: user.id,
         });
 
         return new Response(JSON.stringify({
@@ -573,7 +675,14 @@ Deno.serve(async (req) => {
           certificate_type: "production",
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
-        return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
+        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
+        await logZatcaOperation(admin, {
+          operation_type: "production",
+          status: "error",
+          error_message: errMsg,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -588,6 +697,13 @@ Deno.serve(async (req) => {
 
       const { data: certData, error: certErr } = await admin.rpc("get_active_zatca_certificate");
       if (certErr || !certData || certData.error) {
+        await logZatcaOperation(admin, {
+          operation_type: action,
+          status: "error",
+          error_message: certData?.error || "No active ZATCA certificate",
+          invoice_id,
+          user_id: user.id,
+        });
         return new Response(JSON.stringify({ error: certData?.error || "No active ZATCA certificate. Complete onboarding first." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -613,7 +729,6 @@ Deno.serve(async (req) => {
 
       const endpoint = action === "clearance" ? "clearance" : "reporting";
       const bst = certData.certificate || "";
-      // FIX #1: Use zatca_secret for Authorization
       const secret = certData.zatca_secret || "";
 
       try {
@@ -637,14 +752,36 @@ Deno.serve(async (req) => {
 
         await admin.from(table).update({ zatca_status: newStatus }).eq("id", invoice_id);
 
+        await logZatcaOperation(admin, {
+          operation_type: action,
+          status: zatcaRes.ok ? "success" : "error",
+          request_summary: { invoice_id, table, endpoint },
+          response_summary: {
+            status_code: zatcaRes.status,
+            zatca_status: newStatus,
+            validation: zatcaData?.validationResults ? { warnings: (zatcaData.validationResults.warningMessages || []).length, errors: (zatcaData.validationResults.errorMessages || []).length } : undefined,
+          },
+          error_message: zatcaRes.ok ? undefined : JSON.stringify(zatcaData).slice(0, 500),
+          invoice_id,
+          user_id: user.id,
+        });
+
         return new Response(JSON.stringify({
           success: zatcaRes.ok,
           status: newStatus,
           zatca_response: zatcaData,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
+        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
         await admin.from(table).update({ zatca_status: "rejected" }).eq("id", invoice_id);
-        return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
+        await logZatcaOperation(admin, {
+          operation_type: action,
+          status: "error",
+          error_message: errMsg,
+          invoice_id,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

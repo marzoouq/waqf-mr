@@ -15,7 +15,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   date: string;
   property_number: string;
   status: string;
-}>, waqfInfo?: PdfWaqfInfo) => {
+}>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
@@ -24,7 +24,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير الفواتير', 105, startY + 5, { align: 'center' });
+  const titleText = fiscalYearLabel ? `تقرير الفواتير — ${fiscalYearLabel}` : 'تقرير الفواتير';
+  doc.text(titleText, 105, startY + 5, { align: 'center' });
 
   const statusLabel = (s: string) => {
     switch (s) {
