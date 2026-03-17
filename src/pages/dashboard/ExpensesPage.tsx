@@ -14,6 +14,7 @@ import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, 
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
