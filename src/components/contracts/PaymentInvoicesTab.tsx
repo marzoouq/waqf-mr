@@ -249,8 +249,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   /** بناء بيانات المعاينة من فاتورة دفعة */
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
     const fullContract = contracts.find(c => c.id === inv.contract_id);
-    const fallback = inv.contract;
-    const hasBuyerTax = !!(fullContract?.tenant_tax_number || fallback?.tenant_tax_number);
+    const hasBuyerTax = !!fullContract?.tenant_tax_number;
     const hasVat = sn(inv.vat_rate) > 0;
     const amountExVat = sn(inv.amount) - sn(inv.vat_amount);
 
@@ -263,18 +262,18 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       sellerVatNumber: waqfInfo.vatNumber,
       sellerCR: waqfInfo.commercialReg,
       sellerLogo: waqfInfo.logoUrl,
-      buyerName: fullContract?.tenant_name || fallback?.tenant_name || '-',
-      buyerVatNumber: fullContract?.tenant_tax_number || fallback?.tenant_tax_number || undefined,
-      buyerCR: fullContract?.tenant_crn || fallback?.tenant_crn || undefined,
-      buyerIdType: fullContract?.tenant_id_type || fallback?.tenant_id_type || undefined,
-      buyerIdNumber: fullContract?.tenant_id_number || fallback?.tenant_id_number || undefined,
-      buyerStreet: fullContract?.tenant_street || fallback?.tenant_street || undefined,
-      buyerDistrict: fullContract?.tenant_district || fallback?.tenant_district || undefined,
-      buyerCity: fullContract?.tenant_city || fallback?.tenant_city || undefined,
-      buyerPostalCode: fullContract?.tenant_postal_code || fallback?.tenant_postal_code || undefined,
-      buyerBuilding: fullContract?.tenant_building || fallback?.tenant_building || undefined,
+      buyerName: fullContract?.tenant_name || inv.contract?.tenant_name || '-',
+      buyerVatNumber: fullContract?.tenant_tax_number || undefined,
+      buyerCR: fullContract?.tenant_crn || undefined,
+      buyerIdType: fullContract?.tenant_id_type || undefined,
+      buyerIdNumber: fullContract?.tenant_id_number || undefined,
+      buyerStreet: fullContract?.tenant_street || undefined,
+      buyerDistrict: fullContract?.tenant_district || undefined,
+      buyerCity: fullContract?.tenant_city || undefined,
+      buyerPostalCode: fullContract?.tenant_postal_code || undefined,
+      buyerBuilding: fullContract?.tenant_building || undefined,
       items: [{
-        description: `إيجار — دفعة ${inv.payment_number}${fallback?.contract_number ? ` / عقد ${fallback.contract_number}` : ''}`,
+        description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
         quantity: 1,
         unitPrice: amountExVat,
         vatRate: sn(inv.vat_rate),
@@ -284,7 +283,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       bankName: waqfInfo.bankName,
       bankIBAN: waqfInfo.bankIBAN,
       zatcaUuid: inv.zatca_uuid || undefined,
-      icv: inv.icv ?? undefined,
       zatcaStatus: inv.zatca_status || undefined,
     };
   };
