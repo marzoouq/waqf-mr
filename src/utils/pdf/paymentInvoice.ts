@@ -12,6 +12,13 @@ import { logger } from '@/lib/logger';
 
 export type InvoiceTemplate = 'classic' | 'tax_professional' | 'compact';
 
+export interface PaymentInvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+}
+
 export interface PaymentInvoicePdfData {
   id: string;
   invoiceNumber: string;
@@ -30,6 +37,8 @@ export interface PaymentInvoicePdfData {
   vatAmount?: number;
   tenantVatNumber?: string;
   tenantAddress?: string;
+  /** بنود متعددة اختيارية — إذا لم تُوفّر يُولّد صف إيجار واحد */
+  lineItems?: PaymentInvoiceLineItem[];
 }
 
 const statusLabel = (s: string) => {
