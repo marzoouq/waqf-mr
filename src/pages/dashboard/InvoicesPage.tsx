@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useCreateInvoice, useUpdateInvoice, useDeleteInvoice, uploadInvoiceFile, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, Invoice, useInvoicesByFiscalYear, useGenerateInvoicePdf, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from '@/hooks/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import InvoicePreviewDialog, { type InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
+import CreateInvoiceFromTemplate from '@/components/invoices/CreateInvoiceFromTemplate';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -66,6 +67,7 @@ const InvoicesPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   // بناء بيانات المعاينة من فاتورة — مع بيانات المشتري وZATCA
   const buildPreviewData = (inv: Invoice): InvoicePreviewData => {
@@ -251,8 +253,11 @@ const InvoicesPage = () => {
         <PageHeaderCard
           title="إدارة الفواتير"
           icon={FileText}
-          description="رفع وإدارة فواتير المصروفات والمشتريات — فواتير دفعات الإيجار تُدار من صفحة العقود"
+          description="إدارة وإصدار الفواتير الضريبية — يمكنك إنشاء فاتورة من قالب أو رفع فاتورة موجودة"
           actions={<>
+            <Button variant="outline" className="gap-2" onClick={() => setTemplateOpen(true)} disabled={isClosed}>
+              <FileText className="w-4 h-4" />إنشاء من قالب
+            </Button>
             {(() => {
               const withoutFiles = invoices.filter(inv => !inv.file_path);
               return withoutFiles.length > 0 ? (
@@ -472,6 +477,29 @@ const InvoicesPage = () => {
         </AlertDialog>
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />
         <InvoicePreviewDialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)} invoice={previewInvoice} />
+        <CreateInvoiceFromTemplate
+          open={templateOpen}
+          onOpenChange={setTemplateOpen}
+          contracts={contracts}
+          properties={properties}
+          sellerInfo={{
+            name: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+            address: pdfWaqfInfo.address,
+            vatNumber: pdfWaqfInfo.vatNumber,
+            commercialReg: pdfWaqfInfo.commercialReg,
+            bankName: pdfWaqfInfo.bankName,
+            bankIBAN: pdfWaqfInfo.bankIBAN,
+          }}
+          onSave={async (data) => {
+            await createInvoice.mutateAsync({
+              ...data,
+              fiscal_year_id: fiscalYear?.id,
+            } as unknown as Parameters<typeof createInvoice.mutateAsync>[0]);
+            setTemplateOpen(false);
+            toast.success('تم إنشاء الفاتورة بنجاح');
+          }}
+          isSaving={createInvoice.isPending}
+        />
       </div>
     </DashboardLayout>
   );
