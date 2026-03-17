@@ -682,7 +682,7 @@ const renderTaxProfessional = async (
   doc.text(rs(`الاسم : ${invoice.tenantName}`), pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   if (invoice.tenantVatNumber) {
-    doc.text(`الرقم الضريبي : ${invoice.tenantVatNumber}`, pageW - margin, clientY, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي : ${invoice.tenantVatNumber}`), pageW - margin, clientY, { align: 'right' });
     clientY += 5;
   }
   if (invoice.tenantAddress) {
