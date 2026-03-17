@@ -263,8 +263,42 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    if (!ZATCA_API_URL && action !== "onboard") {
-      return new Response(JSON.stringify({ error: "ZATCA_API_URL not configured. Set up the secret first." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // تحديد URL البوابة ديناميكياً
+    const ZATCA_API_URL = await resolveZatcaUrl(admin);
+
+    if (!ZATCA_API_URL && action !== "onboard" && action !== "test-connection") {
+      return new Response(JSON.stringify({ error: "لم يتم تحديد بوابة ZATCA. اختر المنصة (إنتاج/محاكاة) من الإعدادات أو عيّن ZATCA_API_URL كمتغير بيئي." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── اختبار الاتصال ───
+    if (action === "test-connection") {
+      if (!ZATCA_API_URL) {
+        return new Response(JSON.stringify({ connected: false, error: "لم يتم تحديد URL البوابة" }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      try {
+        const testRes = await fetch(`${ZATCA_API_URL}/compliance`, {
+          method: "GET",
+          headers: { "Accept": "application/json", "Accept-Version": "V2" },
+        });
+        // أي رد (حتى 405/401) يعني الخادم يستجيب
+        const reachable = testRes.status > 0;
+        await testRes.text(); // استهلاك الرد لمنع تسريب الموارد
+        return new Response(JSON.stringify({
+          connected: reachable,
+          url: ZATCA_API_URL,
+          status_code: testRes.status,
+          tested_at: new Date().toISOString(),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (fetchErr) {
+        return new Response(JSON.stringify({
+          connected: false,
+          url: ZATCA_API_URL,
+          error: (fetchErr as Error).message,
+          tested_at: new Date().toISOString(),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // ─── Onboarding ───
