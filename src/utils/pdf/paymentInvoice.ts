@@ -749,7 +749,7 @@ const renderCompact = async (
   const vatRate = invoice.vatRate ?? 0;
   const isVat = vatRate > 0;
   doc.setFontSize(10);
-  doc.text(isVat ? 'فاتورة ضريبية مبسّطة' : 'فاتورة', pageW / 2, y, { align: 'center' });
+  doc.text(isVat ? rs('فاتورة ضريبية مبسّطة') : rs('فاتورة'), pageW / 2, y, { align: 'center' });
   y += 4;
 
   doc.setDrawColor(22, 101, 52);
