@@ -920,6 +920,48 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          id: string
+          invoice_id: string
+          invoice_source: string
+          item_name: string
+          line_total: number
+          quantity: number
+          sort_order: number
+          unit_price: number
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invoice_id: string
+          invoice_source?: string
+          item_name: string
+          line_total?: number
+          quantity?: number
+          sort_order?: number
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          invoice_source?: string
+          item_name?: string
+          line_total?: number
+          quantity?: number
+          sort_order?: number
+          unit_price?: number
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
