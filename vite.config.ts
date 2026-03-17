@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => ({
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'static-assets',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
           {
