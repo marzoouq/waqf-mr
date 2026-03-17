@@ -309,5 +309,7 @@ function getDeviceName(): string {
 }
 
 export function isBiometricEnabled(): boolean {
-  return localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
+  try {
+    return localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
+  } catch { return false; }
 }
