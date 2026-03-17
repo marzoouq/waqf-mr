@@ -725,7 +725,7 @@ const renderTaxProfessional = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', pageW / 2, summaryEndY + 8, { align: 'center' });
+  doc.text(rs('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف'), pageW / 2, summaryEndY + 8, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
