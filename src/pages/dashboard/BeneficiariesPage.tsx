@@ -12,6 +12,7 @@ import { generateBeneficiariesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import {
