@@ -523,7 +523,7 @@ const renderClassic = async (
 
   autoTable(doc, {
     startY: y,
-    head: [['البيان', 'التفاصيل']],
+    head: [reshapeRow(['البيان', 'التفاصيل'])],
     body: rows,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
