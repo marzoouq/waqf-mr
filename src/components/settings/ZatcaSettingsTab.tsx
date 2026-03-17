@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio } from 'lucide-react';
+import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +48,10 @@ const ZatcaSettingsTab = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [onboardLoading, setOnboardLoading] = useState(false);
+  const [connectionTest, setConnectionTest] = useState<{
+    loading: boolean;
+    result: null | { connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number };
+  }>({ loading: false, result: null });
 
   // حالة الشهادة الحالية
   const { data: certificates = [] } = useQuery({
@@ -148,6 +152,29 @@ const ZatcaSettingsTab = () => {
       toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
     } finally {
       setOnboardLoading(false);
+    }
+  };
+
+  // اختبار الاتصال ببوابة فاتورة
+  const handleTestConnection = async () => {
+    setConnectionTest({ loading: true, result: null });
+    try {
+      const { data, error } = await supabase.functions.invoke('zatca-api', {
+        body: { action: 'test-connection' },
+      });
+      if (error) throw error;
+      setConnectionTest({ loading: false, result: data });
+      if (data?.connected) {
+        toast.success('✅ الاتصال ببوابة فاتورة ناجح');
+      } else {
+        toast.error('❌ تعذّر الاتصال ببوابة فاتورة');
+      }
+    } catch (e) {
+      setConnectionTest({
+        loading: false,
+        result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
+      });
+      toast.error('فشل اختبار الاتصال');
     }
   };
 
@@ -269,6 +296,75 @@ const ZatcaSettingsTab = () => {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* ─── حالة ربط API ─── */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-lg flex items-center gap-2">
+                {connectionTest.result?.connected ? (
+                  <Wifi className="w-5 h-5 text-primary" />
+                ) : (
+                  <WifiOff className="w-5 h-5 text-muted-foreground" />
+                )}
+                حالة ربط API
+              </CardTitle>
+              <CardDescription>اختبار الاتصال ببوابة فاتورة الإلكترونية</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex-1 min-w-[200px]">
+                  <p className="text-sm text-muted-foreground mb-1">بوابة API الحالية:</p>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block font-mono" dir="ltr">
+                    {selectedPlatform === 'production'
+                      ? 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal'
+                      : 'https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation'}
+                  </code>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={connectionTest.loading}
+                  className="gap-2"
+                >
+                  {connectionTest.loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : connectionTest.result?.connected ? (
+                    <Wifi className="w-4 h-4 text-primary" />
+                  ) : (
+                    <WifiOff className="w-4 h-4" />
+                  )}
+                  {connectionTest.loading ? 'جارٍ الاختبار...' : 'اختبار الاتصال'}
+                </Button>
+              </div>
+              {connectionTest.result && (
+                <div className={cn(
+                  'flex items-center gap-2 p-3 rounded-lg border text-sm',
+                  connectionTest.result.connected
+                    ? 'bg-primary/5 border-primary/30 text-primary'
+                    : 'bg-destructive/5 border-destructive/30 text-destructive'
+                )}>
+                  {connectionTest.result.connected ? (
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 shrink-0" />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {connectionTest.result.connected ? 'متصل بنجاح' : 'تعذّر الاتصال'}
+                    </p>
+                    {connectionTest.result.error && (
+                      <p className="text-xs mt-0.5">{connectionTest.result.error}</p>
+                    )}
+                    {connectionTest.result.tested_at && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        آخر اختبار: {new Date(connectionTest.result.tested_at).toLocaleString('ar-SA')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

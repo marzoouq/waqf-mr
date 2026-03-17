@@ -3,7 +3,24 @@ import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ZATCA_API_URL = Deno.env.get("ZATCA_API_URL") || "";
+const ZATCA_API_URL_ENV = Deno.env.get("ZATCA_API_URL") || "";
+
+// URLs الرسمية لبوابة فاتورة
+const ZATCA_URLS: Record<string, string> = {
+  production: "https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal",
+  sandbox: "https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation",
+};
+
+/** تحديد URL البوابة تلقائياً بناءً على اختيار المنصة في الإعدادات */
+async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
+  // الأولوية 1: متغير البيئة إذا عُيّن صراحةً
+  if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
+
+  // الأولوية 2: قراءة zatca_platform من app_settings
+  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
+  const platform = data?.value || "sandbox";
+  return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
+}
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
@@ -246,8 +263,42 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action } = body;
 
-    if (!ZATCA_API_URL && action !== "onboard") {
-      return new Response(JSON.stringify({ error: "ZATCA_API_URL not configured. Set up the secret first." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // تحديد URL البوابة ديناميكياً
+    const ZATCA_API_URL = await resolveZatcaUrl(admin);
+
+    if (!ZATCA_API_URL && action !== "onboard" && action !== "test-connection") {
+      return new Response(JSON.stringify({ error: "لم يتم تحديد بوابة ZATCA. اختر المنصة (إنتاج/محاكاة) من الإعدادات أو عيّن ZATCA_API_URL كمتغير بيئي." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ─── اختبار الاتصال ───
+    if (action === "test-connection") {
+      if (!ZATCA_API_URL) {
+        return new Response(JSON.stringify({ connected: false, error: "لم يتم تحديد URL البوابة" }), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      try {
+        const testRes = await fetch(`${ZATCA_API_URL}/compliance`, {
+          method: "GET",
+          headers: { "Accept": "application/json", "Accept-Version": "V2" },
+        });
+        // أي رد (حتى 405/401) يعني الخادم يستجيب
+        const reachable = testRes.status > 0;
+        await testRes.text(); // استهلاك الرد لمنع تسريب الموارد
+        return new Response(JSON.stringify({
+          connected: reachable,
+          url: ZATCA_API_URL,
+          status_code: testRes.status,
+          tested_at: new Date().toISOString(),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (fetchErr) {
+        return new Response(JSON.stringify({
+          connected: false,
+          url: ZATCA_API_URL,
+          error: (fetchErr as Error).message,
+          tested_at: new Date().toISOString(),
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // ─── Onboarding ───
@@ -455,10 +506,15 @@ Deno.serve(async (req) => {
 
         const complianceData = await complianceRes.json().catch(() => ({}));
 
+        // توحيد بنية الرد — استخراج validationResults من المستوى الصحيح
+        const vr = complianceData?.validationResults || {};
         return new Response(JSON.stringify({
           success: complianceRes.ok,
           status: complianceRes.status,
-          zatca_response: complianceData,
+          validationResults: vr,
+          warningMessages: vr.warningMessages || complianceData?.warningMessages || [],
+          errorMessages: vr.errorMessages || complianceData?.errorMessages || [],
+          infoMessages: vr.infoMessages || complianceData?.infoMessages || [],
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
         return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
@@ -594,7 +650,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance" }), {
+    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance, test-connection" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

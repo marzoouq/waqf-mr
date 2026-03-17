@@ -449,7 +449,12 @@ function ZatcaManagementPage() {
                                     <TooltipTrigger asChild>
                                       <Button
                                         size="sm"
-                                        onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
+                                        onClick={() => {
+                                          // تحديد الإجراء تلقائياً: standard → clearance, simplified → report
+                                          const invoiceType = inv.invoice_type || '';
+                                          const autoAction = invoiceType === 'standard' ? 'clearance' : 'report';
+                                          submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: autoAction });
+                                        }}
                                         disabled={rowBusy || !canSubmit}
                                       >
                                         {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
@@ -465,7 +470,11 @@ function ZatcaManagementPage() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
+                                  onClick={() => {
+                                    const invoiceType = inv.invoice_type || '';
+                                    const autoAction = invoiceType === 'standard' ? 'clearance' : 'report';
+                                    submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: autoAction });
+                                  }}
                                   disabled={rowBusy}
                                 >
                                   {rowBusy ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <RefreshCw className="w-3 h-3 ml-1" />}
@@ -721,11 +730,11 @@ function ZatcaManagementPage() {
                   </Badge>
                 </div>
 
-                {/* Warnings */}
-                {complianceResult.warningMessages?.length > 0 && (
+                {/* Warnings — من المستوى المسطّح (موحّد من الخلفية) */}
+                {(complianceResult.warningMessages?.length > 0 || complianceResult.validationResults?.warningMessages?.length > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
-                    {complianceResult.warningMessages.map((w: { code: string; message: string }, i: number) => (
+                    {(complianceResult.warningMessages || complianceResult.validationResults?.warningMessages || []).map((w: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-secondary/50 rounded p-2 border border-border">
                         <span className="font-mono">{w.code}</span>: {w.message}
                       </div>
@@ -734,10 +743,10 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Errors */}
-                {complianceResult.errorMessages?.length > 0 && (
+                {(complianceResult.errorMessages?.length > 0 || complianceResult.validationResults?.errorMessages?.length > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-destructive">أخطاء:</p>
-                    {complianceResult.errorMessages.map((e: { code: string; message: string }, i: number) => (
+                    {(complianceResult.errorMessages || complianceResult.validationResults?.errorMessages || []).map((e: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-destructive/10 rounded p-2 border border-destructive/20">
                         <span className="font-mono">{e.code}</span>: {e.message}
                       </div>
@@ -746,10 +755,10 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Info Messages */}
-                {complianceResult.validationResults?.infoMessages?.length > 0 && (
+                {(complianceResult.infoMessages?.length > 0 || complianceResult.validationResults?.infoMessages?.length > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">معلومات:</p>
-                    {complianceResult.validationResults.infoMessages.map((m: { code: string; message: string }, i: number) => (
+                    {(complianceResult.infoMessages || complianceResult.validationResults?.infoMessages || []).map((m: { code: string; message: string }, i: number) => (
                       <div key={i} className="text-xs bg-muted rounded p-2">
                         <span className="font-mono">{m.code}</span>: {m.message}
                       </div>
