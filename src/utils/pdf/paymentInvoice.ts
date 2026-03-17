@@ -275,7 +275,7 @@ const renderAllowanceChargeTable = (
 
   autoTable(doc, {
     startY,
-    head: [['النوع', 'السبب', 'المبلغ', 'نسبة الضريبة', 'قيمة الضريبة']],
+    head: [reshapeRow(['النوع', 'السبب', 'المبلغ', 'نسبة الضريبة', 'قيمة الضريبة'])],
     body: rows,
     theme: 'grid',
     ...baseTableStyles(fontFamily),
