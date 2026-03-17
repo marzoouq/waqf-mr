@@ -128,17 +128,6 @@ export default function CreateInvoiceFromTemplate({
   const grandTotal = Math.round((totalExVat + totalVat) * 100) / 100;
 
   const isStandard = !!selectedContract?.tenant_tax_number;
-  const titleAr = isStandard ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة';
-  const titleEn = isStandard ? 'Tax Invoice' : 'Simplified Tax Invoice';
-
-  // QR
-  const qrData = sellerInfo.vatNumber ? generateZatcaQrTLV({
-    sellerName: sellerInfo.name,
-    vatNumber: sellerInfo.vatNumber,
-    timestamp: new Date(invoiceDate).toISOString(),
-    totalWithVat: grandTotal,
-    vatAmount: totalVat,
-  }) : null;
 
   // حقول ناقصة
   const missingFields: string[] = [];
