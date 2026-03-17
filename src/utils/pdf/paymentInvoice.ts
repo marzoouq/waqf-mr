@@ -86,7 +86,7 @@ const renderSellerInfo = (
   doc.setFontSize(compact ? 7 : 8);
 
   if (waqfInfo.vatNumber) {
-    doc.text(`الرقم الضريبي: ${waqfInfo.vatNumber}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي: ${waqfInfo.vatNumber}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (waqfInfo.commercialReg) {
