@@ -270,7 +270,7 @@ const renderAllowanceChargeTable = (
   }
   for (const c of charges) {
     const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
-    rows.push(['رسوم إضافية', c.reason, `+${c.amount.toLocaleString()}`, `${c.vatRate}%`, `+${vat.toLocaleString()}`]);
+    rows.push(reshapeRow(['رسوم إضافية', c.reason, `+${c.amount.toLocaleString()}`, `${c.vatRate}%`, `+${vat.toLocaleString()}`]));
   }
 
   autoTable(doc, {
