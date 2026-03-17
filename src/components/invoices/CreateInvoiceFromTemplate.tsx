@@ -362,15 +362,39 @@ export default function CreateInvoiceFromTemplate({
               <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات إضافية..." rows={2} />
             </div>
 
-            {/* أزرار */}
-            <div className="flex gap-2 pt-2">
-              <Button onClick={() => setActiveTab('preview')} variant="outline" className="gap-1.5">
-                <Eye className="w-4 h-4" />معاينة
-              </Button>
-              <Button onClick={handleSave} className="flex-1 gradient-primary gap-1.5" disabled={isSaving || grandTotal <= 0}>
-                <Save className="w-4 h-4" />{isSaving ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
-              </Button>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
+            {/* خصومات ورسوم إضافية */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">خصومات / رسوم إضافية</Label>
+                <div className="flex gap-1">
+                  <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setAllowances(prev => [...prev, { reason: '', amount: 0, vatRate: 15 }])}>
+                    <Plus className="w-3 h-3" />خصم
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" className="gap-1 text-xs" onClick={() => setCharges(prev => [...prev, { reason: '', amount: 0, vatRate: 15 }])}>
+                    <Plus className="w-3 h-3" />رسوم
+                  </Button>
+                </div>
+              </div>
+              {allowances.map((a, i) => (
+                <div key={`a-${i}`} className="flex gap-2 items-center bg-green-50 dark:bg-green-950/20 rounded p-2">
+                  <span className="text-xs text-green-700 dark:text-green-400 font-medium shrink-0">خصم</span>
+                  <Input value={a.reason} onChange={e => { const n = [...allowances]; n[i] = { ...a, reason: e.target.value }; setAllowances(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
+                  <Input type="number" value={a.amount || ''} onChange={e => { const n = [...allowances]; n[i] = { ...a, amount: parseFloat(e.target.value) || 0 }; setAllowances(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setAllowances(prev => prev.filter((_, j) => j !== i))}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+              {charges.map((c, i) => (
+                <div key={`c-${i}`} className="flex gap-2 items-center bg-orange-50 dark:bg-orange-950/20 rounded p-2">
+                  <span className="text-xs text-orange-700 dark:text-orange-400 font-medium shrink-0">رسوم</span>
+                  <Input value={c.reason} onChange={e => { const n = [...charges]; n[i] = { ...c, reason: e.target.value }; setCharges(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
+                  <Input type="number" value={c.amount || ''} onChange={e => { const n = [...charges]; n[i] = { ...c, amount: parseFloat(e.target.value) || 0 }; setCharges(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setCharges(prev => prev.filter((_, j) => j !== i))}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
