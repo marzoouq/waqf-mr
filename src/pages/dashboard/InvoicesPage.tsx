@@ -268,12 +268,16 @@ const InvoicesPage = () => {
               ) : null;
             })()}
             <ExportMenu onExportPdf={async () => {
+              if (!fiscalYearId) {
+                toast.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية. لتصدير سنة محددة، اخترها من منتقي السنة المالية.');
+              }
               try {
+                const fyLabel = fiscalYear?.label || (fiscalYearId ? '' : 'جميع السنوات');
                 await generateInvoicesViewPDF(filteredInvoices.map(inv => ({
                   invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
                   invoice_number: inv.invoice_number, amount: safeNumber(inv.amount), date: inv.date,
                   property_number: inv.property?.property_number || '-', status: inv.status,
-                })), pdfWaqfInfo);
+                })), pdfWaqfInfo, fyLabel);
                 toast.success('تم تحميل ملف PDF بنجاح');
               } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
             }} />

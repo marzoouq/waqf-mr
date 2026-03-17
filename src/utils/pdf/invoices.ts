@@ -24,7 +24,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير الفواتير', 105, startY + 5, { align: 'center' });
+  const titleText = fiscalYearLabel ? `تقرير الفواتير — ${fiscalYearLabel}` : 'تقرير الفواتير';
+  doc.text(titleText, 105, startY + 5, { align: 'center' });
 
   const statusLabel = (s: string) => {
     switch (s) {
