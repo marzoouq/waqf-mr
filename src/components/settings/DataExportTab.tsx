@@ -58,9 +58,9 @@ const DataExportTab = () => {
         const { data, error } = await fetchTableData(table.key);
         if (error) { failedTables.push(table.label); continue; }
         if (data && data.length > 0) {
-          const csv = convertToCSV(data);
+          const csv = buildCsv(data);
           const date = new Date().toISOString().slice(0, 10);
-          downloadCSV(csv, `${table.key}_${date}.csv`);
+          downloadCsv(csv, `${table.key}_${date}.csv`);
         }
       }
       if (failedTables.length > 0) {
