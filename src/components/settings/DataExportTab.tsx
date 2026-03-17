@@ -8,6 +8,7 @@ import { Download, Database, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 
 type ExportableTable = 'properties' | 'contracts' | 'income' | 'expenses' | 'beneficiaries' | 'accounts' | 'invoices' | 'distributions' | 'units' | 'fiscal_years' | 'tenant_payments';
 
@@ -25,31 +26,6 @@ const tables: { key: ExportableTable; label: string; icon: string }[] = [
   { key: 'tenant_payments', label: 'مدفوعات المستأجرين', icon: '💳' },
 ];
 
-function convertToCSV(data: Record<string, unknown>[]): string {
-  if (!data.length) return '';
-  const headers = Object.keys(data[0]);
-  const rows = data.map(row =>
-    headers.map(h => {
-      const val = row[h];
-      const str = val === null || val === undefined ? '' : String(val);
-      return `"${str.replace(/"/g, '""')}"`;
-    }).join(',')
-  );
-  // Add BOM for Arabic support in Excel
-  return '\uFEFF' + [headers.join(','), ...rows].join('\n');
-}
-
-function downloadCSV(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-/** جلب بيانات الجدول مع استبعاد PII المشفر من المستفيدين */
 async function fetchTableData(table: ExportableTable) {
   if (table === 'beneficiaries') {
     // استبعاد national_id و bank_account المشفرة
@@ -78,9 +54,9 @@ const DataExportTab = () => {
       if (data.length >= 5000) {
         toast.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
       }
-      const csv = convertToCSV(data);
+      const csv = buildCsv(data);
       const date = new Date().toISOString().slice(0, 10);
-      downloadCSV(csv, `${table}_${date}.csv`);
+      downloadCsv(csv, `${table}_${date}.csv`);
       toast.success(`تم تصدير ${data.length} سجل من ${label}`);
     } catch {
       toast.error(`حدث خطأ أثناء تصدير ${label}`);
@@ -97,9 +73,9 @@ const DataExportTab = () => {
         const { data, error } = await fetchTableData(table.key);
         if (error) { failedTables.push(table.label); continue; }
         if (data && data.length > 0) {
-          const csv = convertToCSV(data);
+          const csv = buildCsv(data);
           const date = new Date().toISOString().slice(0, 10);
-          downloadCSV(csv, `${table.key}_${date}.csv`);
+          downloadCsv(csv, `${table.key}_${date}.csv`);
         }
       }
       if (failedTables.length > 0) {
