@@ -143,11 +143,11 @@ export const renderInvoiceMeta = (
   doc.setFontSize(compact ? 7 : 8);
 
   const leftItems = [
-    [`رقم الفاتورة: ${invoice.invoiceNumber}`],
-    [`التاريخ: ${invoice.dueDate}`],
-    [`رقم العقد: ${invoice.contractNumber}`],
-    [`العقار: ${invoice.propertyNumber}`],
-    [`الدفعة: ${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    [rs(`رقم الفاتورة: ${invoice.invoiceNumber}`)],
+    [rs(`التاريخ: ${invoice.dueDate}`)],
+    [rs(`رقم العقد: ${invoice.contractNumber}`)],
+    [rs(`العقار: ${invoice.propertyNumber}`)],
+    [rs(`الدفعة: ${invoice.paymentNumber} من ${invoice.totalPayments}`)],
   ];
 
   for (const [text] of leftItems) {
