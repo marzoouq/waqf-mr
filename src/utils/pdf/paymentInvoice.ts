@@ -55,11 +55,11 @@ export interface PaymentInvoicePdfData {
 
 const statusLabel = (s: string) => {
   switch (s) {
-    case 'paid': return 'مسددة';
-    case 'pending': return 'قيد الانتظار';
-    case 'overdue': return 'متأخرة';
-    case 'partially_paid': return 'مسددة جزئياً';
-    default: return s;
+    case 'paid': return rs('مسددة');
+    case 'pending': return rs('قيد الانتظار');
+    case 'overdue': return rs('متأخرة');
+    case 'partially_paid': return rs('مسددة جزئياً');
+    default: return rs(s);
   }
 };
 
