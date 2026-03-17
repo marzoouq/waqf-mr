@@ -136,7 +136,7 @@ const BalanceSheetReport = ({
               )}
               <TableRow>
                 <TableCell className="text-muted-foreground">ريع الوقف (للمستفيدين)</TableCell>
-                <TableCell className="text-left font-medium text-primary">{fmt(waqfRevenue)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-primary">{fmt(waqfRevenue)} ر.س</TableCell>
               </TableRow>
               {waqfCorpusManual > 0 && (
                 <TableRow>
