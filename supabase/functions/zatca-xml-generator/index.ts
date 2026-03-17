@@ -5,19 +5,26 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
+// --- أنواع البنود والخصومات/الرسوم ---
+interface LineItemInput {
+  name: string;
+  quantity: number;
+  unit_price: number;
+  vat_rate: number;
+  unit_code?: string; // MON, DAY, EA — إيجارية فقط
+}
+
+interface AllowanceChargeInput {
+  reason: string;
+  amount: number;
+  vat_rate: number;
+}
+
 /**
  * Determine InvoiceTypeCode and name attribute based on invoice_type
- * Standard (B2B): code=388 name=0100000
- * Simplified (B2C): code=388 name=0200000
- * Debit Note: code=383
- * Credit Note: code=381
  */
 function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string } {
   const type = invoiceType?.toLowerCase();
-  // Determine if it's a simplified variant
-  const isSimplified = type === "simplified" || type === "مبسطة"
-    || type === "simplified_credit" || type === "simplified_debit";
-
   switch (type) {
     case "simplified":
     case "مبسطة":
@@ -41,47 +48,34 @@ function getInvoiceTypeInfo(invoiceType: string): { code: string; name: string }
 
 /**
  * Determine VAT category code
- * S = Standard rate (15%)
- * Z = Zero-rated
- * E = Exempt
- * O = Out of scope
  */
 function getVatCategoryCode(vatRate: number, exemptionCode?: string): string {
   if (vatRate > 0) return "S";
-  // If an explicit exemption code (VATEX-SA-29-7 etc.) is provided → Exempt
   if (exemptionCode) return "E";
-  // Default for 0% → Zero-rated (residential rent etc.)
   return "Z";
 }
 
 /**
- * Get tax exemption reason code and text for E/Z categories
- * Based on ZATCA VATEX codes for Saudi Arabia
+ * Get tax exemption reason code and text
  */
 function getTaxExemptionInfo(vatCategoryCode: string, invoiceDescription?: string): { code: string; reason: string } | null {
   if (vatCategoryCode === "S") return null;
   if (vatCategoryCode === "E") {
-    // Allow override via description containing VATEX code pattern
     const vatexMatch = invoiceDescription?.match(/VATEX-SA-[\d-]+/);
     if (vatexMatch) {
       return { code: vatexMatch[0], reason: invoiceDescription || "" };
     }
-    // Default: real estate residential rental exemption
     return {
       code: "VATEX-SA-29-7",
       reason: "خدمات تأجير عقاري سكني معفاة من ضريبة القيمة المضافة",
     };
   }
-  // Z = Zero-rated
   return {
     code: "VATEX-SA-32",
     reason: "توريدات خاضعة لنسبة صفر بالمائة",
   };
 }
 
-/**
- * Escape XML special characters
- */
 function escapeXml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -105,43 +99,184 @@ function buildUBL(
   const cityName = escapeXml(settings.business_address_city || "");
   const postalZone = settings.business_address_postal_code || "";
   const districtName = escapeXml(settings.business_address_district || "");
-  
 
   // --- Invoice data ---
   const invoiceNumber = escapeXml(String(inv.invoice_number || ""));
   const issueDate = String(inv.date || inv.due_date || new Date().toISOString().split("T")[0]);
-  // Use invoice created_at time if available, otherwise current time
   const createdAt = inv.created_at ? new Date(String(inv.created_at)) : new Date();
   const issueTime = createdAt.toISOString().split("T")[1]?.split(".")[0] || "00:00:00";
-  const amountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
-  const vatAmount = Number(inv.vat_amount ?? 0);
-  const total = amountExVat + vatAmount;
-  const vatRate = Number(inv.vat_rate ?? 0);
   const currencyCode = "SAR";
   const uuid = String(inv.zatca_uuid || crypto.randomUUID());
 
   // --- Invoice type ---
   const invoiceType = String(inv.invoice_type || "standard");
   const typeInfo = getInvoiceTypeInfo(invoiceType);
-  // Check for explicit exemption code from invoice data
   const rawExemptionCode = String(inv.vat_exemption_code || inv.exemption_code || "");
-  const vatCategoryCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
-  const exemptionInfo = getTaxExemptionInfo(vatCategoryCode, rawExemptionCode || String(inv.description || ""));
+  const isSimplified = typeInfo.name === "0200000";
+  const isCreditOrDebit = typeInfo.code === "381" || typeInfo.code === "383";
 
-  // --- Buyer info (for Standard invoices) ---
+  // --- Buyer info ---
   const buyerName = escapeXml(String(inv.tenant_name || inv.description || "عميل"));
-  // Buyer ID type: CRN, NAT, IQA, PAS, TIN, MOM, MLS, SAG, GCC, 700
   const validBuyerIdTypes = ["CRN", "NAT", "IQA", "PAS", "TIN", "MOM", "MLS", "SAG", "GCC", "700"];
   const rawBuyerIdType = String(inv.buyer_id_type || "NAT").toUpperCase();
   const buyerIdType = validBuyerIdTypes.includes(rawBuyerIdType) ? rawBuyerIdType : "NAT";
-  const isSimplified = typeInfo.name === "0200000";
-  const isCreditOrDebit = typeInfo.code === "381" || typeInfo.code === "383";
 
   // --- Payment means ---
   const paymentMeansCode = String(inv.payment_means_code || "10");
 
-  // --- PIH (Previous Invoice Hash) ---
+  // --- PIH ---
   const pih = previousInvoiceHash || "NWZlY2ViNjZmZmM4NmYzOGQ5NTI3ODZjNmQ2OTZjNzljMmRiYzIzOWRkNGU5MWI0NjcyOWQ3M2EyN2ZiNTdlOQ==";
+
+  // --- بنود متعددة (Multi-line Items) ---
+  const rawLineItems = inv.line_items as LineItemInput[] | undefined;
+  const fallbackVatRate = Number(inv.vat_rate ?? 0);
+  const fallbackAmountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
+
+  const lineItems: LineItemInput[] = (rawLineItems && rawLineItems.length > 0)
+    ? rawLineItems
+    : [{
+        name: String(inv.description || "إيجار عقاري"),
+        quantity: 1,
+        unit_price: fallbackAmountExVat,
+        vat_rate: fallbackVatRate,
+        unit_code: "MON",
+      }];
+
+  // --- حساب إجماليات البنود ---
+  let lineExtensionAmount = 0;
+  const lineXmls: string[] = [];
+
+  // تجميع الضرائب حسب الفئة
+  const taxMap = new Map<number, { taxable: number; tax: number }>();
+
+  lineItems.forEach((item, idx) => {
+    const qty = Number(item.quantity) || 1;
+    const price = Number(item.unit_price) || 0;
+    const vatRate = Number(item.vat_rate) ?? fallbackVatRate;
+    const unitCode = item.unit_code || "MON";
+    const lineAmount = qty * price;
+    const lineVat = Math.round(lineAmount * vatRate / 100 * 100) / 100;
+    const lineTotal = Math.round((lineAmount + lineVat) * 100) / 100;
+
+    lineExtensionAmount += lineAmount;
+
+    const existing = taxMap.get(vatRate) || { taxable: 0, tax: 0 };
+    existing.taxable += lineAmount;
+    existing.tax += lineVat;
+    taxMap.set(vatRate, existing);
+
+    const lineCatCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
+    const lineExemption = getTaxExemptionInfo(lineCatCode, rawExemptionCode || String(inv.description || ""));
+
+    lineXmls.push(`  <cac:InvoiceLine>
+    <cbc:ID>${idx + 1}</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="${escapeXml(unitCode)}">${qty.toFixed(6)}</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="${currencyCode}">${lineAmount.toFixed(2)}</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="${currencyCode}">${lineVat.toFixed(2)}</cbc:TaxAmount>
+      <cbc:RoundingAmount currencyID="${currencyCode}">${lineTotal.toFixed(2)}</cbc:RoundingAmount>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Name>${escapeXml(item.name)}</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${lineCatCode}</cbc:ID>
+        <cbc:Percent>${vatRate.toFixed(2)}</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="${currencyCode}">${price.toFixed(2)}</cbc:PriceAmount>
+    </cac:Price>
+  </cac:InvoiceLine>`);
+  });
+
+  // --- AllowanceCharge على مستوى الفاتورة ---
+  const rawAllowances = (inv.allowances as AllowanceChargeInput[]) || [];
+  const rawCharges = (inv.charges as AllowanceChargeInput[]) || [];
+
+  let allowanceTotalAmount = 0;
+  let chargeTotalAmount = 0;
+  const allowanceChargeXmls: string[] = [];
+
+  // خصومات (ChargeIndicator = false)
+  rawAllowances.forEach(ac => {
+    const amount = Number(ac.amount) || 0;
+    const vatRate = Number(ac.vat_rate) ?? fallbackVatRate;
+    const acVat = Math.round(amount * vatRate / 100 * 100) / 100;
+    allowanceTotalAmount += amount;
+    const catCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
+
+    // خصم ضريبته من التجميع
+    const existing = taxMap.get(vatRate) || { taxable: 0, tax: 0 };
+    existing.taxable -= amount;
+    existing.tax -= acVat;
+    taxMap.set(vatRate, existing);
+
+    allowanceChargeXmls.push(`  <cac:AllowanceCharge>
+    <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+    <cbc:AllowanceChargeReason>${escapeXml(ac.reason || "خصم")}</cbc:AllowanceChargeReason>
+    <cbc:Amount currencyID="${currencyCode}">${amount.toFixed(2)}</cbc:Amount>
+    <cac:TaxCategory>
+      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${catCode}</cbc:ID>
+      <cbc:Percent>${vatRate.toFixed(2)}</cbc:Percent>
+      <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+    </cac:TaxCategory>
+  </cac:AllowanceCharge>`);
+  });
+
+  // رسوم إضافية (ChargeIndicator = true)
+  rawCharges.forEach(ac => {
+    const amount = Number(ac.amount) || 0;
+    const vatRate = Number(ac.vat_rate) ?? fallbackVatRate;
+    const acVat = Math.round(amount * vatRate / 100 * 100) / 100;
+    chargeTotalAmount += amount;
+    const catCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
+
+    const existing = taxMap.get(vatRate) || { taxable: 0, tax: 0 };
+    existing.taxable += amount;
+    existing.tax += acVat;
+    taxMap.set(vatRate, existing);
+
+    allowanceChargeXmls.push(`  <cac:AllowanceCharge>
+    <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
+    <cbc:AllowanceChargeReason>${escapeXml(ac.reason || "رسوم إضافية")}</cbc:AllowanceChargeReason>
+    <cbc:Amount currencyID="${currencyCode}">${amount.toFixed(2)}</cbc:Amount>
+    <cac:TaxCategory>
+      <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${catCode}</cbc:ID>
+      <cbc:Percent>${vatRate.toFixed(2)}</cbc:Percent>
+      <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+    </cac:TaxCategory>
+  </cac:AllowanceCharge>`);
+  });
+
+  // --- حساب الإجماليات النهائية ---
+  const taxExclusiveAmount = lineExtensionAmount - allowanceTotalAmount + chargeTotalAmount;
+  let totalVatAmount = 0;
+  taxMap.forEach(v => { totalVatAmount += v.tax; });
+  totalVatAmount = Math.round(totalVatAmount * 100) / 100;
+  const taxInclusiveAmount = Math.round((taxExclusiveAmount + totalVatAmount) * 100) / 100;
+
+  // --- بناء TaxSubtotal المجمعة ---
+  const taxSubtotalXmls: string[] = [];
+  taxMap.forEach((val, rate) => {
+    const catCode = getVatCategoryCode(rate, rawExemptionCode || undefined);
+    const exemptionInfo = getTaxExemptionInfo(catCode, rawExemptionCode || String(inv.description || ""));
+    taxSubtotalXmls.push(`    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="${currencyCode}">${val.taxable.toFixed(2)}</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="${currencyCode}">${Math.round(val.tax * 100) / 100}</cbc:TaxAmount>
+      <cac:TaxCategory>
+        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${catCode}</cbc:ID>
+        <cbc:Percent>${rate.toFixed(2)}</cbc:Percent>${exemptionInfo ? `
+        <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
+        <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
+        <cac:TaxScheme>
+          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>`);
+  });
 
   // --- Build XML ---
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -253,55 +388,24 @@ function buildUBL(
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentMeansCode}</cbc:PaymentMeansCode>
   </cac:PaymentMeans>
+${allowanceChargeXmls.join("\n")}
   <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
+    <cbc:TaxAmount currencyID="${currencyCode}">${totalVatAmount.toFixed(2)}</cbc:TaxAmount>
   </cac:TaxTotal>
   <cac:TaxTotal>
-    <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-    <cac:TaxSubtotal>
-      <cbc:TaxableAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxableAmount>
-      <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-      <cac:TaxCategory>
-        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>${exemptionInfo ? `
-        <cbc:TaxExemptionReasonCode>${exemptionInfo.code}</cbc:TaxExemptionReasonCode>
-        <cbc:TaxExemptionReason>${exemptionInfo.reason}</cbc:TaxExemptionReason>` : ""}
-        <cac:TaxScheme>
-          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-        </cac:TaxScheme>
-      </cac:TaxCategory>
-    </cac:TaxSubtotal>
+    <cbc:TaxAmount currencyID="${currencyCode}">${totalVatAmount.toFixed(2)}</cbc:TaxAmount>
+${taxSubtotalXmls.join("\n")}
   </cac:TaxTotal>
   <cac:LegalMonetaryTotal>
-    <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
-    <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:TaxExclusiveAmount>
-    <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
-    
+    <cbc:LineExtensionAmount currencyID="${currencyCode}">${lineExtensionAmount.toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="${currencyCode}">${taxExclusiveAmount.toFixed(2)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="${currencyCode}">${taxInclusiveAmount.toFixed(2)}</cbc:TaxInclusiveAmount>${allowanceTotalAmount > 0 ? `
+    <cbc:AllowanceTotalAmount currencyID="${currencyCode}">${allowanceTotalAmount.toFixed(2)}</cbc:AllowanceTotalAmount>` : ""}${chargeTotalAmount > 0 ? `
+    <cbc:ChargeTotalAmount currencyID="${currencyCode}">${chargeTotalAmount.toFixed(2)}</cbc:ChargeTotalAmount>` : ""}
     <cbc:PrepaidAmount currencyID="${currencyCode}">0.00</cbc:PrepaidAmount>
-    <cbc:PayableAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:PayableAmount>
+    <cbc:PayableAmount currencyID="${currencyCode}">${taxInclusiveAmount.toFixed(2)}</cbc:PayableAmount>
   </cac:LegalMonetaryTotal>
-  <cac:InvoiceLine>
-    <cbc:ID>1</cbc:ID>
-    <cbc:InvoicedQuantity unitCode="MON">1.000000</cbc:InvoicedQuantity>
-    <cbc:LineExtensionAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:LineExtensionAmount>
-    <cac:TaxTotal>
-      <cbc:TaxAmount currencyID="${currencyCode}">${vatAmount.toFixed(2)}</cbc:TaxAmount>
-      <cbc:RoundingAmount currencyID="${currencyCode}">${total.toFixed(2)}</cbc:RoundingAmount>
-    </cac:TaxTotal>
-    <cac:Item>
-      <cbc:Name>${escapeXml(String(inv.description || "إيجار عقاري"))}</cbc:Name>
-      <cac:ClassifiedTaxCategory>
-        <cbc:ID schemeID="UN/ECE 5305" schemeAgencyID="6">${vatCategoryCode}</cbc:ID>
-        <cbc:Percent>${Number(vatRate).toFixed(2)}</cbc:Percent>
-        <cac:TaxScheme>
-          <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">VAT</cbc:ID>
-        </cac:TaxScheme>
-      </cac:ClassifiedTaxCategory>
-    </cac:Item>
-    <cac:Price>
-      <cbc:PriceAmount currencyID="${currencyCode}">${amountExVat.toFixed(2)}</cbc:PriceAmount>
-    </cac:Price>
-  </cac:InvoiceLine>
+${lineXmls.join("\n")}
 </Invoice>`;
 }
 
@@ -390,7 +494,7 @@ Deno.serve(async (req) => {
 
     const xml = buildUBL(inv as Record<string, unknown>, settings, previousHash);
 
-    // Save XML to invoice — works for both tables if zatca_xml column exists
+    // Save XML to invoice
     if (table === "invoices") {
       await admin.from("invoices").update({ zatca_xml: xml }).eq("id", invoice_id);
     } else if (table === "payment_invoices") {
