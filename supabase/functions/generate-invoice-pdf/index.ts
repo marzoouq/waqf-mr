@@ -658,9 +658,12 @@ Deno.serve(async (req) => {
 
         if (uploadError) throw uploadError;
 
+        // تحديث مسار الملف في الجدول الصحيح
+        const updateData: Record<string, string> = { file_path: storagePath };
+        if (tableName === "invoices") updateData.file_name = fileName;
         const { error: updateError } = await supabaseAdmin
-          .from("invoices")
-          .update({ file_path: storagePath, file_name: fileName })
+          .from(tableName)
+          .update(updateData)
           .eq("id", invoice.id);
 
         if (updateError) throw updateError;
