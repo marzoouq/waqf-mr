@@ -458,20 +458,20 @@ const NotificationsTab = () => {
 
   const handleSoundChange = (value: boolean) => {
     setSoundEnabled(value);
-    localStorage.setItem('waqf_notification_sound', String(value));
+    try { localStorage.setItem('waqf_notification_sound', String(value)); } catch { /* ignored */ }
     toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
   };
 
   const handleToneChange = (tone: ToneId) => {
     setSelectedTone(tone);
-    localStorage.setItem(NOTIFICATION_TONE_KEY, tone);
+    try { localStorage.setItem(NOTIFICATION_TONE_KEY, tone); } catch { /* ignored */ }
     const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
     previewTone(tone, vol);
   };
 
   const handleVolumeChange = (level: VolumeLevel) => {
     setVolume(level);
-    localStorage.setItem(NOTIFICATION_VOLUME_KEY, level);
+    try { localStorage.setItem(NOTIFICATION_VOLUME_KEY, level); } catch { /* ignored */ }
     const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
     previewTone(selectedTone, vol);
   };
