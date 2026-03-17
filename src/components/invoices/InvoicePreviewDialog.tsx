@@ -52,7 +52,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
           <TemplateSelector value={template} onChange={setTemplate} />
         </div>
 
-        <div className="p-6 sm:p-8 print:p-0" id="invoice-preview-content">
+        <div className="p-6 sm:p-8 print:p-0 overflow-x-auto" id="invoice-preview-content">
           {template === 'professional' ? (
             <ProfessionalTemplate data={invoice} />
           ) : (
