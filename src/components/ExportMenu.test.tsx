@@ -42,4 +42,22 @@ describe('ExportMenu', () => {
     expect(printSpy).toHaveBeenCalledOnce();
     printSpy.mockRestore();
   });
+
+  it('renders CSV option when onExportCsv is provided', () => {
+    const onExportCsv = vi.fn();
+    render(<ExportMenu hidePrint hidePdf onExportCsv={onExportCsv} />);
+    expect(screen.getByText('تصدير Excel')).toBeInTheDocument();
+  });
+
+  it('calls onExportCsv when CSV button is clicked', () => {
+    const onExportCsv = vi.fn();
+    render(<ExportMenu hidePrint hidePdf onExportCsv={onExportCsv} />);
+    fireEvent.click(screen.getByText('تصدير Excel'));
+    expect(onExportCsv).toHaveBeenCalledOnce();
+  });
+
+  it('returns null when no options are available', () => {
+    const { container } = render(<ExportMenu hidePrint hidePdf />);
+    expect(container.firstChild).toBeNull();
+  });
 });

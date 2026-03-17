@@ -19,6 +19,7 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generateContractsPDF } from '@/utils/pdf';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -394,7 +395,19 @@ const ContractsPage = () => {
           icon={FileText}
           description="عرض وإدارة عقود الإيجار"
           actions={<>
-            <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={() => generateContractsPDF(contracts, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(contracts.map(c => ({
+                'رقم العقد': c.contract_number,
+                'المستأجر': c.tenant_name,
+                'الإيجار السنوي': safeNumber(c.rent_amount),
+                'تاريخ البداية': c.start_date,
+                'تاريخ النهاية': c.end_date,
+                'نوع الدفع': getPaymentTypeLabel(c.payment_type),
+                'الحالة': c.status === 'active' ? 'ساري' : 'منتهي',
+              })));
+              downloadCsv(csv, 'عقود.csv');
+              toast.success('تم تصدير العقود بنجاح');
+            }} />
             <Button className="gradient-primary gap-2" onClick={() => { resetForm(); setIsOpen(true); }}><Plus className="w-4 h-4" />إضافة عقد</Button>
           </>}
         />

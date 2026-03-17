@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Lock, Wallet } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import { useAccountsPage } from '@/hooks/useAccountsPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
@@ -52,7 +53,22 @@ const AccountsPage = () => {
                 <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية إدارية
               </span>
             )}
-            <ExportMenu onExportPdf={page.handleExportPdf} />
+            <ExportMenu onExportPdf={page.handleExportPdf} onExportCsv={() => {
+              const csv = buildCsv([{
+                'السنة المالية': page.selectedFY?.label || '-',
+                'إجمالي الإيرادات': page.totalIncome,
+                'إجمالي المصروفات': page.totalExpenses,
+                'صافي بعد المصروفات': page.netAfterExpenses,
+                'الضريبة': page.manualVat,
+                'الزكاة': page.zakatAmount,
+                'حصة الناظر': page.adminShare,
+                'حصة الواقف': page.waqifShare,
+                'ريع الوقف': page.waqfRevenue,
+                'رقبة الوقف': page.waqfCorpusManual,
+                'المتاح للتوزيع': page.availableAmount,
+              }]);
+              downloadCsv(csv, `حسابات-${page.selectedFY?.label || 'عام'}.csv`);
+            }} />
             <Button onClick={page.handleCreateAccount} className="gradient-primary gap-2" disabled={page.createAccountPending}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">إنشاء حساب ختامي</span>

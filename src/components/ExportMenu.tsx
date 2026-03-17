@@ -5,18 +5,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, Printer, FileDown } from 'lucide-react';
+import { Download, Printer, FileDown, FileSpreadsheet } from 'lucide-react';
 
 interface ExportMenuProps {
   onPrint?: () => void;
   onExportPdf?: () => void;
+  onExportCsv?: () => void;
   /** Hide the print option */
   hidePrint?: boolean;
   /** Hide the PDF option */
   hidePdf?: boolean;
 }
 
-const ExportMenu = ({ onPrint, onExportPdf, hidePrint, hidePdf }: ExportMenuProps) => {
+const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf }: ExportMenuProps) => {
   const handlePrint = () => {
     if (onPrint) {
       onPrint();
@@ -25,21 +26,24 @@ const ExportMenu = ({ onPrint, onExportPdf, hidePrint, hidePdf }: ExportMenuProp
     }
   };
 
-  // If only one action available, render a single button
-  if (hidePrint && !hidePdf && onExportPdf) {
-    return (
-      <Button variant="outline" size="sm" onClick={onExportPdf} className="gap-2">
-        <FileDown className="w-4 h-4" />
-        <span className="hidden sm:inline">تصدير PDF</span>
-      </Button>
-    );
-  }
+  // عدد الخيارات المتاحة
+  const options = [
+    !hidePrint && { key: 'print', label: 'طباعة', icon: Printer, action: handlePrint },
+    !hidePdf && onExportPdf && { key: 'pdf', label: 'تصدير PDF', icon: FileDown, action: onExportPdf },
+    onExportCsv && { key: 'csv', label: 'تصدير Excel', icon: FileSpreadsheet, action: onExportCsv },
+  ].filter(Boolean) as { key: string; label: string; icon: typeof Printer; action: () => void }[];
 
-  if (hidePdf && !hidePrint) {
+  // إذا لا يوجد خيارات
+  if (options.length === 0) return null;
+
+  // إذا خيار واحد فقط، عرض زر مباشر
+  if (options.length === 1) {
+    const opt = options[0];
+    const Icon = opt.icon;
     return (
-      <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
-        <Printer className="w-4 h-4" />
-        <span className="hidden sm:inline">طباعة</span>
+      <Button variant="outline" size="sm" onClick={opt.action} className="gap-2">
+        <Icon className="w-4 h-4" />
+        <span className="hidden sm:inline">{opt.label}</span>
       </Button>
     );
   }
@@ -53,18 +57,15 @@ const ExportMenu = ({ onPrint, onExportPdf, hidePrint, hidePdf }: ExportMenuProp
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {!hidePrint && (
-          <DropdownMenuItem onClick={handlePrint} className="gap-2 cursor-pointer">
-            <Printer className="w-4 h-4" />
-            طباعة
-          </DropdownMenuItem>
-        )}
-        {!hidePdf && onExportPdf && (
-          <DropdownMenuItem onClick={onExportPdf} className="gap-2 cursor-pointer">
-            <FileDown className="w-4 h-4" />
-            تصدير PDF
-          </DropdownMenuItem>
-        )}
+        {options.map((opt) => {
+          const Icon = opt.icon;
+          return (
+            <DropdownMenuItem key={opt.key} onClick={opt.action} className="gap-2 cursor-pointer">
+              <Icon className="w-4 h-4" />
+              {opt.label}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

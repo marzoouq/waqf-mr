@@ -14,6 +14,7 @@ import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, 
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import ExpenseAttachments from '@/components/expenses/ExpenseAttachments';
 import ExpenseSummaryCards from '@/components/expenses/ExpenseSummaryCards';
 import ExpenseFormDialog from '@/components/expenses/ExpenseFormDialog';
@@ -164,7 +165,17 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(filteredExpenses.map(item => ({
+                'النوع': item.expense_type,
+                'المبلغ': safeNumber(item.amount),
+                'التاريخ': item.date,
+                'العقار': item.property?.property_number || '-',
+                'الوصف': item.description || '-',
+              })));
+              downloadCsv(csv, 'مصروفات.csv');
+              toast.success('تم تصدير المصروفات بنجاح');
+            }} />
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}

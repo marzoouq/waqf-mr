@@ -21,6 +21,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import InvoiceSummaryCards from '@/components/invoices/InvoiceSummaryCards';
@@ -284,6 +285,18 @@ const InvoicesPage = () => {
                 })), pdfWaqfInfo, fyLabel);
                 toast.success('تم تحميل ملف PDF بنجاح');
               } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
+            }} onExportCsv={() => {
+              const fyLabel = fiscalYear?.label || 'جميع-السنوات';
+              const csv = buildCsv(filteredInvoices.map(inv => ({
+                'النوع': INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+                'رقم الفاتورة': inv.invoice_number || '-',
+                'المبلغ': safeNumber(inv.amount),
+                'التاريخ': inv.date,
+                'العقار': inv.property?.property_number || '-',
+                'الحالة': INVOICE_STATUS_LABELS[inv.status] || inv.status,
+              })));
+              downloadCsv(csv, `فواتير-${fyLabel}.csv`);
+              toast.success('تم تصدير الفواتير بنجاح');
             }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>
