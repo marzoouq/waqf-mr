@@ -828,7 +828,7 @@ const renderCompact = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(7);
   doc.setTextColor(140, 140, 140);
-  doc.text('فاتورة إلكترونية — نظام إدارة الوقف', pageW / 2, endY, { align: 'center' });
+  doc.text(rs('فاتورة إلكترونية — نظام إدارة الوقف'), pageW / 2, endY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
