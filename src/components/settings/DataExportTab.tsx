@@ -10,7 +10,22 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 
-/** جلب بيانات الجدول مع استبعاد PII المشفر من المستفيدين */
+type ExportableTable = 'properties' | 'contracts' | 'income' | 'expenses' | 'beneficiaries' | 'accounts' | 'invoices' | 'distributions' | 'units' | 'fiscal_years' | 'tenant_payments';
+
+const tables: { key: ExportableTable; label: string; icon: string }[] = [
+  { key: 'properties', label: 'العقارات', icon: '🏢' },
+  { key: 'units', label: 'الوحدات العقارية', icon: '🏠' },
+  { key: 'contracts', label: 'العقود', icon: '📄' },
+  { key: 'income', label: 'الدخل', icon: '💰' },
+  { key: 'expenses', label: 'المصروفات', icon: '💸' },
+  { key: 'beneficiaries', label: 'المستفيدين', icon: '👥' },
+  { key: 'accounts', label: 'الحسابات الختامية', icon: '📊' },
+  { key: 'invoices', label: 'الفواتير', icon: '🧾' },
+  { key: 'distributions', label: 'التوزيعات', icon: '📋' },
+  { key: 'fiscal_years', label: 'السنوات المالية', icon: '📅' },
+  { key: 'tenant_payments', label: 'مدفوعات المستأجرين', icon: '💳' },
+];
+
 async function fetchTableData(table: ExportableTable) {
   if (table === 'beneficiaries') {
     // استبعاد national_id و bank_account المشفرة
