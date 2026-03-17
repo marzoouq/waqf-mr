@@ -18,7 +18,7 @@ const isPreviewHost = window.location.hostname.endsWith('.lovable.app') || windo
 (async () => {
   try {
     if (isPreviewHost) {
-      const clearedFor = sessionStorage.getItem(PREVIEW_CACHE_KEY);
+      const clearedFor = localStorage.getItem(PREVIEW_CACHE_KEY);
       if (clearedFor !== APP_BUILD_ID) {
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
@@ -27,7 +27,7 @@ const isPreviewHost = window.location.hostname.endsWith('.lovable.app') || windo
 
         const names = await caches.keys();
         await Promise.all(names.map((name) => caches.delete(name)));
-        sessionStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
+        localStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
         window.location.reload();
         return;
       }
