@@ -62,7 +62,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
-  const [previewUrl] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState('');
   // معاينة القالب الجديد
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   // ترتيب بالأعمدة
