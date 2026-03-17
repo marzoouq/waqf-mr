@@ -104,7 +104,7 @@ const BalanceSheetReport = ({
               {zakatAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">الزكاة</TableCell>
-                  <TableCell className="text-left font-medium text-destructive">{fmt(zakatAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-destructive">{fmt(zakatAmount)} ر.س</TableCell>
                 </TableRow>
               )}
             </TableBody>
