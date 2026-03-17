@@ -27,7 +27,7 @@ const isPreviewHost = window.location.hostname.endsWith('.lovable.app') || windo
 
         const names = await caches.keys();
         await Promise.all(names.map((name) => caches.delete(name)));
-        sessionStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
+        localStorage.setItem(PREVIEW_CACHE_KEY, APP_BUILD_ID);
         window.location.reload();
         return;
       }
