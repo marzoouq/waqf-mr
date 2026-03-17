@@ -268,10 +268,19 @@ Deno.serve(async (req) => {
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const otp = Deno.env.get("ZATCA_OTP") || "";
+      // قراءة OTP من app_settings (المُدخل من واجهة الإعدادات) أو من env كبديل احتياطي
+      let otp = "";
+      const { data: otpRows } = await admin.from("app_settings").select("key, value")
+        .in("key", ["zatca_otp_1"]);
+      if (otpRows?.length) {
+        otp = otpRows[0].value || "";
+      }
+      if (!otp) {
+        otp = Deno.env.get("ZATCA_OTP") || "";
+      }
 
       if (!otp) {
-        return new Response(JSON.stringify({ error: "ZATCA_OTP secret is required for production onboarding" }), {
+        return new Response(JSON.stringify({ error: "رمز التفعيل OTP مطلوب. أدخله من صفحة إعدادات ZATCA أو عيّنه كمتغير بيئة." }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
