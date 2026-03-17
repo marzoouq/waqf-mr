@@ -345,8 +345,8 @@ const renderVatSummary = (
   // الإجمالي بخط عريض
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(11);
-  doc.text('الإجمالي شاملاً الضريبة:', pageW - margin - 60, y, { align: 'right' });
-  doc.text(`${totals.grandTotal.toLocaleString()} ر.س`, pageW - margin, y, { align: 'right' });
+  doc.text(rs('الإجمالي شاملاً الضريبة:'), pageW - margin - 60, y, { align: 'right' });
+  doc.text(rs(`${totals.grandTotal.toLocaleString()} ر.س`), pageW - margin, y, { align: 'right' });
   y += 4;
 
   return y;
