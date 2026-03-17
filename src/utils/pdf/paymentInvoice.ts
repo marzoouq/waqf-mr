@@ -321,19 +321,19 @@ const renderVatSummary = (
   y += 6;
 
   const summaryItems: [string, string][] = [
-    ['إجمالي البنود:', `${totals.lineExtension.toLocaleString()} ر.س`],
+    [rs('إجمالي البنود:'), rs(`${totals.lineExtension.toLocaleString()} ر.س`)],
   ];
 
   if (totals.totalAllowances > 0) {
-    summaryItems.push(['خصومات:', `-${totals.totalAllowances.toLocaleString()} ر.س`]);
+    summaryItems.push([rs('خصومات:'), rs(`-${totals.totalAllowances.toLocaleString()} ر.س`)]);
   }
   if (totals.totalCharges > 0) {
-    summaryItems.push(['رسوم إضافية:', `+${totals.totalCharges.toLocaleString()} ر.س`]);
+    summaryItems.push([rs('رسوم إضافية:'), rs(`+${totals.totalCharges.toLocaleString()} ر.س`)]);
   }
 
   summaryItems.push(
-    ['الإجمالي قبل الضريبة:', `${totals.taxExclusive.toLocaleString()} ر.س`],
-    ['ضريبة القيمة المضافة:', `${totals.totalVat.toLocaleString()} ر.س`],
+    [rs('الإجمالي قبل الضريبة:'), rs(`${totals.taxExclusive.toLocaleString()} ر.س`)],
+    [rs('ضريبة القيمة المضافة:'), rs(`${totals.totalVat.toLocaleString()} ر.س`)],
   );
 
   for (const [label, value] of summaryItems) {
