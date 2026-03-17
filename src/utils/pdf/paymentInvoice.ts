@@ -124,7 +124,7 @@ export const renderBuyerInfo = (
     y += compact ? 4 : 5;
   }
   if (invoice.tenantAddress) {
-    doc.text(`العنوان: ${invoice.tenantAddress}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`العنوان: ${invoice.tenantAddress}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
 
