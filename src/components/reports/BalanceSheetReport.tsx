@@ -74,7 +74,7 @@ const BalanceSheetReport = ({
               )}
               <TableRow>
                 <TableCell className="text-muted-foreground">إجمالي الإيرادات</TableCell>
-                <TableCell className="text-left font-medium text-success">{fmt(totalIncome)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-success">{fmt(totalIncome)} ر.س</TableCell>
               </TableRow>
             </TableBody>
             <TableFooter>
