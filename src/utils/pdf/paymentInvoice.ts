@@ -266,7 +266,7 @@ const renderAllowanceChargeTable = (
   const rows: string[][] = [];
   for (const a of allowances) {
     const vat = Math.round(a.amount * a.vatRate / 100 * 100) / 100;
-    rows.push(['خصم', a.reason, `-${a.amount.toLocaleString()}`, `${a.vatRate}%`, `-${vat.toLocaleString()}`]);
+    rows.push(reshapeRow(['خصم', a.reason, `-${a.amount.toLocaleString()}`, `${a.vatRate}%`, `-${vat.toLocaleString()}`]));
   }
   for (const c of charges) {
     const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
