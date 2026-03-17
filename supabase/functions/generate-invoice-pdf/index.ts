@@ -647,7 +647,7 @@ Deno.serve(async (req) => {
           .from("invoices")
           .upload(storagePath, pdfBytes, {
             contentType: "application/pdf",
-            upsert: false,
+            upsert: true,
           });
 
         if (uploadError) throw uploadError;

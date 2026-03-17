@@ -228,14 +228,18 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       }, waqfInfo, invoiceTemplate);
 
       if (blobUrl) {
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `فاتورة-${inv.invoice_number}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-        toast.success('تم تصدير الفاتورة بنجاح');
+        try {
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `فاتورة-${inv.invoice_number}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          toast.success('تم تصدير الفاتورة بنجاح');
+        } finally {
+          // تحرير Blob URL دائماً لمنع تسريب الذاكرة
+          URL.revokeObjectURL(blobUrl);
+        }
       } else {
         toast.info('تم حفظ الفاتورة محلياً');
       }
