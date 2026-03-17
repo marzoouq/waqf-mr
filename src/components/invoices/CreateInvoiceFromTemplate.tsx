@@ -81,6 +81,9 @@ export default function CreateInvoiceFromTemplate({
   const [items, setItems] = useState<LineItem[]>([
     { id: crypto.randomUUID(), description: '', quantity: 1, unitPrice: 0, vatRate: 15 },
   ]);
+  const [allowances, setAllowances] = useState<AllowanceChargeItem[]>([]);
+  const [charges, setCharges] = useState<AllowanceChargeItem[]>([]);
+  const [previewTemplate, setPreviewTemplate] = useState<'professional' | 'simplified'>('professional');
 
   const selectedContract = contracts.find(c => c.id === contractId);
 
