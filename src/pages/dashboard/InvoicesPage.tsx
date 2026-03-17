@@ -67,27 +67,45 @@ const InvoicesPage = () => {
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
 
-  // بناء بيانات المعاينة من فاتورة
-  const buildPreviewData = (inv: Invoice): InvoicePreviewData => ({
-    invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
-    date: inv.date,
-    type: safeNumber(inv.vat_rate) > 0 ? 'standard' : 'simplified',
-    sellerName: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
-    sellerAddress: pdfWaqfInfo.address,
-    sellerVatNumber: pdfWaqfInfo.vatNumber,
-    sellerCR: pdfWaqfInfo.commercialReg,
-    buyerName: inv.contract?.tenant_name || '-',
-    items: [{
-      description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
-      quantity: 1,
-      unitPrice: safeNumber(inv.amount) - safeNumber(inv.vat_amount),
-      vatRate: safeNumber(inv.vat_rate),
-    }],
-    notes: inv.description || undefined,
-    status: inv.status,
-    bankName: pdfWaqfInfo.bankName,
-    bankIBAN: pdfWaqfInfo.bankIBAN,
-  });
+  // بناء بيانات المعاينة من فاتورة — مع بيانات المشتري وZATCA
+  const buildPreviewData = (inv: Invoice): InvoicePreviewData => {
+    // جلب بيانات العقد لبيانات المشتري التفصيلية
+    const contract = contracts.find(c => c.id === inv.contract_id);
+    const hasVat = safeNumber(inv.vat_rate) > 0;
+    const hasBuyerTax = !!(contract as Record<string, unknown>)?.tenant_tax_number;
+
+    return {
+      invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
+      date: inv.date,
+      type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
+      sellerName: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+      sellerAddress: pdfWaqfInfo.address,
+      sellerVatNumber: pdfWaqfInfo.vatNumber,
+      sellerCR: pdfWaqfInfo.commercialReg,
+      buyerName: contract?.tenant_name || inv.contract?.tenant_name || '-',
+      buyerVatNumber: (contract as Record<string, unknown>)?.tenant_tax_number as string | undefined,
+      buyerCR: (contract as Record<string, unknown>)?.tenant_crn as string | undefined,
+      buyerIdType: (contract as Record<string, unknown>)?.tenant_id_type as string | undefined,
+      buyerIdNumber: (contract as Record<string, unknown>)?.tenant_id_number as string | undefined,
+      buyerStreet: (contract as Record<string, unknown>)?.tenant_street as string | undefined,
+      buyerDistrict: (contract as Record<string, unknown>)?.tenant_district as string | undefined,
+      buyerCity: (contract as Record<string, unknown>)?.tenant_city as string | undefined,
+      buyerPostalCode: (contract as Record<string, unknown>)?.tenant_postal_code as string | undefined,
+      buyerBuilding: (contract as Record<string, unknown>)?.tenant_building as string | undefined,
+      items: [{
+        description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
+        quantity: 1,
+        unitPrice: safeNumber(inv.amount) - safeNumber(inv.vat_amount),
+        vatRate: safeNumber(inv.vat_rate),
+      }],
+      notes: inv.description || undefined,
+      status: inv.status,
+      bankName: pdfWaqfInfo.bankName,
+      bankIBAN: pdfWaqfInfo.bankIBAN,
+      zatcaUuid: inv.zatca_uuid || undefined,
+      zatcaStatus: inv.zatca_status || undefined,
+    };
+  };
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
