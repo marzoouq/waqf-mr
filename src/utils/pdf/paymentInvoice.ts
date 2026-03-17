@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addFooter, loadLogoBase64,
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
