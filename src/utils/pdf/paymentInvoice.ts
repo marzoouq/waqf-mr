@@ -767,9 +767,8 @@ const renderCompact = async (
 
   // جدول بنود مبسّط
   const totals = computePdfTotals(invoice);
-  const vatAmount = invoice.vatAmount ?? 0;
-  const vatRate = invoice.vatRate ?? 0;
-  const amountExVat = invoice.amount - vatAmount;
+  const compactVatAmount = invoice.vatAmount ?? 0;
+  const compactAmountExVat = invoice.amount - compactVatAmount;
 
   autoTable(doc, {
     startY: y,
