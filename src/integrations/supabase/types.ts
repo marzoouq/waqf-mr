@@ -1581,6 +1581,42 @@ export type Database = {
         }
         Relationships: []
       }
+      zatca_operation_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          invoice_id: string | null
+          operation_type: string
+          request_summary: Json | null
+          response_summary: Json | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          operation_type: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string | null
+          operation_type?: string
+          request_summary?: Json | null
+          response_summary?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       beneficiaries_safe: {
