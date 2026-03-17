@@ -119,7 +119,6 @@ export const loadLogoBase64 = async (url: string): Promise<string | null> => {
 export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo): Promise<number> => {
   if (!waqfInfo?.waqfName) return 15; // no header, return default startY
 
-  const { reshapeArabic: rs } = await import('./arabicReshaper');
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
   let currentY = 14;
