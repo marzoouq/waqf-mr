@@ -80,7 +80,7 @@ const BalanceSheetReport = ({
             <TableFooter>
               <TableRow className="bg-primary/5">
                 <TableCell className="font-bold">إجمالي الأصول</TableCell>
-                <TableCell className="text-left font-bold text-primary">{fmt(totalAssets)} ر.س</TableCell>
+                <TableCell className="text-start font-bold text-primary">{fmt(totalAssets)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
