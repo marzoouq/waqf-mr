@@ -90,7 +90,7 @@ const renderSellerInfo = (
     y += compact ? 4 : 5;
   }
   if (waqfInfo.commercialReg) {
-    doc.text(`السجل التجاري: ${waqfInfo.commercialReg}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`السجل التجاري: ${waqfInfo.commercialReg}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (waqfInfo.address) {
