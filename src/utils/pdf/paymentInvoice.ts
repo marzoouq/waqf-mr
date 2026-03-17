@@ -171,7 +171,7 @@ const renderLineItemsTable = (
       const itemVat = baseTotal * (item.vatRate / 100);
       rows.push([
         `${idx + 1}`,
-        item.description,
+        rs(item.description),
         `${item.quantity}`,
         `${item.unitPrice.toLocaleString()}`,
         `${baseTotal.toLocaleString()}`,
