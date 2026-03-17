@@ -30,22 +30,34 @@ const toBase64 = (buf: ArrayBuffer) => {
   return btoa(binary);
 };
 
-// Helper to load and register Amiri Arabic font (with caching)
+// جلب خط واحد مع إعادة محاولة عند الفشل
+const fetchFontWithRetry = async (url: string, retries = 2): Promise<string> => {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+      const buf = await res.arrayBuffer();
+      if (buf.byteLength < 1000) throw new Error(`Font file too small (${buf.byteLength} bytes) — likely corrupt`);
+      return toBase64(buf);
+    } catch (e) {
+      if (attempt === retries) throw e;
+      // انتظار قصير قبل إعادة المحاولة
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+    }
+  }
+  throw new Error('Unreachable');
+};
+
+// Helper to load and register Amiri Arabic font (with caching + retry)
 export const loadArabicFont = async (doc: jsPDF) => {
   try {
     if (!fontCache) {
-      const [regularRes, boldRes] = await Promise.all([
-        fetch('/fonts/Amiri-Regular.ttf'),
-        fetch('/fonts/Amiri-Bold.ttf'),
+      const [regular, bold] = await Promise.all([
+        fetchFontWithRetry('/fonts/Amiri-Regular.ttf'),
+        fetchFontWithRetry('/fonts/Amiri-Bold.ttf'),
       ]);
 
-      const regularBuf = await regularRes.arrayBuffer();
-      const boldBuf = await boldRes.arrayBuffer();
-
-      fontCache = {
-        regular: toBase64(regularBuf),
-        bold: toBase64(boldBuf),
-      };
+      fontCache = { regular, bold };
     }
 
     doc.addFileToVFS('Amiri-Regular.ttf', fontCache.regular);
@@ -58,6 +70,8 @@ export const loadArabicFont = async (doc: jsPDF) => {
     doc.setLanguage('ar');
     return true;
   } catch (e) {
+    // مسح الكاش التالف لإعادة المحاولة في المرة القادمة
+    fontCache = null;
     logger.error('Failed to load Arabic fonts for PDF:', e);
     toast.error('تعذر تحميل الخطوط العربية — قد يظهر PDF بشكل غير صحيح');
     doc.setFont('helvetica');

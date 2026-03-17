@@ -43,9 +43,10 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /\/assets\/.+\.(?:js|css)$/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'static-assets',
+              networkTimeoutSeconds: 5,
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
             },
           },
