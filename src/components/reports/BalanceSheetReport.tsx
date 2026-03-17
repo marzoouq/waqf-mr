@@ -141,7 +141,7 @@ const BalanceSheetReport = ({
               {waqfCorpusManual > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">رقبة الوقف اليدوية</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(waqfCorpusManual)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(waqfCorpusManual)} ر.س</TableCell>
                 </TableRow>
               )}
               {distributionsAmount > 0 && (
