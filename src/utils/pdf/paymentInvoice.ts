@@ -198,7 +198,7 @@ const renderLineItemsTable = (
 
   autoTable(doc, {
     startY,
-    head: [['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي']],
+    head: [reshapeRow(['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي'])],
     body: rows,
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
