@@ -79,7 +79,7 @@ const renderSellerInfo = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(compact ? 10 : 12);
-  doc.text(waqfInfo.waqfName, pageW - margin, y, { align: 'right' });
+  doc.text(rs(waqfInfo.waqfName), pageW - margin, y, { align: 'right' });
   y += compact ? 5 : 7;
 
   doc.setFont(fontFamily, 'normal');
