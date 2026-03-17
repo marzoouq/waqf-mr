@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
-import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type InvoiceTemplateData, type AllowanceChargeItem } from './InvoiceTemplates';
+import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type InvoiceTemplateData } from './InvoiceTemplates';
 
 export interface InvoicePreviewData extends InvoiceTemplateData {}
 

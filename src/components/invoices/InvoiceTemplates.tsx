@@ -368,7 +368,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
 // القالب المبسط (Simplified B2C)
 // =========================================
 export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
-  const { items, totalAllowances, totalCharges, taxExclusive, totalVat, grandTotal } = computeInvoiceTotals(data);
+  const { items, totalAllowances, totalCharges, totalVat, grandTotal } = computeInvoiceTotals(data);
   const qrData = generateQR(data, grandTotal, totalVat);
 
   return (
