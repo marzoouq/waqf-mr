@@ -167,7 +167,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
           {data.sellerVatNumber && <p className="text-xs text-muted-foreground">الرقم الضريبي: <span className="font-mono font-semibold text-foreground" dir="ltr">{data.sellerVatNumber}</span></p>}
           {data.sellerCR && <p className="text-xs text-muted-foreground">السجل التجاري: {data.sellerCR}</p>}
         </div>
-        <div className="text-left space-y-2 shrink-0">
+        <div className="text-start space-y-2 shrink-0">
           <div className="rounded-lg px-5 py-3 text-center border bg-primary text-primary-foreground border-primary">
             <p className="text-sm font-bold">{isStandard ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة'}</p>
             <p className="text-[10px] opacity-80">{isStandard ? 'Tax Invoice' : 'Simplified Tax Invoice'}</p>

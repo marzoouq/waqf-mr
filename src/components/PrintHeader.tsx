@@ -59,7 +59,7 @@ const PrintHeader = () => {
           </div>
 
           {/* تاريخ الطباعة */}
-          <div className="text-left text-xs flex-shrink-0" style={{ color: 'hsl(150, 15%, 45%)' }}>
+          <div className="text-start text-xs flex-shrink-0" style={{ color: 'hsl(150, 15%, 45%)' }}>
             <p className="font-bold mb-1" style={{ color: 'hsl(150, 15%, 35%)' }}>تاريخ الطباعة</p>
             <p>{gregorianDate} م</p>
           </div>
