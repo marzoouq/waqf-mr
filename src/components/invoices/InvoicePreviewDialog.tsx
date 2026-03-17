@@ -5,7 +5,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Printer, X } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { cn } from '@/lib/utils';
 
