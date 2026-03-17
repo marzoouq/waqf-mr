@@ -154,7 +154,7 @@ const BalanceSheetReport = ({
             <TableFooter>
               <TableRow className="bg-accent/10">
                 <TableCell className="font-bold">إجمالي حقوق الملكية</TableCell>
-                <TableCell className="text-left font-bold">{fmt(totalEquity + distributionsAmount)} ر.س</TableCell>
+                <TableCell className="text-start font-bold">{fmt(totalEquity + distributionsAmount)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
