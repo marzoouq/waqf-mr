@@ -245,7 +245,7 @@ export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo
 
     // Waqf name in center (short version)
     if (waqfInfo?.waqfName) {
-      doc.text(waqfInfo.waqfName, pageW / 2, footerY, { align: 'center' });
+      doc.text(rs(waqfInfo.waqfName), pageW / 2, footerY, { align: 'center' });
     }
 
     // Page number on right
