@@ -132,6 +132,8 @@ const InvoicesPage = () => {
     }
     setFileError('');
     setSelectedFile(file);
+    // تحرير الـ URL القديم قبل إنشاء جديد لمنع تسريب الذاكرة
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     if (file.type.startsWith('image/')) {
       setPreviewUrl(URL.createObjectURL(file));
     } else {
