@@ -613,7 +613,7 @@ const renderTaxProfessional = async (
   // --- اسم المنشأة أعلى يمين ---
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(13);
-  doc.text(waqfInfo?.waqfName || missingText, sellerRightEdge, y + 4, { align: 'right' });
+  doc.text(rs(waqfInfo?.waqfName || missingText), sellerRightEdge, y + 4, { align: 'right' });
 
   // --- بيانات البائع تحت الاسم (يمين) — تظهر دائماً ---
   let sellerY = y + 11;
