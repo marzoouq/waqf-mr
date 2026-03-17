@@ -699,7 +699,10 @@ const renderTaxProfessional = async (
 
   // === جدول البنود (8 أعمدة) ===
   renderLineItemsTable(doc, fontFamily, invoice, y);
-  const tableEndY = getLastAutoTableY(doc, y + 40);
+  let tableEndY = getLastAutoTableY(doc, y + 40);
+
+  // === جدول الخصومات/الرسوم الإضافية (إن وُجدت) ===
+  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
 
   // ملخص ضريبي
   let summaryEndY = renderVatSummary(doc, fontFamily, invoice, tableEndY + 4, pageW);
