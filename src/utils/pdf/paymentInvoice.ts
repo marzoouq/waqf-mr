@@ -186,7 +186,7 @@ const renderLineItemsTable = (
     const amountExVat = invoice.amount - vatAmount;
     rows.push([
       '1',
-      `إيجار — دفعة ${invoice.paymentNumber}`,
+      rs(`إيجار — دفعة ${invoice.paymentNumber}`),
       '1',
       `${amountExVat.toLocaleString()}`,
       `${amountExVat.toLocaleString()}`,
