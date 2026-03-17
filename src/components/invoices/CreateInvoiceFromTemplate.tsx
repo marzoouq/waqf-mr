@@ -16,7 +16,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { generateZatcaQrTLV } from '@/utils/zatcaQr';
 import { FileText, Eye, Save, Plus, Trash2, AlertCircle } from 'lucide-react';
 import type { Contract } from '@/types/database';
-import type { InvoicePreviewData } from './InvoicePreviewDialog';
+
 
 interface CreateInvoiceFromTemplateProps {
   open: boolean;
