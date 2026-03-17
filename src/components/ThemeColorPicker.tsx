@@ -372,7 +372,7 @@ const ThemeColorPicker = () => {
 
   const handleSelect = (theme: ThemeTemplate) => {
     setActiveId(theme.id);
-    localStorage.setItem(THEME_KEY, theme.id);
+    try { localStorage.setItem(THEME_KEY, theme.id); } catch { /* ignored */ }
     if (theme.id === 'islamic-green') {
       resetTheme();
     } else {

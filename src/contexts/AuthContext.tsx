@@ -198,15 +198,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setRoleWithRef(null);
       queryClient.clear();
-      localStorage.removeItem('waqf_selected_fiscal_year');
-      localStorage.removeItem('sidebar-open');
-      localStorage.removeItem('pwa_last_seen_version');
-      localStorage.removeItem('waqf_theme_color');
-      localStorage.removeItem('waqf_notification_tone');
-      localStorage.removeItem('waqf_notification_volume');
-      localStorage.removeItem('waqf_notification_preferences');
-      localStorage.removeItem('error_log_queue');
-      localStorage.removeItem('waqf_notification_sound');
+      try {
+        localStorage.removeItem('waqf_selected_fiscal_year');
+        localStorage.removeItem('sidebar-open');
+        localStorage.removeItem('pwa_last_seen_version');
+        localStorage.removeItem('waqf_theme_color');
+        localStorage.removeItem('waqf_notification_tone');
+        localStorage.removeItem('waqf_notification_volume');
+        localStorage.removeItem('waqf_notification_preferences');
+        localStorage.removeItem('error_log_queue');
+        localStorage.removeItem('waqf_notification_sound');
+      } catch { /* storage unavailable */ }
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
       clearToasts();

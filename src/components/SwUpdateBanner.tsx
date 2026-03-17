@@ -35,7 +35,7 @@ const SwUpdateBanner = () => {
 
   const handleUpdate = useCallback(() => {
     // تخزين علامة التحديث لعرض سجل التغييرات بعد إعادة التحميل
-    localStorage.setItem("pwa_just_updated", JSON.stringify({ ts: Date.now() }));
+    try { localStorage.setItem("pwa_just_updated", JSON.stringify({ ts: Date.now() })); } catch { /* ignored */ }
     updateServiceWorker(true);
   }, [updateServiceWorker]);
 
