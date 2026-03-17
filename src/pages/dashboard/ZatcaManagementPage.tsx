@@ -72,7 +72,7 @@ function ZatcaManagementPage() {
   const { data: certificates = [], isLoading: certsLoading } = useQuery({
     queryKey: ['zatca-certificates'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('zatca_certificates').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
