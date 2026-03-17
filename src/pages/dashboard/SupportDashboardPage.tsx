@@ -303,11 +303,12 @@ const SupportDashboardPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                         <TableHead className="text-right">الرقم</TableHead>
+                        <TableHead className="text-right">الرقم</TableHead>
                         <TableHead className="text-right">العنوان</TableHead>
                         <TableHead className="text-right">التصنيف</TableHead>
                         <TableHead className="text-right">الأولوية</TableHead>
                         <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">SLA</TableHead>
                         <TableHead className="text-right">التقييم</TableHead>
                         <TableHead className="text-right">التاريخ</TableHead>
                         <TableHead className="text-right">إجراء</TableHead>
