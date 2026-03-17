@@ -453,6 +453,7 @@ const InvoicesPage = () => {
           </AlertDialogContent>
         </AlertDialog>
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />
+        <InvoicePreviewDialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)} invoice={previewInvoice} />
       </div>
     </DashboardLayout>
   );
