@@ -3,7 +3,24 @@ import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ZATCA_API_URL = Deno.env.get("ZATCA_API_URL") || "";
+const ZATCA_API_URL_ENV = Deno.env.get("ZATCA_API_URL") || "";
+
+// URLs الرسمية لبوابة فاتورة
+const ZATCA_URLS: Record<string, string> = {
+  production: "https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal",
+  sandbox: "https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation",
+};
+
+/** تحديد URL البوابة تلقائياً بناءً على اختيار المنصة في الإعدادات */
+async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
+  // الأولوية 1: متغير البيئة إذا عُيّن صراحةً
+  if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
+
+  // الأولوية 2: قراءة zatca_platform من app_settings
+  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
+  const platform = data?.value || "sandbox";
+  return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
+}
 
 import { getCorsHeaders } from "../_shared/cors.ts";
 
