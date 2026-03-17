@@ -98,7 +98,7 @@ const BalanceSheetReport = ({
               {vatAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">ضريبة القيمة المضافة</TableCell>
-                  <TableCell className="text-left font-medium text-destructive">{fmt(vatAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-destructive">{fmt(vatAmount)} ر.س</TableCell>
                 </TableRow>
               )}
               {zakatAmount > 0 && (
