@@ -33,7 +33,8 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
   const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
   const paidAmount = paid.reduce((s, i) => s + safeNumber(i.amount), 0);
   const totalVat = invoices.reduce((s, i) => s + safeNumber(i.vat_amount ?? 0), 0);
-  const collectionRate = total > 0 ? Math.round((paid.length / total) * 100) : 0;
+  // نسبة التحصيل بالمبلغ (موحدة مع PaymentInvoicesTab)
+  const collectionRate = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
 
   const cards = [
     {
