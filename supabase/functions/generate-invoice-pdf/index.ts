@@ -578,7 +578,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { invoice_ids } = await req.json();
+    const body = await req.json();
+    const { invoice_ids, table: sourceTable } = body;
+    // دعم جدول payment_invoices أو invoices (الافتراضي)
+    const tableName = sourceTable === "payment_invoices" ? "payment_invoices" : "invoices";
 
     if (!invoice_ids || !Array.isArray(invoice_ids) || invoice_ids.length === 0) {
       return new Response(JSON.stringify({ error: "invoice_ids array is required" }), {
@@ -604,7 +607,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: invoices, error: fetchError } = await supabaseAdmin
-      .from("invoices")
+      .from(tableName)
       .select("*")
       .in("id", invoice_ids);
 
@@ -640,7 +643,10 @@ Deno.serve(async (req) => {
           amount_excluding_vat: invoice.amount_excluding_vat ?? null,
         }, waqfSettings);
 
-        const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
+        // تعقيم اسم الملف لمنع path traversal
+        const rawName = (invoice.invoice_number || invoice.id) as string;
+        const safeName = rawName.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+        const fileName = `${safeName}.pdf`;
         const storagePath = `generated/${fileName}`;
 
         const { error: uploadError } = await supabaseAdmin.storage
@@ -652,9 +658,12 @@ Deno.serve(async (req) => {
 
         if (uploadError) throw uploadError;
 
+        // تحديث مسار الملف في الجدول الصحيح
+        const updateData: Record<string, string> = { file_path: storagePath };
+        if (tableName === "invoices") updateData.file_name = fileName;
         const { error: updateError } = await supabaseAdmin
-          .from("invoices")
-          .update({ file_path: storagePath, file_name: fileName })
+          .from(tableName)
+          .update(updateData)
           .eq("id", invoice.id);
 
         if (updateError) throw updateError;

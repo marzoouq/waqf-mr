@@ -255,7 +255,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     const fullContract = contracts.find(c => c.id === inv.contract_id);
     const hasBuyerTax = !!fullContract?.tenant_tax_number;
     const hasVat = sn(inv.vat_rate) > 0;
-    const amountExVat = sn(inv.amount) - sn(inv.vat_amount);
+    const amountExVat = sn(inv.vat_amount) > 0
+      ? sn(inv.amount) - sn(inv.vat_amount)
+      : (sn(inv.vat_rate) > 0 ? sn(inv.amount) / (1 + sn(inv.vat_rate) / 100) : sn(inv.amount));
 
     return {
       invoiceNumber: inv.invoice_number,

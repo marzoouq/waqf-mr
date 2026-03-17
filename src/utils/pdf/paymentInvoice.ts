@@ -12,6 +12,13 @@ import { logger } from '@/lib/logger';
 
 export type InvoiceTemplate = 'classic' | 'tax_professional' | 'compact';
 
+export interface PaymentInvoiceLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+}
+
 export interface PaymentInvoicePdfData {
   id: string;
   invoiceNumber: string;
@@ -30,6 +37,8 @@ export interface PaymentInvoicePdfData {
   vatAmount?: number;
   tenantVatNumber?: string;
   tenantAddress?: string;
+  /** بنود متعددة اختيارية — إذا لم تُوفّر يُولّد صف إيجار واحد */
+  lineItems?: PaymentInvoiceLineItem[];
 }
 
 const statusLabel = (s: string) => {
@@ -137,19 +146,33 @@ export const renderInvoiceMeta = (
   return y;
 };
 
-// رسم جدول البنود (8 أعمدة)
+// رسم جدول البنود (8 أعمدة) — يدعم بنوداً متعددة
 const renderLineItemsTable = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number,
 ) => {
-  const vatRate = invoice.vatRate ?? 0;
-  const vatAmount = invoice.vatAmount ?? 0;
-  const amountExVat = invoice.amount - vatAmount;
-
-  autoTable(doc, {
-    startY,
-    head: [['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي']],
-    body: [[
+  // بناء صفوف البنود: إذا وُجدت lineItems نستخدمها، وإلا صف إيجار واحد
+  const rows: string[][] = [];
+  if (invoice.lineItems && invoice.lineItems.length > 0) {
+    invoice.lineItems.forEach((item, idx) => {
+      const baseTotal = item.quantity * item.unitPrice;
+      const itemVat = baseTotal * (item.vatRate / 100);
+      rows.push([
+        `${idx + 1}`,
+        item.description,
+        `${item.quantity}`,
+        `${item.unitPrice.toLocaleString()}`,
+        `${baseTotal.toLocaleString()}`,
+        `${item.vatRate}%`,
+        `${itemVat.toLocaleString()}`,
+        `${(baseTotal + itemVat).toLocaleString()}`,
+      ]);
+    });
+  } else {
+    const vatRate = invoice.vatRate ?? 0;
+    const vatAmount = invoice.vatAmount ?? 0;
+    const amountExVat = invoice.amount - vatAmount;
+    rows.push([
       '1',
       `إيجار — دفعة ${invoice.paymentNumber}`,
       '1',
@@ -158,7 +181,13 @@ const renderLineItemsTable = (
       `${vatRate}%`,
       `${vatAmount.toLocaleString()}`,
       `${invoice.amount.toLocaleString()}`,
-    ]],
+    ]);
+  }
+
+  autoTable(doc, {
+    startY,
+    head: [['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي']],
+    body: rows,
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),

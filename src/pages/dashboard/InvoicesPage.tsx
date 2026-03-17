@@ -98,7 +98,9 @@ const InvoicesPage = () => {
       items: [{
         description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
         quantity: 1,
-        unitPrice: safeNumber(inv.amount) - safeNumber(inv.vat_amount),
+        unitPrice: safeNumber(inv.vat_amount) > 0
+          ? safeNumber(inv.amount) - safeNumber(inv.vat_amount)
+          : (safeNumber(inv.vat_rate) > 0 ? safeNumber(inv.amount) / (1 + safeNumber(inv.vat_rate) / 100) : safeNumber(inv.amount)),
         vatRate: safeNumber(inv.vat_rate),
       }],
       notes: inv.description || undefined,
@@ -132,6 +134,8 @@ const InvoicesPage = () => {
     }
     setFileError('');
     setSelectedFile(file);
+    // تحرير الـ URL القديم قبل إنشاء جديد لمنع تسريب الذاكرة
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     if (file.type.startsWith('image/')) {
       setPreviewUrl(URL.createObjectURL(file));
     } else {

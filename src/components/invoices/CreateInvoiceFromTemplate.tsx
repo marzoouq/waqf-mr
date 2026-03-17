@@ -153,7 +153,12 @@ export default function CreateInvoiceFromTemplate({
       contract_id: contractId || null,
       description: items.map(i => i.description).filter(Boolean).join(' | ') || notes || null,
       status: 'pending',
-      vat_rate: items[0]?.vatRate || 15,
+      vat_rate: (() => {
+        // حساب المعدل المرجّح للضريبة بناءً على مبالغ البنود
+        const totalBase = items.reduce((s, i) => s + (i.quantity * i.unitPrice), 0);
+        if (totalBase <= 0) return items[0]?.vatRate || 15;
+        return Math.round(items.reduce((s, i) => s + ((i.quantity * i.unitPrice) / totalBase) * i.vatRate, 0) * 100) / 100;
+      })(),
       vat_amount: totalVat,
     });
 
