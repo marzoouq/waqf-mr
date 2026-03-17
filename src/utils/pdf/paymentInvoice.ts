@@ -497,29 +497,29 @@ const renderClassic = async (
 
   // جدول key-value كالحالي
   const rows: string[][] = [
-    ['رقم الفاتورة', invoice.invoiceNumber],
-    ['رقم العقد', invoice.contractNumber],
-    ['المستأجر', invoice.tenantName],
-    ['العقار', invoice.propertyNumber],
-    ['رقم الدفعة', `${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    [rs('رقم الفاتورة'), rs(invoice.invoiceNumber)],
+    [rs('رقم العقد'), rs(invoice.contractNumber)],
+    [rs('المستأجر'), rs(invoice.tenantName)],
+    [rs('العقار'), rs(invoice.propertyNumber)],
+    [rs('رقم الدفعة'), rs(`${invoice.paymentNumber} من ${invoice.totalPayments}`)],
   ];
 
   if (isVat) {
     const amountExVat = invoice.amount - vatAmount;
-    rows.push(['المبلغ قبل الضريبة', `${amountExVat.toLocaleString()} ر.س`]);
-    rows.push([`ضريبة القيمة المضافة (${vatRate}%)`, `${vatAmount.toLocaleString()} ر.س`]);
-    rows.push(['الإجمالي شاملاً الضريبة', `${invoice.amount.toLocaleString()} ر.س`]);
+    rows.push([rs('المبلغ قبل الضريبة'), rs(`${amountExVat.toLocaleString()} ر.س`)]);
+    rows.push([rs(`ضريبة القيمة المضافة (${vatRate}%)`), rs(`${vatAmount.toLocaleString()} ر.س`)]);
+    rows.push([rs('الإجمالي شاملاً الضريبة'), rs(`${invoice.amount.toLocaleString()} ر.س`)]);
   } else {
-    rows.push(['المبلغ', `${invoice.amount.toLocaleString()} ر.س`]);
+    rows.push([rs('المبلغ'), rs(`${invoice.amount.toLocaleString()} ر.س`)]);
   }
 
-  rows.push(['تاريخ الاستحقاق', invoice.dueDate]);
-  rows.push(['الحالة', statusLabel(invoice.status)]);
+  rows.push([rs('تاريخ الاستحقاق'), rs(invoice.dueDate)]);
+  rows.push([rs('الحالة'), statusLabel(invoice.status)]);
 
-  if (!isVat) rows.push(['ضريبة القيمة المضافة', 'معفاة من ضريبة القيمة المضافة']);
-  if (invoice.paidDate) rows.push(['تاريخ السداد', invoice.paidDate]);
-  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push(['المبلغ المسدد', `${invoice.paidAmount.toLocaleString()} ر.س`]);
-  if (invoice.notes) rows.push(['ملاحظات', invoice.notes]);
+  if (!isVat) rows.push([rs('ضريبة القيمة المضافة'), rs('معفاة من ضريبة القيمة المضافة')]);
+  if (invoice.paidDate) rows.push([rs('تاريخ السداد'), rs(invoice.paidDate)]);
+  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${invoice.paidAmount.toLocaleString()} ر.س`)]);
+  if (invoice.notes) rows.push([rs('ملاحظات'), rs(invoice.notes)]);
 
   autoTable(doc, {
     startY: y,
