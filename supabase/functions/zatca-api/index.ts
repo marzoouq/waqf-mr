@@ -506,10 +506,15 @@ Deno.serve(async (req) => {
 
         const complianceData = await complianceRes.json().catch(() => ({}));
 
+        // توحيد بنية الرد — استخراج validationResults من المستوى الصحيح
+        const vr = complianceData?.validationResults || {};
         return new Response(JSON.stringify({
           success: complianceRes.ok,
           status: complianceRes.status,
-          zatca_response: complianceData,
+          validationResults: vr,
+          warningMessages: vr.warningMessages || complianceData?.warningMessages || [],
+          errorMessages: vr.errorMessages || complianceData?.errorMessages || [],
+          infoMessages: vr.infoMessages || complianceData?.infoMessages || [],
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
         return new Response(JSON.stringify({ error: `ZATCA API unreachable: ${(fetchErr as Error).message}` }), {
