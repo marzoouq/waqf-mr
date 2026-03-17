@@ -19,6 +19,13 @@ export interface PaymentInvoiceLineItem {
   vatRate: number;
 }
 
+/** خصم أو رسوم إضافية — مطابق لـ AllowanceChargeItem في HTML */
+export interface PdfAllowanceChargeItem {
+  reason: string;
+  amount: number;
+  vatRate: number;
+}
+
 export interface PaymentInvoicePdfData {
   id: string;
   invoiceNumber: string;
@@ -39,6 +46,10 @@ export interface PaymentInvoicePdfData {
   tenantAddress?: string;
   /** بنود متعددة اختيارية — إذا لم تُوفّر يُولّد صف إيجار واحد */
   lineItems?: PaymentInvoiceLineItem[];
+  /** خصومات (AllowanceCharge - Allowance) */
+  allowances?: PdfAllowanceChargeItem[];
+  /** رسوم إضافية (AllowanceCharge - Charge) */
+  charges?: PdfAllowanceChargeItem[];
 }
 
 const statusLabel = (s: string) => {
