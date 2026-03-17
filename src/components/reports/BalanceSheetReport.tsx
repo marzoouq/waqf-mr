@@ -125,7 +125,7 @@ const BalanceSheetReport = ({
               {adminShare > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">حصة الناظر</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(adminShare)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(adminShare)} ر.س</TableCell>
                 </TableRow>
               )}
               {waqifShare > 0 && (
