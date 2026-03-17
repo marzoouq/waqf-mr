@@ -293,46 +293,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     setPreviewInvoice(buildPaymentPreviewData(inv));
   };
 
-  const handlePreviewPdf = async (inv: PaymentInvoice) => {
-    setLoadingInvoiceId(inv.id);
-    try {
-      const blobUrl = await generatePaymentInvoicePDF({
-        id: inv.id,
-        invoiceNumber: inv.invoice_number,
-        contractNumber: inv.contract?.contract_number || '-',
-        tenantName: inv.contract?.tenant_name || '-',
-        propertyNumber: inv.contract?.property?.property_number || '-',
-        paymentNumber: inv.payment_number,
-        totalPayments: inv.contract?.payment_count || 1,
-        amount: Number(inv.amount),
-        dueDate: inv.due_date,
-        status: inv.status,
-        paidDate: inv.paid_date,
-        paidAmount: inv.paid_amount,
-        notes: inv.notes,
-        vatRate: inv.vat_rate ?? 0,
-        vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo, invoiceTemplate);
-
-      if (blobUrl) {
-        setPreviewUrl(blobUrl);
-        setPreviewInvoiceNumber(inv.invoice_number);
-      } else {
-        toast.info('تعذرت المعاينة — تم حفظ الفاتورة محلياً');
-      }
-    } catch {
-      toast.error('حدث خطأ أثناء توليد المعاينة');
-    } finally {
-      setLoadingInvoiceId(null);
-    }
-  };
-
-  const closePreview = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(null);
-    setPreviewInvoiceNumber('');
-  };
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid': return <Badge className="bg-success/20 text-success border-0 gap-1"><CheckCircle2 className="w-3 h-3" />مسددة</Badge>;
