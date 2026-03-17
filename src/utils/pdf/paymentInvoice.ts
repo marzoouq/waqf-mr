@@ -94,7 +94,7 @@ const renderSellerInfo = (
     y += compact ? 4 : 5;
   }
   if (waqfInfo.address) {
-    doc.text(`العنوان: ${waqfInfo.address}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`العنوان: ${waqfInfo.address}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
 
