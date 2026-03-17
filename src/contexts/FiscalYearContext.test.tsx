@@ -62,9 +62,14 @@ describe('FiscalYearContext', () => {
     expect(screen.getByTestId('is-closed').textContent).toBe('true');
   });
 
-  it('throws when used outside provider', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    expect(() => render(<TestConsumer />)).toThrow('useFiscalYear must be used within FiscalYearProvider');
+  it('returns fallback when used outside provider', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const Outer = () => {
+      const ctx = useFiscalYear();
+      return <span data-testid="fallback-loading">{String(ctx.isLoading)}</span>;
+    };
+    render(<Outer />);
+    expect(screen.getByTestId('fallback-loading').textContent).toBe('true');
     consoleSpy.mockRestore();
   });
 
