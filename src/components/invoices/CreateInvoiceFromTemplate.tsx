@@ -396,143 +396,57 @@ export default function CreateInvoiceFromTemplate({
                 </div>
               ))}
             </div>
+
+            {/* أزرار */}
+            <div className="flex gap-2 pt-2">
+              <Button onClick={() => setActiveTab('preview')} variant="outline" className="gap-1.5">
+                <Eye className="w-4 h-4" />معاينة
+              </Button>
+              <Button onClick={handleSave} className="flex-1 gradient-primary gap-1.5" disabled={isSaving || grandTotal <= 0}>
+                <Save className="w-4 h-4" />{isSaving ? 'جاري الحفظ...' : 'حفظ الفاتورة'}
+              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>إلغاء</Button>
+            </div>
           </TabsContent>
 
-          {/* === تبويب المعاينة === */}
+          {/* === تبويب المعاينة — يستخدم نظام القوالب === */}
           <TabsContent value="preview" className="px-6 pb-6 mt-4">
-            {missingFields.length > 0 && (
-              <div className="mb-4 flex items-start gap-2 bg-destructive/10 text-destructive border border-destructive/30 rounded-lg p-3 text-xs">
-                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold mb-1">حقول إلزامية ناقصة:</p>
-                  <ul className="list-disc list-inside">{missingFields.map((f, i) => <li key={i}>{f}</li>)}</ul>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground" dir="rtl">
-              {/* ترويسة */}
-              <div className={cn(
-                "rounded-t-lg px-6 py-5 flex items-start justify-between gap-4",
-                isStandard ? "bg-primary/10 border-b-2 border-primary" : "bg-accent/30 border-b-2 border-accent"
-              )}>
-                <div className="space-y-1 flex-1">
-                  {sellerInfo.logoUrl ? (
-                    <img src={sellerInfo.logoUrl} alt="شعار" className="h-12 w-auto mb-2 object-contain" />
-                  ) : (
-                    <div className="h-12 w-28 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-[10px] text-muted-foreground mb-2">شعار المنشأة</div>
-                  )}
-                  <h2 className="text-lg font-bold">{sellerInfo.name}</h2>
-                  {sellerInfo.address && <p className="text-xs text-muted-foreground">{sellerInfo.address}</p>}
-                  {sellerInfo.vatNumber && <p className="text-xs text-muted-foreground">الرقم الضريبي: <span className="font-mono font-semibold text-foreground" dir="ltr">{sellerInfo.vatNumber}</span></p>}
-                  {sellerInfo.commercialReg && <p className="text-xs text-muted-foreground">السجل التجاري: {sellerInfo.commercialReg}</p>}
-                </div>
-                <div className="text-left space-y-2 shrink-0">
-                  <div className={cn("rounded-lg px-5 py-3 text-center border", isStandard ? "bg-primary text-primary-foreground border-primary" : "bg-accent text-accent-foreground border-accent")}>
-                    <p className="text-sm font-bold">{titleAr}</p>
-                    <p className="text-[10px] opacity-80">{titleEn}</p>
-                  </div>
-                  <Badge variant="secondary" className="w-full justify-center">مسودة</Badge>
-                </div>
-              </div>
-
-              <div className="p-6 space-y-5">
-                {/* بيانات الفاتورة + المشتري */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2 bg-muted/30 rounded-lg p-4 border">
-                    <h3 className="text-sm font-semibold border-b pb-1 mb-2">بيانات الفاتورة</h3>
-                    <InfoRow label="الرقم" value={invoiceNumber || '(تلقائي)'} />
-                    <InfoRow label="التاريخ" value={invoiceDate} />
-                    <InfoRow label="النوع" value={INVOICE_TYPES.find(t => t.value === invoiceType)?.label || invoiceType} />
-                  </div>
-                  <div className="space-y-2 bg-muted/30 rounded-lg p-4 border">
-                    <h3 className="text-sm font-semibold border-b pb-1 mb-2">{isStandard ? 'بيانات المشتري' : 'العميل'}</h3>
-                    <InfoRow label="الاسم" value={selectedContract?.tenant_name || '-'} />
-                    {isStandard && selectedContract && (
-                      <>
-                        {selectedContract.tenant_tax_number && <InfoRow label="الرقم الضريبي" value={selectedContract.tenant_tax_number} mono />}
-                        {selectedContract.tenant_crn && <InfoRow label="السجل التجاري" value={selectedContract.tenant_crn} />}
-                        {buyerAddress && <InfoRow label="العنوان" value={buyerAddress} />}
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* جدول البنود */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-primary text-primary-foreground">
-                        <th className="p-2.5 text-right text-xs rounded-tr-lg w-10">#</th>
-                        <th className="p-2.5 text-right text-xs">البند</th>
-                        <th className="p-2.5 text-center text-xs w-16">الكمية</th>
-                        <th className="p-2.5 text-center text-xs">سعر الوحدة</th>
-                        <th className="p-2.5 text-center text-xs">المجموع بدون ض.</th>
-                        <th className="p-2.5 text-center text-xs w-16">نسبة ض.</th>
-                        <th className="p-2.5 text-center text-xs">قيمة الضريبة</th>
-                        <th className="p-2.5 text-center text-xs rounded-tl-lg">الإجمالي</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {computedItems.map((item, idx) => (
-                        <tr key={item.id} className={cn('border-b', idx % 2 === 0 ? 'bg-background' : 'bg-muted/20')}>
-                          <td className="p-2.5 text-center text-xs text-muted-foreground">{idx + 1}</td>
-                          <td className="p-2.5 text-right text-xs font-medium">{item.description || '—'}</td>
-                          <td className="p-2.5 text-center text-xs">{item.quantity}</td>
-                          <td className="p-2.5 text-center text-xs">{safeNumber(item.unitPrice).toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-                          <td className="p-2.5 text-center text-xs">{item.subtotal.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-                          <td className="p-2.5 text-center text-xs">{item.vatRate}%</td>
-                          <td className="p-2.5 text-center text-xs">{item.vatAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-                          <td className="p-2.5 text-center text-xs font-semibold">{item.total.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* الإجماليات + QR */}
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div className="flex flex-col items-center gap-2">
-                    {qrData ? (
-                      <>
-                        <QRCodeSVG value={qrData} size={120} level="H" className="border p-1 rounded bg-white" />
-                        <p className="text-[10px] text-muted-foreground">رمز QR — ZATCA</p>
-                      </>
-                    ) : (
-                      <div className="w-[120px] h-[120px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">
-                        QR غير متاح
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-full sm:w-80 space-y-2 bg-muted/20 rounded-lg p-4 border">
-                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">بدون الضريبة</span><span>{totalExVat.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">ضريبة القيمة المضافة</span><span>{totalVat.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></div>
-                    <div className="border-t pt-2 flex justify-between font-bold text-primary">
-                      <span>الإجمالي</span><span className="text-lg">{grandTotal.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* بنكي */}
-                {(sellerInfo.bankName || sellerInfo.bankIBAN) && (
-                  <div className="bg-muted/20 rounded-lg p-4 border space-y-1">
-                    <h4 className="text-xs font-semibold">بيانات الدفع</h4>
-                    {sellerInfo.bankName && <p className="text-xs text-muted-foreground">البنك: {sellerInfo.bankName}</p>}
-                    {sellerInfo.bankIBAN && <p className="text-xs text-muted-foreground font-mono" dir="ltr">IBAN: {sellerInfo.bankIBAN}</p>}
-                  </div>
-                )}
-
-                {notes && (
-                  <div className="text-xs text-muted-foreground bg-muted/10 rounded p-3 border-r-2 border-primary/30">
-                    <span className="font-semibold">ملاحظات: </span>{notes}
-                  </div>
-                )}
-
-                <div className="text-center pt-4 border-t">
-                  <p className="text-[10px] text-muted-foreground">هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك</p>
-                </div>
-              </div>
+            <div className="mb-4">
+              <TemplateSelector value={previewTemplate} onChange={setPreviewTemplate} />
             </div>
+
+            {(() => {
+              const templateData = {
+                invoiceNumber: invoiceNumber || '(تلقائي)',
+                date: invoiceDate,
+                type: (isStandard ? 'standard' : 'simplified') as 'standard' | 'simplified',
+                sellerName: sellerInfo.name,
+                sellerAddress: sellerInfo.address,
+                sellerVatNumber: sellerInfo.vatNumber,
+                sellerCR: sellerInfo.commercialReg,
+                sellerLogo: sellerInfo.logoUrl,
+                buyerName: selectedContract?.tenant_name || '-',
+                buyerVatNumber: selectedContract?.tenant_tax_number || undefined,
+                buyerCR: selectedContract?.tenant_crn || undefined,
+                buyerIdType: selectedContract?.tenant_id_type || undefined,
+                buyerIdNumber: selectedContract?.tenant_id_number || undefined,
+                buyerStreet: selectedContract?.tenant_street || undefined,
+                buyerDistrict: selectedContract?.tenant_district || undefined,
+                buyerCity: selectedContract?.tenant_city || undefined,
+                buyerPostalCode: selectedContract?.tenant_postal_code || undefined,
+                buyerBuilding: selectedContract?.tenant_building || undefined,
+                items: computedItems.map(i => ({ description: i.description || '—', quantity: i.quantity, unitPrice: i.unitPrice, vatRate: i.vatRate })),
+                allowances: allowances.filter(a => a.amount > 0),
+                charges: charges.filter(c => c.amount > 0),
+                notes,
+                status: 'pending',
+                bankName: sellerInfo.bankName,
+                bankIBAN: sellerInfo.bankIBAN,
+              };
+              return previewTemplate === 'professional'
+                ? <ProfessionalTemplate data={templateData} />
+                : <SimplifiedTemplate data={templateData} />;
+            })()}
 
             {/* أزرار المعاينة */}
             <div className="flex gap-2 pt-4">
