@@ -449,7 +449,12 @@ function ZatcaManagementPage() {
                                     <TooltipTrigger asChild>
                                       <Button
                                         size="sm"
-                                        onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
+                                        onClick={() => {
+                                          // تحديد الإجراء تلقائياً: standard → clearance, simplified → report
+                                          const invoiceType = inv.invoice_type || '';
+                                          const autoAction = invoiceType === 'standard' ? 'clearance' : 'report';
+                                          submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: autoAction });
+                                        }}
                                         disabled={rowBusy || !canSubmit}
                                       >
                                         {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
