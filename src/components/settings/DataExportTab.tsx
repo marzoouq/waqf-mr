@@ -8,46 +8,7 @@ import { Download, Database, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-type ExportableTable = 'properties' | 'contracts' | 'income' | 'expenses' | 'beneficiaries' | 'accounts' | 'invoices' | 'distributions' | 'units' | 'fiscal_years' | 'tenant_payments';
-
-const tables: { key: ExportableTable; label: string; icon: string }[] = [
-  { key: 'properties', label: 'العقارات', icon: '🏢' },
-  { key: 'units', label: 'الوحدات العقارية', icon: '🏠' },
-  { key: 'contracts', label: 'العقود', icon: '📄' },
-  { key: 'income', label: 'الدخل', icon: '💰' },
-  { key: 'expenses', label: 'المصروفات', icon: '💸' },
-  { key: 'beneficiaries', label: 'المستفيدين', icon: '👥' },
-  { key: 'accounts', label: 'الحسابات الختامية', icon: '📊' },
-  { key: 'invoices', label: 'الفواتير', icon: '🧾' },
-  { key: 'distributions', label: 'التوزيعات', icon: '📋' },
-  { key: 'fiscal_years', label: 'السنوات المالية', icon: '📅' },
-  { key: 'tenant_payments', label: 'مدفوعات المستأجرين', icon: '💳' },
-];
-
-function convertToCSV(data: Record<string, unknown>[]): string {
-  if (!data.length) return '';
-  const headers = Object.keys(data[0]);
-  const rows = data.map(row =>
-    headers.map(h => {
-      const val = row[h];
-      const str = val === null || val === undefined ? '' : String(val);
-      return `"${str.replace(/"/g, '""')}"`;
-    }).join(',')
-  );
-  // Add BOM for Arabic support in Excel
-  return '\uFEFF' + [headers.join(','), ...rows].join('\n');
-}
-
-function downloadCSV(csv: string, filename: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+import { buildCsv, downloadCsv } from '@/utils/csv';
 
 /** جلب بيانات الجدول مع استبعاد PII المشفر من المستفيدين */
 async function fetchTableData(table: ExportableTable) {
