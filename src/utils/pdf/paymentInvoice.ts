@@ -369,7 +369,7 @@ const renderBankDetails = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات الدفع', pageW - margin, y, { align: 'right' });
+  doc.text(rs('بيانات الدفع'), pageW - margin, y, { align: 'right' });
   y += 5;
 
   doc.setFont(fontFamily, 'normal');
