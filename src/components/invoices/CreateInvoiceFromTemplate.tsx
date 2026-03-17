@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { safeNumber } from '@/utils/safeNumber';
-import { cn } from '@/lib/utils';
+import { safeNumber } from '@/utils/safeNumber';
 import { FileText, Eye, Save, Plus, Trash2, AlertCircle } from 'lucide-react';
 import type { Contract } from '@/types/database';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type AllowanceChargeItem } from './InvoiceTemplates';
