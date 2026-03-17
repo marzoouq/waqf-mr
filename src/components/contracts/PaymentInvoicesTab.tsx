@@ -32,6 +32,10 @@ import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
+import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
+import type { InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
+import { safeNumber as sn } from '@/utils/safeNumber';
+import { useContractsByFiscalYear } from '@/hooks/useContracts';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
@@ -46,6 +50,7 @@ const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_
 
 export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentInvoicesTabProps) {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const generateAll = useGenerateAllInvoices();
   const markPaid = useMarkInvoicePaid();
   const markUnpaid = useMarkInvoiceUnpaid();
@@ -57,9 +62,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewInvoiceNumber, setPreviewInvoiceNumber] = useState('');
   const [payAmount, setPayAmount] = useState('');
+  // معاينة القالب الجديد
+  const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   // ترتيب بالأعمدة
   const [sortKey, setSortKey] = useState<SortKey>('due_date');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -241,44 +246,49 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     }
   };
 
-  const handlePreviewPdf = async (inv: PaymentInvoice) => {
-    setLoadingInvoiceId(inv.id);
-    try {
-      const blobUrl = await generatePaymentInvoicePDF({
-        id: inv.id,
-        invoiceNumber: inv.invoice_number,
-        contractNumber: inv.contract?.contract_number || '-',
-        tenantName: inv.contract?.tenant_name || '-',
-        propertyNumber: inv.contract?.property?.property_number || '-',
-        paymentNumber: inv.payment_number,
-        totalPayments: inv.contract?.payment_count || 1,
-        amount: Number(inv.amount),
-        dueDate: inv.due_date,
-        status: inv.status,
-        paidDate: inv.paid_date,
-        paidAmount: inv.paid_amount,
-        notes: inv.notes,
-        vatRate: inv.vat_rate ?? 0,
-        vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo, invoiceTemplate);
+  /** بناء بيانات المعاينة من فاتورة دفعة */
+  const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
+    const contract = contracts.find(c => c.id === inv.contract_id) || inv.contract;
+    const hasBuyerTax = !!(contract as any)?.tenant_tax_number;
+    const hasVat = sn(inv.vat_rate) > 0;
+    const amountExVat = sn(inv.amount) - sn(inv.vat_amount);
 
-      if (blobUrl) {
-        setPreviewUrl(blobUrl);
-        setPreviewInvoiceNumber(inv.invoice_number);
-      } else {
-        toast.info('تعذرت المعاينة — تم حفظ الفاتورة محلياً');
-      }
-    } catch {
-      toast.error('حدث خطأ أثناء توليد المعاينة');
-    } finally {
-      setLoadingInvoiceId(null);
-    }
+    return {
+      invoiceNumber: inv.invoice_number,
+      date: inv.due_date,
+      type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
+      sellerName: waqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+      sellerAddress: waqfInfo.address,
+      sellerVatNumber: waqfInfo.vatNumber,
+      sellerCR: waqfInfo.commercialReg,
+      buyerName: inv.contract?.tenant_name || '-',
+      buyerVatNumber: (contract as any)?.tenant_tax_number || undefined,
+      buyerCR: (contract as any)?.tenant_crn || undefined,
+      buyerIdType: (contract as any)?.tenant_id_type || undefined,
+      buyerIdNumber: (contract as any)?.tenant_id_number || undefined,
+      buyerStreet: (contract as any)?.tenant_street || undefined,
+      buyerDistrict: (contract as any)?.tenant_district || undefined,
+      buyerCity: (contract as any)?.tenant_city || undefined,
+      buyerPostalCode: (contract as any)?.tenant_postal_code || undefined,
+      buyerBuilding: (contract as any)?.tenant_building || undefined,
+      items: [{
+        description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
+        quantity: 1,
+        unitPrice: amountExVat,
+        vatRate: sn(inv.vat_rate),
+      }],
+      notes: inv.notes || undefined,
+      status: inv.status,
+      bankName: waqfInfo.bankName,
+      bankIBAN: waqfInfo.bankIBAN,
+      zatcaUuid: inv.zatca_uuid || undefined,
+      icv: undefined,
+      zatcaStatus: inv.zatca_status || undefined,
+    };
   };
 
-  const closePreview = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(null);
-    setPreviewInvoiceNumber('');
+  const handlePreviewTemplate = (inv: PaymentInvoice) => {
+    setPreviewInvoice(buildPaymentPreviewData(inv));
   };
 
   const getStatusBadge = (status: string) => {
@@ -310,40 +320,13 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         </Alert>
       )}
 
-      {/* Dialog معاينة الفاتورة */}
-      <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>
-        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>معاينة فاتورة {previewInvoiceNumber}</DialogTitle>
-            <DialogDescription>معاينة الفاتورة قبل التحميل</DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 min-h-0">
-            {previewUrl && (
-              <iframe
-                src={previewUrl}
-                className="w-full h-full rounded-md border"
-                title="معاينة الفاتورة"
-              />
-            )}
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={closePreview}>إغلاق</Button>
-            {previewUrl && (
-              <Button className="gap-2" onClick={() => {
-                const a = document.createElement('a');
-                a.href = previewUrl;
-                a.download = `فاتورة-${previewInvoiceNumber}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                toast.success('تم تحميل الفاتورة');
-              }}>
-                <Download className="w-4 h-4" />تحميل
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dialog معاينة الفاتورة — نظام القوالب الجديد */}
+      <InvoicePreviewDialog
+        open={!!previewInvoice}
+        onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}
+        invoice={previewInvoice}
+      />
+
 
       {/* Dialog الدفع الجزئي */}
       <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
@@ -573,8 +556,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewPdf(inv)} disabled={loadingInvoiceId === inv.id}>
-                                {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}معاينة
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
+                                <Eye className="w-3.5 h-3.5" />معاينة
                               </Button>
                               <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
                                 {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
@@ -669,8 +652,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
-                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewPdf(inv)} title="معاينة الفاتورة" disabled={loadingInvoiceId === inv.id}>
-                                    {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة">
+                                    <Eye className="w-3.5 h-3.5" />
                                   </Button>
                                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
                                     {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
