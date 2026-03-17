@@ -120,7 +120,7 @@ export const renderBuyerInfo = (
   y += compact ? 4 : 5;
 
   if (invoice.tenantVatNumber) {
-    doc.text(`الرقم الضريبي: ${invoice.tenantVatNumber}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي: ${invoice.tenantVatNumber}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (invoice.tenantAddress) {
