@@ -93,7 +93,7 @@ const BalanceSheetReport = ({
             <TableBody>
               <TableRow>
                 <TableCell className="text-muted-foreground">المصروفات التشغيلية</TableCell>
-                <TableCell className="text-left font-medium text-destructive">{fmt(totalExpenses)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-destructive">{fmt(totalExpenses)} ر.س</TableCell>
               </TableRow>
               {vatAmount > 0 && (
                 <TableRow>
