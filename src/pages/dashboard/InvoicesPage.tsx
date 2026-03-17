@@ -310,7 +310,7 @@ const InvoicesPage = () => {
                         <div className="space-y-2">
                           <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
                           <p className="text-sm text-muted-foreground">اضغط أو اسحب ملف هنا</p>
-                          <p className="text-xs text-muted-foreground">صور (JPG, PNG) أو PDF — حد أقصى 5 ميجا</p>
+                          <p className="text-xs text-muted-foreground">صور (JPG, PNG) أو PDF — حد أقصى 10 ميجا</p>
                         </div>
                       )}
                     </div>

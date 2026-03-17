@@ -50,6 +50,10 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
 
     return () => {
       abortController.abort();
+      // تنظيف blob URL عند إلغاء التحميل لمنع تسرب الذاكرة
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filePath]);
