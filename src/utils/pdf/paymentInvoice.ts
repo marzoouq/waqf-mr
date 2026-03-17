@@ -380,7 +380,7 @@ const renderBankDetails = (
     y += 5;
   }
   if (waqfInfo?.bankAccount) {
-    doc.text(`رقم الحساب: ${waqfInfo.bankAccount}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`رقم الحساب: ${waqfInfo.bankAccount}`), pageW - margin, y, { align: 'right' });
     y += 5;
   }
   if (waqfInfo?.bankIBAN) {
