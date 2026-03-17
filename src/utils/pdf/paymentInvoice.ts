@@ -775,8 +775,8 @@ const renderCompact = async (
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
     body: [[
       `إيجار — دفعة ${invoice.paymentNumber}`,
-      `${amountExVat.toLocaleString()}`,
-      `${vatAmount.toLocaleString()} (${vatRate}%)`,
+      `${compactAmountExVat.toLocaleString()}`,
+      `${compactVatAmount.toLocaleString()} (${vatRate}%)`,
       `${invoice.amount.toLocaleString()} ر.س`,
     ]],
     theme: 'grid',
