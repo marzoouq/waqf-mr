@@ -675,11 +675,11 @@ const renderTaxProfessional = async (
   let clientY = metaStartY;
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات العميل', pageW - margin, clientY, { align: 'right' });
+  doc.text(rs('بيانات العميل'), pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
-  doc.text(`الاسم : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
+  doc.text(rs(`الاسم : ${invoice.tenantName}`), pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   if (invoice.tenantVatNumber) {
     doc.text(`الرقم الضريبي : ${invoice.tenantVatNumber}`, pageW - margin, clientY, { align: 'right' });
