@@ -19,6 +19,13 @@ export interface PaymentInvoiceLineItem {
   vatRate: number;
 }
 
+/** خصم أو رسوم إضافية — مطابق لـ AllowanceChargeItem في HTML */
+export interface PdfAllowanceChargeItem {
+  reason: string;
+  amount: number;
+  vatRate: number;
+}
+
 export interface PaymentInvoicePdfData {
   id: string;
   invoiceNumber: string;
@@ -39,6 +46,10 @@ export interface PaymentInvoicePdfData {
   tenantAddress?: string;
   /** بنود متعددة اختيارية — إذا لم تُوفّر يُولّد صف إيجار واحد */
   lineItems?: PaymentInvoiceLineItem[];
+  /** خصومات (AllowanceCharge - Allowance) */
+  allowances?: PdfAllowanceChargeItem[];
+  /** رسوم إضافية (AllowanceCharge - Charge) */
+  charges?: PdfAllowanceChargeItem[];
 }
 
 const statusLabel = (s: string) => {
@@ -212,14 +223,91 @@ const renderLineItemsTable = (
   });
 };
 
-// رسم ملخص الضريبة
+// حسابات موحّدة مع HTML (computeInvoiceTotals) — تدعم AllowanceCharge
+const computePdfTotals = (invoice: PaymentInvoicePdfData) => {
+  // حساب إجمالي البنود
+  let lineExtension: number;
+  let itemsVat: number;
+
+  if (invoice.lineItems && invoice.lineItems.length > 0) {
+    lineExtension = invoice.lineItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+    itemsVat = invoice.lineItems.reduce((s, i) => {
+      const base = i.quantity * i.unitPrice;
+      return s + Math.round(base * (i.vatRate / 100) * 100) / 100;
+    }, 0);
+  } else {
+    const vatAmount = invoice.vatAmount ?? 0;
+    lineExtension = invoice.amount - vatAmount;
+    itemsVat = vatAmount;
+  }
+
+  const totalAllowances = (invoice.allowances || []).reduce((s, a) => s + (a.amount || 0), 0);
+  const totalCharges = (invoice.charges || []).reduce((s, c) => s + (c.amount || 0), 0);
+  const allowancesVat = (invoice.allowances || []).reduce((s, a) => s + Math.round(a.amount * a.vatRate / 100 * 100) / 100, 0);
+  const chargesVat = (invoice.charges || []).reduce((s, c) => s + Math.round(c.amount * c.vatRate / 100 * 100) / 100, 0);
+
+  const taxExclusive = lineExtension - totalAllowances + totalCharges;
+  const totalVat = Math.round((itemsVat - allowancesVat + chargesVat) * 100) / 100;
+  const grandTotal = Math.round((taxExclusive + totalVat) * 100) / 100;
+
+  return { lineExtension, totalAllowances, totalCharges, allowancesVat, chargesVat, taxExclusive, itemsVat, totalVat, grandTotal };
+};
+
+// رسم جدول الخصومات والرسوم الإضافية (AllowanceCharge)
+const renderAllowanceChargeTable = (
+  doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
+  startY: number,
+) => {
+  const allowances = invoice.allowances || [];
+  const charges = invoice.charges || [];
+  if (allowances.length === 0 && charges.length === 0) return startY;
+
+  const rows: string[][] = [];
+  for (const a of allowances) {
+    const vat = Math.round(a.amount * a.vatRate / 100 * 100) / 100;
+    rows.push(['خصم', a.reason, `-${a.amount.toLocaleString()}`, `${a.vatRate}%`, `-${vat.toLocaleString()}`]);
+  }
+  for (const c of charges) {
+    const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
+    rows.push(['رسوم إضافية', c.reason, `+${c.amount.toLocaleString()}`, `${c.vatRate}%`, `+${vat.toLocaleString()}`]);
+  }
+
+  autoTable(doc, {
+    startY,
+    head: [['النوع', 'السبب', 'المبلغ', 'نسبة الضريبة', 'قيمة الضريبة']],
+    body: rows,
+    theme: 'grid',
+    ...baseTableStyles(fontFamily),
+    headStyles: {
+      fillColor: [100, 100, 100] as [number, number, number],
+      font: fontFamily,
+      fontStyle: 'bold' as const,
+      fontSize: 7,
+      cellPadding: 2,
+    },
+    styles: {
+      halign: 'center' as const,
+      font: fontFamily,
+      fontStyle: 'normal' as const,
+      cellPadding: 2,
+      fontSize: 7,
+    },
+    columnStyles: {
+      0: { cellWidth: 25 },
+      1: { cellWidth: 50, halign: 'right' as const },
+    },
+  });
+
+  return getLastAutoTableY(doc, startY + 20);
+};
+
+// رسم ملخص الضريبة — يدعم الخصومات والرسوم
 const renderVatSummary = (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number, pageW: number,
 ) => {
   const margin = 18;
-  const vatAmount = invoice.vatAmount ?? 0;
-  const amountExVat = invoice.amount - vatAmount;
+  const totals = computePdfTotals(invoice);
   let y = startY;
 
   doc.setFont(fontFamily, 'normal');
@@ -231,10 +319,21 @@ const renderVatSummary = (
   doc.line(pageW / 2, y, pageW - margin, y);
   y += 6;
 
-  const summaryItems = [
-    ['الإجمالي قبل الضريبة:', `${amountExVat.toLocaleString()} ر.س`],
-    [`ضريبة القيمة المضافة (${invoice.vatRate ?? 0}%):`, `${vatAmount.toLocaleString()} ر.س`],
+  const summaryItems: [string, string][] = [
+    ['إجمالي البنود:', `${totals.lineExtension.toLocaleString()} ر.س`],
   ];
+
+  if (totals.totalAllowances > 0) {
+    summaryItems.push(['خصومات:', `-${totals.totalAllowances.toLocaleString()} ر.س`]);
+  }
+  if (totals.totalCharges > 0) {
+    summaryItems.push(['رسوم إضافية:', `+${totals.totalCharges.toLocaleString()} ر.س`]);
+  }
+
+  summaryItems.push(
+    ['الإجمالي قبل الضريبة:', `${totals.taxExclusive.toLocaleString()} ر.س`],
+    ['ضريبة القيمة المضافة:', `${totals.totalVat.toLocaleString()} ر.س`],
+  );
 
   for (const [label, value] of summaryItems) {
     doc.text(label, pageW - margin - 60, y, { align: 'right' });
@@ -246,7 +345,7 @@ const renderVatSummary = (
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(11);
   doc.text('الإجمالي شاملاً الضريبة:', pageW - margin - 60, y, { align: 'right' });
-  doc.text(`${invoice.amount.toLocaleString()} ر.س`, pageW - margin, y, { align: 'right' });
+  doc.text(`${totals.grandTotal.toLocaleString()} ر.س`, pageW - margin, y, { align: 'right' });
   y += 4;
 
   return y;
@@ -600,7 +699,10 @@ const renderTaxProfessional = async (
 
   // === جدول البنود (8 أعمدة) ===
   renderLineItemsTable(doc, fontFamily, invoice, y);
-  const tableEndY = getLastAutoTableY(doc, y + 40);
+  let tableEndY = getLastAutoTableY(doc, y + 40);
+
+  // === جدول الخصومات/الرسوم الإضافية (إن وُجدت) ===
+  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
 
   // ملخص ضريبي
   let summaryEndY = renderVatSummary(doc, fontFamily, invoice, tableEndY + 4, pageW);
@@ -664,16 +766,17 @@ const renderCompact = async (
   y += 6;
 
   // جدول بنود مبسّط
-  const vatAmount = invoice.vatAmount ?? 0;
-  const amountExVat = invoice.amount - vatAmount;
+  const totals = computePdfTotals(invoice);
+  const compactVatAmount = invoice.vatAmount ?? 0;
+  const compactAmountExVat = invoice.amount - compactVatAmount;
 
   autoTable(doc, {
     startY: y,
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
     body: [[
       `إيجار — دفعة ${invoice.paymentNumber}`,
-      `${amountExVat.toLocaleString()}`,
-      `${vatAmount.toLocaleString()} (${vatRate}%)`,
+      `${compactAmountExVat.toLocaleString()}`,
+      `${compactVatAmount.toLocaleString()} (${vatRate}%)`,
       `${invoice.amount.toLocaleString()} ر.س`,
     ]],
     theme: 'grid',
@@ -694,13 +797,17 @@ const renderCompact = async (
     },
   });
 
-  const tableEndY = getLastAutoTableY(doc, y + 25);
+  let tableEndY = getLastAutoTableY(doc, y + 25);
+
+  // خصومات/رسوم إضافية (إن وُجدت)
+  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
+
   let endY = tableEndY + 4;
 
-  // سطر الإجمالي
+  // سطر الإجمالي — يستخدم الحسابات الموحّدة
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(10);
-  doc.text(`الإجمالي: ${invoice.amount.toLocaleString()} ر.س`, pageW / 2, endY, { align: 'center' });
+  doc.text(`الإجمالي: ${totals.grandTotal.toLocaleString()} ر.س`, pageW / 2, endY, { align: 'center' });
   endY += 6;
 
   // بيانات الدفع مختصرة
