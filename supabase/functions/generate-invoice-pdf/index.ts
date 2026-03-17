@@ -643,7 +643,10 @@ Deno.serve(async (req) => {
           amount_excluding_vat: invoice.amount_excluding_vat ?? null,
         }, waqfSettings);
 
-        const fileName = `${invoice.invoice_number || invoice.id}.pdf`;
+        // تعقيم اسم الملف لمنع path traversal
+        const rawName = (invoice.invoice_number || invoice.id) as string;
+        const safeName = rawName.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+        const fileName = `${safeName}.pdf`;
         const storagePath = `generated/${fileName}`;
 
         const { error: uploadError } = await supabaseAdmin.storage
