@@ -67,6 +67,7 @@ const InvoicesPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
   const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   // بناء بيانات المعاينة من فاتورة — مع بيانات المشتري وZATCA
   const buildPreviewData = (inv: Invoice): InvoicePreviewData => {
