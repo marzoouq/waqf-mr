@@ -69,18 +69,18 @@ const BalanceSheetReport = ({
               {waqfCorpusPrevious > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">رقبة الوقف المرحّلة</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(waqfCorpusPrevious)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(waqfCorpusPrevious)} ر.س</TableCell>
                 </TableRow>
               )}
               <TableRow>
                 <TableCell className="text-muted-foreground">إجمالي الإيرادات</TableCell>
-                <TableCell className="text-left font-medium text-success">{fmt(totalIncome)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-success">{fmt(totalIncome)} ر.س</TableCell>
               </TableRow>
             </TableBody>
             <TableFooter>
               <TableRow className="bg-primary/5">
                 <TableCell className="font-bold">إجمالي الأصول</TableCell>
-                <TableCell className="text-left font-bold text-primary">{fmt(totalAssets)} ر.س</TableCell>
+                <TableCell className="text-start font-bold text-primary">{fmt(totalAssets)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
@@ -93,25 +93,25 @@ const BalanceSheetReport = ({
             <TableBody>
               <TableRow>
                 <TableCell className="text-muted-foreground">المصروفات التشغيلية</TableCell>
-                <TableCell className="text-left font-medium text-destructive">{fmt(totalExpenses)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-destructive">{fmt(totalExpenses)} ر.س</TableCell>
               </TableRow>
               {vatAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">ضريبة القيمة المضافة</TableCell>
-                  <TableCell className="text-left font-medium text-destructive">{fmt(vatAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-destructive">{fmt(vatAmount)} ر.س</TableCell>
                 </TableRow>
               )}
               {zakatAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">الزكاة</TableCell>
-                  <TableCell className="text-left font-medium text-destructive">{fmt(zakatAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-destructive">{fmt(zakatAmount)} ر.س</TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
               <TableRow className="bg-destructive/5">
                 <TableCell className="font-bold">إجمالي الالتزامات</TableCell>
-                <TableCell className="text-left font-bold text-destructive">{fmt(totalLiabilities)} ر.س</TableCell>
+                <TableCell className="text-start font-bold text-destructive">{fmt(totalLiabilities)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
@@ -125,36 +125,36 @@ const BalanceSheetReport = ({
               {adminShare > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">حصة الناظر</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(adminShare)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(adminShare)} ر.س</TableCell>
                 </TableRow>
               )}
               {waqifShare > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">حصة الواقف</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(waqifShare)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(waqifShare)} ر.س</TableCell>
                 </TableRow>
               )}
               <TableRow>
                 <TableCell className="text-muted-foreground">ريع الوقف (للمستفيدين)</TableCell>
-                <TableCell className="text-left font-medium text-primary">{fmt(waqfRevenue)} ر.س</TableCell>
+                <TableCell className="text-start font-medium text-primary">{fmt(waqfRevenue)} ر.س</TableCell>
               </TableRow>
               {waqfCorpusManual > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">رقبة الوقف اليدوية</TableCell>
-                  <TableCell className="text-left font-medium">{fmt(waqfCorpusManual)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium">{fmt(waqfCorpusManual)} ر.س</TableCell>
                 </TableRow>
               )}
               {distributionsAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">التوزيعات المُنفّذة</TableCell>
-                  <TableCell className="text-left font-medium text-success">{fmt(distributionsAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-success">{fmt(distributionsAmount)} ر.س</TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
               <TableRow className="bg-accent/10">
                 <TableCell className="font-bold">إجمالي حقوق الملكية</TableCell>
-                <TableCell className="text-left font-bold">{fmt(totalEquity + distributionsAmount)} ر.س</TableCell>
+                <TableCell className="text-start font-bold">{fmt(totalEquity + distributionsAmount)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
