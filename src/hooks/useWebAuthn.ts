@@ -30,8 +30,10 @@ export function useWebAuthn() {
   useEffect(() => {
     setIsSupported(browserSupportsWebAuthn());
     // التحقق الأولي من localStorage ثم من DB
-    const localEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
-    setIsEnabled(localEnabled);
+    try {
+      const localEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
+      setIsEnabled(localEnabled);
+    } catch { setIsEnabled(false); }
     
     // التحقق من DB لضمان التزامن عبر الأجهزة/المتصفحات
     let cancelled = false;
