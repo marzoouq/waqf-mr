@@ -111,7 +111,7 @@ const BalanceSheetReport = ({
             <TableFooter>
               <TableRow className="bg-destructive/5">
                 <TableCell className="font-bold">إجمالي الالتزامات</TableCell>
-                <TableCell className="text-left font-bold text-destructive">{fmt(totalLiabilities)} ر.س</TableCell>
+                <TableCell className="text-start font-bold text-destructive">{fmt(totalLiabilities)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
