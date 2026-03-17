@@ -362,7 +362,14 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         </Alert>
       )}
 
-      {/* Dialog معاينة الفاتورة */}
+      {/* Dialog معاينة الفاتورة — نظام القوالب الجديد */}
+      <InvoicePreviewDialog
+        open={!!previewInvoice}
+        onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}
+        invoice={previewInvoice}
+      />
+
+      {/* Dialog معاينة PDF القديم (للتحميل) */}
       <Dialog open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview(); }}>
         <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
           <DialogHeader>
