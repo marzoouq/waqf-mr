@@ -578,7 +578,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { invoice_ids } = await req.json();
+    const body = await req.json();
+    const { invoice_ids, table: sourceTable } = body;
+    // دعم جدول payment_invoices أو invoices (الافتراضي)
+    const tableName = sourceTable === "payment_invoices" ? "payment_invoices" : "invoices";
 
     if (!invoice_ids || !Array.isArray(invoice_ids) || invoice_ids.length === 0) {
       return new Response(JSON.stringify({ error: "invoice_ids array is required" }), {
@@ -604,7 +607,7 @@ Deno.serve(async (req) => {
     }
 
     const { data: invoices, error: fetchError } = await supabaseAdmin
-      .from("invoices")
+      .from(tableName)
       .select("*")
       .in("id", invoice_ids);
 
