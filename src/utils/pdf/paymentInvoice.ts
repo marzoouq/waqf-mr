@@ -376,7 +376,7 @@ const renderBankDetails = (
   doc.setFontSize(8);
 
   if (waqfInfo?.bankName) {
-    doc.text(`البنك: ${waqfInfo.bankName}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`البنك: ${waqfInfo.bankName}`), pageW - margin, y, { align: 'right' });
     y += 5;
   }
   if (waqfInfo?.bankAccount) {
