@@ -3,6 +3,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GOLD,
   baseTableStyles, headStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import autoTable from 'jspdf-autotable';
 
@@ -44,21 +45,21 @@ export const generateBylawsPDF = async (
   // Title
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('اللائحة التنظيمية', pageW / 2, startY + 5, { align: 'center' });
+  doc.text(rs('اللائحة التنظيمية'), pageW / 2, startY + 5, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
-  doc.text('لائحة تنظيم أعمال الوقف والنظارة', pageW / 2, startY + 16, { align: 'center' });
+  doc.text(rs('لائحة تنظيم أعمال الوقف والنظارة'), pageW / 2, startY + 16, { align: 'center' });
 
   // Table of contents
-  const tocRows = entries.map((e) => [
+  const tocRows = entries.map((e) => reshapeRow([
     e.chapter_title || e.part_title,
     e.part_number === 0 ? 'مقدمة' : `الجزء ${e.part_number}`,
-  ]);
+  ]));
 
   autoTable(doc, {
     startY: startY + 24,
-    head: [['العنوان', 'الجزء']],
+    head: [reshapeRow(['العنوان', 'الجزء'])],
     body: tocRows,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
@@ -74,11 +75,12 @@ export const generateBylawsPDF = async (
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(13);
     const badge = entry.part_number === 0 ? 'المقدمة' : `الجزء ${entry.part_number}: ${entry.part_title}`;
+    const rsBadge = rs(badge);
     doc.setFillColor(22, 101, 52);
     doc.setTextColor(255, 255, 255);
-    const badgeW = doc.getTextWidth(badge) + 12;
+    const badgeW = doc.getTextWidth(rsBadge) + 12;
     doc.roundedRect(pageW / 2 - badgeW / 2, y - 5, badgeW, 9, 2, 2, 'F');
-    doc.text(badge, pageW / 2, y + 1, { align: 'center' });
+    doc.text(rsBadge, pageW / 2, y + 1, { align: 'center' });
     doc.setTextColor(0, 0, 0);
     y += 12;
 
@@ -86,7 +88,7 @@ export const generateBylawsPDF = async (
     if (entry.chapter_title && entry.chapter_title !== entry.part_title) {
       doc.setFont(fontFamily, 'bold');
       doc.setFontSize(12);
-      doc.text(entry.chapter_title, pageW / 2, y, { align: 'center' });
+      doc.text(rs(entry.chapter_title), pageW / 2, y, { align: 'center' });
       y += 10;
     }
 
@@ -109,7 +111,7 @@ export const generateBylawsPDF = async (
         doc.addPage();
         y = 22;
       }
-      doc.text(line, pageW - margin, y, { align: 'right' });
+      doc.text(rs(line), pageW - margin, y, { align: 'right' });
       y += 6;
     }
   }

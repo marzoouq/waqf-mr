@@ -6,6 +6,7 @@ import {
   PdfWaqfInfo, UnitPdfRow, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
@@ -17,19 +18,19 @@ export const generatePropertiesPDF = async (properties: Array<{ property_number:
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير العقارات', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير العقارات'), 105, startY + 5, { align: 'center' });
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'رقم العقار', 'النوع', 'الموقع', 'المساحة (م²)', 'الوصف']],
-    body: properties.map((p, i) => [
+    head: [reshapeRow(['#', 'رقم العقار', 'النوع', 'الموقع', 'المساحة (م²)', 'الوصف'])],
+    body: properties.map((p, i) => reshapeRow([
       i + 1,
       p.property_number,
       p.property_type,
       p.location,
       p.area.toString(),
       p.description || '-',
-    ]),
+    ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
@@ -49,7 +50,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير العقود', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير العقود'), 105, startY + 5, { align: 'center' });
 
   const statusLabel = (s: string) => {
     switch (s) {
@@ -62,8 +63,8 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'رقم العقد', 'المستأجر', 'تاريخ البداية', 'تاريخ النهاية', 'قيمة الإيجار', 'الحالة']],
-    body: contracts.map((c, i) => [
+    head: [reshapeRow(['#', 'رقم العقد', 'المستأجر', 'تاريخ البداية', 'تاريخ النهاية', 'قيمة الإيجار', 'الحالة'])],
+    body: contracts.map((c, i) => reshapeRow([
       i + 1,
       c.contract_number,
       c.tenant_name,
@@ -71,7 +72,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
       c.end_date,
       `${safeNumber(c.rent_amount).toLocaleString()} ر.س`,
       statusLabel(c.status),
-    ]),
+    ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
@@ -91,14 +92,14 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير المستفيدين', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير المستفيدين'), 105, startY + 5, { align: 'center' });
 
   const total = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'الاسم', 'النسبة %', 'الهاتف', 'البريد', 'الحساب البنكي', 'رقم الهوية']],
-    body: beneficiaries.map((b, i) => [
+    head: [reshapeRow(['#', 'الاسم', 'النسبة %', 'الهاتف', 'البريد', 'الحساب البنكي', 'رقم الهوية'])],
+    body: beneficiaries.map((b, i) => reshapeRow([
       i + 1,
       b.name,
       `${Number(b.share_percentage).toFixed(6)}%`,
@@ -106,8 +107,8 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
       b.email || '-',
       b.bank_account ? maskBankAccount(b.bank_account) : '-',
       b.national_id ? maskNationalId(b.national_id) : '-',
-    ]),
-    foot: [['', 'الإجمالي', `${total.toFixed(6)}%`, '', '', '', '']],
+    ])),
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toFixed(6)}%`, '', '', '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),
@@ -133,13 +134,11 @@ export const generateUnitsPDF = async (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(16);
-  doc.text(`تقرير الوحدات السكنية - عقار ${propertyNumber}`, doc.internal.pageSize.width / 2, startY + 5, { align: 'center' });
+  doc.text(rs(`تقرير الوحدات السكنية - عقار ${propertyNumber}`), doc.internal.pageSize.width / 2, startY + 5, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont(fontFamily, 'normal');
-  doc.text(`الموقع: ${propertyLocation}`, doc.internal.pageSize.width / 2, startY + 14, { align: 'center' });
-
-  // statusLabel removed — unit status is already in Arabic
+  doc.text(rs(`الموقع: ${propertyLocation}`), doc.internal.pageSize.width / 2, startY + 14, { align: 'center' });
 
   let totalMonthly = 0;
   let totalAnnual = 0;
@@ -151,7 +150,7 @@ export const generateUnitsPDF = async (
       totalMonthly += monthly;
       totalAnnual += annual;
     }
-    return [
+    return reshapeRow([
       i + 1,
       u.unit_number,
       u.unit_type,
@@ -162,14 +161,14 @@ export const generateUnitsPDF = async (
       u.rent_amount ? `${monthly.toLocaleString()}` : '-',
       u.rent_amount ? `${annual.toLocaleString()}` : '-',
       u.tenant_name ? `${u.paid_months}/${u.payment_type === 'monthly' ? 12 : u.payment_type === 'quarterly' ? 4 : (u.payment_type === 'semi_annual' || u.payment_type === 'semi-annual') ? 2 : u.payment_type === 'annual' ? 1 : u.payment_count || 12}` : '-',
-    ];
+    ]);
   });
 
   autoTable(doc, {
     startY: startY + 20,
-    head: [['#', 'رقم الوحدة', 'النوع', 'الحالة', 'المستأجر', 'بداية العقد', 'نهاية العقد', 'الإيجار الشهري', 'الإيجار السنوي', 'الدفعات']],
+    head: [reshapeRow(['#', 'رقم الوحدة', 'النوع', 'الحالة', 'المستأجر', 'بداية العقد', 'نهاية العقد', 'الإيجار الشهري', 'الإيجار السنوي', 'الدفعات'])],
     body,
-    foot: [['', '', '', '', '', '', 'الإجمالي', `${totalMonthly.toLocaleString()}`, `${totalAnnual.toLocaleString()}`, '']],
+    foot: [reshapeRow(['', '', '', '', '', '', 'الإجمالي', `${totalMonthly.toLocaleString()}`, `${totalAnnual.toLocaleString()}`, ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),

@@ -3,7 +3,7 @@
  */
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo } from './core';
+import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo, reshapeArabic as rs } from './core';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
@@ -32,7 +32,7 @@ export const generateAnnualReportPDF = async (
     // عنوان التقرير
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(18);
-    doc.text(`التقرير السنوي — ${data.fiscalYearLabel}`, pageW / 2, y + 4, { align: 'center' });
+    doc.text(rs(`التقرير السنوي — ${data.fiscalYearLabel}`), pageW / 2, y + 4, { align: 'center' });
     y += 16;
 
     // بطاقات ملخصة
@@ -46,10 +46,10 @@ export const generateAnnualReportPDF = async (
         doc.roundedRect(cx, y, cardW, 16, 2, 2, 'F');
         doc.setFont(fontFamily, 'bold');
         doc.setFontSize(11);
-        doc.text(card.value, cx + cardW / 2, y + 7, { align: 'center' });
+        doc.text(rs(card.value), cx + cardW / 2, y + 7, { align: 'center' });
         doc.setFont(fontFamily, 'normal');
         doc.setFontSize(7);
-        doc.text(card.label, cx + cardW / 2, y + 13, { align: 'center' });
+        doc.text(rs(card.label), cx + cardW / 2, y + 13, { align: 'center' });
       });
       y += 22;
     }
@@ -61,7 +61,7 @@ export const generateAnnualReportPDF = async (
       doc.setFont(fontFamily, 'bold');
       doc.setFontSize(14);
       doc.setTextColor(color[0], color[1], color[2]);
-      doc.text(title, pageW - margin, y, { align: 'right' });
+      doc.text(rs(title), pageW - margin, y, { align: 'right' });
       doc.setTextColor(0, 0, 0);
       y += 8;
 
@@ -70,7 +70,7 @@ export const generateAnnualReportPDF = async (
         doc.setFont(fontFamily, 'bold');
         doc.setFontSize(11);
         const prefix = item.propertyName ? `${item.propertyName}: ` : '';
-        doc.text(`${idx + 1}. ${prefix}${item.title}`, pageW - margin, y, { align: 'right' });
+        doc.text(rs(`${idx + 1}. ${prefix}${item.title}`), pageW - margin, y, { align: 'right' });
         y += 6;
         if (item.content) {
           doc.setFont(fontFamily, 'normal');
@@ -78,7 +78,7 @@ export const generateAnnualReportPDF = async (
           const lines = doc.splitTextToSize(item.content, pageW - margin * 2);
           lines.forEach((line: string) => {
             if (y > 270) { doc.addPage(); y = 20; }
-            doc.text(line, pageW - margin, y, { align: 'right' });
+            doc.text(rs(line), pageW - margin, y, { align: 'right' });
             y += 5;
           });
         }

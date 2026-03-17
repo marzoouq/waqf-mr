@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import {
   PdfWaqfInfo, loadArabicFont, addHeader, addFooter, addHeaderToAllPages,
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
@@ -59,11 +60,11 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(18);
   doc.setTextColor(22, 101, 52);
-  doc.text('تقرير الفحص الجنائي', pageW / 2, y + 2, { align: 'center' });
+  doc.text(rs('تقرير الفحص الجنائي'), pageW / 2, y + 2, { align: 'center' });
   y += 8;
   doc.setFontSize(11);
   doc.setTextColor(100, 100, 100);
-  doc.text('Forensic Audit Report — نظام إدارة الوقف', pageW / 2, y + 2, { align: 'center' });
+  doc.text(rs('Forensic Audit Report — نظام إدارة الوقف'), pageW / 2, y + 2, { align: 'center' });
   y += 10;
 
   // ─── Executive Summary ───
@@ -75,7 +76,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
   doc.setTextColor(22, 101, 52);
-  doc.text('الملخص التنفيذي', pageW - margin, y, { align: 'right' });
+  doc.text(rs('الملخص التنفيذي'), pageW - margin, y, { align: 'right' });
   y += 8;
 
   // Summary box
@@ -87,10 +88,10 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setTextColor(40, 40, 40);
 
   const summaryLines = [
-    `التقييم العام: ${data.overallScore}/10`,
-    `عدد الملفات المفحوصة: ${data.totalFiles} ملف`,
-    `المشاكل المكتشفة: ${data.issuesFound}  |  المشاكل المصححة: ${data.issuesFixed}`,
-    `تاريخ الفحص: ${data.auditDate}  |  المدقق: ${data.auditorName}`,
+    rs(`التقييم العام: ${data.overallScore}/10`),
+    rs(`عدد الملفات المفحوصة: ${data.totalFiles} ملف`),
+    rs(`المشاكل المكتشفة: ${data.issuesFound}  |  المشاكل المصححة: ${data.issuesFixed}`),
+    rs(`تاريخ الفحص: ${data.auditDate}  |  المدقق: ${data.auditorName}`),
   ];
   summaryLines.forEach((line, i) => {
     doc.text(line, pageW - margin - 4, y + 5 + i * 7, { align: 'right' });
@@ -113,13 +114,13 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
   doc.setTextColor(22, 101, 52);
-  doc.text('نتائج الفحص حسب المجال', pageW - margin, y, { align: 'right' });
+  doc.text(rs('نتائج الفحص حسب المجال'), pageW - margin, y, { align: 'right' });
   y += 4;
 
   autoTable(doc, {
     startY: y,
-    head: [['التقييم', 'التفاصيل', 'الحالة', 'المجال']],
-    body: data.categories.map(c => [c.score, c.details, c.status, c.category]),
+    head: [reshapeRow(['التقييم', 'التفاصيل', 'الحالة', 'المجال'])],
+    body: data.categories.map(c => reshapeRow([c.score, c.details, c.status, c.category])),
     ...baseTableStyles(font),
     ...headStyles(TABLE_HEAD_GREEN, font),
     margin: { left: margin, right: margin },
@@ -146,13 +147,13 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(13);
   doc.setTextColor(202, 138, 4);
-  doc.text('نتائج الفحص الأمني', pageW - margin, y, { align: 'right' });
+  doc.text(rs('نتائج الفحص الأمني'), pageW - margin, y, { align: 'right' });
   y += 4;
 
   autoTable(doc, {
     startY: y,
-    head: [['الملاحظات', 'الحالة', 'الخطورة', 'النتيجة']],
-    body: data.securityFindings.map(f => [f.notes, f.status, f.severity, f.finding]),
+    head: [reshapeRow(['الملاحظات', 'الحالة', 'الخطورة', 'النتيجة'])],
+    body: data.securityFindings.map(f => reshapeRow([f.notes, f.status, f.severity, f.finding])),
     ...baseTableStyles(font),
     ...headStyles(TABLE_HEAD_GOLD, font),
     margin: { left: margin, right: margin },
@@ -202,14 +203,14 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(11);
   doc.setTextColor(22, 101, 52);
-  doc.text('التوقيع الرقمي والاعتماد', pageW / 2, y + 8, { align: 'center' });
+  doc.text(rs('التوقيع الرقمي والاعتماد'), pageW / 2, y + 8, { align: 'center' });
 
   doc.setFont(font, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(60, 60, 60);
-  doc.text(`أُعد بواسطة: نظام إدارة الوقف — الفحص الجنائي الآلي`, pageW - margin - 6, y + 16, { align: 'right' });
-  doc.text(`اعتمده: ${data.auditorName}`, pageW - margin - 6, y + 23, { align: 'right' });
-  doc.text(`التاريخ: ${data.auditDate}`, pageW - margin - 6, y + 30, { align: 'right' });
+  doc.text(rs(`أُعد بواسطة: نظام إدارة الوقف — الفحص الجنائي الآلي`), pageW - margin - 6, y + 16, { align: 'right' });
+  doc.text(rs(`اعتمده: ${data.auditorName}`), pageW - margin - 6, y + 23, { align: 'right' });
+  doc.text(rs(`التاريخ: ${data.auditDate}`), pageW - margin - 6, y + 30, { align: 'right' });
 
   // Circular "مُعتمد" stamp
   const stampX = margin + 25;
@@ -225,7 +226,7 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFont(font, 'bold');
   doc.setFontSize(12);
   doc.setTextColor(22, 101, 52);
-  doc.text('مُعتمد', stampX, stampY + 1, { align: 'center' });
+  doc.text(rs('مُعتمد'), stampX, stampY + 1, { align: 'center' });
 
   doc.setFontSize(5);
   doc.text('APPROVED', stampX, stampY + 5, { align: 'center' });

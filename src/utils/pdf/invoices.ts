@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
@@ -25,7 +26,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
   const titleText = fiscalYearLabel ? `تقرير الفواتير — ${fiscalYearLabel}` : 'تقرير الفواتير';
-  doc.text(titleText, 105, startY + 5, { align: 'center' });
+  doc.text(rs(titleText), 105, startY + 5, { align: 'center' });
 
   const statusLabel = (s: string) => {
     switch (s) {
@@ -41,8 +42,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'النوع', 'رقم الفاتورة', 'المبلغ', 'التاريخ', 'العقار', 'الحالة']],
-    body: invoices.map((item, i) => [
+    head: [reshapeRow(['#', 'النوع', 'رقم الفاتورة', 'المبلغ', 'التاريخ', 'العقار', 'الحالة'])],
+    body: invoices.map((item, i) => reshapeRow([
       i + 1,
       item.invoice_type,
       item.invoice_number || '-',
@@ -50,8 +51,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       item.date,
       item.property_number || '-',
       statusLabel(item.status),
-    ]),
-    foot: [['', 'الإجمالي', '', `${total.toLocaleString()} ر.س`, '', '', '']],
+    ])),
+    foot: [reshapeRow(['', 'الإجمالي', '', `${total.toLocaleString()} ر.س`, '', '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -81,7 +82,7 @@ export const generateOverdueInvoicesPDF = async (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير الفواتير المتأخرة', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير الفواتير المتأخرة'), 105, startY + 5, { align: 'center' });
 
   const totalAmount = overdue.reduce((s, i) => s + safeNumber(i.amount), 0);
   const today = new Date();
@@ -89,8 +90,8 @@ export const generateOverdueInvoicesPDF = async (
   // ملخص
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
-  doc.text(`عدد الفواتير المتأخرة: ${overdue.length}`, 195, startY + 16, { align: 'right' });
-  doc.text(`إجمالي المبالغ المتأخرة: ${totalAmount.toLocaleString()} ر.س`, 195, startY + 23, { align: 'right' });
+  doc.text(rs(`عدد الفواتير المتأخرة: ${overdue.length}`), 195, startY + 16, { align: 'right' });
+  doc.text(rs(`إجمالي المبالغ المتأخرة: ${totalAmount.toLocaleString()} ر.س`), 195, startY + 23, { align: 'right' });
 
   const calcDaysLate = (dueDate: string) => {
     const due = new Date(dueDate);
@@ -100,8 +101,8 @@ export const generateOverdueInvoicesPDF = async (
 
   autoTable(doc, {
     startY: startY + 30,
-    head: [['#', 'رقم الفاتورة', 'المستأجر', 'رقم العقد', 'العقار', 'تاريخ الاستحقاق', 'المبلغ', 'أيام التأخر']],
-    body: overdue.map((inv, i) => [
+    head: [reshapeRow(['#', 'رقم الفاتورة', 'المستأجر', 'رقم العقد', 'العقار', 'تاريخ الاستحقاق', 'المبلغ', 'أيام التأخر'])],
+    body: overdue.map((inv, i) => reshapeRow([
       i + 1,
       inv.invoice_number || '-',
       inv.contract?.tenant_name ?? '-',
@@ -110,8 +111,8 @@ export const generateOverdueInvoicesPDF = async (
       inv.due_date || '-',
       `${safeNumber(inv.amount).toLocaleString()} ر.س`,
       inv.due_date ? calcDaysLate(inv.due_date) : 0,
-    ]),
-    foot: [['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, '']],
+    ])),
+    foot: [reshapeRow(['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),

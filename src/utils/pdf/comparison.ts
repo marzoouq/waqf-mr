@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
@@ -33,21 +34,21 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
 
   doc.setFont(f, 'bold');
   doc.setFontSize(16);
-  doc.text('تقرير المقارنة السنوية', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير المقارنة السنوية'), 105, startY + 5, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont(f, 'normal');
-  doc.text(`${data.year1Label}  ←→  ${data.year2Label}`, 105, startY + 14, { align: 'center' });
+  doc.text(rs(`${data.year1Label}  ←→  ${data.year2Label}`), 105, startY + 14, { align: 'center' });
 
   // 1. Summary comparison
   const fmtPct = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
   autoTable(doc, {
     startY: startY + 22,
-    head: [['المؤشر', data.year1Label, data.year2Label, 'التغير']],
+    head: [reshapeRow(['المؤشر', data.year1Label, data.year2Label, 'التغير'])],
     body: [
-      ['إجمالي الدخل', data.year1.income.toLocaleString(), data.year2.income.toLocaleString(), fmtPct(data.incomeChange)],
-      ['إجمالي المصروفات', data.year1.expenses.toLocaleString(), data.year2.expenses.toLocaleString(), fmtPct(data.expenseChange)],
-      ['صافي الدخل', data.year1.net.toLocaleString(), data.year2.net.toLocaleString(), fmtPct(data.netChange)],
+      reshapeRow(['إجمالي الدخل', data.year1.income.toLocaleString(), data.year2.income.toLocaleString(), fmtPct(data.incomeChange)]),
+      reshapeRow(['إجمالي المصروفات', data.year1.expenses.toLocaleString(), data.year2.expenses.toLocaleString(), fmtPct(data.expenseChange)]),
+      reshapeRow(['صافي الدخل', data.year1.net.toLocaleString(), data.year2.net.toLocaleString(), fmtPct(data.netChange)]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
@@ -59,14 +60,14 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   // 2. Monthly comparison table
   doc.setFont(f, 'bold');
   doc.setFontSize(13);
-  doc.text('المقارنة الشهرية التفصيلية', 105, y, { align: 'center' });
+  doc.text(rs('المقارنة الشهرية التفصيلية'), 105, y, { align: 'center' });
 
   autoTable(doc, {
     startY: y + 6,
-    head: [['الشهر', `دخل ${data.year1Label}`, `مصروفات`, `صافي`, `دخل ${data.year2Label}`, `مصروفات`, `صافي`, 'الفرق']],
+    head: [reshapeRow(['الشهر', `دخل ${data.year1Label}`, `مصروفات`, `صافي`, `دخل ${data.year2Label}`, `مصروفات`, `صافي`, 'الفرق'])],
     body: data.monthlyData.map(m => {
       const diff = m.net2 - m.net1;
-      return [
+      return reshapeRow([
         m.month,
         m.income1.toLocaleString(),
         m.expenses1.toLocaleString(),
@@ -75,9 +76,9 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
         m.expenses2.toLocaleString(),
         m.net2.toLocaleString(),
         `${diff > 0 ? '+' : ''}${diff.toLocaleString()}`,
-      ];
+      ]);
     }),
-    foot: [[
+    foot: [reshapeRow([
       'الإجمالي',
       data.year1.income.toLocaleString(),
       data.year1.expenses.toLocaleString(),
@@ -86,7 +87,7 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       data.year2.expenses.toLocaleString(),
       data.year2.net.toLocaleString(),
       `${(data.year2.net - data.year1.net) > 0 ? '+' : ''}${(data.year2.net - data.year1.net).toLocaleString()}`,
-    ]],
+    ])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
     ...footStyles(TABLE_HEAD_GREEN, f),
@@ -99,19 +100,19 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   // 3. Expenses by type - Year 1
   doc.setFont(f, 'bold');
   doc.setFontSize(13);
-  doc.text(`توزيع المصروفات - ${data.year1Label}`, 105, y, { align: 'center' });
+  doc.text(rs(`توزيع المصروفات - ${data.year1Label}`), 105, y, { align: 'center' });
 
   if (data.expensesByType1.length > 0) {
     const total1 = data.expensesByType1.reduce((s, e) => s + e.value, 0);
     autoTable(doc, {
       startY: y + 6,
-      head: [['النوع', 'المبلغ (ر.س)', 'النسبة']],
-      body: data.expensesByType1.map(e => [
+      head: [reshapeRow(['النوع', 'المبلغ (ر.س)', 'النسبة'])],
+      body: data.expensesByType1.map(e => reshapeRow([
         e.name,
         e.value.toLocaleString(),
         `${total1 > 0 ? ((e.value / total1) * 100).toFixed(1) : 0}%`,
-      ]),
-      foot: [['الإجمالي', total1.toLocaleString(), '100%']],
+      ])),
+      foot: [reshapeRow(['الإجمالي', total1.toLocaleString(), '100%'])],
       theme: 'striped',
       ...headStyles(TABLE_HEAD_RED, f),
       ...footStyles(TABLE_HEAD_RED, f),
@@ -123,19 +124,19 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   // 4. Expenses by type - Year 2
   doc.setFont(f, 'bold');
   doc.setFontSize(13);
-  doc.text(`توزيع المصروفات - ${data.year2Label}`, 105, y, { align: 'center' });
+  doc.text(rs(`توزيع المصروفات - ${data.year2Label}`), 105, y, { align: 'center' });
 
   if (data.expensesByType2.length > 0) {
     const total2 = data.expensesByType2.reduce((s, e) => s + e.value, 0);
     autoTable(doc, {
       startY: y + 6,
-      head: [['النوع', 'المبلغ (ر.س)', 'النسبة']],
-      body: data.expensesByType2.map(e => [
+      head: [reshapeRow(['النوع', 'المبلغ (ر.س)', 'النسبة'])],
+      body: data.expensesByType2.map(e => reshapeRow([
         e.name,
         e.value.toLocaleString(),
         `${total2 > 0 ? ((e.value / total2) * 100).toFixed(1) : 0}%`,
-      ]),
-      foot: [['الإجمالي', total2.toLocaleString(), '100%']],
+      ])),
+      foot: [reshapeRow(['الإجمالي', total2.toLocaleString(), '100%'])],
       theme: 'striped',
       ...headStyles(TABLE_HEAD_RED, f),
       ...footStyles(TABLE_HEAD_RED, f),
