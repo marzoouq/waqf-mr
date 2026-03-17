@@ -41,6 +41,7 @@ vi.mock('./core', () => ({
   TABLE_HEAD_GREEN: [0, 128, 0],
   baseTableStyles: () => ({}),
   headStyles: () => ({}),
+  reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 
 vi.mock('./pdfHelpers', () => ({

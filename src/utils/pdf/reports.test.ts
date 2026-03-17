@@ -37,6 +37,7 @@ vi.mock('./core', () => ({
   baseTableStyles: vi.fn(() => ({})),
   headStyles: vi.fn(() => ({})),
   footStyles: vi.fn(() => ({})),
+  reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 vi.mock('./pdfHelpers', () => ({ getLastAutoTableY: vi.fn(() => 100) }));
 

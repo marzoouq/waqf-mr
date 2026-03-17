@@ -23,6 +23,7 @@ vi.mock('./core', () => ({
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_GOLD: [161, 128, 48],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
+  reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 
 import { generateBylawsPDF } from './bylaws';
