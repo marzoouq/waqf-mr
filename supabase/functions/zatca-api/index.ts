@@ -650,7 +650,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance" }), {
+    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance, test-connection" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
