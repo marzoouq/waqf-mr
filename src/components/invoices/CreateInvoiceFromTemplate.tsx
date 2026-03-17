@@ -449,10 +449,3 @@ export default function CreateInvoiceFromTemplate({
     </Dialog>
   );
 }
-
-const InfoRow = ({ label, value, mono }: { label: string; value: string; mono?: boolean }) => (
-  <div className="flex items-center gap-2 text-xs">
-    <span className="text-muted-foreground min-w-[80px]">{label}:</span>
-    <span className={cn("font-medium text-foreground", mono && "font-mono text-[11px]")} dir={mono ? "ltr" : undefined}>{value}</span>
-  </div>
-);
