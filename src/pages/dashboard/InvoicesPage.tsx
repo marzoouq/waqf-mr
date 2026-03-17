@@ -72,7 +72,7 @@ const InvoicesPage = () => {
     // جلب بيانات العقد لبيانات المشتري التفصيلية
     const contract = contracts.find(c => c.id === inv.contract_id);
     const hasVat = safeNumber(inv.vat_rate) > 0;
-    const hasBuyerTax = !!(contract as Record<string, unknown>)?.tenant_tax_number;
+    const hasBuyerTax = !!contract?.tenant_tax_number;
 
     return {
       invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
@@ -83,15 +83,15 @@ const InvoicesPage = () => {
       sellerVatNumber: pdfWaqfInfo.vatNumber,
       sellerCR: pdfWaqfInfo.commercialReg,
       buyerName: contract?.tenant_name || inv.contract?.tenant_name || '-',
-      buyerVatNumber: (contract as Record<string, unknown>)?.tenant_tax_number as string | undefined,
-      buyerCR: (contract as Record<string, unknown>)?.tenant_crn as string | undefined,
-      buyerIdType: (contract as Record<string, unknown>)?.tenant_id_type as string | undefined,
-      buyerIdNumber: (contract as Record<string, unknown>)?.tenant_id_number as string | undefined,
-      buyerStreet: (contract as Record<string, unknown>)?.tenant_street as string | undefined,
-      buyerDistrict: (contract as Record<string, unknown>)?.tenant_district as string | undefined,
-      buyerCity: (contract as Record<string, unknown>)?.tenant_city as string | undefined,
-      buyerPostalCode: (contract as Record<string, unknown>)?.tenant_postal_code as string | undefined,
-      buyerBuilding: (contract as Record<string, unknown>)?.tenant_building as string | undefined,
+      buyerVatNumber: contract?.tenant_tax_number || undefined,
+      buyerCR: contract?.tenant_crn || undefined,
+      buyerIdType: contract?.tenant_id_type || undefined,
+      buyerIdNumber: contract?.tenant_id_number || undefined,
+      buyerStreet: contract?.tenant_street || undefined,
+      buyerDistrict: contract?.tenant_district || undefined,
+      buyerCity: contract?.tenant_city || undefined,
+      buyerPostalCode: contract?.tenant_postal_code || undefined,
+      buyerBuilding: contract?.tenant_building || undefined,
       items: [{
         description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
         quantity: 1,
