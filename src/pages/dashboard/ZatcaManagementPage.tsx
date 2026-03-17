@@ -470,7 +470,11 @@ function ZatcaManagementPage() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: 'report' })}
+                                  onClick={() => {
+                                    const invoiceType = inv.invoice_type || '';
+                                    const autoAction = invoiceType === 'standard' ? 'clearance' : 'report';
+                                    submitToZatca.mutate({ invoiceId: inv.id, table: inv.source, action: autoAction });
+                                  }}
                                   disabled={rowBusy}
                                 >
                                   {rowBusy ? <Loader2 className="w-3 h-3 animate-spin ml-1" /> : <RefreshCw className="w-3 h-3 ml-1" />}
