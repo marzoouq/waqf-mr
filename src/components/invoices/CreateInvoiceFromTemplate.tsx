@@ -179,6 +179,8 @@ export default function CreateInvoiceFromTemplate({
     setPropertyId('');
     setNotes('');
     setItems([{ id: crypto.randomUUID(), description: '', quantity: 1, unitPrice: 0, vatRate: 15 }]);
+    setAllowances([]);
+    setCharges([]);
     setActiveTab('form');
   };
 
