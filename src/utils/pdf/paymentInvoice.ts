@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addFooter, loadLogoBase64,
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,11 +55,11 @@ export interface PaymentInvoicePdfData {
 
 const statusLabel = (s: string) => {
   switch (s) {
-    case 'paid': return 'مسددة';
-    case 'pending': return 'قيد الانتظار';
-    case 'overdue': return 'متأخرة';
-    case 'partially_paid': return 'مسددة جزئياً';
-    default: return s;
+    case 'paid': return rs('مسددة');
+    case 'pending': return rs('قيد الانتظار');
+    case 'overdue': return rs('متأخرة');
+    case 'partially_paid': return rs('مسددة جزئياً');
+    default: return rs(s);
   }
 };
 
@@ -78,22 +79,22 @@ const renderSellerInfo = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(compact ? 10 : 12);
-  doc.text(waqfInfo.waqfName, pageW - margin, y, { align: 'right' });
+  doc.text(rs(waqfInfo.waqfName), pageW - margin, y, { align: 'right' });
   y += compact ? 5 : 7;
 
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(compact ? 7 : 8);
 
   if (waqfInfo.vatNumber) {
-    doc.text(`الرقم الضريبي: ${waqfInfo.vatNumber}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي: ${waqfInfo.vatNumber}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (waqfInfo.commercialReg) {
-    doc.text(`السجل التجاري: ${waqfInfo.commercialReg}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`السجل التجاري: ${waqfInfo.commercialReg}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (waqfInfo.address) {
-    doc.text(`العنوان: ${waqfInfo.address}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`العنوان: ${waqfInfo.address}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
 
@@ -110,20 +111,20 @@ export const renderBuyerInfo = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(compact ? 8 : 9);
-  doc.text('بيانات العميل', pageW - margin, y, { align: 'right' });
+  doc.text(rs('بيانات العميل'), pageW - margin, y, { align: 'right' });
   y += compact ? 4 : 5;
 
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(compact ? 7 : 8);
-  doc.text(`الاسم: ${invoice.tenantName}`, pageW - margin, y, { align: 'right' });
+  doc.text(rs(`الاسم: ${invoice.tenantName}`), pageW - margin, y, { align: 'right' });
   y += compact ? 4 : 5;
 
   if (invoice.tenantVatNumber) {
-    doc.text(`الرقم الضريبي: ${invoice.tenantVatNumber}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي: ${invoice.tenantVatNumber}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
   if (invoice.tenantAddress) {
-    doc.text(`العنوان: ${invoice.tenantAddress}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`العنوان: ${invoice.tenantAddress}`), pageW - margin, y, { align: 'right' });
     y += compact ? 4 : 5;
   }
 
@@ -142,11 +143,11 @@ export const renderInvoiceMeta = (
   doc.setFontSize(compact ? 7 : 8);
 
   const leftItems = [
-    [`رقم الفاتورة: ${invoice.invoiceNumber}`],
-    [`التاريخ: ${invoice.dueDate}`],
-    [`رقم العقد: ${invoice.contractNumber}`],
-    [`العقار: ${invoice.propertyNumber}`],
-    [`الدفعة: ${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    [rs(`رقم الفاتورة: ${invoice.invoiceNumber}`)],
+    [rs(`التاريخ: ${invoice.dueDate}`)],
+    [rs(`رقم العقد: ${invoice.contractNumber}`)],
+    [rs(`العقار: ${invoice.propertyNumber}`)],
+    [rs(`الدفعة: ${invoice.paymentNumber} من ${invoice.totalPayments}`)],
   ];
 
   for (const [text] of leftItems) {
@@ -170,7 +171,7 @@ const renderLineItemsTable = (
       const itemVat = baseTotal * (item.vatRate / 100);
       rows.push([
         `${idx + 1}`,
-        item.description,
+        rs(item.description),
         `${item.quantity}`,
         `${item.unitPrice.toLocaleString()}`,
         `${baseTotal.toLocaleString()}`,
@@ -185,7 +186,7 @@ const renderLineItemsTable = (
     const amountExVat = invoice.amount - vatAmount;
     rows.push([
       '1',
-      `إيجار — دفعة ${invoice.paymentNumber}`,
+      rs(`إيجار — دفعة ${invoice.paymentNumber}`),
       '1',
       `${amountExVat.toLocaleString()}`,
       `${amountExVat.toLocaleString()}`,
@@ -197,7 +198,7 @@ const renderLineItemsTable = (
 
   autoTable(doc, {
     startY,
-    head: [['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي']],
+    head: [reshapeRow(['#', 'الوصف', 'الكمية', 'سعر الوحدة', 'المجموع بدون ضريبة', 'نسبة الضريبة', 'قيمة الضريبة', 'الإجمالي'])],
     body: rows,
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -265,16 +266,16 @@ const renderAllowanceChargeTable = (
   const rows: string[][] = [];
   for (const a of allowances) {
     const vat = Math.round(a.amount * a.vatRate / 100 * 100) / 100;
-    rows.push(['خصم', a.reason, `-${a.amount.toLocaleString()}`, `${a.vatRate}%`, `-${vat.toLocaleString()}`]);
+    rows.push(reshapeRow(['خصم', a.reason, `-${a.amount.toLocaleString()}`, `${a.vatRate}%`, `-${vat.toLocaleString()}`]));
   }
   for (const c of charges) {
     const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
-    rows.push(['رسوم إضافية', c.reason, `+${c.amount.toLocaleString()}`, `${c.vatRate}%`, `+${vat.toLocaleString()}`]);
+    rows.push(reshapeRow(['رسوم إضافية', c.reason, `+${c.amount.toLocaleString()}`, `${c.vatRate}%`, `+${vat.toLocaleString()}`]));
   }
 
   autoTable(doc, {
     startY,
-    head: [['النوع', 'السبب', 'المبلغ', 'نسبة الضريبة', 'قيمة الضريبة']],
+    head: [reshapeRow(['النوع', 'السبب', 'المبلغ', 'نسبة الضريبة', 'قيمة الضريبة'])],
     body: rows,
     theme: 'grid',
     ...baseTableStyles(fontFamily),
@@ -320,19 +321,19 @@ const renderVatSummary = (
   y += 6;
 
   const summaryItems: [string, string][] = [
-    ['إجمالي البنود:', `${totals.lineExtension.toLocaleString()} ر.س`],
+    [rs('إجمالي البنود:'), rs(`${totals.lineExtension.toLocaleString()} ر.س`)],
   ];
 
   if (totals.totalAllowances > 0) {
-    summaryItems.push(['خصومات:', `-${totals.totalAllowances.toLocaleString()} ر.س`]);
+    summaryItems.push([rs('خصومات:'), rs(`-${totals.totalAllowances.toLocaleString()} ر.س`)]);
   }
   if (totals.totalCharges > 0) {
-    summaryItems.push(['رسوم إضافية:', `+${totals.totalCharges.toLocaleString()} ر.س`]);
+    summaryItems.push([rs('رسوم إضافية:'), rs(`+${totals.totalCharges.toLocaleString()} ر.س`)]);
   }
 
   summaryItems.push(
-    ['الإجمالي قبل الضريبة:', `${totals.taxExclusive.toLocaleString()} ر.س`],
-    ['ضريبة القيمة المضافة:', `${totals.totalVat.toLocaleString()} ر.س`],
+    [rs('الإجمالي قبل الضريبة:'), rs(`${totals.taxExclusive.toLocaleString()} ر.س`)],
+    [rs('ضريبة القيمة المضافة:'), rs(`${totals.totalVat.toLocaleString()} ر.س`)],
   );
 
   for (const [label, value] of summaryItems) {
@@ -344,8 +345,8 @@ const renderVatSummary = (
   // الإجمالي بخط عريض
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(11);
-  doc.text('الإجمالي شاملاً الضريبة:', pageW - margin - 60, y, { align: 'right' });
-  doc.text(`${totals.grandTotal.toLocaleString()} ر.س`, pageW - margin, y, { align: 'right' });
+  doc.text(rs('الإجمالي شاملاً الضريبة:'), pageW - margin - 60, y, { align: 'right' });
+  doc.text(rs(`${totals.grandTotal.toLocaleString()} ر.س`), pageW - margin, y, { align: 'right' });
   y += 4;
 
   return y;
@@ -368,18 +369,18 @@ const renderBankDetails = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات الدفع', pageW - margin, y, { align: 'right' });
+  doc.text(rs('بيانات الدفع'), pageW - margin, y, { align: 'right' });
   y += 5;
 
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
 
   if (waqfInfo?.bankName) {
-    doc.text(`البنك: ${waqfInfo.bankName}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`البنك: ${waqfInfo.bankName}`), pageW - margin, y, { align: 'right' });
     y += 5;
   }
   if (waqfInfo?.bankAccount) {
-    doc.text(`رقم الحساب: ${waqfInfo.bankAccount}`, pageW - margin, y, { align: 'right' });
+    doc.text(rs(`رقم الحساب: ${waqfInfo.bankAccount}`), pageW - margin, y, { align: 'right' });
     y += 5;
   }
   if (waqfInfo?.bankIBAN) {
@@ -490,39 +491,39 @@ const renderClassic = async (
   const vatRate = invoice.vatRate ?? 0;
   const vatAmount = invoice.vatAmount ?? 0;
   const isVat = vatRate > 0;
-  const title = isVat ? 'فاتورة ضريبية مبسّطة' : 'فاتورة دفعة مستحقة';
+  const title = isVat ? rs('فاتورة ضريبية مبسّطة') : rs('فاتورة دفعة مستحقة');
   doc.text(title, 105, y + 2, { align: 'center' });
   y += 12;
 
   // جدول key-value كالحالي
   const rows: string[][] = [
-    ['رقم الفاتورة', invoice.invoiceNumber],
-    ['رقم العقد', invoice.contractNumber],
-    ['المستأجر', invoice.tenantName],
-    ['العقار', invoice.propertyNumber],
-    ['رقم الدفعة', `${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    [rs('رقم الفاتورة'), rs(invoice.invoiceNumber)],
+    [rs('رقم العقد'), rs(invoice.contractNumber)],
+    [rs('المستأجر'), rs(invoice.tenantName)],
+    [rs('العقار'), rs(invoice.propertyNumber)],
+    [rs('رقم الدفعة'), rs(`${invoice.paymentNumber} من ${invoice.totalPayments}`)],
   ];
 
   if (isVat) {
     const amountExVat = invoice.amount - vatAmount;
-    rows.push(['المبلغ قبل الضريبة', `${amountExVat.toLocaleString()} ر.س`]);
-    rows.push([`ضريبة القيمة المضافة (${vatRate}%)`, `${vatAmount.toLocaleString()} ر.س`]);
-    rows.push(['الإجمالي شاملاً الضريبة', `${invoice.amount.toLocaleString()} ر.س`]);
+    rows.push([rs('المبلغ قبل الضريبة'), rs(`${amountExVat.toLocaleString()} ر.س`)]);
+    rows.push([rs(`ضريبة القيمة المضافة (${vatRate}%)`), rs(`${vatAmount.toLocaleString()} ر.س`)]);
+    rows.push([rs('الإجمالي شاملاً الضريبة'), rs(`${invoice.amount.toLocaleString()} ر.س`)]);
   } else {
-    rows.push(['المبلغ', `${invoice.amount.toLocaleString()} ر.س`]);
+    rows.push([rs('المبلغ'), rs(`${invoice.amount.toLocaleString()} ر.س`)]);
   }
 
-  rows.push(['تاريخ الاستحقاق', invoice.dueDate]);
-  rows.push(['الحالة', statusLabel(invoice.status)]);
+  rows.push([rs('تاريخ الاستحقاق'), rs(invoice.dueDate)]);
+  rows.push([rs('الحالة'), statusLabel(invoice.status)]);
 
-  if (!isVat) rows.push(['ضريبة القيمة المضافة', 'معفاة من ضريبة القيمة المضافة']);
-  if (invoice.paidDate) rows.push(['تاريخ السداد', invoice.paidDate]);
-  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push(['المبلغ المسدد', `${invoice.paidAmount.toLocaleString()} ر.س`]);
-  if (invoice.notes) rows.push(['ملاحظات', invoice.notes]);
+  if (!isVat) rows.push([rs('ضريبة القيمة المضافة'), rs('معفاة من ضريبة القيمة المضافة')]);
+  if (invoice.paidDate) rows.push([rs('تاريخ السداد'), rs(invoice.paidDate)]);
+  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${invoice.paidAmount.toLocaleString()} ر.س`)]);
+  if (invoice.notes) rows.push([rs('ملاحظات'), rs(invoice.notes)]);
 
   autoTable(doc, {
     startY: y,
-    head: [['البيان', 'التفاصيل']],
+    head: [reshapeRow(['البيان', 'التفاصيل'])],
     body: rows,
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -542,7 +543,7 @@ const renderClassic = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, noteY, { align: 'center' });
+  doc.text(rs('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف'), 105, noteY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
@@ -596,7 +597,7 @@ const renderTaxProfessional = async (
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(14);
   doc.setTextColor(22, 101, 52);
-  const titleAr = isVat ? 'فاتورة ضريبية' : 'فاتورة';
+  const titleAr = isVat ? rs('فاتورة ضريبية') : rs('فاتورة');
   const titleEn = isVat ? 'Tax Invoice' : 'Invoice';
   doc.text(titleAr, margin, y + 4, { align: 'left' });
   doc.setFontSize(10);
@@ -612,7 +613,7 @@ const renderTaxProfessional = async (
   // --- اسم المنشأة أعلى يمين ---
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(13);
-  doc.text(waqfInfo?.waqfName || missingText, sellerRightEdge, y + 4, { align: 'right' });
+  doc.text(rs(waqfInfo?.waqfName || missingText), sellerRightEdge, y + 4, { align: 'right' });
 
   // --- بيانات البائع تحت الاسم (يمين) — تظهر دائماً ---
   let sellerY = y + 11;
@@ -649,7 +650,7 @@ const renderTaxProfessional = async (
   // بيانات الفاتورة (يسار)
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات الفاتورة', margin, y, { align: 'left' });
+  doc.text(rs('بيانات الفاتورة'), margin, y, { align: 'left' });
   y += 5;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
@@ -674,18 +675,18 @@ const renderTaxProfessional = async (
   let clientY = metaStartY;
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات العميل', pageW - margin, clientY, { align: 'right' });
+  doc.text(rs('بيانات العميل'), pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
-  doc.text(`الاسم : ${invoice.tenantName}`, pageW - margin, clientY, { align: 'right' });
+  doc.text(rs(`الاسم : ${invoice.tenantName}`), pageW - margin, clientY, { align: 'right' });
   clientY += 5;
   if (invoice.tenantVatNumber) {
-    doc.text(`الرقم الضريبي : ${invoice.tenantVatNumber}`, pageW - margin, clientY, { align: 'right' });
+    doc.text(rs(`الرقم الضريبي : ${invoice.tenantVatNumber}`), pageW - margin, clientY, { align: 'right' });
     clientY += 5;
   }
   if (invoice.tenantAddress) {
-    doc.text(`العنوان : ${invoice.tenantAddress}`, pageW - margin, clientY, { align: 'right' });
+    doc.text(rs(`العنوان : ${invoice.tenantAddress}`), pageW - margin, clientY, { align: 'right' });
     clientY += 5;
   }
 
@@ -724,7 +725,7 @@ const renderTaxProfessional = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', pageW / 2, summaryEndY + 8, { align: 'center' });
+  doc.text(rs('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف'), pageW / 2, summaryEndY + 8, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
@@ -748,7 +749,7 @@ const renderCompact = async (
   const vatRate = invoice.vatRate ?? 0;
   const isVat = vatRate > 0;
   doc.setFontSize(10);
-  doc.text(isVat ? 'فاتورة ضريبية مبسّطة' : 'فاتورة', pageW / 2, y, { align: 'center' });
+  doc.text(isVat ? rs('فاتورة ضريبية مبسّطة') : rs('فاتورة'), pageW / 2, y, { align: 'center' });
   y += 4;
 
   doc.setDrawColor(22, 101, 52);
@@ -827,7 +828,7 @@ const renderCompact = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(7);
   doc.setTextColor(140, 140, 140);
-  doc.text('فاتورة إلكترونية — نظام إدارة الوقف', pageW / 2, endY, { align: 'center' });
+  doc.text(rs('فاتورة إلكترونية — نظام إدارة الوقف'), pageW / 2, endY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
