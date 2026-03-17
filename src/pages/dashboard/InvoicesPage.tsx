@@ -481,7 +481,18 @@ const InvoicesPage = () => {
           </AlertDialogContent>
         </AlertDialog>
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />
-        <InvoicePreviewDialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)} invoice={previewInvoice} />
+        <InvoicePreviewDialog
+          open={!!previewInvoice}
+          onOpenChange={(open) => !open && setPreviewInvoice(null)}
+          invoice={previewInvoice}
+          onDownloadPdf={() => {
+            const origInv = invoices.find(i =>
+              (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
+              `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
+            );
+            if (origInv) generatePdf.mutate([origInv.id]);
+          }}
+        />
         <CreateInvoiceFromTemplate
           open={templateOpen}
           onOpenChange={setTemplateOpen}
