@@ -65,6 +65,29 @@ const InvoicesPage = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
+  const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
+
+  // بناء بيانات المعاينة من فاتورة
+  const buildPreviewData = (inv: Invoice): InvoicePreviewData => ({
+    invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
+    date: inv.date,
+    type: safeNumber(inv.vat_rate) > 0 ? 'standard' : 'simplified',
+    sellerName: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+    sellerAddress: pdfWaqfInfo.address,
+    sellerVatNumber: pdfWaqfInfo.vatNumber,
+    sellerCR: pdfWaqfInfo.commercialReg,
+    buyerName: inv.contract?.tenant_name || '-',
+    items: [{
+      description: `${INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}${inv.description ? ` — ${inv.description}` : ''}`,
+      quantity: 1,
+      unitPrice: safeNumber(inv.amount) - safeNumber(inv.vat_amount),
+      vatRate: safeNumber(inv.vat_rate),
+    }],
+    notes: inv.description || undefined,
+    status: inv.status,
+    bankName: pdfWaqfInfo.bankName,
+    bankIBAN: pdfWaqfInfo.bankIBAN,
+  });
 
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
