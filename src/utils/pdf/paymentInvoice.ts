@@ -734,16 +734,17 @@ export const generatePaymentInvoicePDF = async (
       .from('invoices')
       .upload(storagePath, pdfBlob, {
         contentType: 'application/pdf',
-        upsert: false,
+        upsert: true,
       });
 
-    if (uploadError?.message?.includes('already exists') || uploadError?.message?.includes('Duplicate')) {
-      const timestampPath = `payment-invoices/${invoice.invoiceNumber}-${Date.now()}.pdf`;
+    if (uploadError) {
+      // fallback: مسار بديل مع تعقيم لمنع path traversal
+      const timestampPath = `payment-invoices/${sanitizePath(invoice.invoiceNumber)}-${Date.now()}.pdf`;
       const { error: retryError } = await supabase.storage
         .from('invoices')
         .upload(timestampPath, pdfBlob, {
           contentType: 'application/pdf',
-          upsert: false,
+          upsert: true,
         });
 
       if (!retryError) {

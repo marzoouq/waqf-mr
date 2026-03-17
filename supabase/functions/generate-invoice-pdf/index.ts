@@ -190,11 +190,27 @@ async function getFonts(): Promise<{ regular: Uint8Array; bold: Uint8Array }> {
   return cachedFonts;
 }
 
-async function fetchFont(name: string): Promise<Uint8Array> {
+async function fetchFont(name: string, retries = 3): Promise<Uint8Array> {
   const url = `${FONT_BASE_URL}/${name}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch font ${name}: ${res.status}`);
-  return new Uint8Array(await res.arrayBuffer());
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = new Uint8Array(await res.arrayBuffer());
+      // فحص سلامة الخط — الحد الأدنى 1000 بايت
+      if (buf.length < 1000) throw new Error(`Font too small (${buf.length} bytes)`);
+      return buf;
+    } catch (err) {
+      if (attempt === retries) {
+        // تصفير الكاش عند الفشل النهائي
+        cachedFonts = null;
+        throw new Error(`Failed to fetch font ${name} after ${retries} attempts: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      // تأخير متزايد قبل إعادة المحاولة
+      await new Promise(r => setTimeout(r, attempt * 500));
+    }
+  }
+  throw new Error(`Unreachable: fetchFont ${name}`);
 }
 
 interface InvoiceData {
@@ -631,7 +647,7 @@ Deno.serve(async (req) => {
           .from("invoices")
           .upload(storagePath, pdfBytes, {
             contentType: "application/pdf",
-            upsert: false,
+            upsert: true,
           });
 
         if (uploadError) throw uploadError;
