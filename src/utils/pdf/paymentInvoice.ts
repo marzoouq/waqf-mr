@@ -650,7 +650,7 @@ const renderTaxProfessional = async (
   // بيانات الفاتورة (يسار)
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(9);
-  doc.text('بيانات الفاتورة', margin, y, { align: 'left' });
+  doc.text(rs('بيانات الفاتورة'), margin, y, { align: 'left' });
   y += 5;
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(8);
