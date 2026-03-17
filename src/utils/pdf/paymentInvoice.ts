@@ -111,7 +111,7 @@ export const renderBuyerInfo = (
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(compact ? 8 : 9);
-  doc.text('بيانات العميل', pageW - margin, y, { align: 'right' });
+  doc.text(rs('بيانات العميل'), pageW - margin, y, { align: 'right' });
   y += compact ? 4 : 5;
 
   doc.setFont(fontFamily, 'normal');
