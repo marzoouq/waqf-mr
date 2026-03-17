@@ -48,6 +48,10 @@ const ZatcaSettingsTab = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [onboardLoading, setOnboardLoading] = useState(false);
+  const [connectionTest, setConnectionTest] = useState<{
+    loading: boolean;
+    result: null | { connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number };
+  }>({ loading: false, result: null });
 
   // حالة الشهادة الحالية
   const { data: certificates = [] } = useQuery({
