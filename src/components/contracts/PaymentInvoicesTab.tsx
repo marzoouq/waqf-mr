@@ -248,6 +248,51 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     }
   };
 
+  /** بناء بيانات المعاينة من فاتورة دفعة */
+  const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
+    const contract = contracts.find(c => c.id === inv.contract_id) || inv.contract;
+    const hasBuyerTax = !!(contract as any)?.tenant_tax_number;
+    const hasVat = sn(inv.vat_rate) > 0;
+    const amountExVat = sn(inv.amount) - sn(inv.vat_amount);
+
+    return {
+      invoiceNumber: inv.invoice_number,
+      date: inv.due_date,
+      type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
+      sellerName: waqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+      sellerAddress: waqfInfo.address,
+      sellerVatNumber: waqfInfo.vatNumber,
+      sellerCR: waqfInfo.commercialReg,
+      buyerName: inv.contract?.tenant_name || '-',
+      buyerVatNumber: (contract as any)?.tenant_tax_number || undefined,
+      buyerCR: (contract as any)?.tenant_crn || undefined,
+      buyerIdType: (contract as any)?.tenant_id_type || undefined,
+      buyerIdNumber: (contract as any)?.tenant_id_number || undefined,
+      buyerStreet: (contract as any)?.tenant_street || undefined,
+      buyerDistrict: (contract as any)?.tenant_district || undefined,
+      buyerCity: (contract as any)?.tenant_city || undefined,
+      buyerPostalCode: (contract as any)?.tenant_postal_code || undefined,
+      buyerBuilding: (contract as any)?.tenant_building || undefined,
+      items: [{
+        description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
+        quantity: 1,
+        unitPrice: amountExVat,
+        vatRate: sn(inv.vat_rate),
+      }],
+      notes: inv.notes || undefined,
+      status: inv.status,
+      bankName: waqfInfo.bankName,
+      bankIBAN: waqfInfo.bankIBAN,
+      zatcaUuid: inv.zatca_uuid || undefined,
+      icv: undefined,
+      zatcaStatus: inv.zatca_status || undefined,
+    };
+  };
+
+  const handlePreviewTemplate = (inv: PaymentInvoice) => {
+    setPreviewInvoice(buildPaymentPreviewData(inv));
+  };
+
   const handlePreviewPdf = async (inv: PaymentInvoice) => {
     setLoadingInvoiceId(inv.id);
     try {
