@@ -9,6 +9,7 @@ import {
   headStyles,
   TABLE_HEAD_GREEN,
   type PdfWaqfInfo,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/useAuditLog';
 
@@ -78,7 +79,7 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   // Title
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(14);
-  doc.text('تقرير سجل المراجعة والتدقيق', doc.internal.pageSize.width / 2, startY + 2, { align: 'center' });
+  doc.text(rs('تقرير سجل المراجعة والتدقيق'), doc.internal.pageSize.width / 2, startY + 2, { align: 'center' });
 
   // Filter description
   let filterDesc = '';
@@ -90,7 +91,7 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   if (filterDesc) {
     doc.setFont(fontFamily, 'normal');
     doc.setFontSize(9);
-    doc.text(filterDesc, doc.internal.pageSize.width / 2, startY + 9, { align: 'center' });
+    doc.text(rs(filterDesc), doc.internal.pageSize.width / 2, startY + 9, { align: 'center' });
   }
 
   // Stats line
@@ -102,19 +103,19 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   const deletes = logs.filter(l => l.operation === 'DELETE').length;
   const reopens = logs.filter(l => l.operation === 'REOPEN').length;
   const statsText = `إجمالي: ${logs.length}  |  إضافة: ${inserts}  |  تعديل: ${updates}  |  حذف: ${deletes}${reopens > 0 ? `  |  إعادة فتح: ${reopens}` : ''}`;
-  doc.text(statsText, doc.internal.pageSize.width / 2, statsY, { align: 'center' });
+  doc.text(rs(statsText), doc.internal.pageSize.width / 2, statsY, { align: 'center' });
 
   // Table
-  const tableData = logs.map(log => [
+  const tableData = logs.map(log => reshapeRow([
     formatDate(log.created_at),
     getTableNameAr(log.table_name),
     getOperationNameAr(log.operation),
     getSummary(log),
-  ]);
+  ]));
 
   autoTable(doc, {
     startY: statsY + 5,
-    head: [['التاريخ والوقت', 'الجدول', 'العملية', 'التفاصيل']],
+    head: [reshapeRow(['التاريخ والوقت', 'الجدول', 'العملية', 'التفاصيل'])],
     body: tableData,
     ...baseTableStyles(fontFamily),
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),

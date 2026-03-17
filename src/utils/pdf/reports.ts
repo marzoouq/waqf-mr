@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
@@ -33,26 +34,26 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير الوقف السنوي', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير الوقف السنوي'), 105, startY + 5, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
-  doc.text(`السنة المالية: ${data.fiscalYear}`, 105, startY + 16, { align: 'center' });
+  doc.text(rs(`السنة المالية: ${data.fiscalYear}`), 105, startY + 16, { align: 'center' });
 
   autoTable(doc, {
     startY: startY + 24,
-    head: [['البند', 'المبلغ (ر.س)']],
+    head: [reshapeRow(['البند', 'المبلغ (ر.س)'])],
     body: [
-      [{ content: '-- الإيرادات --', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 252, 231] } }],
-      ...data.incomeBySource.map(i => [`  ${i.source}`, `+${i.amount.toLocaleString()}`]),
-      [{ content: 'إجمالي الإيرادات', styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }],
-      [{ content: '-- المصروفات --', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [254, 226, 226] } }],
-      ...data.expensesByType.map(e => [`  ${e.type}`, `-${e.amount.toLocaleString()}`]),
-      [{ content: 'إجمالي المصروفات', styles: { fontStyle: 'bold' } }, { content: `(${data.totalExpenses.toLocaleString()})`, styles: { fontStyle: 'bold' } }],
-      ['صافي الريع', data.netRevenue.toLocaleString()],
-      ['حصة الناظر (10%)', data.adminShare.toLocaleString()],
-      ['حصة الواقف (5%)', data.waqifShare.toLocaleString()],
-      ['ريع المستفيدين', data.waqfRevenue.toLocaleString()],
+      reshapeRow([{ content: rs('-- الإيرادات --'), colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 252, 231] } }]),
+      ...data.incomeBySource.map(i => reshapeRow([`  ${i.source}`, `+${i.amount.toLocaleString()}`])),
+      reshapeRow([{ content: rs('إجمالي الإيرادات'), styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }]),
+      reshapeRow([{ content: rs('-- المصروفات --'), colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [254, 226, 226] } }]),
+      ...data.expensesByType.map(e => reshapeRow([`  ${e.type}`, `-${e.amount.toLocaleString()}`])),
+      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `(${data.totalExpenses.toLocaleString()})`, styles: { fontStyle: 'bold' } }]),
+      reshapeRow(['صافي الريع', data.netRevenue.toLocaleString()]),
+      reshapeRow(['حصة الناظر (10%)', data.adminShare.toLocaleString()]),
+      reshapeRow(['حصة الواقف (5%)', data.waqifShare.toLocaleString()]),
+      reshapeRow(['ريع المستفيدين', data.waqfRevenue.toLocaleString()]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -63,15 +64,15 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
 
   doc.setFontSize(14);
   doc.setFont(fontFamily, 'bold');
-  doc.text('توزيع حصص المستفيدين', 105, finalY + 15, { align: 'center' });
+  doc.text(rs('توزيع حصص المستفيدين'), 105, finalY + 15, { align: 'center' });
 
   autoTable(doc, {
     startY: finalY + 22,
-    head: [['اسم المستفيد', 'المبلغ المستحق (ر.س)']],
-    body: data.beneficiaries.map(b => [
+    head: [reshapeRow(['اسم المستفيد', 'المبلغ المستحق (ر.س)'])],
+    body: data.beneficiaries.map(b => reshapeRow([
       b.name,
       b.amount.toLocaleString(),
-    ]),
+    ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...baseTableStyles(fontFamily),
@@ -91,19 +92,19 @@ export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, s
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('كشف حساب المستفيد', 105, startY + 5, { align: 'center' });
+  doc.text(rs('كشف حساب المستفيد'), 105, startY + 5, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
-  doc.text(`السنة المالية: ${fiscalYear}`, 105, startY + 16, { align: 'center' });
+  doc.text(rs(`السنة المالية: ${fiscalYear}`), 105, startY + 16, { align: 'center' });
 
   autoTable(doc, {
     startY: startY + 24,
-    head: [['البيان', 'القيمة']],
+    head: [reshapeRow(['البيان', 'القيمة'])],
     body: [
-      ['اسم المستفيد', beneficiaryName],
-      ['نسبة الحصة', `${sharePercentage}%`],
-      ['مبلغ الحصة', `${shareAmount.toLocaleString()} ر.س`],
+      reshapeRow(['اسم المستفيد', beneficiaryName]),
+      reshapeRow(['نسبة الحصة', `${sharePercentage}%`]),
+      reshapeRow(['مبلغ الحصة', `${shareAmount.toLocaleString()} ر.س`]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -146,14 +147,14 @@ export const generateAnnualDisclosurePDF = async (data: {
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('الإفصاح السنوي الشامل', 105, startY + 5, { align: 'center' });
+  doc.text(rs('الإفصاح السنوي الشامل'), 105, startY + 5, { align: 'center' });
 
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
-  doc.text(`السنة المالية: ${data.fiscalYear}`, 105, startY + 16, { align: 'center' });
+  doc.text(rs(`السنة المالية: ${data.fiscalYear}`), 105, startY + 16, { align: 'center' });
 
   // 1. Full Financial Hierarchy
-  const hierarchyRows: string[][] = [];
+  const hierarchyRows: (string | number)[][] = [];
   if (data.waqfCorpusPrevious > 0) {
     hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${data.waqfCorpusPrevious.toLocaleString()}`]);
   }
@@ -191,8 +192,8 @@ export const generateAnnualDisclosurePDF = async (data: {
 
   autoTable(doc, {
     startY: startY + 24,
-    head: [['البند', 'المبلغ (ر.س)']],
-    body: hierarchyRows,
+    head: [reshapeRow(['البند', 'المبلغ (ر.س)'])],
+    body: hierarchyRows.map(r => reshapeRow(r)),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
@@ -203,12 +204,12 @@ export const generateAnnualDisclosurePDF = async (data: {
   // 2. Income by source
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(13);
-  doc.text('تفصيل الإيرادات حسب المصدر', 105, y, { align: 'center' });
+  doc.text(rs('تفصيل الإيرادات حسب المصدر'), 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 6,
-    head: [['المصدر', 'المبلغ (ر.س)']],
-    body: Object.entries(data.incomeBySource).map(([s, a]) => [s, `+${a.toLocaleString()}`]),
-    foot: [['الإجمالي', `+${data.totalIncome.toLocaleString()}`]],
+    head: [reshapeRow(['المصدر', 'المبلغ (ر.س)'])],
+    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${a.toLocaleString()}`])),
+    foot: [reshapeRow(['الإجمالي', `+${data.totalIncome.toLocaleString()}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -219,12 +220,12 @@ export const generateAnnualDisclosurePDF = async (data: {
 
   // 3. Expenses by type
   doc.setFont(fontFamily, 'bold');
-  doc.text('تفصيل المصروفات حسب النوع', 105, y, { align: 'center' });
+  doc.text(rs('تفصيل المصروفات حسب النوع'), 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 6,
-    head: [['النوع', 'المبلغ (ر.س)']],
-    body: Object.entries(data.expensesByType).map(([t, a]) => [t, `-${a.toLocaleString()}`]),
-    foot: [['الإجمالي', `-${data.totalExpenses.toLocaleString()}`]],
+    head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
+    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${a.toLocaleString()}`])),
+    foot: [reshapeRow(['الإجمالي', `-${data.totalExpenses.toLocaleString()}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
@@ -237,16 +238,16 @@ export const generateAnnualDisclosurePDF = async (data: {
   const totalBenPct = data.beneficiaries.reduce((s, b) => s + Number(b.share_percentage), 0);
   const totalBenAmt = data.beneficiaries.reduce((s, b) => s + Number(b.amount), 0);
   doc.setFont(fontFamily, 'bold');
-  doc.text('التوزيعات الفعلية للمستفيدين', 105, y, { align: 'center' });
+  doc.text(rs('التوزيعات الفعلية للمستفيدين'), 105, y, { align: 'center' });
   autoTable(doc, {
     startY: y + 6,
-    head: [['المستفيد', 'النسبة %', 'المبلغ (ر.س)']],
-    body: data.beneficiaries.map(b => [
+    head: [reshapeRow(['المستفيد', 'النسبة %', 'المبلغ (ر.س)'])],
+    body: data.beneficiaries.map(b => reshapeRow([
       b.name,
       `${Number(b.share_percentage).toFixed(6)}%`,
       b.amount.toLocaleString(),
-    ]),
-    foot: [['الإجمالي', `${totalBenPct.toFixed(6)}%`, totalBenAmt.toLocaleString()]],
+    ])),
+    foot: [reshapeRow(['الإجمالي', `${totalBenPct.toFixed(6)}%`, totalBenAmt.toLocaleString()])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),

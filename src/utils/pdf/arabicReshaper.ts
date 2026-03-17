@@ -97,7 +97,17 @@ export const reshapeArabic = (text: string): string => {
 };
 
 /**
- * نسخة مُحسّنة تعالج مصفوفة نصوص (لجداول autoTable)
+ * نسخة مُحسّنة تعالج مصفوفة عناصر جدول autoTable
+ * تدعم: string, number, وكائنات { content, styles, colSpan, ... }
  */
-export const reshapeRow = (row: string[]): string[] =>
-  row.map(cell => reshapeArabic(cell));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const reshapeRow = (row: any[]): any[] =>
+  row.map(cell => {
+    if (cell == null) return cell;
+    if (typeof cell === 'number') return cell;
+    if (typeof cell === 'string') return reshapeArabic(cell);
+    if (typeof cell === 'object' && 'content' in cell) {
+      return { ...cell, content: typeof cell.content === 'string' ? reshapeArabic(cell.content) : cell.content };
+    }
+    return cell;
+  });

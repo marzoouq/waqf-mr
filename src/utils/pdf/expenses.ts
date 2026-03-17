@@ -4,6 +4,7 @@ import {
   PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
+  reshapeArabic as rs, reshapeRow,
 } from './core';
 
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
@@ -15,19 +16,19 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير الدخل', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير الدخل'), 105, startY + 5, { align: 'center' });
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'المصدر', 'المبلغ', 'التاريخ', 'ملاحظات']],
-    body: income.map((item, i) => [
+    head: [reshapeRow(['#', 'المصدر', 'المبلغ', 'التاريخ', 'ملاحظات'])],
+    body: income.map((item, i) => reshapeRow([
       i + 1,
       item.source,
       `${Number(item.amount).toLocaleString()} ر.س`,
       item.date,
       item.notes || '-',
-    ]),
-    foot: [['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', '']],
+    ])),
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -48,19 +49,19 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
-  doc.text('تقرير المصروفات', 105, startY + 5, { align: 'center' });
+  doc.text(rs('تقرير المصروفات'), 105, startY + 5, { align: 'center' });
 
   autoTable(doc, {
     startY: startY + 14,
-    head: [['#', 'النوع', 'المبلغ', 'التاريخ', 'الوصف']],
-    body: expenses.map((item, i) => [
+    head: [reshapeRow(['#', 'النوع', 'المبلغ', 'التاريخ', 'الوصف'])],
+    body: expenses.map((item, i) => reshapeRow([
       i + 1,
       item.expense_type,
       `${Number(item.amount).toLocaleString()} ر.س`,
       item.date,
       item.description || '-',
-    ]),
-    foot: [['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', '']],
+    ])),
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
