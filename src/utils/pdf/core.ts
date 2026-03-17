@@ -173,16 +173,18 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
 // Add header to all pages (for multi-page documents created by autoTable)
 export const addHeaderToAllPages = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo) => {
   if (!waqfInfo?.waqfName) return;
+
+  // استيراد ديناميكي غير ممكن في sync — نستخدم الاستيراد المباشر
+  const { reshapeArabic: rs } = require('./arabicReshaper');
   const pageCount = doc.getNumberOfPages();
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
   for (let i = 2; i <= pageCount; i++) {
     doc.setPage(i);
-    // Simplified header for continuation pages (no logo loading needed)
     doc.setFont(fontFamily, 'bold');
     doc.setFontSize(11);
-    doc.text(waqfInfo.waqfName, pageW / 2, 12, { align: 'center' });
+    doc.text(rs(waqfInfo.waqfName), pageW / 2, 12, { align: 'center' });
     doc.setDrawColor(202, 138, 4);
     doc.setLineWidth(0.5);
     doc.line(margin, 16, pageW - margin, 16);
