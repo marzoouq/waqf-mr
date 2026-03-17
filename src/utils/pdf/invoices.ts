@@ -15,7 +15,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   date: string;
   property_number: string;
   status: string;
-}>, waqfInfo?: PdfWaqfInfo) => {
+}>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
