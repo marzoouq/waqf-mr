@@ -248,8 +248,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
   /** بناء بيانات المعاينة من فاتورة دفعة */
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
-    const contract = contracts.find(c => c.id === inv.contract_id) || inv.contract;
-    const hasBuyerTax = !!(contract as any)?.tenant_tax_number;
+    const fullContract = contracts.find(c => c.id === inv.contract_id);
+    const hasBuyerTax = !!fullContract?.tenant_tax_number;
     const hasVat = sn(inv.vat_rate) > 0;
     const amountExVat = sn(inv.amount) - sn(inv.vat_amount);
 
@@ -261,16 +261,17 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       sellerAddress: waqfInfo.address,
       sellerVatNumber: waqfInfo.vatNumber,
       sellerCR: waqfInfo.commercialReg,
-      buyerName: inv.contract?.tenant_name || '-',
-      buyerVatNumber: (contract as any)?.tenant_tax_number || undefined,
-      buyerCR: (contract as any)?.tenant_crn || undefined,
-      buyerIdType: (contract as any)?.tenant_id_type || undefined,
-      buyerIdNumber: (contract as any)?.tenant_id_number || undefined,
-      buyerStreet: (contract as any)?.tenant_street || undefined,
-      buyerDistrict: (contract as any)?.tenant_district || undefined,
-      buyerCity: (contract as any)?.tenant_city || undefined,
-      buyerPostalCode: (contract as any)?.tenant_postal_code || undefined,
-      buyerBuilding: (contract as any)?.tenant_building || undefined,
+      sellerLogo: waqfInfo.logoUrl,
+      buyerName: fullContract?.tenant_name || inv.contract?.tenant_name || '-',
+      buyerVatNumber: fullContract?.tenant_tax_number || undefined,
+      buyerCR: fullContract?.tenant_crn || undefined,
+      buyerIdType: fullContract?.tenant_id_type || undefined,
+      buyerIdNumber: fullContract?.tenant_id_number || undefined,
+      buyerStreet: fullContract?.tenant_street || undefined,
+      buyerDistrict: fullContract?.tenant_district || undefined,
+      buyerCity: fullContract?.tenant_city || undefined,
+      buyerPostalCode: fullContract?.tenant_postal_code || undefined,
+      buyerBuilding: fullContract?.tenant_building || undefined,
       items: [{
         description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
         quantity: 1,
@@ -282,7 +283,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       bankName: waqfInfo.bankName,
       bankIBAN: waqfInfo.bankIBAN,
       zatcaUuid: inv.zatca_uuid || undefined,
-      icv: undefined,
       zatcaStatus: inv.zatca_status || undefined,
     };
   };
