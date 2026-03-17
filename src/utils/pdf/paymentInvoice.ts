@@ -491,7 +491,7 @@ const renderClassic = async (
   const vatRate = invoice.vatRate ?? 0;
   const vatAmount = invoice.vatAmount ?? 0;
   const isVat = vatRate > 0;
-  const title = isVat ? 'فاتورة ضريبية مبسّطة' : 'فاتورة دفعة مستحقة';
+  const title = isVat ? rs('فاتورة ضريبية مبسّطة') : rs('فاتورة دفعة مستحقة');
   doc.text(title, 105, y + 2, { align: 'center' });
   y += 12;
 
