@@ -766,7 +766,9 @@ const renderCompact = async (
   y += 6;
 
   // جدول بنود مبسّط
+  const totals = computePdfTotals(invoice);
   const vatAmount = invoice.vatAmount ?? 0;
+  const vatRate = invoice.vatRate ?? 0;
   const amountExVat = invoice.amount - vatAmount;
 
   autoTable(doc, {
@@ -796,13 +798,17 @@ const renderCompact = async (
     },
   });
 
-  const tableEndY = getLastAutoTableY(doc, y + 25);
+  let tableEndY = getLastAutoTableY(doc, y + 25);
+
+  // خصومات/رسوم إضافية (إن وُجدت)
+  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
+
   let endY = tableEndY + 4;
 
-  // سطر الإجمالي
+  // سطر الإجمالي — يستخدم الحسابات الموحّدة
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(10);
-  doc.text(`الإجمالي: ${invoice.amount.toLocaleString()} ر.س`, pageW / 2, endY, { align: 'center' });
+  doc.text(`الإجمالي: ${totals.grandTotal.toLocaleString()} ر.س`, pageW / 2, endY, { align: 'center' });
   endY += 6;
 
   // بيانات الدفع مختصرة
