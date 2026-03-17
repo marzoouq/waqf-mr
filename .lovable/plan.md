@@ -1,22 +1,46 @@
 
 
-# تنفيذ التحسينات المكتشفة في فحص التبعيات
+# إصلاح نتائج الفحص الأمني
 
-## التغييرات المطلوبة
+## ملخص النتائج
 
-### 1. نقل أدوات البناء من `dependencies` إلى `devDependencies`
-الحزم التالية مدرجة خطأً في تبعيات الإنتاج رغم أنها أدوات بناء فقط:
+تم تحديث الفحص الأمني. من بين 3 نتائج:
+- **2 إيجابيات كاذبة** (تم تجاهلها بالفعل أو الآن)
+- **1 ثغرة حقيقية** تحتاج إصلاح
 
-- `workbox-build` (7.3.0) → devDependencies
-- `serialize-javascript` (6.0.2) → devDependencies  
-- `@rollup/plugin-terser` (0.4.4) → devDependencies
-- `@types/qrcode` (^1.5.6) → devDependencies
+---
 
-### 2. ملف واحد يتأثر
-`package.json` — حذف 4 أسطر من `dependencies` وإضافتها في `devDependencies`. قسم `overrides` يبقى كما هو (يعمل بشكل مستقل عن موقع الحزمة).
+## النتائج التي تم معالجتها (إيجابيات كاذبة)
 
-### لماذا هذا آمن
-- هذه الحزم تُستخدم فقط وقت البناء (build-time) ولا يستدعيها كود التطبيق مباشرة
-- `overrides` في npm/bun يعمل بغض النظر عن كون الحزمة في dependencies أو devDependencies
-- لا تأثير على حجم الحزمة النهائية (bundle) لأن Vite لا يضمّن devDependencies في البناء أصلاً، لكنه يُنظّف البنية ويمنع اللبس
+| النتيجة | الحالة | السبب |
+|---------|--------|-------|
+| Extension in Public (pgcrypto) | ✅ مُتجاهل سابقاً | pgcrypto في schema `extensions` وليس `public` |
+| contracts_safe بدون RLS | ✅ تم تجاهله الآن | VIEW مع `security_invoker=true` — RLS يُطبّق تلقائياً |
+| beneficiaries_safe PII مكشوفة | ✅ مُتجاهل سابقاً | VIEW يُعيد `'***'` لكل حقول PII |
+
+---
+
+## الثغرة الحقيقية: مفتاح ZATCA الخاص يُرسل للمتصفح
+
+**المستوى:** خطأ (Error)
+
+**المشكلة:** ملفان يستخدمان `select('*')` على جدول `zatca_certificates`، مما يُرسل المفتاح الخاص (ECDSA) وكلمة سر ZATCA API إلى المتصفح.
+
+**الملفات المتأثرة:**
+1. `src/pages/dashboard/ZatcaManagementPage.tsx` (سطر 75)
+2. `src/components/settings/ZatcaSettingsTab.tsx` (سطر 195)
+
+**الإصلاح:** تقييد `select` ليشمل فقط الحقول المطلوبة للعرض:
+```ts
+.select('id, certificate_type, is_active, request_id, created_at')
+```
+
+بدلاً من:
+```ts
+.select('*')
+```
+
+المفتاح الخاص يُستخدم فقط من قبل Edge Functions (`zatca-signer`, `zatca-api`) على الخادم — المتصفح لا يحتاجه أبداً.
+
+**ملف واحد لكل إصلاح** — تغيير سطر واحد في كل ملف.
 
