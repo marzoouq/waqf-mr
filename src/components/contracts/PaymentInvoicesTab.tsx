@@ -50,6 +50,7 @@ const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_
 
 export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentInvoicesTabProps) {
   const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
   const generateAll = useGenerateAllInvoices();
   const markPaid = useMarkInvoicePaid();
   const markUnpaid = useMarkInvoiceUnpaid();
@@ -64,6 +65,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewInvoiceNumber, setPreviewInvoiceNumber] = useState('');
   const [payAmount, setPayAmount] = useState('');
+  // معاينة القالب الجديد
+  const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
   // ترتيب بالأعمدة
   const [sortKey, setSortKey] = useState<SortKey>('due_date');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
