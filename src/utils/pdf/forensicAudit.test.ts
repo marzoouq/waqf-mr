@@ -15,6 +15,7 @@ vi.mock('./core', () => ({
   TABLE_HEAD_GREEN: [22, 101, 52],
   TABLE_HEAD_GOLD: [202, 138, 4],
   TABLE_HEAD_RED: [180, 40, 40],
+  reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 
 const mockSave = vi.fn();

@@ -17,6 +17,7 @@ vi.mock('./core', () => ({
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
+  reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
 vi.mock('@/hooks/useAuditLog', () => ({
   getTableNameAr: vi.fn((t: string) => t === 'contracts' ? 'العقود' : t),
