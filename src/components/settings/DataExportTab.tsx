@@ -39,9 +39,9 @@ const DataExportTab = () => {
       if (data.length >= 5000) {
         toast.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
       }
-      const csv = convertToCSV(data);
+      const csv = buildCsv(data);
       const date = new Date().toISOString().slice(0, 10);
-      downloadCSV(csv, `${table}_${date}.csv`);
+      downloadCsv(csv, `${table}_${date}.csv`);
       toast.success(`تم تصدير ${data.length} سجل من ${label}`);
     } catch {
       toast.error(`حدث خطأ أثناء تصدير ${label}`);
