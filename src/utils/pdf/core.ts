@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { reshapeArabic } from './arabicReshaper';
 export { reshapeArabic, reshapeRow } from './arabicReshaper';
 
 /* PDF Core - Shared types, font loading, header/footer, table styles */
