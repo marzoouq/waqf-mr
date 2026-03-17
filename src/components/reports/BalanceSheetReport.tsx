@@ -147,7 +147,7 @@ const BalanceSheetReport = ({
               {distributionsAmount > 0 && (
                 <TableRow>
                   <TableCell className="text-muted-foreground">التوزيعات المُنفّذة</TableCell>
-                  <TableCell className="text-left font-medium text-success">{fmt(distributionsAmount)} ر.س</TableCell>
+                  <TableCell className="text-start font-medium text-success">{fmt(distributionsAmount)} ر.س</TableCell>
                 </TableRow>
               )}
             </TableBody>
