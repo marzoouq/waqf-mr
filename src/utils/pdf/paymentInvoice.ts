@@ -543,7 +543,7 @@ const renderClassic = async (
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
-  doc.text('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف', 105, noteY, { align: 'center' });
+  doc.text(rs('هذه الفاتورة صادرة إلكترونياً من نظام إدارة الوقف'), 105, noteY, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 };
 
