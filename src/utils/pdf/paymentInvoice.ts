@@ -116,7 +116,7 @@ export const renderBuyerInfo = (
 
   doc.setFont(fontFamily, 'normal');
   doc.setFontSize(compact ? 7 : 8);
-  doc.text(`الاسم: ${invoice.tenantName}`, pageW - margin, y, { align: 'right' });
+  doc.text(rs(`الاسم: ${invoice.tenantName}`), pageW - margin, y, { align: 'right' });
   y += compact ? 4 : 5;
 
   if (invoice.tenantVatNumber) {
