@@ -84,6 +84,7 @@ const InvoicesPage = () => {
       sellerAddress: pdfWaqfInfo.address,
       sellerVatNumber: pdfWaqfInfo.vatNumber,
       sellerCR: pdfWaqfInfo.commercialReg,
+      sellerLogo: pdfWaqfInfo.logoUrl,
       buyerName: contract?.tenant_name || inv.contract?.tenant_name || '-',
       buyerVatNumber: contract?.tenant_tax_number || undefined,
       buyerCR: contract?.tenant_crn || undefined,
