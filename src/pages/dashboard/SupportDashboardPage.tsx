@@ -53,6 +53,34 @@ const CATEGORY_MAP: Record<string, string> = {
   suggestion: 'اقتراح',
 };
 
+/** مؤقت SLA — عداد تنازلي من 24 ساعة */
+const SLA_HOURS: Record<string, number> = { critical: 4, high: 12, medium: 24, low: 48 };
+
+function SlaIndicator({ ticket }: { ticket: SupportTicket }) {
+  if (ticket.status === 'resolved' || ticket.status === 'closed') {
+    return <span className="text-xs text-success">✓ مُغلق</span>;
+  }
+  const slaHours = SLA_HOURS[ticket.priority] ?? 24;
+  const created = new Date(ticket.created_at).getTime();
+  const deadline = created + slaHours * 60 * 60 * 1000;
+  const now = Date.now();
+  const remaining = deadline - now;
+
+  if (remaining <= 0) {
+    const overdue = Math.abs(remaining);
+    const hours = Math.floor(overdue / (1000 * 60 * 60));
+    return <span className="text-xs text-destructive font-medium">⏰ متأخر {hours > 0 ? `${hours} س` : 'الآن'}</span>;
+  }
+  const hoursLeft = Math.floor(remaining / (1000 * 60 * 60));
+  const minsLeft = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  const isUrgent = remaining < 2 * 60 * 60 * 1000;
+  return (
+    <span className={`text-xs font-medium ${isUrgent ? 'text-warning' : 'text-muted-foreground'}`}>
+      {hoursLeft > 0 ? `${hoursLeft} س` : ''} {minsLeft} د
+    </span>
+  );
+}
+
 /** تصدير بيانات إلى CSV */
 function exportToCsv(filename: string, headers: string[], rows: string[][]) {
   const BOM = '\uFEFF';
@@ -303,11 +331,12 @@ const SupportDashboardPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/50">
-                         <TableHead className="text-right">الرقم</TableHead>
+                        <TableHead className="text-right">الرقم</TableHead>
                         <TableHead className="text-right">العنوان</TableHead>
                         <TableHead className="text-right">التصنيف</TableHead>
                         <TableHead className="text-right">الأولوية</TableHead>
                         <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">SLA</TableHead>
                         <TableHead className="text-right">التقييم</TableHead>
                         <TableHead className="text-right">التاريخ</TableHead>
                         <TableHead className="text-right">إجراء</TableHead>
@@ -328,6 +357,9 @@ const SupportDashboardPage = () => {
                               <Badge className={s.color}>
                                 <Icon className="w-3 h-3 ml-1" />{s.label}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <SlaIndicator ticket={ticket} />
                             </TableCell>
                             <TableCell>
                               {ticket.rating ? (
