@@ -285,6 +285,18 @@ const InvoicesPage = () => {
                 })), pdfWaqfInfo, fyLabel);
                 toast.success('تم تحميل ملف PDF بنجاح');
               } catch { toast.error('حدث خطأ أثناء تصدير PDF'); }
+            }} onExportCsv={() => {
+              const fyLabel = fiscalYear?.label || 'جميع-السنوات';
+              const csv = buildCsv(filteredInvoices.map(inv => ({
+                'النوع': INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
+                'رقم الفاتورة': inv.invoice_number || '-',
+                'المبلغ': safeNumber(inv.amount),
+                'التاريخ': inv.date,
+                'العقار': inv.property?.property_number || '-',
+                'الحالة': INVOICE_STATUS_LABELS[inv.status] || inv.status,
+              })));
+              downloadCsv(csv, `فواتير-${fyLabel}.csv`);
+              toast.success('تم تصدير الفواتير بنجاح');
             }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild>

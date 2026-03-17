@@ -133,7 +133,17 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(filteredBeneficiaries.map(b => ({
+                'الاسم': b.name,
+                'النسبة %': Number(b.share_percentage),
+                'البريد': b.email || '-',
+                'الهاتف': b.phone || '-',
+                'ملاحظات': b.notes || '-',
+              })));
+              downloadCsv(csv, 'مستفيدين.csv');
+              toast.success('تم تصدير المستفيدين بنجاح');
+            }} />
             <BeneficiaryFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingBeneficiary} isPending={createBeneficiary.isPending || updateBeneficiary.isPending}
