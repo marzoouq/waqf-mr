@@ -82,7 +82,7 @@ function SlaIndicator({ ticket }: { ticket: SupportTicket }) {
 }
 
 /** تصدير بيانات إلى CSV */
-function exportToCsv(filename: string, headers: string[], rows: string[][]) {
+async function exportToCsv(filename: string, headers: string[], rows: string[][]) {
   const { buildCsvFromRows, downloadCsv } = await import('@/utils/csv');
   const csv = buildCsvFromRows(headers, rows);
   downloadCsv(csv, filename);
