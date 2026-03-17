@@ -331,6 +331,9 @@ const SupportDashboardPage = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
+                              <SlaIndicator ticket={ticket} />
+                            </TableCell>
+                            <TableCell>
                               {ticket.rating ? (
                                 <div className="flex items-center gap-0.5">
                                   {[1, 2, 3, 4, 5].map(i => (
