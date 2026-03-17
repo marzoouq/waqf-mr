@@ -686,7 +686,7 @@ const renderTaxProfessional = async (
     clientY += 5;
   }
   if (invoice.tenantAddress) {
-    doc.text(`العنوان : ${invoice.tenantAddress}`, pageW - margin, clientY, { align: 'right' });
+    doc.text(rs(`العنوان : ${invoice.tenantAddress}`), pageW - margin, clientY, { align: 'right' });
     clientY += 5;
   }
 
