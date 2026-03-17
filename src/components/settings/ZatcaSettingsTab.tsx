@@ -155,6 +155,29 @@ const ZatcaSettingsTab = () => {
     }
   };
 
+  // اختبار الاتصال ببوابة فاتورة
+  const handleTestConnection = async () => {
+    setConnectionTest({ loading: true, result: null });
+    try {
+      const { data, error } = await supabase.functions.invoke('zatca-api', {
+        body: { action: 'test-connection' },
+      });
+      if (error) throw error;
+      setConnectionTest({ loading: false, result: data });
+      if (data?.connected) {
+        toast.success('✅ الاتصال ببوابة فاتورة ناجح');
+      } else {
+        toast.error('❌ تعذّر الاتصال ببوابة فاتورة');
+      }
+    } catch (e) {
+      setConnectionTest({
+        loading: false,
+        result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
+      });
+      toast.error('فشل اختبار الاتصال');
+    }
+  };
+
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
   return (
