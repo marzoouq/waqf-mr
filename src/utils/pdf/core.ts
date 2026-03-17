@@ -118,6 +118,7 @@ export const loadLogoBase64 = async (url: string): Promise<string | null> => {
 export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo): Promise<number> => {
   if (!waqfInfo?.waqfName) return 15; // no header, return default startY
 
+  const { reshapeArabic: rs } = await import('./arabicReshaper');
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
   let currentY = 14;
@@ -137,7 +138,7 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
   // Waqf name - centered bold
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(16);
-  doc.text(waqfInfo.waqfName, pageW / 2, currentY + 4, { align: 'center' });
+  doc.text(rs(waqfInfo.waqfName), pageW / 2, currentY + 4, { align: 'center' });
   currentY += 12;
 
   // Deed info - smaller text below name
@@ -148,7 +149,7 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
   if (deedParts.length > 0) {
     doc.setFont(fontFamily, 'normal');
     doc.setFontSize(9);
-    doc.text(deedParts.join('  -  '), pageW / 2, currentY + 2, { align: 'center' });
+    doc.text(rs(deedParts.join('  -  ')), pageW / 2, currentY + 2, { align: 'center' });
     currentY += 8;
   }
 
@@ -156,7 +157,7 @@ export const addHeader = async (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWa
   if (waqfInfo.vatNumber) {
     doc.setFont(fontFamily, 'normal');
     doc.setFontSize(8);
-    doc.text(`الرقم الضريبي: ${waqfInfo.vatNumber}`, pageW / 2, currentY + 2, { align: 'center' });
+    doc.text(rs(`الرقم الضريبي: ${waqfInfo.vatNumber}`), pageW / 2, currentY + 2, { align: 'center' });
     currentY += 7;
   }
 
