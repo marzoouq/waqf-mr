@@ -477,6 +477,29 @@ const InvoicesPage = () => {
         </AlertDialog>
         <InvoiceViewer open={!!viewerFile} onOpenChange={(open) => !open && setViewerFile(null)} filePath={viewerFile?.path || null} fileName={viewerFile?.name || null} />
         <InvoicePreviewDialog open={!!previewInvoice} onOpenChange={(open) => !open && setPreviewInvoice(null)} invoice={previewInvoice} />
+        <CreateInvoiceFromTemplate
+          open={templateOpen}
+          onOpenChange={setTemplateOpen}
+          contracts={contracts}
+          properties={properties}
+          sellerInfo={{
+            name: pdfWaqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
+            address: pdfWaqfInfo.address,
+            vatNumber: pdfWaqfInfo.vatNumber,
+            commercialReg: pdfWaqfInfo.commercialReg,
+            bankName: pdfWaqfInfo.bankName,
+            bankIBAN: pdfWaqfInfo.bankIBAN,
+          }}
+          onSave={async (data) => {
+            await createInvoice.mutateAsync({
+              ...data,
+              fiscal_year_id: fiscalYear?.id,
+            } as unknown as Parameters<typeof createInvoice.mutateAsync>[0]);
+            setTemplateOpen(false);
+            toast.success('تم إنشاء الفاتورة بنجاح');
+          }}
+          isSaving={createInvoice.isPending}
+        />
       </div>
     </DashboardLayout>
   );
