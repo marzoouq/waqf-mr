@@ -14,7 +14,7 @@ interface InvoicePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoice: InvoicePreviewData | null;
-  onDownloadPdf?: () => void;
+  onDownloadPdf?: (template: 'professional' | 'simplified') => void;
 }
 
 const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
