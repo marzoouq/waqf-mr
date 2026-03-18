@@ -61,7 +61,7 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
       item.date,
       item.description || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
