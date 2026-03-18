@@ -116,6 +116,15 @@ const AdminDashboard = () => {
   const sharesNote = isYearActive ? ' *تقديري' : '';
   const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
 
+  // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
+  const expiringContracts = useMemo(() =>
+    fyContracts.filter(c => {
+      const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
+      return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+    }),
+    [fyContracts]
+  );
+
   const stats = useMemo(() => {
     const incomeChange = yoy.hasPrevYear ? calcChangePercent(totalIncome, yoy.prevTotalIncome) : null;
     const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
