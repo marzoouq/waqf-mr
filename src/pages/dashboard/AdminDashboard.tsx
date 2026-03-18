@@ -226,13 +226,8 @@ const AdminDashboard = () => {
           </Alert>
         )}
 
-        {/* Expiring Contracts Warning (within 30 days) */}
-        {(() => {
-          const expiringContracts = fyContracts.filter(c => {
-            const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
-            return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
-          });
-          return expiringContracts.length > 0 ? (
+        {/* BUG-04 fix: Expiring Contracts Warning (within 30 days) — moved to useMemo */}
+        {expiringContracts.length > 0 && (
             <Alert className="animate-fade-in border-warning/50">
               <Clock className="h-4 w-4" />
               <AlertTitle>عقود تنتهي قريباً</AlertTitle>
@@ -243,8 +238,7 @@ const AdminDashboard = () => {
                 </Link>
               </AlertDescription>
             </Alert>
-          ) : null;
-        })()}
+        )}
 
         {/* Orphaned Contracts Warning */}
         {orphanedContracts.length > 0 && (
