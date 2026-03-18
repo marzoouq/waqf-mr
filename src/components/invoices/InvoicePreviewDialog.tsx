@@ -2,7 +2,7 @@
  * معاينة فاتورة ضريبية — متوافقة مع ZATCA Phase 2
  * يدعم التبديل بين القالب الاحترافي والمبسط
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
@@ -20,7 +20,17 @@ interface InvoicePreviewDialogProps {
 const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
   open, onOpenChange, invoice, onDownloadPdf,
 }) => {
-  const [template, setTemplate] = useState<'professional' | 'simplified'>('professional');
+  // ربط القالب الافتراضي بنوع الفاتورة تلقائياً
+  const [template, setTemplate] = useState<'professional' | 'simplified'>(
+    invoice?.type === 'standard' ? 'professional' : 'simplified'
+  );
+
+  // تحديث القالب عند تغير الفاتورة المعروضة
+  useEffect(() => {
+    if (invoice) {
+      setTemplate(invoice.type === 'standard' ? 'professional' : 'simplified');
+    }
+  }, [invoice]);
 
   if (!invoice) return null;
 

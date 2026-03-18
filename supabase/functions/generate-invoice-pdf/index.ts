@@ -271,10 +271,20 @@ interface WaqfSettings {
   waqf_court: string;
   waqf_admin: string;
   vat_registration_number: string;
+  waqf_logo_url: string;
+  waqf_bank_name: string;
+  waqf_bank_iban: string;
+  business_address: string;
+  commercial_registration_number: string;
 }
 
 async function fetchWaqfSettings(adminClient: SupabaseClient): Promise<WaqfSettings> {
-  const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin', 'vat_registration_number'];
+  const keys = [
+    'waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin',
+    'vat_registration_number', 'waqf_logo_url', 'waqf_bank_name', 'waqf_bank_iban',
+    'business_address_street', 'business_address_district', 'business_address_city',
+    'business_address_postal_code', 'commercial_registration_number',
+  ];
   const { data } = await adminClient
     .from('app_settings')
     .select('key, value')
@@ -283,12 +293,25 @@ async function fetchWaqfSettings(adminClient: SupabaseClient): Promise<WaqfSetti
   const map: Record<string, string> = {};
   for (const row of data ?? []) map[row.key] = row.value;
 
+  // بناء العنوان من الحقول المتاحة
+  const addressParts = [
+    map.business_address_street,
+    map.business_address_district,
+    map.business_address_city,
+    map.business_address_postal_code,
+  ].filter(Boolean);
+
   return {
     waqf_name: map.waqf_name || 'غير محدد',
     waqf_deed_number: map.waqf_deed_number || 'غير محدد',
     waqf_court: map.waqf_court || 'غير محدد',
     waqf_admin: map.waqf_admin || 'غير محدد',
     vat_registration_number: map.vat_registration_number || '',
+    waqf_logo_url: map.waqf_logo_url || '',
+    waqf_bank_name: map.waqf_bank_name || '',
+    waqf_bank_iban: map.waqf_bank_iban || '',
+    business_address: addressParts.length > 0 ? addressParts.join('، ') : '',
+    commercial_registration_number: map.commercial_registration_number || '',
   };
 }
 
@@ -355,6 +378,15 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   if (waqfSettings.vat_registration_number) {
     detailLines.push(`الرقم الضريبي: ${waqfSettings.vat_registration_number}`);
   }
+  if (waqfSettings.commercial_registration_number) {
+    detailLines.push(`السجل التجاري: ${waqfSettings.commercial_registration_number}`);
+  }
+  if (waqfSettings.business_address) {
+    detailLines.push(`العنوان: ${waqfSettings.business_address}`);
+  }
+  if (waqfSettings.waqf_bank_iban) {
+    detailLines.push(`IBAN: ${waqfSettings.waqf_bank_iban}${waqfSettings.waqf_bank_name ? ` (${waqfSettings.waqf_bank_name})` : ''}`);
+  }
 
   for (const line of detailLines) {
     const shaped = processArabicText(line);
@@ -395,19 +427,25 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   const colLabelX = tableX + tableW;
   const rowH = 30;
 
+  // تنسيق الأرقام المالية بالعربية
+  const fmtNum = (n: number) => n.toLocaleString("ar-SA", { minimumFractionDigits: 2 });
+
+  // fallback لنوع الفاتورة عند payment_invoices (لا يحتوي على invoice_type)
+  const typeLabel = TYPE_AR[invoice.invoice_type] || (invoice.invoice_type ? invoice.invoice_type : 'إيجار');
+
   const rows: [string, string][] = [
     ["رقم الفاتورة", invNum],
-    ["النوع", TYPE_AR[invoice.invoice_type] || invoice.invoice_type],
+    ["النوع", typeLabel],
   ];
 
   // VAT conditional rows
   if (isVatInvoice) {
     const amountExVat = invoice.amount_excluding_vat ?? (invoice.amount - invoice.vat_amount);
-    rows.push(["المبلغ قبل الضريبة (ر.س)", amountExVat.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
-    rows.push([`ضريبة القيمة المضافة (${invoice.vat_rate}%)`, invoice.vat_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
-    rows.push(["الإجمالي شاملاً الضريبة (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["المبلغ قبل الضريبة (ر.س)", fmtNum(amountExVat)]);
+    rows.push([`ضريبة القيمة المضافة (${invoice.vat_rate}%)`, fmtNum(invoice.vat_amount)]);
+    rows.push(["الإجمالي شاملاً الضريبة (ر.س)", fmtNum(invoice.amount)]);
   } else {
-    rows.push(["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["المبلغ (ر.س)", fmtNum(invoice.amount)]);
     rows.push(["ضريبة القيمة المضافة", "معفاة"]);
   }
 

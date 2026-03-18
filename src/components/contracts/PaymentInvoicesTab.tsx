@@ -206,7 +206,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     );
   };
 
-  const handleDownloadPdf = async (inv: PaymentInvoice) => {
+  const handleDownloadPdf = async (inv: PaymentInvoice, templateOverride?: 'classic' | 'tax_professional' | 'compact') => {
     setLoadingInvoiceId(inv.id);
     try {
       const blobUrl = await generatePaymentInvoicePDF({
@@ -225,7 +225,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         notes: inv.notes,
         vatRate: inv.vat_rate ?? 0,
         vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo, invoiceTemplate);
+      }, waqfInfo, templateOverride ?? invoiceTemplate);
 
       if (blobUrl) {
         try {
@@ -331,10 +331,10 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         open={!!previewInvoice}
         onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}
         invoice={previewInvoice}
-        onDownloadPdf={() => {
-          // إيجاد الفاتورة الأصلية من بيانات المعاينة لتحميل PDF
+        onDownloadPdf={(template) => {
+          // إيجاد الفاتورة الأصلية من بيانات المعاينة لتحميل PDF مع تحويل اسم القالب
           const origInv = invoices?.find(i => i.invoice_number === previewInvoice?.invoiceNumber);
-          if (origInv) handleDownloadPdf(origInv);
+          if (origInv) handleDownloadPdf(origInv, template === 'professional' ? 'tax_professional' : 'compact');
         }}
       />
 

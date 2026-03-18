@@ -8,6 +8,9 @@ import {
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
+// تنسيق الأرقام المالية بالعربية
+const fmtAr = (n: number) => n.toLocaleString('ar-SA');
+
 interface ReportData {
   fiscalYear: string;
   totalIncome: number;
@@ -16,6 +19,8 @@ interface ReportData {
   adminShare: number;
   waqifShare: number;
   waqfRevenue: number;
+  adminPct?: number;
+  waqifPct?: number;
   expensesByType: Array<{ type: string; amount: number }>;
   incomeBySource: Array<{ source: string; amount: number }>;
   beneficiaries: Array<{
@@ -45,15 +50,15 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     head: [reshapeRow(['البند', 'المبلغ (ر.س)'])],
     body: [
       reshapeRow([{ content: rs('-- الإيرادات --'), colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 252, 231] } }]),
-      ...data.incomeBySource.map(i => reshapeRow([`  ${i.source}`, `+${i.amount.toLocaleString()}`])),
-      reshapeRow([{ content: rs('إجمالي الإيرادات'), styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }]),
+      ...data.incomeBySource.map(i => reshapeRow([`  ${i.source}`, `+${fmtAr(i.amount)}`])),
+      reshapeRow([{ content: rs('إجمالي الإيرادات'), styles: { fontStyle: 'bold' } }, { content: `+${fmtAr(data.totalIncome)}`, styles: { fontStyle: 'bold' } }]),
       reshapeRow([{ content: rs('-- المصروفات --'), colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [254, 226, 226] } }]),
-      ...data.expensesByType.map(e => reshapeRow([`  ${e.type}`, `-${e.amount.toLocaleString()}`])),
-      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `(${data.totalExpenses.toLocaleString()})`, styles: { fontStyle: 'bold' } }]),
-      reshapeRow(['صافي الريع', data.netRevenue.toLocaleString()]),
-      reshapeRow(['حصة الناظر (10%)', data.adminShare.toLocaleString()]),
-      reshapeRow(['حصة الواقف (5%)', data.waqifShare.toLocaleString()]),
-      reshapeRow(['ريع المستفيدين', data.waqfRevenue.toLocaleString()]),
+      ...data.expensesByType.map(e => reshapeRow([`  ${e.type}`, `-${fmtAr(e.amount)}`])),
+      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `(${fmtAr(data.totalExpenses)})`, styles: { fontStyle: 'bold' } }]),
+      reshapeRow(['صافي الريع', fmtAr(data.netRevenue)]),
+      reshapeRow([`حصة الناظر (${data.adminPct ?? 10}%)`, fmtAr(data.adminShare)]),
+      reshapeRow([`حصة الواقف (${data.waqifPct ?? 5}%)`, fmtAr(data.waqifShare)]),
+      reshapeRow(['ريع المستفيدين', fmtAr(data.waqfRevenue)]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -71,7 +76,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     head: [reshapeRow(['اسم المستفيد', 'المبلغ المستحق (ر.س)'])],
     body: data.beneficiaries.map(b => reshapeRow([
       b.name,
-      b.amount.toLocaleString(),
+      fmtAr(b.amount),
     ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
@@ -104,7 +109,7 @@ export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, s
     body: [
       reshapeRow(['اسم المستفيد', beneficiaryName]),
       reshapeRow(['نسبة الحصة', `${sharePercentage}%`]),
-      reshapeRow(['مبلغ الحصة', `${shareAmount.toLocaleString()} ر.س`]),
+      reshapeRow(['مبلغ الحصة', `${fmtAr(shareAmount)} ر.س`]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -156,38 +161,38 @@ export const generateAnnualDisclosurePDF = async (data: {
   // 1. Full Financial Hierarchy
   const hierarchyRows: (string | number)[][] = [];
   if (data.waqfCorpusPrevious > 0) {
-    hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${data.waqfCorpusPrevious.toLocaleString()}`]);
+    hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${fmtAr(data.waqfCorpusPrevious)}`]);
   }
   hierarchyRows.push(
-    ['إجمالي الإيرادات', `+${data.totalIncome.toLocaleString()}`],
+    ['إجمالي الإيرادات', `+${fmtAr(data.totalIncome)}`],
   );
   if (data.waqfCorpusPrevious > 0) {
-    hierarchyRows.push(['الإجمالي الشامل', data.grandTotal.toLocaleString()]);
+    hierarchyRows.push(['الإجمالي الشامل', fmtAr(data.grandTotal)]);
   }
   hierarchyRows.push(
-    ['(-) المصروفات التشغيلية', `(${data.totalExpenses.toLocaleString()})`],
-    ['الصافي بعد المصاريف', data.netAfterExpenses.toLocaleString()],
-    ['(-) ضريبة القيمة المضافة', `(${data.vatAmount.toLocaleString()})`],
-    ['الصافي بعد الضريبة', data.netAfterVat.toLocaleString()],
+    ['(-) المصروفات التشغيلية', `(${fmtAr(data.totalExpenses)})`],
+    ['الصافي بعد المصاريف', fmtAr(data.netAfterExpenses)],
+    ['(-) ضريبة القيمة المضافة', `(${fmtAr(data.vatAmount)})`],
+    ['الصافي بعد الضريبة', fmtAr(data.netAfterVat)],
   );
   if (data.zakatAmount > 0) {
     hierarchyRows.push(
-      ['(-) الزكاة', `(${data.zakatAmount.toLocaleString()})`],
-      ['الصافي بعد الزكاة', data.netAfterZakat.toLocaleString()],
+      ['(-) الزكاة', `(${fmtAr(data.zakatAmount)})`],
+      ['الصافي بعد الزكاة', fmtAr(data.netAfterZakat)],
     );
   }
   hierarchyRows.push(
-    [`(-) حصة الناظر (${data.adminPct}%)`, `(${data.adminShare.toLocaleString()})`],
-    [`(-) حصة الواقف (${data.waqifPct}%)`, `(${data.waqifShare.toLocaleString()})`],
-    ['ريع الوقف', data.waqfRevenue.toLocaleString()],
+    [`(-) حصة الناظر (${data.adminPct}%)`, `(${fmtAr(data.adminShare)})`],
+    [`(-) حصة الواقف (${data.waqifPct}%)`, `(${fmtAr(data.waqifShare)})`],
+    ['ريع الوقف', fmtAr(data.waqfRevenue)],
   );
   if (data.waqfCorpusManual > 0) {
-    hierarchyRows.push(['(-) رقبة الوقف للعام الحالي', `(${data.waqfCorpusManual.toLocaleString()})`]);
+    hierarchyRows.push(['(-) رقبة الوقف للعام الحالي', `(${fmtAr(data.waqfCorpusManual)})`]);
   }
   hierarchyRows.push(
-    ['المبلغ المتاح للتوزيع', data.availableAmount.toLocaleString()],
-    ['(-) التوزيعات الفعلية', `(${data.distributionsAmount.toLocaleString()})`],
-    ['الرصيد المتبقي', data.remainingBalance.toLocaleString()],
+    ['المبلغ المتاح للتوزيع', fmtAr(data.availableAmount)],
+    ['(-) التوزيعات الفعلية', `(${fmtAr(data.distributionsAmount)})`],
+    ['الرصيد المتبقي', fmtAr(data.remainingBalance)],
   );
 
   autoTable(doc, {
@@ -208,8 +213,8 @@ export const generateAnnualDisclosurePDF = async (data: {
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['المصدر', 'المبلغ (ر.س)'])],
-    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${a.toLocaleString()}`])),
-    foot: [reshapeRow(['الإجمالي', `+${data.totalIncome.toLocaleString()}`])],
+    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${fmtAr(a)}`])),
+    foot: [reshapeRow(['الإجمالي', `+${fmtAr(data.totalIncome)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -224,8 +229,8 @@ export const generateAnnualDisclosurePDF = async (data: {
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
-    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${a.toLocaleString()}`])),
-    foot: [reshapeRow(['الإجمالي', `-${data.totalExpenses.toLocaleString()}`])],
+    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${fmtAr(a)}`])),
+    foot: [reshapeRow(['الإجمالي', `-${fmtAr(data.totalExpenses)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
@@ -245,9 +250,9 @@ export const generateAnnualDisclosurePDF = async (data: {
     body: data.beneficiaries.map(b => reshapeRow([
       b.name,
       `${Number(b.share_percentage).toFixed(6)}%`,
-      b.amount.toLocaleString(),
+      fmtAr(b.amount),
     ])),
-    foot: [reshapeRow(['الإجمالي', `${totalBenPct.toFixed(6)}%`, totalBenAmt.toLocaleString()])],
+    foot: [reshapeRow(['الإجمالي', `${totalBenPct.toFixed(6)}%`, fmtAr(totalBenAmt)])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),
