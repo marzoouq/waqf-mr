@@ -454,14 +454,18 @@ const AdminDashboard = () => {
         )}
 
         {/* D-4: خريطة حرارية للتحصيل الشهري */}
-        <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-          <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+            <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* D-5: جدول الإجراءات المعلقة */}
-        <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-          <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+            <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Charts — lazy-loaded (recharts bundle) */}
         <Suspense fallback={<ChartSkeleton />}>
