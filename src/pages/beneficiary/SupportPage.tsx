@@ -20,7 +20,7 @@ import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useAddTicketReply, useRateTicket, type SupportTicket,
 } from '@/hooks/useSupportTickets';
-import { fmt } from '@/utils/format';
+
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   open: { label: 'مفتوح', color: 'bg-status-approved/20 text-status-approved-foreground', icon: Clock },

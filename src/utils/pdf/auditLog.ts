@@ -12,7 +12,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/useAuditLog';
-import { fmt } from '@/utils/format';
+
 
 export interface AuditLogPdfOptions {
   logs: AuditLogEntry[];
