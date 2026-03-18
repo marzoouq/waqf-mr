@@ -57,7 +57,7 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
     body: expenses.map((item, i) => reshapeRow([
       i + 1,
       item.expense_type,
-      `${Number(item.amount).toLocaleString()} ر.س`,
+      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
       item.date,
       item.description || '-',
     ])),
