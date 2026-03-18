@@ -110,7 +110,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TrendingUp className="w-4 h-4 text-success" />
               <p className="text-base sm:text-xl font-bold">{bestMonth?.label}</p>
             </div>
-            <p className="text-xs text-success">{bestMonth?.fmt(net)} ر.س</p>
+            <p className="text-xs text-success">{fmt(bestMonth?.net ?? 0)} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
