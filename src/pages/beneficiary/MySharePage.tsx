@@ -63,7 +63,7 @@ const MySharePage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
