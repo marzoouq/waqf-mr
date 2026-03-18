@@ -28,7 +28,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
       i + 1,
       item.source,
       `${fmt(Number(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.notes || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
