@@ -371,8 +371,8 @@ const AdminDashboard = () => {
           contractualRevenue={contractualRevenue}
         />
 
-        {/* Quick Actions for Accountant */}
-        {role === 'accountant' && (
+        {/* Quick Actions for Admin & Accountant */}
+        {(role === 'accountant' || role === 'admin') && (
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -382,30 +382,61 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Link to="/dashboard/income">
-                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                    <TrendingUp className="w-5 h-5 text-success" />
-                    <span className="text-xs">تسجيل دخل</span>
-                  </Button>
-                </Link>
-                <Link to="/dashboard/expenses">
-                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                    <TrendingDown className="w-5 h-5 text-destructive" />
-                    <span className="text-xs">تسجيل مصروف</span>
-                  </Button>
-                </Link>
-                <Link to="/dashboard/accounts">
-                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                    <FileText className="w-5 h-5 text-primary" />
-                    <span className="text-xs">الحسابات الختامية</span>
-                  </Button>
-                </Link>
-                <Link to="/dashboard/invoices">
-                  <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
-                    <FileText className="w-5 h-5 text-secondary" />
-                    <span className="text-xs">إدارة الفواتير</span>
-                  </Button>
-                </Link>
+                {role === 'accountant' ? (
+                  <>
+                    <Link to="/dashboard/income">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <TrendingUp className="w-5 h-5 text-success" />
+                        <span className="text-xs">تسجيل دخل</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/expenses">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <TrendingDown className="w-5 h-5 text-destructive" />
+                        <span className="text-xs">تسجيل مصروف</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/accounts">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <FileText className="w-5 h-5 text-primary" />
+                        <span className="text-xs">الحسابات الختامية</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/invoices">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <FileText className="w-5 h-5 text-secondary" />
+                        <span className="text-xs">إدارة الفواتير</span>
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/dashboard/contracts">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <FileText className="w-5 h-5 text-primary" />
+                        <span className="text-xs">مراجعة العقود</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/beneficiaries">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <Users className="w-5 h-5 text-success" />
+                        <span className="text-xs">إدارة المستفيدين</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/reports">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <Gauge className="w-5 h-5 text-warning" />
+                        <span className="text-xs">التقارير</span>
+                      </Button>
+                    </Link>
+                    <Link to="/dashboard/settings">
+                      <Button variant="outline" className="w-full gap-2 h-auto py-3 flex-col">
+                        <Landmark className="w-5 h-5 text-muted-foreground" />
+                        <span className="text-xs">الإعدادات</span>
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
