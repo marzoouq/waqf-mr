@@ -2,7 +2,7 @@ import { EXPIRING_SOON_DAYS } from '@/constants';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Clock, Link as LinkIcon } from 'lucide-react';
+import { AlertTriangle, Clock, Link as LinkIcon, Banknote, TrendingDown } from 'lucide-react';
 
 interface OrphanedContract {
   id: string;
@@ -17,11 +17,41 @@ interface DashboardAlertsProps {
   usingFallbackPct: boolean;
   expiringContracts: ExpiringContract[];
   orphanedContracts: OrphanedContract[];
+  pendingAdvancesCount?: number;
+  collectionRate?: number;
 }
 
-const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContracts }: DashboardAlertsProps) => {
+const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContracts, pendingAdvancesCount = 0, collectionRate }: DashboardAlertsProps) => {
   return (
     <>
+      {/* سُلف معلقة */}
+      {pendingAdvancesCount > 0 && (
+        <Alert className="animate-fade-in border-warning/50">
+          <Banknote className="h-4 w-4" />
+          <AlertTitle>سُلف بانتظار الموافقة</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span>يوجد {pendingAdvancesCount} طلب سُلفة معلق بانتظار المراجعة والموافقة.</span>
+            <Link to="/dashboard/accounts">
+              <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* معدل تحصيل منخفض */}
+      {collectionRate != null && collectionRate > 0 && collectionRate < 50 && (
+        <Alert variant="destructive" className="animate-fade-in">
+          <TrendingDown className="h-4 w-4" />
+          <AlertTitle>معدل التحصيل منخفض</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span>معدل التحصيل الحالي {collectionRate}% — يُنصح بمراجعة الفواتير المتأخرة واتخاذ إجراء.</span>
+            <Link to="/dashboard/contracts">
+              <Button variant="outline" size="sm" className="shrink-0">مراجعة العقود</Button>
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* نسب افتراضية */}
       {usingFallbackPct && (
         <Alert className="animate-fade-in">
