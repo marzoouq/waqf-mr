@@ -468,9 +468,11 @@ const AdminDashboard = () => {
         </ErrorBoundary>
 
         {/* Charts — lazy-loaded (recharts bundle) */}
-        <Suspense fallback={<ChartSkeleton />}>
-          <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<ChartSkeleton />}>
+            <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
