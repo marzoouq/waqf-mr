@@ -30,9 +30,12 @@ const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 
 const MySharePage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['income'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
     queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
