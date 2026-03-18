@@ -123,7 +123,7 @@ export const defaultAdminSections = {
   properties: true, contracts: true, income: true, expenses: true,
   beneficiaries: true, reports: true, accounts: true, users: true,
   invoices: true, bylaws: true, messages: true, audit_log: true,
-  annual_report: true, support: true,
+  annual_report: true, support: true, chart_of_accounts: true,
 };
 
 export const defaultBeneficiarySections = {
