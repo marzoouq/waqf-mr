@@ -502,12 +502,18 @@ const InvoicesPage = () => {
           open={!!previewInvoice}
           onOpenChange={(open) => !open && setPreviewInvoice(null)}
           invoice={previewInvoice}
-          onDownloadPdf={() => {
+          onDownloadPdf={(template) => {
             const origInv = invoices.find(i =>
               (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
               `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
             );
-            if (origInv) generatePdf.mutate([origInv.id]);
+            if (origInv) {
+              generatePdf.mutate({
+                invoice_ids: [origInv.id],
+                template,
+                forceRegenerate: true,
+              });
+            }
           }}
         />
         <CreateInvoiceFromTemplate

@@ -579,9 +579,10 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { invoice_ids, table: sourceTable } = body;
+    const { invoice_ids, table: sourceTable, template, force_regenerate } = body;
     // دعم جدول payment_invoices أو invoices (الافتراضي)
     const tableName = sourceTable === "payment_invoices" ? "payment_invoices" : "invoices";
+    const forceRegenerate = force_regenerate === true;
 
     if (!invoice_ids || !Array.isArray(invoice_ids) || invoice_ids.length === 0) {
       return new Response(JSON.stringify({ error: "invoice_ids array is required" }), {
@@ -626,7 +627,8 @@ Deno.serve(async (req) => {
 
     for (const invoice of invoices) {
       try {
-        if (invoice.file_path) {
+        // تخطي الفواتير التي لديها ملف فقط إذا لم يُطلب إعادة التوليد
+        if (invoice.file_path && !forceRegenerate) {
           results.push({ id: invoice.id, invoice_number: invoice.invoice_number, success: true, error: "already has file" });
           continue;
         }

@@ -23,7 +23,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-import { useInvoices, useCreateInvoice, useUpdateInvoice, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from './useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, type GenerateInvoicePdfOptions } from './useInvoices';
 
 describe('useInvoices hooks', () => {
   it('exports all CRUD hooks', () => {
@@ -43,5 +43,24 @@ describe('useInvoices hooks', () => {
     expect(INVOICE_STATUS_LABELS.pending).toBe('معلّقة');
     expect(INVOICE_STATUS_LABELS.paid).toBe('مدفوعة');
     expect(INVOICE_STATUS_LABELS.cancelled).toBe('ملغاة');
+  });
+
+  it('GenerateInvoicePdfOptions supports template and forceRegenerate', () => {
+    const opts: GenerateInvoicePdfOptions = {
+      invoice_ids: ['abc'],
+      template: 'professional',
+      forceRegenerate: true,
+    };
+    expect(opts.template).toBe('professional');
+    expect(opts.forceRegenerate).toBe(true);
+  });
+
+  it('GenerateInvoicePdfOptions works with simplified template', () => {
+    const opts: GenerateInvoicePdfOptions = {
+      invoice_ids: ['abc'],
+      template: 'simplified',
+      forceRegenerate: true,
+    };
+    expect(opts.template).toBe('simplified');
   });
 });
