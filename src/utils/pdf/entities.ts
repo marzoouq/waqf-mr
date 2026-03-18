@@ -53,27 +53,39 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
   doc.setFontSize(18);
   doc.text(rs('تقرير العقود'), 105, startY + 5, { align: 'center' });
 
+  const formatDate = (d: string) => {
+    if (!d) return '-';
+    return new Date(d).toLocaleDateString('ar-SA');
+  };
+
   const statusLabel = (s: string) => {
     switch (s) {
       case 'active': return 'نشط';
       case 'expired': return 'منتهي';
-      case 'pending': return 'معلق';
+      case 'cancelled': return 'ملغي';
       default: return s;
     }
   };
 
+  const now = new Date();
+  const in90Days = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
   autoTable(doc, {
     startY: startY + 14,
     head: [reshapeRow(['#', 'رقم العقد', 'المستأجر', 'تاريخ البداية', 'تاريخ النهاية', 'قيمة الإيجار', 'الحالة'])],
-    body: contracts.map((c, i) => reshapeRow([
-      i + 1,
-      c.contract_number,
-      c.tenant_name,
-      c.start_date,
-      c.end_date,
-      `${fmt(safeNumber(c.rent_amount))} ر.س`,
-      statusLabel(c.status),
-    ])),
+    body: contracts.map((c, i) => {
+      const isExpiringSoon = c.status === 'active' && !!c.end_date && new Date(c.end_date) <= in90Days;
+      const statusText = isExpiringSoon ? `${statusLabel(c.status)} ⚠` : statusLabel(c.status);
+      return reshapeRow([
+        i + 1,
+        c.contract_number,
+        c.tenant_name,
+        formatDate(c.start_date),
+        formatDate(c.end_date),
+        `${fmt(safeNumber(c.rent_amount))} ر.س`,
+        statusText,
+      ]);
+    }),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...baseTableStyles(fontFamily),
