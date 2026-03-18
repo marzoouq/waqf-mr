@@ -30,3 +30,8 @@
 - استخدم `createCrudFactory` لأي جدول CRUD جديد
 - لا تنشئ مرجع foreign key إلى `auth.users` — استخدم جدول `profiles` إذا لزم الأمر
 - استخدم validation triggers بدلاً من CHECK constraints للتحقق الزمني
+
+## بروتوكول التنفيذ قبل الدفع
+
+- قبل أي `push` يجب الالتزام ببروتوكول التنفيذ الرسمي في `CONTRIBUTING.md`
+- أي تغيير أمني أو تغييرات في `supabase/migrations` لا يُدفع دون استكمال checkpoints الإلزامية الموثقة
