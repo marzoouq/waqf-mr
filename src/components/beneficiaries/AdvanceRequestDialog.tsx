@@ -44,15 +44,17 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
     if (!open || !beneficiaryId || !fiscalYearId) return;
     let cancelled = false;
     setLoading(true);
-    supabase.rpc('get_max_advance_amount', {
+    Promise.resolve(supabase.rpc('get_max_advance_amount', {
       p_beneficiary_id: beneficiaryId,
       p_fiscal_year_id: fiscalYearId,
-    }).then(({ data, error }) => {
+    })).then(({ data, error }) => {
       if (cancelled) return;
       if (!error && data && !(data as Record<string, unknown>).error) {
         setServerData(data as unknown as ServerAdvanceData);
       }
       setLoading(false);
+    }).catch(() => {
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [open, beneficiaryId, fiscalYearId]);

@@ -402,7 +402,13 @@ export function useAccountsPage() {
         'info', '/beneficiary/accounts',
       );
 
-      const rpcResult = result as { closed_label?: string; next_label?: string } | null;
+      const rpcResult = result as { closed_label?: string; next_label?: string; warnings?: string[] } | null;
+      // عرض تحذيرات RPC (توزيعات/سلف معلقة) إن وُجدت
+      if (rpcResult?.warnings && rpcResult.warnings.length > 0) {
+        for (const w of rpcResult.warnings) {
+          toast.warning(w, { duration: 10000 });
+        }
+      }
       toast.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || selectedFY.label} وترحيل الرصيد بنجاح`);
       toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
