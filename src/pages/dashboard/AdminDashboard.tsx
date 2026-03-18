@@ -409,9 +409,11 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Mini Pie Chart */}
-                <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                  <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
-                </Suspense>
+                <ErrorBoundary>
+                  <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
+                    <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
+                  </Suspense>
+                </ErrorBoundary>
 
                 {/* Summary Stats */}
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
