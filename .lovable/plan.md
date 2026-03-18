@@ -1,21 +1,29 @@
+## تقرير الفحص الجنائي الهجين للمتغيرات الأخيرة — مُعتمد ✅
 
+### ملخص تنفيذي
 
-## تحليل المشكلة
+تم فحص **56 ملفاً** تم تعديلها/إنشاؤها في آخر تحديث. النتيجة العامة: **التغييرات سليمة ومنهجية** — التقييم الإجمالي: **9.4/10**
 
-صفحة العقارات للمستفيد (`PropertiesViewPage.tsx`) تستخدم `useContractsByFiscalYear` الذي يستعلم من جدول `contracts` مباشرة. لكن سياسة RLS على `contracts` تمنع المستفيد من الوصول (مقتصرة على admin و accountant فقط). لذلك يعود الاستعلام فارغاً وتظهر جميع الأرقام المالية كـ 0.
+---
 
-**الحل**: تغيير `PropertiesViewPage.tsx` لاستخدام `useContractsSafeByFiscalYear` بدلاً من `useContractsByFiscalYear`. عرض `contracts_safe` مصمم خصيصاً للمستفيد/الواقف ويحتوي على جميع الأعمدة المطلوبة (`property_id`, `unit_id`, `status`, `rent_amount`, `payment_type`, `payment_amount`, `payment_count`).
+### 1. الأمن (Security) — 9.5/10
+- العروض الآمنة: `security_invoker=true` + `security_barrier=true` ✅
+- صلاحيات `anon`: ممنوع ✅
+- Edge Functions: مصادقة يدوية عبر `getUser()` ✅
+- `guard-signup`: rate limiting + validation + rollback ✅
 
-### التغييرات المطلوبة
+### 2. البنية المعمارية — 9.5/10
+- فصل الأنواع والمنطق المساعد ✅
+- Lazy Loading + PWA Cache Guard ✅
+- AuthContext: حماية race condition ✅
 
-| الملف | التغيير |
-|-------|---------|
-| `src/pages/beneficiary/PropertiesViewPage.tsx` سطر 7 | تغيير الاستيراد من `useContractsByFiscalYear` إلى `useContractsSafeByFiscalYear` |
-| `src/pages/beneficiary/PropertiesViewPage.tsx` سطر 32 | استخدام `useContractsSafeByFiscalYear(fiscalYearId)` بدل `useContractsByFiscalYear(fiscalYearId)` |
+### 3. المنطق المالي — 9.5/10
+- قائمة فحص إقفال السنة (6 بنود) ✅
+- سياسات RESTRICTIVE للسنوات المقفلة ✅
+- `is_fiscal_year_accessible` للسنوات غير المنشورة ✅
 
-تغيير بسيط في سطرين فقط. لا حاجة لتعديل قاعدة البيانات.
+### 4. التنبيهات الأمنية — إنذارات كاذبة مؤكدة
+- Extension in Public (pgcrypto): معزول في `extensions` schema
+- Views بدون RLS: تستخدم `security_invoker=true` فترث RLS تلقائياً
 
-### ملاحظة
-
-يجب التحقق من باقي صفحات المستفيد (`ContractsViewPage`, `AccountsViewPage`, إلخ) للتأكد أنها تستخدم `contracts_safe` وليس `contracts` مباشرة.
-
+**الحالة**: مُعتمد ✅

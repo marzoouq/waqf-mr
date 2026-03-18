@@ -4,7 +4,7 @@
  */
 import { useProperties } from '@/hooks/useProperties';
 import { useAllUnits } from '@/hooks/useUnits';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -29,7 +29,7 @@ const PropertiesViewPage = () => {
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
   const { fiscalYearId, noPublishedYears } = useFiscalYear();
   const isSpecificYear = fiscalYearId !== 'all';
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
