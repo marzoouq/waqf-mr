@@ -19,12 +19,6 @@ const isArabicChar = (code: number): boolean =>
   (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
   (code >= 0xFE70 && code <= 0xFEFF);   // Arabic Presentation Forms-B
 
-// هل الحرف محايد (مسافة أو تشكيل)؟
-const isNeutralChar = (code: number): boolean =>
-  code === 0x20 ||
-  (code >= 0x0610 && code <= 0x061A) ||
-  (code >= 0x064B && code <= 0x065F) ||
-  code === 0x0670;
 
 // هل النص يحتوي على حروف عربية؟
 const hasArabic = (text: string): boolean => {
