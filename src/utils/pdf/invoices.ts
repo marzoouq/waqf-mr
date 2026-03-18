@@ -10,6 +10,7 @@ import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import { toast } from 'sonner';
+const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-SA') : '-';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -50,7 +51,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       item.invoice_type,
       item.invoice_number || '-',
       `${fmt(safeNumber(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.property_number || '-',
       statusLabel(item.status),
     ])),
@@ -113,7 +114,7 @@ export const generateOverdueInvoicesPDF = async (
       inv.contract?.tenant_name ?? '-',
       inv.contract?.contract_number ?? '-',
       inv.contract?.property?.property_number ?? '-',
-      inv.due_date || '-',
+      formatDate(inv.due_date || ''),
       `${fmt(safeNumber(inv.amount))} ر.س`,
       inv.due_date ? calcDaysLate(inv.due_date) : 0,
     ])),

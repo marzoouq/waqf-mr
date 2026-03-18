@@ -8,6 +8,8 @@ import {
 } from './core';
 import { fmt } from '@/utils/format';
 
+const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-SA') : '-';
+
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
@@ -26,7 +28,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
       i + 1,
       item.source,
       `${fmt(Number(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.notes || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
@@ -59,7 +61,7 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
       i + 1,
       item.expense_type,
       `${fmt(Number(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.description || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
