@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 /**
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
@@ -202,7 +203,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'القابل للتوزيع', value: `${safeNumber(availableAmount).toLocaleString()} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'القابل للتوزيع', value: `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
@@ -229,7 +230,7 @@ const WaqifDashboard = () => {
               {kpis.map((kpi, idx) => (
                 <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
                   <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                  <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>{kpi.value.toLocaleString()}{kpi.suffix}</p>
+                  <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>{fmt(kpi.value)}{kpi.suffix}</p>
                   {kpi.progressColor && <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />}
                 </div>
               ))}
@@ -254,7 +255,7 @@ const WaqifDashboard = () => {
               ].map((row, i) => (
                 <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${i === 2 ? 'bg-primary/5 border border-primary/20' : 'bg-muted/30'}`}>
                   <span className="text-sm text-muted-foreground">{row.label}</span>
-                  <span className={`font-bold ${row.cls}`}>{safeNumber(row.value).toLocaleString()} ر.س</span>
+                  <span className={`font-bold ${row.cls}`}>{fmt(safeNumber(row.value))} ر.س</span>
                 </div>
               ))}
             </CardContent>
@@ -275,7 +276,7 @@ const WaqifDashboard = () => {
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                 <span className="text-sm text-muted-foreground">إجمالي قيمة العقود النشطة</span>
-                <span className="font-bold">{contractualRevenue.toLocaleString()} ر.س</span>
+                <span className="font-bold">{fmt(contractualRevenue)} ر.س</span>
               </div>
               {collectionSummary.total > 0 && (
                 <>
@@ -309,8 +310,8 @@ const WaqifDashboard = () => {
                     <BarChart data={monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v.toLocaleString()} />
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number | undefined) => (v ?? 0).toLocaleString() + ' ر.س'} labelFormatter={formatArabicMonth} />
+                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => fmt(v)} />
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} labelFormatter={formatArabicMonth} />
                       <Bar dataKey="income" name="الدخل" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="expenses" name="المصروفات" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                     </BarChart>
@@ -336,7 +337,7 @@ const WaqifDashboard = () => {
                       >
                         {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                       </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => (v ?? 0).toLocaleString() + ' ر.س'} />
+                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

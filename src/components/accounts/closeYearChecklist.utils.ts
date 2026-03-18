@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 export interface ChecklistItem {
   label: string;
   passed: boolean;
@@ -53,7 +54,7 @@ export function buildClosureChecklist(params: {
   });
 
   items.push({
-    label: params.distributionsAmount > 0 ? `تم توزيع ${params.distributionsAmount.toLocaleString()} ر.س` : 'لم يتم إجراء توزيعات',
+    label: params.distributionsAmount > 0 ? `تم توزيع ${fmt(params.distributionsAmount)} ر.س` : 'لم يتم إجراء توزيعات',
     passed: params.distributionsAmount > 0 || params.availableAmount <= 0,
     severity: 'warning',
     detail: 'يوجد مبلغ متاح لم يُوزَّع بعد',

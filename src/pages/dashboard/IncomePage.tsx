@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { useState, useMemo, useCallback } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/csv';
@@ -239,7 +240,7 @@ const IncomePage = () => {
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-success/10"><TrendingUp className="w-5 h-5 text-success" /></div>
-                <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{totalIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{fmt(totalIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
@@ -251,13 +252,13 @@ const IncomePage = () => {
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-                <div><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-xl font-bold">{summaryCards.avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-xl font-bold">{fmt(summaryCards.avg)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-                <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground">{summaryCards.topSourceAmount.toLocaleString('ar-SA')} ريال</p></div>
+                <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground">{fmt(summaryCards.topSourceAmount)} ريال</p></div>
               </CardContent>
             </Card>
           </div>
@@ -279,8 +280,8 @@ const IncomePage = () => {
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {lowIncomeMonths.map((m) => (
                       <p key={m.month}>
-                        شهر <span className="font-medium">{m.month}</span>: {m.amount.toLocaleString('ar-SA')} ر.س
-                        <span className="text-destructive"> (أقل من 20% من المتوسط: {m.avg.toLocaleString('ar-SA')} ر.س)</span>
+                        شهر <span className="font-medium">{m.month}</span>: {fmt(m.amount)} ر.س
+                        <span className="text-destructive"> (أقل من 20% من المتوسط: {fmt(m.avg)} ر.س)</span>
                       </p>
                     ))}
                   </div>
@@ -330,7 +331,7 @@ const IncomePage = () => {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
+                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{fmt(safeNumber(item.amount))} ر.س</p></div>
                         <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                         {item.notes && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">ملاحظات</p><p className="text-sm text-muted-foreground">{item.notes}</p></div>}
                       </div>
@@ -360,7 +361,7 @@ const IncomePage = () => {
                   {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
-                      <TableCell className="text-success font-medium">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
+                      <TableCell className="text-success font-medium">+{fmt(safeNumber(item.amount))} ر.س</TableCell>
                       <TableCell>{item.date}</TableCell>
                       <TableCell>{item.property?.property_number || '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>

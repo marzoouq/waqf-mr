@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -86,7 +87,7 @@ const AdvanceRequestsTab = () => {
         )}
         {advanceSettings.enabled && (
           <p className="text-xs text-muted-foreground mt-1">
-            الحد الأدنى: {advanceSettings.min_amount.toLocaleString()} ر.س | الحد الأقصى: {advanceSettings.max_percentage}% من الحصة
+            الحد الأدنى: {fmt(advanceSettings.min_amount)} ر.س | الحد الأقصى: {advanceSettings.max_percentage}% من الحصة
           </p>
         )}
       </CardHeader>
@@ -112,7 +113,7 @@ const AdvanceRequestsTab = () => {
                 {paginatedRequests.map(req => (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
-                    <TableCell>{safeNumber(req.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{fmt(safeNumber(req.amount))} ر.س</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>

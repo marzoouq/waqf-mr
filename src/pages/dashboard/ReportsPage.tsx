@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
@@ -195,7 +196,7 @@ const ReportsPage = () => {
       {
         category: 'اتساق التسلسل المالي',
         status: availableAmount >= distributionsAmount ? 'سليم' : 'ملاحظة',
-        details: `المتاح للتوزيع ${availableAmount.toLocaleString()} مقابل الموزع ${distributionsAmount.toLocaleString()}.`,
+        details: `المتاح للتوزيع ${fmt(availableAmount)} مقابل الموزع ${fmt(distributionsAmount)}.`,
         score: availableAmount >= distributionsAmount ? '10/10' : '5/10',
       },
       {
@@ -303,19 +304,19 @@ const ReportsPage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الدخل</p>
-              <p className="text-lg sm:text-2xl font-bold text-success">{totalIncome.toLocaleString()} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-success">{fmt(totalIncome)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
-              <p className="text-lg sm:text-2xl font-bold text-destructive">{totalExpenses.toLocaleString()} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-destructive">{fmt(totalExpenses)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">صافي الريع</p>
-              <p className="text-lg sm:text-2xl font-bold text-primary">{netRevenue.toLocaleString()} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary">{fmt(netRevenue)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
@@ -393,7 +394,7 @@ const ReportsPage = () => {
                       {waqfCorpusPrevious > 0 && (
                         <tr className="border-b bg-accent/10">
                           <td className="py-3 px-4 font-medium">رقبة الوقف المرحلة من العام السابق</td>
-                          <td className="py-3 px-4 font-bold text-accent-foreground">+{waqfCorpusPrevious.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-bold text-accent-foreground">+{fmt(waqfCorpusPrevious)}</td>
                         </tr>
                       )}
                       <tr className="bg-success/10">
@@ -402,17 +403,17 @@ const ReportsPage = () => {
                       {incomeSourceData.map((item, index) => (
                         <tr key={`income-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-success">+{item.value.toLocaleString()}</td>
+                          <td className="py-2 px-4 font-medium text-success">+{fmt(item.value)}</td>
                         </tr>
                       ))}
                       <tr className="border-b-2 border-success bg-success/10">
                         <td className="py-3 px-4 font-bold">إجمالي الإيرادات</td>
-                        <td className="py-3 px-4 font-bold text-success">+{totalIncome.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-success">+{fmt(totalIncome)}</td>
                       </tr>
                       {waqfCorpusPrevious > 0 && (
                         <tr className="border-b-2 border-success bg-success/15">
                           <td className="py-3 px-4 font-bold">الإجمالي الشامل</td>
-                          <td className="py-3 px-4 font-bold text-success">{grandTotal.toLocaleString()}</td>
+                          <td className="py-3 px-4 font-bold text-success">{fmt(grandTotal)}</td>
                         </tr>
                       )}
                       <tr className="bg-destructive/10">
@@ -421,73 +422,73 @@ const ReportsPage = () => {
                       {expenseTypeData.map((item, index) => (
                         <tr key={`expense-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-destructive">-{item.value.toLocaleString()}</td>
+                          <td className="py-2 px-4 font-medium text-destructive">-{fmt(item.value)}</td>
                         </tr>
                       ))}
                       {/* J-05 fix: show VAT as separate expense line so items + VAT = totalExpenses */}
                       {vatAmount > 0 && (
                         <tr className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  ضريبة القيمة المضافة</td>
-                          <td className="py-2 px-4 font-medium text-destructive">-{vatAmount.toLocaleString()}</td>
+                          <td className="py-2 px-4 font-medium text-destructive">-{fmt(vatAmount)}</td>
                         </tr>
                       )}
                       <tr className="border-b-2 border-destructive bg-destructive/10">
                         <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
-                        <td className="py-3 px-4 font-bold text-destructive">-{totalExpenses.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-destructive">-{fmt(totalExpenses)}</td>
                       </tr>
                       <tr className="border-b-2 border-info bg-info/10">
                         <td className="py-3 px-4 font-bold">الصافي بعد المصاريف</td>
-                        <td className="py-3 px-4 font-bold text-info">{netAfterExpenses.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-info">{fmt(netAfterExpenses)}</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4 text-muted-foreground">(-) ضريبة القيمة المضافة</td>
-                        <td className="py-3 px-4 text-destructive">-{vatAmount.toLocaleString()}</td>
+                        <td className="py-3 px-4 text-destructive">-{fmt(vatAmount)}</td>
                       </tr>
                       <tr className="border-b-2 border-info bg-info/10">
                         <td className="py-3 px-4 font-bold">الصافي بعد الضريبة</td>
-                        <td className="py-3 px-4 font-bold text-info">{netAfterVat.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-info">{fmt(netAfterVat)}</td>
                       </tr>
                       {zakatAmount > 0 && (
                         <>
                           <tr className="border-b">
                             <td className="py-3 px-4 text-muted-foreground">(-) الزكاة</td>
-                            <td className="py-3 px-4 text-destructive">-{zakatAmount.toLocaleString()}</td>
+                            <td className="py-3 px-4 text-destructive">-{fmt(zakatAmount)}</td>
                           </tr>
                           <tr className="border-b-2 border-info bg-info/10">
                             <td className="py-3 px-4 font-bold">الصافي بعد الزكاة</td>
-                            <td className="py-3 px-4 font-bold text-info">{netAfterZakat.toLocaleString()}</td>
+                            <td className="py-3 px-4 font-bold text-info">{fmt(netAfterZakat)}</td>
                           </tr>
                         </>
                       )}
                       <tr className="border-b">
                         <td className="py-3 px-4">حصة الناظر ({adminPct}%)</td>
-                        <td className="py-3 px-4">{adminShare.toLocaleString()}</td>
+                        <td className="py-3 px-4">{fmt(adminShare)}</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4">حصة الواقف ({waqifPct}%)</td>
-                        <td className="py-3 px-4">{waqifShare.toLocaleString()}</td>
+                        <td className="py-3 px-4">{fmt(waqifShare)}</td>
                       </tr>
                       <tr className="border-b-2 border-primary bg-muted/50">
                         <td className="py-3 px-4 font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</td>
-                        <td className="py-3 px-4 font-bold text-primary">{waqfRevenue.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-primary">{fmt(waqfRevenue)}</td>
                       </tr>
                       {waqfCorpusManual > 0 && (
                         <tr className="border-b">
                           <td className="py-3 px-4 text-muted-foreground">(-) رقبة الوقف للعام الحالي</td>
-                          <td className="py-3 px-4 text-destructive">-{waqfCorpusManual.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-destructive">-{fmt(waqfCorpusManual)}</td>
                         </tr>
                       )}
                       <tr className="border-b bg-primary/5">
                         <td className="py-3 px-4 font-bold">المبلغ المتاح</td>
-                        <td className="py-3 px-4 font-bold text-primary">{availableAmount.toLocaleString()}</td>
+                        <td className="py-3 px-4 font-bold text-primary">{fmt(availableAmount)}</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-3 px-4 text-muted-foreground">(-) التوزيعات</td>
-                        <td className="py-3 px-4">{distributionsAmount.toLocaleString()}</td>
+                        <td className="py-3 px-4">{fmt(distributionsAmount)}</td>
                       </tr>
                       <tr className="border-b-2 border-primary bg-primary/10">
                         <td className="py-3 px-4 font-bold text-lg">الرصيد المتبقي</td>
-                        <td className={`py-3 px-4 font-bold text-lg ${remainingBalance >= 0 ? 'text-primary' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</td>
+                        <td className={`py-3 px-4 font-bold text-lg ${remainingBalance >= 0 ? 'text-primary' : 'text-destructive'}`}>{fmt(remainingBalance)}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -510,7 +511,7 @@ const ReportsPage = () => {
                             <Cell key={`cell-${index}`} fill={REPORT_COLORS[index % REPORT_COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                        <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
@@ -530,7 +531,7 @@ const ReportsPage = () => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
-                        <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                        <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
                         <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -561,13 +562,13 @@ const ReportsPage = () => {
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
-                          <TableCell className="text-primary font-medium">{item.amount.toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-primary font-medium">{fmt(item.amount)} ر.س</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
                         <TableCell>الإجمالي</TableCell>
                         <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0))}</TableCell>
-                        <TableCell className="text-primary">{beneficiariesShare.toLocaleString()} ر.س</TableCell>
+                        <TableCell className="text-primary">{fmt(beneficiariesShare)} ر.س</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table></div>
@@ -617,10 +618,10 @@ const ReportsPage = () => {
                                 <span className={`text-xs font-semibold whitespace-nowrap ${occupancyColor}`}>{p.occupancy}%</span>
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">{p.annualRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
-                            <TableCell className="text-destructive">{p.totalExpenses.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
+                            <TableCell className="font-medium">{fmt(p.annualRent, 0)} ر.س</TableCell>
+                            <TableCell className="text-destructive">{fmt(p.totalExpenses, 0)} ر.س</TableCell>
                             <TableCell className={`font-bold ${p.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-                              {p.netIncome.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س
+                              {fmt(p.netIncome, 0)} ر.س
                             </TableCell>
                           </TableRow>
                         );
@@ -631,10 +632,10 @@ const ReportsPage = () => {
                         <TableCell colSpan={3}>الإجمالي</TableCell>
                         <TableCell>{perfTotals.totalUnits > 0 ? perfTotals.totalUnits : '-'}</TableCell>
                         <TableCell></TableCell>
-                        <TableCell className="font-bold">{perfTotals.annualRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
-                        <TableCell className="text-destructive font-bold">{perfTotals.totalExpenses.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س</TableCell>
+                        <TableCell className="font-bold">{fmt(perfTotals.annualRent, 0)} ر.س</TableCell>
+                        <TableCell className="text-destructive font-bold">{fmt(perfTotals.totalExpenses, 0)} ر.س</TableCell>
                         <TableCell className={`font-bold ${perfTotals.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {perfTotals.netIncome.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ر.س
+                          {fmt(perfTotals.netIncome, 0)} ر.س
                         </TableCell>
                       </TableRow>
                     </TableFooter>

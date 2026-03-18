@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 /**
  * مكوّن الرسوم البيانية للوحة التحكم — يُحمّل بشكل كسول (lazy)
  * يحتوي على: رسم الدخل/المصروفات الشهري + توزيع المصروفات الدائري
@@ -49,7 +50,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tickFormatter={formatArabicMonth} />
                 <YAxis tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                 <Legend />
                 <Bar dataKey="income" fill="hsl(var(--primary))" name="الدخل" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expenses" fill="hsl(var(--secondary))" name="المصروفات" radius={[4, 4, 0, 0]} />
@@ -85,7 +86,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>

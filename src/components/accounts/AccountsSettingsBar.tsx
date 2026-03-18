@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -126,7 +127,7 @@ const AccountsSettingsBar = ({
           </div>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
-          ضريبة تجارية محسوبة (استرشادي): {calculatedVat.toLocaleString()} ر.س (من إيجارات {commercialRent.toLocaleString()} تجاري × {vatPercentage}%)
+          ضريبة تجارية محسوبة (استرشادي): {fmt(calculatedVat)} ر.س (من إيجارات {fmt(commercialRent)} تجاري × {vatPercentage}%)
         </div>
       </CardContent>
     </Card>

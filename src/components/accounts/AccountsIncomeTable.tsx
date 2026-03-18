@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingUp } from 'lucide-react';
@@ -34,7 +35,7 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
                 {Object.entries(incomeBySource).map(([source, amount]) => (
                   <TableRow key={source}>
                     <TableCell className="font-medium">{source}</TableCell>
-                    <TableCell className="text-success">+{amount.toLocaleString()}</TableCell>
+                    <TableCell className="text-success">+{fmt(amount)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -42,7 +43,7 @@ const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: Accou
             </div>
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي الإيرادات</span>
-              <span className="font-bold text-success">+{totalIncome.toLocaleString()} ريال</span>
+              <span className="font-bold text-success">+{fmt(totalIncome)} ريال</span>
             </div>
           </>
         )}

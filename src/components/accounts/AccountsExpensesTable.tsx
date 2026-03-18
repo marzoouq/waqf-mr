@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { TrendingDown } from 'lucide-react';
@@ -34,7 +35,7 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
                 {Object.entries(expensesByType).map(([type, amount]) => (
                   <TableRow key={type}>
                     <TableCell className="font-medium">{type}</TableCell>
-                    <TableCell className="text-destructive">-{amount.toLocaleString()}</TableCell>
+                    <TableCell className="text-destructive">-{fmt(amount)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -42,7 +43,7 @@ const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }:
             </div>
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي المصروفات</span>
-              <span className="font-bold text-destructive">-{totalExpenses.toLocaleString()} ريال</span>
+              <span className="font-bold text-destructive">-{fmt(totalExpenses)} ريال</span>
             </div>
           </>
         )}
