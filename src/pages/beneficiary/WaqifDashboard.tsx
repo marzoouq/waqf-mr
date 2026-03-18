@@ -41,6 +41,7 @@ const formatArabicMonth = (month: unknown) => {
 };
 
 const WaqifDashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const {
