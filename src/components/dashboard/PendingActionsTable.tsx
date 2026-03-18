@@ -43,7 +43,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         items.push({
           type: 'advance',
           label: 'طلب سُلفة معلق',
-          detail: r.reason || 'بدون سبب',
+          detail: r.reason || '—',
           amount: safeNumber(r.amount),
           link: '/dashboard/accounts',
         });
@@ -59,7 +59,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           label: 'فاتورة غير مُرسلة لـ ZATCA',
           detail: inv.invoice_number,
           amount: safeNumber(inv.amount),
-          link: '/dashboard/contracts',
+          link: '/dashboard/zatca',
         });
       });
 
@@ -118,7 +118,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
               {zatcaOverflow > 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-2">
-                    <Link to="/dashboard/contracts">
+                    <Link to="/dashboard/zatca">
                       <Button variant="link" size="sm" className="text-xs text-muted-foreground">
                         + {zatcaOverflow} فاتورة أخرى غير مُرسلة لـ ZATCA
                       </Button>

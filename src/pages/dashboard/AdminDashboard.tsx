@@ -37,7 +37,7 @@ const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingAct
 
 // DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <Skeleton className="h-[300px] w-full rounded-lg" />
     <Skeleton className="h-[300px] w-full rounded-lg" />
   </div>
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
           icon={Gauge}
           description={
             (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف') +
-            (fiscalYear ? ` — ${fiscalYear.label}` : '')
+            (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '')
           }
           actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
         {/* D-01: تم إزالة Alert السُلف المكررة — PendingActionsTable يعرض نفس المعلومة بتفصيل أكبر */}
 
         {/* Stats Grid */}
-        {isLoading ? <StatsGridSkeleton /> : (
+        {isLoading ? <StatsGridSkeleton count={11} /> : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
             <Link key={index} to={stat.link} className="block">
@@ -452,7 +452,7 @@ const AdminDashboard = () => {
 
         {/* D-4: خريطة حرارية للتحصيل الشهري */}
         <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-          <CollectionHeatmap paymentInvoices={paymentInvoices} />
+          <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
         </Suspense>
 
         {/* D-5: جدول الإجراءات المعلقة */}
