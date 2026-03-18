@@ -26,7 +26,7 @@ const InvoicesViewPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId);
