@@ -77,8 +77,8 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
         i + 1,
         c.contract_number,
         c.tenant_name,
-        formatDate(c.start_date),
-        formatDate(c.end_date),
+        fmtDate(c.start_date),
+        fmtDate(c.end_date),
         `${fmt(safeNumber(c.rent_amount))} ر.س`,
         statusText,
       ]);
