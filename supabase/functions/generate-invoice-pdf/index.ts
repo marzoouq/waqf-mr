@@ -273,7 +273,7 @@ interface WaqfSettings {
   vat_registration_number: string;
 }
 
-async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
+async function fetchWaqfSettings(adminClient: SupabaseClient): Promise<WaqfSettings> {
   const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin', 'vat_registration_number'];
   const { data } = await adminClient
     .from('app_settings')

@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
 
 // ─── دالة جلب بيانات الوقف من قاعدة البيانات ───
 async function fetchWaqfData(
-  client: ReturnType<typeof createClient>,
+  client: SupabaseClient,
   userRole: string,
   userId: string
 ): Promise<string> {
