@@ -206,7 +206,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     );
   };
 
-  const handleDownloadPdf = async (inv: PaymentInvoice) => {
+  const handleDownloadPdf = async (inv: PaymentInvoice, templateOverride?: 'classic' | 'tax_professional' | 'compact') => {
     setLoadingInvoiceId(inv.id);
     try {
       const blobUrl = await generatePaymentInvoicePDF({
@@ -225,7 +225,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         notes: inv.notes,
         vatRate: inv.vat_rate ?? 0,
         vatAmount: inv.vat_amount ?? 0,
-      }, waqfInfo, invoiceTemplate);
+      }, waqfInfo, templateOverride ?? invoiceTemplate);
 
       if (blobUrl) {
         try {
