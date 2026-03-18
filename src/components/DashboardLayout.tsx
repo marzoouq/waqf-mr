@@ -167,10 +167,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
   // إعدادات إظهار/إخفاء الأقسام — دمج المحفوظ مع الافتراضي لضمان ظهور الأقسام الجديدة
-  const sectionsVisibility = { ...DEFAULT_ADMIN_SECTIONS, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
+  const sectionsVisibility = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
 
   // إعدادات إظهار/إخفاء أقسام المستفيد — دمج المحفوظ مع الافتراضي
-  const beneficiarySections = { ...DEFAULT_BENEFICIARY_SECTIONS, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
+  const beneficiarySections = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const links = useMemo(() => {
     if (role === 'admin') {
