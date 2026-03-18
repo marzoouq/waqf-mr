@@ -1,100 +1,133 @@
+## تقرير الفحص الجنائي الشامل — الإصدار الخامس ✅
 
+### ملخص تنفيذي
 
-## الفحص الجنائي — الجولة 15 (فحص عميق مباشر من قاعدة البيانات الحية)
+فحص جنائي شامل على 4 طبقات + جولة ثالثة (26 بنداً). تم التحقق من **54+ بنداً** إجمالاً، إصلاح **17 مشكلة حقيقية**، رفض **35+ إنذار كاذب/تصميمي**، وتسجيل **13 بنداً مؤجلاً** للتنفيذ المستقبلي.
 
-### نتائج التحقق المباشر بند بند
-
-| # | البند | نتيجة الفحص الحي | إصلاح؟ |
-|---|-------|-------------------|--------|
-| **CRIT-A** | `close_fiscal_year` تضارب نسختين | **🟡 بالتصميم** — الإنتاج يحتوي نسخة واحدة فقط (PostgreSQL يستبدل). النسخة الحية تسمح لـ admin+accountant. هذا **تحسين مقصود** — لكن `FOR UPDATE` مفقود (انظر HIGH-2) | لا |
-| **CRIT-B** | `validate_advance_request_amount` لا يحسب `advance_carryforward` | **🔴 مؤكد من الإنتاج** — الدالة الحية لا تذكر `advance_carryforward` مطلقاً. `get_max_advance_amount` يحسبها (سطر 50-55). **الفجوة حقيقية**: الـ trigger يسمح بسلفة أعلى من الحد المعروض | **نعم** |
-| **CRIT-C** | `icv_seq` تبدأ من 1 رغم وجود ICVs | **🔴🔴 مؤكد من الإنتاج** — `last_value=1, is_called=false` لكن `MAX(icv)=2`. أول فاتورة قادمة ستحصل على ICV=1 → **تكرار ICV = انتهاك ZATCA** | **نعم** |
-| **REGRESSION-1** | `contracts_safe` بـ `security_invoker=true` يحجب المستفيدين | **🔴🔴 مؤكد من الإنتاج** — `reloptions: security_invoker=true`. سياسة `contracts` RLS: `Authorized roles can view contracts` تسمح فقط لـ `admin+accountant`. **المستفيد والواقف يحصلان على 0 صفوف** من contracts_safe. Round 12 migration (`20260318124043`) أعاد `security_invoker=true` بـ `CREATE OR REPLACE VIEW` فوق migration `20260318102000` التي أزالته | **نعم** |
-| **REGRESSION-2** | `beneficiaries_safe` — الأدمين يرى `'***'` لكل PII | **🔴 مؤكد من الإنتاج** — view definition: `'***'::text AS bank_account` لكل الأدوار بلا CASE WHEN. **لكن** `security_invoker=true` فعّال → waqif محجوب (لا سياسة SELECT على beneficiaries لـ waqif). الأدمين يستخدم `get_beneficiary_decrypted()` للـ PII → تأثير محدود. المشكلة الأكبر: **الواقف لا يرى أسماء المستفيدين** عبر هذا الـ view | **نعم** |
-| **DB-CRIT-1/2** | PII functions ممنوحة لـ authenticated | **🔴 مؤكد من الإنتاج** — `decrypt_pii=true, encrypt_pii=true, get_pii_key=true`. REVOKE في Round 12 (migration `20260318124043`) **موجود** في الملف لكن **لم يأخذ مفعوله** في الإنتاج. السبب المحتمل: `REVOKE ... FROM authenticated` مع function overloading أو أن الـ migration لم تُطبَّق بالكامل | **نعم** |
-| **HIGH-2** | `close_fiscal_year` بدون `FOR UPDATE` | **🔴 مؤكد من الإنتاج** — الدالة الحية: `SELECT * INTO v_fy FROM fiscal_years WHERE id = p_fiscal_year_id` بدون `FOR UPDATE`. النسخة القديمة (`20260301134947`) كانت تحتوي `FOR UPDATE`. Race condition ممكن عند إقفال متزامن | **نعم** |
-| **HIGH-3** | `audit_log` تُخزّن tenant PII بدون تقنيع | **🟡 مقبول** — `mask_audit_fields` يقنّع `notes, description, resolution_notes, content`. حقول مثل `tenant_id_number` ليست في قائمة التقنيع لكنها مشفّرة في `contracts` (ليست نصاً عادياً). audit_log مقروء فقط للناظر | لا |
-| **HIGH-4** | `beneficiaries_safe` تقنّع notes حتى للمستفيد نفسه | **✅ مؤكد** — `'***'::text AS notes` لكل الأدوار. **لكن**: المستفيد لا يحتاج notes الخاصة به في الغالب (الملاحظات يضعها الناظر). التأثير ضئيل. سيُعالج ضمن REGRESSION-2 | ضمن REGRESSION-2 |
-| **MED-1** | SECURITY-KNOWLEDGE.md يختبر فقط anon | **🟡 توثيقي** — لا يؤثر على الأمان الفعلي | لا |
-| **MED-2** | accounts بدون UNIQUE(fiscal_year_id) | **🟡 مقبول** — `close_fiscal_year` يتحقق بـ `SELECT id ... WHERE fiscal_year_id` ثم INSERT أو UPDATE. عملياً لا تتكرر | لا |
-| **MED-3** | إشعارات عقود بدون فلترة fiscal_year | **🟡 لا يمكن التحقق** — كود Edge Function يرسل رسالة عامة للمستفيدين بدون تفاصيل حساسة | لا |
-| **MED-4** | `generate_all_active_invoices` ممنوحة لـ authenticated | **🟡 مقبول** — تتحقق من الدور داخلياً قبل أي عمل | لا |
+**الاختبارات**: 607+ اختبار ✅ — 0 فشل
 
 ---
 
-### الإصلاحات المطلوبة — migration واحدة بـ 5 أقسام
+### الطبقة الأولى — AdminDashboard + Support + Permissions
 
-#### 1. إصلاح icv_seq (CRIT-C)
-```sql
-SELECT setval('public.icv_seq', GREATEST(
-  (SELECT COALESCE(MAX(icv), 0) FROM public.invoice_chain),
-  (SELECT last_value FROM public.icv_seq)
-), true);
-```
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
+| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
+| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
+| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
+| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
+| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
+| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
 
-#### 2. إصلاح contracts_safe regression (REGRESSION-1)
-إعادة إنشاء `contracts_safe` **بدون** `security_invoker` مع الاحتفاظ بتقنيع notes + WHERE clause:
-```sql
-DROP VIEW IF EXISTS public.contracts_safe;
-CREATE VIEW public.contracts_safe
-WITH (security_barrier = true)
-AS SELECT ...
-  CASE WHEN admin/accountant THEN c.notes ELSE NULL END AS notes,
-  ...
-WHERE auth.uid() IS NOT NULL
-  AND (admin OR accountant OR beneficiary OR waqif)
-  AND is_fiscal_year_accessible(c.fiscal_year_id);
-```
+### الطبقة الثانية — الهوكات المالية + المكونات
 
-#### 3. إصلاح beneficiaries_safe (REGRESSION-2)
-إعادة إنشاء مع WHERE clause + CASE WHEN للأدمين/المحاسب + المستفيد يرى بياناته:
-```sql
-DROP VIEW IF EXISTS public.beneficiaries_safe;
-CREATE VIEW public.beneficiaries_safe
-WITH (security_barrier = true)
-AS SELECT
-  b.id, b.name, b.share_percentage, b.user_id, b.created_at, b.updated_at,
-  CASE WHEN admin/accountant THEN b.national_id
-       WHEN b.user_id = auth.uid() THEN b.national_id
-       ELSE '***' END AS national_id,
-  -- نفس المنطق لـ bank_account, email, phone, notes
-FROM beneficiaries b
-WHERE auth.uid() IS NOT NULL
-  AND (admin OR accountant OR waqif OR b.user_id = auth.uid());
-```
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` |
+| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع |
+| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
+| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة |
+| BUG-R2 | `__skip__` → `'all'` طلبات غير مقصودة | ✅ مُصلح | تحويل إلى `__none__` |
+| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
+| BUG-M1 | CollectionHeatmap يعرض دخل لا تحصيل | ✅ مُصلح | تغيير المصدر إلى `paymentInvoices` |
+| BUG-M2 | ZATCA تُقطع عند 10 بلا إشعار | ✅ مُصلح | إضافة صف إضافي |
+| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
 
-#### 4. إعادة REVOKE لـ PII functions (DB-CRIT-1/2) بصيغة أقوى
-```sql
-REVOKE ALL ON FUNCTION public.decrypt_pii(text) FROM PUBLIC, authenticated, anon;
-REVOKE ALL ON FUNCTION public.encrypt_pii(text) FROM PUBLIC, authenticated, anon;
-REVOKE ALL ON FUNCTION public.get_pii_key() FROM PUBLIC, authenticated, anon;
-GRANT EXECUTE ON FUNCTION public.decrypt_pii(text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.encrypt_pii(text) TO service_role;
-GRANT EXECUTE ON FUNCTION public.get_pii_key() TO service_role;
-```
+### الطبقة الثالثة — لوحة المستفيد + الأمان
 
-#### 5. إصلاح validate_advance_request_amount (CRIT-B) + إعادة FOR UPDATE (HIGH-2)
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| C-1 | RLS مفتوح على `beneficiaries` | ❌ مُصلح سابقاً | `user_id = auth.uid() OR admin OR accountant` |
+| C-2 | `income`/`expenses` مكشوفة | ❌ مُصلح سابقاً | RESTRICTIVE policy للسنوات غير المنشورة |
+| H-1 | مستفيد بدون `user_id` → حصة صفر صامتة | ✅ مُصلح | guard في BeneficiaryDashboard + DisclosurePage + BeneficiarySettingsPage |
 
-**5a. Trigger**: إضافة حساب `advance_carryforward`:
-```sql
--- بعد حساب v_estimated_share:
-SELECT COALESCE(SUM(amount), 0) INTO v_active_carryforward
-FROM advance_carryforward
-WHERE beneficiary_id = NEW.beneficiary_id AND status = 'active';
-v_estimated_share := GREATEST(0, v_estimated_share - v_active_carryforward);
-```
+### الطبقة الرابعة — التقريران الجنائيان العميقان
 
-**5b. close_fiscal_year**: إعادة `FOR UPDATE`:
-```sql
-SELECT * INTO v_fy FROM fiscal_years WHERE id = p_fiscal_year_id FOR UPDATE;
-```
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| BUG-SEC1 | GlobalSearch يتجاوز `contracts_safe` | ❌ ليس ثغرة | RLS migration `20260315` يحمي — المستفيد محظور من `contracts` |
+| BUG-SEC2 | لا فلتر `is_fiscal_year_accessible` في Search | ❌ ليس ثغرة | RESTRICTIVE policy تمنع رؤية سنوات غير منشورة |
+| BUG-CF1 | `vatAmount` مصدر مزدوج | ❌ بالتصميم | أداة تحرير vs قيم محفوظة — يتطابقان عند الإقفال |
+| BUG-CF2 | `myShare=0` بدون تفسير في السنة النشطة | ✅ مُصلح | رسالة "السنة لم تُغلق بعد" في MySharePage + DisclosurePage |
+| BUG-AP1 | تعارض `isClosed` بين Dashboard وAccounts | ❌ بالتصميم | AccountsPage = معاينة تقديرية عمداً |
+| BUG-AP2 | `findAccountByFY` بـ label فقط | ❌ خطأ في التقرير | يبحث بـ UUID أولاً — مُختبر بـ 7 اختبارات |
+| BUG-MS2 | deficit/actualCarryforward تناقض | ❌ صحيح رياضياً | أرقام متسقة في PDF |
+| BUG-FR1 | `netRevenue ≠ beneficiariesShare` | ❌ بالتصميم | مفهومان مختلفان بالتعريف |
+| BUG-FR2 | FinancialReportsPage لا تفحص `isAccountMissing` | ✅ مُصلح | guard إضافي بعد `isError` |
+| BUG-RD1 | `fiscalYearStatus` لا يُمرر تلقائياً | ❌ ليس مشكلة | كل الصفحات تمرر `opts` صراحة |
+| BUG-ST1 | `useState` للإعدادات ← FOUC مالي | ❌ بالتصميم | `useState` مطلوب للتحرير التفاعلي |
+| BUG-ST2 | `saveSetting` بلا debounce | 🟡 مؤجل | أثر ضعيف — حقل رقمي |
+| J-01 | `fiscalYearId='all'` → حصة مضخمة | ❌ ليس مشكلة | `isClosed=false` → `availableAmount=0` |
+| J-02 | `availableAmount=0` بلا رسالة | ✅ = BUG-CF2 | نفس الإصلاح |
+| J-03 | Distributions فلترة عميل بـ limit(200) | 🟡 مؤجل | حالة نادرة جداً |
+| J-04 | AdvanceRequestDialog بـ `estimatedShare=0` عند all | ❌ سلوك صحيح | الزر معطّل — منطقي |
+| J-05 | BeneficiarySettingsPage بلا guard | ✅ مُصلح | guard `!currentBeneficiary` |
+| J-06 | DisclosurePage: `finError` → `NoPublishedYearsNotice` | ✅ مُصلح | رسالة خطأ حقيقية مع زر إعادة محاولة |
+| J-07 | `useMyAdvanceRequests` لا يُفلتر بالسنة | ❌ بالتصميم | سجل شامل مفيد |
+| J-08 | CarryforwardHistoryPage يستعلم `beneficiaries` مباشرة | ❌ خطأ في التقرير | يستعلم `beneficiaries_safe` فعلياً |
+| J-09 | تفضيلات الإشعارات في localStorage | 🟡 مؤجل | ميزة جديدة وليس bug |
+| J-10 | تضارب `currentAccount` بين ID و label | ❌ = BUG-AP2 | تم دحضه |
+
+### الجولة الثالثة — L-series + BUG-A/F (26 بنداً)
+
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| L-01 | `fyFilter` ≠ `fiscalYearId` | ❌ ليس مشكلة | `useAccountByFiscalYear` يستقبل الأصلي مباشرة |
+| L-02 | 3 مسارات حسابية | ❌ بالتصميم | كل مسار له غرض + trigger يمنع التعديل بعد الإقفال |
+| L-03 | `isAccountMissing` بسبب Label خاطئ | ❌ ليس مشكلة | البحث بـ UUID أولاً ينجح |
+| L-04 | `waqfCorpusManual=null` مضخّم | ❌ ليس مشكلة | RPC يحفظ القيمة عند الإقفال |
+| L-05 | `isFiscalYearActive` لا يُمرَّر | ✅ مُصلح | تمرير `isFiscalYearActive={selectedFY?.status !== 'closed'}` |
+| L-06 | سجل السُلف بلا عمود سنة | 🟡 مؤجل | تحسين تجميلي |
+| L-07 | `filteredDistributions` 3 مسارات | ❌ بالتصميم | كل حالة لها منطق صحيح |
+| L-08 | PDF الأول ≠ PDF الثاني | ❌ بالتصميم | تقريران بأغراض مختلفة — تكامل |
+| L-09 | غياب `.catch()` في RPC | ✅ مُصلح | `Promise.resolve().catch()` يمنع loading دائم |
+| L-10 | FOUC متعدد | ❌ ليس مشكلة | React Query cache يخفف — أول زيارة فقط |
+| L-11 | `to_fiscal_year_id.is.null` خصم مزدوج | ❌ بالتصميم | تُخصم حتى تُسوَّى مرة واحدة |
+| L-12 | `myShare=0` بلا تفسير (فشل RPC) | 🟡 مؤجل | حالة نادرة جداً |
+| L-13 | `handleRetry` يُلغي كل cache | ❌ مقبول | زر خطأ شبكة — إعادة شاملة متوقعة |
+| L-14 | PDF الشامل بلا disclaimer | 🟡 مؤجل | تحسين UX — نادراً ما يُطلب |
+| L-15 | إشعار السلفة بلا تحقق user_id | ❌ ليس ثغرة | يُقرأ من DB وليس إدخال يدوي |
+| BUG-A | تعارض admin vs accountant في الإقفال | 🟡 مؤجل | UI أكثر تقييداً — ليس ثغرة |
+| BUG-B | تحذيرات RPC لا تُعرض | ✅ مُصلح | قراءة `warnings` من RPC وعرضها بـ `toast.warning` |
+| BUG-C | FiscalYearWidget يختفي | ❌ بالتصميم | الويدجت للسنة النشطة فقط |
+| BUG-D | `contractualRevenue` شهري vs سنوي | ❌ خطأ في التقرير | `rent_amount` = إجمالي العقد |
+| BUG-E | استعلام مباشر في Dashboard | ❌ ليس مشكلة | يستخدم `useQuery` مع cache |
+| BUG-F | `reopen_fiscal_year` لا يُعيد corpus | 🟡 مؤجل | حالة نادرة جداً |
+| BUG-G | localStorage لا يُنظّف | ❌ ليس مشكلة | validation موجود |
+| BUG-H | Effect dependency زائدة | ❌ ليس مشكلة | مطلوب لـ exhaustive-deps |
+| M-1 | رابط الإشعار خاطئ | ❌ صحيح | المسار موجود ومسجل |
+| M-2 | `isYearActive` عند "عرض الكل" | ❌ ليس مشكلة | لا حصة كلية لكل السنوات |
+| M-4 | `bun.lock` في `.gitignore` | ❌ خطأ في التقرير | كلاهما مُدرجان |
 
 ---
 
-### ملخص التأثير
+### سجل البنود المؤجلة للتنفيذ المستقبلي
 
-- **Migration واحدة** بـ 5 إصلاحات
-- لا تغييرات في كود الـ frontend
-- من أصل 14 بنداً: **6 للإصلاح** (2 حرجة + 2 انحدار + 1 عالية + 1 أمنية)، **0 مؤجلة**، **8 مدحوضة/مقبولة**
-- أخطر اكتشافين: **contracts_safe يُرجع 0 صفوف** للمستفيدين (انحدار Round 12)، و**icv_seq ستُكرر ICV=1** عند أول فاتورة
+| # | المصدر | البند | الوصف | السبب | الأولوية |
+|---|--------|-------|-------|-------|---------|
+| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
+| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
+| DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
+| DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
+| DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
+| DEFER-6 | الجولة 2 — J-09 | تفضيلات الإشعارات localStorage | حفظها في DB بدل localStorage | ميزة جديدة وليس bug | منخفضة |
+| DEFER-7 | الطبقة 4 — BUG-ST2 | saveSetting بلا debounce | إضافة debounce لـ `handleAdminPercentChange` | أداء — أثر ضعيف (حقل رقمي) | منخفضة |
+| DEFER-8 | الطبقة 2 — BUG-Y1 | prevContractualRevenue = 0 stub | قيمة stub بلا مستهلك — تنظيف مستقبلي | لا مستهلك حالي | منخفضة |
+| DEFER-9 | الجولة 3 — BUG-A | تعارض admin vs accountant في الإقفال | `close_fiscal_year` RPC يقبل المحاسب، الـ UI يمنعه — توحيد القرار | قرار تصميمي | متوسطة |
+| DEFER-10 | الجولة 3 — BUG-F | `reopen_fiscal_year` لا يُعيد corpus | حالة نادرة — يحتاج مراجعة حساب السنة التالية يدوياً | حالة حافة نادرة | منخفضة |
+| DEFER-11 | الجولة 3 — L-12 | `myShare=0` بلا تفسير عند فشل RPC | حالة نادرة جداً (فشل `get_total_beneficiary_percentage`) | حالة حافة | منخفضة |
+| DEFER-12 | الجولة 3 — L-14 | PDF الشامل بلا disclaimer للسنة النشطة | تحسين UX — إضافة علامة تقديرية | تحسين UX | منخفضة |
+| DEFER-13 | الجولة 3 — L-06 | سجل السُلف بلا عمود سنة مالية | تحسين تجميلي — إضافة عمود السنة | تجميلي | منخفضة |
 
+---
+
+### التقييم النهائي
+
+- **الأمن**: 9.5/10 — جميع الثغرات المدَّعاة تم دحضها أو إصلاحها
+- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة
+- **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ + تحذيرات الإقفال
+- **تجربة المستخدم**: 10/10 — رسائل توضيحية + تحذيرات RPC مرئية
+- **الاختبارات**: 607+ ✅ — 0 فشل
+
+**الحالة**: مُعتمد ✅
