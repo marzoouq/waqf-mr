@@ -164,24 +164,24 @@ const SupportDashboardPage = () => {
     exportToCsv('client-errors.csv', headers, rows);
   }, [filteredErrors]);
 
-  // === إحصائيات التصنيف ===
+  // === إحصائيات التصنيف — من allTickets (جميع التذاكر) ===
   const categoryStats = useMemo(() => {
     const map: Record<string, number> = {};
-    tickets.forEach(t => {
+    allTickets.forEach(t => {
       map[t.category] = (map[t.category] || 0) + 1;
     });
     return Object.entries(map).map(([key, count]) => ({
       key,
       label: CATEGORY_MAP[key] || key,
       count,
-      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+      pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
     }));
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === إحصائيات الأولوية ===
+  // === إحصائيات الأولوية — من allTickets ===
   const priorityStats = useMemo(() => {
     const map: Record<string, number> = {};
-    tickets.forEach(t => {
+    allTickets.forEach(t => {
       map[t.priority] = (map[t.priority] || 0) + 1;
     });
     return Object.entries(map).map(([key, count]) => ({
@@ -189,13 +189,13 @@ const SupportDashboardPage = () => {
       label: PRIORITY_MAP[key]?.label || key,
       color: PRIORITY_MAP[key]?.color || '',
       count,
-      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+      pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
     }));
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === حساب متوسط وقت الحل (SLA بسيط) ===
+  // === حساب متوسط وقت الحل — من allTickets ===
   const avgResolutionTime = useMemo(() => {
-    const resolved = tickets.filter(t => t.resolved_at);
+    const resolved = allTickets.filter(t => t.resolved_at);
     if (resolved.length === 0) return null;
     const totalHours = resolved.reduce((sum, t) => {
       const created = new Date(t.created_at).getTime();
@@ -206,15 +206,15 @@ const SupportDashboardPage = () => {
     if (avg < 1) return `${Math.round(avg * 60)} دقيقة`;
     if (avg < 24) return `${Math.round(avg)} ساعة`;
     return `${Math.round(avg / 24)} يوم`;
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === متوسط التقييم ===
+  // === متوسط التقييم — من allTickets ===
   const avgRating = useMemo(() => {
-    const rated = tickets.filter(t => t.rating);
+    const rated = allTickets.filter(t => t.rating);
     if (rated.length === 0) return null;
     const total = rated.reduce((sum, t) => sum + (t.rating ?? 0), 0);
     return { avg: (total / rated.length).toFixed(1), count: rated.length };
-  }, [tickets]);
+  }, [allTickets]);
 
   return (
     <DashboardLayout>
