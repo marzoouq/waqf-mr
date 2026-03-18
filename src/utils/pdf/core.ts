@@ -33,10 +33,14 @@ const toBase64 = (buf: ArrayBuffer) => {
 };
 
 // جلب خط واحد مع إعادة محاولة عند الفشل
+// استراتيجية كاش متدرجة: كاش أولاً → تجاوز الكاش → جلب جديد تماماً
+const CACHE_STRATEGIES: RequestCache[] = ['force-cache', 'reload', 'no-store'];
+
 const fetchFontWithRetry = async (url: string, retries = 2): Promise<string> => {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(url, { cache: 'force-cache' });
+      const cacheMode = CACHE_STRATEGIES[attempt] ?? 'no-store';
+      const res = await fetch(url, { cache: cacheMode });
       if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
       const buf = await res.arrayBuffer();
       if (buf.byteLength < 1000) throw new Error(`Font file too small (${buf.byteLength} bytes) — likely corrupt`);
