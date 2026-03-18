@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   GitBranch, Plus, Search, X, Loader2, Pencil, Trash2,
-  ChevronDown, ChevronLeft, DollarSign, Receipt, Calculator, ArrowDownUp,
+  ChevronDown, DollarSign, Receipt, Calculator, ArrowDownUp,
   FolderTree,
 } from 'lucide-react';
 import { toast } from 'sonner';

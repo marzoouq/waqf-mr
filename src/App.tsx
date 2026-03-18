@@ -169,6 +169,7 @@ function App() {
                     <Route path="/dashboard/zatca" element={<ProtectedRoute allowedRoles={['admin']}><ZatcaManagementPage /></ProtectedRoute>} />
                     <Route path="/dashboard/support" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><SupportDashboardPage /></ProtectedRoute>} />
                     <Route path="/dashboard/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AnnualReportPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ChartOfAccountsPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
                     <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />
