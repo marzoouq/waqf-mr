@@ -70,5 +70,5 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
 
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
-  doc.save('expenses-report.pdf');
+  doc.save(`expenses-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 };

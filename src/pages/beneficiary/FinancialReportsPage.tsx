@@ -37,7 +37,11 @@ const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, f
 
 const FinancialReportsPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
+  };
   const pdfWaqfInfo = usePdfWaqfInfo();
   
 
