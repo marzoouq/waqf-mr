@@ -88,6 +88,7 @@ const IncomePage = () => {
     try {
       await deleteIncome.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
+      setCurrentPage(1);
     } catch {
       // onError in the mutation already shows a toast
     }
