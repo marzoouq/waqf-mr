@@ -37,7 +37,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
 
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
-  doc.save('income-report.pdf');
+  doc.save(`income-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
 export const generateExpensesPDF = async (expenses: Array<{ expense_type: string; amount: number; date: string; description?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
