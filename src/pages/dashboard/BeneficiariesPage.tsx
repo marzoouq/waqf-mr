@@ -115,6 +115,7 @@ const BeneficiariesPage = () => {
     if (!deleteTarget) return;
     await deleteBeneficiary.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
+    setCurrentPage(1);
   };
 
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
