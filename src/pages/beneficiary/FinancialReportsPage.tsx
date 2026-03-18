@@ -153,6 +153,20 @@ const FinancialReportsPage = () => {
     );
   }
 
+  if (isAccountMissing) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
