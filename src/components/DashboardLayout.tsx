@@ -5,7 +5,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Menu, Lock } from 'lucide-react';
+import { BookOpen, Menu, Lock, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
@@ -193,11 +194,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
-  // إعدادات إظهار/إخفاء الأقسام (admin sections_visibility) — FIX: إضافة الأقسام الناقصة
-  const sectionsVisibility = getJsonSetting('sections_visibility', DEFAULT_ADMIN_SECTIONS);
+  // إعدادات إظهار/إخفاء الأقسام — دمج المحفوظ مع الافتراضي لضمان ظهور الأقسام الجديدة
+  const sectionsVisibility = { ...DEFAULT_ADMIN_SECTIONS, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
 
-  // إعدادات إظهار/إخفاء أقسام المستفيد — FIX: إضافة الأقسام الناقصة
-  const beneficiarySections = getJsonSetting('beneficiary_sections', DEFAULT_BENEFICIARY_SECTIONS);
+  // إعدادات إظهار/إخفاء أقسام المستفيد — دمج المحفوظ مع الافتراضي
+  const beneficiarySections = { ...DEFAULT_BENEFICIARY_SECTIONS, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const links = useMemo(() => {
     if (role === 'admin') {
@@ -375,6 +376,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </Button>
             </Link>
             <NotificationBell />
+            {/* مؤشر المستخدم والدور */}
+            {user && (
+              <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-medium text-foreground leading-tight truncate max-w-[120px]">
+                    {user.email?.split('@')[0] || 'مستخدم'}
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 leading-none">
+                    {role === 'admin' ? 'ناظر' : role === 'accountant' ? 'محاسب' : role === 'beneficiary' ? 'مستفيد' : role === 'waqif' ? 'واقف' : role || '—'}
+                  </Badge>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="lg:hidden">
