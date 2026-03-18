@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Beneficiary } from '@/types/database';
-import { fmt } from '@/utils/format';
+import { fmt as fmtNum } from '@/utils/format';
 
 interface Props {
   beneficiary: Beneficiary;
