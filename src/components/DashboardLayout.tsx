@@ -376,6 +376,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </Button>
             </Link>
             <NotificationBell />
+            {/* مؤشر المستخدم والدور */}
+            {user && (
+              <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-medium text-foreground leading-tight truncate max-w-[120px]">
+                    {user.email?.split('@')[0] || 'مستخدم'}
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 leading-none">
+                    {role === 'admin' ? 'ناظر' : role === 'accountant' ? 'محاسب' : role === 'beneficiary' ? 'مستفيد' : role === 'waqif' ? 'واقف' : role || '—'}
+                  </Badge>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="lg:hidden">
