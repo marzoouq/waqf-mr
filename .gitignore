@@ -28,5 +28,6 @@ dist-ssr
 .env.*
 !.env.example
 
-# Bun binary lockfile (legacy)
+# Bun lockfiles (not used — npm is preferred)
+bun.lock
 bun.lockb
