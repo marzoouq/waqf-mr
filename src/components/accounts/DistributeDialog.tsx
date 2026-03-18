@@ -191,6 +191,7 @@ const DistributeDialog = ({
         {beneficiaries.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون</p>
         ) : (
+          <>
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {distributions.map(d => (
