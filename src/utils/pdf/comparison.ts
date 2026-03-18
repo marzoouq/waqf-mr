@@ -7,6 +7,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { fmt } from '@/utils/format';
 
 export interface YearComparisonPdfData {
   year1Label: string;
@@ -41,14 +42,14 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
   doc.text(rs(`${data.year1Label}  ←→  ${data.year2Label}`), 105, startY + 14, { align: 'center' });
 
   // 1. Summary comparison
-  const fmtPct = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
+  const fmtPctLocal = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`;
   autoTable(doc, {
     startY: startY + 22,
     head: [reshapeRow(['المؤشر', data.year1Label, data.year2Label, 'التغير'])],
     body: [
-      reshapeRow(['إجمالي الدخل', data.year1.income.toLocaleString(), data.year2.income.toLocaleString(), fmtPct(data.incomeChange)]),
-      reshapeRow(['إجمالي المصروفات', data.year1.expenses.toLocaleString(), data.year2.expenses.toLocaleString(), fmtPct(data.expenseChange)]),
-      reshapeRow(['صافي الدخل', data.year1.net.toLocaleString(), data.year2.net.toLocaleString(), fmtPct(data.netChange)]),
+      reshapeRow(['إجمالي الدخل', fmt(data.year1.income), fmt(data.year2.income), fmtPctLocal(data.incomeChange)]),
+      reshapeRow(['إجمالي المصروفات', fmt(data.year1.expenses), fmt(data.year2.expenses), fmtPctLocal(data.expenseChange)]),
+      reshapeRow(['صافي الدخل', fmt(data.year1.net), fmt(data.year2.net), fmtPctLocal(data.netChange)]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
@@ -69,24 +70,24 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       const diff = m.net2 - m.net1;
       return reshapeRow([
         m.month,
-        m.income1.toLocaleString(),
-        m.expenses1.toLocaleString(),
-        m.net1.toLocaleString(),
-        m.income2.toLocaleString(),
-        m.expenses2.toLocaleString(),
-        m.net2.toLocaleString(),
-        `${diff > 0 ? '+' : ''}${diff.toLocaleString()}`,
+        fmt(m.income1),
+        fmt(m.expenses1),
+        fmt(m.net1),
+        fmt(m.income2),
+        fmt(m.expenses2),
+        fmt(m.net2),
+        `${diff > 0 ? '+' : ''}${fmt(diff)}`,
       ]);
     }),
     foot: [reshapeRow([
       'الإجمالي',
-      data.year1.income.toLocaleString(),
-      data.year1.expenses.toLocaleString(),
-      data.year1.net.toLocaleString(),
-      data.year2.income.toLocaleString(),
-      data.year2.expenses.toLocaleString(),
-      data.year2.net.toLocaleString(),
-      `${(data.year2.net - data.year1.net) > 0 ? '+' : ''}${(data.year2.net - data.year1.net).toLocaleString()}`,
+      fmt(data.year1.income),
+      fmt(data.year1.expenses),
+      fmt(data.year1.net),
+      fmt(data.year2.income),
+      fmt(data.year2.expenses),
+      fmt(data.year2.net),
+      `${(data.year2.net - data.year1.net) > 0 ? '+' : ''}${fmt(data.year2.net - data.year1.net)}`,
     ])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
@@ -109,10 +110,10 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       head: [reshapeRow(['النوع', 'المبلغ (ر.س)', 'النسبة'])],
       body: data.expensesByType1.map(e => reshapeRow([
         e.name,
-        e.value.toLocaleString(),
+        fmt(e.value),
         `${total1 > 0 ? ((e.value / total1) * 100).toFixed(1) : 0}%`,
       ])),
-      foot: [reshapeRow(['الإجمالي', total1.toLocaleString(), '100%'])],
+      foot: [reshapeRow(['الإجمالي', fmt(total1), '100%'])],
       theme: 'striped',
       ...headStyles(TABLE_HEAD_RED, f),
       ...footStyles(TABLE_HEAD_RED, f),
@@ -133,10 +134,10 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
       head: [reshapeRow(['النوع', 'المبلغ (ر.س)', 'النسبة'])],
       body: data.expensesByType2.map(e => reshapeRow([
         e.name,
-        e.value.toLocaleString(),
+        fmt(e.value),
         `${total2 > 0 ? ((e.value / total2) * 100).toFixed(1) : 0}%`,
       ])),
-      foot: [reshapeRow(['الإجمالي', total2.toLocaleString(), '100%'])],
+      foot: [reshapeRow(['الإجمالي', fmt(total2), '100%'])],
       theme: 'striped',
       ...headStyles(TABLE_HEAD_RED, f),
       ...footStyles(TABLE_HEAD_RED, f),

@@ -6,6 +6,7 @@ import {
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
 } from './core';
+import { fmt } from '@/utils/format';
 
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
@@ -24,11 +25,11 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
     body: income.map((item, i) => reshapeRow([
       i + 1,
       item.source,
-      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
+      `${fmt(Number(item.amount))} ر.س`,
       item.date,
       item.notes || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -57,11 +58,11 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
     body: expenses.map((item, i) => reshapeRow([
       i + 1,
       item.expense_type,
-      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
+      `${fmt(Number(item.amount))} ر.س`,
       item.date,
       item.description || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),

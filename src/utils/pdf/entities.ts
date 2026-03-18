@@ -8,6 +8,7 @@ import {
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
 } from './core';
+import { fmt, fmtInt } from '@/utils/format';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
@@ -70,7 +71,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
       c.tenant_name,
       c.start_date,
       c.end_date,
-      `${safeNumber(c.rent_amount).toLocaleString()} ر.س`,
+      `${fmt(safeNumber(c.rent_amount))} ر.س`,
       statusLabel(c.status),
     ])),
     theme: 'striped',
@@ -158,8 +159,8 @@ export const generateUnitsPDF = async (
       u.tenant_name || '-',
       u.start_date || '-',
       u.end_date || '-',
-      u.rent_amount ? `${monthly.toLocaleString()}` : '-',
-      u.rent_amount ? `${annual.toLocaleString()}` : '-',
+      u.rent_amount ? fmtInt(monthly) : '-',
+      u.rent_amount ? fmtInt(annual) : '-',
       u.tenant_name ? `${u.paid_months}/${u.payment_type === 'monthly' ? 12 : u.payment_type === 'quarterly' ? 4 : (u.payment_type === 'semi_annual' || u.payment_type === 'semi-annual') ? 2 : u.payment_type === 'annual' ? 1 : u.payment_count || 12}` : '-',
     ]);
   });
@@ -168,7 +169,7 @@ export const generateUnitsPDF = async (
     startY: startY + 20,
     head: [reshapeRow(['#', 'رقم الوحدة', 'النوع', 'الحالة', 'المستأجر', 'بداية العقد', 'نهاية العقد', 'الإيجار الشهري', 'الإيجار السنوي', 'الدفعات'])],
     body,
-    foot: [reshapeRow(['', '', '', '', '', '', 'الإجمالي', `${totalMonthly.toLocaleString()}`, `${totalAnnual.toLocaleString()}`, ''])],
+    foot: [reshapeRow(['', '', '', '', '', '', 'الإجمالي', fmtInt(totalMonthly), fmtInt(totalAnnual), ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),

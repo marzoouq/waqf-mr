@@ -7,6 +7,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { fmt } from '@/utils/format';
 
 export const generateMySharePDF = async (data: {
   beneficiaryName: string;
@@ -41,28 +42,28 @@ export const generateMySharePDF = async (data: {
 
   // بنود الجدول الأساسية
   const bodyRows = [
-    reshapeRow(['إجمالي ريع الوقف', `${data.netRevenue.toLocaleString()} ر.س`]),
+    reshapeRow(['إجمالي ريع الوقف', `${fmt(data.netRevenue)} ر.س`]),
     reshapeRow(['نسبتي من الريع', `${data.sharePercentage}%`]),
-    reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `${data.adminShare.toLocaleString()} ر.س`]),
-    reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `${data.waqifShare.toLocaleString()} ر.س`]),
-    reshapeRow(['صافي ريع المستفيدين', `${data.beneficiariesShare.toLocaleString()} ر.س`]),
-    reshapeRow(['حصتي المستحقة', `${data.myShare.toLocaleString()} ر.س`]),
-    reshapeRow(['المبالغ المستلمة', `${data.totalReceived.toLocaleString()} ر.س`]),
-    reshapeRow(['المبالغ المعلقة', `${data.pendingAmount.toLocaleString()} ر.س`]),
+    reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `${fmt(data.adminShare)} ر.س`]),
+    reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `${fmt(data.waqifShare)} ر.س`]),
+    reshapeRow(['صافي ريع المستفيدين', `${fmt(data.beneficiariesShare)} ر.س`]),
+    reshapeRow(['حصتي المستحقة', `${fmt(data.myShare)} ر.س`]),
+    reshapeRow(['المبالغ المستلمة', `${fmt(data.totalReceived)} ر.س`]),
+    reshapeRow(['المبالغ المعلقة', `${fmt(data.pendingAmount)} ر.س`]),
   ];
 
   // بنود السُلف والمرحّل (تظهر فقط إذا > 0)
   const advances = data.paidAdvances ?? 0;
   const cf = data.carryforwardDeducted ?? 0;
   if (advances > 0) {
-    bodyRows.push(reshapeRow(['(-) السُلف المصروفة', `(${advances.toLocaleString()}) ر.س`]));
+    bodyRows.push(reshapeRow(['(-) السُلف المصروفة', `(${fmt(advances)}) ر.س`]));
   }
   if (cf > 0) {
-    bodyRows.push(reshapeRow(['(-) فروق مرحّلة مخصومة', `(${cf.toLocaleString()}) ر.س`]));
+    bodyRows.push(reshapeRow(['(-) فروق مرحّلة مخصومة', `(${fmt(cf)}) ر.س`]));
   }
   if (advances > 0 || cf > 0) {
     const net = Math.max(0, data.myShare - advances - cf);
-    bodyRows.push(reshapeRow([{ content: rs('صافي المبلغ المستحق'), styles: { fontStyle: 'bold' as const } }, { content: `${net.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' as const } }]));
+    bodyRows.push(reshapeRow([{ content: rs('صافي المبلغ المستحق'), styles: { fontStyle: 'bold' as const } }, { content: `${fmt(net)} ر.س`, styles: { fontStyle: 'bold' as const } }]));
   }
 
   autoTable(doc, {
@@ -86,7 +87,7 @@ export const generateMySharePDF = async (data: {
       body: data.distributions.map(d => reshapeRow([
         d.date,
         d.fiscalYear,
-        `${d.amount.toLocaleString()} ر.س`,
+        `${fmt(d.amount)} ر.س`,
         d.status === 'paid' ? 'مستلم' : 'معلق',
       ])),
       theme: 'striped',
@@ -135,8 +136,8 @@ export const generateDisclosurePDF = async (data: {
     startY: startY + 24,
     head: [reshapeRow(['المصدر', 'المبلغ (ر.س)'])],
     body: [
-      ...Object.entries(data.incomeBySource).map(([source, amount]) => reshapeRow([source, `+${amount.toLocaleString()}`])),
-      reshapeRow([{ content: rs('إجمالي الإيرادات'), styles: { fontStyle: 'bold' } }, { content: `+${data.totalIncome.toLocaleString()}`, styles: { fontStyle: 'bold' } }]),
+      ...Object.entries(data.incomeBySource).map(([source, amount]) => reshapeRow([source, `+${fmt(amount)}`])),
+      reshapeRow([{ content: rs('إجمالي الإيرادات'), styles: { fontStyle: 'bold' } }, { content: `+${fmt(data.totalIncome)}`, styles: { fontStyle: 'bold' } }]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -150,8 +151,8 @@ export const generateDisclosurePDF = async (data: {
     startY: y,
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
     body: [
-      ...Object.entries(data.expensesByType).map(([type, amount]) => reshapeRow([type, `-${amount.toLocaleString()}`])),
-      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `-${data.totalExpenses.toLocaleString()}`, styles: { fontStyle: 'bold' } }]),
+      ...Object.entries(data.expensesByType).map(([type, amount]) => reshapeRow([type, `-${fmt(amount)}`])),
+      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `-${fmt(data.totalExpenses)}`, styles: { fontStyle: 'bold' } }]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
@@ -165,11 +166,11 @@ export const generateDisclosurePDF = async (data: {
     startY: y,
     head: [reshapeRow(['البند', 'المبلغ (ر.س)'])],
     body: [
-      reshapeRow(['صافي الريع', data.netRevenue.toLocaleString()]),
-      reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `-${data.adminShare.toLocaleString()}`]),
-      reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `-${data.waqifShare.toLocaleString()}`]),
-      reshapeRow(['صافي ريع المستفيدين', data.beneficiariesShare.toLocaleString()]),
-      reshapeRow([{ content: rs('حصتي المستحقة'), styles: { fontStyle: 'bold' } }, { content: `${data.myShare.toLocaleString()} ر.س`, styles: { fontStyle: 'bold' } }]),
+      reshapeRow(['صافي الريع', fmt(data.netRevenue)]),
+      reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `-${fmt(data.adminShare)}`]),
+      reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `-${fmt(data.waqifShare)}`]),
+      reshapeRow(['صافي ريع المستفيدين', fmt(data.beneficiariesShare)]),
+      reshapeRow([{ content: rs('حصتي المستحقة'), styles: { fontStyle: 'bold' } }, { content: `${fmt(data.myShare)} ر.س`, styles: { fontStyle: 'bold' } }]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
