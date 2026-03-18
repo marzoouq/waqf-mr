@@ -94,13 +94,13 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط الدخل الشهري</p>
-            <p className="text-base sm:text-xl font-bold text-success">{Math.roundfmt(avgMonthlyIncome)} ر.س</p>
+            <p className="text-base sm:text-xl font-bold text-success">{fmt(Math.round(avgMonthlyIncome))} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
-            <p className="text-base sm:text-xl font-bold text-destructive">{Math.roundfmt(avgMonthlyExpenses)} ر.س</p>
+            <p className="text-base sm:text-xl font-bold text-destructive">{fmt(Math.round(avgMonthlyExpenses))} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
@@ -110,7 +110,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TrendingUp className="w-4 h-4 text-success" />
               <p className="text-base sm:text-xl font-bold">{bestMonth?.label}</p>
             </div>
-            <p className="text-xs text-success">{bestMonth?.fmt(net)} ر.س</p>
+            <p className="text-xs text-success">{fmt(bestMonth?.net ?? 0)} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
@@ -120,7 +120,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TrendingDown className="w-4 h-4 text-destructive" />
               <p className="text-base sm:text-xl font-bold">{worstMonth?.label}</p>
             </div>
-            <p className="text-xs text-destructive">{worstMonth?.fmt(net)} ر.س</p>
+            <p className="text-xs text-destructive">{fmt(worstMonth?.net ?? 0)} ر.س</p>
           </CardContent>
         </Card>
       </div>

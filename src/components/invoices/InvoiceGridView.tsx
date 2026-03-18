@@ -121,7 +121,7 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
 
               {/* المبلغ */}
               <p className={cn('text-lg font-bold', config.color)}>
-                {safeNumberfmt(inv.amount)} <span className="text-xs font-normal text-muted-foreground">ر.س</span>
+                {fmt(safeNumber(inv.amount))} <span className="text-xs font-normal text-muted-foreground">ر.س</span>
               </p>
 
               {/* تفاصيل صغيرة */}
@@ -139,7 +139,7 @@ const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, rea
                 {inv.vat_amount > 0 && (
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                     <Hash className="w-3 h-3 shrink-0" />
-                    <span>ضريبة: {safeNumberfmt(inv.vat_amount)} ر.س</span>
+                    <span>ضريبة: {fmt(safeNumber(inv.vat_amount))} ر.س</span>
                   </div>
                 )}
               </div>

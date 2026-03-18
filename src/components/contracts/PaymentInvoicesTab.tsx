@@ -350,7 +350,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           <div className="space-y-3 py-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">إجمالي الفاتورة</span>
-              <span className="font-bold">{Numberfmt(payDialog?.inv.amount || 0)} ر.س</span>
+              <span className="font-bold">{fmt(Number(payDialog?.inv.amount || 0))} ر.س</span>
             </div>
             <div className="space-y-1">
               <Label>المبلغ المدفوع (ر.س)</Label>
@@ -561,9 +561,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
-                              <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{Numberfmt(inv.amount)} ر.س</p></div>
+                              <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{fmt(Number(inv.amount))} ر.س</p></div>
                               {Number(inv.vat_amount) > 0 && (
-                                <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{Numberfmt(inv.vat_amount)} ر.س</p></div>
+                                <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{fmt(Number(inv.vat_amount))} ر.س</p></div>
                               )}
                               {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                             </div>
@@ -656,9 +656,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
                               <TableCell className="text-center">{inv.payment_number}</TableCell>
                               <TableCell>{inv.due_date}</TableCell>
-                              <TableCell>{Numberfmt(inv.amount)} ر.س</TableCell>
+                              <TableCell>{fmt(Number(inv.amount))} ر.س</TableCell>
                               <TableCell className="text-muted-foreground text-xs">
-                                {Number(inv.vat_amount) > 0 ? `${Numberfmt(inv.vat_amount)} (${inv.vat_rate}%)` : 'معفاة'}
+                                {Number(inv.vat_amount) > 0 ? `${fmt(Number(inv.vat_amount))} (${inv.vat_rate}%)` : 'معفاة'}
                               </TableCell>
                               <TableCell className={inv.paid_date ? 'text-success' : 'text-muted-foreground'}>{inv.paid_date || '-'}</TableCell>
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>

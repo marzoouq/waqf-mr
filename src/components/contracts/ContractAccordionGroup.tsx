@@ -115,7 +115,7 @@ const ContractAccordionGroup = ({
               {latest.unit ? ` / و${latest.unit.unit_number}` : ''}
             </span>
             <span className="text-sm font-medium hidden lg:block">
-              {Numberfmt(latest.rent_amount)} ر.س
+              {fmt(Number(latest.rent_amount))} ر.س
             </span>
             <div className="hidden lg:flex items-center gap-2">
               <span className={`text-xs font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>
@@ -157,7 +157,7 @@ const ContractAccordionGroup = ({
                     <span className="font-medium">{contract.contract_number}</span>
                     <span className="text-muted-foreground hidden sm:block">{contract.start_date}</span>
                     <span className="text-muted-foreground hidden sm:block">{contract.end_date}</span>
-                    <span className="hidden sm:block">{Numberfmt(contract.rent_amount)} ر.س</span>
+                    <span className="hidden sm:block">{fmt(Number(contract.rent_amount))} ر.س</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${st.className}`}>
                       {st.label}
                     </span>
@@ -194,7 +194,7 @@ const ContractAccordionGroup = ({
                   >
                     {invoiceStatusIcon[inv.status] || <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
                     <span className="text-muted-foreground">دفعة {inv.payment_number}</span>
-                    <span className="font-medium mr-auto">{Numberfmt(inv.amount)} ر.س</span>
+                    <span className="font-medium mr-auto">{fmt(Number(inv.amount))} ر.س</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                       inv.status === 'paid' ? 'bg-success/15 text-success'
                         : inv.status === 'overdue' ? 'bg-destructive/15 text-destructive'
