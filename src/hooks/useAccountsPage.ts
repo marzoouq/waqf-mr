@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { fmt } from '@/utils/format';
 
 /** Module-level helper: find account by fiscal year (UUID first, then label fallback) */
 export function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
@@ -398,7 +399,7 @@ export function useAccountsPage() {
 
       notifyAllBeneficiaries(
         'إقفال السنة المالية',
-        `تم إقفال السنة المالية ${selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${waqfCorpusManual.toLocaleString()} ر.س) للسنة الجديدة.`,
+        `تم إقفال السنة المالية ${selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${fmt(waqfCorpusManual)} ر.س) للسنة الجديدة.`,
         'info', '/beneficiary/accounts',
       );
 

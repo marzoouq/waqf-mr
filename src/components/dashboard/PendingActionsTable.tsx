@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ClipboardList, ArrowLeft } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 interface PendingAction {
   type: 'advance' | 'zatca';
@@ -103,7 +104,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
                     {action.detail}
                   </TableCell>
                   <TableCell className="tabular-nums font-medium">
-                    {action.amount ? `${action.amount.toLocaleString('ar-SA')} ر.س` : '—'}
+                    {action.amount ? `${fmt(action.amount)} ر.س` : '—'}
                   </TableCell>
                   <TableCell className="text-center">
                     <Link to={action.link}>

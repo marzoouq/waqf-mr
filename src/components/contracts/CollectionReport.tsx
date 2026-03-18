@@ -19,6 +19,7 @@ import type { FiscalYear } from '@/hooks/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { getPaymentCount } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 interface CollectionReportProps {
   contracts: Contract[];
@@ -236,7 +237,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{expectedLabel}</p>
-              <p className="text-lg font-bold">{summary.totalExpected.toLocaleString()}</p>
+              <p className="text-lg font-bold">{fmt(summary.totalExpected)}</p>
             </div>
           </CardContent>
         </Card>
@@ -247,7 +248,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
             <div>
               <p className="text-xs text-muted-foreground">المحصّل</p>
-              <p className="text-lg font-bold text-success">{summary.totalCollected.toLocaleString()}</p>
+              <p className="text-lg font-bold text-success">{fmt(summary.totalCollected)}</p>
             </div>
           </CardContent>
         </Card>
@@ -258,7 +259,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
             <div>
               <p className="text-xs text-muted-foreground">المتأخر</p>
-              <p className="text-lg font-bold text-destructive">{summary.totalOverdue.toLocaleString()}</p>
+              <p className="text-lg font-bold text-destructive">{fmt(summary.totalOverdue)}</p>
             </div>
           </CardContent>
         </Card>
@@ -355,10 +356,10 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                             )}
                           </p>
                         </div>
-                        <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{row.paymentAmount.toLocaleString()} ر.س</p></div>
-                        <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{row.collectedAmount.toLocaleString()} ر.س</p></div>
+                        <div><span className="text-muted-foreground text-xs">قيمة الدفعة</span><p className="font-medium">{fmt(row.paymentAmount)} ر.س</p></div>
+                        <div><span className="text-muted-foreground text-xs">المحصّل</span><p className="font-medium text-success">{fmt(row.collectedAmount)} ر.س</p></div>
                         {row.overdue > 0 && (
-                          <div><span className="text-muted-foreground text-xs">المتأخر</span><p className="font-medium text-destructive">{row.overdueAmount.toLocaleString()} ر.س</p></div>
+                          <div><span className="text-muted-foreground text-xs">المتأخر</span><p className="font-medium text-destructive">{fmt(row.overdueAmount)} ر.س</p></div>
                         )}
                       </div>
                       <Progress
@@ -398,8 +399,8 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                         </TableCell>
                         <TableCell>{row.contract.tenant_name}</TableCell>
                         <TableCell>{row.contract.property?.property_number || '-'}</TableCell>
-                        <TableCell>{row.totalAmount.toLocaleString()} ر.س</TableCell>
-                        <TableCell>{row.paymentAmount.toLocaleString()} ر.س</TableCell>
+                        <TableCell>{fmt(row.totalAmount)} ر.س</TableCell>
+                        <TableCell>{fmt(row.paymentAmount)} ر.س</TableCell>
                         <TableCell className="text-center">
                           <span className={`font-bold ${row.overdue > 0 ? 'text-destructive' : 'text-foreground'}`}>
                             {row.paid}/{row.paymentCount}
@@ -425,9 +426,9 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                             <span className="text-xs text-destructive block">({row.overdue} متأخرة)</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-success font-medium">{row.collectedAmount.toLocaleString()} ر.س</TableCell>
+                        <TableCell className="text-success font-medium">{fmt(row.collectedAmount)} ر.س</TableCell>
                         <TableCell className={`font-medium ${row.overdue > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                          {row.overdueAmount > 0 ? `${row.overdueAmount.toLocaleString()} ر.س` : '-'}
+                          {row.overdueAmount > 0 ? `${fmt(row.overdueAmount)} ر.س` : '-'}
                         </TableCell>
                         <TableCell>
                           <Progress
@@ -445,10 +446,10 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
               {/* شريط ملخص المجاميع */}
               <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-muted/30 border-t text-sm">
                 <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground">الإجمالي: <span className="font-bold text-foreground">{summary.totalExpected.toLocaleString()} ر.س</span></span>
-                  <span className="text-muted-foreground">المحصّل: <span className="font-bold text-success">{summary.totalCollected.toLocaleString()} ر.س</span></span>
+                  <span className="text-muted-foreground">الإجمالي: <span className="font-bold text-foreground">{fmt(summary.totalExpected)} ر.س</span></span>
+                  <span className="text-muted-foreground">المحصّل: <span className="font-bold text-success">{fmt(summary.totalCollected)} ر.س</span></span>
                   {summary.totalOverdue > 0 && (
-                    <span className="text-muted-foreground">المتأخر: <span className="font-bold text-destructive">{summary.totalOverdue.toLocaleString()} ر.س</span></span>
+                    <span className="text-muted-foreground">المتأخر: <span className="font-bold text-destructive">{fmt(summary.totalOverdue)} ر.س</span></span>
                   )}
                 </div>
                 <span className="text-muted-foreground">{filteredRows.length} عقد</span>

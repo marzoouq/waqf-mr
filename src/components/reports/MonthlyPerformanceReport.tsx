@@ -7,6 +7,7 @@ import {
   Legend, Area, AreaChart,
 } from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { fmt } from '@/utils/format';
 
 interface MonthlyPerformanceReportProps {
   income: Array<{ date: string; amount: number }>;
@@ -93,13 +94,13 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط الدخل الشهري</p>
-            <p className="text-base sm:text-xl font-bold text-success">{Math.round(avgMonthlyIncome).toLocaleString()} ر.س</p>
+            <p className="text-base sm:text-xl font-bold text-success">{Math.roundfmt(avgMonthlyIncome)} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
-            <p className="text-base sm:text-xl font-bold text-destructive">{Math.round(avgMonthlyExpenses).toLocaleString()} ر.س</p>
+            <p className="text-base sm:text-xl font-bold text-destructive">{Math.roundfmt(avgMonthlyExpenses)} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
@@ -109,7 +110,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TrendingUp className="w-4 h-4 text-success" />
               <p className="text-base sm:text-xl font-bold">{bestMonth?.label}</p>
             </div>
-            <p className="text-xs text-success">{bestMonth?.net.toLocaleString()} ر.س</p>
+            <p className="text-xs text-success">{bestMonth?.fmt(net)} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
@@ -119,7 +120,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TrendingDown className="w-4 h-4 text-destructive" />
               <p className="text-base sm:text-xl font-bold">{worstMonth?.label}</p>
             </div>
-            <p className="text-xs text-destructive">{worstMonth?.net.toLocaleString()} ر.س</p>
+            <p className="text-xs text-destructive">{worstMonth?.fmt(net)} ر.س</p>
           </CardContent>
         </Card>
       </div>
@@ -139,7 +140,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(value: number | undefined, name: string | undefined) => [
-                    `${(value ?? 0).toLocaleString()} ر.س`,
+                    `${fmt(value ?? 0)} ر.س`,
                     name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
                   ]}
                   labelFormatter={(label) => label}
@@ -167,7 +168,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number | undefined) => [`${(value ?? 0).toLocaleString()} ر.س`, 'صافي الدخل']}
+                  formatter={(value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, 'صافي الدخل']}
                 />
                 <defs>
                   <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">
@@ -212,10 +213,10 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
                   return (
                     <TableRow key={`${m.year}-${m.month}`}>
                       <TableCell className="font-medium">{m.label}</TableCell>
-                      <TableCell className="text-success">{m.income.toLocaleString()} ر.س</TableCell>
-                      <TableCell className="text-destructive">{m.expenses.toLocaleString()} ر.س</TableCell>
+                      <TableCell className="text-success">{fmt(m.income)} ر.س</TableCell>
+                      <TableCell className="text-destructive">{fmt(m.expenses)} ر.س</TableCell>
                       <TableCell className={m.net >= 0 ? 'text-primary font-bold' : 'text-destructive font-bold'}>
-                        {m.net.toLocaleString()} ر.س
+                        {fmt(m.net)} ر.س
                       </TableCell>
                       <TableCell>
                         {prevNet === null ? (
@@ -235,10 +236,10 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               <TableFooter>
                 <TableRow>
                   <TableCell className="font-bold">الإجمالي</TableCell>
-                  <TableCell className="font-bold text-success">{totals.income.toLocaleString()} ر.س</TableCell>
-                  <TableCell className="font-bold text-destructive">{totals.expenses.toLocaleString()} ر.س</TableCell>
+                  <TableCell className="font-bold text-success">{fmt(totals.income)} ر.س</TableCell>
+                  <TableCell className="font-bold text-destructive">{fmt(totals.expenses)} ر.س</TableCell>
                   <TableCell className={`font-bold ${totals.net >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                    {totals.net.toLocaleString()} ر.س
+                    {fmt(totals.net)} ر.س
                   </TableCell>
                   <TableCell />
                 </TableRow>

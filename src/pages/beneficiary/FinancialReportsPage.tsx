@@ -16,6 +16,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyShare } from '@/hooks/useMyShare';
+import { fmt } from '@/utils/format';
 
 const COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -194,7 +195,7 @@ const FinancialReportsPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 11 }} width={50} />
-                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {incomeVsExpenses.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -218,7 +219,7 @@ const FinancialReportsPage = () => {
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
@@ -244,7 +245,7 @@ const FinancialReportsPage = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
@@ -267,7 +268,7 @@ const FinancialReportsPage = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => (value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </RePieChart>
               </ResponsiveContainer>
@@ -290,7 +291,7 @@ const FinancialReportsPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} width={50} />
-                  <Tooltip formatter={(value: number | undefined) => Math.round(value ?? 0).toLocaleString() + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
+                  <Tooltip formatter={(value: number | undefined) => Math.roundfmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                   <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

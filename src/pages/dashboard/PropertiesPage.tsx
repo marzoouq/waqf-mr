@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
 import PropertySummaryCards from '@/components/properties/PropertySummaryCards';
+import { fmt, fmtInt } from '@/utils/format';
 
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
@@ -390,13 +391,13 @@ const PropertiesPage = () => {
                   </div>
 
                   <div className="border-t pt-3 space-y-1 text-sm">
-                    <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{contractualRevenue.toLocaleString('ar-SA')} ريال</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{activeAnnualRent.toLocaleString('ar-SA')} ريال</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">الشهري:</span><span className="font-medium">{monthlyRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{totalExpenses.toLocaleString('ar-SA')} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(contractualRevenue)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
                     <div className="flex justify-between border-t pt-1 mt-1">
                       <span className="text-muted-foreground">الصافي:</span>
-                      <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{netIncome.toLocaleString('ar-SA')} ريال</span>
+                      <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span>
                     </div>
                   </div>
 

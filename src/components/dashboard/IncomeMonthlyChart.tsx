@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -78,7 +79,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps)
               <Tooltip
                 contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
                 formatter={(value: number | undefined, name: string | undefined) => [
-                  `${(value ?? 0).toLocaleString()} ر.س`,
+                  `${fmt(value ?? 0)} ر.س`,
                   name === 'actual' ? 'الفعلي' : 'المتوقع',
                 ]}
               />

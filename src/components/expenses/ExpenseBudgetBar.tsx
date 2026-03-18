@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { fmt } from '@/utils/format';
 
 interface ExpenseBudgetBarProps {
   expenses: Expense[];
@@ -136,7 +137,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{spent.toLocaleString()} / {budgetAmount > 0 ? budgetAmount.toLocaleString() : '—'} ر.س</span>
+                  <span>{fmt(spent)} / {budgetAmount > 0 ? fmt(budgetAmount) : '—'} ر.س</span>
                   {budgetAmount > 0 && <span className="font-bold">({percentage}%)</span>}
                   {!isClosed && (
                     editingType === type ? (

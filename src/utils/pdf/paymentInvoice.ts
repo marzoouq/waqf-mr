@@ -174,11 +174,11 @@ const renderLineItemsTable = (
         `${idx + 1}`,
         rs(item.description),
         `${item.quantity}`,
-        `${fmt(item.unitPrice)}`,
-        `${fmt(baseTotal)}`,
+        fmt(item.unitPrice),
+        fmt(baseTotal),
         `${item.vatRate}%`,
-        `${fmt(itemVat)}`,
-        `${fmt((baseTotal + itemVat))}`,
+        fmt(itemVat),
+        fmt(baseTotal + itemVat),
       ]);
     });
   } else {
@@ -189,11 +189,11 @@ const renderLineItemsTable = (
       '1',
       rs(`إيجار — دفعة ${invoice.paymentNumber}`),
       '1',
-      `${fmt(amountExVat)}`,
-      `${fmt(amountExVat)}`,
+      fmt(amountExVat),
+      fmt(amountExVat),
       `${vatRate}%`,
-      `${fmt(vatAmount)}`,
-      `${fmt(invoice.amount)}`,
+      fmt(vatAmount),
+      fmt(invoice.amount),
     ]);
   }
 
@@ -566,18 +566,11 @@ const renderTaxProfessional = async (
       doc.setTextColor(0, 0, 0);
       doc.text(`${label} : ${value}`, xPos, yPos, { align: 'right' });
     } else {
-      doc.setTextColor(180, 60, 60); // أحمر خافت
+      doc.setTextColor(180, 60, 60);
       doc.text(`${label} : ${missingText}`, xPos, yPos, { align: 'right' });
       doc.setTextColor(0, 0, 0);
     }
   };
-
-  // ──────────────────────────────────────────────────────────────
-  // الترويسة: مطابقة المرجع (ZATCA)
-  //   يسار: عنوان ثنائي اللغة + رقم الفاتورة + التاريخ + QR تحتهم
-  //   يمين: اسم المنشأة + بياناتها
-  //   أقصى اليمين: الشعار
-  // ──────────────────────────────────────────────────────────────
 
   // --- الشعار أقصى اليمين ---
   const logoSize = 24;
@@ -643,9 +636,7 @@ const renderTaxProfessional = async (
   doc.line(margin, y, pageW - margin, y);
   y += 6;
 
-  // ──────────────────────────────────────────────────────────────
   // صف 2: بيانات الفاتورة (يسار) | بيانات العميل (يمين)
-  // ──────────────────────────────────────────────────────────────
   const metaStartY = y;
 
   // بيانات الفاتورة (يسار)
@@ -659,7 +650,7 @@ const renderTaxProfessional = async (
   const metaItems = [
     ['رقم العقد', invoice.contractNumber],
     ['العقار', invoice.propertyNumber],
-    [`الدفعة`, `${invoice.paymentNumber} من ${invoice.totalPayments}`],
+    ['الدفعة', `${invoice.paymentNumber} من ${invoice.totalPayments}`],
     ['الحالة', statusLabel(invoice.status)],
   ];
   if (invoice.paidDate) metaItems.push(['تاريخ السداد', invoice.paidDate]);
@@ -777,7 +768,7 @@ const renderCompact = async (
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
     body: [[
       `إيجار — دفعة ${invoice.paymentNumber}`,
-      `${fmt(compactAmountExVat)}`,
+      fmt(compactAmountExVat),
       `${fmt(compactVatAmount)} (${vatRate}%)`,
       `${fmt(invoice.amount)} ر.س`,
     ]],

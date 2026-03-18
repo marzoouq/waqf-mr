@@ -20,6 +20,7 @@ import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useAddTicketReply, useRateTicket, type SupportTicket,
 } from '@/hooks/useSupportTickets';
+import { fmt } from '@/utils/format';
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   open: { label: 'مفتوح', color: 'bg-status-approved/20 text-status-approved-foreground', icon: Clock },
@@ -197,7 +198,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
             ) : replies.map(r => (
               <div key={r.id} className="bg-muted/50 rounded p-2 text-sm">
                 <p>{r.content}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{new Date(r.created_at).toLocaleString('ar-SA')}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{new Datefmt(r.created_at)}</p>
               </div>
             ))}
           </div>

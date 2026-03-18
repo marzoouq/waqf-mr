@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock } from 'lucide-react';
+import { fmt } from '@/utils/format';
 
 interface OverdueTenantsReportProps {
   contracts: Array<{
@@ -111,7 +112,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
             المستأجرون المتأخرون ({overdueData.length})
           </span>
           <span className="text-sm font-bold text-destructive">
-            إجمالي المتأخرات: {totalOverdueAmount.toLocaleString('ar-SA')} ر.س
+            إجمالي المتأخرات: {fmt(totalOverdueAmount)} ر.س
           </span>
         </CardTitle>
       </CardHeader>
@@ -138,7 +139,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
                   <TableCell>{row.propertyNumber}</TableCell>
                   <TableCell className="text-center">{row.overdueCount}</TableCell>
                   <TableCell className="text-destructive font-medium">
-                    {row.totalOverdue.toLocaleString('ar-SA')} ر.س
+                    {fmt(row.totalOverdue)} ر.س
                   </TableCell>
                   <TableCell>{new Date(row.oldestDue).toLocaleDateString('ar-SA')}</TableCell>
                   <TableCell className="font-bold">{row.maxDays}</TableCell>

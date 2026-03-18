@@ -27,6 +27,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import TablePagination from '@/components/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
+import { fmt } from '@/utils/format';
 
 const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
@@ -369,8 +370,8 @@ function ZatcaManagementPage() {
                       return (
                         <TableRow key={inv.id} className={rowBusy ? 'opacity-60' : ''}>
                           <TableCell className="font-mono text-sm">{inv.invoice_number || '—'}</TableCell>
-                          <TableCell>{Number(inv.amount).toLocaleString()} ر.س</TableCell>
-                          <TableCell>{Number(inv.vat_amount).toLocaleString()} ({inv.vat_rate}%)</TableCell>
+                          <TableCell>{Numberfmt(inv.amount)} ر.س</TableCell>
+                          <TableCell>{Numberfmt(inv.vat_amount)} ({inv.vat_rate}%)</TableCell>
                           <TableCell>{inv.date}</TableCell>
                           {/* Step indicators */}
                           <TableCell>

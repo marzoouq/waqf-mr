@@ -14,6 +14,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { FiscalYear } from '@/hooks/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { fmt } from '@/utils/format';
 
 interface YearOverYearComparisonProps {
   fiscalYears: FiscalYear[];
@@ -214,9 +215,9 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
               </span>
             </div>
             <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
-              <span>{year1Label}: {yearTotals.year1.income.toLocaleString()}</span>
+              <span>{year1Label}: {fmt(yearTotals.year1.income)}</span>
               <span>→</span>
-              <span>{year2Label}: {yearTotals.year2.income.toLocaleString()}</span>
+              <span>{year2Label}: {fmt(yearTotals.year2.income)}</span>
             </div>
           </CardContent>
         </Card>
@@ -232,9 +233,9 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
               </span>
             </div>
             <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
-              <span>{year1Label}: {yearTotals.year1.expenses.toLocaleString()}</span>
+              <span>{year1Label}: {fmt(yearTotals.year1.expenses)}</span>
               <span>→</span>
-              <span>{year2Label}: {yearTotals.year2.expenses.toLocaleString()}</span>
+              <span>{year2Label}: {fmt(yearTotals.year2.expenses)}</span>
             </div>
           </CardContent>
         </Card>
@@ -250,9 +251,9 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
               </span>
             </div>
             <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
-              <span>{year1Label}: {yearTotals.year1.net.toLocaleString()}</span>
+              <span>{year1Label}: {fmt(yearTotals.year1.net)}</span>
               <span>→</span>
-              <span>{year2Label}: {yearTotals.year2.net.toLocaleString()}</span>
+              <span>{year2Label}: {fmt(yearTotals.year2.net)}</span>
             </div>
           </CardContent>
         </Card>
@@ -270,7 +271,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(value: number | undefined, name: string | undefined) => [`${(value ?? 0).toLocaleString()} ر.س`, name ?? '']} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']} />
                 <Legend />
                 <Bar dataKey={`دخل ${year1Label}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 <Bar dataKey={`دخل ${year2Label}`} fill="hsl(var(--primary) / 0.5)" radius={[4, 4, 0, 0]} />
@@ -294,7 +295,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value: number | undefined, name: string | undefined) => [`${(value ?? 0).toLocaleString()} ر.س`, name ?? '']}
+                  formatter={(value: number | undefined, name: string | undefined) => [`${fmt(value ?? 0)} ر.س`, name ?? '']}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="net1" stroke="hsl(var(--primary))" strokeWidth={2} name={`صافي ${year1Label}`} dot={{ r: 4 }} />
@@ -332,7 +333,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                       <Cell key={`cell-y1-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '11px' }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -366,7 +367,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                       <Cell key={`cell-y2-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number | undefined) => `${(value ?? 0).toLocaleString()} ر.س`} contentStyle={tooltipStyle} />
+                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: '11px' }} />
                 </PieChart>
               </ResponsiveContainer>
@@ -412,14 +413,14 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                   return (
                     <TableRow key={row.month}>
                       <TableCell className="font-medium">{row.month}</TableCell>
-                      <TableCell className="text-success text-xs">{(row[`دخل ${year1Label}`] as number).toLocaleString()}</TableCell>
-                      <TableCell className="text-destructive text-xs">{(row[`مصروفات ${year1Label}`] as number).toLocaleString()}</TableCell>
-                      <TableCell className="font-bold text-xs border-l">{row.net1.toLocaleString()}</TableCell>
-                      <TableCell className="text-success text-xs">{(row[`دخل ${year2Label}`] as number).toLocaleString()}</TableCell>
-                      <TableCell className="text-destructive text-xs">{(row[`مصروفات ${year2Label}`] as number).toLocaleString()}</TableCell>
-                      <TableCell className="font-bold text-xs border-l">{row.net2.toLocaleString()}</TableCell>
+                      <TableCell className="text-success text-xs">{fmt(row[`دخل ${year1Label}`] as number)}</TableCell>
+                      <TableCell className="text-destructive text-xs">{fmt(row[`مصروفات ${year1Label}`] as number)}</TableCell>
+                      <TableCell className="font-bold text-xs border-l">{fmt(row.net1)}</TableCell>
+                      <TableCell className="text-success text-xs">{fmt(row[`دخل ${year2Label}`] as number)}</TableCell>
+                      <TableCell className="text-destructive text-xs">{fmt(row[`مصروفات ${year2Label}`] as number)}</TableCell>
+                      <TableCell className="font-bold text-xs border-l">{fmt(row.net2)}</TableCell>
                       <TableCell className={`font-bold text-xs ${diff > 0 ? 'text-success' : diff < 0 ? 'text-destructive' : ''}`}>
-                        {diff > 0 ? '+' : ''}{diff.toLocaleString()}
+                        {diff > 0 ? '+' : ''}{fmt(diff)}
                       </TableCell>
                     </TableRow>
                   );
@@ -428,15 +429,15 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
               <TableFooter>
                 <TableRow>
                   <TableCell className="font-bold">الإجمالي</TableCell>
-                  <TableCell className="font-bold text-success text-xs">{yearTotals.year1.income.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-destructive text-xs">{yearTotals.year1.expenses.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-xs border-l">{yearTotals.year1.net.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-success text-xs">{yearTotals.year2.income.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-destructive text-xs">{yearTotals.year2.expenses.toLocaleString()}</TableCell>
-                  <TableCell className="font-bold text-xs border-l">{yearTotals.year2.net.toLocaleString()}</TableCell>
+                  <TableCell className="font-bold text-success text-xs">{fmt(yearTotals.year1.income)}</TableCell>
+                  <TableCell className="font-bold text-destructive text-xs">{fmt(yearTotals.year1.expenses)}</TableCell>
+                  <TableCell className="font-bold text-xs border-l">{fmt(yearTotals.year1.net)}</TableCell>
+                  <TableCell className="font-bold text-success text-xs">{fmt(yearTotals.year2.income)}</TableCell>
+                  <TableCell className="font-bold text-destructive text-xs">{fmt(yearTotals.year2.expenses)}</TableCell>
+                  <TableCell className="font-bold text-xs border-l">{fmt(yearTotals.year2.net)}</TableCell>
                   <TableCell className={`font-bold text-xs ${(yearTotals.year2.net - yearTotals.year1.net) > 0 ? 'text-success' : 'text-destructive'}`}>
                     {(yearTotals.year2.net - yearTotals.year1.net) > 0 ? '+' : ''}
-                    {(yearTotals.year2.net - yearTotals.year1.net).toLocaleString()}
+                    {fmt(yearTotals.year2.net - yearTotals.year1.net)}
                   </TableCell>
                 </TableRow>
               </TableFooter>
