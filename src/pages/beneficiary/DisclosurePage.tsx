@@ -25,12 +25,9 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const day = d.getDate();
-    const month = d.getMonth() + 1;
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${Number(parts[2])}/${Number(parts[1])}/${parts[0]}`;
   } catch {
     return dateStr;
   }
@@ -39,9 +36,12 @@ function toGregorianShort(dateStr: string): string {
 const DisclosurePage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['income'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
     queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
   

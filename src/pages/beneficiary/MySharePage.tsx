@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,9 +31,12 @@ const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 
 const MySharePage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['income'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
     queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+    queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
@@ -104,11 +108,11 @@ const MySharePage = () => {
 
   const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   const pendingAmount = filteredDistributions
     .filter(d => d.status === 'pending')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   // BEN-11: wrapper لمنع الضغط المزدوج أثناء توليد PDF
   const withPdfLoading = (fn: () => Promise<void>) => async () => {

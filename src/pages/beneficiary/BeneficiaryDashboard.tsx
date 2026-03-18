@@ -24,8 +24,10 @@ const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
   // BEN-07: تحديد queryKeys بدلاً من إبطال كل الـ cache
   const handleRetry = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
+    queryClient.invalidateQueries({ queryKey: ['income'] });
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ['accounts'] });
     queryClient.invalidateQueries({ queryKey: ['my-distributions-recent'] });
   }, [queryClient]);
   const { role, loading: authLoading } = useAuth();
