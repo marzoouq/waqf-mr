@@ -481,6 +481,11 @@ Deno.serve(async (req) => {
           is_active: true,
         });
 
+        // مسح رموز OTP بعد نجاح التهيئة لمنع إعادة الاستخدام
+        await admin.from("app_settings")
+          .delete()
+          .in("key", ["zatca_otp_1", "zatca_otp_2"]);
+
         await logZatcaOperation(admin, {
           operation_type: "onboard",
           status: "success",
