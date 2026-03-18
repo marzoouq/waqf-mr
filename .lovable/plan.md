@@ -1,29 +1,44 @@
-## تقرير الفحص الجنائي الهجين للمتغيرات الأخيرة — مُعتمد ✅
 
-### ملخص تنفيذي
 
-تم فحص **56 ملفاً** تم تعديلها/إنشاؤها في آخر تحديث. النتيجة العامة: **التغييرات سليمة ومنهجية** — التقييم الإجمالي: **9.4/10**
+## خطة التنفيذ — إصلاح أخطاء البناء في `auth-email-hook` + تطبيق الهجرة
 
----
+### البند 1: تطبيق الهجرة على قاعدة البيانات الحية
 
-### 1. الأمن (Security) — 9.5/10
-- العروض الآمنة: `security_invoker=true` + `security_barrier=true` ✅
-- صلاحيات `anon`: ممنوع ✅
-- Edge Functions: مصادقة يدوية عبر `getUser()` ✅
-- `guard-signup`: rate limiting + validation + rollback ✅
+تنفيذ محتوى `20260318102000_fix_safe_views_remove_security_invoker.sql` عبر أداة الهجرة. الملف مكتمل ولا يحتاج تعديل.
 
-### 2. البنية المعمارية — 9.5/10
-- فصل الأنواع والمنطق المساعد ✅
-- Lazy Loading + PWA Cache Guard ✅
-- AuthContext: حماية race condition ✅
+### البند 2: إصلاح أخطاء TypeScript في `auth-email-hook/index.ts`
 
-### 3. المنطق المالي — 9.5/10
-- قائمة فحص إقفال السنة (6 بنود) ✅
-- سياسات RESTRICTIVE للسنوات المقفلة ✅
-- `is_fiscal_year_accessible` للسنوات غير المنشورة ✅
+**تغيير 1** — سطر 23: تغيير نوع `EMAIL_TEMPLATES`:
+```typescript
+// من:
+const EMAIL_TEMPLATES: Record<string, React.ComponentType<Record<string, unknown>>> = {
+// إلى:
+const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
+```
 
-### 4. التنبيهات الأمنية — إنذارات كاذبة مؤكدة
-- Extension in Public (pgcrypto): معزول في `extensions` schema
-- Views بدون RLS: تستخدم `security_invoker=true` فترث RLS تلقائياً
+**تغيير 2** — سطر 140-149: توسيع نوع `payload` واستخدام `??` لـ `run_id`:
+```typescript
+// من:
+let payload: { type?: string; user?: Record<string, unknown>; run_id?: string; [key: string]: unknown }
+let run_id = ''
+...
+payload = verified.payload
+run_id = payload.run_id
 
-**الحالة**: مُعتمد ✅
+// إلى:
+let payload: any
+let run_id = ''
+...
+payload = verified.payload
+run_id = payload.run_id ?? ''
+```
+
+هذان التغييران يحلان جميع أخطاء الـ 17 المتعلقة بـ `auth-email-hook`:
+- أخطاء `ComponentType` (6 أخطاء) → تغيير 1
+- خطأ `React.createElement` (1) → تغيير 1
+- خطأ `EmailWebhookPayload` (1) → تغيير 2
+- خطأ `run_id undefined` (1) → تغيير 2
+- أخطاء `payload.data unknown` (8) → تغيير 2
+
+> أخطاء `zatca-api` و `webauthn` موجودة مسبقاً وغير مرتبطة.
+
