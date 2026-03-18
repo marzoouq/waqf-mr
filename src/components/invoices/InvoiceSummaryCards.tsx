@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { safeNumber } from '@/utils/safeNumber';
 import { FileText, CheckCircle2, Clock, AlertTriangle, Ban, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { fmt } from '@/utils/format';
 
 interface InvoiceSummaryCardsProps {
   invoices: Array<{ status: string; amount: number; vat_amount?: number }>;
@@ -39,8 +40,8 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
   const cards = [
     {
       label: 'إجمالي الفواتير',
-      value: total.toLocaleString(),
-      sub: `${totalAmount.toLocaleString()} ر.س`,
+      value: fmt(total),
+      sub: `${fmt(totalAmount)} ر.س`,
       icon: FileText,
       color: 'text-primary',
       bg: 'bg-primary/10',
@@ -48,8 +49,8 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     },
     {
       label: 'المسددة',
-      value: paid.length.toLocaleString(),
-      sub: `${paidAmount.toLocaleString()} ر.س`,
+      value: fmt(paid.length),
+      sub: `${fmt(paidAmount)} ر.س`,
       icon: CheckCircle2,
       color: 'text-success',
       bg: 'bg-success/10',
@@ -57,7 +58,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     },
     {
       label: 'قيد الانتظار',
-      value: pending.length.toLocaleString(),
+      value: fmt(pending.length),
       sub: `${pending.reduce((s, i) => s + safeNumber(i.amount), 0).toLocaleString()} ر.س`,
       icon: Clock,
       color: 'text-warning',
@@ -66,7 +67,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     },
     {
       label: 'المتأخرة',
-      value: (overdue.length + cancelled.length).toLocaleString(),
+      value: fmt(overdue.length + cancelled.length),
       sub: overdue.length > 0 ? `${overdue.reduce((s, i) => s + safeNumber(i.amount), 0).toLocaleString()} ر.س` : 'لا يوجد',
       icon: overdue.length > 0 ? AlertTriangle : Ban,
       color: overdue.length > 0 ? 'text-destructive' : 'text-muted-foreground',
@@ -76,7 +77,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     {
       label: 'نسبة التحصيل',
       value: `${collectionRate}%`,
-      sub: totalVat > 0 ? `ضريبة: ${totalVat.toLocaleString()} ر.س` : 'بدون ضريبة',
+      sub: totalVat > 0 ? `ضريبة: ${fmt(totalVat)} ر.س` : 'بدون ضريبة',
       icon: TrendingUp,
       color: collectionRate >= 70 ? 'text-success' : collectionRate >= 40 ? 'text-warning' : 'text-destructive',
       bg: collectionRate >= 70 ? 'bg-success/10' : collectionRate >= 40 ? 'bg-warning/10' : 'bg-destructive/10',

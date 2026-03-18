@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { cn } from '@/lib/utils';
+import { fmt } from '@/utils/format';
 
 interface SearchResult {
   id: string;
@@ -146,7 +147,7 @@ const GlobalSearch = () => {
             searchResults.push({
               id: e.id,
               title: e.expense_type,
-              subtitle: `${safeNumber(e.amount).toLocaleString()} ر.س${e.description ? ` — ${e.description}` : ''}`,
+              subtitle: `${safeNumberfmt(e.amount)} ر.س${e.description ? ` — ${e.description}` : ''}`,
               type: 'expense',
               path: `${basePath}/expenses`,
             });

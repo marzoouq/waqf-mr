@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Banknote, TrendingUp, TrendingDown } from 'lucide-react';
+import { fmt, fmtInt } from '@/utils/format';
 
 // أسماء الأشهر العربية
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -74,7 +75,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
     return { totalIncome, totalExpenses, totalNet, positiveMonths, negativeMonths };
   }, [monthlyData]);
 
-  const fmt = (v: number) => v.toLocaleString('ar-SA', { maximumFractionDigits: 0 });
+  const fmt = (v: number) => fmtInt(v);
 
   return (
     <div className="space-y-6">
@@ -134,7 +135,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
                 <Tooltip
                   contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }}
                   formatter={(value: number | undefined, name: string | undefined) => [
-                    `${(value ?? 0).toLocaleString()} ر.س`,
+                    `${fmt(value ?? 0)} ر.س`,
                     name === 'income' ? 'الدخل' : name === 'expenses' ? 'المصروفات' : 'الصافي',
                   ]}
                 />

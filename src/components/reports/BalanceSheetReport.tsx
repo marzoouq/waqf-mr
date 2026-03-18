@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableRow, TableCell, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Scale } from 'lucide-react';
+import { fmt } from '@/utils/format';
 
 interface BalanceSheetProps {
   totalIncome: number;
@@ -45,7 +46,7 @@ const BalanceSheetReport = ({
   const balanceCheck = totalAssets - totalLiabilities - totalEquity - distributionsAmount;
   const isBalanced = Math.abs(balanceCheck) < 1;
 
-  const fmt = (n: number) => n.toLocaleString('ar-SA');
+  const fmt = (n: number) => fmt(n);
 
   return (
     <Card className="shadow-sm">

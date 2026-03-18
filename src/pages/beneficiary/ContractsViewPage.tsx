@@ -18,6 +18,7 @@ import { useMemo, useCallback } from 'react';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
+import { fmt } from '@/utils/format';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },
@@ -53,7 +54,7 @@ const ContractsViewPage = () => {
   }, [contracts, isExpiringSoon]);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
-  const formatCurrency = (n: number) => n.toLocaleString('ar-SA') + ' ر.س';
+  const formatCurrency = (n: number) => fmt(n) + ' ر.س';
 
   if (noPublishedYears) {
     return (

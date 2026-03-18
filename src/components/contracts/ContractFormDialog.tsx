@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Building2, CheckSquare, Info } from 'lucide-react';
 import { emptyFormData, type ContractFormData, type PricingMode, type RentalMode } from './contractForm.types';
+import { fmt } from '@/utils/format';
 
 interface ContractFormDialogProps {
   open: boolean;
@@ -445,7 +446,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                       const fy = fiscalYears.find(f => f.id === a.fiscal_year_id);
                       return (
                         <p key={a.fiscal_year_id} className="text-muted-foreground">
-                          {fy?.label || 'سنة مالية'}: {a.allocated_payments} دفعة = {a.allocated_amount.toLocaleString('ar-SA')} ر.س
+                          {fy?.label || 'سنة مالية'}: {a.allocated_payments} دفعة = {fmt(a.allocated_amount)} ر.س
                         </p>
                       );
                     })}

@@ -8,6 +8,7 @@ import { useCreateAdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { fmt } from '@/utils/format';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
@@ -125,27 +126,27 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
               <div className="p-3 bg-muted/50 rounded-lg text-sm space-y-1">
                 <div className="flex justify-between">
                   <span>الحصة التقديرية</span>
-                  <span className="font-medium">{displayEstimatedShare.toLocaleString()} ر.س</span>
+                  <span className="font-medium">{fmt(displayEstimatedShare)} ر.س</span>
                 </div>
                 {displayCarryforward > 0 && (
                   <div className="flex justify-between text-destructive">
                     <span>فروق مرحّلة من سنوات سابقة</span>
-                    <span className="font-medium">-{displayCarryforward.toLocaleString()} ر.س</span>
+                    <span className="font-medium">-{fmt(displayCarryforward)} ر.س</span>
                   </div>
                 )}
                 {displayCarryforward > 0 && (
                   <div className="flex justify-between">
                     <span>الحصة بعد خصم المرحّل</span>
-                    <span className="font-medium">{effectiveShare.toLocaleString()} ر.س</span>
+                    <span className="font-medium">{fmt(effectiveShare)} ر.س</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>سُلف سابقة</span>
-                  <span className="font-medium">{displayPaidAdvances.toLocaleString()} ر.س</span>
+                  <span className="font-medium">{fmt(displayPaidAdvances)} ر.س</span>
                 </div>
                 <div className="flex justify-between border-t pt-1">
                   <span>الحد الأقصى المتاح</span>
-                  <span className="font-bold text-primary">{maxAdvance.toLocaleString()} ر.س</span>
+                  <span className="font-bold text-primary">{fmt(maxAdvance)} ر.س</span>
                 </div>
               </div>
 
@@ -170,7 +171,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
                   <p className="text-xs text-destructive">المبلغ يتجاوز الحد الأقصى المسموح</p>
                 )}
                 {isBelowMin && (
-                  <p className="text-xs text-destructive">الحد الأدنى للسلفة {minAmount.toLocaleString()} ر.س</p>
+                  <p className="text-xs text-destructive">الحد الأدنى للسلفة {fmt(minAmount)} ر.س</p>
                 )}
               </div>
 

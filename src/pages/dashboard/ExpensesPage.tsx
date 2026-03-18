@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { fmt } from '@/utils/format';
 
 type SortField = 'amount' | 'date' | 'expense_type' | null;
 type SortDir = 'asc' | 'desc';
@@ -251,7 +252,7 @@ const ExpensesPage = () => {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{safeNumberfmt(item.amount)} ر.س</p></div>
                           <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                           {item.description && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
                         </div>
@@ -300,7 +301,7 @@ const ExpensesPage = () => {
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">{item.expense_type}</TableCell>
-                          <TableCell className="text-destructive font-medium">-{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
+                          <TableCell className="text-destructive font-medium">-{safeNumberfmt(item.amount)} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>

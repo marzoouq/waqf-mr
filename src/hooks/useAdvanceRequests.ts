@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { notifyAdmins, notifyUser } from '@/utils/notifications';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 export interface AdvanceRequest {
   id: string;
@@ -211,7 +212,7 @@ export const useCreateAdvanceRequest = () => {
       const name = result._beneficiaryName || 'مستفيد';
       notifyAdmins(
         'طلب سلفة جديد',
-        `طلب سلفة جديد من ${name} بمبلغ ${Number(vars.amount).toLocaleString()} ر.س`,
+        `طلب سلفة جديد من ${name} بمبلغ ${Numberfmt(vars.amount)} ر.س`,
         'info',
         '/dashboard/beneficiaries',
       );
@@ -279,7 +280,7 @@ export const useUpdateAdvanceStatus = () => {
       const uid = vars.beneficiary_user_id;
       const amt = vars.amount;
       if (uid) {
-        const amtStr = amt ? Number(amt).toLocaleString() : '';
+        const amtStr = amt ? Numberfmt(amt) : '';
         const notifMap: Record<string, { title: string; message: string; type: string }> = {
           approved: { title: 'تمت الموافقة على طلب السلفة', message: `تمت الموافقة على طلب السلفة بمبلغ ${amtStr} ر.س`, type: 'success' },
           rejected: { title: 'تم رفض طلب السلفة', message: `تم رفض طلب السلفة بمبلغ ${amtStr} ر.س${vars.rejection_reason ? '. السبب: ' + vars.rejection_reason : ''}`, type: 'warning' },

@@ -23,6 +23,7 @@ import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
+import { fmt, fmtInt } from '@/utils/format';
 
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
@@ -159,25 +160,25 @@ const PropertiesViewPage = () => {
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div>
-                <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{contractualRevenue.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{fmt(contractualRevenue)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
-                <div><p className="text-xs text-muted-foreground">الدخل النشط</p><p className="text-lg font-bold text-success">{activeIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">الدخل النشط</p><p className="text-lg font-bold text-success">{fmt(activeIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div>
-                <div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{totalExpensesAll.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{fmt(totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div>
-                <div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{netIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
           </div>
@@ -326,24 +327,24 @@ const PropertiesViewPage = () => {
                     <div className="border-t pt-3 space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الإيرادات التعاقدية:</span>
-                        <span className="font-semibold">{contractualRevenue.toLocaleString('ar-SA')} ريال</span>
+                        <span className="font-semibold">{fmt(contractualRevenue)} ريال</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الدخل النشط:</span>
-                        <span className="font-medium text-success">{activeAnnualRent.toLocaleString('ar-SA')} ريال</span>
+                        <span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">الشهري:</span>
-                        <span className="font-medium">{monthlyRent.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                        <span className="font-medium">{fmtInt(monthlyRent)} ريال</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">المصروفات:</span>
-                        <span className="font-medium">{totalExpenses.toLocaleString('ar-SA')} ريال</span>
+                        <span className="font-medium">{fmt(totalExpenses)} ريال</span>
                       </div>
                       <div className="flex justify-between border-t pt-1 mt-1">
                         <span className="text-muted-foreground">الصافي:</span>
                         <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {netIncome.toLocaleString('ar-SA')} ريال
+                          {fmt(netIncome)} ريال
                         </span>
                       </div>
                     </div>

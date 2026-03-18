@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingDown, Paperclip, Calculator, Star } from 'lucide-react';
 import { Expense } from '@/types/database';
+import { fmt } from '@/utils/format';
 
 interface ExpenseSummaryCardsProps {
   expenses: Expense[];
@@ -47,7 +48,7 @@ const ExpenseSummaryCards = ({ expenses, totalExpenses, documentedCount, documen
       <Card className="shadow-sm">
         <CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-          <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{totalExpenses.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+          <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{fmt(totalExpenses)} <span className="text-xs font-normal">ريال</span></p></div>
         </CardContent>
       </Card>
       <Card className="shadow-sm">
@@ -59,13 +60,13 @@ const ExpenseSummaryCards = ({ expenses, totalExpenses, documentedCount, documen
       <Card className="shadow-sm">
         <CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-          <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+          <div><p className="text-xs text-muted-foreground">متوسط المصروف</p><p className="text-xl font-bold">{fmt(avg)} <span className="text-xs font-normal">ريال</span></p></div>
         </CardContent>
       </Card>
       <Card className="shadow-sm">
         <CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-          <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{topType}</p><p className="text-xs text-muted-foreground">{topTypeAmount.toLocaleString('ar-SA')} ريال</p></div>
+          <div><p className="text-xs text-muted-foreground">أعلى نوع</p><p className="text-sm font-bold truncate max-w-[120px]">{topType}</p><p className="text-xs text-muted-foreground">{fmt(topTypeAmount)} ريال</p></div>
         </CardContent>
       </Card>
     </div>

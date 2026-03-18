@@ -9,6 +9,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
+import { fmt } from '@/utils/format';
 
 interface PaymentInvoice {
   paid_date?: string | null;
@@ -52,7 +53,7 @@ const INTENSITY_CLASSES: Record<number, string> = {
 const formatCompactAmount = (amount: number): string => {
   if (amount === 0) return '—';
   if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`;
-  return amount.toLocaleString('ar-SA');
+  return fmt(amount);
 };
 
 const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: CollectionHeatmapProps) => {
@@ -128,7 +129,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="top">
-                    <p className="font-medium">{label}: {amount.toLocaleString('ar-SA')} ر.س</p>
+                    <p className="font-medium">{label}: {fmt(amount)} ر.س</p>
                   </TooltipContent>
                 </Tooltip>
               );

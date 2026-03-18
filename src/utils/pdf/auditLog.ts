@@ -12,6 +12,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/useAuditLog';
+import { fmt } from '@/utils/format';
 
 export interface AuditLogPdfOptions {
   logs: AuditLogEntry[];
@@ -22,7 +23,7 @@ export interface AuditLogPdfOptions {
 
 const formatDate = (iso: string) => {
   try {
-    return new Date(iso).toLocaleString('ar-SA');
+    return new Datefmt(iso);
   } catch {
     return iso;
   }

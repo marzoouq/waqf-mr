@@ -20,6 +20,7 @@ import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt, fmtInt } from '@/utils/format';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -432,7 +433,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                           {unitForm.rent_amount && (
                             <div className="bg-muted/50 rounded-lg p-3 text-sm">
                               <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
-                              <span className="font-semibold">{computedPaymentAmount.toLocaleString('ar-SA')} ريال</span>
+                              <span className="font-semibold">{fmt(computedPaymentAmount)} ريال</span>
                             </div>
                           )}
                         </div>
@@ -512,7 +513,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                             </TableCell>
                             <TableCell>
                               {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">{tenant.rent_amount.toLocaleString('ar-SA')} ريال</span>
+                                <span className="font-medium">{fmt(tenant.rent_amount)} ريال</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -596,8 +597,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               الإجمالي <Badge variant="outline" className="mr-2 text-[10px]">شامل النشط والمنتهي</Badge>
                             </TableCell>
                             <TableCell colSpan={3}></TableCell>
-                            <TableCell>{totalMonthly.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</TableCell>
-                            <TableCell>{totalAnnual.toLocaleString('ar-SA')} ريال</TableCell>
+                            <TableCell>{fmtInt(totalMonthly)} ريال</TableCell>
+                            <TableCell>{fmt(totalAnnual)} ريال</TableCell>
                             <TableCell colSpan={3}></TableCell>
                           </TableRow>
                         );
@@ -620,7 +621,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">الإيجار السنوي</p>
-                        <p className="font-medium">{wholePropertyContract.rent_amount.toLocaleString('ar-SA')} ريال</p>
+                        <p className="font-medium">{fmt(wholePropertyContract.rent_amount)} ريال</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">نوع الدفع</p>
@@ -632,7 +633,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">قيمة الدفعة</p>
-                        <p className="font-medium">{(wholePropertyContract.payment_amount || 0).toLocaleString('ar-SA')} ريال</p>
+                        <p className="font-medium">{fmt(wholePropertyContract.payment_amount || 0)} ريال</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">الحالة</p>

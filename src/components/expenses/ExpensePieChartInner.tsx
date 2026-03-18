@@ -2,6 +2,7 @@
  * المكون الداخلي للرسم الدائري — يُحمَّل كسولاً لتجنب تحميل recharts في الحزمة الأولية.
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { fmt } from '@/utils/format';
 
 const COLORS = [
   'hsl(var(--primary))',
@@ -41,7 +42,7 @@ const ExpensePieChartInner: React.FC<{ data: DataItem[] }> = ({ data }) => {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number | undefined) => [`${(value ?? 0).toLocaleString()} ر.س`, '']}
+          formatter={(value: number | undefined) => [`${fmt(value ?? 0)} ر.س`, '']}
           contentStyle={{ direction: 'rtl', fontSize: 12 }}
         />
         <Legend

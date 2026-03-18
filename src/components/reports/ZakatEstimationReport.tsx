@@ -7,6 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFoo
 import { Badge } from '@/components/ui/badge';
 import { Calculator, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { fmt } from '@/utils/format';
 
 interface ZakatEstimationReportProps {
   totalIncome: number;
@@ -71,8 +72,8 @@ const ZakatEstimationReport = ({
           <Info className="h-4 w-4" />
           <AlertDescription>
             {meetsNisab
-              ? `الوعاء الزكوي (${zakatBase.toLocaleString()} ر.س) يتجاوز النصاب التقريبي (${NISAB_APPROX.toLocaleString()} ر.س) — الزكاة واجبة.`
-              : `الوعاء الزكوي (${zakatBase.toLocaleString()} ر.س) أقل من النصاب التقريبي (${NISAB_APPROX.toLocaleString()} ر.س) — قد لا تجب الزكاة. يُرجع للمختص الشرعي.`}
+              ? `الوعاء الزكوي (${fmt(zakatBase)} ر.س) يتجاوز النصاب التقريبي (${fmt(NISAB_APPROX)} ر.س) — الزكاة واجبة.`
+              : `الوعاء الزكوي (${fmt(zakatBase)} ر.س) أقل من النصاب التقريبي (${fmt(NISAB_APPROX)} ر.س) — قد لا تجب الزكاة. يُرجع للمختص الشرعي.`}
           </AlertDescription>
         </Alert>
 
@@ -134,7 +135,7 @@ const ZakatEstimationReport = ({
           <Alert className="border-warning/50">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              يوجد فرق بين الزكاة المقدّرة ({calculatedZakat.toLocaleString()} ر.س) والمسجّلة ({zakatAmount.toLocaleString()} ر.س) بمقدار {Math.abs(calculatedZakat - zakatAmount).toLocaleString()} ر.س. يُرجى المراجعة.
+              يوجد فرق بين الزكاة المقدّرة ({fmt(calculatedZakat)} ر.س) والمسجّلة ({fmt(zakatAmount)} ر.س) بمقدار {Math.absfmt(calculatedZakat - zakatAmount)} ر.س. يُرجى المراجعة.
             </AlertDescription>
           </Alert>
         )}
