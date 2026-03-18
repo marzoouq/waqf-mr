@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
