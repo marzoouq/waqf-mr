@@ -8,6 +8,7 @@ import {
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 /* ───── تقرير توزيع الحصص ───── */
 export const generateDistributionsPDF = async (data: {
@@ -42,13 +43,13 @@ export const generateDistributionsPDF = async (data: {
   const totalDeficit = data.distributions.reduce((s, d) => s + d.deficit, 0);
 
   const summaryRows = [
-    reshapeRow(['المبلغ المتاح للتوزيع', `${data.availableAmount.toLocaleString()} ر.س`]),
-    reshapeRow(['إجمالي السُلف المخصومة', `(${totalAdvances.toLocaleString()}) ر.س`]),
-    reshapeRow(['إجمالي المرحّل المخصوم', `(${totalCarryforward.toLocaleString()}) ر.س`]),
-    reshapeRow(['صافي التوزيع الفعلي', `${totalNet.toLocaleString()} ر.س`]),
+    reshapeRow(['المبلغ المتاح للتوزيع', `${fmt(data.availableAmount)} ر.س`]),
+    reshapeRow(['إجمالي السُلف المخصومة', `(${fmt(totalAdvances)}) ر.س`]),
+    reshapeRow(['إجمالي المرحّل المخصوم', `(${fmt(totalCarryforward)}) ر.س`]),
+    reshapeRow(['صافي التوزيع الفعلي', `${fmt(totalNet)} ر.س`]),
   ];
   if (totalDeficit > 0) {
-    summaryRows.push(reshapeRow(['فروق مرحّلة للسنة القادمة', `${totalDeficit.toLocaleString()} ر.س`]));
+    summaryRows.push(reshapeRow(['فروق مرحّلة للسنة القادمة', `${fmt(totalDeficit)} ر.س`]));
   }
 
   autoTable(doc, {
@@ -70,11 +71,11 @@ export const generateDistributionsPDF = async (data: {
   const bodyRows = data.distributions.map(d => reshapeRow([
     d.beneficiary_name,
     `${safeNumber(d.share_percentage).toFixed(6)}%`,
-    d.share_amount.toLocaleString(),
-    d.advances_paid > 0 ? `(${d.advances_paid.toLocaleString()})` : '—',
-    d.carryforward_deducted > 0 ? `(${d.carryforward_deducted.toLocaleString()})` : '—',
-    d.net_amount.toLocaleString(),
-    d.deficit > 0 ? d.deficit.toLocaleString() : '—',
+    fmt(d.share_amount),
+    d.advances_paid > 0 ? `(${fmt(d.advances_paid)})` : '—',
+    d.carryforward_deducted > 0 ? `(${fmt(d.carryforward_deducted)})` : '—',
+    fmt(d.net_amount),
+    d.deficit > 0 ? fmt(d.deficit) : '—',
   ]));
 
   const totalShareAmt = data.distributions.reduce((s, d) => s + d.share_amount, 0);
@@ -85,11 +86,11 @@ export const generateDistributionsPDF = async (data: {
     body: bodyRows,
     foot: [reshapeRow([
       'الإجمالي', '100%',
-      totalShareAmt.toLocaleString(),
-      totalAdvances > 0 ? `(${totalAdvances.toLocaleString()})` : '—',
-      totalCarryforward > 0 ? `(${totalCarryforward.toLocaleString()})` : '—',
-      totalNet.toLocaleString(),
-      totalDeficit > 0 ? totalDeficit.toLocaleString() : '—',
+      fmt(totalShareAmt),
+      totalAdvances > 0 ? `(${fmt(totalAdvances)})` : '—',
+      totalCarryforward > 0 ? `(${fmt(totalCarryforward)})` : '—',
+      fmt(totalNet),
+      totalDeficit > 0 ? fmt(totalDeficit) : '—',
     ])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
@@ -152,8 +153,8 @@ export const generateAccountsPDF = async (data: {
     body: data.contracts.map(c => reshapeRow([
       c.contract_number,
       c.tenant_name,
-      `${safeNumber(c.rent_amount).toLocaleString()}`,
-      `${Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()}`,
+      fmt(safeNumber(c.rent_amount)),
+      fmt(Math.round(safeNumber(c.rent_amount) / 12), 0),
     ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -169,8 +170,8 @@ export const generateAccountsPDF = async (data: {
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['المصدر', 'المبلغ'])],
-    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${a.toLocaleString()}`])),
-    foot: [reshapeRow(['الإجمالي', `+${data.totalIncome.toLocaleString()}`])],
+    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${fmt(a)}`])),
+    foot: [reshapeRow(['الإجمالي', `+${fmt(data.totalIncome)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -185,8 +186,8 @@ export const generateAccountsPDF = async (data: {
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['النوع', 'المبلغ'])],
-    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${a.toLocaleString()}`])),
-    foot: [reshapeRow(['الإجمالي', `-${data.totalExpenses.toLocaleString()}`])],
+    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${fmt(a)}`])),
+    foot: [reshapeRow(['الإجمالي', `-${fmt(data.totalExpenses)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
@@ -208,29 +209,29 @@ export const generateAccountsPDF = async (data: {
 
   const distributionRows: (string | number)[][] = [];
   if (corpusPrev > 0) {
-    distributionRows.push(['رقبة الوقف المرحلة من العام السابق', `+${corpusPrev.toLocaleString()}`]);
+    distributionRows.push(['رقبة الوقف المرحلة من العام السابق', `+${fmt(corpusPrev)}`]);
   }
   distributionRows.push(
-    ['إجمالي الدخل', `+${data.totalIncome.toLocaleString()}`],
+    ['إجمالي الدخل', `+${fmt(data.totalIncome)}`],
   );
   if (corpusPrev > 0) {
-    distributionRows.push(['الإجمالي الشامل', gt.toLocaleString()]);
+    distributionRows.push(['الإجمالي الشامل', fmt(gt)]);
   }
   distributionRows.push(
-    ['(-) المصروفات التشغيلية', `(${regularExp.toLocaleString()})`],
-    ['الصافي بعد المصاريف', netAfterExp.toLocaleString()],
-    ['(-) ضريبة القيمة المضافة', `(${(data.vatAmount || 0).toLocaleString()})`],
-    ['الصافي بعد الضريبة', netAfterVat.toLocaleString()],
-    ['(-) الزكاة', `(${zakatAmt.toLocaleString()})`],
-    ['الصافي بعد الزكاة', netAfterZakatVal.toLocaleString()],
-    ['(-) حصة الناظر', `(${data.adminShare.toLocaleString()})`],
-    [`الباقي بعد حصة الناظر`, `${(netAfterZakatVal - data.adminShare).toLocaleString()}`],
-    ['(-) حصة الواقف', `(${data.waqifShare.toLocaleString()})`],
-    ['ريع الوقف (الإجمالي القابل للتوزيع)', data.waqfRevenue.toLocaleString()],
-    ['(-) رقبة الوقف للعام الحالي', `(${(data.waqfCorpusManual || 0).toLocaleString()})`],
-    ['المبلغ المتاح', avail.toLocaleString()],
-    ['(-) التوزيعات', `(${(data.distributionsAmount || 0).toLocaleString()})`],
-    ['الرصيد المتبقي', remaining.toLocaleString()],
+    ['(-) المصروفات التشغيلية', `(${fmt(regularExp)})`],
+    ['الصافي بعد المصاريف', fmt(netAfterExp)],
+    ['(-) ضريبة القيمة المضافة', `(${fmt(data.vatAmount || 0)})`],
+    ['الصافي بعد الضريبة', fmt(netAfterVat)],
+    ['(-) الزكاة', `(${fmt(zakatAmt)})`],
+    ['الصافي بعد الزكاة', fmt(netAfterZakatVal)],
+    ['(-) حصة الناظر', `(${fmt(data.adminShare)})`],
+    [`الباقي بعد حصة الناظر`, fmt(netAfterZakatVal - data.adminShare)],
+    ['(-) حصة الواقف', `(${fmt(data.waqifShare)})`],
+    ['ريع الوقف (الإجمالي القابل للتوزيع)', fmt(data.waqfRevenue)],
+    ['(-) رقبة الوقف للعام الحالي', `(${fmt(data.waqfCorpusManual || 0)})`],
+    ['المبلغ المتاح', fmt(avail)],
+    ['(-) التوزيعات', `(${fmt(data.distributionsAmount || 0)})`],
+    ['الرصيد المتبقي', fmt(remaining)],
   );
 
   doc.setFont(fontFamily, 'bold');
@@ -257,7 +258,7 @@ export const generateAccountsPDF = async (data: {
     body: data.beneficiaries.map(b => reshapeRow([
       b.name,
       `${safeNumber(b.share_percentage).toFixed(6)}%`,
-      totalBenPct > 0 ? (distAmount * safeNumber(b.share_percentage) / totalBenPct).toLocaleString() : '0',
+      totalBenPct > 0 ? fmt(distAmount * safeNumber(b.share_percentage) / totalBenPct) : '0',
     ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),

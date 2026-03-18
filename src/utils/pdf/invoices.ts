@@ -8,6 +8,7 @@ import {
 } from './core';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -47,12 +48,12 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       i + 1,
       item.invoice_type,
       item.invoice_number || '-',
-      `${safeNumber(item.amount).toLocaleString()} ر.س`,
+      `${fmt(safeNumber(item.amount))} ر.س`,
       item.date,
       item.property_number || '-',
       statusLabel(item.status),
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', '', `${total.toLocaleString()} ر.س`, '', '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', '', `${fmt(total)} ر.س`, '', '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -91,7 +92,7 @@ export const generateOverdueInvoicesPDF = async (
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
   doc.text(rs(`عدد الفواتير المتأخرة: ${overdue.length}`), 195, startY + 16, { align: 'right' });
-  doc.text(rs(`إجمالي المبالغ المتأخرة: ${totalAmount.toLocaleString()} ر.س`), 195, startY + 23, { align: 'right' });
+  doc.text(rs(`إجمالي المبالغ المتأخرة: ${fmt(totalAmount)} ر.س`), 195, startY + 23, { align: 'right' });
 
   const calcDaysLate = (dueDate: string) => {
     const due = new Date(dueDate);
@@ -109,10 +110,10 @@ export const generateOverdueInvoicesPDF = async (
       inv.contract?.contract_number ?? '-',
       inv.contract?.property?.property_number ?? '-',
       inv.due_date || '-',
-      `${safeNumber(inv.amount).toLocaleString()} ر.س`,
+      `${fmt(safeNumber(inv.amount))} ر.س`,
       inv.due_date ? calcDaysLate(inv.due_date) : 0,
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', '', '', '', '', `${totalAmount.toLocaleString()} ر.س`, ''])],
+    foot: [reshapeRow(['', 'الإجمالي', '', '', '', '', `${fmt(totalAmount)} ر.س`, ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),

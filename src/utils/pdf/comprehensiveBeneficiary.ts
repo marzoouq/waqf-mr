@@ -7,6 +7,7 @@ import {
   reshapeArabic as rs, reshapeRow,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
+import { fmt, fmtInt } from '@/utils/format';
 
 export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;
@@ -82,9 +83,9 @@ export const generateComprehensiveBeneficiaryPDF = async (
     startY: startY + 42,
     head: [reshapeRow(['البيان', 'القيمة (ر.س)'])],
     body: [
-      reshapeRow(['حصتي المستحقة', data.myShare.toLocaleString()]),
-      reshapeRow(['المبالغ المستلمة', data.totalReceived.toLocaleString()]),
-      reshapeRow(['المبالغ المعلقة', data.pendingAmount.toLocaleString()]),
+      reshapeRow(['حصتي المستحقة', fmt(data.myShare)]),
+      reshapeRow(['المبالغ المستلمة', fmt(data.totalReceived)]),
+      reshapeRow(['المبالغ المعلقة', fmt(data.pendingAmount)]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, f),
@@ -105,14 +106,14 @@ export const generateComprehensiveBeneficiaryPDF = async (
       body: data.contracts.map(c => reshapeRow([
         c.contract_number,
         c.tenant_name,
-        Number(c.rent_amount).toLocaleString(),
-        Math.round(Number(c.rent_amount) / 12).toLocaleString(),
+        fmt(Number(c.rent_amount)),
+        fmtInt(Math.round(Number(c.rent_amount) / 12)),
         c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status,
       ])),
       foot: [reshapeRow([
         'الإجمالي', '',
-        data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString(),
-        Math.round(data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString(),
+        fmt(data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0)),
+        fmtInt(Math.round(data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0) / 12)),
         '',
       ])],
       theme: 'striped',
@@ -135,8 +136,8 @@ export const generateComprehensiveBeneficiaryPDF = async (
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['المصدر', 'المبلغ (ر.س)'])],
-    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${a.toLocaleString()}`])),
-    foot: [reshapeRow(['إجمالي الإيرادات', `+${data.totalIncome.toLocaleString()}`])],
+    body: Object.entries(data.incomeBySource).map(([s, a]) => reshapeRow([s, `+${fmt(a)}`])),
+    foot: [reshapeRow(['إجمالي الإيرادات', `+${fmt(data.totalIncome)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, f),
     ...footStyles(TABLE_HEAD_GREEN, f),
@@ -152,8 +153,8 @@ export const generateComprehensiveBeneficiaryPDF = async (
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
-    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${a.toLocaleString()}`])),
-    foot: [reshapeRow(['إجمالي المصروفات', `-${data.totalExpenses.toLocaleString()}`])],
+    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${fmt(a)}`])),
+    foot: [reshapeRow(['إجمالي المصروفات', `-${fmt(data.totalExpenses)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, f),
     ...footStyles(TABLE_HEAD_RED, f),
@@ -167,38 +168,38 @@ export const generateComprehensiveBeneficiaryPDF = async (
   doc.text(rs('خامساً: التسلسل المالي والحسابات الختامية'), 192, y, { align: 'right' });
 
   const sequenceRows: (string | number)[][] = [
-    ['إجمالي الدخل', `+${data.totalIncome.toLocaleString()}`],
-    ['(-) المصروفات التشغيلية', `(${data.totalExpenses.toLocaleString()})`],
-    ['الصافي بعد المصاريف', data.netAfterExpenses.toLocaleString()],
-    ['(-) ضريبة القيمة المضافة', `(${data.vatAmount.toLocaleString()})`],
-    ['الصافي بعد الضريبة', data.netAfterVat.toLocaleString()],
+    ['إجمالي الدخل', `+${fmt(data.totalIncome)}`],
+    ['(-) المصروفات التشغيلية', `(${fmt(data.totalExpenses)})`],
+    ['الصافي بعد المصاريف', fmt(data.netAfterExpenses)],
+    ['(-) ضريبة القيمة المضافة', `(${fmt(data.vatAmount)})`],
+    ['الصافي بعد الضريبة', fmt(data.netAfterVat)],
   ];
 
   if (data.zakatAmount > 0) {
     sequenceRows.push(
-      ['(-) الزكاة', `(${data.zakatAmount.toLocaleString()})`],
-      ['الصافي بعد الزكاة', data.netAfterZakat.toLocaleString()],
+      ['(-) الزكاة', `(${fmt(data.zakatAmount)})`],
+      ['الصافي بعد الزكاة', fmt(data.netAfterZakat)],
     );
   }
 
   if (data.adminShare > 0) {
     sequenceRows.push(
-      [`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `(${data.adminShare.toLocaleString()})`],
+      [`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `(${fmt(data.adminShare)})`],
     );
   }
   if (data.waqifShare > 0) {
     sequenceRows.push(
-      [`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `(${data.waqifShare.toLocaleString()})`],
+      [`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `(${fmt(data.waqifShare)})`],
     );
   }
   if (data.waqfCorpusManual > 0) {
     sequenceRows.push(
-      ['(-) رقبة الوقف للعام الحالي', `(${data.waqfCorpusManual.toLocaleString()})`],
+      ['(-) رقبة الوقف للعام الحالي', `(${fmt(data.waqfCorpusManual)})`],
     );
   }
 
   sequenceRows.push(
-    ['الإجمالي القابل للتوزيع', data.availableAmount.toLocaleString()],
+    ['الإجمالي القابل للتوزيع', fmt(data.availableAmount)],
   );
 
   autoTable(doc, {
@@ -229,10 +230,10 @@ export const generateComprehensiveBeneficiaryPDF = async (
     startY: y + 6,
     head: [reshapeRow(['البيان', 'القيمة (ر.س)'])],
     body: [
-      reshapeRow(['إجمالي ريع الوقف القابل للتوزيع', data.availableAmount.toLocaleString()]),
-      reshapeRow(['حصتي المستحقة', data.myShare.toLocaleString()]),
-      reshapeRow(['المبالغ المستلمة', data.totalReceived.toLocaleString()]),
-      reshapeRow(['المبالغ المعلقة', data.pendingAmount.toLocaleString()]),
+      reshapeRow(['إجمالي ريع الوقف القابل للتوزيع', fmt(data.availableAmount)]),
+      reshapeRow(['حصتي المستحقة', fmt(data.myShare)]),
+      reshapeRow(['المبالغ المستلمة', fmt(data.totalReceived)]),
+      reshapeRow(['المبالغ المعلقة', fmt(data.pendingAmount)]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, f),
@@ -258,7 +259,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
       body: data.distributions.map(d => reshapeRow([
         d.date,
         d.fiscalYear,
-        d.amount.toLocaleString(),
+        fmt(d.amount),
         d.status === 'paid' ? 'مستلم' : 'معلق',
       ])),
       theme: 'striped',
