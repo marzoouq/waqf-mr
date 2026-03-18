@@ -99,6 +99,7 @@ const AdminDashboard = () => {
   const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
   // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
+  // M5 fix: فصل partially_paid عن paid في العد
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
       contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
@@ -113,11 +114,12 @@ const AdminDashboard = () => {
       if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
       return sum;
     }, 0);
-    const paidCount = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
-    const unpaidCount = dueInvoices.length - paidCount;
+    const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
+    const partialCount = dueInvoices.filter(inv => inv.status === 'partially_paid').length;
+    const unpaidCount = dueInvoices.length - paidCount - partialCount;
     const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
-    return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
+    return { paidCount, partialCount, unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
   }, [contracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
