@@ -95,31 +95,20 @@ const AdminDashboard = () => {
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
+  // BUG-02 fix: حساب التحصيل على مستوى الفاتورة لا العقد — أدق
   const collectionSummary = useMemo(() => {
-    const relevantContracts = fyContracts.filter(c => c.status === 'active' || c.status === 'expired');
-    let onTime = 0;
-    let late = 0;
+    const relevantContractIds = new Set(
+      fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
+    );
+    const dueInvoices = paymentInvoices.filter(
+      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= new Date()
+    );
+    const paid = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
+    const unpaid = dueInvoices.length - paid;
+    const total = dueInvoices.length;
+    const percentage = total > 0 ? Math.round((paid / total) * 100) : 0;
 
-    relevantContracts.forEach(contract => {
-      const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
-      if (contractInvoices.length === 0) return; // no invoices generated yet
-
-      const dueInvoices = contractInvoices.filter(inv => new Date(inv.due_date) <= new Date());
-      if (dueInvoices.length === 0) return; // no payments due yet
-
-      const unpaidDue = dueInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
-      if (unpaidDue.length > 0) {
-        late++;
-      } else {
-        onTime++;
-      }
-    });
-
-    const total = onTime + late;
-    const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
-
-    return { onTime, late, total, percentage };
+    return { onTime: paid, late: unpaid, total, percentage };
   }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
