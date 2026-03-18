@@ -61,7 +61,7 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
       i + 1,
       item.expense_type,
       `${fmt(Number(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.description || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
