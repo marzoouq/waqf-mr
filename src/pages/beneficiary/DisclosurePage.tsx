@@ -186,7 +186,7 @@ const DisclosurePage = () => {
     }
   };
 
-  if (finLoading) {
+  if (finLoading || pctLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 

@@ -114,12 +114,10 @@ const CarryforwardHistoryPage = () => {
                 رجوع
               </Button>
               <ExportMenu onExportPdf={() => {
-                try {
+                toast.info('جاري تجهيز الطباعة...');
+                setTimeout(() => {
                   window.print();
-                  toast.success('جاري الطباعة...');
-                } catch {
-                  toast.error('حدث خطأ أثناء الطباعة');
-                }
+                }, 300);
               }} />
             </div>
           }

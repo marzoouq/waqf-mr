@@ -278,7 +278,7 @@ const MySharePage = () => {
   };
 
   // F4: عرض skeleton أثناء التحميل
-  if (finLoading || distLoading) {
+  if (finLoading || distLoading || pctLoading) {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6">

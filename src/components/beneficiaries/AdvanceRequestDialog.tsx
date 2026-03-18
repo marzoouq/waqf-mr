@@ -55,7 +55,10 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
       }
       setLoading(false);
     }).catch(() => {
-      if (!cancelled) setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
+        toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+      }
     });
     return () => { cancelled = true; };
   }, [open, beneficiaryId, fiscalYearId]);
