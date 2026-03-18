@@ -96,7 +96,7 @@ const AdminDashboard = () => {
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  // BUG-02 fix: حساب التحصيل على مستوى الفاتورة لا العقد — أدق
+  // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
       fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
@@ -104,12 +104,17 @@ const AdminDashboard = () => {
     const dueInvoices = paymentInvoices.filter(
       inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= new Date()
     );
-    const paid = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
-    const unpaid = dueInvoices.length - paid;
-    const total = dueInvoices.length;
-    const percentage = total > 0 ? Math.round((paid / total) * 100) : 0;
+    const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
+    const totalCollected = dueInvoices.reduce((sum, inv) => {
+      if (inv.status === 'paid') return sum + safeNumber(inv.amount);
+      if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
+      return sum;
+    }, 0);
+    const paidCount = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
+    const unpaidCount = dueInvoices.length - paidCount;
+    const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
-    return { onTime: paid, late: unpaid, total, percentage };
+    return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
   }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
