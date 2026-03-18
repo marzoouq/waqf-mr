@@ -4,7 +4,7 @@
  */
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown } from 'lucide-react';
+import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
@@ -30,7 +30,7 @@ const beneficiaryLinks = [
   { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي' },
   { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح' },
-  { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
+  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
 ];
 
 const waqifLinks = [
