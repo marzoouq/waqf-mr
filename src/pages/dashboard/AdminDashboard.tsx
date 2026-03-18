@@ -193,15 +193,23 @@ const AdminDashboard = () => {
 
   // tooltipStyle moved to module level (PERF — BUG-02 fix)
 
+  // T-03: دالة مساعدة موحّدة لألوان KPI
+  const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
+    const isGood = invert ? value <= good : value >= good;
+    const isWarn = invert ? value <= warn : value >= warn;
+    if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
+    if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
+    return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
+  };
+
   const kpis = useMemo(() => {
-    // Use invoice-based collection rate for accuracy (matches CollectionReport)
     const collectionRate = collectionSummary.percentage;
     // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
     const rentedUnitIds = new Set(
-      fyContracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
+      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
     );
     const wholePropertyRentedIds = new Set(
-      fyContracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
+      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
     );
     const rentedUnits = allUnits.filter(u =>
       rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
@@ -211,13 +219,17 @@ const AdminDashboard = () => {
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
+    const colColor = getKpiColor(collectionRate, 80, 50);
+    const occColor = getKpiColor(occupancyRate, 80, 50);
+    const expColor = getKpiColor(expenseRatio, 20, 40, true);
+
     return [
-      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: colColor.text, progressColor: colColor.bar },
+      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
+      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts]);
 
   return (
     <DashboardLayout>
