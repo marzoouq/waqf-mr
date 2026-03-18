@@ -21,3 +21,5 @@ export { generatePaymentInvoicePDF } from './paymentInvoice';
 export type { PaymentInvoicePdfData, InvoiceTemplate } from './paymentInvoice';
 export { generateAnnualReportPDF as generateAnnualAchievementsPDF } from './annualReport';
 export type { AnnualReportPdfData } from './annualReport';
+export { generateInvoiceClientPDF } from './invoice';
+export type { GenerateInvoicePdfClientOptions } from './invoice';
