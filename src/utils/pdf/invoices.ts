@@ -51,7 +51,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       item.invoice_type,
       item.invoice_number || '-',
       `${fmt(safeNumber(item.amount))} ر.س`,
-      item.date,
+      formatDate(item.date),
       item.property_number || '-',
       statusLabel(item.status),
     ])),
