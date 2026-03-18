@@ -28,7 +28,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
       item.date,
       item.notes || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
