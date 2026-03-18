@@ -186,7 +186,17 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(filteredIncome.map(item => ({
+                'المصدر': item.source,
+                'المبلغ': safeNumber(item.amount),
+                'التاريخ': item.date,
+                'العقار': item.property?.property_number || '-',
+                'ملاحظات': item.notes || '-',
+              })));
+              downloadCsv(csv, 'دخل.csv');
+              toast.success('تم تصدير الدخل بنجاح');
+            }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
               <DialogContent className="max-w-md">
