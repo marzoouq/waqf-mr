@@ -270,7 +270,7 @@ const AdminDashboard = () => {
               <Clock className="h-4 w-4" />
               <AlertTitle>عقود تنتهي قريباً</AlertTitle>
               <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span>{expiringContracts.length} عقد ينتهي خلال 30 يوماً ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
+                <span>{expiringContracts.length} عقد ينتهي خلال 30 يوماً القادمة ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
                 <Link to="/dashboard/contracts">
                   <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
                 </Link>
