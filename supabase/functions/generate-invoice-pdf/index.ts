@@ -378,6 +378,15 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   if (waqfSettings.vat_registration_number) {
     detailLines.push(`الرقم الضريبي: ${waqfSettings.vat_registration_number}`);
   }
+  if (waqfSettings.commercial_registration_number) {
+    detailLines.push(`السجل التجاري: ${waqfSettings.commercial_registration_number}`);
+  }
+  if (waqfSettings.business_address) {
+    detailLines.push(`العنوان: ${waqfSettings.business_address}`);
+  }
+  if (waqfSettings.waqf_bank_iban) {
+    detailLines.push(`IBAN: ${waqfSettings.waqf_bank_iban}${waqfSettings.waqf_bank_name ? ` (${waqfSettings.waqf_bank_name})` : ''}`);
+  }
 
   for (const line of detailLines) {
     const shaped = processArabicText(line);
