@@ -322,6 +322,7 @@ const MySharePage = () => {
                   carryforwardBalance={carryforwardBalance}
                   minAmount={advanceSettings.min_amount}
                   maxPercentage={advanceSettings.max_percentage}
+                  isFiscalYearActive={selectedFY?.status !== 'closed'}
                 />
               )}
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">

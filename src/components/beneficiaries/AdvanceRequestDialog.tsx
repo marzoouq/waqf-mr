@@ -53,6 +53,8 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
         setServerData(data as unknown as ServerAdvanceData);
       }
       setLoading(false);
+    }).catch(() => {
+      if (!cancelled) setLoading(false);
     });
     return () => { cancelled = true; };
   }, [open, beneficiaryId, fiscalYearId]);
