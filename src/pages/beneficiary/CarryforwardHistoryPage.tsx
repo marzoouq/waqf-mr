@@ -20,7 +20,12 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 
 const CarryforwardHistoryPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ['my-beneficiary'] });
+    queryClient.invalidateQueries({ queryKey: ['my-carryforwards'] });
+    queryClient.invalidateQueries({ queryKey: ['my-advance-requests'] });
+    queryClient.invalidateQueries({ queryKey: ['carryforward-balance'] });
+  };
   const { user } = useAuth();
   const navigate = useNavigate();
 
