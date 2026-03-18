@@ -56,7 +56,7 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 };
 
 const AdminDashboard = () => {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
