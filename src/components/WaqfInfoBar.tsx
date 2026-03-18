@@ -99,11 +99,10 @@ const WaqfInfoBar = () => {
         logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
       }
 
-      // Save logo URL
+      // حفظ رابط الشعار — upsert لضمان إنشاء المفتاح إذا لم يكن موجوداً
       await supabase
         .from('app_settings')
-        .update({ value: logoUrl, updated_at: new Date().toISOString() })
-        .eq('key', 'waqf_logo_url');
+        .upsert({ key: 'waqf_logo_url', value: logoUrl, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
       for (const field of FIELDS) {
         const value = (formData[field.key] || '').trim();
@@ -114,8 +113,7 @@ const WaqfInfoBar = () => {
         }
         const { error } = await supabase
           .from('app_settings')
-          .update({ value, updated_at: new Date().toISOString() })
-          .eq('key', field.key);
+          .upsert({ key: field.key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
         if (error) throw error;
       }
       await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
