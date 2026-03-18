@@ -45,6 +45,14 @@ const ChartSkeleton = () => (
   </div>
 );
 
+// T-03: دالة مساعدة موحّدة لألوان KPI (module-level لتجنب hoisting issue)
+const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
+  const isGood = invert ? value <= good : value >= good;
+  const isWarn = invert ? value <= warn : value >= warn;
+  if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
+  if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
+  return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
+};
 
 const AdminDashboard = () => {
   const { role } = useAuth();
