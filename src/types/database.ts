@@ -200,3 +200,15 @@ export interface AuditLog {
   user_id: string | null;
   created_at: string;
 }
+
+export interface AccountCategory {
+  id: string;
+  code: string;
+  name: string;
+  parent_id: string | null;
+  category_type: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

@@ -9,7 +9,7 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     properties: true, contracts: true, income: true, expenses: true,
     beneficiaries: true, reports: true, accounts: true, invoices: true,
     bylaws: true, messages: true, audit_log: true, annual_report: true,
-    support: true,
+    support: true, chart_of_accounts: true,
   },
   beneficiary: {
     properties: true, contracts: true, disclosure: true, share: true,

@@ -6,7 +6,7 @@ import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset,
+  ClipboardList, Calculator, Headset, GitBranch,
 } from 'lucide-react';
 import type { MenuLabels } from '@/components/settings/MenuCustomizationTab';
 
@@ -26,6 +26,7 @@ export const linkLabelKeys: Record<string, keyof MenuLabels> = {
   '/dashboard/invoices': 'invoices',
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/bylaws': 'bylaws',
+  '/dashboard/chart-of-accounts': 'chart_of_accounts',
   '/beneficiary': 'beneficiary_view',
 };
 
@@ -48,6 +49,7 @@ export const allAdminLinks = [
   { to: '/dashboard/zatca', icon: Lock, label: 'إدارة ZATCA' },
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
+  { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -94,6 +96,7 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/annual-report': 'annual_report',
   '/dashboard/support': 'support',
+  '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
@@ -120,7 +123,7 @@ export const defaultAdminSections = {
   properties: true, contracts: true, income: true, expenses: true,
   beneficiaries: true, reports: true, accounts: true, users: true,
   invoices: true, bylaws: true, messages: true, audit_log: true,
-  annual_report: true, support: true,
+  annual_report: true, support: true, chart_of_accounts: true,
 };
 
 export const defaultBeneficiarySections = {
@@ -144,6 +147,7 @@ export const ADMIN_SECTION_KEYS: Record<string, string> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/annual-report': 'annual_report',
   '/dashboard/support': 'support',
+  '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
 export const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
@@ -181,6 +185,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/zatca': 'إدارة ZATCA',
   '/dashboard/annual-report': 'التقرير السنوي',
   '/dashboard/support': 'الدعم الفني',
+  '/dashboard/chart-of-accounts': 'الشجرة المحاسبية',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',

@@ -26,6 +26,7 @@ export interface MenuLabels {
   audit_log: string;
   bylaws: string;
   beneficiary_view: string;
+  chart_of_accounts: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
@@ -44,6 +45,7 @@ export const defaultMenuLabels: MenuLabels = {
   audit_log: 'سجل المراجعة',
   bylaws: 'اللائحة التنظيمية',
   beneficiary_view: 'واجهة المستفيد',
+  chart_of_accounts: 'الشجرة المحاسبية',
 };
 
 const MenuCustomizationTab = () => {
@@ -83,6 +85,7 @@ const MenuCustomizationTab = () => {
     { key: 'invoices', defaultLabel: 'الفواتير' },
     { key: 'audit_log', defaultLabel: 'سجل المراجعة' },
     { key: 'bylaws', defaultLabel: 'اللائحة التنظيمية' },
+    { key: 'chart_of_accounts', defaultLabel: 'الشجرة المحاسبية' },
     { key: 'beneficiary_view', defaultLabel: 'واجهة المستفيد' },
   ];
 
