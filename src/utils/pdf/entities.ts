@@ -54,10 +54,6 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
   doc.setFontSize(18);
   doc.text(rs('تقرير العقود'), 105, startY + 5, { align: 'center' });
 
-  const formatDate = (d: string) => {
-    if (!d) return '-';
-    return new Date(d).toLocaleDateString('ar-SA');
-  };
 
   const statusLabel = (s: string) => {
     switch (s) {
