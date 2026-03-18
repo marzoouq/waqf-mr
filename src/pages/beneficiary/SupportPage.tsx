@@ -276,6 +276,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
                   type="button"
                   onMouseEnter={() => setHoverRating(i)}
                   onMouseLeave={() => setHoverRating(0)}
+                  onTouchStart={() => setHoverRating(i)}
                   onClick={() => setRating(i)}
                   className="p-1 transition-transform hover:scale-110"
                 >

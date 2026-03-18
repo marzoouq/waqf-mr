@@ -73,12 +73,12 @@ function CategoryRow({
 
   return (
     <div
-      className="flex items-center justify-between gap-2 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors"
-      style={{ paddingRight: `${12 + depth * 24}px` }}
+      className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors"
+      style={{ paddingRight: `${Math.min(12 + depth * 16, 64)}px` }}
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Icon className="w-4 h-4 shrink-0 text-muted-foreground" />
-        <span className="font-mono text-xs text-muted-foreground">{node.code}</span>
+        <span className="font-mono text-xs text-muted-foreground hidden sm:inline">{node.code}</span>
         <span className={`text-sm font-medium truncate ${!node.is_active ? 'line-through text-muted-foreground' : ''}`}>
           {node.name}
         </span>

@@ -281,11 +281,11 @@ function HistoricalComparisonPage() {
                     <CardTitle className="text-base">المقارنة البيانية</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
-                      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                        <YAxis type="category" dataKey="metric" width={100} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                        <YAxis type="category" dataKey="metric" width={70} stroke="hsl(var(--muted-foreground))" fontSize={10} />
                         <Tooltip
                           formatter={(value) => fmtSAR(Number(value))}
                           contentStyle={{
