@@ -196,7 +196,16 @@ const AdminDashboard = () => {
   const kpis = useMemo(() => {
     // Use invoice-based collection rate for accuracy (matches CollectionReport)
     const collectionRate = collectionSummary.percentage;
-    const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
+    // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
+    const rentedUnitIds = new Set(
+      fyContracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
+    );
+    const wholePropertyRentedIds = new Set(
+      fyContracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
+    );
+    const rentedUnits = allUnits.filter(u =>
+      rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
+    ).length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : 0;
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
