@@ -403,7 +403,7 @@ const ReportsPage = () => {
                       {incomeSourceData.map((item, index) => (
                         <tr key={`income-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-success">+{item.fmt(value)}</td>
+                          <td className="py-2 px-4 font-medium text-success">+{fmt(item.value)}</td>
                         </tr>
                       ))}
                       <tr className="border-b-2 border-success bg-success/10">
@@ -422,7 +422,7 @@ const ReportsPage = () => {
                       {expenseTypeData.map((item, index) => (
                         <tr key={`expense-${index}`} className="border-b">
                           <td className="py-2 px-4 pr-8 text-muted-foreground">  {item.name}</td>
-                          <td className="py-2 px-4 font-medium text-destructive">-{item.fmt(value)}</td>
+                          <td className="py-2 px-4 font-medium text-destructive">-{fmt(item.value)}</td>
                         </tr>
                       ))}
                       {/* J-05 fix: show VAT as separate expense line so items + VAT = totalExpenses */}
@@ -562,7 +562,7 @@ const ReportsPage = () => {
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
-                          <TableCell className="text-primary font-medium">{item.fmt(amount)} ر.س</TableCell>
+                          <TableCell className="text-primary font-medium">{fmt(item.amount)} ر.س</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="bg-muted/50 font-bold">
@@ -618,10 +618,10 @@ const ReportsPage = () => {
                                 <span className={`text-xs font-semibold whitespace-nowrap ${occupancyColor}`}>{p.occupancy}%</span>
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">{p.fmt(annualRent, 0)} ر.س</TableCell>
-                            <TableCell className="text-destructive">{p.fmt(totalExpenses, 0)} ر.س</TableCell>
+                            <TableCell className="font-medium">{fmt(p.annualRent, 0)} ر.س</TableCell>
+                            <TableCell className="text-destructive">{fmt(p.totalExpenses, 0)} ر.س</TableCell>
                             <TableCell className={`font-bold ${p.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-                              {p.fmt(netIncome, 0)} ر.س
+                              {fmt(p.netIncome, 0)} ر.س
                             </TableCell>
                           </TableRow>
                         );
@@ -632,10 +632,10 @@ const ReportsPage = () => {
                         <TableCell colSpan={3}>الإجمالي</TableCell>
                         <TableCell>{perfTotals.totalUnits > 0 ? perfTotals.totalUnits : '-'}</TableCell>
                         <TableCell></TableCell>
-                        <TableCell className="font-bold">{perfTotals.fmt(annualRent, 0)} ر.س</TableCell>
-                        <TableCell className="text-destructive font-bold">{perfTotals.fmt(totalExpenses, 0)} ر.س</TableCell>
+                        <TableCell className="font-bold">{fmt(perfTotals.annualRent, 0)} ر.س</TableCell>
+                        <TableCell className="text-destructive font-bold">{fmt(perfTotals.totalExpenses, 0)} ر.س</TableCell>
                         <TableCell className={`font-bold ${perfTotals.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>
-                          {perfTotals.fmt(netIncome, 0)} ر.س
+                          {fmt(perfTotals.netIncome, 0)} ر.س
                         </TableCell>
                       </TableRow>
                     </TableFooter>

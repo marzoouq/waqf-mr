@@ -230,7 +230,7 @@ const WaqifDashboard = () => {
               {kpis.map((kpi, idx) => (
                 <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
                   <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                  <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>{kpi.fmt(value)}{kpi.suffix}</p>
+                  <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>{fmt(kpi.value)}{kpi.suffix}</p>
                   {kpi.progressColor && <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />}
                 </div>
               ))}

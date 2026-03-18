@@ -87,7 +87,7 @@ const AdvanceRequestsTab = () => {
         )}
         {advanceSettings.enabled && (
           <p className="text-xs text-muted-foreground mt-1">
-            الحد الأدنى: {advanceSettings.fmt(min_amount)} ر.س | الحد الأقصى: {advanceSettings.max_percentage}% من الحصة
+            الحد الأدنى: {fmt(advanceSettings.min_amount)} ر.س | الحد الأقصى: {advanceSettings.max_percentage}% من الحصة
           </p>
         )}
       </CardHeader>

@@ -112,7 +112,7 @@ const AccountsCollectionTable = ({
                           onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
                           className="h-8 w-24"
                         />
-                      ) : `${item.fmt(paymentPerPeriod)} ريال`}
+                      ) : `${fmt(item.paymentPerPeriod)} ريال`}
                     </TableCell>
                     <TableCell className="text-center">
                       {item.spansMultipleYears ? (
@@ -150,7 +150,7 @@ const AccountsCollectionTable = ({
                       ) : item.paidMonths}
                     </TableCell>
                     <TableCell className="font-bold text-primary">
-                      {isEditing ? `${fmt(editTotal)} ريال` : `${item.fmt(totalCollected)} ريال`}
+                      {isEditing ? `${fmt(editTotal)} ريال` : `${fmt(item.totalCollected)} ريال`}
                     </TableCell>
                     <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
                       {fmt(isEditing ? editArrears : item.arrears)} ريال

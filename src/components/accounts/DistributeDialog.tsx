@@ -207,15 +207,15 @@ const DistributeDialog = ({
                 <TableRow key={d.beneficiary_id} className={d.deficit > 0 ? 'bg-destructive/5' : ''}>
                   <TableCell className="font-medium">{d.beneficiary_name}</TableCell>
                   <TableCell>{formatPercentage(d.share_percentage)}</TableCell>
-                  <TableCell>{d.fmt(share_amount)}</TableCell>
+                  <TableCell>{fmt(d.share_amount)}</TableCell>
                   <TableCell>
                     {d.advances_paid > 0 ? (
-                      <Badge variant="outline" className="text-destructive">-{d.fmt(advances_paid)}</Badge>
+                      <Badge variant="outline" className="text-destructive">-{fmt(d.advances_paid)}</Badge>
                     ) : '—'}
                   </TableCell>
                   <TableCell>
                     {d.carryforward_deducted > 0 ? (
-                      <Badge variant="outline" className="text-warning">-{d.fmt(carryforward_deducted)}</Badge>
+                      <Badge variant="outline" className="text-warning">-{fmt(d.carryforward_deducted)}</Badge>
                     ) : '—'}
                   </TableCell>
                   <TableCell>
@@ -224,11 +224,11 @@ const DistributeDialog = ({
                         <span className="font-bold text-destructive">0</span>
                         <Badge className="bg-destructive/20 text-destructive text-[10px] block w-fit">
                           <ArrowLeftRight className="w-3 h-3 ml-1 inline" />
-                          يُرحّل {d.fmt(deficit)}
+                          يُرحّل {fmt(d.deficit)}
                         </Badge>
                       </div>
                     ) : (
-                      <span className="font-bold text-primary">{d.fmt(net_amount)}</span>
+                      <span className="font-bold text-primary">{fmt(d.net_amount)}</span>
                     )}
                   </TableCell>
                 </TableRow>
