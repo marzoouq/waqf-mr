@@ -10,6 +10,7 @@ import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import { toast } from 'sonner';
+const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-SA') : '-';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
