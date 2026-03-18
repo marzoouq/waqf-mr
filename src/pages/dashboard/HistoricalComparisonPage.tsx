@@ -257,7 +257,7 @@ function HistoricalComparisonPage() {
                         <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                         <YAxis type="category" dataKey="metric" width={100} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                         <Tooltip
-                          formatter={(value: number) => fmtSAR(value)}
+                          formatter={(value) => fmtSAR(Number(value))}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--card))',
                             border: '1px solid hsl(var(--border))',

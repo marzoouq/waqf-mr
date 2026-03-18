@@ -35,5 +35,3 @@ export const fmtSAR = (n: number | null | undefined, decimals = 2): string =>
 export const fmtPct = (n: number | null | undefined, decimals = 2): string =>
   `${fmt(n, decimals)}%`;
 
-/** للتوافق مع الكود القديم — سيُزال تدريجياً */
-export const fmtAr = fmt;
