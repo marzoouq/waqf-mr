@@ -182,7 +182,7 @@ const WaqifDashboard = () => {
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0"><GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" /></div>
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الواقف</h1>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">{displayName}</h1>
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">لوحة متابعة الوقف</p>
                 </div>
               </div>
