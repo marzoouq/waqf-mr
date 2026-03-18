@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
-import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
