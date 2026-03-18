@@ -1,6 +1,7 @@
 /**
  * مكون البحث الشامل (Global Search)
  * يتيح البحث عبر العقارات والعقود والمستفيدين والمصروفات
+ * يعمل كحقل بحث على الشاشات الكبيرة وكأيقونة + Dialog على الجوال
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,12 +9,14 @@ import { Search, Building2, FileText, Users, Receipt, X, Loader2 } from 'lucide-
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { cn } from '@/lib/utils';
 import { fmt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SearchResult {
   id: string;
@@ -30,15 +33,70 @@ const TYPE_CONFIG = {
   expense: { icon: Receipt, label: 'مصروف', color: 'bg-muted text-muted-foreground' },
 };
 
+/** قائمة نتائج البحث المشتركة بين Desktop و Mobile */
+const SearchResults = ({
+  isLoading,
+  results,
+  query,
+  onSelect,
+}: {
+  isLoading: boolean;
+  results: SearchResult[];
+  query: string;
+  onSelect: (r: SearchResult) => void;
+}) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (results.length === 0) {
+    return (
+      <div className="py-6 text-center text-sm text-muted-foreground">
+        لا توجد نتائج لـ &quot;{query}&quot;
+      </div>
+    );
+  }
+  return (
+    <div className="py-1">
+      {results.map((result) => {
+        const config = TYPE_CONFIG[result.type];
+        const Icon = config.icon;
+        return (
+          <button
+            key={`${result.type}-${result.id}`}
+            onClick={() => onSelect(result)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-right"
+          >
+            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', config.color)}>
+              <Icon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{result.title}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{result.subtitle}</p>
+            </div>
+            <Badge variant="outline" className="text-[10px] shrink-0">{config.label}</Badge>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
 const GlobalSearch = () => {
   const { role } = useAuth();
   const { fiscalYearId } = useFiscalYear();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const abortRef = useRef<AbortController>(undefined);
@@ -81,14 +139,13 @@ const GlobalSearch = () => {
         }
       }
 
-      // Search contracts — hide tenant_name from non-admin, filter by fiscal_year
+      // Search contracts — filter by fiscal_year
       let contractsQuery = supabase
         .from('contracts')
         .select('id, contract_number, tenant_name, status, fiscal_year_id')
         .or(`contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`)
         .limit(5);
 
-      // Filter by fiscal year if a specific one is selected
       if (fiscalYearId && fiscalYearId !== '__none__') {
         contractsQuery = contractsQuery.eq('fiscal_year_id', fiscalYearId);
       }
@@ -100,7 +157,6 @@ const GlobalSearch = () => {
           searchResults.push({
             id: c.id,
             title: `عقد ${c.contract_number}`,
-            // إظهار اسم المستأجر لجميع الأدوار حسب طلب الإفصاح
             subtitle: c.tenant_name || `حالة: ${c.status}`,
             type: 'contract',
             path: `${basePath}/contracts`,
@@ -129,7 +185,6 @@ const GlobalSearch = () => {
           }
         }
 
-        // Search expenses
         let expensesQuery = supabase
           .from('expenses')
           .select('id, expense_type, description, amount, fiscal_year_id')
@@ -171,7 +226,7 @@ const GlobalSearch = () => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, search]);
 
-  // Close on click outside
+  // Close on click outside (desktop)
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -187,26 +242,96 @@ const GlobalSearch = () => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        inputRef.current?.focus();
-        setIsOpen(true);
+        if (isMobile) {
+          setMobileOpen(true);
+        } else {
+          inputRef.current?.focus();
+          setIsOpen(true);
+        }
       }
       if (e.key === 'Escape') {
         setIsOpen(false);
+        setMobileOpen(false);
         inputRef.current?.blur();
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, []);
+  }, [isMobile]);
 
   const handleSelect = (result: SearchResult) => {
     navigate(result.path);
     setIsOpen(false);
+    setMobileOpen(false);
     setQuery('');
   };
 
+  // إعادة تعيين البحث عند إغلاق الـ Dialog
+  const handleMobileOpenChange = (open: boolean) => {
+    setMobileOpen(open);
+    if (!open) {
+      setQuery('');
+      setResults([]);
+    }
+  };
+
+  // --- عرض الجوال: زر أيقونة + Dialog ---
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-sidebar-foreground hover:bg-sidebar-accent/50"
+          onClick={() => setMobileOpen(true)}
+          aria-label="بحث"
+        >
+          <Search className="w-5 h-5" />
+        </Button>
+
+        <Dialog open={mobileOpen} onOpenChange={handleMobileOpenChange}>
+          <DialogContent className="max-w-full h-[80dvh] p-0 gap-0 flex flex-col [&>button]:hidden">
+            {/* حقل البحث */}
+            <div className="flex items-center gap-2 p-3 border-b border-border">
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Input
+                ref={mobileInputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="بحث في العقارات والعقود..."
+                className="border-0 shadow-none focus-visible:ring-0 h-9 text-sm"
+                autoFocus
+              />
+              {query && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-7 h-7 shrink-0"
+                  onClick={() => { setQuery(''); setResults([]); }}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
+            {/* النتائج */}
+            <div className="flex-1 overflow-y-auto">
+              {query.length >= 2 ? (
+                <SearchResults isLoading={isLoading} results={results} query={query} onSelect={handleSelect} />
+              ) : (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  اكتب حرفين على الأقل للبحث
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  // --- عرض سطح المكتب ---
   return (
-    <div ref={containerRef} className="relative hidden lg:block">
+    <div ref={containerRef} className="relative">
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -232,38 +357,7 @@ const GlobalSearch = () => {
 
       {isOpen && query.length >= 2 && (
         <div className="absolute top-full mt-2 right-0 w-80 xl:w-96 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : results.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
-              لا توجد نتائج لـ "{query}"
-            </div>
-          ) : (
-            <div className="py-1">
-              {results.map((result) => {
-                const config = TYPE_CONFIG[result.type];
-                const Icon = config.icon;
-                return (
-                  <button
-                    key={`${result.type}-${result.id}`}
-                    onClick={() => handleSelect(result)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-right"
-                  >
-                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', config.color)}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{result.title}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{result.subtitle}</p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] shrink-0">{config.label}</Badge>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <SearchResults isLoading={isLoading} results={results} query={query} onSelect={handleSelect} />
         </div>
       )}
     </div>

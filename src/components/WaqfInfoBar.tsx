@@ -158,7 +158,7 @@ const WaqfInfoBar = () => {
                 <Info className="w-4 h-4 text-primary-foreground/60 group-hover:text-primary-foreground transition-colors" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 md:w-96 p-0" align="center" sideOffset={8}>
+            <PopoverContent className="w-80 md:w-96 max-w-[calc(100vw-2rem)] p-0" align="center" sideOffset={8}>
               <div className="gradient-hero rounded-t-md p-3 flex items-center justify-center gap-2">
                 <h3 className="font-display font-bold text-sidebar-foreground text-lg">
                   {waqfInfo.waqf_name}

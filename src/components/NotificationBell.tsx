@@ -50,7 +50,7 @@ const NotificationBell = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 md:w-96 p-0" align="end" sideOffset={8}>
+      <PopoverContent className="w-80 md:w-96 max-w-[calc(100vw-2rem)] p-0" align="end" sideOffset={8}>
         <div className="flex items-center justify-between p-3 border-b border-border">
           <h3 className="font-display font-bold text-sm">الإشعارات</h3>
           <div className="flex items-center gap-1">
