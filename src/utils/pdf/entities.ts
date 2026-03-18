@@ -7,6 +7,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
+  fmtDate,
 } from './core';
 import { fmt, fmtInt } from '@/utils/format';
 
