@@ -136,7 +136,7 @@ function buildUBL(
 
   // --- بنود متعددة (Multi-line Items) ---
   const rawLineItems = inv.line_items as LineItemInput[] | undefined;
-  const fallbackVatRate = Number(inv.vat_rate ?? 0);
+  const fallbackVatRate = Number(inv.vat_rate ?? settings.default_vat_rate ?? 15);
   const fallbackAmountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
 
   const lineItems: LineItemInput[] = (rawLineItems && rawLineItems.length > 0)
