@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
@@ -408,9 +409,11 @@ const AdminDashboard = () => {
             <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Mini Pie Chart */}
-                <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                  <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
-                </Suspense>
+                <ErrorBoundary>
+                  <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
+                    <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
+                  </Suspense>
+                </ErrorBoundary>
 
                 {/* Summary Stats */}
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
@@ -451,38 +454,46 @@ const AdminDashboard = () => {
         )}
 
         {/* D-4: خريطة حرارية للتحصيل الشهري */}
-        <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-          <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+            <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* D-5: جدول الإجراءات المعلقة */}
-        <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-          <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+            <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Charts — lazy-loaded (recharts bundle) */}
-        <Suspense fallback={<ChartSkeleton />}>
-          <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<ChartSkeleton />}>
+            <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+          </Suspense>
+        </ErrorBoundary>
 
         {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
-          <Suspense fallback={<ChartSkeleton />}>
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowUpDown className="w-5 h-5" />
-                  مقارنة بين السنوات المالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <YearOverYearComparison
-                  fiscalYears={allFiscalYears}
-                  currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                />
-              </CardContent>
-            </Card>
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowUpDown className="w-5 h-5" />
+                    مقارنة بين السنوات المالية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <YearOverYearComparison
+                    fiscalYears={allFiscalYears}
+                    currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                  />
+                </CardContent>
+              </Card>
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {/* B-04: آخر العقود مع skeleton */}
