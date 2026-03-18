@@ -161,38 +161,38 @@ export const generateAnnualDisclosurePDF = async (data: {
   // 1. Full Financial Hierarchy
   const hierarchyRows: (string | number)[][] = [];
   if (data.waqfCorpusPrevious > 0) {
-    hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${data.waqfCorpusPrevious.toLocaleString()}`]);
+    hierarchyRows.push(['رقبة الوقف المرحلة من العام السابق', `+${fmtAr(data.waqfCorpusPrevious)}`]);
   }
   hierarchyRows.push(
-    ['إجمالي الإيرادات', `+${data.totalIncome.toLocaleString()}`],
+    ['إجمالي الإيرادات', `+${fmtAr(data.totalIncome)}`],
   );
   if (data.waqfCorpusPrevious > 0) {
-    hierarchyRows.push(['الإجمالي الشامل', data.grandTotal.toLocaleString()]);
+    hierarchyRows.push(['الإجمالي الشامل', fmtAr(data.grandTotal)]);
   }
   hierarchyRows.push(
-    ['(-) المصروفات التشغيلية', `(${data.totalExpenses.toLocaleString()})`],
-    ['الصافي بعد المصاريف', data.netAfterExpenses.toLocaleString()],
-    ['(-) ضريبة القيمة المضافة', `(${data.vatAmount.toLocaleString()})`],
-    ['الصافي بعد الضريبة', data.netAfterVat.toLocaleString()],
+    ['(-) المصروفات التشغيلية', `(${fmtAr(data.totalExpenses)})`],
+    ['الصافي بعد المصاريف', fmtAr(data.netAfterExpenses)],
+    ['(-) ضريبة القيمة المضافة', `(${fmtAr(data.vatAmount)})`],
+    ['الصافي بعد الضريبة', fmtAr(data.netAfterVat)],
   );
   if (data.zakatAmount > 0) {
     hierarchyRows.push(
-      ['(-) الزكاة', `(${data.zakatAmount.toLocaleString()})`],
-      ['الصافي بعد الزكاة', data.netAfterZakat.toLocaleString()],
+      ['(-) الزكاة', `(${fmtAr(data.zakatAmount)})`],
+      ['الصافي بعد الزكاة', fmtAr(data.netAfterZakat)],
     );
   }
   hierarchyRows.push(
-    [`(-) حصة الناظر (${data.adminPct}%)`, `(${data.adminShare.toLocaleString()})`],
-    [`(-) حصة الواقف (${data.waqifPct}%)`, `(${data.waqifShare.toLocaleString()})`],
-    ['ريع الوقف', data.waqfRevenue.toLocaleString()],
+    [`(-) حصة الناظر (${data.adminPct}%)`, `(${fmtAr(data.adminShare)})`],
+    [`(-) حصة الواقف (${data.waqifPct}%)`, `(${fmtAr(data.waqifShare)})`],
+    ['ريع الوقف', fmtAr(data.waqfRevenue)],
   );
   if (data.waqfCorpusManual > 0) {
-    hierarchyRows.push(['(-) رقبة الوقف للعام الحالي', `(${data.waqfCorpusManual.toLocaleString()})`]);
+    hierarchyRows.push(['(-) رقبة الوقف للعام الحالي', `(${fmtAr(data.waqfCorpusManual)})`]);
   }
   hierarchyRows.push(
-    ['المبلغ المتاح للتوزيع', data.availableAmount.toLocaleString()],
-    ['(-) التوزيعات الفعلية', `(${data.distributionsAmount.toLocaleString()})`],
-    ['الرصيد المتبقي', data.remainingBalance.toLocaleString()],
+    ['المبلغ المتاح للتوزيع', fmtAr(data.availableAmount)],
+    ['(-) التوزيعات الفعلية', `(${fmtAr(data.distributionsAmount)})`],
+    ['الرصيد المتبقي', fmtAr(data.remainingBalance)],
   );
 
   autoTable(doc, {
