@@ -76,7 +76,7 @@ export function printShareReport(params: PrintShareReportParams) {
     <table>
       <tr><th>الحصة المستحقة</th><td>${myShare.toLocaleString()} ر.س</td></tr>
       <tr><th>السُلف المصروفة</th><td>${advances.toLocaleString()} ر.س</td></tr>
-      <tr><th>فروق مرحّلة مخصومة</th><td>${carryforward.toLocaleString()} ر.س</td></tr>
+      <tr><th>فروق مرحّلة مخصومة</th><td>${actualCarryforward.toLocaleString()} ر.س</td></tr>
       <tr class="total-row"><th>صافي المبلغ المستحق</th><td>${net.toLocaleString()} ر.س</td></tr>
       ${deficit > 0 ? `<tr class="deficit"><th>فرق مرحّل للسنة القادمة</th><td>${deficit.toLocaleString()} ر.س</td></tr>` : ''}
     </table>
