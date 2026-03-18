@@ -41,7 +41,7 @@ const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) =
             <Cell fill="hsl(var(--destructive))" />
           </Pie>
           {/* CS-05: إصلاح Tooltip formatter — إضافة name */}
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value: number | undefined, name: string) => [`${value ?? 0} فاتورة`, name]} />
+          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']} />
         </PieChart>
       </ResponsiveContainer>
     </div>
