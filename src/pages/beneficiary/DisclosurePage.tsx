@@ -38,7 +38,11 @@ function toGregorianShort(dateStr: string): string {
 
 const DisclosurePage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+  };
   const pdfWaqfInfo = usePdfWaqfInfo();
   
   const isMobile = useIsMobile();
