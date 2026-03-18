@@ -369,17 +369,12 @@ const MySharePage = () => {
               )}
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5" disabled={isPdfLoading}>
                 <Printer className="w-4 h-4" />
-                طباعة
+                <span className="hidden sm:inline">طباعة</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                تقرير التوزيع
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                تقرير شامل
-              </Button>
-              <ExportMenu onExportPdf={handleDownloadPDF} />
+              <ExportMenu onExportPdf={handleDownloadPDF} extraItems={[
+                { label: 'تقرير التوزيع', onClick: handleDownloadDistributionsPDF, disabled: isPdfLoading },
+                { label: 'تقرير شامل', onClick: handleDownloadComprehensivePDF, disabled: isPdfLoading },
+              ]} />
             </div>
           }
         />
