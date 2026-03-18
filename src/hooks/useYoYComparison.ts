@@ -40,7 +40,6 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
       prevTotalIncome: totalIncome,
       prevTotalExpenses: totalExpenses,
       prevNetAfterExpenses: totalIncome - totalExpenses,
-      prevContractualRevenue: 0, // يتطلب عقود السنة السابقة — يُحسب لاحقاً
       hasPrevYear: true,
     };
   }, [prevFiscalYear, prevIncome, prevExpenses]);
