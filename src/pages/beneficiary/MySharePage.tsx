@@ -25,8 +25,7 @@ import { useMyShare } from '@/hooks/useMyShare';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
-/** تنسيق الأرقام المالية بشكل موحّد */
-const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import { fmt } from '@/utils/format';
 
 const MySharePage = () => {
   const queryClient = useQueryClient();

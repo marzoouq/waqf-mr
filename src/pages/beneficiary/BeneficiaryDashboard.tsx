@@ -17,8 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
-/** تنسيق الأرقام المالية بشكل موحّد */
-const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import { fmt } from '@/utils/format';
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
