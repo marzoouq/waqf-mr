@@ -47,6 +47,7 @@ describe('useTotalBeneficiaryPercentage', () => {
     const { result } = renderHook(() => useTotalBeneficiaryPercentage(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBe(0);
+  });
 
   it('يرمي خطأ عند فشل RPC', async () => {
     mockRpc.mockResolvedValueOnce({ data: null, error: new Error('fail') });
