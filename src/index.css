@@ -545,4 +545,24 @@
   .waqf-info-bar {
     display: none !important;
   }
+
+  /* Dialog print: hide overlay and non-content elements */
+  [data-radix-dialog-overlay],
+  .bottom-nav,
+  nav[class*="BottomNav"],
+  aside {
+    display: none !important;
+  }
+
+  /* Dialog content: make it full page for printing */
+  [data-radix-dialog-content] {
+    position: static !important;
+    transform: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
 }
