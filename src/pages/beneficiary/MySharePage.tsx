@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
-import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
