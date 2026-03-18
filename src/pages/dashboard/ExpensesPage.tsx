@@ -251,7 +251,7 @@ const ExpensesPage = () => {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{Number(item.amount).toLocaleString()} ر.س</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
                           <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                           {item.description && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
                         </div>
