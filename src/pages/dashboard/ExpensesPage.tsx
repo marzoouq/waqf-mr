@@ -167,7 +167,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={() => generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo)} onExportCsv={() => {
               const csv = buildCsv(filteredExpenses.map(item => ({
                 'النوع': item.expense_type,
                 'المبلغ': safeNumber(item.amount),
