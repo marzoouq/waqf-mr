@@ -93,7 +93,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
             </TableHeader>
             <TableBody>
               {actions.map((action, i) => (
-                <TableRow key={i}>
+                <TableRow key={`${action.type}-${i}`}>
                   <TableCell>
                     <Badge variant={action.type === 'advance' ? 'default' : 'outline'} className="text-xs">
                       {action.label}

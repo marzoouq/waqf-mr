@@ -10,7 +10,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useYoYComparison, calcChangePercent } from '@/hooks/useYoYComparison';
 import YoYBadge from '@/components/dashboard/YoYBadge';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins, Banknote } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -91,15 +91,15 @@ const AdminDashboard = () => {
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
   // Contracts are already filtered server-side by useContractsByFiscalYear
-  const fyContracts = contracts;
-
-  const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  // T-02/T-05: توحيد فلتر العقود النشطة وحذف alias غير ضروري
+  const activeContracts = contracts.filter(c => c.status === 'active');
+  const activeContractsCount = activeContracts.length;
+  const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
   // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
-      fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
+      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
     );
     const nowDate = new Date();
     const dueInvoices = paymentInvoices.filter(
@@ -116,19 +116,19 @@ const AdminDashboard = () => {
     const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
     return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
-  }, [fyContracts, paymentInvoices]);
+  }, [contracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
-  const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
+  
 
   // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
   const expiringContracts = useMemo(() =>
-    fyContracts.filter(c => {
+    contracts.filter(c => {
       const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
       return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
     }),
-    [fyContracts]
+    [contracts]
   );
 
   const stats = useMemo(() => {
@@ -193,15 +193,23 @@ const AdminDashboard = () => {
 
   // tooltipStyle moved to module level (PERF — BUG-02 fix)
 
+  // T-03: دالة مساعدة موحّدة لألوان KPI
+  const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
+    const isGood = invert ? value <= good : value >= good;
+    const isWarn = invert ? value <= warn : value >= warn;
+    if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
+    if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
+    return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
+  };
+
   const kpis = useMemo(() => {
-    // Use invoice-based collection rate for accuracy (matches CollectionReport)
     const collectionRate = collectionSummary.percentage;
     // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
     const rentedUnitIds = new Set(
-      fyContracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
+      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
     );
     const wholePropertyRentedIds = new Set(
-      fyContracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
+      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
     );
     const rentedUnits = allUnits.filter(u =>
       rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
@@ -211,13 +219,17 @@ const AdminDashboard = () => {
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
+    const colColor = getKpiColor(collectionRate, 80, 50);
+    const occColor = getKpiColor(occupancyRate, 80, 50);
+    const expColor = getKpiColor(expenseRatio, 20, 40, true);
+
     return [
-      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: colColor.text, progressColor: colColor.bar },
+      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
+      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts]);
 
   return (
     <DashboardLayout>
@@ -282,19 +294,7 @@ const AdminDashboard = () => {
           </Alert>
         )}
 
-        {/* Pending Advance Requests */}
-        {pendingAdvances.length > 0 && (
-          <Alert className="animate-fade-in border-warning/50">
-            <Wallet className="h-4 w-4" />
-            <AlertTitle>طلبات سُلف معلقة</AlertTitle>
-            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span>{pendingAdvances.length} طلب سُلفة بانتظار الموافقة</span>
-              <Link to="/dashboard/accounts">
-                <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
-              </Link>
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* D-01: تم إزالة Alert السُلف المكررة — PendingActionsTable يعرض نفس المعلومة بتفصيل أكبر */}
 
         {/* Stats Grid */}
         {isLoading ? <StatsGridSkeleton /> : (
@@ -401,7 +401,7 @@ const AdminDashboard = () => {
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Gauge className="w-5 h-5" />
+                <Banknote className="w-5 h-5" />
                 ملخص التحصيل
               </CardTitle>
             </CardHeader>
@@ -417,7 +417,7 @@ const AdminDashboard = () => {
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
                     <div className="flex items-center justify-center gap-2">
                       <CheckCircle className="w-5 h-5 text-success" />
-                      <span className="text-sm text-muted-foreground">منتظم</span>
+                      <span className="text-sm text-muted-foreground">محصّل</span>
                     </div>
                     <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
                     <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
@@ -433,14 +433,16 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                    <span className="text-sm text-muted-foreground">نسبة الانتظام</span>
-                    <p className={`text-3xl font-bold ${collectionSummary.percentage >= 80 ? 'text-success' : collectionSummary.percentage >= 50 ? 'text-warning' : 'text-destructive'}`}>
+                    <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
+                    {(() => { const c = getKpiColor(collectionSummary.percentage, 80, 50); return (<>
+                    <p className={`text-3xl font-bold ${c.text}`}>
                       {collectionSummary.percentage}%
                     </p>
                     <Progress
                       value={collectionSummary.percentage}
-                      className={`h-2 ${collectionSummary.percentage >= 80 ? '[&>div]:bg-success' : collectionSummary.percentage >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
+                      className={`h-2 ${c.bar}`}
                     />
+                    </>); })()}
                   </div>
                 </div>
               </div>
@@ -483,7 +485,20 @@ const AdminDashboard = () => {
           </Suspense>
         )}
 
-        {/* Recent Activity */}
+        {/* B-04: آخر العقود مع skeleton */}
+        {isLoading ? (
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-8 w-20" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>آخر العقود</CardTitle>
@@ -502,7 +517,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...fyContracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
+                {[...contracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
@@ -518,7 +533,7 @@ const AdminDashboard = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {fyContracts.length === 0 && (
+                {contracts.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                       لا توجد عقود حالياً
@@ -529,6 +544,7 @@ const AdminDashboard = () => {
             </Table>
           </CardContent>
         </Card>
+        )}
       </div>
     </DashboardLayout>
   );
