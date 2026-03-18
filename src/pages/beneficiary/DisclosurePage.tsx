@@ -213,6 +213,21 @@ const DisclosurePage = () => {
     );
   }
 
+  // H-1: guard — مستفيد بدون user_id مربوط
+  if (!currentBeneficiary && !benLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold text-foreground">حسابك غير مرتبط</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (isAccountMissing) {
     return (
       <DashboardLayout>
