@@ -71,11 +71,24 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
           .limit(limit);
 
         if (error) throw error;
-        // تحذير عند وصول البيانات للحد الأقصى
-        if (data && data.length === limit) {
-          toast.warning(`تم عرض أول ${limit} سجل فقط من ${label}. قد توجد سجلات إضافية لم تُعرض.`);
-        }
         return data as TData[];
+      },
+      meta: {
+        // تحذير عند وصول البيانات للحد الأقصى — يظهر مرة واحدة عبر onSuccess
+        onSettled: undefined,
+      },
+      select: (data: TData[]) => {
+        if (data && data.length === limit) {
+          // استخدام setTimeout لعرض toast مرة واحدة بعد الـ render وتجنب التكرار في background refetches
+          const key = `limit-warn-${queryKey}`;
+          if (!(window as Record<string, unknown>)[key]) {
+            (window as Record<string, unknown>)[key] = true;
+            toast.warning(`تم عرض أول ${limit} سجل فقط من ${label}. قد توجد سجلات إضافية لم تُعرض.`);
+            // إعادة تعيين بعد 5 دقائق للسماح بإعادة التحذير إذا استمرت المشكلة
+            setTimeout(() => { delete (window as Record<string, unknown>)[key]; }, 300_000);
+          }
+        }
+        return data;
       },
     });
   };

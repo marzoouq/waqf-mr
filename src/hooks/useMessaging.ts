@@ -72,7 +72,7 @@ export const useMessages = (conversationId: string | null) => {
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-        queryClientRef2.current.invalidateQueries({ queryKey: ['messages', conversationId] });
+        queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

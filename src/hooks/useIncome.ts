@@ -35,7 +35,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
       } else {
-        query = query.limit(1000);
+        query = query.limit(PER_FY_LIMIT);
       }
       const { data, error } = await query;
       if (error) throw error;
