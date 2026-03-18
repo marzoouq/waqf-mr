@@ -52,35 +52,62 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
             </p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right">التاريخ</TableHead>
-                <TableHead className="text-right">الصفحة</TableHead>
-                <TableHead className="text-right">الخطأ</TableHead>
-                <TableHead className="text-right">المتصفح</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
               {filteredErrors.map(err => {
                 const meta = err.metadata as Record<string, string> | null;
                 return (
-                  <TableRow key={err.id}>
-                    <TableCell className="text-xs">{new Date(err.created_at).toLocaleString('ar-SA')}</TableCell>
-                    <TableCell className="font-mono text-xs max-w-[150px] truncate" dir="ltr">{err.target_path || '—'}</TableCell>
-                    <TableCell className="max-w-[250px]">
-                      <div className="text-xs text-destructive font-mono truncate" dir="ltr">
-                        {meta?.error_name}: {meta?.error_message}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs max-w-[150px] truncate" dir="ltr">
-                      {meta?.user_agent?.slice(0, 50) || '—'}
-                    </TableCell>
-                  </TableRow>
+                  <div key={err.id} className="rounded-lg border border-border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{new Date(err.created_at).toLocaleString('ar-SA')}</span>
+                    </div>
+                    {err.target_path && (
+                      <p className="text-xs font-mono text-muted-foreground break-all" dir="ltr">{err.target_path}</p>
+                    )}
+                    <p className="text-xs text-destructive font-mono break-all" dir="ltr">
+                      {meta?.error_name}: {meta?.error_message}
+                    </p>
+                    {meta?.user_agent && (
+                      <p className="text-[10px] text-muted-foreground/60 truncate" dir="ltr">{meta.user_agent.slice(0, 80)}</p>
+                    )}
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">التاريخ</TableHead>
+                    <TableHead className="text-right">الصفحة</TableHead>
+                    <TableHead className="text-right">الخطأ</TableHead>
+                    <TableHead className="text-right">المتصفح</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredErrors.map(err => {
+                    const meta = err.metadata as Record<string, string> | null;
+                    return (
+                      <TableRow key={err.id}>
+                        <TableCell className="text-xs">{new Date(err.created_at).toLocaleString('ar-SA')}</TableCell>
+                        <TableCell className="font-mono text-xs max-w-[150px] truncate" dir="ltr">{err.target_path || '—'}</TableCell>
+                        <TableCell className="max-w-[250px]">
+                          <div className="text-xs text-destructive font-mono truncate" dir="ltr">
+                            {meta?.error_name}: {meta?.error_message}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs max-w-[150px] truncate" dir="ltr">
+                          {meta?.user_agent?.slice(0, 50) || '—'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

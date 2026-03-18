@@ -1,5 +1,5 @@
 /**
- * تبويب التذاكر — بحث + فلاتر + جدول
+ * تبويب التذاكر — بحث + فلاتر + جدول (مع mobile cards)
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -79,12 +79,12 @@ export default function SupportTicketsTab({
             <span className="text-sm font-normal text-muted-foreground">({filteredTickets.length})</span>
           </CardTitle>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
-              <Input placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-8 w-[180px]" />
+              <Input placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-8 w-full sm:w-[180px]" />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[120px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">كل التصنيفات</SelectItem>
                 <SelectItem value="general">عام</SelectItem>
@@ -94,10 +94,10 @@ export default function SupportTicketsTab({
                 <SelectItem value="suggestion">اقتراح</SelectItem>
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-1">
-              <Filter className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-1 w-[calc(50%-0.25rem)] sm:w-auto">
+              <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[130px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">كل الحالات</SelectItem>
                   <SelectItem value="open">مفتوح</SelectItem>
@@ -109,7 +109,7 @@ export default function SupportTicketsTab({
             </div>
             <Button size="sm" variant="outline" onClick={onExport} disabled={filteredTickets.length === 0}>
               <Download className="w-4 h-4 ml-1" />
-              تصدير
+              <span className="hidden sm:inline">تصدير</span>
             </Button>
           </div>
         </div>
@@ -122,54 +122,104 @@ export default function SupportTicketsTab({
             {searchQuery || categoryFilter !== 'all' ? 'لا توجد تذاكر مطابقة للبحث' : 'لا توجد تذاكر'}
           </p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right">الرقم</TableHead>
-                <TableHead className="text-right">العنوان</TableHead>
-                <TableHead className="text-right">التصنيف</TableHead>
-                <TableHead className="text-right">الأولوية</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                <TableHead className="text-right">SLA</TableHead>
-                <TableHead className="text-right">التقييم</TableHead>
-                <TableHead className="text-right">التاريخ</TableHead>
-                <TableHead className="text-right">إجراء</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
               {filteredTickets.map(ticket => {
                 const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
                 const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
                 const Icon = s.icon;
                 return (
-                  <TableRow key={ticket.id}>
-                    <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
-                    <TableCell className="font-medium max-w-[200px] truncate">{ticket.title}</TableCell>
-                    <TableCell>{CATEGORY_MAP[ticket.category] || ticket.category}</TableCell>
-                    <TableCell><Badge className={p.color}>{p.label}</Badge></TableCell>
-                    <TableCell><Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge></TableCell>
-                    <TableCell><SlaIndicator ticket={ticket} /></TableCell>
-                    <TableCell>
-                      {ticket.rating ? (
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map(i => (
-                            <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
-                          ))}
-                        </div>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => onSelectTicket(ticket)}>
+                  <div key={ticket.id} className="rounded-lg border border-border p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium line-clamp-2">{ticket.title}</p>
+                        <p className="text-xs text-muted-foreground font-mono mt-0.5">{ticket.ticket_number}</p>
+                      </div>
+                      <Badge className={s.color + ' shrink-0 text-[10px]'}>
+                        <Icon className="w-3 h-3 ml-0.5" />{s.label}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap text-xs">
+                      <Badge className={p.color + ' text-[10px]'}>{p.label}</Badge>
+                      <span className="text-muted-foreground">{CATEGORY_MAP[ticket.category] || ticket.category}</span>
+                      <span className="text-muted-foreground">•</span>
+                      <SlaIndicator ticket={ticket} />
+                      {ticket.rating && (
+                        <>
+                          <span className="text-muted-foreground">•</span>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map(i => (
+                              <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</span>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onSelectTicket(ticket)}>
                         <Eye className="w-3 h-3 ml-1" />
                         عرض
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">الرقم</TableHead>
+                    <TableHead className="text-right">العنوان</TableHead>
+                    <TableHead className="text-right">التصنيف</TableHead>
+                    <TableHead className="text-right">الأولوية</TableHead>
+                    <TableHead className="text-right">الحالة</TableHead>
+                    <TableHead className="text-right">SLA</TableHead>
+                    <TableHead className="text-right">التقييم</TableHead>
+                    <TableHead className="text-right">التاريخ</TableHead>
+                    <TableHead className="text-right">إجراء</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTickets.map(ticket => {
+                    const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                    const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
+                    const Icon = s.icon;
+                    return (
+                      <TableRow key={ticket.id}>
+                        <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
+                        <TableCell className="font-medium max-w-[200px] truncate">{ticket.title}</TableCell>
+                        <TableCell>{CATEGORY_MAP[ticket.category] || ticket.category}</TableCell>
+                        <TableCell><Badge className={p.color}>{p.label}</Badge></TableCell>
+                        <TableCell><Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge></TableCell>
+                        <TableCell><SlaIndicator ticket={ticket} /></TableCell>
+                        <TableCell>
+                          {ticket.rating ? (
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map(i => (
+                                <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
+                              ))}
+                            </div>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => onSelectTicket(ticket)}>
+                            <Eye className="w-3 h-3 ml-1" />
+                            عرض
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
