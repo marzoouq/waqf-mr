@@ -20,7 +20,7 @@ import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, Fi
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
-import { generateInvoicesViewPDF } from '@/utils/pdf';
+import { generateInvoicesViewPDF, generateInvoiceClientPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
@@ -503,16 +503,27 @@ const InvoicesPage = () => {
           open={!!previewInvoice}
           onOpenChange={(open) => !open && setPreviewInvoice(null)}
           invoice={previewInvoice}
-          onDownloadPdf={(template) => {
+          onDownloadPdf={async (template) => {
             const origInv = invoices.find(i =>
               (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
               `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
             );
             if (origInv) {
-              generatePdf.mutate({
-                invoice_ids: [origInv.id],
-                template,
-                forceRegenerate: true,
+              const contract = contracts.find(c => c.id === origInv.contract_id);
+              await generateInvoiceClientPDF({
+                invoice: origInv,
+                waqfInfo: pdfWaqfInfo,
+                template: template as 'professional' | 'simplified',
+                contract: contract ? {
+                  contract_number: contract.contract_number,
+                  tenant_name: contract.tenant_name,
+                  tenant_tax_number: contract.tenant_tax_number,
+                  tenant_street: contract.tenant_street,
+                  tenant_district: contract.tenant_district,
+                  tenant_city: contract.tenant_city,
+                  payment_count: contract.payment_count,
+                } : null,
+                propertyNumber: origInv.property?.property_number,
               });
             }
           }}
