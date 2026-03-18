@@ -1,58 +1,71 @@
-## تقرير الفحص الجنائي الهجين — الإصدار الثالث ✅
 
-### ملخص تنفيذي
 
-فحص جنائي شامل على 3 طبقات: **AdminDashboard** + **SupportDashboard** + **الهوكات المالية العميقة** + **مكونات الداشبورد**. تم التحقق من 18 بنداً إجمالاً، إصلاح 10 مشاكل حقيقية، ورفض 8 إنذارات كاذبة/تصميمية.
+## فحص جنائي منهجي — التحقق من جميع بنود التقرير
 
-**الاختبارات**: 600+ اختبار ✅ — 0 فشل
+### نتائج التحقق الكاملة
 
----
-
-### الطبقة الأولى — AdminDashboard + Support + Permissions
-
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
-| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
-| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
-| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
-| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
-| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
-| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
-
-### الطبقة الثانية — الهوكات المالية + المكونات
-
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` — لا مستهلك حالي لكن وقائي |
-| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع بدون `currentAccount` |
-| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
-| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة عمداً |
-| **BUG-R2** | `__skip__` → `'all'` طلبات غير مقصودة | **✅ مُصلح** | تحويل `__skip__` إلى `__none__` لتعطيل الهوكات |
-| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
-| **BUG-M1** | CollectionHeatmap يعرض دخل لا تحصيل | **✅ مُصلح** | تغيير المصدر من `income` إلى `paymentInvoices` مع `paid_date` |
-| **BUG-M2** | ZATCA تُقطع عند 10 بلا إشعار | **✅ مُصلح** | إضافة صف `+ X فاتورة أخرى` مع Badge العدد الحقيقي |
-| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
-| BUG-M3 | CollectionSummaryChart counts | ❌ تم إصلاحه مسبقاً | BUG-02 عالج الجذر |
+| # | البند | الحالة الفعلية | إجراء؟ |
+|---|-------|---------------|--------|
+| **C-1** | RLS مفتوح على `beneficiaries` | **مُصلح سابقاً** — السياسة الحالية: `user_id = auth.uid() OR admin OR accountant` | لا |
+| **C-2** | `income`/`expenses` مكشوفة | **مُصلح سابقاً** — مقيّدة بـ `admin OR beneficiary OR waqif` + RESTRICTIVE للسنوات غير المنشورة | لا |
+| **H-1** | مستفيد بدون `user_id` → حصة صفر صامتة | **MySharePage ✅** لديه guard (سطر 284). **BeneficiaryDashboard ❌ مفقود**. **DisclosurePage ❌ مفقود** | **نعم** |
+| **H-2** | تناقض `fiscalYearId='all'` في MySharePage | بالتصميم — `useFinancialSummary` و `useCarryforwardBalance(undefined)` كلاهما يجمع من كل السنوات | لا |
+| **H-3** | Fallback سُلفة على العميل | **محمي** — trigger `validate_advance_request_amount` يحمي النهاية | لا |
+| **M-1** | Fallback `useBeneficiariesDecrypted` يعرض PII مقنّع | بالتصميم — `***` أفضل من فشل كامل | لا |
+| **M-2** | المستفيد يعدّل `share_percentage`؟ | **محمي** — RLS: فقط `admin` و `accountant` لديهم `ALL` | لا |
+| **M-3** | `noPublishedYears` guard مكرر في 14+ صفحة | **مؤكد** — لكن تغيير هيكلي واسع. مؤجل لجولة refactoring | لا |
+| **M-4** | `staleTime` 5 دقائق لبيانات المستفيدين | قرار تصميمي — بيانات المستفيد (اسم، نسبة) لا تتغير كثيراً. 5 دقائق مقبول | لا |
+| **L-1** | اسم افتراضي "مستفيد" | تجميلي بسيط — لكن يُحل ضمن H-1 بعرض رسالة واضحة بدل المحتوى الفارغ | لا |
 
 ---
 
-### الملفات المُعدَّلة (الطبقة الثانية)
+### الإصلاح الوحيد المطلوب: H-1 — guard في ملفين
 
-| الملف | نوع التغيير |
-|-------|------------|
-| `src/hooks/useRawFinancialData.ts` | BUG-R2: `__skip__` → `__none__` |
-| `src/hooks/useComputedFinancials.ts` | BUG-C1: إضافة `isDeficit: false` |
-| `src/components/dashboard/CollectionHeatmap.tsx` | BUG-M1: تحويل من `income` إلى `paymentInvoices` |
-| `src/components/dashboard/PendingActionsTable.tsx` | BUG-M2: مؤشر الفواتير الإضافية |
-| `src/pages/dashboard/AdminDashboard.tsx` | تحديث prop لـ CollectionHeatmap |
+**1. `src/pages/beneficiary/BeneficiaryDashboard.tsx`**
 
-### التقييم النهائي
+بعد guard `noPublishedYears` (سطر 178)، إضافة:
+```tsx
+if (!currentBeneficiary && !benLoading) {
+  return (
+    <DashboardLayout>
+      <div className="p-3 sm:p-6 space-y-4">
+        <Card className="shadow-sm border-warning/30 bg-warning/5">
+          <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
+            <AlertCircle className="w-12 h-12 text-warning" />
+            <h2 className="text-lg font-bold">حسابك غير مرتبط</h2>
+            <p className="text-sm text-muted-foreground text-center max-w-md">
+              حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع الناظر لربط حسابك.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
+  );
+}
+```
 
-- **الأمن**: 9.5/10 — لا تغييرات على RLS أو المصادقة
-- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة (BUG-01 + BUG-R2)
-- **الدقة المالية**: 10/10 — تحصيل فعلي في الخريطة الحرارية + نسبة بالمبالغ
-- **شفافية UI**: 9.5/10 — مؤشر واضح للفواتير المخفية
-- **الاختبارات**: 600+ ✅ — 0 فشل
+**2. `src/pages/beneficiary/DisclosurePage.tsx`**
 
-**الحالة**: مُعتمد ✅
+بعد guard `isAccountMissing` (سطر 231)، إضافة نفس guard:
+```tsx
+if (!currentBeneficiary) {
+  return (
+    <DashboardLayout>
+      <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <AlertCircle className="w-16 h-16 text-warning" />
+        <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
+        </p>
+      </div>
+    </DashboardLayout>
+  );
+}
+```
+
+**ملاحظة:** `MySharePage.tsx` لديه بالفعل هذا الـ guard في سطر 284 — لا يحتاج تعديل.
+
+### ملخص
+- **ملفان فقط** يُعدَّلان
+- لا تغييرات في قاعدة البيانات
+- إصلاح واحد محدد: منع عرض بيانات مضللة (حصة = 0) لمستفيد غير مربوط
