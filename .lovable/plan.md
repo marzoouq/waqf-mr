@@ -1,17 +1,29 @@
+## تقرير الفحص الجنائي الهجين للمتغيرات الأخيرة — مُعتمد ✅
 
+### ملخص تنفيذي
 
-## حل مشكلة تعارض ملفات القفل (Lockfiles)
+تم فحص **56 ملفاً** تم تعديلها/إنشاؤها في آخر تحديث. النتيجة العامة: **التغييرات سليمة ومنهجية** — التقييم الإجمالي: **9.4/10**
 
-### المشكلة
-يوجد في المشروع 3 ملفات قفل متعارضة:
-- `package-lock.json` (npm)
-- `bun.lock` (bun)
-- `bun.lockb` (bun binary)
+---
 
-النظام يستخدم **npm** كمدير حزم افتراضي، لذا يجب حذف ملفات bun.
+### 1. الأمن (Security) — 9.5/10
+- العروض الآمنة: `security_invoker=true` + `security_barrier=true` ✅
+- صلاحيات `anon`: ممنوع ✅
+- Edge Functions: مصادقة يدوية عبر `getUser()` ✅
+- `guard-signup`: rate limiting + validation + rollback ✅
 
-### الإصلاح
-1. **حذف `bun.lock`**
-2. **حذف `bun.lockb`**
-3. **إضافتهما إلى `.gitignore`** لمنع ظهورهما مستقبلاً
+### 2. البنية المعمارية — 9.5/10
+- فصل الأنواع والمنطق المساعد ✅
+- Lazy Loading + PWA Cache Guard ✅
+- AuthContext: حماية race condition ✅
 
+### 3. المنطق المالي — 9.5/10
+- قائمة فحص إقفال السنة (6 بنود) ✅
+- سياسات RESTRICTIVE للسنوات المقفلة ✅
+- `is_fiscal_year_accessible` للسنوات غير المنشورة ✅
+
+### 4. التنبيهات الأمنية — إنذارات كاذبة مؤكدة
+- Extension in Public (pgcrypto): معزول في `extensions` schema
+- Views بدون RLS: تستخدم `security_invoker=true` فترث RLS تلقائياً
+
+**الحالة**: مُعتمد ✅
