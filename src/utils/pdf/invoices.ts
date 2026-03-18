@@ -5,12 +5,12 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
+  fmtDate,
 } from './core';
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
 import { toast } from 'sonner';
-const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-SA') : '-';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -51,7 +51,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       item.invoice_type,
       item.invoice_number || '-',
       `${fmt(safeNumber(item.amount))} ر.س`,
-      formatDate(item.date),
+      fmtDate(item.date),
       item.property_number || '-',
       statusLabel(item.status),
     ])),
@@ -93,7 +93,7 @@ export const generateOverdueInvoicesPDF = async (
   const totalAmount = overdue.reduce((s, i) => s + safeNumber(i.amount), 0);
   const today = new Date();
 
-  // ملخص
+  // ملخص — محاذاة يمين الصفحة (RTL)
   doc.setFontSize(11);
   doc.setFont(fontFamily, 'normal');
   doc.text(rs(`عدد الفواتير المتأخرة: ${overdue.length}`), 195, startY + 16, { align: 'right' });
@@ -114,7 +114,7 @@ export const generateOverdueInvoicesPDF = async (
       inv.contract?.tenant_name ?? '-',
       inv.contract?.contract_number ?? '-',
       inv.contract?.property?.property_number ?? '-',
-      formatDate(inv.due_date || ''),
+      fmtDate(inv.due_date),
       `${fmt(safeNumber(inv.amount))} ر.س`,
       inv.due_date ? calcDaysLate(inv.due_date) : 0,
     ])),

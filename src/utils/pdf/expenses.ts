@@ -5,10 +5,9 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
+  fmtDate,
 } from './core';
 import { fmt } from '@/utils/format';
-
-const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('ar-SA') : '-';
 
 export const generateIncomePDF = async (income: Array<{ source: string; amount: number; date: string; notes?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
   const doc = new jsPDF();
@@ -28,7 +27,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
       i + 1,
       item.source,
       `${fmt(Number(item.amount))} ر.س`,
-      formatDate(item.date),
+      fmtDate(item.date),
       item.notes || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
@@ -61,7 +60,7 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
       i + 1,
       item.expense_type,
       `${fmt(Number(item.amount))} ر.س`,
-      formatDate(item.date),
+      fmtDate(item.date),
       item.description || '-',
     ])),
     foot: [reshapeRow(['', 'الإجمالي', `${fmt(total)} ر.س`, '', ''])],
