@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
-import { fmt, fmtSAR, fmtPct } from '@/utils/format';
+import { fmt, fmtSAR } from '@/utils/format';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { GitCompareArrows, TrendingUp, TrendingDown, Minus, FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
