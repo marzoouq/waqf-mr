@@ -21,7 +21,7 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
-  const { user, role, loading: authLoading } = useAuth();
+  const { role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [], isLoading: notifLoading } = useNotifications();
