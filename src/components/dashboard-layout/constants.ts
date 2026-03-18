@@ -6,7 +6,7 @@ import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset,
+  ClipboardList, Calculator, Headset, GitBranch,
 } from 'lucide-react';
 import type { MenuLabels } from '@/components/settings/MenuCustomizationTab';
 
