@@ -1,33 +1,64 @@
 
 
-## تحليل النتائج الأمنية الحالية
+## نتائج فحص AI Pentest
 
-### الوضع الحالي
-بعد فحص جميع نتائج الماسح الأمني، هناك **نتيجة واحدة فقط غير محلولة** تمنع النشر:
+تم تشغيل الفحص الأمني بنجاح. النتائج: **6 نتائج** — منها **4 موجودة سابقاً ومُتجاهلة بمبررات**، و**2 جديدة** تحتاج معالجة:
+
+### النتائج الموجودة سابقاً (لا تحتاج إجراء)
 
 | النتيجة | المستوى | الحالة |
 |---------|---------|--------|
-| `beneficiaries_safe_no_rls` — "All beneficiary PII readable by any authenticated user" | **ERROR** | **غير محلولة** ❌ |
-| `SUPA_security_definer_view` | error | متجاهلة ✓ |
-| `SUPA_extension_in_public` | warn | متجاهلة ✓ |
-| `views_sec_definer_rls_bypass` | warn | متجاهلة ✓ |
-| `pii_key_colocation` | info | متجاهلة ✓ |
-| `lookup_nid_no_auth` | info | متجاهلة ✓ |
+| `SUPA_security_definer_view` (×2) | error | متجاهلة سابقاً ✓ |
+| `SUPA_extension_in_public` | warn | متجاهلة سابقاً ✓ |
+| `beneficiaries_safe` — EXPOSED_SENSITIVE_DATA | error | متجاهلة سابقاً ✓ |
 
-### تحليل النتيجة المتبقية
+### النتائج الجديدة
 
-الماسح `supabase_lov` يُبلّغ أن `beneficiaries_safe` لا تحتوي على سياسات RLS. التحقق المباشر من قاعدة البيانات يُثبت:
+#### 1. `contracts_safe` — بيانات المستأجرين بدون تحكم وصول (ERROR)
 
-- **`security_invoker = true`** — مُفعّل (أي RLS من جدول `beneficiaries` الأساسي يُطبّق تلقائياً)
-- **`security_barrier = true`** — مُفعّل (يمنع هجمات predicate-pushdown)
-- **تقنيع PII عبر CASE WHEN** — national_id, bank_account, email, phone, notes تُعرض كـ `***` لغير admin/accountant
-- **المستفيد يرى بياناته فقط** عبر `user_id = auth.uid()`
+**ما يقوله الماسح:** العرض يكشف بيانات حساسة (رقم هوية، رقم ضريبي، سجل تجاري) بدون RLS.
 
-هذه **إيجابية زائفة** — العروض (Views) لا تدعم RLS مباشرة في PostgreSQL، لكن `security_invoker=true` يضمن تطبيق سياسات الجدول الأساسي.
+**التحقق الفعلي:** العرض يستخدم `security_invoker=true` + `security_barrier=true` (مؤكّد من قاعدة البيانات). هذا يعني أن RLS من جدول `contracts` الأساسي تُطبّق تلقائياً. بالإضافة إلى تقنيع PII عبر `CASE WHEN` لغير admin/accountant.
+
+**التقييم:** إيجابية زائفة — نفس نمط `beneficiaries_safe`. سيتم تسجيلها كمتجاهلة.
+
+#### 2. `invoice_items` — وصول من سنوات مالية غير منشورة (WARN)
+
+**ما يقوله الماسح:** جدول `invoice_items` متاح لأدوار beneficiary و waqif لكنه يفتقر لسياسة RESTRICTIVE للسنة المالية الموجودة في `invoices` و `payment_invoices`.
+
+**التحقق الفعلي:**
+- `invoices` و `payment_invoices` لديهما سياسة RESTRICTIVE: `is_fiscal_year_accessible(fiscal_year_id)`
+- `invoice_items` لديه SELECT مفتوح لـ beneficiary/waqif بدون تقييد السنة المالية
+- `invoice_items` لا يحتوي على عمود `fiscal_year_id` — يرتبط بالسنة المالية عبر `invoice_id` → `invoices.fiscal_year_id`
+
+**التقييم:** ثغرة حقيقية. مستفيد يمكنه — نظرياً — الاستعلام عن `invoice_items` مباشرة باستخدام `invoice_id` من سنة مالية غير منشورة.
 
 ### خطة الإصلاح
 
-**خطوة واحدة فقط:** تسجيل النتيجة `beneficiaries_safe_no_rls` كمتجاهلة مع مبرر تقني مفصّل يشرح أن الحماية مُنفّذة عبر `security_invoker=true` + masking.
+**الخطوة 1:** إضافة سياسة RLS تقييدية (RESTRICTIVE) على `invoice_items` تتحقق من أن السنة المالية المرتبطة منشورة:
 
-لا حاجة لأي ترحيلات SQL أو تغييرات في الكود.
+```sql
+CREATE POLICY "Restrict unpublished fiscal year data on invoice_items"
+ON public.invoice_items
+AS RESTRICTIVE
+FOR SELECT
+TO authenticated
+USING (
+  has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'accountant')
+  OR EXISTS (
+    SELECT 1 FROM public.invoices i
+    WHERE i.id = invoice_items.invoice_id
+    AND invoice_items.invoice_source = 'invoices'
+    AND is_fiscal_year_accessible(i.fiscal_year_id)
+  )
+  OR EXISTS (
+    SELECT 1 FROM public.payment_invoices pi
+    WHERE pi.id = invoice_items.invoice_id
+    AND invoice_items.invoice_source = 'payment_invoices'
+    AND is_fiscal_year_accessible(pi.fiscal_year_id)
+  )
+);
+```
+
+**الخطوة 2:** تسجيل نتيجة `contracts_safe` كمتجاهلة (إيجابية زائفة — `security_invoker=true`).
 
