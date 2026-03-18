@@ -39,7 +39,7 @@ const BeneficiaryDashboard = () => {
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
   // إعدادات السُلف
-  const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+  const { getJsonSetting } = useAppSettings();
   const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
   const advanceEnabled = advanceSettings?.enabled ?? false;
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== '__none__' ? fiscalYearId : undefined);
