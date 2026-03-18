@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import {} from '@/components/ui/card';
@@ -371,7 +372,7 @@ const ContractsPage = () => {
     const now = new Date().getTime();
     const soon = active.filter(c => {
       const days = (new Date(c.end_date).getTime() - now) / (1000 * 3600 * 24);
-      return days > 0 && days <= 90;
+      return days > 0 && days <= EXPIRING_SOON_DAYS;
     });
     const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
     return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, activeRent, expiringSoon: soon.length };

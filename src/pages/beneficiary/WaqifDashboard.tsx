@@ -6,6 +6,7 @@ import { fmt } from '@/utils/format';
 import { useState, useEffect, useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,7 @@ const formatArabicMonth = (month: unknown) => {
 };
 
 const WaqifDashboard = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
   const {
@@ -55,6 +57,7 @@ const WaqifDashboard = () => {
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
 
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
+  const displayName = user?.email?.split('@')[0] || 'الواقف';
 
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
@@ -101,7 +104,7 @@ const WaqifDashboard = () => {
     return [
       { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
-      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive', progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
+      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : (expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive'), progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
     ];
   }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, activeContracts.length]);
 
@@ -157,7 +160,7 @@ const WaqifDashboard = () => {
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center"><GreetingIcon className="w-6 h-6" /></div>
-                <div><p className="text-sm text-primary-foreground/80">{greeting}</p><h1 className="text-xl sm:text-2xl font-bold font-display">الواقف</h1></div>
+                <div><p className="text-sm text-primary-foreground/80">{greeting}</p><h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1></div>
               </div>
             </CardContent>
           </Card>
@@ -179,7 +182,7 @@ const WaqifDashboard = () => {
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0"><GreetingIcon className="w-6 h-6 sm:w-7 sm:h-7" /></div>
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">الواقف</h1>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">{displayName}</h1>
                   <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">لوحة متابعة الوقف</p>
                 </div>
               </div>

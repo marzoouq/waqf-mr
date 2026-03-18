@@ -1,4 +1,5 @@
 import { fmt } from '@/utils/format';
+import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
@@ -140,7 +141,7 @@ const AdminDashboard = () => {
   const expiringContracts = useMemo(() =>
     contracts.filter(c => {
       const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
-      return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+      return c.status === 'active' && daysLeft >= 0 && daysLeft <= EXPIRING_SOON_DAYS;
     }),
     [contracts]
   );
@@ -234,7 +235,7 @@ const AdminDashboard = () => {
       { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: colColor.text, progressColor: colColor.bar },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: expenseRatio > 100 ? '⚠️ عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar },
+      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar },
     ];
   }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts]);
 
@@ -245,7 +246,7 @@ const AdminDashboard = () => {
           title="لوحة التحكم"
           icon={Gauge}
           description={
-            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف') +
+            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : `مرحباً بك، ناظر الوقف`) +
             (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '')
           }
           actions={
@@ -276,7 +277,7 @@ const AdminDashboard = () => {
               <Clock className="h-4 w-4" />
               <AlertTitle>عقود تنتهي قريباً</AlertTitle>
               <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span>{expiringContracts.length} عقد ينتهي خلال 30 يوماً القادمة ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
+                <span>{expiringContracts.length} عقد ينتهي خلال {EXPIRING_SOON_DAYS} يوماً القادمة ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
                 <Link to="/dashboard/contracts">
                   <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
                 </Link>
@@ -417,7 +418,7 @@ const AdminDashboard = () => {
                 {/* Mini Pie Chart */}
                 <ErrorBoundary>
                   <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount + collectionSummary.partialCount} />
+                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
                   </Suspense>
                 </ErrorBoundary>
 
