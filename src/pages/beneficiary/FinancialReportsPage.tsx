@@ -48,6 +48,7 @@ const FinancialReportsPage = () => {
     income,
     beneficiaries,
     currentAccount,
+    isAccountMissing,
     totalIncome,
     totalExpenses,
     netAfterZakat,
@@ -147,6 +148,20 @@ const FinancialReportsPage = () => {
           <Button onClick={handleRetry} className="gap-2">
             <RefreshCw className="w-4 h-4" /> إعادة المحاولة
           </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isAccountMissing) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold">لم يتم العثور على الحساب الختامي</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            لا يوجد حساب ختامي مسجل لهذه السنة المالية بعد.
+          </p>
         </div>
       </DashboardLayout>
     );

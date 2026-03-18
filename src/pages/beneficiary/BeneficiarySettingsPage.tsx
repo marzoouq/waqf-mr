@@ -168,6 +168,21 @@ const BeneficiarySettingsPage = () => {
     );
   }
 
+  // J-05: guard — مستفيد بدون user_id مربوط
+  if (!currentBeneficiary) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">

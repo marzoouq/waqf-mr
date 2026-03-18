@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -205,9 +205,15 @@ const DisclosurePage = () => {
   if (finError) {
     return (
       <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
-          <NoPublishedYearsNotice />
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.
+          </p>
+          <Button onClick={handleRetry} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -323,6 +329,21 @@ const DisclosurePage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* تنبيه السنة النشطة — BUG-CF2 */}
+        {myShare === 0 && !isAccountMissing && selectedFY?.status !== 'closed' && currentBeneficiary && (
+          <Card className="shadow-sm border-info/30 bg-info/5">
+            <CardContent className="p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">السنة المالية لم تُغلق بعد</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  ستظهر حصتك من الريع بعد إغلاق السنة المالية من قِبل الناظر.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Contracts */}
         <Card className="shadow-sm">

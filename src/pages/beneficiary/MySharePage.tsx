@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -407,6 +407,21 @@ const MySharePage = () => {
           </Card>
           )}
         </div>
+
+        {/* تنبيه السنة النشطة — BUG-CF2 */}
+        {myShare === 0 && !isAccountMissing && selectedFY?.status !== 'closed' && currentBeneficiary && (
+          <Card className="shadow-sm border-info/30 bg-info/5">
+            <CardContent className="p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">السنة المالية لم تُغلق بعد</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  ستظهر حصتك من الريع بعد إغلاق السنة المالية من قِبل الناظر.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* تنبيه الفروق المرحّلة */}
         {carryforwardBalance > 0 && (
