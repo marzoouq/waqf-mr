@@ -248,7 +248,7 @@ const BeneficiaryDashboard = () => {
                   {!isClosed ? (
                     <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
                   ) : (
-                    <p className="text-lg sm:text-xl font-bold truncate">{fmtAr(myShare)} ر.س</p>
+                    <p className="text-lg sm:text-xl font-bold truncate">{fmt(myShare)} ر.س</p>
                   )}
                 </div>
               </div>
@@ -269,7 +269,7 @@ const BeneficiaryDashboard = () => {
                     return lastPaid ? (
                       <>
                         <p className="text-lg sm:text-xl font-bold truncate">
-                          {fmtAr(Number(lastPaid.amount))} ر.س
+                          {fmt(Number(lastPaid.amount))} ر.س
                         </p>
                         <p className="text-[10px] text-muted-foreground">
                           {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
@@ -350,7 +350,7 @@ const BeneficiaryDashboard = () => {
                   {distributions.map((d) => (
                     <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <div className="min-w-0">
-                        <p className="font-medium text-sm">{fmtAr(Number(d.amount))} ر.س</p>
+                        <p className="font-medium text-sm">{fmt(Number(d.amount))} ر.س</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
                       </div>
                       <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[10px]">

@@ -413,7 +413,7 @@ const MySharePage = () => {
                   {!isClosed ? (
                     <p className="text-sm font-medium text-primary-foreground/70">تُحسب عند إغلاق السنة</p>
                   ) : (
-                    <p className="text-base sm:text-2xl font-bold truncate">{fmtAr(myShare)} ر.س</p>
+                    <p className="text-base sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
                   )}
                 </div>
               </div>
@@ -428,7 +428,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المستلمة</p>
-                  <p className="text-base sm:text-2xl font-bold text-success truncate">{fmtAr(totalReceived)} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-success truncate">{fmt(totalReceived)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -442,7 +442,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المعلقة</p>
-                  <p className="text-base sm:text-2xl font-bold text-warning truncate">{fmtAr(pendingAmount)} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-warning truncate">{fmt(pendingAmount)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -457,7 +457,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">السُلف المصروفة</p>
-                  <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{fmtAr(paidAdvancesTotal)} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{fmt(paidAdvancesTotal)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -489,7 +489,7 @@ const MySharePage = () => {
                 <div>
                   <p className="font-bold text-sm">فروق مرحّلة من سنوات سابقة</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    لديك مبلغ <span className="font-bold text-warning">{fmtAr(carryforwardBalance)} ر.س</span> مرحّل من سُلف سابقة تجاوزت حصتك.
+                    لديك مبلغ <span className="font-bold text-warning">{fmt(carryforwardBalance)} ر.س</span> مرحّل من سُلف سابقة تجاوزت حصتك.
                     سيتم خصمه تلقائياً من حصتك عند التوزيع القادم.
                   </p>
                 </div>
@@ -535,7 +535,7 @@ const MySharePage = () => {
                   {filteredDistributions.map((dist) => (
                     <div key={dist.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold">{fmtAr(Number(dist.amount))} ر.س</span>
+                        <span className="text-sm font-bold">{fmt(Number(dist.amount))} ر.س</span>
                         {getStatusBadge(dist.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -567,7 +567,7 @@ const MySharePage = () => {
                         <TableRow key={dist.id}>
                           <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
                           <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
-                          <TableCell className="font-bold">{fmtAr(Number(dist.amount))} ر.س</TableCell>
+                          <TableCell className="font-bold">{fmt(Number(dist.amount))} ر.س</TableCell>
                           <TableCell>{getStatusBadge(dist.status)}</TableCell>
                         </TableRow>
                       ))}
@@ -596,7 +596,7 @@ const MySharePage = () => {
                   return (
                     <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold">{fmtAr(Number(adv.amount))} ر.س</span>
+                        <span className="text-sm font-bold">{fmt(Number(adv.amount))} ر.س</span>
                         {getAdvanceStatusBadge(adv.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -637,7 +637,7 @@ const MySharePage = () => {
                     {myAdvances.map(adv => (
                       <TableRow key={adv.id}>
                         <TableCell>{new Date(adv.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                        <TableCell className="font-bold">{fmtAr(Number(adv.amount))} ر.س</TableCell>
+                        <TableCell className="font-bold">{fmt(Number(adv.amount))} ر.س</TableCell>
                         <TableCell className="max-w-[200px] truncate">{adv.reason || '—'}</TableCell>
                         <TableCell>
                           {getAdvanceStatusBadge(adv.status)}
@@ -669,7 +669,7 @@ const MySharePage = () => {
                 {myCarryforwards.map(cf => (
                   <div key={cf.id} className="border rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-destructive">{fmtAr(Number(cf.amount))} ر.س</span>
+                      <span className="text-sm font-bold text-destructive">{fmt(Number(cf.amount))} ر.س</span>
                       <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
                         {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
                       </Badge>
@@ -702,7 +702,7 @@ const MySharePage = () => {
                     {myCarryforwards.map(cf => (
                       <TableRow key={cf.id}>
                         <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                        <TableCell className="font-bold text-destructive">{fmtAr(Number(cf.amount))} ر.س</TableCell>
+                        <TableCell className="font-bold text-destructive">{fmt(Number(cf.amount))} ر.س</TableCell>
                         <TableCell>
                           <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
                             {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
