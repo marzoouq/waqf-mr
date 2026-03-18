@@ -31,9 +31,12 @@ export function printShareReport(params: PrintShareReportParams) {
     filteredDistributions,
   } = params;
 
-  const rawNet = myShare - advances - carryforward;
+  // حساب carryforward الفعلي (بعد خصم السُلف أولاً — مطابق لـ F7 في MySharePage)
+  const afterAdvances = Math.max(0, myShare - advances);
+  const actualCarryforward = Math.min(carryforward, afterAdvances);
+  const rawNet = myShare - advances - actualCarryforward;
   const net = Math.max(0, rawNet);
-  const deficit = rawNet < 0 ? Math.abs(rawNet) : 0;
+  const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -73,7 +76,7 @@ export function printShareReport(params: PrintShareReportParams) {
     <table>
       <tr><th>الحصة المستحقة</th><td>${myShare.toLocaleString()} ر.س</td></tr>
       <tr><th>السُلف المصروفة</th><td>${advances.toLocaleString()} ر.س</td></tr>
-      <tr><th>فروق مرحّلة مخصومة</th><td>${carryforward.toLocaleString()} ر.س</td></tr>
+      <tr><th>فروق مرحّلة مخصومة</th><td>${actualCarryforward.toLocaleString()} ر.س</td></tr>
       <tr class="total-row"><th>صافي المبلغ المستحق</th><td>${net.toLocaleString()} ر.س</td></tr>
       ${deficit > 0 ? `<tr class="deficit"><th>فرق مرحّل للسنة القادمة</th><td>${deficit.toLocaleString()} ر.س</td></tr>` : ''}
     </table>

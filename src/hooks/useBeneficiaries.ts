@@ -79,6 +79,7 @@ export const useBeneficiariesSafe = () => {
         .limit(500);
       if (error) {
         if (error.code === '42501') {
+          logger.warn('[useBeneficiariesSafe] RLS permission denied (42501) — returning empty', error.message);
           return [];
         }
         throw error;
