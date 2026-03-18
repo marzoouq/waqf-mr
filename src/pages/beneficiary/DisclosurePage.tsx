@@ -205,9 +205,15 @@ const DisclosurePage = () => {
   if (finError) {
     return (
       <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
-          <NoPublishedYearsNotice />
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-destructive" />
+          <h2 className="text-xl font-bold">حدث خطأ أثناء تحميل البيانات</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.
+          </p>
+          <Button onClick={handleRetry} className="gap-2">
+            <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+          </Button>
         </div>
       </DashboardLayout>
     );
