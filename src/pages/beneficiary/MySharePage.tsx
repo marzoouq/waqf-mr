@@ -81,15 +81,10 @@ const MySharePage = () => {
   const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const { getJsonSetting } = useAppSettings();
   const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
   const advancesEnabled = advanceSettings.enabled;
   const beneficiariesShare = availableAmount;
-
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
   const filteredDistributions = currentAccount

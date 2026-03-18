@@ -53,12 +53,7 @@ const AccountsViewPage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? availableAmount * safeNumber(currentBeneficiary.share_percentage) / totalBenPct
-    : 0;
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
   if (noPublishedYears) {
     return (

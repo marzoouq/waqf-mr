@@ -35,14 +35,11 @@ const BeneficiaryDashboard = () => {
     { fiscalYearStatus: fiscalYear?.status },
   );
 
-  const { data: totalBenPct = 0, isLoading: pctLoading } = useTotalBeneficiaryPercentage();
-
   // ── Derived financials (computed only when data is valid) ──
-  const currentBeneficiary = useMemo(() => benError ? undefined : beneficiaries.find(b => b.user_id === user?.id), [beneficiaries, user?.id, benError]);
-  const safeAvailable = safeNumber(availableAmount);
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? safeAvailable * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
+  const { currentBeneficiary, totalBenPct, pctLoading, myShare } = useMyShare({
+    beneficiaries: benError ? [] : beneficiaries,
+    availableAmount,
+  });
 
   // ── Include notifLoading to prevent FOUC ──
   const isLoading = authLoading || benLoading || fyLoading || notifLoading || pctLoading || (!fyReady ? false : finLoading);

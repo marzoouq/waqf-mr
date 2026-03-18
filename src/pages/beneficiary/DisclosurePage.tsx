@@ -74,12 +74,8 @@ const DisclosurePage = () => {
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 

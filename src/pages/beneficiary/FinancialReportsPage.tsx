@@ -64,12 +64,8 @@ const FinancialReportsPage = () => {
     isError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   const incomeVsExpenses = useMemo(() => [
     { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
