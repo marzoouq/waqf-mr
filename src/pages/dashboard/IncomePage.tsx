@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import IncomeMonthlyChart from '@/components/dashboard/IncomeMonthlyChart';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
