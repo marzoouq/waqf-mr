@@ -95,7 +95,8 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
         }
 
         if (!data?.found) {
-          toast.error('رقم الهوية غير مسجل في النظام. تأكد من صحة الرقم أو تواصل مع ناظر الوقف.');
+          // رسالة عامة لا تكشف وجود الهوية من عدمه — حماية من تعداد المستخدمين
+          toast.error('بيانات الدخول غير صحيحة');
           return;
         }
 
