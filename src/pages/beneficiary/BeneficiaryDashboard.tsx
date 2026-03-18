@@ -31,7 +31,7 @@ const BeneficiaryDashboard = () => {
   const { role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
-  const { data: notifications = [], isLoading: notifLoading } = useNotifications();
+  const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
   // Don't fetch financial data until fiscalYearId is valid
