@@ -76,7 +76,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     head: [reshapeRow(['اسم المستفيد', 'المبلغ المستحق (ر.س)'])],
     body: data.beneficiaries.map(b => reshapeRow([
       b.name,
-      b.amount.toLocaleString(),
+      fmtAr(b.amount),
     ])),
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
