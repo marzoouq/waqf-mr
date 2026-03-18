@@ -405,7 +405,7 @@ const AdminDashboard = () => {
                       <span className="text-sm text-muted-foreground">منتظم</span>
                     </div>
                     <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
-                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">عقد</Badge>
+                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
