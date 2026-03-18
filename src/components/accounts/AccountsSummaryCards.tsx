@@ -64,66 +64,66 @@ const AccountsSummaryCards = ({
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
               <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
-              <p className="text-base sm:text-xl font-bold">{waqfCorpusPrevious.toLocaleString()}</p>
+              <p className="text-base sm:text-xl font-bold">{fmt(waqfCorpusPrevious)}</p>
             </div>
           )}
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">إجمالي الدخل</p>
-            <p className="text-base sm:text-xl font-bold">{totalIncome.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(totalIncome)}</p>
           </div>
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
               <p className="text-xs sm:text-sm text-primary-foreground/90">الإجمالي الشامل</p>
-              <p className="text-base sm:text-xl font-bold">{grandTotal.toLocaleString()}</p>
+              <p className="text-base sm:text-xl font-bold">{fmt(grandTotal)}</p>
             </div>
           )}
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
-            <p className="text-base sm:text-xl font-bold">{totalExpenses.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(totalExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
-            <p className="text-base sm:text-xl font-bold">{netAfterExpenses.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(netAfterExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
-            <p className="text-base sm:text-xl font-bold">{manualVat.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(manualVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الضريبة</p>
-            <p className="text-base sm:text-xl font-bold">{netAfterVat.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(netAfterVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الزكاة</p>
-            <p className="text-base sm:text-xl font-bold">{zakatAmount.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(zakatAmount)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الزكاة</p>
-            <p className="text-base sm:text-xl font-bold">{computedNetAfterZakat.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(computedNetAfterZakat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الناظر ({adminPercent}%)</p>
-            <p className="text-base sm:text-xl font-bold">{adminShare.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(adminShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الواقف ({waqifPercent}%)</p>
-            <p className="text-base sm:text-xl font-bold">{waqifShare.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(waqifShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">ريع الوقف</p>
-            <p className="text-base sm:text-xl font-bold">{waqfRevenue.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(waqfRevenue)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
-            <p className="text-base sm:text-xl font-bold">{waqfCorpusManual.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(waqfCorpusManual)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">التوزيعات</p>
-            <p className="text-base sm:text-xl font-bold">{manualDistributions.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(manualDistributions)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الرصيد المتبقي</p>
-            <p className="text-base sm:text-xl font-bold">{remainingBalance.toLocaleString()}</p>
+            <p className="text-base sm:text-xl font-bold">{fmt(remainingBalance)}</p>
           </div>
         </div>
       </CardContent>

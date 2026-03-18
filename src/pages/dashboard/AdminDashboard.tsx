@@ -141,14 +141,14 @@ const AdminDashboard = () => {
     return [
       { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
       { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
-      { title: 'الإيرادات التعاقدية', value: `${contractualRevenue.toLocaleString()} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
-      { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
-      { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
-      { title: `صافي الريع${sharesNote}`, value: `${netAfterExpenses.toLocaleString()} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
+      { title: 'الإيرادات التعاقدية', value: `${fmt(contractualRevenue)} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
+      { title: 'إجمالي الدخل الفعلي', value: `${fmt(totalIncome)} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
+      { title: 'إجمالي المصروفات', value: `${fmt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
+      { title: `صافي الريع${sharesNote}`, value: `${fmt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
       { title: `المتاح للتوزيع${sharesNote}`, value: `${Math.max(0, isYearActive ? netAfterZakat : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-      { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-      { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-      { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+      { title: `حصة الناظر${sharesNote}`, value: `${fmt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+      { title: `حصة الواقف${sharesNote}`, value: `${fmt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+      { title: `ريع الوقف${sharesNote}`, value: `${fmt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
       { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => (b.share_percentage ?? 0) > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
     ];
   }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote, yoy]);
@@ -339,7 +339,7 @@ const AdminDashboard = () => {
                   <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
                     <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
                     <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>
-                      {kpi.value.toLocaleString()}{kpi.suffix}
+                      {kpi.fmt(value)}{kpi.suffix}
                     </p>
                     {kpi.progressColor && (
                       <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />

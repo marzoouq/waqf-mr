@@ -184,7 +184,7 @@ const DistributeDialog = ({
           <DialogTitle>توزيع حصص المستفيدين</DialogTitle>
           <DialogDescription>
             {fiscalYearLabel && `السنة المالية: ${fiscalYearLabel} — `}
-            المبلغ المتاح للتوزيع: {availableAmount.toLocaleString()} ر.س
+            المبلغ المتاح للتوزيع: {fmt(availableAmount)} ر.س
           </DialogDescription>
         </DialogHeader>
 
@@ -207,15 +207,15 @@ const DistributeDialog = ({
                 <TableRow key={d.beneficiary_id} className={d.deficit > 0 ? 'bg-destructive/5' : ''}>
                   <TableCell className="font-medium">{d.beneficiary_name}</TableCell>
                   <TableCell>{formatPercentage(d.share_percentage)}</TableCell>
-                  <TableCell>{d.share_amount.toLocaleString()}</TableCell>
+                  <TableCell>{d.fmt(share_amount)}</TableCell>
                   <TableCell>
                     {d.advances_paid > 0 ? (
-                      <Badge variant="outline" className="text-destructive">-{d.advances_paid.toLocaleString()}</Badge>
+                      <Badge variant="outline" className="text-destructive">-{d.fmt(advances_paid)}</Badge>
                     ) : '—'}
                   </TableCell>
                   <TableCell>
                     {d.carryforward_deducted > 0 ? (
-                      <Badge variant="outline" className="text-warning">-{d.carryforward_deducted.toLocaleString()}</Badge>
+                      <Badge variant="outline" className="text-warning">-{d.fmt(carryforward_deducted)}</Badge>
                     ) : '—'}
                   </TableCell>
                   <TableCell>
@@ -224,11 +224,11 @@ const DistributeDialog = ({
                         <span className="font-bold text-destructive">0</span>
                         <Badge className="bg-destructive/20 text-destructive text-[10px] block w-fit">
                           <ArrowLeftRight className="w-3 h-3 ml-1 inline" />
-                          يُرحّل {d.deficit.toLocaleString()}
+                          يُرحّل {d.fmt(deficit)}
                         </Badge>
                       </div>
                     ) : (
-                      <span className="font-bold text-primary">{d.net_amount.toLocaleString()}</span>
+                      <span className="font-bold text-primary">{d.fmt(net_amount)}</span>
                     )}
                   </TableCell>
                 </TableRow>
@@ -240,18 +240,18 @@ const DistributeDialog = ({
         <div className="space-y-2 p-3 bg-muted/50 rounded-lg text-sm">
           <div className="flex justify-between">
             <span>إجمالي الصافي المطلوب صرفه</span>
-            <span className="font-bold text-primary">{totalNet.toLocaleString()} ر.س</span>
+            <span className="font-bold text-primary">{fmt(totalNet)} ر.س</span>
           </div>
           {totalAdvances > 0 && (
             <div className="flex justify-between text-destructive">
               <span>إجمالي السُلف المخصومة</span>
-              <span className="font-bold">-{totalAdvances.toLocaleString()} ر.س</span>
+              <span className="font-bold">-{fmt(totalAdvances)} ر.س</span>
             </div>
           )}
           {totalCarryforward > 0 && (
             <div className="flex justify-between text-warning">
               <span>إجمالي المرحّل المخصوم (من سنوات سابقة)</span>
-              <span className="font-bold">-{totalCarryforward.toLocaleString()} ر.س</span>
+              <span className="font-bold">-{fmt(totalCarryforward)} ر.س</span>
             </div>
           )}
           <div className="flex justify-between border-t pt-2">
@@ -268,7 +268,7 @@ const DistributeDialog = ({
                 {distributions.filter(d => d.deficit > 0).length} مستفيد لديهم سُلف تتجاوز حصتهم
               </p>
               <p className="text-muted-foreground mt-1">
-                سيتم ترحيل الفرق ({totalDeficit.toLocaleString()} ر.س) وخصمه تلقائياً من حصصهم في السنة المالية القادمة.
+                سيتم ترحيل الفرق ({fmt(totalDeficit)} ر.س) وخصمه تلقائياً من حصصهم في السنة المالية القادمة.
               </p>
             </div>
           </div>

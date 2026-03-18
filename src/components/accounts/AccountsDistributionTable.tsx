@@ -65,85 +65,85 @@ const AccountsDistributionTable = ({
               <TableRow>
                 <TableCell className="font-medium">رقبة الوقف المرحلة من العام السابق</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold text-success">{waqfCorpusPrevious.toLocaleString()}</TableCell>
+                <TableCell className="font-bold text-success">{fmt(waqfCorpusPrevious)}</TableCell>
               </TableRow>
             )}
             <TableRow className="bg-success/10">
               <TableCell className="font-medium">إجمالي الدخل</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="font-bold text-success">{totalIncome.toLocaleString()}</TableCell>
+              <TableCell className="font-bold text-success">{fmt(totalIncome)}</TableCell>
             </TableRow>
             {waqfCorpusPrevious > 0 && (
               <TableRow className="bg-success/20 font-semibold">
                 <TableCell className="font-bold">الإجمالي الشامل</TableCell>
                 <TableCell>-</TableCell>
-                <TableCell className="font-bold text-success">{grandTotal.toLocaleString()}</TableCell>
+                <TableCell className="font-bold text-success">{fmt(grandTotal)}</TableCell>
               </TableRow>
             )}
             <TableRow>
               <TableCell className="font-medium">(-) المصروفات التشغيلية</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="text-destructive">{totalExpenses.toLocaleString()}</TableCell>
+              <TableCell className="text-destructive">{fmt(totalExpenses)}</TableCell>
             </TableRow>
             <TableRow className="bg-muted/30 font-semibold">
               <TableCell className="font-bold">الصافي بعد المصاريف</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="font-bold">{netAfterExpenses.toLocaleString()}</TableCell>
+              <TableCell className="font-bold">{fmt(netAfterExpenses)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) ضريبة القيمة المضافة</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="text-destructive">{manualVat.toLocaleString()}</TableCell>
+              <TableCell className="text-destructive">{fmt(manualVat)}</TableCell>
             </TableRow>
             <TableRow className="bg-muted/30 font-semibold">
               <TableCell className="font-bold">الصافي بعد الضريبة</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="font-bold">{netAfterVat.toLocaleString()}</TableCell>
+              <TableCell className="font-bold">{fmt(netAfterVat)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) الزكاة</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="text-destructive">{zakatAmount.toLocaleString()}</TableCell>
+              <TableCell className="text-destructive">{fmt(zakatAmount)}</TableCell>
             </TableRow>
             <TableRow className="bg-muted/30 font-semibold">
               <TableCell className="font-bold">الصافي بعد الزكاة</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="font-bold">{netAfterZakat.toLocaleString()}</TableCell>
+              <TableCell className="font-bold">{fmt(netAfterZakat)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) حصة الناظر</TableCell>
               <TableCell>{adminPercent}%</TableCell>
-              <TableCell>{adminShare.toLocaleString()}</TableCell>
+              <TableCell>{fmt(adminShare)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) حصة الواقف</TableCell>
               <TableCell>{waqifPercent}%</TableCell>
-              <TableCell>{waqifShare.toLocaleString()}</TableCell>
+              <TableCell>{fmt(waqifShare)}</TableCell>
             </TableRow>
             <TableRow className="bg-primary/10 font-bold">
               <TableCell className="font-bold">ريع الوقف (الإجمالي القابل للتوزيع)</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="text-primary font-bold">{waqfRevenue.toLocaleString()}</TableCell>
+              <TableCell className="text-primary font-bold">{fmt(waqfRevenue)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) رقبة الوقف للعام الحالي</TableCell>
               <TableCell>-</TableCell>
-              <TableCell>{waqfCorpusManual.toLocaleString()}</TableCell>
+              <TableCell>{fmt(waqfCorpusManual)}</TableCell>
             </TableRow>
             <TableRow className="bg-primary/5 font-bold">
               <TableCell className="font-bold">المبلغ المتاح</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className="text-primary font-bold">{availableAmount.toLocaleString()}</TableCell>
+              <TableCell className="text-primary font-bold">{fmt(availableAmount)}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">(-) التوزيعات</TableCell>
               <TableCell>-</TableCell>
-              <TableCell>{manualDistributions.toLocaleString()}</TableCell>
+              <TableCell>{fmt(manualDistributions)}</TableCell>
             </TableRow>
             <TableRow className="bg-accent/20 font-bold">
               <TableCell className="font-bold text-lg">الرصيد المتبقي</TableCell>
               <TableCell>-</TableCell>
-              <TableCell className={`font-bold text-lg ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{remainingBalance.toLocaleString()}</TableCell>
+              <TableCell className={`font-bold text-lg ${remainingBalance >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(remainingBalance)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

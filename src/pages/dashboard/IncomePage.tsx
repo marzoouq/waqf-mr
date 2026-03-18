@@ -240,7 +240,7 @@ const IncomePage = () => {
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-success/10"><TrendingUp className="w-5 h-5 text-success" /></div>
-                <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{totalIncome.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{fmt(totalIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
@@ -252,13 +252,13 @@ const IncomePage = () => {
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-accent/50"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
-                <div><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-xl font-bold">{summaryCards.avg.toLocaleString('ar-SA')} <span className="text-xs font-normal">ريال</span></p></div>
+                <div><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-xl font-bold">{summaryCards.fmt(avg)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-                <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground">{summaryCards.topSourceAmount.toLocaleString('ar-SA')} ريال</p></div>
+                <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground">{summaryCards.fmt(topSourceAmount)} ريال</p></div>
               </CardContent>
             </Card>
           </div>
@@ -280,8 +280,8 @@ const IncomePage = () => {
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {lowIncomeMonths.map((m) => (
                       <p key={m.month}>
-                        شهر <span className="font-medium">{m.month}</span>: {m.amount.toLocaleString('ar-SA')} ر.س
-                        <span className="text-destructive"> (أقل من 20% من المتوسط: {m.avg.toLocaleString('ar-SA')} ر.س)</span>
+                        شهر <span className="font-medium">{m.month}</span>: {m.fmt(amount)} ر.س
+                        <span className="text-destructive"> (أقل من 20% من المتوسط: {m.fmt(avg)} ر.س)</span>
                       </p>
                     ))}
                   </div>

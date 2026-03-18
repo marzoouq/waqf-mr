@@ -30,7 +30,7 @@ interface CloseYearDialogProps {
 const SummaryRow = ({ label, value, className }: { label: string; value: number; className?: string }) => (
   <li className="flex justify-between text-sm">
     <span>{label}</span>
-    <span className={className || 'font-medium'}>{value.toLocaleString()} ر.س</span>
+    <span className={className || 'font-medium'}>{fmt(value)} ر.س</span>
   </li>
 );
 
@@ -78,7 +78,7 @@ const CloseYearDialog = ({
             <ul className="list-disc list-inside space-y-1 mr-2">
               <li>حفظ الحساب الختامي النهائي وأرشفة جميع البيانات للسنة <strong className="text-foreground">{fyLabel}</strong></li>
               <li>إقفال السنة المالية نهائياً (لن يمكن التعديل بعد الإقفال)</li>
-              <li>ترحيل رقبة الوقف <strong className="text-foreground">({waqfCorpusManual.toLocaleString()} ر.س)</strong> للسنة الجديدة</li>
+              <li>ترحيل رقبة الوقف <strong className="text-foreground">({fmt(waqfCorpusManual)} ر.س)</strong> للسنة الجديدة</li>
               <li>إشعار جميع المستفيدين بإقفال السنة</li>
             </ul>
             <p className="text-xs mt-2">جميع البيانات المؤرشفة ستبقى متاحة للاطلاع عليها.</p>
