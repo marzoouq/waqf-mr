@@ -476,22 +476,24 @@ const AdminDashboard = () => {
 
         {/* Year-over-Year Comparison — lazy-loaded */}
         {allFiscalYears.length >= 2 && (
-          <Suspense fallback={<ChartSkeleton />}>
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowUpDown className="w-5 h-5" />
-                  مقارنة بين السنوات المالية
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <YearOverYearComparison
-                  fiscalYears={allFiscalYears}
-                  currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
-                />
-              </CardContent>
-            </Card>
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowUpDown className="w-5 h-5" />
+                    مقارنة بين السنوات المالية
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <YearOverYearComparison
+                    fiscalYears={allFiscalYears}
+                    currentFiscalYearId={fiscalYearId === 'all' ? (allFiscalYears[0]?.id || '') : fiscalYearId}
+                  />
+                </CardContent>
+              </Card>
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {/* B-04: آخر العقود مع skeleton */}
