@@ -116,7 +116,7 @@ const AdminDashboard = () => {
     const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
     return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
-  }, [fyContracts, paymentInvoices]);
+  }, [contracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
