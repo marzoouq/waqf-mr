@@ -10,6 +10,7 @@ import { getLastAutoTableY } from './pdfHelpers';
 import { supabase } from '@/integrations/supabase/client';
 import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
 import { logger } from '@/lib/logger';
+import { fmt } from '@/utils/format';
 
 export type InvoiceTemplate = 'classic' | 'tax_professional' | 'compact';
 
@@ -173,11 +174,11 @@ const renderLineItemsTable = (
         `${idx + 1}`,
         rs(item.description),
         `${item.quantity}`,
-        `${item.unitPricefmt(}`,
-        `${baseTotalfmt(}`,
+        `${fmt(item.unitPrice)}`,
+        `${fmt(baseTotal)}`,
         `${item.vatRate}%`,
-        `${itemVatfmt(}`,
-        `${(baseTotal + itemVat)fmt(}`,
+        `${fmt(itemVat)}`,
+        `${fmt((baseTotal + itemVat))}`,
       ]);
     });
   } else {
@@ -188,11 +189,11 @@ const renderLineItemsTable = (
       '1',
       rs(`إيجار — دفعة ${invoice.paymentNumber}`),
       '1',
-      `${amountExVatfmt(}`,
-      `${amountExVatfmt(}`,
+      `${fmt(amountExVat)}`,
+      `${fmt(amountExVat)}`,
       `${vatRate}%`,
-      `${vatAmountfmt(}`,
-      `${invoice.amountfmt(}`,
+      `${fmt(vatAmount)}`,
+      `${fmt(invoice.amount)}`,
     ]);
   }
 
@@ -266,11 +267,11 @@ const renderAllowanceChargeTable = (
   const rows: string[][] = [];
   for (const a of allowances) {
     const vat = Math.round(a.amount * a.vatRate / 100 * 100) / 100;
-    rows.push(reshapeRow(['خصم', a.reason, `-${a.amountfmt(}`, `${a.vatRate}%`, `-${vatfmt(}`]));
+    rows.push(reshapeRow(['خصم', a.reason, `-${fmt(a.amount)}`, `${a.vatRate}%`, `-${fmt(vat)}`]));
   }
   for (const c of charges) {
     const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
-    rows.push(reshapeRow(['رسوم إضافية', c.reason, `+${c.amountfmt(}`, `${c.vatRate}%`, `+${vatfmt(}`]));
+    rows.push(reshapeRow(['رسوم إضافية', c.reason, `+${fmt(c.amount)}`, `${c.vatRate}%`, `+${fmt(vat)}`]));
   }
 
   autoTable(doc, {
@@ -321,19 +322,19 @@ const renderVatSummary = (
   y += 6;
 
   const summaryItems: [string, string][] = [
-    [rs('إجمالي البنود:'), rs(`${totals.lineExtensionfmt(} ر.س`)],
+    [rs('إجمالي البنود:'), rs(`${fmt(totals.lineExtension)} ر.س`)],
   ];
 
   if (totals.totalAllowances > 0) {
-    summaryItems.push([rs('خصومات:'), rs(`-${totals.totalAllowancesfmt(} ر.س`)]);
+    summaryItems.push([rs('خصومات:'), rs(`-${fmt(totals.totalAllowances)} ر.س`)]);
   }
   if (totals.totalCharges > 0) {
-    summaryItems.push([rs('رسوم إضافية:'), rs(`+${totals.totalChargesfmt(} ر.س`)]);
+    summaryItems.push([rs('رسوم إضافية:'), rs(`+${fmt(totals.totalCharges)} ر.س`)]);
   }
 
   summaryItems.push(
-    [rs('الإجمالي قبل الضريبة:'), rs(`${totals.taxExclusivefmt(} ر.س`)],
-    [rs('ضريبة القيمة المضافة:'), rs(`${totals.totalVatfmt(} ر.س`)],
+    [rs('الإجمالي قبل الضريبة:'), rs(`${fmt(totals.taxExclusive)} ر.س`)],
+    [rs('ضريبة القيمة المضافة:'), rs(`${fmt(totals.totalVat)} ر.س`)],
   );
 
   for (const [label, value] of summaryItems) {
@@ -346,7 +347,7 @@ const renderVatSummary = (
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(11);
   doc.text(rs('الإجمالي شاملاً الضريبة:'), pageW - margin - 60, y, { align: 'right' });
-  doc.text(rs(`${totals.grandTotalfmt(} ر.س`), pageW - margin, y, { align: 'right' });
+  doc.text(rs(`${fmt(totals.grandTotal)} ر.س`), pageW - margin, y, { align: 'right' });
   y += 4;
 
   return y;
@@ -506,11 +507,11 @@ const renderClassic = async (
 
   if (isVat) {
     const amountExVat = invoice.amount - vatAmount;
-    rows.push([rs('المبلغ قبل الضريبة'), rs(`${amountExVatfmt(} ر.س`)]);
-    rows.push([rs(`ضريبة القيمة المضافة (${vatRate}%)`), rs(`${vatAmountfmt(} ر.س`)]);
-    rows.push([rs('الإجمالي شاملاً الضريبة'), rs(`${invoice.amountfmt(} ر.س`)]);
+    rows.push([rs('المبلغ قبل الضريبة'), rs(`${fmt(amountExVat)} ر.س`)]);
+    rows.push([rs(`ضريبة القيمة المضافة (${vatRate}%)`), rs(`${fmt(vatAmount)} ر.س`)]);
+    rows.push([rs('الإجمالي شاملاً الضريبة'), rs(`${fmt(invoice.amount)} ر.س`)]);
   } else {
-    rows.push([rs('المبلغ'), rs(`${invoice.amountfmt(} ر.س`)]);
+    rows.push([rs('المبلغ'), rs(`${fmt(invoice.amount)} ر.س`)]);
   }
 
   rows.push([rs('تاريخ الاستحقاق'), rs(invoice.dueDate)]);
@@ -518,7 +519,7 @@ const renderClassic = async (
 
   if (!isVat) rows.push([rs('ضريبة القيمة المضافة'), rs('معفاة من ضريبة القيمة المضافة')]);
   if (invoice.paidDate) rows.push([rs('تاريخ السداد'), rs(invoice.paidDate)]);
-  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${invoice.paidAmountfmt(} ر.س`)]);
+  if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${fmt(invoice.paidAmount)} ر.س`)]);
   if (invoice.notes) rows.push([rs('ملاحظات'), rs(invoice.notes)]);
 
   autoTable(doc, {
@@ -776,9 +777,9 @@ const renderCompact = async (
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
     body: [[
       `إيجار — دفعة ${invoice.paymentNumber}`,
-      `${compactAmountExVatfmt(}`,
-      `${compactVatAmountfmt(} (${vatRate}%)`,
-      `${invoice.amountfmt(} ر.س`,
+      `${fmt(compactAmountExVat)}`,
+      `${fmt(compactVatAmount)} (${vatRate}%)`,
+      `${fmt(invoice.amount)} ر.س`,
     ]],
     theme: 'grid',
     ...baseTableStyles(fontFamily),
@@ -808,7 +809,7 @@ const renderCompact = async (
   // سطر الإجمالي — يستخدم الحسابات الموحّدة
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(10);
-  doc.text(`الإجمالي: ${totals.grandTotalfmt(} ر.س`, pageW / 2, endY, { align: 'center' });
+  doc.text(`الإجمالي: ${fmt(totals.grandTotal)} ر.س`, pageW / 2, endY, { align: 'center' });
   endY += 6;
 
   // بيانات الدفع مختصرة

@@ -9,8 +9,6 @@ import {
 import { getLastAutoTableY } from './pdfHelpers';
 import { fmt } from '@/utils/format';
 
-// تنسيق الأرقام المالية بالعربية
-const fmtAr = (n: number) => n.toLocaleString('ar-SA');
 
 interface ReportData {
   fiscalYear: string;
