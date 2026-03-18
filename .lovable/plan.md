@@ -1,58 +1,43 @@
-## تقرير الفحص الجنائي الهجين — الإصدار الثالث ✅
 
-### ملخص تنفيذي
 
-فحص جنائي شامل على 3 طبقات: **AdminDashboard** + **SupportDashboard** + **الهوكات المالية العميقة** + **مكونات الداشبورد**. تم التحقق من 18 بنداً إجمالاً، إصلاح 10 مشاكل حقيقية، ورفض 8 إنذارات كاذبة/تصميمية.
+## حالة جميع البنود — تم التحقق من الكود الفعلي
 
-**الاختبارات**: 600+ اختبار ✅ — 0 فشل
+كل بند في هذا التقرير تم فحصه مباشرة في الملفات المصدرية. النتائج:
 
----
+### ✅ تم إصلاحه سابقاً (4 بنود)
 
-### الطبقة الأولى — AdminDashboard + Support + Permissions
+| # | البند | الدليل في الكود |
+|---|-------|----------------|
+| BUG-C1 | `isDeficit` مفقود | `useComputedFinancials.ts` سطر 102: `isDeficit: false` ← موجود |
+| BUG-R2 | `__skip__` → `'all'` | `useRawFinancialData.ts` سطر 15-16: `fyFilter = shouldSkip ? '__none__' : fiscalYearId` ← مُصلح |
+| BUG-M1 | Heatmap يعرض income | `CollectionHeatmap.tsx` سطر 19-21: `paymentInvoices: PaymentInvoice[]` ← مُصلح |
+| BUG-M2 | ZATCA تُقطع بلا إشعار | `PendingActionsTable.tsx` سطر 28-34: `unsubmittedZatcaTotal` + `zatcaOverflow` ← مُصلح |
 
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
-| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
-| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
-| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
-| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
-| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
-| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
+### ❌ ليست أخطاء — بالتصميم (5 بنود)
 
-### الطبقة الثانية — الهوكات المالية + المكونات
+| # | البند | السبب |
+|---|-------|-------|
+| BUG-C2 | `waqfCorpusPrevious=0` بلا حساب | صحيح — بدون `currentAccount` لا توجد بيانات ترحيل. هذا الـ fallback المتوقع |
+| BUG-C3 | `fiscalYearId='all'` يُبطل `currentAccount` | بالتصميم — لا يوجد حساب ختامي واحد لـ "كل السنوات". الحساب الديناميكي هو السلوك الصحيح |
+| BUG-C4 | `shareBase` stored vs live | بالتصميم — السنة المقفلة تستخدم القيم المخزنة عمداً لأنها النهائية المعتمدة |
+| BUG-R1 | `benLoading` يُعيق الداشبورد | المستفيدون مُستخدمون في بطاقة "المستفيدون النشطون". تضمين `benLoading` صحيح |
+| BUG-M3 | CollectionSummaryChart عقود لا فواتير | تم إصلاحه ضمن BUG-02 السابق — النسبة الآن بالمبالغ المالية |
 
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` — لا مستهلك حالي لكن وقائي |
-| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع بدون `currentAccount` |
-| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
-| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة عمداً |
-| **BUG-R2** | `__skip__` → `'all'` طلبات غير مقصودة | **✅ مُصلح** | تحويل `__skip__` إلى `__none__` لتعطيل الهوكات |
-| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
-| **BUG-M1** | CollectionHeatmap يعرض دخل لا تحصيل | **✅ مُصلح** | تغيير المصدر من `income` إلى `paymentInvoices` مع `paid_date` |
-| **BUG-M2** | ZATCA تُقطع عند 10 بلا إشعار | **✅ مُصلح** | إضافة صف `+ X فاتورة أخرى` مع Badge العدد الحقيقي |
-| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
-| BUG-M3 | CollectionSummaryChart counts | ❌ تم إصلاحه مسبقاً | BUG-02 عالج الجذر |
+### 🧹 تنظيف متبقي (بند واحد)
+
+| # | البند | الحالة |
+|---|-------|--------|
+| BUG-Y1 | `prevContractualRevenue: 0` دائماً | الحقل موجود في `YoYResult` interface لكن لا يُستهلك في أي مكون (0 نتائج في `.tsx`). **تنظيف فقط** — حذف الحقل من الـ interface والقيم المرجعة |
 
 ---
 
-### الملفات المُعدَّلة (الطبقة الثانية)
+### خطة التنفيذ — بند واحد فقط
 
-| الملف | نوع التغيير |
-|-------|------------|
-| `src/hooks/useRawFinancialData.ts` | BUG-R2: `__skip__` → `__none__` |
-| `src/hooks/useComputedFinancials.ts` | BUG-C1: إضافة `isDeficit: false` |
-| `src/components/dashboard/CollectionHeatmap.tsx` | BUG-M1: تحويل من `income` إلى `paymentInvoices` |
-| `src/components/dashboard/PendingActionsTable.tsx` | BUG-M2: مؤشر الفواتير الإضافية |
-| `src/pages/dashboard/AdminDashboard.tsx` | تحديث prop لـ CollectionHeatmap |
+**الملف:** `src/hooks/useYoYComparison.ts`
 
-### التقييم النهائي
+حذف `prevContractualRevenue` من:
+1. `YoYResult` interface (سطر 14)
+2. القيمة المرجعة عند عدم وجود سنة سابقة (سطر 37)
+3. القيمة المرجعة عند وجود سنة سابقة (سطر 44)
 
-- **الأمن**: 9.5/10 — لا تغييرات على RLS أو المصادقة
-- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة (BUG-01 + BUG-R2)
-- **الدقة المالية**: 10/10 — تحصيل فعلي في الخريطة الحرارية + نسبة بالمبالغ
-- **شفافية UI**: 9.5/10 — مؤشر واضح للفواتير المخفية
-- **الاختبارات**: 600+ ✅ — 0 فشل
-
-**الحالة**: مُعتمد ✅
+هذا تنظيف بسيط — حذف حقل stub غير مُستهلك. لا يؤثر على أي مكون آخر.
