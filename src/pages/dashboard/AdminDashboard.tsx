@@ -91,10 +91,10 @@ const AdminDashboard = () => {
 
   // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
   // Contracts are already filtered server-side by useContractsByFiscalYear
-  const fyContracts = contracts;
-
-  const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
-  const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  // T-02/T-05: توحيد فلتر العقود النشطة وحذف alias غير ضروري
+  const activeContracts = contracts.filter(c => c.status === 'active');
+  const activeContractsCount = activeContracts.length;
+  const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
   // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
   const collectionSummary = useMemo(() => {
