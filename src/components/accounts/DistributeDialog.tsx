@@ -191,6 +191,31 @@ const DistributeDialog = ({
         {beneficiaries.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون</p>
         ) : (
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {distributions.map(d => (
+              <div key={d.beneficiary_id} className={`rounded-lg border p-3 space-y-2 ${d.deficit > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-border'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">{d.beneficiary_name}</span>
+                  <Badge variant="outline" className="text-xs">{formatPercentage(d.share_percentage)}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div><span className="text-muted-foreground">الحصة:</span> {fmt(d.share_amount)}</div>
+                  <div><span className="text-muted-foreground">السُلف:</span> {d.advances_paid > 0 ? <span className="text-destructive">-{fmt(d.advances_paid)}</span> : '—'}</div>
+                  <div><span className="text-muted-foreground">مرحّل:</span> {d.carryforward_deducted > 0 ? <span className="text-warning">-{fmt(d.carryforward_deducted)}</span> : '—'}</div>
+                  <div><span className="text-muted-foreground">الصافي:</span> <span className="font-bold text-primary">{d.deficit > 0 ? '0' : fmt(d.net_amount)}</span></div>
+                </div>
+                {d.deficit > 0 && (
+                  <Badge className="bg-destructive/20 text-destructive text-[10px]">
+                    <ArrowLeftRight className="w-3 h-3 ml-1 inline" />
+                    يُرحّل {fmt(d.deficit)}
+                  </Badge>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
