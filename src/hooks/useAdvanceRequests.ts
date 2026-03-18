@@ -195,7 +195,7 @@ export const useCreateAdvanceRequest = () => {
       let beneficiaryName: string | null = null;
       try {
         const { data: ben, error: benError } = await supabase
-          .from('beneficiaries')
+          .from('beneficiaries_safe')
           .select('name')
           .eq('id', req.beneficiary_id)
           .single();

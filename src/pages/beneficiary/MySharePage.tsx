@@ -107,11 +107,11 @@ const MySharePage = () => {
 
   const totalReceived = filteredDistributions
     .filter(d => d.status === 'paid')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   const pendingAmount = filteredDistributions
     .filter(d => d.status === 'pending')
-    .reduce((sum, d) => sum + Number(d.amount), 0);
+    .reduce((sum, d) => sum + safeNumber(d.amount), 0);
 
   // BEN-11: wrapper لمنع الضغط المزدوج أثناء توليد PDF
   const withPdfLoading = (fn: () => Promise<void>) => async () => {
