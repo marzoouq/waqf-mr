@@ -231,26 +231,26 @@ const AnnualReportPage = () => {
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-            <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="property_status" className="gap-1.5">
-                <Building2 className="h-4 w-4" />
+            <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+              <TabsTrigger value="property_status" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+                <Building2 className="h-4 w-4 hidden sm:block" />
                 حالة العقارات
-                <Badge variant="secondary" className="mr-1 text-xs">{grouped.property_status.length}</Badge>
+                <Badge variant="secondary" className="mr-1 text-[10px] sm:text-xs">{grouped.property_status.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="achievement" className="gap-1.5">
-                <Trophy className="h-4 w-4" />
+              <TabsTrigger value="achievement" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+                <Trophy className="h-4 w-4 hidden sm:block" />
                 الإنجازات
-                <Badge variant="secondary" className="mr-1 text-xs">{grouped.achievement.length}</Badge>
+                <Badge variant="secondary" className="mr-1 text-[10px] sm:text-xs">{grouped.achievement.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="challenge" className="gap-1.5">
-                <AlertTriangle className="h-4 w-4" />
+              <TabsTrigger value="challenge" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+                <AlertTriangle className="h-4 w-4 hidden sm:block" />
                 التحديات
-                <Badge variant="secondary" className="mr-1 text-xs">{grouped.challenge.length}</Badge>
+                <Badge variant="secondary" className="mr-1 text-[10px] sm:text-xs">{grouped.challenge.length}</Badge>
               </TabsTrigger>
-              <TabsTrigger value="future_plan" className="gap-1.5">
-                <Lightbulb className="h-4 w-4" />
+              <TabsTrigger value="future_plan" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+                <Lightbulb className="h-4 w-4 hidden sm:block" />
                 الخطط المستقبلية
-                <Badge variant="secondary" className="mr-1 text-xs">{grouped.future_plan.length}</Badge>
+                <Badge variant="secondary" className="mr-1 text-[10px] sm:text-xs">{grouped.future_plan.length}</Badge>
               </TabsTrigger>
             </TabsList>
 

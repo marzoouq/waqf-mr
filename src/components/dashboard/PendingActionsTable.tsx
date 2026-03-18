@@ -82,7 +82,36 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        {/* Mobile Cards */}
+        <div className="space-y-2 p-3 md:hidden">
+          {actions.map((action, i) => (
+            <div key={`${action.type}-${i}`} className="flex items-center justify-between gap-2 border rounded-lg p-3">
+              <div className="min-w-0 flex-1 space-y-1">
+                <Badge variant={action.type === 'advance' ? 'default' : 'outline'} className="text-xs">
+                  {action.label}
+                </Badge>
+                <p className="text-xs text-muted-foreground truncate">{action.detail}</p>
+                {action.amount ? (
+                  <p className="text-sm font-medium tabular-nums">{fmt(action.amount)} ر.س</p>
+                ) : null}
+              </div>
+              <Link to={action.link}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          ))}
+          {zatcaOverflow > 0 && (
+            <Link to="/dashboard/zatca" className="block text-center">
+              <Button variant="link" size="sm" className="text-xs text-muted-foreground">
+                + {zatcaOverflow} فاتورة أخرى غير مُرسلة لـ ZATCA
+              </Button>
+            </Link>
+          )}
+        </div>
+        {/* Desktop Table */}
+        <div className="overflow-x-auto hidden md:block">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -115,7 +144,6 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
                   </TableCell>
                 </TableRow>
               ))}
-              {/* BUG-M2 fix: مؤشر على وجود فواتير إضافية */}
               {zatcaOverflow > 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-2">

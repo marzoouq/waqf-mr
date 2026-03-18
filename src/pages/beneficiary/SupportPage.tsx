@@ -67,52 +67,96 @@ const BeneficiarySupportPage = () => {
                 <p className="text-muted-foreground">لا توجد تذاكر — يمكنك إنشاء طلب دعم جديد</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="text-right">الرقم</TableHead>
-                    <TableHead className="text-right">العنوان</TableHead>
-                    <TableHead className="text-right">الحالة</TableHead>
-                    <TableHead className="text-right">التقييم</TableHead>
-                    <TableHead className="text-right">التاريخ</TableHead>
-                    <TableHead className="text-right">إجراء</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile Cards */}
+                <div className="space-y-3 md:hidden">
                   {tickets.map(ticket => {
                     const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
                     const Icon = s.icon;
                     return (
-                      <TableRow key={ticket.id}>
-                        <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
-                        <TableCell className="font-medium">{ticket.title}</TableCell>
-                        <TableCell>
-                          <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {ticket.rating ? (
-                            <div className="flex items-center gap-0.5">
-                              {[1, 2, 3, 4, 5].map(i => (
-                                <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
-                              ))}
+                      <Card key={ticket.id} className="shadow-sm">
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-sm truncate">{ticket.title}</p>
+                              <p className="text-xs text-muted-foreground font-mono mt-0.5">{ticket.ticket_number}</p>
                             </div>
-                          ) : (ticket.status === 'resolved' || ticket.status === 'closed') ? (
-                            <span className="text-xs text-muted-foreground">بانتظار التقييم</span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline" onClick={() => setSelectedTicket(ticket)}>
+                            <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">التاريخ</p>
+                              <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">التقييم</p>
+                              {ticket.rating ? (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`w-3 h-3 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
+                                  ))}
+                                </div>
+                              ) : <span className="text-xs text-muted-foreground">—</span>}
+                            </div>
+                          </div>
+                          <Button size="sm" variant="outline" className="w-full mt-1" onClick={() => setSelectedTicket(ticket)}>
                             <Eye className="w-3 h-3 ml-1" />عرض
                           </Button>
-                        </TableCell>
-                      </TableRow>
+                        </CardContent>
+                      </Card>
                     );
                   })}
-                </TableBody>
-              </Table>
+                </div>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-right">الرقم</TableHead>
+                        <TableHead className="text-right">العنوان</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">التقييم</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">إجراء</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tickets.map(ticket => {
+                        const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                        const Icon = s.icon;
+                        return (
+                          <TableRow key={ticket.id}>
+                            <TableCell className="font-mono text-xs">{ticket.ticket_number}</TableCell>
+                            <TableCell className="font-medium">{ticket.title}</TableCell>
+                            <TableCell>
+                              <Badge className={s.color}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {ticket.rating ? (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map(i => (
+                                    <Star key={i} className={`w-3.5 h-3.5 ${i <= ticket.rating! ? 'fill-star-rating text-star-rating' : 'text-muted-foreground/30'}`} />
+                                  ))}
+                                </div>
+                              ) : (ticket.status === 'resolved' || ticket.status === 'closed') ? (
+                                <span className="text-xs text-muted-foreground">بانتظار التقييم</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                            <TableCell>
+                              <Button size="sm" variant="outline" onClick={() => setSelectedTicket(ticket)}>
+                                <Eye className="w-3 h-3 ml-1" />عرض
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

@@ -357,7 +357,7 @@ const ChartOfAccountsPage = () => {
 
         {/* العرض الهرمي */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-2 sm:p-4 overflow-x-auto">
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />

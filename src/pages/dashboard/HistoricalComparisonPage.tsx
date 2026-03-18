@@ -206,42 +206,72 @@ function HistoricalComparisonPage() {
                     <CardTitle className="text-base">جدول المقارنة</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-right">المؤشر</TableHead>
-                          {selectedYears.map((fy, i) => (
-                            <TableHead key={fy.id} className="text-center" style={{ color: YEAR_COLORS[i] }}>
-                              {fy.label}
-                            </TableHead>
-                          ))}
-                          {selectedYears.length >= 2 && <TableHead className="text-center">التغير</TableHead>}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {comparisonRows.map(row => {
-                          const values = yearData.map(d => row.getValue(d));
-                          return (
-                            <TableRow key={row.key}>
-                              <TableCell className="font-medium">{row.label}</TableCell>
-                              {values.map((v, i) => (
-                                <TableCell key={i} className="text-center font-mono">
-                                  {fmtSAR(v)}
-                                </TableCell>
-                              ))}
+                    {/* Mobile Cards */}
+                    <div className="space-y-3 p-3 md:hidden">
+                      {comparisonRows.map(row => {
+                        const values = yearData.map(d => row.getValue(d));
+                        return (
+                          <Card key={row.key} className="shadow-sm">
+                            <CardContent className="p-3 space-y-2">
+                              <p className="font-bold text-sm">{row.label}</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {selectedYears.map((fy, i) => (
+                                  <div key={fy.id}>
+                                    <p className="text-[10px] text-muted-foreground">{fy.label}</p>
+                                    <p className="text-sm font-medium font-mono">{fmtSAR(values[i])}</p>
+                                  </div>
+                                ))}
+                              </div>
                               {values.length >= 2 && (
-                                <TableCell className="text-center">
-                                  <ChangeIndicator
-                                    current={values[values.length - 1]}
-                                    previous={values[values.length - 2]}
-                                  />
-                                </TableCell>
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <span>التغير:</span>
+                                  <ChangeIndicator current={values[values.length - 1]} previous={values[values.length - 2]} />
+                                </div>
                               )}
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    {/* Desktop Table */}
+                    <div className="overflow-x-auto hidden md:block">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right">المؤشر</TableHead>
+                            {selectedYears.map((fy, i) => (
+                              <TableHead key={fy.id} className="text-center" style={{ color: YEAR_COLORS[i] }}>
+                                {fy.label}
+                              </TableHead>
+                            ))}
+                            {selectedYears.length >= 2 && <TableHead className="text-center">التغير</TableHead>}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {comparisonRows.map(row => {
+                            const values = yearData.map(d => row.getValue(d));
+                            return (
+                              <TableRow key={row.key}>
+                                <TableCell className="font-medium">{row.label}</TableCell>
+                                {values.map((v, i) => (
+                                  <TableCell key={i} className="text-center font-mono">
+                                    {fmtSAR(v)}
+                                  </TableCell>
+                                ))}
+                                {values.length >= 2 && (
+                                  <TableCell className="text-center">
+                                    <ChangeIndicator
+                                      current={values[values.length - 1]}
+                                      previous={values[values.length - 2]}
+                                    />
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </CardContent>
                 </Card>
 

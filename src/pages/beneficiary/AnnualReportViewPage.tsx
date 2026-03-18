@@ -141,18 +141,18 @@ const AnnualReportViewPage = () => {
         <IncomeComparisonChart />
 
         <Tabs defaultValue="property_status" dir="rtl">
-          <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="property_status" className="gap-1.5">
-              <Building2 className="h-4 w-4" /> حالة العقارات
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+            <TabsTrigger value="property_status" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+              <Building2 className="h-4 w-4 hidden sm:block" /> حالة العقارات
             </TabsTrigger>
-            <TabsTrigger value="achievement" className="gap-1.5">
-              <Trophy className="h-4 w-4" /> الإنجازات
+            <TabsTrigger value="achievement" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+              <Trophy className="h-4 w-4 hidden sm:block" /> الإنجازات
             </TabsTrigger>
-            <TabsTrigger value="challenge" className="gap-1.5">
-              <AlertTriangle className="h-4 w-4" /> التحديات
+            <TabsTrigger value="challenge" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+              <AlertTriangle className="h-4 w-4 hidden sm:block" /> التحديات
             </TabsTrigger>
-            <TabsTrigger value="future_plan" className="gap-1.5">
-              <Lightbulb className="h-4 w-4" /> الخطط المستقبلية
+            <TabsTrigger value="future_plan" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+              <Lightbulb className="h-4 w-4 hidden sm:block" /> الخطط المستقبلية
             </TabsTrigger>
           </TabsList>
 
