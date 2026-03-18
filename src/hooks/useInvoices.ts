@@ -44,6 +44,7 @@ export const INVOICE_STATUS_LABELS: Record<string, string> = {
   pending: 'معلّقة',
   paid: 'مدفوعة',
   cancelled: 'ملغاة',
+  overdue: 'متأخرة',
 };
 
 // HIGH-1: ثوابت مشتركة — تُصدَّر لإعادة الاستخدام في InvoicesPage

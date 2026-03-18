@@ -26,7 +26,7 @@ const InvoicesViewPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, noPublishedYears, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId);
@@ -46,14 +46,18 @@ const InvoicesViewPage = () => {
     );
   });
 
-  const statusBadgeVariant = (status: string) => {
+  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline' => {
     if (status === 'paid') return 'default';
-    if (status === 'cancelled') return 'destructive';
+    if (status === 'cancelled' || status === 'overdue') return 'destructive';
     return 'secondary';
   };
 
   const handleDownloadPDF = async () => {
     try {
+      if (searchQuery) {
+        toast.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
+      }
+      const fiscalYearLabel = fiscalYear?.label || undefined;
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
@@ -63,7 +67,8 @@ const InvoicesViewPage = () => {
           property_number: inv.property?.property_number || '-',
           status: inv.status,
         })),
-        pdfWaqfInfo
+        pdfWaqfInfo,
+        fiscalYearLabel
       );
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {

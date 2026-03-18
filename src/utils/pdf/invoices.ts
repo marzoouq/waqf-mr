@@ -9,6 +9,7 @@ import {
 import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
+import { toast } from 'sonner';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
   invoice_type: string;
@@ -73,7 +74,10 @@ export const generateOverdueInvoicesPDF = async (
   waqfInfo?: PdfWaqfInfo,
 ) => {
   const overdue = invoices.filter(i => i.status === 'overdue');
-  if (overdue.length === 0) return;
+  if (overdue.length === 0) {
+    toast.info('لا توجد فواتير متأخرة للتصدير');
+    return;
+  }
 
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
