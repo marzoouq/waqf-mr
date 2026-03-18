@@ -92,6 +92,13 @@ function buildUBL(
 ): string {
   // --- Seller info from settings ---
   const vatNumber = settings.vat_registration_number || "";
+
+  // --- التحقق من صحة الرقم الضريبي قبل بناء XML ---
+  if (!vatNumber || vatNumber.length !== 15 || !/^3\d{13}3$/.test(vatNumber)) {
+    throw new Error(
+      `رقم التسجيل الضريبي غير صالح: "${vatNumber}". يجب أن يكون 15 رقماً ويبدأ وينتهي بـ 3`
+    );
+  }
   const crn = settings.commercial_registration_number || "";
   const sellerName = escapeXml(settings.waqf_name || "");
   const streetName = escapeXml(settings.business_address_street || "");
@@ -129,7 +136,7 @@ function buildUBL(
 
   // --- بنود متعددة (Multi-line Items) ---
   const rawLineItems = inv.line_items as LineItemInput[] | undefined;
-  const fallbackVatRate = Number(inv.vat_rate ?? 0);
+  const fallbackVatRate = Number(inv.vat_rate ?? settings.default_vat_rate ?? 15);
   const fallbackAmountExVat = Number(inv.amount_excluding_vat ?? inv.amount ?? 0);
 
   const lineItems: LineItemInput[] = (rawLineItems && rawLineItems.length > 0)
