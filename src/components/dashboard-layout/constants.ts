@@ -50,6 +50,7 @@ export const allAdminLinks = [
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
+  { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
