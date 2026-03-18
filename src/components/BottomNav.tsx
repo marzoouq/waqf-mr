@@ -30,7 +30,7 @@ const beneficiaryLinks = [
   { to: '/beneficiary', icon: Home, label: 'الرئيسية' },
   { to: '/beneficiary/my-share', icon: Wallet, label: 'حصتي' },
   { to: '/beneficiary/disclosure', icon: ClipboardList, label: 'الإفصاح' },
-  { to: '/beneficiary/invoices', icon: Receipt, label: 'الفواتير' },
+  { to: '/beneficiary/messages', icon: MessageSquare, label: 'المراسلات' },
 ];
 
 const waqifLinks = [
