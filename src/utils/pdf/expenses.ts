@@ -24,7 +24,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
     body: income.map((item, i) => reshapeRow([
       i + 1,
       item.source,
-      `${Number(item.amount).toLocaleString()} ر.س`,
+      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
       item.date,
       item.notes || '-',
     ])),
