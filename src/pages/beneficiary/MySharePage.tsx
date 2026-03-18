@@ -63,7 +63,7 @@ const MySharePage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
@@ -119,6 +119,10 @@ const MySharePage = () => {
 
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
+    if (!isClosed) {
+      toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+      return;
+    }
     try {
       const shareAmt = myShare;
       const advAmt = paidAdvancesTotal;
@@ -153,6 +157,10 @@ const MySharePage = () => {
 
   const handleDownloadDistributionsPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
+    if (!isClosed) {
+      toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+      return;
+    }
     try {
       const shareAmount = myShare;
       const advances = paidAdvancesTotal;
@@ -199,6 +207,10 @@ const MySharePage = () => {
 
   const handleDownloadComprehensivePDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
+    if (!isClosed) {
+      toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+      return;
+    }
     try {
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
@@ -266,7 +278,7 @@ const MySharePage = () => {
   };
 
   // F4: عرض skeleton أثناء التحميل
-  if (finLoading || distLoading) {
+  if (finLoading || distLoading || pctLoading) {
     return (
       <DashboardLayout>
         <div className="p-4 sm:p-6">

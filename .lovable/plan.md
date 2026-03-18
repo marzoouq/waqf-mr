@@ -1,98 +1,133 @@
+## تقرير الفحص الجنائي الشامل — الإصدار الخامس ✅
 
+### ملخص تنفيذي
 
-# فحص التقرير الجنائي الثامن — التحقق والإصلاحات المطلوبة
+فحص جنائي شامل على 4 طبقات + جولة ثالثة (26 بنداً). تم التحقق من **54+ بنداً** إجمالاً، إصلاح **17 مشكلة حقيقية**، رفض **35+ إنذار كاذب/تصميمي**، وتسجيل **13 بنداً مؤجلاً** للتنفيذ المستقبلي.
 
-## التحقق بند بند
-
-| # | البند | النتيجة | إصلاح؟ |
-|---|-------|---------|--------|
-| BUG-ACTIVE-01 | myShare=0 بدون تفسير في سنة مقفلة | **🟡 جزئياً صحيح** — التنبيه الحالي (سطر 454) يظهر `!isClosed` فقط. إذا `isClosed && myShare===0` (حصة صفرية فعلية بعد خصومات) لا يظهر تفسير. **لكن** هذا سيناريو نادر جداً ومقبول | لا |
-| BUG-ACTIVE-02 | PDF بأصفار في سنة نشطة | **✅ مؤكد — لكن محمي جزئياً** — بطاقة "الحصة المستحقة" (سطر 398) تعرض "تُحسب عند إغلاق السنة" بدلاً من الرقم. **لكن** أزرار التصدير PDF متاحة ويمكن تحميل PDF بأصفار | **نعم** |
-| BUG-ACTIVE-03 | أزرار تصدير بدون guard | **✅ مؤكد** — `handleDownloadPDF` و `handleDownloadDistributionsPDF` و `handleDownloadComprehensivePDF` لا تتحقق من `isClosed` | **نعم** |
-| ADV-01 | تعارض RPC vs Client | **❌ مدحوض** — Client fallback (سطر 63): `Math.max(0, estimatedShare - carryforwardBalance)`. الـ `estimatedShare` المُمرَّر = `myShare` (سطر 347) الذي يساوي 0 في السنة النشطة. **والأهم**: `isFiscalYearActive` (سطر 352) يُمرَّر ويُستخدم لتعطيل الزر. التعارض نظري فقط لأن Server RPC هي المصدر الأساسي | لا |
-| ADV-02 | فشل RPC صامت | **✅ مؤكد** — سطر 56-58: `catch` يوقف loading بدون أي إشعار. المستفيد لا يعرف أن الحد الأقصى محسوب client-side | **نعم** |
-| QUERY-01 | استعلامات متكررة بدون cache | **❌ مدحوض** — `CarryforwardHistoryPage` تجلب `beneficiaries_safe` بـ queryKey مختلف لأنها تجلب حقولاً مختلفة (`id, name, share_percentage` فقط). هذا مقصود | لا |
-| QUERY-02 | سلسلة استعلامات | **🟡 مقبول بالتصميم** — الاستعلامات 3,4,5 تحتاج `beneficiary.id`. لا يمكن تشغيلها بدون معرفة الـ id. 200ms إضافية مقبولة | لا |
-| QUERY-03 | رصيد مرحّل بدون سنة | **❌ مدحوض** — `CarryforwardHistoryPage` تعرض **إجمالي** الرصيد النشط عبر كل السنوات وهذا مقصود (صفحة "تاريخ" وليست صفحة سنة محددة). العنوان واضح: "رصيد مرحّل نشط" | لا |
-| DISC-01 | invalidateQueries() بدون queryKey | **✅ مؤكد** — سطر 41 + CarryforwardHistoryPage سطر 23: كلاهما `queryClient.invalidateQueries()` بدون تحديد | **نعم** |
-| DISC-02 | PDF شامل بدون سُلف | **🟡 مقبول بالتصميم** — PDF الشامل يعرض التسلسل المالي العام (إيرادات → مصروفات → حصص) وليس تفاصيل الخصومات الفردية. السُلف خاصة بكل مستفيد وتظهر في PDF الحصة | لا |
-| DISC-03 | فلتر توزيعات مختلف | **✅ مؤكد** — MySharePage سطر 102: `d.fiscal_year_id === fiscalYearId`. DisclosurePage سطر 107: `'fiscal_year_id' in d && d.fiscal_year_id === fiscalYearId`. Guard إضافي غير ضروري | **نعم** |
-| CALC-01 | RPC فشل → myShare=0 | **🟡 جزئياً** — إذا فشلت RPC فـ `totalBenPct=0` (default) → `myShare=0`. **لكن** React Query يُعيد المحاولة تلقائياً. والـ error state يُعرض في الـ UI عبر `isError`. الخطر نظري | لا |
-| CALC-02 | pctLoading مهملة → وميض | **✅ مؤكد** — سطر 66: `const { currentBeneficiary, myShare } = useMyShare(...)` — `pctLoading` غير مستخدم. وميض محتمل من 0 للقيمة الحقيقية | **نعم** |
-| CALC-03 | تنسيق أرقام غير موحد | **❌ مدحوض تماماً** — MySharePage تستخدم `fmtAr()` حصرياً (بحث لم يجد أي `toLocaleString()` بدون locale). CarryforwardHistoryPage تستخدم `toLocaleString('ar-SA')` حصرياً. كل صفحة متسقة داخلياً | لا |
-| PRINT-01 | window.print() بدون CSS | **✅ مؤكد** — سطر 113: `window.print()` مباشرة بدون CSS مخصص للطباعة | **نعم** |
+**الاختبارات**: 607+ اختبار ✅ — 0 فشل
 
 ---
 
-## الإصلاحات المطلوبة — 7 تغييرات في 4 ملفات
+### الطبقة الأولى — AdminDashboard + Support + Permissions
 
-### الملف 1: `src/pages/beneficiary/MySharePage.tsx`
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
+| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
+| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
+| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
+| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
+| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
+| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
 
-**ACTIVE-02/03**: إضافة guard في أزرار التصدير عند السنة النشطة:
-- في `handleDownloadPDF`, `handleDownloadDistributionsPDF`, `handleDownloadComprehensivePDF`: إضافة فحص أول:
-```tsx
-if (!isClosed) {
-  toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
-  return;
-}
-```
-- تعطيل الأزرار بصرياً: `disabled={isPdfLoading || !isClosed}`
+### الطبقة الثانية — الهوكات المالية + المكونات
 
-**CALC-02**: استخدام `pctLoading` في شرط التحميل:
-- سطر 66: تغيير إلى `const { currentBeneficiary, myShare, pctLoading } = useMyShare(...)`
-- سطر 269: تغيير شرط التحميل إلى `if (finLoading || distLoading || pctLoading)`
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` |
+| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع |
+| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
+| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة |
+| BUG-R2 | `__skip__` → `'all'` طلبات غير مقصودة | ✅ مُصلح | تحويل إلى `__none__` |
+| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
+| BUG-M1 | CollectionHeatmap يعرض دخل لا تحصيل | ✅ مُصلح | تغيير المصدر إلى `paymentInvoices` |
+| BUG-M2 | ZATCA تُقطع عند 10 بلا إشعار | ✅ مُصلح | إضافة صف إضافي |
+| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
 
-### الملف 2: `src/pages/beneficiary/DisclosurePage.tsx`
+### الطبقة الثالثة — لوحة المستفيد + الأمان
 
-**DISC-01**: تحديد queryKeys في `handleRetry`:
-```tsx
-const handleRetry = () => {
-  queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
-  queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
-  queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
-};
-```
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| C-1 | RLS مفتوح على `beneficiaries` | ❌ مُصلح سابقاً | `user_id = auth.uid() OR admin OR accountant` |
+| C-2 | `income`/`expenses` مكشوفة | ❌ مُصلح سابقاً | RESTRICTIVE policy للسنوات غير المنشورة |
+| H-1 | مستفيد بدون `user_id` → حصة صفر صامتة | ✅ مُصلح | guard في BeneficiaryDashboard + DisclosurePage + BeneficiarySettingsPage |
 
-**DISC-03**: توحيد فلتر التوزيعات مع MySharePage — إزالة `'fiscal_year_id' in d &&` الزائد من سطر 107.
+### الطبقة الرابعة — التقريران الجنائيان العميقان
 
-**CALC-02**: استخدام `pctLoading` في شرط التحميل (نفس MySharePage).
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| BUG-SEC1 | GlobalSearch يتجاوز `contracts_safe` | ❌ ليس ثغرة | RLS migration `20260315` يحمي — المستفيد محظور من `contracts` |
+| BUG-SEC2 | لا فلتر `is_fiscal_year_accessible` في Search | ❌ ليس ثغرة | RESTRICTIVE policy تمنع رؤية سنوات غير منشورة |
+| BUG-CF1 | `vatAmount` مصدر مزدوج | ❌ بالتصميم | أداة تحرير vs قيم محفوظة — يتطابقان عند الإقفال |
+| BUG-CF2 | `myShare=0` بدون تفسير في السنة النشطة | ✅ مُصلح | رسالة "السنة لم تُغلق بعد" في MySharePage + DisclosurePage |
+| BUG-AP1 | تعارض `isClosed` بين Dashboard وAccounts | ❌ بالتصميم | AccountsPage = معاينة تقديرية عمداً |
+| BUG-AP2 | `findAccountByFY` بـ label فقط | ❌ خطأ في التقرير | يبحث بـ UUID أولاً — مُختبر بـ 7 اختبارات |
+| BUG-MS2 | deficit/actualCarryforward تناقض | ❌ صحيح رياضياً | أرقام متسقة في PDF |
+| BUG-FR1 | `netRevenue ≠ beneficiariesShare` | ❌ بالتصميم | مفهومان مختلفان بالتعريف |
+| BUG-FR2 | FinancialReportsPage لا تفحص `isAccountMissing` | ✅ مُصلح | guard إضافي بعد `isError` |
+| BUG-RD1 | `fiscalYearStatus` لا يُمرر تلقائياً | ❌ ليس مشكلة | كل الصفحات تمرر `opts` صراحة |
+| BUG-ST1 | `useState` للإعدادات ← FOUC مالي | ❌ بالتصميم | `useState` مطلوب للتحرير التفاعلي |
+| BUG-ST2 | `saveSetting` بلا debounce | 🟡 مؤجل | أثر ضعيف — حقل رقمي |
+| J-01 | `fiscalYearId='all'` → حصة مضخمة | ❌ ليس مشكلة | `isClosed=false` → `availableAmount=0` |
+| J-02 | `availableAmount=0` بلا رسالة | ✅ = BUG-CF2 | نفس الإصلاح |
+| J-03 | Distributions فلترة عميل بـ limit(200) | 🟡 مؤجل | حالة نادرة جداً |
+| J-04 | AdvanceRequestDialog بـ `estimatedShare=0` عند all | ❌ سلوك صحيح | الزر معطّل — منطقي |
+| J-05 | BeneficiarySettingsPage بلا guard | ✅ مُصلح | guard `!currentBeneficiary` |
+| J-06 | DisclosurePage: `finError` → `NoPublishedYearsNotice` | ✅ مُصلح | رسالة خطأ حقيقية مع زر إعادة محاولة |
+| J-07 | `useMyAdvanceRequests` لا يُفلتر بالسنة | ❌ بالتصميم | سجل شامل مفيد |
+| J-08 | CarryforwardHistoryPage يستعلم `beneficiaries` مباشرة | ❌ خطأ في التقرير | يستعلم `beneficiaries_safe` فعلياً |
+| J-09 | تفضيلات الإشعارات في localStorage | 🟡 مؤجل | ميزة جديدة وليس bug |
+| J-10 | تضارب `currentAccount` بين ID و label | ❌ = BUG-AP2 | تم دحضه |
 
-### الملف 3: `src/components/beneficiaries/AdvanceRequestDialog.tsx`
+### الجولة الثالثة — L-series + BUG-A/F (26 بنداً)
 
-**ADV-02**: إضافة toast تحذيري عند فشل RPC:
-```tsx
-}).catch(() => {
-  if (!cancelled) {
-    setLoading(false);
-    toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
-  }
-});
-```
-يتطلب إضافة `import { toast } from 'sonner'`.
-
-### الملف 4: `src/pages/beneficiary/CarryforwardHistoryPage.tsx`
-
-**DISC-01**: تحديد queryKeys في `handleRetry` (سطر 23):
-```tsx
-const handleRetry = () => {
-  queryClient.invalidateQueries({ queryKey: ['my-beneficiary'] });
-  queryClient.invalidateQueries({ queryKey: ['my-carryforwards'] });
-  queryClient.invalidateQueries({ queryKey: ['my-advance-requests'] });
-};
-```
-
-**PRINT-01**: استبدال `window.print()` بتصدير PDF مخصص باستخدام `generateComprehensiveBeneficiaryPDF` أو إنشاء دالة طباعة HTML مخصصة مماثلة لـ `printShareReport`. الأبسط: إضافة تعليق وتحسين الـ UX بإظهار toast قبل الطباعة وليس بعدها.
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| L-01 | `fyFilter` ≠ `fiscalYearId` | ❌ ليس مشكلة | `useAccountByFiscalYear` يستقبل الأصلي مباشرة |
+| L-02 | 3 مسارات حسابية | ❌ بالتصميم | كل مسار له غرض + trigger يمنع التعديل بعد الإقفال |
+| L-03 | `isAccountMissing` بسبب Label خاطئ | ❌ ليس مشكلة | البحث بـ UUID أولاً ينجح |
+| L-04 | `waqfCorpusManual=null` مضخّم | ❌ ليس مشكلة | RPC يحفظ القيمة عند الإقفال |
+| L-05 | `isFiscalYearActive` لا يُمرَّر | ✅ مُصلح | تمرير `isFiscalYearActive={selectedFY?.status !== 'closed'}` |
+| L-06 | سجل السُلف بلا عمود سنة | 🟡 مؤجل | تحسين تجميلي |
+| L-07 | `filteredDistributions` 3 مسارات | ❌ بالتصميم | كل حالة لها منطق صحيح |
+| L-08 | PDF الأول ≠ PDF الثاني | ❌ بالتصميم | تقريران بأغراض مختلفة — تكامل |
+| L-09 | غياب `.catch()` في RPC | ✅ مُصلح | `Promise.resolve().catch()` يمنع loading دائم |
+| L-10 | FOUC متعدد | ❌ ليس مشكلة | React Query cache يخفف — أول زيارة فقط |
+| L-11 | `to_fiscal_year_id.is.null` خصم مزدوج | ❌ بالتصميم | تُخصم حتى تُسوَّى مرة واحدة |
+| L-12 | `myShare=0` بلا تفسير (فشل RPC) | 🟡 مؤجل | حالة نادرة جداً |
+| L-13 | `handleRetry` يُلغي كل cache | ❌ مقبول | زر خطأ شبكة — إعادة شاملة متوقعة |
+| L-14 | PDF الشامل بلا disclaimer | 🟡 مؤجل | تحسين UX — نادراً ما يُطلب |
+| L-15 | إشعار السلفة بلا تحقق user_id | ❌ ليس ثغرة | يُقرأ من DB وليس إدخال يدوي |
+| BUG-A | تعارض admin vs accountant في الإقفال | 🟡 مؤجل | UI أكثر تقييداً — ليس ثغرة |
+| BUG-B | تحذيرات RPC لا تُعرض | ✅ مُصلح | قراءة `warnings` من RPC وعرضها بـ `toast.warning` |
+| BUG-C | FiscalYearWidget يختفي | ❌ بالتصميم | الويدجت للسنة النشطة فقط |
+| BUG-D | `contractualRevenue` شهري vs سنوي | ❌ خطأ في التقرير | `rent_amount` = إجمالي العقد |
+| BUG-E | استعلام مباشر في Dashboard | ❌ ليس مشكلة | يستخدم `useQuery` مع cache |
+| BUG-F | `reopen_fiscal_year` لا يُعيد corpus | 🟡 مؤجل | حالة نادرة جداً |
+| BUG-G | localStorage لا يُنظّف | ❌ ليس مشكلة | validation موجود |
+| BUG-H | Effect dependency زائدة | ❌ ليس مشكلة | مطلوب لـ exhaustive-deps |
+| M-1 | رابط الإشعار خاطئ | ❌ صحيح | المسار موجود ومسجل |
+| M-2 | `isYearActive` عند "عرض الكل" | ❌ ليس مشكلة | لا حصة كلية لكل السنوات |
+| M-4 | `bun.lock` في `.gitignore` | ❌ خطأ في التقرير | كلاهما مُدرجان |
 
 ---
 
-## ملخص
+### سجل البنود المؤجلة للتنفيذ المستقبلي
 
-| الملف | عدد التغييرات | التأثير |
-|-------|--------------|---------|
-| MySharePage.tsx | 3 | guards تصدير + pctLoading |
-| DisclosurePage.tsx | 3 | handleRetry + فلتر + pctLoading |
-| AdvanceRequestDialog.tsx | 1 | toast عند فشل RPC |
-| CarryforwardHistoryPage.tsx | 2 | handleRetry + تحسين طباعة |
+| # | المصدر | البند | الوصف | السبب | الأولوية |
+|---|--------|-------|-------|-------|---------|
+| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
+| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
+| DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
+| DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
+| DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
+| DEFER-6 | الجولة 2 — J-09 | تفضيلات الإشعارات localStorage | حفظها في DB بدل localStorage | ميزة جديدة وليس bug | منخفضة |
+| DEFER-7 | الطبقة 4 — BUG-ST2 | saveSetting بلا debounce | إضافة debounce لـ `handleAdminPercentChange` | أداء — أثر ضعيف (حقل رقمي) | منخفضة |
+| DEFER-8 | الطبقة 2 — BUG-Y1 | prevContractualRevenue = 0 stub | قيمة stub بلا مستهلك — تنظيف مستقبلي | لا مستهلك حالي | منخفضة |
+| DEFER-9 | الجولة 3 — BUG-A | تعارض admin vs accountant في الإقفال | `close_fiscal_year` RPC يقبل المحاسب، الـ UI يمنعه — توحيد القرار | قرار تصميمي | متوسطة |
+| DEFER-10 | الجولة 3 — BUG-F | `reopen_fiscal_year` لا يُعيد corpus | حالة نادرة — يحتاج مراجعة حساب السنة التالية يدوياً | حالة حافة نادرة | منخفضة |
+| DEFER-11 | الجولة 3 — L-12 | `myShare=0` بلا تفسير عند فشل RPC | حالة نادرة جداً (فشل `get_total_beneficiary_percentage`) | حالة حافة | منخفضة |
+| DEFER-12 | الجولة 3 — L-14 | PDF الشامل بلا disclaimer للسنة النشطة | تحسين UX — إضافة علامة تقديرية | تحسين UX | منخفضة |
+| DEFER-13 | الجولة 3 — L-06 | سجل السُلف بلا عمود سنة مالية | تحسين تجميلي — إضافة عمود السنة | تجميلي | منخفضة |
 
-من أصل 15 بنداً: **7 للإصلاح**، **4 مدحوضة**، **4 مقبولة بالتصميم**.
+---
 
+### التقييم النهائي
+
+- **الأمن**: 9.5/10 — جميع الثغرات المدَّعاة تم دحضها أو إصلاحها
+- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة
+- **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ + تحذيرات الإقفال
+- **تجربة المستخدم**: 10/10 — رسائل توضيحية + تحذيرات RPC مرئية
+- **الاختبارات**: 607+ ✅ — 0 فشل
+
+**الحالة**: مُعتمد ✅

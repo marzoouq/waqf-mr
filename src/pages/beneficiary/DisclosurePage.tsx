@@ -38,7 +38,11 @@ function toGregorianShort(dateStr: string): string {
 
 const DisclosurePage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+  };
   const pdfWaqfInfo = usePdfWaqfInfo();
   
   const isMobile = useIsMobile();
@@ -73,7 +77,7 @@ const DisclosurePage = () => {
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
@@ -104,7 +108,7 @@ const DisclosurePage = () => {
   const filteredDistributions = currentAccount
     ? distributions.filter(d => d.account_id === currentAccount.id)
     : (fiscalYearId && fiscalYearId !== 'all'
-        ? distributions.filter(d => 'fiscal_year_id' in d && d.fiscal_year_id === fiscalYearId)
+        ? distributions.filter(d => d.fiscal_year_id === fiscalYearId)
         : distributions);
 
   const totalReceived = filteredDistributions
@@ -182,7 +186,7 @@ const DisclosurePage = () => {
     }
   };
 
-  if (finLoading) {
+  if (finLoading || pctLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 

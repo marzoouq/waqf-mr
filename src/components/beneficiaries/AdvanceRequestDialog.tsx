@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
@@ -54,7 +55,10 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
       }
       setLoading(false);
     }).catch(() => {
-      if (!cancelled) setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
+        toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+      }
     });
     return () => { cancelled = true; };
   }, [open, beneficiaryId, fiscalYearId]);
