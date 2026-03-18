@@ -268,6 +268,7 @@ const CarryforwardHistoryPage = () => {
             {paidAdvances.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground text-sm">لا توجد سُلف مصروفة</p>
             ) : (
+              <>
               {/* Mobile Cards */}
               <div className="space-y-3 md:hidden">
                 {paidAdvances.map(adv => (
