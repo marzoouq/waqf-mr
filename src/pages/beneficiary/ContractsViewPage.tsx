@@ -34,7 +34,7 @@ const ContractsViewPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
 
   const now = useMemo(() => new Date(), []);
-  const in90Days = useMemo(() => new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000), [now]);
+  const in90Days = useMemo(() => new Date(now.getTime() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000), [now]);
 
   const isExpiringSoon = useCallback(
     (c: { status: string | null; end_date: string | null }) =>
