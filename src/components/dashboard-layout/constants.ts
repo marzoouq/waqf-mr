@@ -147,6 +147,7 @@ export const ADMIN_SECTION_KEYS: Record<string, string> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/annual-report': 'annual_report',
   '/dashboard/support': 'support',
+  '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
 export const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
