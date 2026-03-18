@@ -77,7 +77,7 @@ const DisclosurePage = () => {
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
+  const { currentBeneficiary, myShare, pctLoading } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
