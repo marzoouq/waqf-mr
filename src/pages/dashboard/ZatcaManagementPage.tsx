@@ -748,7 +748,7 @@ function ZatcaManagementPage() {
                 </div>
 
                 {/* Warnings — من المستوى المسطّح (موحّد من الخلفية) */}
-                {(complianceResult.warningMessages?.length > 0 || complianceResult.validationResults?.warningMessages?.length > 0) && (
+                {((complianceResult.warningMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.warningMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
                     {(complianceResult.warningMessages || complianceResult.validationResults?.warningMessages || []).map((w: { code: string; message: string }, i: number) => (
@@ -760,7 +760,7 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Errors */}
-                {(complianceResult.errorMessages?.length > 0 || complianceResult.validationResults?.errorMessages?.length > 0) && (
+                {((complianceResult.errorMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.errorMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-destructive">أخطاء:</p>
                     {(complianceResult.errorMessages || complianceResult.validationResults?.errorMessages || []).map((e: { code: string; message: string }, i: number) => (
@@ -772,7 +772,7 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Info Messages */}
-                {(complianceResult.infoMessages?.length > 0 || complianceResult.validationResults?.infoMessages?.length > 0) && (
+                {((complianceResult.infoMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.infoMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">معلومات:</p>
                     {(complianceResult.infoMessages || complianceResult.validationResults?.infoMessages || []).map((m: { code: string; message: string }, i: number) => (

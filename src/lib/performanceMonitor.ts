@@ -71,5 +71,5 @@ export function reportPageLoadMetrics(): void {
     return;
   }
 
-  window.setTimeout(measureLoad, 3000);
+  (window as unknown as { setTimeout: typeof setTimeout }).setTimeout(measureLoad, 3000);
 }
