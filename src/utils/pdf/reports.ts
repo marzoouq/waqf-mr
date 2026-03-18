@@ -8,6 +8,9 @@ import {
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 
+// تنسيق الأرقام المالية بالعربية
+const fmtAr = (n: number) => n.toLocaleString('ar-SA');
+
 interface ReportData {
   fiscalYear: string;
   totalIncome: number;
@@ -16,6 +19,8 @@ interface ReportData {
   adminShare: number;
   waqifShare: number;
   waqfRevenue: number;
+  adminPct?: number;
+  waqifPct?: number;
   expensesByType: Array<{ type: string; amount: number }>;
   incomeBySource: Array<{ source: string; amount: number }>;
   beneficiaries: Array<{
