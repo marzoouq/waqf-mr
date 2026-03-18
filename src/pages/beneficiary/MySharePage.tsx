@@ -496,7 +496,7 @@ const MySharePage = () => {
         {/* Link to Disclosure */}
         <Card className="shadow-sm">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">
                 لمعرفة تفاصيل احتساب الحصة والتسلسل المالي الكامل
               </p>
