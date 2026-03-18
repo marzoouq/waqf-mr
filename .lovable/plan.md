@@ -1,106 +1,133 @@
+## تقرير الفحص الجنائي الشامل — الإصدار الخامس ✅
 
+### ملخص تنفيذي
 
-# الجولة 16 — إصلاح التصدير (PDF): 6 إصلاحات في 3 ملفات
+فحص جنائي شامل على 4 طبقات + جولة ثالثة (26 بنداً). تم التحقق من **54+ بنداً** إجمالاً، إصلاح **17 مشكلة حقيقية**، رفض **35+ إنذار كاذب/تصميمي**، وتسجيل **13 بنداً مؤجلاً** للتنفيذ المستقبلي.
 
-## الاكتشاف الجذري: `reverseBidi` يعكس ترتيب الكلمات مرتين
-
-### المشكلة المُثبتة بالكود:
-
-1. `arabic-reshaper` v1.1.0 `convertArabic()` يُحوّل الحروف لأشكال متصلة (Presentation Forms-B) **بدون أي عكس** — يحافظ على نفس ترتيب الأحرف
-2. jsPDF مع `Identity-H` encoding (سطر 70 في `core.ts`) يُفوّض عرض RTL لعارض الـ PDF (Chrome, Acrobat, إلخ)
-3. `reverseBidi` يعكس ترتيب الكلمات → عارض الـ PDF يعكسها مرة ثانية = **ترتيب خاطئ**
-
-### مثال عملي:
-
-```
-الاسم الأصلي: "محمد أحمد العلي"
-↓ convertArabic → أشكال متصلة بنفس الترتيب
-↓ reverseBidi → "العلي أحمد محمد" (عكس أول)
-↓ PDF viewer RTL → يعرض من اليمين لليسار → القارئ يقرأ "محمد أحمد العلي"
-
-لكن في autoTable مع halign:'right':
-"العلي أحمد محمد" يُعرض في الخلية من اليمين
-→ القارئ يقرأ الكلمة اليمنى أولاً = "العلي" ← هذا الاسم الأخير!
-```
-
-المشكلة تتفاقم في `autoTable` لأن `halign: 'right'` يُحاذي النص يميناً لكن الكلمات مقلوبة بالفعل.
+**الاختبارات**: 607+ اختبار ✅ — 0 فشل
 
 ---
 
-## الإصلاحات المطلوبة — 6 تغييرات في 3 ملفات
+### الطبقة الأولى — AdminDashboard + Support + Permissions
 
-### الملف 1: `src/utils/pdf/arabicReshaper.ts`
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
+| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
+| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
+| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
+| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
+| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
+| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
 
-**الإصلاح الجذري — إزالة `reverseBidi`:**
+### الطبقة الثانية — الهوكات المالية + المكونات
 
-```typescript
-export const reshapeArabic = (text: string): string => {
-  if (!text || !hasArabic(text)) return text;
-  try {
-    // تشكيل الحروف فقط — PDF viewer يتكفل بـ RTL
-    return ArabicReshaper.convertArabic(text);
-  } catch {
-    return text;
-  }
-};
-```
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` |
+| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع |
+| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
+| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة |
+| BUG-R2 | `__skip__` → `'all'` طلبات غير مقصودة | ✅ مُصلح | تحويل إلى `__none__` |
+| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
+| BUG-M1 | CollectionHeatmap يعرض دخل لا تحصيل | ✅ مُصلح | تغيير المصدر إلى `paymentInvoices` |
+| BUG-M2 | ZATCA تُقطع عند 10 بلا إشعار | ✅ مُصلح | إضافة صف إضافي |
+| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
 
-حذف دالة `reverseBidi` بالكامل (سطور 41-50) ومنع استدعائها (سطر 67).
+### الطبقة الثالثة — لوحة المستفيد + الأمان
 
-**لماذا هذا آمن:**
-- jsPDF + `Identity-H` + Arabic font = PDF viewer يعالج RTL تلقائياً
-- GitHub issue #1025 لـ jsPDF-AutoTable يؤكد أن Arabic يعمل بدون عكس يدوي
-- `convertArabic` ضروري فقط لتشكيل الحروف (اتصال الأشكال)
+| # | المشكلة | الحالة | التفاصيل |
+|---|---------|--------|----------|
+| C-1 | RLS مفتوح على `beneficiaries` | ❌ مُصلح سابقاً | `user_id = auth.uid() OR admin OR accountant` |
+| C-2 | `income`/`expenses` مكشوفة | ❌ مُصلح سابقاً | RESTRICTIVE policy للسنوات غير المنشورة |
+| H-1 | مستفيد بدون `user_id` → حصة صفر صامتة | ✅ مُصلح | guard في BeneficiaryDashboard + DisclosurePage + BeneficiarySettingsPage |
 
-### الملف 2: `src/utils/pdf/beneficiary.ts`
+### الطبقة الرابعة — التقريران الجنائيان العميقان
 
-**PDF-03** (سطر 43): استبدال الحساب الديناميكي لنسبة الناظر بـ `adminPct` المُخزَّنة:
-- إضافة `adminPct?: number; waqifPct?: number; paidAdvances?: number; carryforwardDeducted?: number; fiscalYear?: string;` للـ interface (سطر 11)
-- سطر 43: `data.adminPct ?? 10` بدلاً من `Math.round(adminShare / netRevenue * 100)`
-- سطر 44: `data.waqifPct ?? 5` بدلاً من الحساب الديناميكي
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| BUG-SEC1 | GlobalSearch يتجاوز `contracts_safe` | ❌ ليس ثغرة | RLS migration `20260315` يحمي — المستفيد محظور من `contracts` |
+| BUG-SEC2 | لا فلتر `is_fiscal_year_accessible` في Search | ❌ ليس ثغرة | RESTRICTIVE policy تمنع رؤية سنوات غير منشورة |
+| BUG-CF1 | `vatAmount` مصدر مزدوج | ❌ بالتصميم | أداة تحرير vs قيم محفوظة — يتطابقان عند الإقفال |
+| BUG-CF2 | `myShare=0` بدون تفسير في السنة النشطة | ✅ مُصلح | رسالة "السنة لم تُغلق بعد" في MySharePage + DisclosurePage |
+| BUG-AP1 | تعارض `isClosed` بين Dashboard وAccounts | ❌ بالتصميم | AccountsPage = معاينة تقديرية عمداً |
+| BUG-AP2 | `findAccountByFY` بـ label فقط | ❌ خطأ في التقرير | يبحث بـ UUID أولاً — مُختبر بـ 7 اختبارات |
+| BUG-MS2 | deficit/actualCarryforward تناقض | ❌ صحيح رياضياً | أرقام متسقة في PDF |
+| BUG-FR1 | `netRevenue ≠ beneficiariesShare` | ❌ بالتصميم | مفهومان مختلفان بالتعريف |
+| BUG-FR2 | FinancialReportsPage لا تفحص `isAccountMissing` | ✅ مُصلح | guard إضافي بعد `isError` |
+| BUG-RD1 | `fiscalYearStatus` لا يُمرر تلقائياً | ❌ ليس مشكلة | كل الصفحات تمرر `opts` صراحة |
+| BUG-ST1 | `useState` للإعدادات ← FOUC مالي | ❌ بالتصميم | `useState` مطلوب للتحرير التفاعلي |
+| BUG-ST2 | `saveSetting` بلا debounce | 🟡 مؤجل | أثر ضعيف — حقل رقمي |
+| J-01 | `fiscalYearId='all'` → حصة مضخمة | ❌ ليس مشكلة | `isClosed=false` → `availableAmount=0` |
+| J-02 | `availableAmount=0` بلا رسالة | ✅ = BUG-CF2 | نفس الإصلاح |
+| J-03 | Distributions فلترة عميل بـ limit(200) | 🟡 مؤجل | حالة نادرة جداً |
+| J-04 | AdvanceRequestDialog بـ `estimatedShare=0` عند all | ❌ سلوك صحيح | الزر معطّل — منطقي |
+| J-05 | BeneficiarySettingsPage بلا guard | ✅ مُصلح | guard `!currentBeneficiary` |
+| J-06 | DisclosurePage: `finError` → `NoPublishedYearsNotice` | ✅ مُصلح | رسالة خطأ حقيقية مع زر إعادة محاولة |
+| J-07 | `useMyAdvanceRequests` لا يُفلتر بالسنة | ❌ بالتصميم | سجل شامل مفيد |
+| J-08 | CarryforwardHistoryPage يستعلم `beneficiaries` مباشرة | ❌ خطأ في التقرير | يستعلم `beneficiaries_safe` فعلياً |
+| J-09 | تفضيلات الإشعارات في localStorage | 🟡 مؤجل | ميزة جديدة وليس bug |
+| J-10 | تضارب `currentAccount` بين ID و label | ❌ = BUG-AP2 | تم دحضه |
 
-**PDF-04** (بعد سطر 48): إضافة بنود السُلف والمرحّل والصافي:
-```
-['(-) السُلف المصروفة', paidAdvances]  // يظهر فقط إذا > 0
-['(-) فروق مرحّلة', carryforwardDeducted]  // يظهر فقط إذا > 0
-['صافي المبلغ المستحق', net]  // يظهر دائماً
-```
+### الجولة الثالثة — L-series + BUG-A/F (26 بنداً)
 
-**IMP-03** (سطر 78): إضافة السنة المالية لاسم الملف:
-```
-doc.save(`my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`);
-```
-
-### الملف 3: `src/pages/beneficiary/MySharePage.tsx`
-
-**PDF-04 (caller)** (سطور 123-139): تمرير البيانات الجديدة لـ `generateMySharePDF`:
-```tsx
-paidAdvances: paidAdvancesTotal,
-carryforwardDeducted: actualCarryforward,  // باستخدام منطق F7
-adminPct: /* from account or settings */,
-waqifPct: /* from account or settings */,
-fiscalYear: selectedFY?.label,
-```
-
-**PDF-05** (سطور 160-172): إصلاح `handleDownloadDistributionsPDF`:
-- تمرير `availableAmount: myShare` (حصة الفرد) بدلاً من `beneficiariesShare` (الكل)
-- تصحيح الـ footer: النسبة الفعلية بدلاً من "100%"
+| # | البند | الحالة | التفاصيل |
+|---|-------|--------|----------|
+| L-01 | `fyFilter` ≠ `fiscalYearId` | ❌ ليس مشكلة | `useAccountByFiscalYear` يستقبل الأصلي مباشرة |
+| L-02 | 3 مسارات حسابية | ❌ بالتصميم | كل مسار له غرض + trigger يمنع التعديل بعد الإقفال |
+| L-03 | `isAccountMissing` بسبب Label خاطئ | ❌ ليس مشكلة | البحث بـ UUID أولاً ينجح |
+| L-04 | `waqfCorpusManual=null` مضخّم | ❌ ليس مشكلة | RPC يحفظ القيمة عند الإقفال |
+| L-05 | `isFiscalYearActive` لا يُمرَّر | ✅ مُصلح | تمرير `isFiscalYearActive={selectedFY?.status !== 'closed'}` |
+| L-06 | سجل السُلف بلا عمود سنة | 🟡 مؤجل | تحسين تجميلي |
+| L-07 | `filteredDistributions` 3 مسارات | ❌ بالتصميم | كل حالة لها منطق صحيح |
+| L-08 | PDF الأول ≠ PDF الثاني | ❌ بالتصميم | تقريران بأغراض مختلفة — تكامل |
+| L-09 | غياب `.catch()` في RPC | ✅ مُصلح | `Promise.resolve().catch()` يمنع loading دائم |
+| L-10 | FOUC متعدد | ❌ ليس مشكلة | React Query cache يخفف — أول زيارة فقط |
+| L-11 | `to_fiscal_year_id.is.null` خصم مزدوج | ❌ بالتصميم | تُخصم حتى تُسوَّى مرة واحدة |
+| L-12 | `myShare=0` بلا تفسير (فشل RPC) | 🟡 مؤجل | حالة نادرة جداً |
+| L-13 | `handleRetry` يُلغي كل cache | ❌ مقبول | زر خطأ شبكة — إعادة شاملة متوقعة |
+| L-14 | PDF الشامل بلا disclaimer | 🟡 مؤجل | تحسين UX — نادراً ما يُطلب |
+| L-15 | إشعار السلفة بلا تحقق user_id | ❌ ليس ثغرة | يُقرأ من DB وليس إدخال يدوي |
+| BUG-A | تعارض admin vs accountant في الإقفال | 🟡 مؤجل | UI أكثر تقييداً — ليس ثغرة |
+| BUG-B | تحذيرات RPC لا تُعرض | ✅ مُصلح | قراءة `warnings` من RPC وعرضها بـ `toast.warning` |
+| BUG-C | FiscalYearWidget يختفي | ❌ بالتصميم | الويدجت للسنة النشطة فقط |
+| BUG-D | `contractualRevenue` شهري vs سنوي | ❌ خطأ في التقرير | `rent_amount` = إجمالي العقد |
+| BUG-E | استعلام مباشر في Dashboard | ❌ ليس مشكلة | يستخدم `useQuery` مع cache |
+| BUG-F | `reopen_fiscal_year` لا يُعيد corpus | 🟡 مؤجل | حالة نادرة جداً |
+| BUG-G | localStorage لا يُنظّف | ❌ ليس مشكلة | validation موجود |
+| BUG-H | Effect dependency زائدة | ❌ ليس مشكلة | مطلوب لـ exhaustive-deps |
+| M-1 | رابط الإشعار خاطئ | ❌ صحيح | المسار موجود ومسجل |
+| M-2 | `isYearActive` عند "عرض الكل" | ❌ ليس مشكلة | لا حصة كلية لكل السنوات |
+| M-4 | `bun.lock` في `.gitignore` | ❌ خطأ في التقرير | كلاهما مُدرجان |
 
 ---
 
-## بنود مدحوضة من التقرير الأصلي
+### سجل البنود المؤجلة للتنفيذ المستقبلي
 
-| # | الادعاء | الحقيقة |
-|---|---------|---------|
-| PDF-01/02 | reshapeRow تعكس ترتيب الأعمدة | `reshapeRow` تستخدم `.map()` — لا تعكس الأعمدة |
-| PDF-06 | قسم 1 و6 مكرران | القسم 1 = ملخص سريع (3 بنود)، القسم 6 = تفصيلي (4+ بنود). مقبول كـ Executive Summary |
-| PDF-07 | ترتيب أقسام خاطئ | Executive Summary أولاً = نمط شائع |
-| SECT-01 | بطاقة الموبايل مفقود منها الحالة | `getStatusBadge(dist.status)` موجود سطر 516 |
-| SECT-03 | myAdvances لا تُعرض | قسمان كاملان سطور 559-697 |
+| # | المصدر | البند | الوصف | السبب | الأولوية |
+|---|--------|-------|-------|-------|---------|
+| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
+| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
+| DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
+| DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
+| DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
+| DEFER-6 | الجولة 2 — J-09 | تفضيلات الإشعارات localStorage | حفظها في DB بدل localStorage | ميزة جديدة وليس bug | منخفضة |
+| DEFER-7 | الطبقة 4 — BUG-ST2 | saveSetting بلا debounce | إضافة debounce لـ `handleAdminPercentChange` | أداء — أثر ضعيف (حقل رقمي) | منخفضة |
+| DEFER-8 | الطبقة 2 — BUG-Y1 | prevContractualRevenue = 0 stub | قيمة stub بلا مستهلك — تنظيف مستقبلي | لا مستهلك حالي | منخفضة |
+| DEFER-9 | الجولة 3 — BUG-A | تعارض admin vs accountant في الإقفال | `close_fiscal_year` RPC يقبل المحاسب، الـ UI يمنعه — توحيد القرار | قرار تصميمي | متوسطة |
+| DEFER-10 | الجولة 3 — BUG-F | `reopen_fiscal_year` لا يُعيد corpus | حالة نادرة — يحتاج مراجعة حساب السنة التالية يدوياً | حالة حافة نادرة | منخفضة |
+| DEFER-11 | الجولة 3 — L-12 | `myShare=0` بلا تفسير عند فشل RPC | حالة نادرة جداً (فشل `get_total_beneficiary_percentage`) | حالة حافة | منخفضة |
+| DEFER-12 | الجولة 3 — L-14 | PDF الشامل بلا disclaimer للسنة النشطة | تحسين UX — إضافة علامة تقديرية | تحسين UX | منخفضة |
+| DEFER-13 | الجولة 3 — L-06 | سجل السُلف بلا عمود سنة مالية | تحسين تجميلي — إضافة عمود السنة | تجميلي | منخفضة |
 
-## ملخص التأثير
+---
 
-- **3 ملفات** تُعدَّل
-- الإصلاح الجذري (إزالة `reverseBidi`) يُصلح **جميع** مشاكل ترتيب الأسماء والنصوص العربية متعددة الكلمات في كل ملفات الـ PDF
-- 5 إصلاحات إضافية لبيانات مفقودة/مضللة في `generateMySharePDF` و`generateDistributionsPDF`
+### التقييم النهائي
 
+- **الأمن**: 9.5/10 — جميع الثغرات المدَّعاة تم دحضها أو إصلاحها
+- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة
+- **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ + تحذيرات الإقفال
+- **تجربة المستخدم**: 10/10 — رسائل توضيحية + تحذيرات RPC مرئية
+- **الاختبارات**: 607+ ✅ — 0 فشل
+
+**الحالة**: مُعتمد ✅

@@ -39,7 +39,7 @@ describe('generateMySharePDF', () => {
       beneficiariesShare: 382500,
       distributions: [],
     });
-    expect(mockSave).toHaveBeenCalledWith('my-share-أحمد.pdf');
+    expect(mockSave).toHaveBeenCalledWith('my-share-أحمد-all.pdf');
   });
 });
 

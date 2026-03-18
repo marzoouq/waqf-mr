@@ -48,7 +48,7 @@ describe('reshapeArabic', () => {
     expect(result.trim().length).toBeGreaterThan(0);
   });
 
-  it('يعكس ترتيب الكلمات العربية (للعرض RTL في jsPDF)', () => {
+  it('يحافظ على كلمات النص العربي بعد التشكيل', () => {
     const result = reshapeArabic('رقم العقد');
     // الناتج يجب أن يحتوي على كلمتين
     const words = result.trim().split(' ').filter(w => w.length > 0);

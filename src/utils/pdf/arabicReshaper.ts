@@ -29,30 +29,9 @@ const hasArabic = (text: string): boolean => {
 };
 
 /**
- * عكس ترتيب النص للعرض في jsPDF (الذي يرسم LTR)
- * 
- * المنطق الصحيح:
- * - النص العربي بعد reshape يكون بترتيب منطقي (يمين→يسار)
- * - jsPDF يرسم كل الأحرف من اليسار لليمين
- * - لذلك نحتاج عكس النص الكامل
- * - لكن الأرقام والنصوص اللاتينية يجب أن تبقى بترتيبها الأصلي (LTR)
- * - الحل: عكس كل شيء، ثم إعادة عكس الأجزاء اللاتينية/الرقمية داخلياً
- */
-const reverseBidi = (text: string): string => {
-  // تقسيم النص إلى كلمات (بالمسافات)
-  const words = text.split(' ');
-
-  // عكس ترتيب الكلمات فقط — الحروف داخل كل كلمة تبقى كما هي
-  // هذا يحافظ على اتصال Presentation Forms-B
-  const reversed = words.reverse();
-
-  return reversed.join(' ');
-};
-
-/**
  * تحويل النص العربي للعرض الصحيح في jsPDF
- * 1. تشكيل الحروف (Arabic Shaping) — تحويل لأشكال متصلة
- * 2. عكس الترتيب (RTL) — لأن jsPDF يرسم LTR
+ * تشكيل الحروف فقط (Arabic Presentation Forms-B) —
+ * عارض الـ PDF يتكفل بترتيب RTL عند استخدام Identity-H encoding
  * 
  * النصوص غير العربية تمرّ بدون تعديل
  */
@@ -60,11 +39,9 @@ export const reshapeArabic = (text: string): string => {
   if (!text || !hasArabic(text)) return text;
 
   try {
-    // الخطوة 1: تشكيل الحروف — تحويل للأشكال المتصلة
-    const shaped = ArabicReshaper.convertArabic(text);
-
-    // الخطوة 2: عكس الترتيب للعرض الصحيح RTL في jsPDF
-    return reverseBidi(shaped);
+    // تشكيل الحروف — تحويل للأشكال المتصلة
+    // PDF viewer يتكفل بـ RTL مع Identity-H encoding
+    return ArabicReshaper.convertArabic(text);
   } catch {
     // في حالة خطأ — إرجاع النص الأصلي
     return text;

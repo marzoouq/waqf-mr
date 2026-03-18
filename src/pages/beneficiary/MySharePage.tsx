@@ -120,6 +120,11 @@ const MySharePage = () => {
   const handleDownloadPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
     try {
+      const shareAmt = myShare;
+      const advAmt = paidAdvancesTotal;
+      const afterAdv = Math.max(0, shareAmt - advAmt);
+      const actualCf = Math.min(carryforwardBalance, afterAdv);
+
       await generateMySharePDF({
         beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
         sharePercentage: currentBeneficiary.share_percentage ?? 0,
@@ -130,6 +135,9 @@ const MySharePage = () => {
         adminShare,
         waqifShare,
         beneficiariesShare,
+        paidAdvances: advAmt,
+        carryforwardDeducted: Math.round(actualCf * 100) / 100,
+        fiscalYear: selectedFY?.label,
         distributions: filteredDistributions.map(d => ({
           date: d.date,
           fiscalYear: d.account?.fiscal_year || '-',
@@ -159,7 +167,7 @@ const MySharePage = () => {
 
       await generateDistributionsPDF({
         fiscalYearLabel: selectedFY?.label || '',
-        availableAmount: beneficiariesShare,
+        availableAmount: shareAmount,
         distributions: [{
           beneficiary_name: currentBeneficiary.name ?? 'غير معروف',
           share_percentage: currentBeneficiary.share_percentage ?? 0,
