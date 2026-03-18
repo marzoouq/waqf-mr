@@ -42,7 +42,7 @@ vi.mock('@/hooks/useUnits', () => ({
 }));
 
 vi.mock('@/hooks/useContracts', () => ({
-  useContractsByFiscalYear: vi.fn(() => ({
+  useContractsSafeByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 60000, payment_type: 'monthly', payment_count: 12, payment_amount: 5000, start_date: '2024-01-01', end_date: '2024-12-31', status: 'active', property_id: 'p1', unit_id: 'u1', fiscal_year_id: 'fy1', notes: null, created_at: '', updated_at: '' },
     ],

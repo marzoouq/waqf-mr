@@ -20,6 +20,7 @@ vi.mock('@/hooks/useSupportTickets', () => ({
   useAddTicketReply: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useClientErrors: () => ({ data: [], isLoading: false }),
   useSupportStats: () => ({ data: { openTickets: 0, inProgressTickets: 0, resolvedTickets: 0, errorsLast24h: 0 } }),
+  useSupportAnalytics: () => ({ data: [], isLoading: false }),
 }));
 
 vi.mock('@/components/PageHeaderCard', () => ({
