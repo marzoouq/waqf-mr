@@ -87,7 +87,7 @@ const BeneficiaryDashboard = () => {
       const { data, error } = await supabase
         .from('distributions')
         .select('id, amount, date, status')
-        .eq('beneficiary_id', currentBeneficiary!.id!)
+        .eq('beneficiary_id', currentBeneficiary?.id ?? '')
         .order('date', { ascending: false })
         .limit(3);
       if (error) {
