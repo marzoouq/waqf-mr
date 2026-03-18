@@ -112,7 +112,7 @@ const AccountsCollectionTable = ({
                           onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
                           className="h-8 w-24"
                         />
-                      ) : `${item.paymentPerPeriod.toLocaleString()} ريال`}
+                      ) : `${item.fmt(paymentPerPeriod)} ريال`}
                     </TableCell>
                     <TableCell className="text-center">
                       {item.spansMultipleYears ? (
@@ -150,10 +150,10 @@ const AccountsCollectionTable = ({
                       ) : item.paidMonths}
                     </TableCell>
                     <TableCell className="font-bold text-primary">
-                      {isEditing ? `${editTotal.toLocaleString()} ريال` : `${item.totalCollected.toLocaleString()} ريال`}
+                      {isEditing ? `${fmt(editTotal)} ريال` : `${item.fmt(totalCollected)} ريال`}
                     </TableCell>
                     <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
-                      {(isEditing ? editArrears : item.arrears).toLocaleString()} ريال
+                      {fmt(isEditing ? editArrears : item.arrears)} ريال
                     </TableCell>
                     <TableCell>
                       {isEditing ? (
@@ -199,11 +199,11 @@ const AccountsCollectionTable = ({
               <TableRow className="bg-muted/70 font-bold">
                 <TableCell>الإجمالي</TableCell>
                 <TableCell>{contracts.length} مستأجر</TableCell>
-                <TableCell className="text-primary font-bold">{collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0).toLocaleString()} ريال</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
                 <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-primary font-bold">{totalCollectedAll.toLocaleString()} ريال</TableCell>
-                <TableCell className="text-destructive font-bold">{totalArrearsAll.toLocaleString()} ريال</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(totalCollectedAll)} ريال</TableCell>
+                <TableCell className="text-destructive font-bold">{fmt(totalArrearsAll)} ريال</TableCell>
                 <TableCell></TableCell>
                 <TableCell></TableCell>
               </TableRow>

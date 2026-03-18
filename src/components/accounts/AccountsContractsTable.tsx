@@ -53,7 +53,7 @@ const AccountsContractsTable = ({
                   <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                   <TableCell className="font-medium">{contract.contract_number}</TableCell>
                   <TableCell>{contract.tenant_name}</TableCell>
-                  <TableCell className="font-bold text-primary">{getPaymentPerPeriod(contract).toLocaleString()} ريال</TableCell>
+                  <TableCell className="font-bold text-primary">{fmt(getPaymentPerPeriod(contract))} ريال</TableCell>
                   <TableCell className="text-center">{getExpectedPayments(contract)}</TableCell>
                   <TableCell className="font-bold text-primary">{fmt(safeNumber(contract.rent_amount))} ريال</TableCell>
                   <TableCell>{statusLabel(contract.status)}</TableCell>
@@ -75,9 +75,9 @@ const AccountsContractsTable = ({
                 <TableCell>الإجمالي</TableCell>
                 <TableCell></TableCell>
                 <TableCell>{contracts.length} عقد</TableCell>
-                <TableCell className="text-primary font-bold">{totalPaymentPerPeriod.toLocaleString()} ريال</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(totalPaymentPerPeriod)} ريال</TableCell>
                 <TableCell></TableCell>
-                <TableCell className="text-primary font-bold">{totalAnnualRent.toLocaleString()} ريال</TableCell>
+                <TableCell className="text-primary font-bold">{fmt(totalAnnualRent)} ريال</TableCell>
                 <TableCell></TableCell>
                 <TableCell></TableCell>
               </TableRow>

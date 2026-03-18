@@ -84,7 +84,7 @@ const AccountsBeneficiariesTable = ({
             <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center">
               <span className="font-medium">إجمالي التوزيع</span>
               <span className="font-bold text-primary">
-                {manualDistributions.toLocaleString()} ريال
+                {fmt(manualDistributions)} ريال
               </span>
             </div>
           </>
