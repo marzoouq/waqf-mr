@@ -115,7 +115,7 @@ const ContractAccordionGroup = ({
               {latest.unit ? ` / و${latest.unit.unit_number}` : ''}
             </span>
             <span className="text-sm font-medium hidden lg:block">
-              {Numberfmt(latest.rent_amount)} ر.س
+              {fmt(Number(latest.rent_amount))} ر.س
             </span>
             <div className="hidden lg:flex items-center gap-2">
               <span className={`text-xs font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>
