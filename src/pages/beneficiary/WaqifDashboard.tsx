@@ -6,6 +6,7 @@ import { fmt } from '@/utils/format';
 import { useState, useEffect, useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
