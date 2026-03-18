@@ -772,7 +772,7 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Info Messages */}
-                {(complianceResult.infoMessages?.length > 0 || complianceResult.validationResults?.infoMessages?.length > 0) && (
+                {((complianceResult.infoMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.infoMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium">معلومات:</p>
                     {(complianceResult.infoMessages || complianceResult.validationResults?.infoMessages || []).map((m: { code: string; message: string }, i: number) => (
