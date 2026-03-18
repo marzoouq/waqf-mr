@@ -1,4 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,15 +52,24 @@ const AdminDashboard = () => {
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  // G4 fix: عند fiscalYearId='all' نستخدم contracts مباشرة بدل طلب مكرر
-  const { data: allContractsRaw = [] } = useContractsByFiscalYear(fiscalYearId === 'all' ? '__skip__' : 'all');
-  const allContracts = fiscalYearId === 'all' ? contracts : allContractsRaw;
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   // G3 fix: استخدام payment_invoices بدلاً من tenantPayments القديم
   const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
 
-  // Detect orphaned contracts (no fiscal year assigned)
-  const orphanedContracts = useMemo(() => allContracts.filter(c => !c.fiscal_year_id), [allContracts]);
+  // BUG-01 fix: استعلام خفيف مخصص للعقود اليتيمة فقط بدل جلب كل العقود
+  const { data: orphanedContracts = [] } = useQuery({
+    queryKey: ['contracts', 'orphaned'],
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('id, contract_number')
+        .is('fiscal_year_id', null)
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   // BUG-05 fix: useFinancialSummary moved below to include finLoading in isLoading
 
@@ -85,36 +96,34 @@ const AdminDashboard = () => {
   const activeContractsCount = fyContracts.filter(c => c.status === 'active').length;
   const contractualRevenue = fyContracts.filter(c => c.status === 'active').reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  // G3 fix: Collection summary based on payment_invoices instead of tenantPayments
+  // BUG-02 fix: حساب التحصيل على مستوى الفاتورة لا العقد — أدق
   const collectionSummary = useMemo(() => {
-    const relevantContracts = fyContracts.filter(c => c.status === 'active' || c.status === 'expired');
-    let onTime = 0;
-    let late = 0;
+    const relevantContractIds = new Set(
+      fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
+    );
+    const dueInvoices = paymentInvoices.filter(
+      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= new Date()
+    );
+    const paid = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
+    const unpaid = dueInvoices.length - paid;
+    const total = dueInvoices.length;
+    const percentage = total > 0 ? Math.round((paid / total) * 100) : 0;
 
-    relevantContracts.forEach(contract => {
-      const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
-      if (contractInvoices.length === 0) return; // no invoices generated yet
-
-      const dueInvoices = contractInvoices.filter(inv => new Date(inv.due_date) <= new Date());
-      if (dueInvoices.length === 0) return; // no payments due yet
-
-      const unpaidDue = dueInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
-      if (unpaidDue.length > 0) {
-        late++;
-      } else {
-        onTime++;
-      }
-    });
-
-    const total = onTime + late;
-    const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
-
-    return { onTime, late, total, percentage };
+    return { onTime: paid, late: unpaid, total, percentage };
   }, [fyContracts, paymentInvoices]);
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
   const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
+
+  // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
+  const expiringContracts = useMemo(() =>
+    fyContracts.filter(c => {
+      const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
+      return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+    }),
+    [fyContracts]
+  );
 
   const stats = useMemo(() => {
     const incomeChange = yoy.hasPrevYear ? calcChangePercent(totalIncome, yoy.prevTotalIncome) : null;
@@ -128,7 +137,7 @@ const AdminDashboard = () => {
       { title: 'إجمالي الدخل الفعلي', value: `${totalIncome.toLocaleString()} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
       { title: 'إجمالي المصروفات', value: `${totalExpenses.toLocaleString()} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي الريع${sharesNote}`, value: `${netAfterExpenses.toLocaleString()} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
-      { title: `المتاح للتوزيع${sharesNote}`, value: `${(isYearActive ? Math.max(0, netAfterZakat) : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
+      { title: `المتاح للتوزيع${sharesNote}`, value: `${Math.max(0, isYearActive ? netAfterZakat : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
       { title: `حصة الناظر${sharesNote}`, value: `${adminShare.toLocaleString()} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
       { title: `حصة الواقف${sharesNote}`, value: `${waqifShare.toLocaleString()} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
       { title: `ريع الوقف${sharesNote}`, value: `${waqfRevenue.toLocaleString()} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
@@ -227,13 +236,8 @@ const AdminDashboard = () => {
           </Alert>
         )}
 
-        {/* Expiring Contracts Warning (within 30 days) */}
-        {(() => {
-          const expiringContracts = fyContracts.filter(c => {
-            const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
-            return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
-          });
-          return expiringContracts.length > 0 ? (
+        {/* BUG-04 fix: Expiring Contracts Warning (within 30 days) — moved to useMemo */}
+        {expiringContracts.length > 0 && (
             <Alert className="animate-fade-in border-warning/50">
               <Clock className="h-4 w-4" />
               <AlertTitle>عقود تنتهي قريباً</AlertTitle>
@@ -244,8 +248,7 @@ const AdminDashboard = () => {
                 </Link>
               </AlertDescription>
             </Alert>
-          ) : null;
-        })()}
+        )}
 
         {/* Orphaned Contracts Warning */}
         {orphanedContracts.length > 0 && (
@@ -402,7 +405,7 @@ const AdminDashboard = () => {
                       <span className="text-sm text-muted-foreground">منتظم</span>
                     </div>
                     <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
-                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">عقد</Badge>
+                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
@@ -411,7 +414,7 @@ const AdminDashboard = () => {
                       <span className="text-sm text-muted-foreground">متأخر</span>
                     </div>
                     <p className="text-3xl font-bold text-destructive">{collectionSummary.late}</p>
-                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">عقد</Badge>
+                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
