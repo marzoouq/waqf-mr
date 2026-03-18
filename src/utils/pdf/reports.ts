@@ -229,8 +229,8 @@ export const generateAnnualDisclosurePDF = async (data: {
   autoTable(doc, {
     startY: y + 6,
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
-    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${a.toLocaleString()}`])),
-    foot: [reshapeRow(['الإجمالي', `-${data.totalExpenses.toLocaleString()}`])],
+    body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${fmtAr(a)}`])),
+    foot: [reshapeRow(['الإجمالي', `-${fmtAr(data.totalExpenses)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
