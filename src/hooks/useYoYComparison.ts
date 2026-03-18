@@ -11,7 +11,6 @@ interface YoYResult {
   prevTotalIncome: number;
   prevTotalExpenses: number;
   prevNetAfterExpenses: number;
-  prevContractualRevenue: number;
   hasPrevYear: boolean;
 }
 
