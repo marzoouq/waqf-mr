@@ -36,7 +36,7 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {onDownloadPdf && (
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={onDownloadPdf}>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onDownloadPdf(template)}>
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">تحميل PDF</span>
               </Button>
