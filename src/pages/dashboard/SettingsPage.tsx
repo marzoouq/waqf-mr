@@ -107,7 +107,6 @@ const LogoManager = () => {
         { onConflict: 'key' }
       );
 
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم حذف الشعار بنجاح');
     } catch {
