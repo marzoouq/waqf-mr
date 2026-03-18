@@ -11,7 +11,7 @@ interface AccessLogEntry {
   id: string;
   created_at: string;
   target_path: string | null;
-  metadata: Record<string, string> | null;
+  metadata: Record<string, unknown> | null;
 }
 
 interface SupportErrorsTabProps {
