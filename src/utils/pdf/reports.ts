@@ -109,7 +109,7 @@ export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, s
     body: [
       reshapeRow(['اسم المستفيد', beneficiaryName]),
       reshapeRow(['نسبة الحصة', `${sharePercentage}%`]),
-      reshapeRow(['مبلغ الحصة', `${shareAmount.toLocaleString()} ر.س`]),
+      reshapeRow(['مبلغ الحصة', `${fmtAr(shareAmount)} ر.س`]),
     ],
     theme: 'grid',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
