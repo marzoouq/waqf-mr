@@ -55,7 +55,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
       item.property_number || '-',
       statusLabel(item.status),
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', '', `${fmt(total)} ر.س`, '', '', ''])],
+    foot: [reshapeRow(['الإجمالي', '', '', `${fmt(total)} ر.س`, '', '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
