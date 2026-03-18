@@ -115,7 +115,7 @@ const NotificationBell = () => {
                     {/* Delete button */}
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteOne.mutate(notif.id); }}
-                      className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-destructive/20 hover:text-destructive"
+                      className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-muted hover:bg-destructive/20 hover:text-destructive"
                       title="حذف"
                       aria-label="حذف الإشعار"
                     >

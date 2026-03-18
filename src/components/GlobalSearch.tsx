@@ -77,7 +77,7 @@ const SearchResults = ({
               <p className="text-sm font-medium truncate">{result.title}</p>
               <p className="text-[11px] text-muted-foreground truncate">{result.subtitle}</p>
             </div>
-            <Badge variant="outline" className="text-[10px] shrink-0">{config.label}</Badge>
+            <Badge variant="outline" className="text-[10px] shrink-0 hidden sm:inline-flex">{config.label}</Badge>
           </button>
         );
       })}
