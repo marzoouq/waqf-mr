@@ -200,7 +200,7 @@ export const useClientErrors = () => {
   });
 };
 
-/** إحصائيات الدعم الفني */
+/** إحصائيات الدعم الفني — بطاقات العدّ فقط (head: true) */
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
@@ -233,6 +233,26 @@ export const useSupportStats = () => {
         errorsLast7d: errors7dRes.count ?? 0,
         ticketsLast7d: tickets7dRes.count ?? 0,
       };
+    },
+  });
+};
+
+/**
+ * جلب جميع التذاكر بأعمدة خفيفة — للإحصائيات والتصدير
+ * يحل مشكلة اعتماد الإحصائيات على أول 20 تذكرة فقط
+ */
+export const useSupportAnalytics = () => {
+  return useQuery({
+    queryKey: ['support_analytics'],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('id, ticket_number, title, category, priority, status, created_at, resolved_at, rating, rating_comment')
+        .order('created_at', { ascending: false })
+        .limit(2000);
+      if (error) throw error;
+      return (data ?? []) as Pick<SupportTicket, 'id' | 'ticket_number' | 'title' | 'category' | 'priority' | 'status' | 'created_at' | 'resolved_at' | 'rating' | 'rating_comment'>[];
     },
   });
 };

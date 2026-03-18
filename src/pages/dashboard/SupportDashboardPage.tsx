@@ -27,7 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useUpdateTicketStatus, useAddTicketReply, useClientErrors,
-  useSupportStats, type SupportTicket,
+  useSupportStats, useSupportAnalytics, type SupportTicket,
 } from '@/hooks/useSupportTickets';
 import { toast } from 'sonner';
 

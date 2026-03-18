@@ -23,6 +23,8 @@ const SECTIONS: { key: string; label: string; roles: string[] }[] = [
   { key: 'messages', label: 'المراسلات', roles: ['accountant', 'beneficiary'] },
   { key: 'audit_log', label: 'سجل المراجعة', roles: ['accountant'] },
   { key: 'notifications', label: 'سجل الإشعارات', roles: ['beneficiary', 'waqif'] },
+  { key: 'annual_report', label: 'التقرير السنوي', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'support', label: 'الدعم الفني', roles: ['accountant', 'beneficiary'] },
 ];
 
 const ROLES = [
