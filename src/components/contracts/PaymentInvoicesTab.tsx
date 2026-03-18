@@ -350,7 +350,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           <div className="space-y-3 py-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">إجمالي الفاتورة</span>
-              <span className="font-bold">{Numberfmt(payDialog?.inv.amount || 0)} ر.س</span>
+              <span className="font-bold">{fmt(Number(payDialog?.inv.amount || 0))} ر.س</span>
             </div>
             <div className="space-y-1">
               <Label>المبلغ المدفوع (ر.س)</Label>
