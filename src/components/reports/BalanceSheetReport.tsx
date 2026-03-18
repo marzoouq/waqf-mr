@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableRow, TableCell, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Scale } from 'lucide-react';
-import { fmt } from '@/utils/format';
+import { fmt as fmtNum } from '@/utils/format';
 
 interface BalanceSheetProps {
   totalIncome: number;
