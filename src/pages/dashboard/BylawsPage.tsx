@@ -465,7 +465,7 @@ const BylawsPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto max-h-[50vh]" dir="rtl">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">رقم الجزء</label>
                 <Input
