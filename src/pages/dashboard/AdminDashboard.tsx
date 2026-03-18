@@ -51,15 +51,24 @@ const AdminDashboard = () => {
 
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  // G4 fix: عند fiscalYearId='all' نستخدم contracts مباشرة بدل طلب مكرر
-  const { data: allContractsRaw = [] } = useContractsByFiscalYear(fiscalYearId === 'all' ? '__skip__' : 'all');
-  const allContracts = fiscalYearId === 'all' ? contracts : allContractsRaw;
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   // G3 fix: استخدام payment_invoices بدلاً من tenantPayments القديم
   const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
 
-  // Detect orphaned contracts (no fiscal year assigned)
-  const orphanedContracts = useMemo(() => allContracts.filter(c => !c.fiscal_year_id), [allContracts]);
+  // BUG-01 fix: استعلام خفيف مخصص للعقود اليتيمة فقط بدل جلب كل العقود
+  const { data: orphanedContracts = [] } = useQuery({
+    queryKey: ['contracts', 'orphaned'],
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contracts')
+        .select('id, contract_number')
+        .is('fiscal_year_id', null)
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   // BUG-05 fix: useFinancialSummary moved below to include finLoading in isLoading
 
