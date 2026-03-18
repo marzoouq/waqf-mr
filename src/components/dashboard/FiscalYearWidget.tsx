@@ -49,7 +49,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <Clock className="w-4 h-4 text-primary" />
               <span className="text-xs text-muted-foreground">أيام متبقية</span>
             </div>
-            <p className={`text-2xl font-bold ${remainingDays <= 30 ? 'text-warning' : remainingDays <= 7 ? 'text-destructive' : 'text-foreground'}`}>
+            <p className={`text-2xl font-bold ${remainingDays <= 7 ? 'text-destructive' : remainingDays <= 30 ? 'text-warning' : 'text-foreground'}`}>
               {remainingDays}
             </p>
             <p className="text-[10px] text-muted-foreground">من أصل {totalDays} يوم</p>

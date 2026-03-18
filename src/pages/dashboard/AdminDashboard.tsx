@@ -485,7 +485,20 @@ const AdminDashboard = () => {
           </Suspense>
         )}
 
-        {/* Recent Activity */}
+        {/* B-04: آخر العقود مع skeleton */}
+        {isLoading ? (
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-8 w-20" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>آخر العقود</CardTitle>
@@ -504,7 +517,7 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...fyContracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
+                {[...contracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
@@ -520,7 +533,7 @@ const AdminDashboard = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {fyContracts.length === 0 && (
+                {contracts.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                       لا توجد عقود حالياً
@@ -531,6 +544,7 @@ const AdminDashboard = () => {
             </Table>
           </CardContent>
         </Card>
+        )}
       </div>
     </DashboardLayout>
   );
