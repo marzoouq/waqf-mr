@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useMyShare } from '@/hooks/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 
 const AccountsViewPage = () => {
