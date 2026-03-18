@@ -167,7 +167,7 @@ const MySharePage = () => {
 
       await generateDistributionsPDF({
         fiscalYearLabel: selectedFY?.label || '',
-        availableAmount: beneficiariesShare,
+        availableAmount: shareAmount,
         distributions: [{
           beneficiary_name: currentBeneficiary.name ?? 'غير معروف',
           share_percentage: currentBeneficiary.share_percentage ?? 0,
