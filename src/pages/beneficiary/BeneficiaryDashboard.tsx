@@ -38,6 +38,12 @@ const BeneficiaryDashboard = () => {
   const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
+  // إعدادات السُلف
+  const { getJsonSetting, isLoading: settingsLoading } = useAppSettings();
+  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
+  const advanceEnabled = advanceSettings?.enabled ?? false;
+  const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== '__none__' ? fiscalYearId : undefined);
+
   // Don't fetch financial data until fiscalYearId is valid
   const fyReady = fiscalYearId && fiscalYearId !== '__none__';
   const { availableAmount, isLoading: finLoading } = useFinancialSummary(
