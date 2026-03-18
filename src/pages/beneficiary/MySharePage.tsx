@@ -25,7 +25,11 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 
 const MySharePage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+  };
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
@@ -222,6 +226,8 @@ const MySharePage = () => {
         return <Badge className="bg-success/20 text-success hover:bg-success/30"><CheckCircle className="w-3 h-3 ml-1" /> مستلم</Badge>;
       case 'pending':
         return <Badge className="bg-warning/20 text-warning hover:bg-warning/30"><Clock className="w-3 h-3 ml-1" /> معلق</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30"><XCircle className="w-3 h-3 ml-1" /> ملغى</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -343,7 +349,7 @@ const MySharePage = () => {
         />
 
         {/* Share Summary - 4 cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 sm:gap-4`}>
           <Card className="shadow-sm gradient-primary text-primary-foreground">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -530,7 +536,7 @@ const MySharePage = () => {
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
                 {myAdvances.map(adv => {
-                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-blue-500' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
+                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-primary' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
                   return (
                     <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
                       <div className="flex items-center justify-between">

@@ -87,7 +87,7 @@ const BeneficiaryDashboard = () => {
       const { data, error } = await supabase
         .from('distributions')
         .select('id, amount, date, status')
-        .eq('beneficiary_id', currentBeneficiary!.id!)
+        .eq('beneficiary_id', currentBeneficiary?.id ?? '')
         .order('date', { ascending: false })
         .limit(3);
       if (error) {
@@ -99,7 +99,6 @@ const BeneficiaryDashboard = () => {
   });
 
   // Realtime invalidation for distributions
-  // Realtime invalidation for distributions (queryClient declared above)
   useEffect(() => {
     if (!currentBeneficiary?.id) return;
 
@@ -256,9 +255,14 @@ const BeneficiaryDashboard = () => {
                   {(() => {
                     const lastPaid = distributions.find(d => d.status === 'paid');
                     return lastPaid ? (
-                      <p className="text-lg sm:text-xl font-bold truncate">
-                        {Number(lastPaid.amount).toLocaleString()} ر.س
-                      </p>
+                      <>
+                        <p className="text-lg sm:text-xl font-bold truncate">
+                          {Number(lastPaid.amount).toLocaleString()} ر.س
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
+                        </p>
+                      </>
                     ) : (
                       <p className="text-sm text-muted-foreground">لا توجد توزيعات</p>
                     );

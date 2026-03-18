@@ -90,9 +90,11 @@ const BeneficiariesPage = () => {
       bank_account: formData.bank_account || undefined, notes: formData.notes || undefined,
       user_id: formData.user_id || undefined, national_id: formData.national_id || undefined,
     };
-    if (editingBeneficiary) { await updateBeneficiary.mutateAsync({ id: editingBeneficiary.id, ...beneficiaryData }); } else { await createBeneficiary.mutateAsync(beneficiaryData); }
-    setIsOpen(false);
-    resetForm();
+    try {
+      if (editingBeneficiary) { await updateBeneficiary.mutateAsync({ id: editingBeneficiary.id, ...beneficiaryData }); } else { await createBeneficiary.mutateAsync(beneficiaryData); }
+      setIsOpen(false);
+      resetForm();
+    } catch { /* mutationCache handles toast */ }
   };
 
   const handleEdit = (beneficiary: Beneficiary) => {
@@ -113,6 +115,7 @@ const BeneficiariesPage = () => {
     if (!deleteTarget) return;
     await deleteBeneficiary.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
+    setCurrentPage(1);
   };
 
   const totalPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage), 0);
@@ -133,7 +136,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
               const csv = buildCsv(filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),

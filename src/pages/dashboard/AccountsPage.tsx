@@ -106,7 +106,7 @@ const AccountsPage = () => {
 
         {page.isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 14 }).map((_, i) => (
               <div key={i} className="p-4 rounded-lg bg-muted/30 space-y-2">
                 <Skeleton className="h-3 w-20" />
                 <Skeleton className="h-6 w-24" />
