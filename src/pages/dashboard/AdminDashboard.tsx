@@ -400,7 +400,7 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* Collection Summary Card */}
+        {/* Collection Summary Card — M5 fix: فصل محصّل/جزئي/متأخر + M6 fix: إزالة IIFE */}
         {collectionSummary.total > 0 && (
           <Card className="shadow-sm">
             <CardHeader>
@@ -414,41 +414,50 @@ const AdminDashboard = () => {
                 {/* Mini Pie Chart */}
                 <ErrorBoundary>
                   <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                    <CollectionSummaryChart onTime={collectionSummary.onTime} late={collectionSummary.late} />
+                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount + collectionSummary.partialCount} />
                   </Suspense>
                 </ErrorBoundary>
 
                 {/* Summary Stats */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
                     <div className="flex items-center justify-center gap-2">
                       <CheckCircle className="w-5 h-5 text-success" />
-                      <span className="text-sm text-muted-foreground">محصّل</span>
+                      <span className="text-sm text-muted-foreground">محصّل بالكامل</span>
                     </div>
-                    <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
+                    <p className="text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
                     <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
                   </div>
+
+                  {collectionSummary.partialCount > 0 && (
+                    <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <Clock className="w-5 h-5 text-warning" />
+                        <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
+                      </div>
+                      <p className="text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
+                      <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
+                    </div>
+                  )}
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
                     <div className="flex items-center justify-center gap-2">
                       <AlertTriangle className="w-5 h-5 text-destructive" />
                       <span className="text-sm text-muted-foreground">متأخر</span>
                     </div>
-                    <p className="text-3xl font-bold text-destructive">{collectionSummary.late}</p>
+                    <p className="text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
                     <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
                     <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
-                    {(() => { const c = getKpiColor(collectionSummary.percentage, 80, 50); return (<>
-                    <p className={`text-3xl font-bold ${c.text}`}>
+                    <p className={`text-3xl font-bold ${collectionColor.text}`}>
                       {collectionSummary.percentage}%
                     </p>
                     <Progress
                       value={collectionSummary.percentage}
-                      className={`h-2 ${c.bar}`}
+                      className={`h-2 ${collectionColor.bar}`}
                     />
-                    </>); })()}
                   </div>
                 </div>
               </div>
