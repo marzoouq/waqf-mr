@@ -418,19 +418,25 @@ async function generateInvoicePdf(invoice: InvoiceData, waqfSettings: WaqfSettin
   const colLabelX = tableX + tableW;
   const rowH = 30;
 
+  // تنسيق الأرقام المالية بالعربية
+  const fmtNum = (n: number) => n.toLocaleString("ar-SA", { minimumFractionDigits: 2 });
+
+  // fallback لنوع الفاتورة عند payment_invoices (لا يحتوي على invoice_type)
+  const typeLabel = TYPE_AR[invoice.invoice_type] || (invoice.invoice_type ? invoice.invoice_type : 'إيجار');
+
   const rows: [string, string][] = [
     ["رقم الفاتورة", invNum],
-    ["النوع", TYPE_AR[invoice.invoice_type] || invoice.invoice_type],
+    ["النوع", typeLabel],
   ];
 
   // VAT conditional rows
   if (isVatInvoice) {
     const amountExVat = invoice.amount_excluding_vat ?? (invoice.amount - invoice.vat_amount);
-    rows.push(["المبلغ قبل الضريبة (ر.س)", amountExVat.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
-    rows.push([`ضريبة القيمة المضافة (${invoice.vat_rate}%)`, invoice.vat_amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
-    rows.push(["الإجمالي شاملاً الضريبة (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["المبلغ قبل الضريبة (ر.س)", fmtNum(amountExVat)]);
+    rows.push([`ضريبة القيمة المضافة (${invoice.vat_rate}%)`, fmtNum(invoice.vat_amount)]);
+    rows.push(["الإجمالي شاملاً الضريبة (ر.س)", fmtNum(invoice.amount)]);
   } else {
-    rows.push(["المبلغ (ر.س)", invoice.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })]);
+    rows.push(["المبلغ (ر.س)", fmtNum(invoice.amount)]);
     rows.push(["ضريبة القيمة المضافة", "معفاة"]);
   }
 
