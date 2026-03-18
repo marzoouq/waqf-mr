@@ -223,20 +223,36 @@ export const getInvoiceSignedUrl = async (filePath: string): Promise<string> => 
 // HIGH-2: استبدال getSession() بـ getUser()
 // ---------------------------------------------------------------------------
 
+export interface GenerateInvoicePdfOptions {
+  invoice_ids: string[];
+  template?: 'professional' | 'simplified';
+  forceRegenerate?: boolean;
+  table?: 'invoices' | 'payment_invoices';
+}
+
 export const useGenerateInvoicePdf = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (invoiceIds: string[]) => {
+    mutationFn: async (options: string[] | GenerateInvoicePdfOptions) => {
+      // دعم التوقيع القديم (مصفوفة معرّفات فقط) والجديد (كائن خيارات)
+      const opts: GenerateInvoicePdfOptions = Array.isArray(options)
+        ? { invoice_ids: options }
+        : options;
+
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) throw new Error('يجب تسجيل الدخول أولاً');
 
-      // نحتاج الـ session فقط للـ access_token — لكن نتحقق من المستخدم أولاً
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error('جلسة غير صالحة — يرجى تسجيل الدخول مجدداً');
 
+      const body: Record<string, unknown> = { invoice_ids: opts.invoice_ids };
+      if (opts.template) body.template = opts.template;
+      if (opts.forceRegenerate) body.force_regenerate = true;
+      if (opts.table) body.table = opts.table;
+
       const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
-        body: { invoice_ids: invoiceIds },
+        body,
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
