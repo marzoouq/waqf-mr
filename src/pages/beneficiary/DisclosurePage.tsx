@@ -25,12 +25,9 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
 function toGregorianShort(dateStr: string): string {
   try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const day = d.getDate();
-    const month = d.getMonth() + 1;
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${Number(parts[2])}/${Number(parts[1])}/${parts[0]}`;
   } catch {
     return dateStr;
   }
