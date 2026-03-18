@@ -627,7 +627,8 @@ Deno.serve(async (req) => {
 
     for (const invoice of invoices) {
       try {
-        if (invoice.file_path) {
+        // تخطي الفواتير التي لديها ملف فقط إذا لم يُطلب إعادة التوليد
+        if (invoice.file_path && !forceRegenerate) {
           results.push({ id: invoice.id, invoice_number: invoice.invoice_number, success: true, error: "already has file" });
           continue;
         }
