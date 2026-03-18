@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
 import { Wallet, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -14,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useMyShare } from '@/hooks/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 
 const AccountsViewPage = () => {
@@ -22,7 +21,7 @@ const AccountsViewPage = () => {
   const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
@@ -53,12 +52,7 @@ const AccountsViewPage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? availableAmount * safeNumber(currentBeneficiary.share_percentage) / totalBenPct
-    : 0;
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
   if (noPublishedYears) {
     return (

@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { FileText, TrendingUp, TrendingDown, Wallet, AlertCircle, RefreshCw, FileDown, Info } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ExportMenu from '@/components/ExportMenu';
@@ -20,7 +19,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useMyShare } from '@/hooks/useMyShare';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */
@@ -41,7 +40,7 @@ const DisclosurePage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { user } = useAuth();
+  
   const isMobile = useIsMobile();
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
@@ -74,12 +73,8 @@ const DisclosurePage = () => {
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   const fiscalYear = currentAccount?.fiscal_year || selectedFY?.label || '';
 

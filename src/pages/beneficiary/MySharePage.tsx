@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +19,7 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useMyShare } from '@/hooks/useMyShare';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
@@ -31,7 +30,7 @@ const MySharePage = () => {
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
-  const { user } = useAuth();
+  
 
   const {
     beneficiaries,
@@ -55,7 +54,7 @@ const MySharePage = () => {
     isError: finError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
   const { data: distributions = [], isLoading: distLoading } = useQuery({
     queryKey: ['my-distributions', currentBeneficiary?.id, fiscalYearId],
@@ -81,15 +80,10 @@ const MySharePage = () => {
   const { data: myCarryforwards = [] } = useMyCarryforwards(currentBeneficiary?.id ?? undefined);
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
   const { getJsonSetting } = useAppSettings();
   const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
   const advancesEnabled = advanceSettings.enabled;
   const beneficiariesShare = availableAmount;
-
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
   const filteredDistributions = currentAccount

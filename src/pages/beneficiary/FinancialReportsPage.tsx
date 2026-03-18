@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -16,7 +15,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { useMyShare } from '@/hooks/useMyShare';
 
 const COLORS = [
   'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
@@ -40,7 +39,7 @@ const FinancialReportsPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { user } = useAuth();
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
@@ -64,12 +63,8 @@ const FinancialReportsPage = () => {
     isError,
   } = useFinancialSummary(fiscalYearId, selectedFY?.label, { fiscalYearStatus: selectedFY?.status });
 
-  const { data: totalBenPct = 0 } = useTotalBeneficiaryPercentage();
-  const currentBeneficiary = beneficiaries.find(b => b.user_id === user?.id);
+  const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
   const beneficiariesShare = availableAmount;
-  const myShare = currentBeneficiary && totalBenPct > 0
-    ? beneficiariesShare * (currentBeneficiary.share_percentage ?? 0) / totalBenPct
-    : 0;
 
   const incomeVsExpenses = useMemo(() => [
     { name: 'الإيرادات', value: totalIncome, fill: 'hsl(var(--success))' },
