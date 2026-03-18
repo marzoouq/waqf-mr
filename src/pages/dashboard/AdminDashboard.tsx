@@ -414,7 +414,7 @@ const AdminDashboard = () => {
                       <span className="text-sm text-muted-foreground">متأخر</span>
                     </div>
                     <p className="text-3xl font-bold text-destructive">{collectionSummary.late}</p>
-                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">عقد</Badge>
+                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
