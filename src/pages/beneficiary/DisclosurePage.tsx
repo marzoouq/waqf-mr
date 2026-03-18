@@ -373,7 +373,7 @@ const DisclosurePage = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
                     <div className="flex justify-between text-xs">
-                      <span>سنوي: {safefmt(safeNumber(c.rent_amount))} ر.س</span>
+                      <span>سنوي: {fmt(safeNumber(c.rent_amount))} ر.س</span>
                       <span>شهري: {fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</span>
                     </div>
                   </div>
