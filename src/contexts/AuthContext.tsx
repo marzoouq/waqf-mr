@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { queryClient } from '@/lib/queryClient';
-import { clearToasts } from '@/hooks/use-toast';
+import { clearToasts, toast } from '@/hooks/use-toast';
 import { AuthContext } from '@/hooks/useAuthContext';
 
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
@@ -226,9 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       setRoleWithRef(data ? (data.role as AppRole) : null);
     } catch {
-      import('@/hooks/use-toast').then(({ toast }) => {
-        toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
-      }).catch(() => {});
+      toast({ title: 'تعذّر تحديث الدور', description: 'يرجى تحديث الصفحة', variant: 'destructive' });
     }
   };
 
