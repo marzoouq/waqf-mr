@@ -29,6 +29,4 @@ dist-ssr
 !.env.example
 
 # Bun lockfiles (not used — npm is preferred)
-bun.lock
 bun.lockb
-bun.lock
