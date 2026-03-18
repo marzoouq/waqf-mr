@@ -120,7 +120,7 @@ const AdminDashboard = () => {
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
-  const pendingAdvances = useMemo(() => advanceRequests.filter(r => r.status === 'pending'), [advanceRequests]);
+  
 
   // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
   const expiringContracts = useMemo(() =>
