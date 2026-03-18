@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeaderCard from '@/components/PageHeaderCard';
