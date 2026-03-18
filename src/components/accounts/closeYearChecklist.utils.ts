@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 export interface ChecklistItem {
   label: string;
   passed: boolean;

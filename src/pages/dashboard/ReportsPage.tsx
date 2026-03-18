@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';

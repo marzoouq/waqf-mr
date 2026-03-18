@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { lazy, Suspense, useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
