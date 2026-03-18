@@ -20,7 +20,8 @@ const EMAIL_SUBJECTS: Record<string, string> = {
 }
 
 // Template mapping
-const EMAIL_TEMPLATES: Record<string, React.ComponentType<Record<string, unknown>>> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- قوالب البريد لها props مختلفة لكل نوع
+const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
   signup: SignupEmail,
   invite: InviteEmail,
   magiclink: MagicLinkEmail,
@@ -137,7 +138,8 @@ async function handleWebhook(req: Request): Promise<Response> {
   }
 
   // Verify signature + timestamp, then parse payload.
-  let payload: { type?: string; user?: Record<string, unknown>; run_id?: string; [key: string]: unknown }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- payload يأتي من webhook خارجي بأنواع متغيرة
+  let payload: any
   let run_id = ''
   try {
     const verified = await verifyWebhookRequest({
@@ -146,7 +148,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       parser: parseEmailWebhookPayload,
     })
     payload = verified.payload
-    run_id = payload.run_id
+    run_id = payload.run_id ?? ''
   } catch (error) {
     if (error instanceof WebhookError) {
       switch (error.code) {
