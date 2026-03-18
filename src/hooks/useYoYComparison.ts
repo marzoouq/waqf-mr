@@ -33,7 +33,7 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
 
   return useMemo(() => {
     if (!prevFiscalYear) {
-      return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, prevContractualRevenue: 0, hasPrevYear: false };
+      return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
     const { totalIncome, totalExpenses } = computeTotals(prevIncome, prevExpenses);
     return {
