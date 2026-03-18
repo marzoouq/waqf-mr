@@ -297,7 +297,7 @@ const AdminDashboard = () => {
         {/* D-01: تم إزالة Alert السُلف المكررة — PendingActionsTable يعرض نفس المعلومة بتفصيل أكبر */}
 
         {/* Stats Grid */}
-        {isLoading ? <StatsGridSkeleton /> : (
+        {isLoading ? <StatsGridSkeleton count={11} /> : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
             <Link key={index} to={stat.link} className="block">
