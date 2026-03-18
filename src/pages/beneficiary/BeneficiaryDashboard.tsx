@@ -8,7 +8,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useMyShare } from '@/hooks/useMyShare';
-import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -16,6 +16,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
+import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 
 import { fmt } from '@/utils/format';
 
@@ -34,6 +37,12 @@ const BeneficiaryDashboard = () => {
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
+
+  // إعدادات السُلف
+  const { getJsonSetting } = useAppSettings();
+  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
+  const advanceEnabled = advanceSettings?.enabled ?? false;
+  const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== '__none__' ? fiscalYearId : undefined);
 
   // Don't fetch financial data until fiscalYearId is valid
   const fyReady = fiscalYearId && fiscalYearId !== '__none__';
@@ -309,7 +318,38 @@ const BeneficiaryDashboard = () => {
           </div>
         )}
 
-        {/* ═══ Quick Links ═══ */}
+        {/* ═══ بطاقة طلب السُلفة ═══ */}
+        {advanceEnabled && role !== 'waqif' && currentBeneficiary && fiscalYearId && fiscalYearId !== '__none__' && (
+          <Card className="shadow-sm border-accent/30">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
+                    <Banknote className="w-5 h-5 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">طلب سلفة</p>
+                    <p className="text-xs text-muted-foreground">
+                      {advanceRequests.filter(r => r.status === 'pending').length > 0
+                        ? `لديك ${advanceRequests.filter(r => r.status === 'pending').length} طلب قيد المراجعة`
+                        : 'يمكنك طلب سلفة من حصتك المستقبلية'}
+                    </p>
+                  </div>
+                </div>
+                <AdvanceRequestDialog
+                  beneficiaryId={currentBeneficiary.id!}
+                  fiscalYearId={fiscalYearId}
+                  estimatedShare={myShare}
+                  paidAdvances={0}
+                  isFiscalYearActive={!isClosed}
+                  minAmount={advanceSettings?.min_amount ?? 500}
+                  maxPercentage={advanceSettings?.max_percentage ?? 50}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div>
           <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

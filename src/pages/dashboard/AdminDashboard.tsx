@@ -11,34 +11,34 @@ import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useYoYComparison, calcChangePercent } from '@/hooks/useYoYComparison';
-import YoYBadge from '@/components/dashboard/YoYBadge';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins, Banknote } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, ArrowUpDown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/useUnits';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-
-import { Progress } from '@/components/ui/progress';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { StatsGridSkeleton, KpiSkeleton } from '@/components/SkeletonLoaders';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/useFiscalYears';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
+
+// مكونات فرعية مستخرجة
+import DashboardAlerts from '@/components/dashboard/DashboardAlerts';
+import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
+import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
+import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
+import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
+import type { StatItem } from '@/components/dashboard/DashboardStatsGrid';
+import type { KpiItem } from '@/components/dashboard/DashboardKpiPanel';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
-const CollectionSummaryChart = lazy(() => import('@/components/dashboard/CollectionSummaryChart'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
 
-// DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <Skeleton className="h-[300px] w-full rounded-lg" />
@@ -46,7 +46,7 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// T-03: دالة مساعدة موحّدة لألوان KPI (module-level لتجنب hoisting issue)
+// T-03: دالة مساعدة موحّدة لألوان KPI
 const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
   const isGood = invert ? value <= good : value >= good;
   const isWarn = invert ? value <= warn : value >= warn;
@@ -64,10 +64,8 @@ const AdminDashboard = () => {
   const { data: properties = [], isLoading: propsLoading } = useProperties();
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
-  // G3 fix: استخدام payment_invoices بدلاً من tenantPayments القديم
   const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
 
-  // BUG-01 fix: استعلام خفيف مخصص للعقود اليتيمة فقط بدل جلب كل العقود
   const { data: orphanedContracts = [] } = useQuery({
     queryKey: ['contracts', 'orphaned'],
     staleTime: 300_000,
@@ -82,33 +80,27 @@ const AdminDashboard = () => {
     },
   });
 
-  // BUG-05 fix: useFinancialSummary moved below to include finLoading in isLoading
-
   const {
     income, expenses, beneficiaries,
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
     netAfterExpenses, netAfterZakat, availableAmount,
+    zakatAmount,
+    distributionsAmount,
     usingFallbackPct,
     isLoading: finLoading,
   } = useFinancialSummary(fiscalYearId, fiscalYear?.label, {
     fiscalYearStatus: fiscalYear?.status,
   });
 
-  // D-1: مقارنة YoY
   const yoy = useYoYComparison(fiscalYearId === 'all' ? undefined : fiscalYearId);
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
-  // Income/expenses are already filtered by fiscal year via the hook — aliases removed (G9)
-  // Contracts are already filtered server-side by useContractsByFiscalYear
-  // T-02/T-05: توحيد فلتر العقود النشطة وحذف alias غير ضروري
   const activeContracts = contracts.filter(c => c.status === 'active');
   const activeContractsCount = activeContracts.length;
   const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
-  // M5 fix: فصل partially_paid عن paid في العد
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
       contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
@@ -134,10 +126,8 @@ const AdminDashboard = () => {
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
-  // M6 fix: استخراج لون نسبة التحصيل إلى useMemo بدل IIFE في JSX
   const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
 
-  // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
   const expiringContracts = useMemo(() =>
     contracts.filter(c => {
       const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
@@ -146,10 +136,18 @@ const AdminDashboard = () => {
     [contracts]
   );
 
-  const stats = useMemo(() => {
+  // ── بطاقات الإحصائيات (مع بطاقتي KPI جديدتين) ──
+  const stats: StatItem[] = useMemo(() => {
     const incomeChange = yoy.hasPrevYear ? calcChangePercent(totalIncome, yoy.prevTotalIncome) : null;
     const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
     const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
+
+    // KPI جديد: التدفق النقدي الصافي
+    const netCashFlow = safeNumber(netAfterExpenses) - safeNumber(adminShare) - safeNumber(waqifShare) - safeNumber(zakatAmount);
+
+    // KPI جديد: نسبة التوزيع الفعلي
+    const distributable = isYearActive ? safeNumber(netAfterZakat) : safeNumber(availableAmount);
+    const distributionRatio = distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0;
 
     return [
       { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
@@ -163,10 +161,12 @@ const AdminDashboard = () => {
       { title: `حصة الواقف${sharesNote}`, value: `${fmt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
       { title: `ريع الوقف${sharesNote}`, value: `${fmt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
       { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => (b.share_percentage ?? 0) > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
+      // بطاقتان جديدتان
+      { title: `التدفق النقدي الصافي${sharesNote}`, value: `${fmt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
+      { title: 'نسبة التوزيع الفعلي', value: `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
-  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, beneficiaries, isYearActive, sharesNote, yoy]);
+  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, zakatAmount, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
 
-  // Aggregate real monthly income/expense data (filtered by fiscal year)
   const monthlyData = useMemo(() => {
     const months: Record<string, { income: number; expenses: number }> = {};
     income.forEach(item => {
@@ -185,14 +185,9 @@ const AdminDashboard = () => {
     });
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({
-        month,
-        income: data.income,
-        expenses: data.expenses,
-      }));
+      .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
   }, [income, expenses]);
 
-  // Aggregate real expense distribution (filtered by fiscal year)
   const expenseTypes = useMemo(() => {
     const types: Record<string, number> = {};
     expenses.forEach(item => {
@@ -202,17 +197,8 @@ const AdminDashboard = () => {
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
-  // COLORS moved to module level for stable reference
-
-  // formatArabicMonth moved to module level (PERF-01)
-
-  // tooltipStyle moved to module level (PERF — BUG-02 fix)
-
-  // T-03: getKpiColor نُقلت إلى مستوى الوحدة (module-level) — انظر أعلى الملف
-
-  const kpis = useMemo(() => {
+  const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
     const rentedUnitIds = new Set(
       contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
     );
@@ -264,114 +250,27 @@ const AdminDashboard = () => {
           }
         />
 
-        {/* Fallback Percentages Warning */}
-        {usingFallbackPct && (
-          <Alert className="animate-fade-in">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>نسب افتراضية مُستخدمة</AlertTitle>
-            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span>يتم استخدام النسب الافتراضية (ناظر 10%، واقف 5%) لأنه لم يتم إعدادها في الحسابات الختامية.</span>
-              <Link to="/dashboard/accounts">
-                <Button variant="outline" size="sm" className="shrink-0">ضبط النسب</Button>
-              </Link>
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* التنبيهات */}
+        <DashboardAlerts
+          usingFallbackPct={usingFallbackPct}
+          expiringContracts={expiringContracts}
+          orphanedContracts={orphanedContracts}
+        />
 
-        {/* BUG-04 fix: Expiring Contracts Warning (within 30 days) — moved to useMemo */}
-        {expiringContracts.length > 0 && (
-            <Alert className="animate-fade-in border-warning/50">
-              <Clock className="h-4 w-4" />
-              <AlertTitle>عقود تنتهي قريباً</AlertTitle>
-              <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span>{expiringContracts.length} عقد ينتهي خلال {EXPIRING_SOON_DAYS} يوماً القادمة ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
-                <Link to="/dashboard/contracts">
-                  <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
-                </Link>
-              </AlertDescription>
-            </Alert>
-        )}
+        {/* بطاقات الإحصائيات */}
+        <DashboardStatsGrid stats={stats} isLoading={isLoading} />
 
-        {/* Orphaned Contracts Warning */}
-        {orphanedContracts.length > 0 && (
-          <Alert variant="destructive" className="animate-fade-in">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>عقود بدون سنة مالية</AlertTitle>
-            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <span>يوجد {orphanedContracts.length} عقد غير مربوط بسنة مالية ({orphanedContracts.map(c => c.contract_number).join('، ')}). لن تظهر في التقارير المالية.</span>
-              <Link to="/dashboard/contracts">
-                <Button variant="outline" size="sm" className="gap-1 shrink-0">
-                  <LinkIcon className="w-3 h-3" />
-                  إدارة العقود
-                </Button>
-              </Link>
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* مؤشرات الأداء */}
+        <DashboardKpiPanel kpis={kpis} isLoading={isLoading} />
 
-        {/* D-01: تم إزالة Alert السُلف المكررة — PendingActionsTable يعرض نفس المعلومة بتفصيل أكبر */}
-
-        {/* Stats Grid */}
-        {isLoading ? <StatsGridSkeleton count={11} /> : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {stats.map((stat, index) => (
-            <Link key={index} to={stat.link} className="block">
-              <Card className="shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <CardContent className="p-3 sm:p-6">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
-                      <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
-                      {('yoyChange' in stat) && stat.yoyChange !== undefined && (
-                        <YoYBadge changePercent={stat.yoyChange} invertColor={stat.invertColor} className="mt-0.5" />
-                      )}
-                    </div>
-                    <div className={`w-9 h-9 sm:w-12 sm:h-12 ${stat.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0`}>
-                      <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-primary-foreground" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-        )}
-
-        {/* KPI Panel */}
-        {isLoading ? <KpiSkeleton /> : (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gauge className="w-5 h-5" />
-                مؤشرات الأداء الرئيسية (KPI)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-                {kpis.map((kpi, idx) => (
-                  <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
-                    <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                    <p className={`text-xl sm:text-3xl font-bold ${kpi.color}`}>
-                      {fmt(kpi.value)}{kpi.suffix}
-                    </p>
-                    {kpi.progressColor && (
-                      <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* D-3: ويدجت السنة المالية */}
+        {/* ويدجت السنة المالية */}
         <FiscalYearWidget
           fiscalYear={fiscalYear}
           totalIncome={totalIncome}
           contractualRevenue={contractualRevenue}
         />
 
-        {/* Quick Actions for Admin & Accountant */}
+        {/* إجراءات سريعة */}
         {(role === 'accountant' || role === 'admin') && (
           <Card className="shadow-sm">
             <CardHeader>
@@ -442,93 +341,31 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* Collection Summary Card — M5 fix: فصل محصّل/جزئي/متأخر + M6 fix: إزالة IIFE */}
-        {collectionSummary.total > 0 && (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Banknote className="w-5 h-5" />
-                ملخص التحصيل
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                {/* Mini Pie Chart */}
-                <ErrorBoundary>
-                  <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
-                  </Suspense>
-                </ErrorBoundary>
+        {/* ملخص التحصيل */}
+        <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
 
-                {/* Summary Stats */}
-                <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-success" />
-                      <span className="text-sm text-muted-foreground">محصّل بالكامل</span>
-                    </div>
-                    <p className="text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
-                    <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
-                  </div>
-
-                  {collectionSummary.partialCount > 0 && (
-                    <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <Clock className="w-5 h-5 text-warning" />
-                        <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
-                      </div>
-                      <p className="text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
-                      <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
-                    </div>
-                  )}
-
-                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                    <div className="flex items-center justify-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-destructive" />
-                      <span className="text-sm text-muted-foreground">متأخر</span>
-                    </div>
-                    <p className="text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
-                    <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
-                  </div>
-
-                  <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                    <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
-                    <p className={`text-3xl font-bold ${collectionColor.text}`}>
-                      {collectionSummary.percentage}%
-                    </p>
-                    <Progress
-                      value={collectionSummary.percentage}
-                      className={`h-2 ${collectionColor.bar}`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* D-4: خريطة حرارية للتحصيل الشهري */}
+        {/* خريطة حرارية */}
         <ErrorBoundary>
           <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
             <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* D-5: جدول الإجراءات المعلقة */}
+        {/* جدول الإجراءات المعلقة */}
         <ErrorBoundary>
           <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
             <PendingActionsTable advanceRequests={advanceRequests} paymentInvoices={paymentInvoices} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* Charts — lazy-loaded (recharts bundle) */}
+        {/* الرسوم البيانية */}
         <ErrorBoundary>
           <Suspense fallback={<ChartSkeleton />}>
             <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
           </Suspense>
         </ErrorBoundary>
 
-        {/* Year-over-Year Comparison — lazy-loaded — M4 fix: placeholder للسنة الأولى */}
+        {/* مقارنة بين السنوات */}
         {allFiscalYears.length >= 2 ? (
           <ErrorBoundary>
             <Suspense fallback={<ChartSkeleton />}>
@@ -564,66 +401,8 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* B-04: آخر العقود مع skeleton */}
-        {isLoading ? (
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-8 w-20" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>آخر العقود</CardTitle>
-            <Link to="/dashboard/contracts">
-              <Button variant="ghost" size="sm">عرض الكل</Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table className="min-w-[400px]">
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-right">رقم العقد</TableHead>
-                  <TableHead className="text-right">المستأجر</TableHead>
-                  <TableHead className="text-right">قيمة الإيجار</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[...contracts].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime()).slice(0, 5).map((contract) => (
-                  <TableRow key={contract.id}>
-                    <TableCell>{contract.contract_number}</TableCell>
-                    <TableCell>{contract.tenant_name}</TableCell>
-                    <TableCell>{fmt(safeNumber(contract.rent_amount))} ر.س</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        contract.status === 'active' 
-                          ? 'bg-success/20 text-success' 
-                          : 'bg-destructive/20 text-destructive'
-                      }`}>
-                        {contract.status === 'active' ? 'نشط' : 'منتهي'}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {contracts.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                      لا توجد عقود حالياً
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        )}
+        {/* آخر العقود */}
+        <RecentContractsCard contracts={contracts} isLoading={isLoading} />
       </div>
     </DashboardLayout>
   );

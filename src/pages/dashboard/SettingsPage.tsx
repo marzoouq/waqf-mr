@@ -637,6 +637,47 @@ const SecurityTab = () => {
   );
 };
 
+// === تصنيف التبويبات في فئات ===
+const SETTINGS_CATEGORIES = [
+  {
+    label: 'الهوية والمظهر',
+    tabs: [
+      { value: 'waqf', label: 'بيانات الوقف', icon: Building2 },
+      { value: 'landing', label: 'الواجهة الرئيسية', icon: Globe },
+      { value: 'appearance', label: 'المظهر', icon: Palette },
+      { value: 'banner', label: 'شريط التنبيه', icon: FlaskConical },
+    ],
+  },
+  {
+    label: 'المالية',
+    tabs: [
+      { value: 'fiscal', label: 'السنوات المالية', icon: Calendar },
+      { value: 'advances', label: 'السُلف', icon: Banknote },
+      { value: 'zatca', label: 'الضريبة (ZATCA)', icon: FileText },
+    ],
+  },
+  {
+    label: 'المستخدمون والأقسام',
+    tabs: [
+      { value: 'role-permissions', label: 'صلاحيات الأدوار', icon: Shield },
+      { value: 'sections', label: 'الأقسام', icon: LayoutGrid },
+      { value: 'menu', label: 'القائمة', icon: LayoutList },
+      { value: 'beneficiary', label: 'واجهة المستفيد', icon: Users },
+    ],
+  },
+  {
+    label: 'النظام',
+    tabs: [
+      { value: 'notifications', label: 'الإشعارات', icon: Bell },
+      { value: 'bulk-notify', label: 'إشعارات جماعية', icon: Megaphone },
+      { value: 'bulk-message', label: 'رسائل جماعية', icon: MessageSquare },
+      { value: 'export', label: 'تصدير البيانات', icon: Download },
+      { value: 'biometric', label: 'البصمة', icon: Fingerprint },
+      { value: 'security', label: 'الأمان', icon: ShieldCheck },
+    ],
+  },
+];
+
 // === Main Settings Page ===
 const SettingsPage = () => {
   const [activeSettingsTab, setActiveSettingsTab] = useState('waqf');
@@ -649,104 +690,40 @@ const SettingsPage = () => {
           description="إدارة جميع إعدادات النظام من مكان واحد"
         />
         <Tabs defaultValue="waqf" dir="rtl" onValueChange={(v) => setActiveSettingsTab(v)} value={activeSettingsTab}>
-          {/* Mobile: Select dropdown */}
+          {/* Mobile: Select dropdown مصنّف */}
           <div className="md:hidden mb-4">
             <Select value={activeSettingsTab} onValueChange={setActiveSettingsTab}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="اختر القسم..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="waqf">بيانات الوقف</SelectItem>
-                <SelectItem value="landing">الواجهة الرئيسية</SelectItem>
-                <SelectItem value="sections">الأقسام</SelectItem>
-                <SelectItem value="menu">القائمة</SelectItem>
-                <SelectItem value="beneficiary">واجهة المستفيد</SelectItem>
-                <SelectItem value="appearance">المظهر</SelectItem>
-                <SelectItem value="fiscal">السنوات المالية</SelectItem>
-                <SelectItem value="notifications">الإشعارات</SelectItem>
-                <SelectItem value="bulk-notify">إشعارات جماعية</SelectItem>
-                <SelectItem value="bulk-message">رسائل جماعية</SelectItem>
-                <SelectItem value="export">تصدير البيانات</SelectItem>
-                <SelectItem value="banner">شريط التنبيه</SelectItem>
-                <SelectItem value="role-permissions">صلاحيات الأدوار</SelectItem>
-                <SelectItem value="biometric">البصمة</SelectItem>
-                <SelectItem value="advances">السُلف</SelectItem>
-                <SelectItem value="zatca">الضريبة (ZATCA)</SelectItem>
-                <SelectItem value="security">الأمان</SelectItem>
+                {SETTINGS_CATEGORIES.map((cat) => (
+                  <div key={cat.label}>
+                    <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground border-b border-border">{cat.label}</div>
+                    {cat.tabs.map((tab) => (
+                      <SelectItem key={tab.value} value={tab.value}>{tab.label}</SelectItem>
+                    ))}
+                  </div>
+                ))}
               </SelectContent>
             </Select>
           </div>
-          {/* Desktop: TabsList */}
-          <TabsList className="hidden md:flex w-full flex-wrap h-auto gap-1.5 bg-muted/50 p-1.5 rounded-xl">
-            <TabsTrigger value="waqf" className="gap-1.5 text-xs md:text-sm">
-              <Building2 className="w-4 h-4" />
-              بيانات الوقف
-            </TabsTrigger>
-            <TabsTrigger value="landing" className="gap-1.5 text-xs md:text-sm">
-              <Globe className="w-4 h-4" />
-              الواجهة الرئيسية
-            </TabsTrigger>
-            <TabsTrigger value="sections" className="gap-1.5 text-xs md:text-sm">
-              <LayoutGrid className="w-4 h-4" />
-              الأقسام
-            </TabsTrigger>
-            <TabsTrigger value="menu" className="gap-1.5 text-xs md:text-sm">
-              <LayoutList className="w-4 h-4" />
-              القائمة
-            </TabsTrigger>
-            <TabsTrigger value="beneficiary" className="gap-1.5 text-xs md:text-sm">
-              <Users className="w-4 h-4" />
-              واجهة المستفيد
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="gap-1.5 text-xs md:text-sm">
-              <Palette className="w-4 h-4" />
-              المظهر
-            </TabsTrigger>
-            <TabsTrigger value="fiscal" className="gap-1.5 text-xs md:text-sm">
-              <Calendar className="w-4 h-4" />
-              السنوات المالية
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-1.5 text-xs md:text-sm">
-              <Bell className="w-4 h-4" />
-              الإشعارات
-            </TabsTrigger>
-            <TabsTrigger value="bulk-notify" className="gap-1.5 text-xs md:text-sm">
-              <Megaphone className="w-4 h-4" />
-              إشعارات جماعية
-            </TabsTrigger>
-            <TabsTrigger value="bulk-message" className="gap-1.5 text-xs md:text-sm">
-              <MessageSquare className="w-4 h-4" />
-              رسائل جماعية
-            </TabsTrigger>
-            <TabsTrigger value="export" className="gap-1.5 text-xs md:text-sm">
-              <Download className="w-4 h-4" />
-              تصدير البيانات
-            </TabsTrigger>
-            <TabsTrigger value="banner" className="gap-1.5 text-xs md:text-sm">
-              <FlaskConical className="w-4 h-4" />
-              شريط التنبيه
-            </TabsTrigger>
-            <TabsTrigger value="role-permissions" className="gap-1.5 text-xs md:text-sm">
-              <Shield className="w-4 h-4" />
-              صلاحيات الأدوار
-            </TabsTrigger>
-            <TabsTrigger value="biometric" className="gap-1.5 text-xs md:text-sm">
-              <Fingerprint className="w-4 h-4" />
-              البصمة
-            </TabsTrigger>
-            <TabsTrigger value="advances" className="gap-1.5 text-xs md:text-sm">
-              <Banknote className="w-4 h-4" />
-              السُلف
-            </TabsTrigger>
-            <TabsTrigger value="zatca" className="gap-1.5 text-xs md:text-sm">
-              <FileText className="w-4 h-4" />
-              الضريبة
-            </TabsTrigger>
-            <TabsTrigger value="security" className="gap-1.5 text-xs md:text-sm">
-              <ShieldCheck className="w-4 h-4" />
-              الأمان
-            </TabsTrigger>
-          </TabsList>
+          {/* Desktop: TabsList مصنّف في فئات */}
+          <div className="hidden md:flex flex-col gap-2 mb-4">
+            {SETTINGS_CATEGORIES.map((cat) => (
+              <div key={cat.label}>
+                <p className="text-xs font-bold text-muted-foreground mb-1.5 px-1">{cat.label}</p>
+                <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-lg">
+                  {cat.tabs.map((tab) => (
+                    <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 text-xs md:text-sm">
+                      <tab.icon className="w-4 h-4" />
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+            ))}
+          </div>
           <TabsContent value="waqf"><WaqfSettingsTab /></TabsContent>
           <TabsContent value="landing"><Suspense fallback={<div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>}><LandingPageTab /></Suspense></TabsContent>
           <TabsContent value="sections"><SectionsTab /></TabsContent>
