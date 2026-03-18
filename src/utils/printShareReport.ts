@@ -70,16 +70,16 @@ export function printShareReport(params: PrintShareReportParams) {
     <table>
       <tr><th>الاسم</th><td>${escapeHtml(beneficiaryName)}</td></tr>
       <tr><th>نسبة الحصة</th><td>محجوبة</td></tr>
-      <tr><th>إجمالي الريع المتاح للتوزيع</th><td>${beneficiariesShare.toLocaleString()} ر.س</td></tr>
+      <tr><th>إجمالي الريع المتاح للتوزيع</th><td>${fmt(beneficiariesShare)} ر.س</td></tr>
     </table>
 
     <p class="section-title">تفاصيل التوزيع</p>
     <table>
-      <tr><th>الحصة المستحقة</th><td>${myShare.toLocaleString()} ر.س</td></tr>
-      <tr><th>السُلف المصروفة</th><td>${advances.toLocaleString()} ر.س</td></tr>
-      <tr><th>فروق مرحّلة مخصومة</th><td>${actualCarryforward.toLocaleString()} ر.س</td></tr>
-      <tr class="total-row"><th>صافي المبلغ المستحق</th><td>${net.toLocaleString()} ر.س</td></tr>
-      ${deficit > 0 ? `<tr class="deficit"><th>فرق مرحّل للسنة القادمة</th><td>${deficit.toLocaleString()} ر.س</td></tr>` : ''}
+      <tr><th>الحصة المستحقة</th><td>${fmt(myShare)} ر.س</td></tr>
+      <tr><th>السُلف المصروفة</th><td>${fmt(advances)} ر.س</td></tr>
+      <tr><th>فروق مرحّلة مخصومة</th><td>${fmt(actualCarryforward)} ر.س</td></tr>
+      <tr class="total-row"><th>صافي المبلغ المستحق</th><td>${fmt(net)} ر.س</td></tr>
+      ${deficit > 0 ? `<tr class="deficit"><th>فرق مرحّل للسنة القادمة</th><td>${fmt(deficit)} ر.س</td></tr>` : ''}
     </table>
 
     ${filteredDistributions.length > 0 ? `
@@ -89,7 +89,7 @@ export function printShareReport(params: PrintShareReportParams) {
         ${filteredDistributions.map(d => `<tr>
           <td>${new Date(d.date).toLocaleDateString('ar-SA')}</td>
           <td>${d.account?.fiscal_year || '—'}</td>
-          <td>${safeNumber(d.amount).toLocaleString()} ر.س</td>
+          <td>${fmt(safeNumber(d.amount))} ر.س</td>
           <td>${d.status === 'paid' ? 'مستلم' : d.status === 'pending' ? 'معلق' : d.status}</td>
         </tr>`).join('')}
       </table>

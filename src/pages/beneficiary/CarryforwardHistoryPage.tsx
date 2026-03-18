@@ -132,7 +132,7 @@ const CarryforwardHistoryPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">إجمالي السُلف المصروفة</p>
-                <p className="text-lg font-bold">{totalPaidAdvances.toLocaleString('ar-SA')} ر.س</p>
+                <p className="text-lg font-bold">{fmt(totalPaidAdvances)} ر.س</p>
               </div>
             </CardContent>
           </Card>
@@ -144,7 +144,7 @@ const CarryforwardHistoryPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">رصيد مرحّل نشط</p>
-                <p className="text-lg font-bold">{activeBalance.toLocaleString('ar-SA')} ر.س</p>
+                <p className="text-lg font-bold">{fmt(activeBalance)} ر.س</p>
               </div>
             </CardContent>
           </Card>
@@ -156,7 +156,7 @@ const CarryforwardHistoryPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">إجمالي المُسوّى</p>
-                <p className="text-lg font-bold">{totalSettled.toLocaleString('ar-SA')} ر.س</p>
+                <p className="text-lg font-bold">{fmt(totalSettled)} ر.س</p>
               </div>
             </CardContent>
           </Card>
@@ -201,7 +201,7 @@ const CarryforwardHistoryPage = () => {
                         <TableCell>{fyLabel(cf.from_fiscal_year_id)}</TableCell>
                         <TableCell>{fyLabel(cf.to_fiscal_year_id)}</TableCell>
                         <TableCell className="font-medium text-destructive">
-                          {safeNumber(cf.amount).toLocaleString('ar-SA')} ر.س
+                          {fmt(safeNumber(cf.amount))} ر.س
                         </TableCell>
                         <TableCell>
                           <Badge variant={cf.status === 'active' ? 'destructive' : 'default'} className="text-xs">
@@ -246,7 +246,7 @@ const CarryforwardHistoryPage = () => {
                     {paidAdvances.map(adv => (
                       <TableRow key={adv.id}>
                         <TableCell className="font-medium">
-                          {safeNumber(adv.amount).toLocaleString('ar-SA')} ر.س
+                          {fmt(safeNumber(adv.amount))} ر.س
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[250px] truncate">
                           {adv.reason || '—'}

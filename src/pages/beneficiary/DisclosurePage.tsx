@@ -279,7 +279,7 @@ const DisclosurePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الإيرادات</p>
-                  <p className="text-lg sm:text-2xl font-bold text-success truncate">+{totalIncome.toLocaleString()} ر.س</p>
+                  <p className="text-lg sm:text-2xl font-bold text-success truncate">+{fmt(totalIncome)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -294,7 +294,7 @@ const DisclosurePage = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-muted-foreground">مبلغ مرحّل من العام السابق</p>
-                    <p className="text-lg sm:text-2xl font-bold text-info truncate">+{waqfCorpusPrevious.toLocaleString()} ر.س</p>
+                    <p className="text-lg sm:text-2xl font-bold text-info truncate">+{fmt(waqfCorpusPrevious)} ر.س</p>
                   </div>
                 </div>
               </CardContent>
@@ -309,7 +309,7 @@ const DisclosurePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
-                  <p className="text-lg sm:text-2xl font-bold text-destructive truncate">-{totalExpenses.toLocaleString()} ر.س</p>
+                  <p className="text-lg sm:text-2xl font-bold text-destructive truncate">-{fmt(totalExpenses)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -323,7 +323,7 @@ const DisclosurePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-primary-foreground/90">حصتي المستحقة</p>
-                  <p className="text-lg sm:text-2xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                  <p className="text-lg sm:text-2xl font-bold truncate">{fmt(myShare)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -373,14 +373,14 @@ const DisclosurePage = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
                     <div className="flex justify-between text-xs">
-                      <span>سنوي: {safeNumber(c.rent_amount).toLocaleString()} ر.س</span>
-                      <span>شهري: {Math.round(safeNumber(c.rent_amount) / 12).toLocaleString()} ر.س</span>
+                      <span>سنوي: {safefmt(safeNumber(c.rent_amount))} ر.س</span>
+                      <span>شهري: {fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</span>
                     </div>
                   </div>
                 ))}
                 <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
                   <span>الإجمالي</span>
-                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0).toLocaleString()} ر.س</span>
+                  <span>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0), 0)}} ر.س</span>
                 </div>
               </div>
             ) : (
@@ -401,8 +401,8 @@ const DisclosurePage = () => {
                       <TableRow key={c.id}>
                         <TableCell className="font-medium">{c.contract_number}</TableCell>
                         <TableCell>{c.tenant_name}</TableCell>
-                        <TableCell>{Number(c.rent_amount).toLocaleString()} ر.س</TableCell>
-                        <TableCell>{Math.round(Number(c.rent_amount) / 12).toLocaleString()} ر.س</TableCell>
+                        <TableCell>{fmt(safeNumber(c.rent_amount))} ر.س</TableCell>
+                        <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
                         <TableCell>
                           <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
                             {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
@@ -412,7 +412,7 @@ const DisclosurePage = () => {
                     ))}
                     <TableRow className="bg-muted/30 font-bold">
                       <TableCell colSpan={2}>الإجمالي</TableCell>
-                      <TableCell>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0), 0)}} ر.س</TableCell>
                       <TableCell>{Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString()} ر.س</TableCell>
                       <TableCell />
                     </TableRow>
@@ -440,12 +440,12 @@ const DisclosurePage = () => {
                   {Object.entries(incomeBySource).map(([source, amount]) => (
                     <div key={source} className="flex justify-between items-center py-2 border-b border-dashed">
                       <span>{source}</span>
-                      <span className="text-success font-medium">+{amount.toLocaleString()} ر.س</span>
+                      <span className="text-success font-medium">+{fmt(amount)} ر.س</span>
                     </div>
                   ))}
                   <div className="flex justify-between items-center py-2 font-bold bg-success/10 rounded px-2">
                     <span>إجمالي الإيرادات</span>
-                    <span className="text-success">+{totalIncome.toLocaleString()} ر.س</span>
+                    <span className="text-success">+{fmt(totalIncome)} ر.س</span>
                   </div>
                 </div>
               </div>
@@ -457,12 +457,12 @@ const DisclosurePage = () => {
                   {Object.entries(expensesByTypeExcludingVat).map(([type, amount]) => (
                     <div key={type} className="flex justify-between items-center py-2 border-b border-dashed">
                       <span>{type}</span>
-                      <span className="text-destructive font-medium">-{amount.toLocaleString()} ر.س</span>
+                      <span className="text-destructive font-medium">-{fmt(amount)} ر.س</span>
                     </div>
                   ))}
                   <div className="flex justify-between items-center py-2 font-bold bg-destructive/10 rounded px-2">
                     <span>إجمالي المصروفات</span>
-                    <span className="text-destructive">-{totalExpenses.toLocaleString()} ر.س</span>
+                    <span className="text-destructive">-{fmt(totalExpenses)} ر.س</span>
                   </div>
                 </div>
               </div>
@@ -473,55 +473,55 @@ const DisclosurePage = () => {
                   <>
                     <div className="flex justify-between items-center py-2 text-info text-sm sm:text-base">
                       <span>(+) رقبة الوقف المرحّلة من العام السابق</span>
-                      <span className="whitespace-nowrap mr-2">+{waqfCorpusPrevious.toLocaleString()} ر.س</span>
+                      <span className="whitespace-nowrap mr-2">+{fmt(waqfCorpusPrevious)} ر.س</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
                       <span className="font-bold text-sm sm:text-base">الإجمالي الشامل</span>
-                      <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{grandTotal.toLocaleString()} ر.س</span>
+                      <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{fmt(grandTotal)} ر.س</span>
                     </div>
                   </>
                 )}
                 <div className="flex justify-between items-center py-2">
                   <span className="font-bold text-sm sm:text-base">الصافي بعد المصاريف</span>
-                  <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{netAfterExpenses.toLocaleString()} ر.س</span>
+                  <span className="font-bold text-base sm:text-lg whitespace-nowrap mr-2">{fmt(netAfterExpenses)} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
                   <span>(-) ضريبة القيمة المضافة</span>
-                  <span className="whitespace-nowrap mr-2">-{vatAmount.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{fmt(vatAmount)} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
                   <span className="font-bold text-sm sm:text-base">الصافي بعد خصم الضريبة</span>
-                  <span className="font-bold text-primary text-base sm:text-lg whitespace-nowrap mr-2">{netAfterVat.toLocaleString()} ر.س</span>
+                  <span className="font-bold text-primary text-base sm:text-lg whitespace-nowrap mr-2">{fmt(netAfterVat)} ر.س</span>
                 </div>
                 {zakatAmount > 0 && (
                   <>
                     <div className="flex justify-between items-center py-2 text-destructive text-sm sm:text-base">
                       <span>(-) الزكاة</span>
-                      <span className="whitespace-nowrap mr-2">-{zakatAmount.toLocaleString()} ر.س</span>
+                      <span className="whitespace-nowrap mr-2">-{fmt(zakatAmount)} ر.س</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
                       <span className="font-bold text-sm sm:text-base">الصافي بعد الزكاة</span>
-                      <span className="font-bold whitespace-nowrap mr-2">{netAfterZakat.toLocaleString()} ر.س</span>
+                      <span className="font-bold whitespace-nowrap mr-2">{fmt(netAfterZakat)} ر.س</span>
                     </div>
                   </>
                 )}
                 <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                   <span>(-) حصة الناظر ({adminPct}%)</span>
-                  <span className="whitespace-nowrap mr-2">-{adminShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{fmt(adminShare)} ر.س</span>
                 </div>
                 <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                   <span>(-) حصة الواقف ({waqifPct}%)</span>
-                  <span className="whitespace-nowrap mr-2">-{waqifShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">-{fmt(waqifShare)} ر.س</span>
                 </div>
                 {waqfCorpusManual > 0 && (
                   <div className="flex justify-between items-center py-2 text-muted-foreground text-xs sm:text-sm">
                     <span>(-) احتياطي رقبة الوقف</span>
-                    <span className="whitespace-nowrap mr-2">-{waqfCorpusManual.toLocaleString()} ر.س</span>
+                    <span className="whitespace-nowrap mr-2">-{fmt(waqfCorpusManual)} ر.س</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center py-2 font-bold text-sm sm:text-base">
                   <span>الإجمالي القابل للتوزيع</span>
-                  <span className="whitespace-nowrap mr-2">{beneficiariesShare.toLocaleString()} ر.س</span>
+                  <span className="whitespace-nowrap mr-2">{fmt(beneficiariesShare)} ر.س</span>
                 </div>
               </div>
 
@@ -530,7 +530,7 @@ const DisclosurePage = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
                     <p className="text-xs sm:text-sm text-muted-foreground">حصتي المستحقة ({currentBeneficiary?.share_percentage ?? 0}%)</p>
-                    <p className="font-bold text-xl sm:text-2xl text-primary">{myShare.toLocaleString()} ر.س</p>
+                    <p className="font-bold text-xl sm:text-2xl text-primary">{fmt(myShare)} ر.س</p>
                   </div>
                   <div className="sm:text-end">
                     <p className="text-xs sm:text-sm text-muted-foreground">الاسم</p>
