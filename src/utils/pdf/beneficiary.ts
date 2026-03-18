@@ -5,9 +5,21 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
+  fmtDate,
 } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { fmt } from '@/utils/format';
+
+// ترجمة حالات التوزيع
+const distributionStatusLabel = (s: string): string => {
+  switch (s) {
+    case 'paid': return 'مستلم';
+    case 'pending': return 'معلق';
+    case 'partial': return 'جزئي';
+    case 'cancelled': return 'ملغي';
+    default: return s;
+  }
+};
 
 export const generateMySharePDF = async (data: {
   beneficiaryName: string;
@@ -85,10 +97,10 @@ export const generateMySharePDF = async (data: {
       startY: finalY + 8,
       head: [reshapeRow(['التاريخ', 'السنة المالية', 'المبلغ', 'الحالة'])],
       body: data.distributions.map(d => reshapeRow([
-        d.date,
+        fmtDate(d.date),
         d.fiscalYear,
         `${fmt(d.amount)} ر.س`,
-        d.status === 'paid' ? 'مستلم' : 'معلق',
+        distributionStatusLabel(d.status),
       ])),
       theme: 'striped',
       ...headStyles(TABLE_HEAD_GOLD, fontFamily),

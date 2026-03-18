@@ -7,6 +7,7 @@ import {
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
+  fmtDate,
 } from './core';
 import { fmt, fmtInt } from '@/utils/format';
 
@@ -53,10 +54,6 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
   doc.setFontSize(18);
   doc.text(rs('تقرير العقود'), 105, startY + 5, { align: 'center' });
 
-  const formatDate = (d: string) => {
-    if (!d) return '-';
-    return new Date(d).toLocaleDateString('ar-SA');
-  };
 
   const statusLabel = (s: string) => {
     switch (s) {
@@ -80,8 +77,8 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
         i + 1,
         c.contract_number,
         c.tenant_name,
-        formatDate(c.start_date),
-        formatDate(c.end_date),
+        fmtDate(c.start_date),
+        fmtDate(c.end_date),
         `${fmt(safeNumber(c.rent_amount))} ر.س`,
         statusText,
       ]);

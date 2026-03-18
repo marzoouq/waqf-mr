@@ -222,8 +222,15 @@ export const generateAccountsPDF = async (data: {
     ['الصافي بعد المصاريف', fmt(netAfterExp)],
     ['(-) ضريبة القيمة المضافة', `(${fmt(data.vatAmount || 0)})`],
     ['الصافي بعد الضريبة', fmt(netAfterVat)],
-    ['(-) الزكاة', `(${fmt(zakatAmt)})`],
-    ['الصافي بعد الزكاة', fmt(netAfterZakatVal)],
+  );
+  // الزكاة تظهر فقط إذا > 0
+  if (zakatAmt > 0) {
+    distributionRows.push(
+      ['(-) الزكاة', `(${fmt(zakatAmt)})`],
+      ['الصافي بعد الزكاة', fmt(netAfterZakatVal)],
+    );
+  }
+  distributionRows.push(
     ['(-) حصة الناظر', `(${fmt(data.adminShare)})`],
     [`الباقي بعد حصة الناظر`, fmt(netAfterZakatVal - data.adminShare)],
     ['(-) حصة الواقف', `(${fmt(data.waqifShare)})`],

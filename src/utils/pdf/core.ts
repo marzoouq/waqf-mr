@@ -6,6 +6,13 @@ export { reshapeArabic, reshapeRow } from './arabicReshaper';
 
 /* PDF Core - Shared types, font loading, header/footer, table styles */
 
+// دالة تنسيق التاريخ المشتركة — تُستخدم في جميع ملفات PDF
+export const fmtDate = (d: string | null | undefined): string => {
+  if (!d) return '-';
+  try { return new Date(d).toLocaleDateString('ar-SA'); }
+  catch { return d; }
+};
+
 // Waqf info passed optionally to PDF generators
 export interface PdfWaqfInfo {
   waqfName?: string;
