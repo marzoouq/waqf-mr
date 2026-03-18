@@ -5,7 +5,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Menu, Lock } from 'lucide-react';
+import { BookOpen, Menu, Lock, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
