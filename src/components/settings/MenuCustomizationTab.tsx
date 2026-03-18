@@ -26,6 +26,7 @@ export interface MenuLabels {
   audit_log: string;
   bylaws: string;
   beneficiary_view: string;
+  chart_of_accounts: string;
 }
 
 export const defaultMenuLabels: MenuLabels = {
