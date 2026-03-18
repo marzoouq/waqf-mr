@@ -212,7 +212,7 @@ export const useCreateAdvanceRequest = () => {
       const name = result._beneficiaryName || 'مستفيد';
       notifyAdmins(
         'طلب سلفة جديد',
-        `طلب سلفة جديد من ${name} بمبلغ ${Numberfmt(vars.amount)} ر.س`,
+        `طلب سلفة جديد من ${name} بمبلغ ${fmt(Number(vars.amount))} ر.س`,
         'info',
         '/dashboard/beneficiaries',
       );
