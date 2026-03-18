@@ -72,6 +72,10 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
   const maxAdvance = serverData ? serverData.max_advance : Math.max(0, (effectiveShare * (maxPercentage / 100)) - paidAdvances);
 
   const handleSubmit = async () => {
+    if (!fiscalYearId) {
+      toast.error('يجب تحديد السنة المالية قبل طلب السلفة');
+      return;
+    }
     const numAmount = parseFloat(amount);
     if (!numAmount || numAmount <= 0 || numAmount > maxAdvance) return;
     try {

@@ -35,7 +35,7 @@ export const useMyShare = <T extends BeneficiaryLike>({
 
   const myShare = useMemo(() => {
     if (!currentBeneficiary || totalBenPct <= 0) return 0;
-    return safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct;
+    return Math.round(safeNumber(availableAmount) * safeNumber(currentBeneficiary.share_percentage) / totalBenPct * 100) / 100;
   }, [currentBeneficiary, availableAmount, totalBenPct]);
 
   return { currentBeneficiary, totalBenPct, pctLoading, myShare };
