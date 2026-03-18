@@ -10,7 +10,7 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useYoYComparison, calcChangePercent } from '@/hooks/useYoYComparison';
 import YoYBadge from '@/components/dashboard/YoYBadge';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, CheckCircle, AlertTriangle, Link as LinkIcon, ArrowUpDown, Clock, DollarSign, Landmark, HandCoins, Banknote } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
