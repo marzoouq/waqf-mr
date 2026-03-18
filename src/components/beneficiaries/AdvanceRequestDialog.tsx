@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateAdvanceRequest } from '@/hooks/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AdvanceRequestDialogProps {
   beneficiaryId: string;
