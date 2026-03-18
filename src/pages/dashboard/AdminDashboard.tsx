@@ -140,7 +140,7 @@ const AdminDashboard = () => {
   const expiringContracts = useMemo(() =>
     contracts.filter(c => {
       const daysLeft = (new Date(c.end_date).getTime() - Date.now()) / 86_400_000;
-      return c.status === 'active' && daysLeft >= 0 && daysLeft <= 30;
+      return c.status === 'active' && daysLeft >= 0 && daysLeft <= EXPIRING_SOON_DAYS;
     }),
     [contracts]
   );
