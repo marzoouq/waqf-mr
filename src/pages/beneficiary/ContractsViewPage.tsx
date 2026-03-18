@@ -115,7 +115,7 @@ const ContractsViewPage = () => {
         } />
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
               <FileText className="w-8 h-8 text-primary" />
