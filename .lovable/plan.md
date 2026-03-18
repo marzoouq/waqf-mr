@@ -1,58 +1,105 @@
-## تقرير الفحص الجنائي الهجين — الإصدار الثالث ✅
 
-### ملخص تنفيذي
 
-فحص جنائي شامل على 3 طبقات: **AdminDashboard** + **SupportDashboard** + **الهوكات المالية العميقة** + **مكونات الداشبورد**. تم التحقق من 18 بنداً إجمالاً، إصلاح 10 مشاكل حقيقية، ورفض 8 إنذارات كاذبة/تصميمية.
+## التحقق الجنائي — الطبقة الثالثة
 
-**الاختبارات**: 600+ اختبار ✅ — 0 فشل
-
----
-
-### الطبقة الأولى — AdminDashboard + Support + Permissions
-
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
-| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
-| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
-| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
-| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
-| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
-| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
-
-### الطبقة الثانية — الهوكات المالية + المكونات
-
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` — لا مستهلك حالي لكن وقائي |
-| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع بدون `currentAccount` |
-| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
-| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة عمداً |
-| **BUG-R2** | `__skip__` → `'all'` طلبات غير مقصودة | **✅ مُصلح** | تحويل `__skip__` إلى `__none__` لتعطيل الهوكات |
-| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
-| **BUG-M1** | CollectionHeatmap يعرض دخل لا تحصيل | **✅ مُصلح** | تغيير المصدر من `income` إلى `paymentInvoices` مع `paid_date` |
-| **BUG-M2** | ZATCA تُقطع عند 10 بلا إشعار | **✅ مُصلح** | إضافة صف `+ X فاتورة أخرى` مع Badge العدد الحقيقي |
-| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
-| BUG-M3 | CollectionSummaryChart counts | ❌ تم إصلاحه مسبقاً | BUG-02 عالج الجذر |
+### BUG-Y1: تم إصلاحه بالفعل
+`prevContractualRevenue` محذوف من `useYoYComparison.ts` — تم التنظيف في الجولة السابقة. ✅
 
 ---
 
-### الملفات المُعدَّلة (الطبقة الثانية)
+### فحص كل بند من الطبقة الثالثة
 
-| الملف | نوع التغيير |
-|-------|------------|
-| `src/hooks/useRawFinancialData.ts` | BUG-R2: `__skip__` → `__none__` |
-| `src/hooks/useComputedFinancials.ts` | BUG-C1: إضافة `isDeficit: false` |
-| `src/components/dashboard/CollectionHeatmap.tsx` | BUG-M1: تحويل من `income` إلى `paymentInvoices` |
-| `src/components/dashboard/PendingActionsTable.tsx` | BUG-M2: مؤشر الفواتير الإضافية |
-| `src/pages/dashboard/AdminDashboard.tsx` | تحديث prop لـ CollectionHeatmap |
+| # | الادعاء | النتيجة | إصلاح؟ | التحليل |
+|---|---------|---------|--------|---------|
+| **BUG-W1** | خوارزميتا collectionSummary مختلفتان | **✅ مؤكد** | **نعم** | AdminDashboard يحسب بالمبالغ (صحيح). WaqifDashboard يحسب بتعداد العقود (خاطئ) — نسبة مختلفة لنفس البيانات |
+| **BUG-W2** | WaqifDashboard يستبعد expired | **✅ مؤكد** | **نعم** | يُصفي `activeContracts` فقط بينما AdminDashboard يشمل `expired`. يُصلح ضمن W1 |
+| **BUG-K1** | progressColor='' عند عجز | **✅ مؤكد** | **نعم** | `expenseRatio > 100` → `progressColor = ''` → لا شريط. يجب إظهار شريط أحمر 100% |
+| **BUG-K2** | WaqifDashboard لا يُظهر تنبيه عجز | **✅ مؤكد** | **نعم** | يُصلح ضمن W1 عند توحيد KPI |
+| **BUG-P1** | limit 1000 صامت | **✅ مؤكد** | **نعم** | إضافة `logger.warn` عند الوصول للحد — تغيير بسيط |
+| **BUG-P2** | invalidateQueries شامل | **❌ بالتصميم** | لا | `pay_invoice_and_record_collection` يُنشئ سجل income جديد — لا نعرف أي سنة تأثرت. الإبطال الشامل آمن ومقبول |
+| **BUG-A1** | staleTime 10s + all | **❌ بالتصميم** | لا | التعليق يوضح: "عمليات مالية حساسة". و `limit(100)` يمنع الحمل الزائد. 10s مقبول لسُلف معلقة |
+| **BUG-A2** | pendingAdvances يشمل سنوات مغلقة | **❌ ليس خطأ** | لا | عند `all` يُمرر `undefined` → يجلب كل السُلف. السُلف المعلقة من سنوات مغلقة **يجب** أن تظهر — هي معلقة بانتظار قرار |
+| **BUG-D1** | new Date() آلاف المرات | **✅ مؤكد** | **نعم** | تحسين أداء بسيط — cache `now` خارج filter |
+| **BUG-D2** | Date.now() داخل useMemo | **❌ بالتصميم** | لا | يُعاد الحساب فقط عند تغيير `fyContracts`. سلوك متوقع ومقبول |
+| **BUG-FW1** | financialProgress يقارن بـ contractualRevenue كامل | **❌ بالتصميم** | لا | `contractualRevenue` = القيمة السنوية الكاملة للعقود. المقارنة مع `totalIncome` تعطي صورة واقعية عن التقدم. العقود التي بدأت منتصف السنة نادرة ولا تبرر تعقيد الحساب |
+| **BUG-AR1** | useIncomeComparison بدون limit | **❌ ليس خطأ** | لا | الاستعلام مُقيَّد بـ `.in('fiscal_year_id', yearIds)` لـ 4 سنوات فقط. Supabase يُرجع 1000 صف كحد افتراضي. ولو تجاوز — الداتا هنا خفيفة (عمودان فقط: fiscal_year_id + amount) |
+| **BUG-CS1** | Tooltip بدون وحدة | **✅ مؤكد** | **نعم** | تحسين UX بسيط — إضافة formatter للـ Tooltip |
+| **BUG-CS2** | توثيق Props | **❌ تجميلي** | لا | المكون يُستخدم في AdminDashboard فقط. واضح من السياق |
+| **BUG-K3** | deps ناقصة في kpis | **❌ ليس خطأ** | لا | KPI لا يعتمد على YoY — لا حاجة لإضافته في deps |
+| **BUG-P3** | لا limit مختلف لسنة محددة | **❌ ليس خطأ** | لا | 1000 فاتورة لسنة واحدة = 83 عقد × 12 دفعة. نادر جداً |
 
-### التقييم النهائي
+---
 
-- **الأمن**: 9.5/10 — لا تغييرات على RLS أو المصادقة
-- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة (BUG-01 + BUG-R2)
-- **الدقة المالية**: 10/10 — تحصيل فعلي في الخريطة الحرارية + نسبة بالمبالغ
-- **شفافية UI**: 9.5/10 — مؤشر واضح للفواتير المخفية
-- **الاختبارات**: 600+ ✅ — 0 فشل
+### الإصلاحات المطلوبة — 6 تغييرات في 4 ملفات
 
-**الحالة**: مُعتمد ✅
+**1. BUG-W1 + W2 + K2 (حرج): توحيد collectionSummary في WaqifDashboard**
+
+**الملف:** `src/pages/beneficiary/WaqifDashboard.tsx`
+
+استبدال خوارزمية `collectionSummary` (سطر 63-76) بنفس منطق AdminDashboard:
+- فلترة العقود: `active` **و** `expired`
+- حساب `totalExpected` و `totalCollected` بالمبالغ
+- `percentage = (totalCollected / totalExpected) * 100`
+- `onTime`/`late` = عدد فواتير (ليس عقود)
+- تغيير العرض من `عقد` إلى `فاتورة` (سطر 270-276)
+- إضافة تنبيه عجز لـ `expenseRatio > 100` في KPI (سطر 89)
+- Cache `new Date()` خارج filter (BUG-D1)
+
+**2. BUG-K1 (متوسط): شريط تقدم أحمر عند عجز مالي**
+
+**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطر 208
+
+تغيير:
+```typescript
+progressColor: expenseRatio > 100 ? '' : (...)
+```
+إلى:
+```typescript
+progressColor: expenseRatio > 100 
+  ? '[&>div]:bg-destructive' 
+  : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive')
+```
+
+**3. BUG-D1 (أداء): cache new Date() في AdminDashboard**
+
+**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطر 104-105
+
+```typescript
+const now = new Date();
+const dueInvoices = paymentInvoices.filter(
+  inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= now
+);
+```
+
+**4. BUG-P1 (متوسط): تحذير عند الوصول لحد 1000**
+
+**الملف:** `src/hooks/usePaymentInvoices.ts`
+
+إضافة بعد `if (error) throw error;`:
+```typescript
+if (data && data.length >= 1000) {
+  logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
+}
+```
+
+**5. BUG-CS1 (تجميلي): Tooltip مع وحدة**
+
+**الملف:** `src/components/dashboard/CollectionSummaryChart.tsx` سطر 34
+
+إضافة `formatter` للـ Tooltip:
+```typescript
+<Tooltip 
+  contentStyle={{ direction: 'rtl', textAlign: 'right' }}
+  formatter={(value: number) => [`${value} فاتورة`, undefined]}
+/>
+```
+
+---
+
+### ملخص التأثير
+
+- **4 ملفات** تُعدَّل
+- لا تغييرات في قاعدة البيانات
+- لا مكونات جديدة
+- التغيير الأهم: توحيد خوارزمية التحصيل بين الناظر والواقف (BUG-W1)
+
