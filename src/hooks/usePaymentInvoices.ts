@@ -70,6 +70,7 @@ export const useGenerateContractInvoices = () => {
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
+      qc.invalidateQueries({ queryKey: ['contracts'] });
       toast.success(`تم توليد ${count} فاتورة`);
     },
     onError: () => toast.error('فشل توليد الفواتير'),
@@ -86,6 +87,7 @@ export const useGenerateAllInvoices = () => {
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ['payment_invoices'] });
+      qc.invalidateQueries({ queryKey: ['contracts'] });
       toast.success(`تم توليد ${count} فاتورة لجميع العقود النشطة`);
     },
     onError: () => toast.error('فشل توليد الفواتير'),

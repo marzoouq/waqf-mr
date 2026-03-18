@@ -155,6 +155,7 @@ export const useAddTicketReply = () => {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ['ticket_replies', vars.ticket_id] });
+      qc.invalidateQueries({ queryKey: ['support_tickets'] });
       toast.success('تم إرسال الرد');
     },
     onError: () => toast.error('فشل إرسال الرد'),

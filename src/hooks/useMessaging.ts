@@ -64,15 +64,15 @@ export const useMessages = (conversationId: string | null) => {
     staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness
   });
 
-  const queryClientRef2 = useRef(queryClient);
-  queryClientRef2.current = queryClient;
+  const queryClientRef = useRef(queryClient);
+  queryClientRef.current = queryClient;
 
   useEffect(() => {
     if (!user || !conversationId) return;
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-        queryClientRef2.current.invalidateQueries({ queryKey: ['messages', conversationId] });
+        queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
