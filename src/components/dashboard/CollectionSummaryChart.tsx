@@ -6,11 +6,12 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 interface CollectionSummaryChartProps {
   onTime: number;
   late: number;
+  partial?: number;
 }
 
-const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) => {
+const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummaryChartProps) => {
   // CS-01: guard للبيانات الفارغة
-  if (onTime === 0 && late === 0) {
+  if (onTime === 0 && late === 0 && partial === 0) {
     return (
       <div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center rounded-full bg-muted/30">
         <span className="text-xs text-muted-foreground">لا توجد بيانات</span>
@@ -20,7 +21,14 @@ const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) =
 
   const data = [
     { name: 'محصّل', value: onTime },
+    ...(partial > 0 ? [{ name: 'جزئي', value: partial }] : []),
     { name: 'متأخر', value: late },
+  ];
+
+  const colors = [
+    'hsl(var(--success))',
+    ...(partial > 0 ? ['hsl(var(--warning))'] : []),
+    'hsl(var(--destructive))',
   ];
 
   return (
@@ -37,10 +45,10 @@ const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) =
             startAngle={90}
             endAngle={-270}
           >
-            <Cell fill="hsl(var(--success))" />
-            <Cell fill="hsl(var(--destructive))" />
+            {colors.map((color, i) => (
+              <Cell key={i} fill={color} />
+            ))}
           </Pie>
-          {/* CS-05: إصلاح Tooltip formatter — إضافة name */}
           <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value?: number, name?: string) => [`${value ?? 0} فاتورة`, name ?? '']} />
         </PieChart>
       </ResponsiveContainer>

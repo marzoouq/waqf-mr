@@ -34,7 +34,7 @@ const BetaBanner = () => {
       <span>{settings.text}</span>
       {settings.dismissible && (
         <button
-          onClick={() => setDismissed(true)}
+          onClick={() => { setDismissed(true); sessionStorage.setItem(BANNER_DISMISS_KEY, '1'); }}
           className={`ms-2 rounded p-0.5 ${colors.hover} transition-colors`}
           aria-label="إغلاق"
         >
