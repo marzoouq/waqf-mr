@@ -30,41 +30,13 @@ import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
   ACCOUNTANT_EXCLUDED_ROUTES, ROUTE_TITLES,
+  defaultAdminSections, defaultBeneficiarySections,
+  ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS,
 } from '@/components/dashboard-layout/constants';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
-
-const DEFAULT_ADMIN_SECTIONS = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true };
-const DEFAULT_BENEFICIARY_SECTIONS = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true };
-const ADMIN_SECTION_KEYS: Record<string, string> = {
-  '/dashboard/properties': 'properties',
-  '/dashboard/contracts': 'contracts',
-  '/dashboard/income': 'income',
-  '/dashboard/expenses': 'expenses',
-  '/dashboard/beneficiaries': 'beneficiaries',
-  '/dashboard/reports': 'reports',
-  '/dashboard/accounts': 'accounts',
-  '/dashboard/users': 'users',
-  '/dashboard/invoices': 'invoices',
-  '/dashboard/bylaws': 'bylaws',
-  '/dashboard/messages': 'messages',
-  '/dashboard/audit-log': 'audit_log',
-};
-const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
-  '/beneficiary/properties': 'properties',
-  '/beneficiary/contracts': 'contracts',
-  '/beneficiary/disclosure': 'disclosure',
-  '/beneficiary/my-share': 'share',
-  '/beneficiary/carryforward': 'share',
-  '/beneficiary/accounts': 'accounts',
-  '/beneficiary/financial-reports': 'reports',
-  '/beneficiary/invoices': 'invoices',
-  '/beneficiary/bylaws': 'bylaws',
-  '/beneficiary/messages': 'messages',
-  '/beneficiary/notifications': 'notifications',
-};
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, role, signOut } = useAuth();
@@ -195,10 +167,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
 
   // إعدادات إظهار/إخفاء الأقسام — دمج المحفوظ مع الافتراضي لضمان ظهور الأقسام الجديدة
-  const sectionsVisibility = { ...DEFAULT_ADMIN_SECTIONS, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
+  const sectionsVisibility = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
 
   // إعدادات إظهار/إخفاء أقسام المستفيد — دمج المحفوظ مع الافتراضي
-  const beneficiarySections = { ...DEFAULT_BENEFICIARY_SECTIONS, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
+  const beneficiarySections = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const links = useMemo(() => {
     if (role === 'admin') {
