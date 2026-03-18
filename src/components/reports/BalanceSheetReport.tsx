@@ -46,7 +46,7 @@ const BalanceSheetReport = ({
   const balanceCheck = totalAssets - totalLiabilities - totalEquity - distributionsAmount;
   const isBalanced = Math.abs(balanceCheck) < 1;
 
-  const fmt = (n: number) => fmt(n);
+  const fmt = (n: number) => fmtNum(n);
 
   return (
     <Card className="shadow-sm">

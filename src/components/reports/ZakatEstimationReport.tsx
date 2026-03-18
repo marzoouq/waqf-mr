@@ -135,7 +135,7 @@ const ZakatEstimationReport = ({
           <Alert className="border-warning/50">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              يوجد فرق بين الزكاة المقدّرة ({fmt(calculatedZakat)} ر.س) والمسجّلة ({fmt(zakatAmount)} ر.س) بمقدار {Math.absfmt(calculatedZakat - zakatAmount)} ر.س. يُرجى المراجعة.
+              يوجد فرق بين الزكاة المقدّرة ({fmt(calculatedZakat)} ر.س) والمسجّلة ({fmt(zakatAmount)} ر.س) بمقدار {fmt(Math.abs(calculatedZakat - zakatAmount))} ر.س. يُرجى المراجعة.
             </AlertDescription>
           </Alert>
         )}

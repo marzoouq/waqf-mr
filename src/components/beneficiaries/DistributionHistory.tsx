@@ -65,7 +65,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
 
   const totalAllYears = yearlyData.reduce((sum, y) => sum + y.total, 0);
 
-  const fmt = (n: number) => fmt(n);
+  const fmt = (n: number) => fmtNum(n);
 
   if (isLoading) {
     return (

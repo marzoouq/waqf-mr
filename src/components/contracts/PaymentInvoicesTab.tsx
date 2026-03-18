@@ -656,9 +656,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell>{inv.contract?.property?.property_number || '-'}</TableCell>
                               <TableCell className="text-center">{inv.payment_number}</TableCell>
                               <TableCell>{inv.due_date}</TableCell>
-                              <TableCell>{Numberfmt(inv.amount)} ر.س</TableCell>
+                              <TableCell>{fmt(Number(inv.amount))} ر.س</TableCell>
                               <TableCell className="text-muted-foreground text-xs">
-                                {Number(inv.vat_amount) > 0 ? `${Numberfmt(inv.vat_amount)} (${inv.vat_rate}%)` : 'معفاة'}
+                                {Number(inv.vat_amount) > 0 ? `${fmt(Number(inv.vat_amount))} (${inv.vat_rate}%)` : 'معفاة'}
                               </TableCell>
                               <TableCell className={inv.paid_date ? 'text-success' : 'text-muted-foreground'}>{inv.paid_date || '-'}</TableCell>
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>

@@ -124,7 +124,9 @@ const AdminDashboard = () => {
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
-  
+
+  // M6 fix: استخراج لون نسبة التحصيل إلى useMemo بدل IIFE في JSX
+  const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
 
   // BUG-04 fix: استخراج expiringContracts إلى useMemo بدل IIFE في JSX
   const expiringContracts = useMemo(() =>

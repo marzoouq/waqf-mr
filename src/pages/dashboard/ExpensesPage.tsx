@@ -301,7 +301,7 @@ const ExpensesPage = () => {
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">{item.expense_type}</TableCell>
-                          <TableCell className="text-destructive font-medium">-{safeNumberfmt(item.amount)} ر.س</TableCell>
+                          <TableCell className="text-destructive font-medium">-{fmt(safeNumber(item.amount))} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>

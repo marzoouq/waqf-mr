@@ -23,7 +23,7 @@ export interface AuditLogPdfOptions {
 
 const formatDate = (iso: string) => {
   try {
-    return new Datefmt(iso);
+    return new Date(iso).toLocaleDateString('ar-SA');
   } catch {
     return iso;
   }

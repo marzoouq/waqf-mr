@@ -370,8 +370,8 @@ function ZatcaManagementPage() {
                       return (
                         <TableRow key={inv.id} className={rowBusy ? 'opacity-60' : ''}>
                           <TableCell className="font-mono text-sm">{inv.invoice_number || '—'}</TableCell>
-                          <TableCell>{Numberfmt(inv.amount)} ر.س</TableCell>
-                          <TableCell>{Numberfmt(inv.vat_amount)} ({inv.vat_rate}%)</TableCell>
+                          <TableCell>{fmt(Number(inv.amount))} ر.س</TableCell>
+                          <TableCell>{fmt(Number(inv.vat_amount))} ({inv.vat_rate}%)</TableCell>
                           <TableCell>{inv.date}</TableCell>
                           {/* Step indicators */}
                           <TableCell>

@@ -194,7 +194,7 @@ const ContractAccordionGroup = ({
                   >
                     {invoiceStatusIcon[inv.status] || <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
                     <span className="text-muted-foreground">دفعة {inv.payment_number}</span>
-                    <span className="font-medium mr-auto">{Numberfmt(inv.amount)} ر.س</span>
+                    <span className="font-medium mr-auto">{fmt(Number(inv.amount))} ر.س</span>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                       inv.status === 'paid' ? 'bg-success/15 text-success'
                         : inv.status === 'overdue' ? 'bg-destructive/15 text-destructive'
