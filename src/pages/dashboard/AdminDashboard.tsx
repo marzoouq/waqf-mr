@@ -45,6 +45,14 @@ const ChartSkeleton = () => (
   </div>
 );
 
+// T-03: دالة مساعدة موحّدة لألوان KPI (module-level لتجنب hoisting issue)
+const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
+  const isGood = invert ? value <= good : value >= good;
+  const isWarn = invert ? value <= warn : value >= warn;
+  if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
+  if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
+  return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
+};
 
 const AdminDashboard = () => {
   const { role } = useAuth();
@@ -199,14 +207,7 @@ const AdminDashboard = () => {
 
   // tooltipStyle moved to module level (PERF — BUG-02 fix)
 
-  // T-03: دالة مساعدة موحّدة لألوان KPI
-  const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
-    const isGood = invert ? value <= good : value >= good;
-    const isWarn = invert ? value <= warn : value >= warn;
-    if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
-    if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
-    return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
-  };
+  // T-03: getKpiColor نُقلت إلى مستوى الوحدة (module-level) — انظر أعلى الملف
 
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
