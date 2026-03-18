@@ -359,7 +359,7 @@ const IncomePage = () => {
                   {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
-                      <TableCell className="text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell className="text-success font-medium">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
                       <TableCell>{item.date}</TableCell>
                       <TableCell>{item.property?.property_number || '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
