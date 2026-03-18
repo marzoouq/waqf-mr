@@ -748,7 +748,7 @@ function ZatcaManagementPage() {
                 </div>
 
                 {/* Warnings — من المستوى المسطّح (موحّد من الخلفية) */}
-                {(complianceResult.warningMessages?.length > 0 || complianceResult.validationResults?.warningMessages?.length > 0) && (
+                {((complianceResult.warningMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.warningMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-accent-foreground">تحذيرات:</p>
                     {(complianceResult.warningMessages || complianceResult.validationResults?.warningMessages || []).map((w: { code: string; message: string }, i: number) => (
