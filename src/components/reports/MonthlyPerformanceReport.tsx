@@ -100,7 +100,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
-            <p className="text-base sm:text-xl font-bold text-destructive">{Math.roundfmt(avgMonthlyExpenses)} ر.س</p>
+            <p className="text-base sm:text-xl font-bold text-destructive">{fmt(Math.round(avgMonthlyExpenses))} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
