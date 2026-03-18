@@ -43,7 +43,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         items.push({
           type: 'advance',
           label: 'طلب سُلفة معلق',
-          detail: r.reason || 'بدون سبب',
+          detail: r.reason || '—',
           amount: safeNumber(r.amount),
           link: '/dashboard/accounts',
         });
