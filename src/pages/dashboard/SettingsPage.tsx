@@ -82,7 +82,6 @@ const LogoManager = () => {
         { onConflict: 'key' }
       );
 
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم رفع الشعار بنجاح');
     } catch {
@@ -108,7 +107,6 @@ const LogoManager = () => {
         { onConflict: 'key' }
       );
 
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم حذف الشعار بنجاح');
     } catch {
@@ -262,7 +260,7 @@ const WaqfSettingsTab = () => {
       const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
       if (error) failedFields.push('بعض الحقول');
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
+      
       if (failedFields.length > 0) {
         toast.error(`فشل حفظ: ${failedFields.join('، ')}`);
       } else {
