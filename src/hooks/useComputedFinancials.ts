@@ -99,6 +99,7 @@ export const useComputedFinancials = ({
           waqfRevenue: 0,
           availableAmount: 0,
           remainingBalance: 0,
+          isDeficit: false, // BUG-C1 fix: الحصص مصفّرة في السنة النشطة فلا عجز
         };
       }
 

@@ -24,6 +24,15 @@ interface PendingActionsTableProps {
 }
 
 const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingActionsTableProps) => {
+  // BUG-M2 fix: حساب العدد الكلي للفواتير غير المُرسلة قبل القطع
+  const unsubmittedZatcaTotal = useMemo(() => {
+    return paymentInvoices.filter(
+      inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status
+    ).length;
+  }, [paymentInvoices]);
+
+  const zatcaOverflow = Math.max(0, unsubmittedZatcaTotal - 10);
+
   const actions = useMemo<PendingAction[]>(() => {
     const items: PendingAction[] = [];
 
@@ -40,10 +49,10 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         });
       });
 
-    // فواتير ZATCA غير مُرسلة
+    // فواتير ZATCA غير مُرسلة (أول 10 فقط)
     paymentInvoices
       .filter(inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status)
-      .slice(0, 10) // حد أقصى 10 لتجنب تضخم الجدول
+      .slice(0, 10)
       .forEach(inv => {
         items.push({
           type: 'zatca',
@@ -57,6 +66,9 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
     return items;
   }, [advanceRequests, paymentInvoices]);
 
+  // العدد الحقيقي يشمل المعروضة + المخفية
+  const totalActionsCount = actions.length + zatcaOverflow;
+
   if (actions.length === 0) return null;
 
   return (
@@ -65,7 +77,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         <CardTitle className="flex items-center gap-2 text-base">
           <ClipboardList className="w-5 h-5 text-warning" />
           الإجراءات المعلقة
-          <Badge variant="secondary">{actions.length}</Badge>
+          <Badge variant="secondary">{totalActionsCount}</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -102,6 +114,18 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
                   </TableCell>
                 </TableRow>
               ))}
+              {/* BUG-M2 fix: مؤشر على وجود فواتير إضافية */}
+              {zatcaOverflow > 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-2">
+                    <Link to="/dashboard/contracts">
+                      <Button variant="link" size="sm" className="text-xs text-muted-foreground">
+                        + {zatcaOverflow} فاتورة أخرى غير مُرسلة لـ ZATCA
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

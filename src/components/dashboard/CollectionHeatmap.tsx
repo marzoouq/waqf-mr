@@ -1,6 +1,7 @@
 /**
  * D-4: خريطة حرارية للتحصيل الشهري — 12 شهر × شدة اللون
- * تعرض المبالغ المحصّلة شهرياً بتدرج لوني يعكس حجم التحصيل
+ * تعرض المبالغ المحصّلة فعلياً (فواتير مدفوعة) شهرياً بتدرج لوني يعكس حجم التحصيل
+ * BUG-M1 fix: تستخدم paymentInvoices (تحصيل فعلي) بدلاً من income (مدخلات محاسبية)
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
@@ -8,8 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Flame } from 'lucide-react';
 
+interface PaymentInvoice {
+  paid_date?: string | null;
+  paid_amount?: number | null;
+  amount: number;
+  status: string;
+}
+
 interface CollectionHeatmapProps {
-  income: Array<{ date: string; amount: number }>;
+  paymentInvoices: PaymentInvoice[];
 }
 
 const MONTH_LABELS = [
@@ -35,16 +43,22 @@ const INTENSITY_CLASSES: Record<number, string> = {
   4: 'bg-success/90 text-success-foreground',
 };
 
-const CollectionHeatmap = ({ income }: CollectionHeatmapProps) => {
-  // تجميع الدخل حسب الشهر
+const CollectionHeatmap = ({ paymentInvoices }: CollectionHeatmapProps) => {
+  // تجميع التحصيل الفعلي حسب الشهر (فواتير مدفوعة فقط)
   const monthlyAmounts = useMemo(() => {
     const amounts = new Array(12).fill(0);
-    income.forEach(item => {
-      const month = new Date(item.date).getMonth();
-      amounts[month] += safeNumber(item.amount);
+    paymentInvoices.forEach(inv => {
+      if (inv.status !== 'paid' && inv.status !== 'partially_paid') return;
+      const dateStr = inv.paid_date;
+      if (!dateStr) return;
+      const month = new Date(dateStr).getMonth();
+      const collected = inv.status === 'partially_paid'
+        ? safeNumber(inv.paid_amount)
+        : safeNumber(inv.amount);
+      amounts[month] += collected;
     });
     return amounts;
-  }, [income]);
+  }, [paymentInvoices]);
 
   const maxAmount = useMemo(() => Math.max(...monthlyAmounts, 1), [monthlyAmounts]);
   const totalCollected = monthlyAmounts.reduce((s, v) => s + v, 0);
