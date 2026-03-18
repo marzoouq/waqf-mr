@@ -207,6 +207,10 @@ const MySharePage = () => {
 
   const handleDownloadComprehensivePDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
+    if (!isClosed) {
+      toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+      return;
+    }
     try {
       await generateComprehensiveBeneficiaryPDF({
         beneficiaryName: currentBeneficiary.name ?? 'غير معروف',
