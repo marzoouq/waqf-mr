@@ -245,7 +245,7 @@ const AdminDashboard = () => {
           title="لوحة التحكم"
           icon={Gauge}
           description={
-            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف') +
+            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : `مرحباً بك، ناظر الوقف`) +
             (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '')
           }
           actions={
