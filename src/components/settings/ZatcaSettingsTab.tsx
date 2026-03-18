@@ -243,7 +243,7 @@ const ZatcaSettingsTab = () => {
       const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
+      
       toast.success('تم حفظ إعدادات الضريبة بنجاح');
     } catch {
       toast.error('حدث خطأ أثناء الحفظ');

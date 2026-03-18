@@ -260,7 +260,7 @@ const WaqfSettingsTab = () => {
       const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
       if (error) failedFields.push('بعض الحقول');
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
+      
       if (failedFields.length > 0) {
         toast.error(`فشل حفظ: ${failedFields.join('، ')}`);
       } else {

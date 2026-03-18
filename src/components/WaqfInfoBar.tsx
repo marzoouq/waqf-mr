@@ -118,7 +118,7 @@ const WaqfInfoBar = () => {
           .eq('key', field.key);
         if (error) throw error;
       }
-      await queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
+      await queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم حفظ بيانات الوقف بنجاح');
       setEditOpen(false);
     } catch {
