@@ -48,6 +48,7 @@ const FinancialReportsPage = () => {
     income,
     beneficiaries,
     currentAccount,
+    isAccountMissing,
     totalIncome,
     totalExpenses,
     netAfterZakat,
