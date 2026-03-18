@@ -103,7 +103,7 @@ const AdminDashboard = () => {
     );
     const nowDate = new Date();
     const dueInvoices = paymentInvoices.filter(
-      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate && inv.status !== 'cancelled'
+      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
     );
     const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
     const totalCollected = dueInvoices.reduce((sum, inv) => {
