@@ -99,7 +99,7 @@ const AdminDashboard = () => {
   // حساب التحصيل بالمبالغ (القرار المعماري الموثق: مبالغ محصلة / مبالغ متوقعة)
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
-      fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
+      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
     );
     const nowDate = new Date();
     const dueInvoices = paymentInvoices.filter(
