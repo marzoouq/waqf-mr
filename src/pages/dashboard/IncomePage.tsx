@@ -139,7 +139,7 @@ const IncomePage = () => {
     const count = income.length;
     const avg = count > 0 ? Math.round(totalIncome / count) : 0;
     const sourceMap = new Map<string, number>();
-    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + Number(i.amount)));
+    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + safeNumber(i.amount)));
     let topSource = '-';
     let topSourceAmount = 0;
     sourceMap.forEach((amount, source) => { if (amount > topSourceAmount) { topSourceAmount = amount; topSource = source; } });
