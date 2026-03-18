@@ -255,9 +255,14 @@ const BeneficiaryDashboard = () => {
                   {(() => {
                     const lastPaid = distributions.find(d => d.status === 'paid');
                     return lastPaid ? (
-                      <p className="text-lg sm:text-xl font-bold truncate">
-                        {Number(lastPaid.amount).toLocaleString()} ر.س
-                      </p>
+                      <>
+                        <p className="text-lg sm:text-xl font-bold truncate">
+                          {Number(lastPaid.amount).toLocaleString()} ر.س
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
+                        </p>
+                      </>
                     ) : (
                       <p className="text-sm text-muted-foreground">لا توجد توزيعات</p>
                     );

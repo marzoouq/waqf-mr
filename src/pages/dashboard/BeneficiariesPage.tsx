@@ -136,7 +136,7 @@ const BeneficiariesPage = () => {
           icon={Users}
           description="عرض وإدارة المستفيدين من الوقف"
           actions={<>
-            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(beneficiaries, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={() => generateBeneficiariesPDF(filteredBeneficiaries, pdfWaqfInfo)} onExportCsv={() => {
               const csv = buildCsv(filteredBeneficiaries.map(b => ({
                 'الاسم': b.name,
                 'النسبة %': Number(b.share_percentage),

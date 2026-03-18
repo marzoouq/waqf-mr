@@ -536,7 +536,7 @@ const MySharePage = () => {
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
                 {myAdvances.map(adv => {
-                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-blue-500' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
+                  const borderColor = adv.status === 'paid' ? 'border-r-success' : adv.status === 'approved' ? 'border-r-primary' : adv.status === 'rejected' ? 'border-r-destructive' : 'border-r-warning';
                   return (
                     <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
                       <div className="flex items-center justify-between">
