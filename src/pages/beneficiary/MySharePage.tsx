@@ -380,7 +380,7 @@ const MySharePage = () => {
         />
 
         {/* Share Summary - cards */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-3 sm:gap-4`}>
+        <div className={`grid grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'sm:grid-cols-4'} gap-3 sm:gap-4`}>
           {/* BEN-13: بطاقة نسبة الحصة */}
           <Card className="shadow-sm border-primary/20">
             <CardContent className="p-3 sm:p-6">
