@@ -59,21 +59,26 @@ const WaqifDashboard = () => {
   const expiredContracts = contracts.filter(c => c.status === 'expired');
   const contractualRevenue = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
-  /* ── Collection summary (using payment_invoices — same as AdminDashboard) ── */
+  /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
-    let onTime = 0, late = 0;
-    activeContracts.forEach(contract => {
-      const contractInvoices = paymentInvoices.filter(inv => inv.contract_id === contract.id);
-      if (contractInvoices.length === 0) return;
-      const dueInvoices = contractInvoices.filter(inv => new Date(inv.due_date) <= new Date());
-      if (dueInvoices.length === 0) return;
-      const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
-      if (paidCount >= dueInvoices.length) onTime++; else late++;
-    });
-    const total = onTime + late;
-    const percentage = total > 0 ? Math.round((onTime / total) * 100) : 0;
-    return { onTime, late, total, percentage };
-  }, [activeContracts, paymentInvoices]);
+    const relevantContractIds = new Set(
+      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
+    );
+    const nowDate = new Date();
+    const dueInvoices = paymentInvoices.filter(
+      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
+    );
+    const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
+    const totalCollected = dueInvoices.reduce((sum, inv) => {
+      if (inv.status === 'paid') return sum + safeNumber(inv.amount);
+      if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
+      return sum;
+    }, 0);
+    const paidCount = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
+    const unpaidCount = dueInvoices.length - paidCount;
+    const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
+    return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage };
+  }, [contracts, paymentInvoices]);
 
   /* ── KPIs ── */
   const kpis = useMemo(() => {
