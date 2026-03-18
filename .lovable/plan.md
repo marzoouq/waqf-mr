@@ -114,6 +114,11 @@
 | DEFER-6 | الجولة 2 — J-09 | تفضيلات الإشعارات localStorage | حفظها في DB بدل localStorage | ميزة جديدة وليس bug | منخفضة |
 | DEFER-7 | الطبقة 4 — BUG-ST2 | saveSetting بلا debounce | إضافة debounce لـ `handleAdminPercentChange` | أداء — أثر ضعيف (حقل رقمي) | منخفضة |
 | DEFER-8 | الطبقة 2 — BUG-Y1 | prevContractualRevenue = 0 stub | قيمة stub بلا مستهلك — تنظيف مستقبلي | لا مستهلك حالي | منخفضة |
+| DEFER-9 | الجولة 3 — BUG-A | تعارض admin vs accountant في الإقفال | `close_fiscal_year` RPC يقبل المحاسب، الـ UI يمنعه — توحيد القرار | قرار تصميمي | متوسطة |
+| DEFER-10 | الجولة 3 — BUG-F | `reopen_fiscal_year` لا يُعيد corpus | حالة نادرة — يحتاج مراجعة حساب السنة التالية يدوياً | حالة حافة نادرة | منخفضة |
+| DEFER-11 | الجولة 3 — L-12 | `myShare=0` بلا تفسير عند فشل RPC | حالة نادرة جداً (فشل `get_total_beneficiary_percentage`) | حالة حافة | منخفضة |
+| DEFER-12 | الجولة 3 — L-14 | PDF الشامل بلا disclaimer للسنة النشطة | تحسين UX — إضافة علامة تقديرية | تحسين UX | منخفضة |
+| DEFER-13 | الجولة 3 — L-06 | سجل السُلف بلا عمود سنة مالية | تحسين تجميلي — إضافة عمود السنة | تجميلي | منخفضة |
 
 ---
 
