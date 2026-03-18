@@ -57,6 +57,7 @@ const WaqifDashboard = () => {
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
 
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
+  const displayName = user?.email?.split('@')[0] || 'الواقف';
 
   const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
