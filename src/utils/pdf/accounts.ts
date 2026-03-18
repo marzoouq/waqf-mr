@@ -60,7 +60,7 @@ export const generateDistributionsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  let y = getLastAutoTableY(doc, 80) + 10;
+  const y = getLastAutoTableY(doc, 80) + 10;
 
   // جدول التوزيع التفصيلي
   doc.setFont(fontFamily, 'bold');

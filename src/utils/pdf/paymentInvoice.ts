@@ -64,7 +64,7 @@ const statusLabel = (s: string) => {
 };
 
 // INV-CRIT-1: sanitize مسار الملف لمنع path traversal
-const sanitizePath = (name: string) => name.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+const sanitizePath = (name: string) => name.replace(/[./\\]+/g, '_');
 
 /* ─── دوال رسم مشتركة ─── */
 

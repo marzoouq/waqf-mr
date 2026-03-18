@@ -127,7 +127,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             payment_count: contract.payment_count,
             payment_amount: contract.payment_amount ?? undefined,
           },
-          fiscalYears as any
+          fiscalYears
         );
         const fyAlloc = allocations.find(a => a.fiscal_year_id === fiscalYearId);
         allocatedPayments = fyAlloc?.allocated_payments ?? 0;
@@ -202,7 +202,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     }
     setSendingAlerts(true);
     try {
-      const { error } = await (supabase.rpc as Function)('cron_check_late_payments');
+      const { error } = await supabase.rpc('cron_check_late_payments');
       if (error) throw error;
       toast.success(`تم إرسال تنبيهات لـ ${overdueRows.length} عقد متأخر`);
     } catch {

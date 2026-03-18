@@ -3,7 +3,8 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { reportPageLoadMetrics } from "./lib/performanceMonitor";
-import { initThemeFromStorage } from "./components/ThemeColorPicker";
+import { initThemeFromStorage } from "./components/themeColor.utils";
+import { logger } from "./lib/logger";
 
 // Apply saved theme before render
 initThemeFromStorage();
@@ -52,14 +53,17 @@ const isPreviewHost = window.location.hostname.endsWith('.lovable.app') || windo
           version: APP_BUILD_ID,
           ts: Date.now(),
         }));
-      } catch {}
+      } catch (error) {
+        logger.warn('[PWA] تعذر حفظ علم التحديث', error);
+      }
       window.location.reload();
       return;
     }
 
     localStorage.setItem(CACHE_VERSION_KEY, APP_BUILD_ID);
-  } catch {
+  } catch (error) {
     // caches API unavailable (e.g. incognito) — ignore
+    logger.warn('[PWA] تعذر تنفيذ حماية الكاش', error);
   }
 })();
 

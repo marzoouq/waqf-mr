@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
         p_event_type: 'national_id_lookup',
         p_metadata: { ip: clientIp, found: true },
       });
-    } catch (_) {
+    } catch {
       // لا نفشل الطلب بسبب التسجيل
     }
 
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ found: true, masked_email: maskEmail(email), remaining }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (e) {
+  } catch {
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: "خطأ في معالجة الطلب" }),

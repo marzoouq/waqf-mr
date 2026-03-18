@@ -56,7 +56,7 @@ const ArchiveLogTab = () => {
     },
   });
 
-  const logs = rawData?.logs ?? [];
+  const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
   // Client-side search on current page only (lightweight)

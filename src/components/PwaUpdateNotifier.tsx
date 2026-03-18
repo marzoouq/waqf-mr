@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Bug, Wrench, Star } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ChangelogEntry {
   version: string;
@@ -81,8 +82,13 @@ const PwaUpdateNotifier = () => {
             localStorage.setItem(LAST_SEEN_KEY, changelog[0].version);
           }
         })
-        .catch(() => {});
-    } catch {}
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+          logger.warn('[PWA] تعذر جلب سجل التحديثات', error);
+        });
+    } catch (error) {
+      logger.warn('[PWA] تعذر تهيئة إشعار التحديث', error);
+    }
 
     return () => controller.abort();
   }, []);

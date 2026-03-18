@@ -29,7 +29,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ContractStatsCards from '@/components/contracts/ContractStatsCards';
-import ContractFormDialog, { ContractFormData, emptyFormData } from '@/components/contracts/ContractFormDialog';
+import ContractFormDialog from '@/components/contracts/ContractFormDialog';
+import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
 import CollectionReport from '@/components/contracts/CollectionReport';
 import PaymentInvoicesTab from '@/components/contracts/PaymentInvoicesTab';
 import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
@@ -110,7 +111,7 @@ const ContractsPage = () => {
       status: contract.status, notes: contract.notes || '',
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
       rental_mode: contract.unit_id ? 'single' : 'full', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: contract.tenant_id_type || 'NAT', tenant_id_number: contract.tenant_id_number || '', tenant_tax_number: (contract as any).tenant_tax_number || '', tenant_crn: (contract as any).tenant_crn || '', tenant_street: contract.tenant_street || '', tenant_building: contract.tenant_building || '', tenant_district: contract.tenant_district || '', tenant_city: contract.tenant_city || '', tenant_postal_code: contract.tenant_postal_code || '',
+      tenant_id_type: contract.tenant_id_type || 'NAT', tenant_id_number: contract.tenant_id_number || '', tenant_tax_number: contract.tenant_tax_number || '', tenant_crn: contract.tenant_crn || '', tenant_street: contract.tenant_street || '', tenant_building: contract.tenant_building || '', tenant_district: contract.tenant_district || '', tenant_city: contract.tenant_city || '', tenant_postal_code: contract.tenant_postal_code || '',
     });
     setIsOpen(true);
   };
@@ -251,7 +252,7 @@ const ContractsPage = () => {
       await supabase.rpc('notify_admins', { p_title: 'تجديد جماعي للعقود', p_message: `تم تجديد ${created} عقد منتهي بنجاح`, p_type: 'success', p_link: '/dashboard/contracts' });
       await supabase.rpc('notify_all_beneficiaries', { p_title: 'تجديد عقود الإيجار', p_message: `تم تجديد ${created} عقد إيجار للسنة الجديدة`, p_type: 'info', p_link: '/beneficiary/notifications' });
       toast.success(`تم تجديد ${created} عقد بنجاح`);
-    } catch (err) {
+    } catch {
       toast.error('حدث خطأ أثناء التجديد');
     } finally {
       setBulkRenewing(false);
@@ -259,10 +260,6 @@ const ContractsPage = () => {
       setSelectedForRenewal(new Set());
     }
   };
-
-
-
-
   // تجميع العقود حسب الرقم الأساسي (بدون -R1, -R2, ...)
   const getBaseNumber = (num: string) => num.replace(/-R\d+$/, '');
 
@@ -365,13 +362,6 @@ const ContractsPage = () => {
   };
 
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- مستخدم في الـ search في المستقبل
-  void contracts.filter((c) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return c.contract_number.toLowerCase().includes(q) || c.tenant_name.toLowerCase().includes(q) || (c.notes || '').toLowerCase().includes(q) || getPaymentTypeLabel(c.payment_type).includes(q);
-  });
 
   const stats = useMemo(() => {
     const active = contracts.filter(c => c.status === 'active');

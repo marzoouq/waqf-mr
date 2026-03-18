@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes, assertNotMatch, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertStringIncludes, assertNotMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 // ── Replicate helper functions locally (not exported from index.ts) ──
 

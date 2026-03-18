@@ -305,7 +305,7 @@ Deno.serve(async (req) => {
             p_message: `تم تسجيل مستفيد جديد: ${safeName(body.name || email)}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          }); } catch {}
+          }); } catch (_error) { console.warn('notify_admins failed after single user creation', _error); }
         }
 
         return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
@@ -380,10 +380,10 @@ Deno.serve(async (req) => {
               p_message: `تم تسجيل مستفيد جديد: ${safeName(u.name)}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
-            }); } catch {}
+            }); } catch (_error) { console.warn('notify_admins failed after bulk user creation', _error); }
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
-          } catch (err) {
+          } catch {
             errors.push({ email: u.email, error: "خطأ غير متوقع" });
           }
         }

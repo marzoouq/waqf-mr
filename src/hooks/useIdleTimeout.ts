@@ -104,7 +104,7 @@ export const useIdleTimeout = ({
       }
       document.removeEventListener('visibilitychange', visibilityHandler);
     };
-  }, [resetTimer, clearTimers]);
+  }, [timeout, resetTimer, clearTimers]);
 
   return { showWarning, remaining, stayActive };
 };

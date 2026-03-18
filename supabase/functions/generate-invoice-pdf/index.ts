@@ -579,7 +579,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { invoice_ids, table: sourceTable, template, force_regenerate } = body;
+    const { invoice_ids, table: sourceTable, force_regenerate } = body;
     // دعم جدول payment_invoices أو invoices (الافتراضي)
     const tableName = sourceTable === "payment_invoices" ? "payment_invoices" : "invoices";
     const forceRegenerate = force_regenerate === true;
@@ -647,7 +647,7 @@ Deno.serve(async (req) => {
 
         // تعقيم اسم الملف لمنع path traversal
         const rawName = (invoice.invoice_number || invoice.id) as string;
-        const safeName = rawName.replace(/[\/\\\.]+/g, '_').replace(/\.\./g, '_');
+        const safeName = rawName.replace(/[./\\]+/g, '_');
         const fileName = `${safeName}.pdf`;
         const storagePath = `generated/${fileName}`;
 

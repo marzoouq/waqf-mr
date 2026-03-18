@@ -108,5 +108,5 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
       subscribedRef.current = false;
       supabase.removeChannel(channel);
     };
-  }, [user?.id, role, navigate]);
+  }, [user, user?.id, role, navigate]);
 };

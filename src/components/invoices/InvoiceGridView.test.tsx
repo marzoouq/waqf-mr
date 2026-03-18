@@ -46,7 +46,7 @@ describe('InvoiceGridView', () => {
     render(<InvoiceGridView invoices={invoices} />);
     expect(screen.getByText('إيجار')).toBeInTheDocument();
     expect(screen.getByText(/5,000/)).toBeInTheDocument();
-    expect(screen.getByText('#001')).toBeInTheDocument();
+    expect(screen.getByText(/^001$/)).toBeInTheDocument();
     expect(screen.getByText('عقار: 101')).toBeInTheDocument();
   });
 
@@ -94,7 +94,7 @@ describe('InvoiceGridView', () => {
       makeInvoice({ id: '2', invoice_number: '002', amount: 2000 }),
     ];
     render(<InvoiceGridView invoices={invoices} />);
-    expect(screen.getByText('#001')).toBeInTheDocument();
-    expect(screen.getByText('#002')).toBeInTheDocument();
+    expect(screen.getByText(/^001$/)).toBeInTheDocument();
+    expect(screen.getByText(/^002$/)).toBeInTheDocument();
   });
 });

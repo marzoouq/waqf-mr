@@ -7,7 +7,8 @@ describe('cn – className utility', () => {
   });
 
   it('يتعامل مع القيم الشرطية', () => {
-    expect(cn('base', false && 'hidden', 'extra')).toBe('base extra');
+    const hidden = false;
+    expect(cn('base', hidden ? 'hidden' : undefined, 'extra')).toBe('base extra');
   });
 
   it('يدمج أصناف Tailwind بذكاء', () => {

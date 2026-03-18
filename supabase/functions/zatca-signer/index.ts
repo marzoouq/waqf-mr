@@ -159,7 +159,7 @@ function parseX509IssuerSerial(certBase64: string): { issuerName: string; serial
     function readTag(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
       if (offset >= data.length) throw new Error("EOF");
       const tag = data[offset];
-      let lenOffset = offset + 1;
+      const lenOffset = offset + 1;
       let length = data[lenOffset];
       let valueOffset: number;
       
@@ -432,7 +432,7 @@ function extractCertSignatureAndPublicKey(certDer: Uint8Array): { signature: Uin
   // ASN.1 DER reader
   function readTlv(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
     const tag = data[offset];
-    let lenOffset = offset + 1;
+    const lenOffset = offset + 1;
     let length = data[lenOffset];
     let valueOffset: number;
     if (length & 0x80) {
@@ -455,7 +455,6 @@ function extractCertSignatureAndPublicKey(certDer: Uint8Array): { signature: Uin
 
     // tbsCertificate (SEQUENCE)
     const tbs = readTlv(certDer, pos);
-    const tbsEnd = tbs.valueOffset + tbs.length;
     pos += tbs.totalLength;
 
     // signatureAlgorithm (SEQUENCE) — skip

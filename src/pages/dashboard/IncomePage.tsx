@@ -16,7 +16,8 @@ import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, A
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
-import AdvancedFiltersBar, { FilterState, EMPTY_FILTERS } from '@/components/filters/AdvancedFiltersBar';
+import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
+import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';

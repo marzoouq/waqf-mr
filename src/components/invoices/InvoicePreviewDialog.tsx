@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type InvoiceTemplateData } from './InvoiceTemplates';
 
-export interface InvoicePreviewData extends InvoiceTemplateData {}
+export type InvoicePreviewData = InvoiceTemplateData;
 
 interface InvoicePreviewDialogProps {
   open: boolean;

@@ -152,7 +152,8 @@ function buildUBL(
   lineItems.forEach((item, idx) => {
     const qty = Number(item.quantity) || 1;
     const price = Number(item.unit_price) || 0;
-    const vatRate = Number(item.vat_rate) ?? fallbackVatRate;
+    const parsedVatRate = Number(item.vat_rate);
+    const vatRate = Number.isFinite(parsedVatRate) ? parsedVatRate : fallbackVatRate;
     const unitCode = item.unit_code || "MON";
     const lineAmount = qty * price;
     const lineVat = Math.round(lineAmount * vatRate / 100 * 100) / 100;
@@ -166,8 +167,6 @@ function buildUBL(
     taxMap.set(vatRate, existing);
 
     const lineCatCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
-    const lineExemption = getTaxExemptionInfo(lineCatCode, rawExemptionCode || String(inv.description || ""));
-
     lineXmls.push(`  <cac:InvoiceLine>
     <cbc:ID>${idx + 1}</cbc:ID>
     <cbc:InvoicedQuantity unitCode="${escapeXml(unitCode)}">${qty.toFixed(6)}</cbc:InvoicedQuantity>
@@ -203,7 +202,8 @@ function buildUBL(
   // خصومات (ChargeIndicator = false)
   rawAllowances.forEach(ac => {
     const amount = Number(ac.amount) || 0;
-    const vatRate = Number(ac.vat_rate) ?? fallbackVatRate;
+    const parsedVatRate = Number(ac.vat_rate);
+    const vatRate = Number.isFinite(parsedVatRate) ? parsedVatRate : fallbackVatRate;
     const acVat = Math.round(amount * vatRate / 100 * 100) / 100;
     allowanceTotalAmount += amount;
     const catCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);
@@ -229,7 +229,8 @@ function buildUBL(
   // رسوم إضافية (ChargeIndicator = true)
   rawCharges.forEach(ac => {
     const amount = Number(ac.amount) || 0;
-    const vatRate = Number(ac.vat_rate) ?? fallbackVatRate;
+    const parsedVatRate = Number(ac.vat_rate);
+    const vatRate = Number.isFinite(parsedVatRate) ? parsedVatRate : fallbackVatRate;
     const acVat = Math.round(amount * vatRate / 100 * 100) / 100;
     chargeTotalAmount += amount;
     const catCode = getVatCategoryCode(vatRate, rawExemptionCode || undefined);

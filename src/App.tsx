@@ -12,7 +12,7 @@ import { lazy, Suspense, useState, useEffect, type ComponentType } from "react";
 import { Loader2 } from "lucide-react";
 
 // ─── تعافي تلقائي عند فشل تحميل chunk قديم ───
-function lazyWithRetry(importFn: () => Promise<{ default: ComponentType<any> }>) {
+function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
   return lazy(() =>
     importFn().catch((error: Error) => {
       const isChunkError =

@@ -129,6 +129,7 @@ export const useNotifications = () => {
   const lastNotifIdRef = useRef<string | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const [prefsVersion, setPrefsVersion] = useState(0);
+  const [disabledTypes, setDisabledTypes] = useState<Set<string>>(() => getDisabledTypes());
 
   const playNotificationSound = useCallback(() => {
     try {
@@ -157,6 +158,10 @@ export const useNotifications = () => {
     return () => window.removeEventListener('storage', handler);
   }, []);
 
+  useEffect(() => {
+    setDisabledTypes(getDisabledTypes());
+  }, [prefsVersion]);
+
   const query = useQuery({
     queryKey: ['notifications', user?.id],
     queryFn: async (): Promise<Notification[]> => {
@@ -178,7 +183,6 @@ export const useNotifications = () => {
   const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
 
   // Filtered data based on beneficiary notification preferences
-  const disabledTypes = useMemo(() => getDisabledTypes(), [prefsVersion]);
   const filteredData = useMemo(
     () => query.data?.filter((n) => !disabledTypes.has(n.type)) || [],
     [query.data, disabledTypes]
@@ -287,7 +291,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user, user?.id]);
 
   return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

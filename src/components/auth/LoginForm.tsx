@@ -41,7 +41,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
     setIsLoading(true);
 
     try {
-      let resolvedEmail = normalizeArabicDigits(loginEmail);
+      const resolvedEmail = normalizeArabicDigits(loginEmail);
 
       if (loginMethod === 'national_id') {
         if (!nationalId) {

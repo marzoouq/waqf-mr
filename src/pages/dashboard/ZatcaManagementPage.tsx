@@ -38,6 +38,23 @@ const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'se
   compliance_passed: { label: 'اجتاز الفحص', variant: 'default' },
 };
 
+interface ComplianceMessage {
+  code: string;
+  message: string;
+}
+
+interface ComplianceResult {
+  warningMessages?: ComplianceMessage[];
+  errorMessages?: ComplianceMessage[];
+  infoMessages?: ComplianceMessage[];
+  validationResults?: {
+    status?: string;
+    warningMessages?: ComplianceMessage[];
+    errorMessages?: ComplianceMessage[];
+    infoMessages?: ComplianceMessage[];
+  };
+}
+
 function ZatcaManagementPage() {
   const { fiscalYearId } = useFiscalYear();
   const queryClient = useQueryClient();
@@ -45,7 +62,7 @@ function ZatcaManagementPage() {
   const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
-  const [complianceResult, setComplianceResult] = useState<any>(null);
+  const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);
   const [invoicePage, setInvoicePage] = useState(1);
   const INVOICES_PER_PAGE = 20;
 
@@ -103,7 +120,7 @@ function ZatcaManagementPage() {
     },
   });
 
-  const allInvoices = [...invoices, ...paymentInvoices];
+  const allInvoices = useMemo(() => [...invoices, ...paymentInvoices], [invoices, paymentInvoices]);
   const paginatedInvoices = useMemo(() => {
     const start = (invoicePage - 1) * INVOICES_PER_PAGE;
     return allInvoices.slice(start, start + INVOICES_PER_PAGE);

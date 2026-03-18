@@ -6,20 +6,7 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Filter, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-export interface FilterState {
-  category: string;
-  propertyId: string;
-  dateFrom: string;
-  dateTo: string;
-}
-
-export const EMPTY_FILTERS: FilterState = {
-  category: '',
-  propertyId: '',
-  dateFrom: '',
-  dateTo: '',
-};
+import { EMPTY_FILTERS, type FilterState } from './advancedFilters.types';
 
 interface AdvancedFiltersBarProps {
   filters: FilterState;

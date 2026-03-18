@@ -129,7 +129,7 @@ export function useAccountsPage() {
       setManualVat(0);
       setManualDistributions(0);
     }
-  }, [accounts, selectedFY?.id, selectedFY?.label]);
+  }, [accounts, selectedFY]);
 
   const saveSettingTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   // H8 fix: stable ref for mutateAsync to prevent debounce resets

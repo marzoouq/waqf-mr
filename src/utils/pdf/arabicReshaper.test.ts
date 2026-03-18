@@ -12,9 +12,7 @@ describe('reshapeArabic', () => {
   });
 
   it('يُرجع null/undefined بدون تعديل', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(reshapeArabic(null as any)).toBe(null);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(reshapeArabic(undefined as any)).toBe(undefined);
   });
 

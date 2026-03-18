@@ -54,7 +54,7 @@ export function reportPageLoadMetrics(): void {
   if (typeof window === 'undefined' || !window.performance) return;
 
   // تأجيل القياس ليتم بعد اكتمال التحميل
-  requestIdleCallback?.(() => {
+  const measureLoad = () => {
     const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
     if (!nav) return;
 
@@ -64,13 +64,12 @@ export function reportPageLoadMetrics(): void {
     if (loadTime > 5000) {
       logger.warn(`[Perf] تحميل الصفحة بطيء: ${loadTime}ms (DOM interactive: ${domInteractive}ms)`);
     }
-  }) ?? setTimeout(() => {
-    // fallback if requestIdleCallback not available
-    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
-    if (!nav) return;
-    const loadTime = Math.round(nav.loadEventEnd - nav.startTime);
-    if (loadTime > 5000) {
-      logger.warn(`[Perf] تحميل الصفحة بطيء: ${loadTime}ms`);
-    }
-  }, 3000);
+  };
+
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(measureLoad);
+    return;
+  }
+
+  window.setTimeout(measureLoad, 3000);
 }

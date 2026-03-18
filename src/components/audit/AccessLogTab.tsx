@@ -54,7 +54,7 @@ const AccessLogTab = () => {
     },
   });
 
-  const logs = rawData?.logs ?? [];
+  const logs = useMemo(() => rawData?.logs ?? [], [rawData?.logs]);
   const totalCount = rawData?.totalCount ?? 0;
 
   const filtered = useMemo(() => {

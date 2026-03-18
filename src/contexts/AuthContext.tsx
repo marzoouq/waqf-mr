@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [setRoleWithRef]);
 
   // === الخطوة 2: useEffect منفصل لجلب الدور عند تغيّر user ===
   useEffect(() => {
@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [user, authReady]);
+  }, [user, authReady, setRoleWithRef]);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);

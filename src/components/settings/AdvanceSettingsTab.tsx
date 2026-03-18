@@ -7,19 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Banknote, Save } from 'lucide-react';
 import { useAppSettings } from '@/hooks/useAppSettings';
 
+const DEFAULT_ADVANCE_SETTINGS = { enabled: true, min_amount: 500, max_percentage: 50 };
+
 const AdvanceSettingsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaults = { enabled: true, min_amount: 500, max_percentage: 50 };
-  const [form, setForm] = useState(defaults);
+  const [form, setForm] = useState(DEFAULT_ADVANCE_SETTINGS);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !initialized) {
-      setForm(getJsonSetting('advance_settings', defaults));
+      setForm(getJsonSetting('advance_settings', DEFAULT_ADVANCE_SETTINGS));
       setInitialized(true);
     }
-  }, [isLoading, initialized]);
+  }, [getJsonSetting, isLoading, initialized]);
 
   const [saving, setSaving] = useState(false);
 

@@ -105,7 +105,6 @@ Deno.serve(async (req: Request) => {
       expiredContracts = expired || [];
     }
 
-    const hasExpiring = contracts && contracts.length > 0;
     const hasExpired = expiredContracts.length > 0;
 
     // لا نعود مبكراً — نحتاج فحص التأخر في الدفع أيضاً
@@ -273,7 +272,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ sent: notifications.length, expiring: (contracts || []).length, expired: expiredContracts.length, overdue: overdueCount }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

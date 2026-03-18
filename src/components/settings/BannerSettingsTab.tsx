@@ -10,8 +10,8 @@ import { BANNER_COLORS, DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/c
 const BannerSettingsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
   const rawSettings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
-  // FIX #8: Stabilize settings reference to avoid fragile deps
-  const settings = useMemo(() => rawSettings, [JSON.stringify(rawSettings)]);
+  const rawSettingsKey = JSON.stringify(rawSettings);
+  const settings = useMemo(() => JSON.parse(rawSettingsKey) as BannerSettings, [rawSettingsKey]);
   const [form, setForm] = useState<BannerSettings>(settings);
 
   useEffect(() => {

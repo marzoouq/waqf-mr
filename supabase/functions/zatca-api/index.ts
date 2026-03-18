@@ -198,7 +198,7 @@ async function sha256Async(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(hash);
 }
 
-function hexToBytes(hex: string): Uint8Array {
+function _hexToBytes(hex: string): Uint8Array {
   let clean = hex.replace(/-----[A-Z ]+-----/g, "").replace(/\s/g, "");
   if (/^[A-Za-z0-9+/=]+$/.test(clean) && clean.length > 64) {
     try {
@@ -217,7 +217,7 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
-function derToPem(der: Uint8Array, label: string): string {
+function _derToPem(der: Uint8Array, label: string): string {
   const b64 = btoa(String.fromCharCode(...der));
   const lines: string[] = [];
   for (let i = 0; i < b64.length; i += 64) {

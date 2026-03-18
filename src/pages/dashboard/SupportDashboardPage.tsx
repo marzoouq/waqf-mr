@@ -95,7 +95,7 @@ const SupportDashboardPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { data: ticketsData, isLoading } = useSupportTickets(statusFilter);
-  const tickets = ticketsData?.tickets ?? [];
+  const tickets = useMemo(() => ticketsData?.tickets ?? [], [ticketsData?.tickets]);
   const { data: stats } = useSupportStats();
   const { data: errors = [] } = useClientErrors();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);

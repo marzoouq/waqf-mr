@@ -127,7 +127,7 @@ const PropertiesPage = () => {
     setFormData({
       property_number: property.property_number, property_type: property.property_type,
       location: property.location, area: property.area.toString(), description: property.description || '',
-      vat_exempt: (property as any).vat_exempt ?? false,
+      vat_exempt: property.vat_exempt ?? false,
     });
     setIsOpen(true);
   };
@@ -314,7 +314,7 @@ const PropertiesPage = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">{property.property_number}</CardTitle>
-                      {(property as any).vat_exempt && (
+                      {property.vat_exempt && (
                         <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
                       )}
                     </div>

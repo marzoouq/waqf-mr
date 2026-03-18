@@ -85,7 +85,7 @@ const LogoManager = () => {
       queryClient.invalidateQueries({ queryKey: ['waqf-info'] });
       queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
       toast.success('تم رفع الشعار بنجاح');
-    } catch (err) {
+    } catch {
       // Logo upload error — toast handles user notification
       toast.error('حدث خطأ أثناء رفع الشعار');
     } finally {

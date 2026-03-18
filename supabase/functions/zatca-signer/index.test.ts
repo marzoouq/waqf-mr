@@ -43,7 +43,7 @@ async function sha256Base64(text: string): Promise<string> {
   return btoa(String.fromCharCode(...new Uint8Array(hash)));
 }
 
-function hexToBytes(hex: string): Uint8Array {
+function _hexToBytes(hex: string): Uint8Array {
   let clean = hex.replace(/-----[A-Z ]+-----/g, "").replace(/\s/g, "");
   if (/^[A-Za-z0-9+/=]+$/.test(clean) && clean.length > 64) {
     try {
@@ -117,7 +117,7 @@ function parseX509IssuerSerial(certBase64: string): { issuerName: string; serial
     function readTag(data: Uint8Array, offset: number): { tag: number; length: number; valueOffset: number; totalLength: number } {
       if (offset >= data.length) throw new Error("EOF");
       const tag = data[offset];
-      let lenOffset = offset + 1;
+      const lenOffset = offset + 1;
       let length = data[lenOffset];
       let valueOffset: number;
       if (length & 0x80) {
