@@ -91,6 +91,7 @@ const ExpensesPage = () => {
     try {
       await deleteExpense.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
+      setCurrentPage(1);
     } catch {
       // onError in the mutation already shows a toast
     }
