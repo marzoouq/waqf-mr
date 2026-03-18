@@ -21,7 +21,7 @@ const AccountsViewPage = () => {
   const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
-  useAuth(); // هوك مطلوب للسياق — useMyShare يستخدمه داخلياً
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
