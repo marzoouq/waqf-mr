@@ -1,5 +1,5 @@
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import QRCode from "npm:qrcode@1.5.4";
@@ -273,7 +273,7 @@ interface WaqfSettings {
   vat_registration_number: string;
 }
 
-async function fetchWaqfSettings(adminClient: ReturnType<typeof createClient>): Promise<WaqfSettings> {
+async function fetchWaqfSettings(adminClient: SupabaseClient): Promise<WaqfSettings> {
   const keys = ['waqf_name', 'waqf_deed_number', 'waqf_court', 'waqf_admin', 'vat_registration_number'];
   const { data } = await adminClient
     .from('app_settings')

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
 
 // ─── دالة جلب بيانات الوقف من قاعدة البيانات ───
 async function fetchWaqfData(
-  client: ReturnType<typeof createClient>,
+  client: SupabaseClient,
   userRole: string,
   userId: string
 ): Promise<string> {
