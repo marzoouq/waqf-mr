@@ -140,10 +140,24 @@ Deno.serve(async (req) => {
       await new Promise(r => setTimeout(r, targetDelay - elapsed));
     }
 
-    // Not found — identical response structure
+    // Not found — return IDENTICAL structure to prevent user enumeration
+    // المهاجم لا يستطيع التمييز بين "هوية غير مسجلة" و"كلمة مرور خاطئة"
     if (!email) {
+      // إذا أُرسلت كلمة مرور، نُرجع خطأ عام كأن الهوية موجودة وكلمة المرور خاطئة
+      if (password && typeof password === "string" && password.length >= 8) {
+        return new Response(
+          JSON.stringify({
+            found: true,
+            masked_email: "***@***.com",
+            remaining,
+            auth_error: "بيانات الدخول غير صحيحة",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      // بدون كلمة مرور — نُرجع نفس الشكل كأن الهوية موجودة
       return new Response(
-        JSON.stringify({ found: false, masked_email: null, remaining }),
+        JSON.stringify({ found: true, masked_email: "***@***.com", remaining }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
