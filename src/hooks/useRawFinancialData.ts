@@ -11,7 +11,9 @@ import { useAppSettings } from '@/hooks/useAppSettings';
  */
 export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: string) => {
   // INT-01 fix: '__none__' is truthy, so explicit check needed
-  const fyFilter = (!fiscalYearId || fiscalYearId === '__none__' || fiscalYearId === '__skip__') ? 'all' : fiscalYearId;
+  // BUG-R2 fix: '__skip__' must map to '__none__' (not 'all') so child hooks disable their queries
+  const shouldSkip = !fiscalYearId || fiscalYearId === '__none__' || fiscalYearId === '__skip__';
+  const fyFilter = shouldSkip ? '__none__' : fiscalYearId;
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
   const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(fiscalYearLabel, fiscalYearId);

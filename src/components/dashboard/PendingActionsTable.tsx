@@ -40,10 +40,12 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
         });
       });
 
-    // فواتير ZATCA غير مُرسلة
-    paymentInvoices
-      .filter(inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status)
-      .slice(0, 10) // حد أقصى 10 لتجنب تضخم الجدول
+    // فواتير ZATCA غير مُرسلة — BUG-M2 fix: حساب العدد الكلي قبل القطع
+    const unsubmittedZatca = paymentInvoices
+      .filter(inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status);
+    const zatcaOverflow = Math.max(0, unsubmittedZatca.length - 10);
+    unsubmittedZatca
+      .slice(0, 10)
       .forEach(inv => {
         items.push({
           type: 'zatca',
@@ -53,6 +55,8 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           link: '/dashboard/contracts',
         });
       });
+    // تخزين العدد الزائد لعرضه في الواجهة
+    (items as any).__zatcaOverflow = zatcaOverflow;
 
     return items;
   }, [advanceRequests, paymentInvoices]);

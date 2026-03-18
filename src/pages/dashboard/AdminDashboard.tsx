@@ -440,7 +440,7 @@ const AdminDashboard = () => {
 
         {/* D-4: خريطة حرارية للتحصيل الشهري */}
         <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-          <CollectionHeatmap income={income} />
+          <CollectionHeatmap paymentInvoices={paymentInvoices} />
         </Suspense>
 
         {/* D-5: جدول الإجراءات المعلقة */}
