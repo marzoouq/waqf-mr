@@ -124,7 +124,7 @@ const IncomePage = () => {
     const monthMap = new Map<string, number>();
     income.forEach((i) => {
       const month = i.date.slice(0, 7); // YYYY-MM
-      monthMap.set(month, (monthMap.get(month) || 0) + Number(i.amount));
+      monthMap.set(month, (monthMap.get(month) || 0) + safeNumber(i.amount));
     });
     if (monthMap.size < 2) return [];
     const values = Array.from(monthMap.values());
