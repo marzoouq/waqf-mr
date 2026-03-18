@@ -63,7 +63,7 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
             </TableHeader>
             <TableBody>
               {filteredErrors.map(err => {
-                const meta = err.metadata;
+                const meta = err.metadata as Record<string, string> | null;
                 return (
                   <TableRow key={err.id}>
                     <TableCell className="text-xs">{new Date(err.created_at).toLocaleString('ar-SA')}</TableCell>

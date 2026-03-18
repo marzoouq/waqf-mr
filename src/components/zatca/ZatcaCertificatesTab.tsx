@@ -16,7 +16,7 @@ interface Certificate {
   certificate_type: string;
   is_active: boolean | null;
   request_id: string | null;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface ZatcaCertificatesTabProps {

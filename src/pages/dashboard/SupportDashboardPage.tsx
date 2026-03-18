@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { NativeSelect } from '@/components/ui/native-select';
 import {
   Headset, Bug, BarChart3, Send, Loader2, CheckCircle, XCircle,
-  ArrowUpCircle, Clock, Star, Eye,
+  ArrowUpCircle, Clock, Star,
 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState, useMemo, useCallback } from 'react';
