@@ -15,13 +15,16 @@ interface FiscalYearContextType {
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'waqf_selected_fiscal_year';
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function FiscalYearProvider({ children }: { children: React.ReactNode }) {
   const { data: activeFY, fiscalYears, isLoading } = useActiveFiscalYear();
   const { role, loading: authLoading } = useAuth();
   const [selectedId, setSelectedId] = useState<string>(() => {
-    try { return localStorage.getItem(STORAGE_KEY) || ''; }
-    catch { return ''; }
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) || '';
+      return UUID_RE.test(stored) ? stored : '';
+    } catch { return ''; }
   });
 
   const isNonAdmin = role === 'beneficiary' || role === 'waqif';

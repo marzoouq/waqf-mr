@@ -14,7 +14,10 @@ export const useTotalBeneficiaryPercentage = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_total_beneficiary_percentage');
       if (error) throw error;
-      return safeNumber(data);
+      const result = safeNumber(data);
+      // SHARE-02: قيمة غير منطقية (سالبة أو تتجاوز 200%) → fallback آمن
+      if (result <= 0 || result > 200) return 0;
+      return result;
     },
     staleTime: 60_000,
   });
