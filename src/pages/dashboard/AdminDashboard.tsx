@@ -37,7 +37,7 @@ const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingAct
 
 // DASH-NEW-2: Skeleton يُحاكي تخطيط DashboardCharts (عمودان)
 const ChartSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <Skeleton className="h-[300px] w-full rounded-lg" />
     <Skeleton className="h-[300px] w-full rounded-lg" />
   </div>
