@@ -433,14 +433,16 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
-                    <span className="text-sm text-muted-foreground">نسبة الانتظام</span>
-                    <p className={`text-3xl font-bold ${collectionSummary.percentage >= 80 ? 'text-success' : collectionSummary.percentage >= 50 ? 'text-warning' : 'text-destructive'}`}>
+                    <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
+                    {(() => { const c = getKpiColor(collectionSummary.percentage, 80, 50); return (<>
+                    <p className={`text-3xl font-bold ${c.text}`}>
                       {collectionSummary.percentage}%
                     </p>
                     <Progress
                       value={collectionSummary.percentage}
-                      className={`h-2 ${collectionSummary.percentage >= 80 ? '[&>div]:bg-success' : collectionSummary.percentage >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
+                      className={`h-2 ${c.bar}`}
                     />
+                    </>); })()}
                   </div>
                 </div>
               </div>
