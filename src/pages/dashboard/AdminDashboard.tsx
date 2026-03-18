@@ -486,8 +486,8 @@ const AdminDashboard = () => {
           </Suspense>
         </ErrorBoundary>
 
-        {/* Year-over-Year Comparison — lazy-loaded */}
-        {allFiscalYears.length >= 2 && (
+        {/* Year-over-Year Comparison — lazy-loaded — M4 fix: placeholder للسنة الأولى */}
+        {allFiscalYears.length >= 2 ? (
           <ErrorBoundary>
             <Suspense fallback={<ChartSkeleton />}>
               <Card className="shadow-sm">
@@ -506,6 +506,20 @@ const AdminDashboard = () => {
               </Card>
             </Suspense>
           </ErrorBoundary>
+        ) : (
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ArrowUpDown className="w-5 h-5" />
+                مقارنة بين السنوات المالية
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-8">
+                ستتوفر المقارنة بين السنوات عند إضافة سنة مالية ثانية على الأقل.
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* B-04: آخر العقود مع skeleton */}
