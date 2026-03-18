@@ -27,6 +27,7 @@ export const linkLabelKeys: Record<string, keyof MenuLabels> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/bylaws': 'bylaws',
   '/dashboard/chart-of-accounts': 'chart_of_accounts',
+  '/dashboard/comparison': 'comparison',
   '/beneficiary': 'beneficiary_view',
 };
 
