@@ -19,12 +19,6 @@ const isArabicChar = (code: number): boolean =>
   (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
   (code >= 0xFE70 && code <= 0xFEFF);   // Arabic Presentation Forms-B
 
-// هل الحرف محايد (مسافة أو تشكيل)؟
-const isNeutralChar = (code: number): boolean =>
-  code === 0x20 ||
-  (code >= 0x0610 && code <= 0x061A) ||
-  (code >= 0x064B && code <= 0x065F) ||
-  code === 0x0670;
 
 // هل النص يحتوي على حروف عربية؟
 const hasArabic = (text: string): boolean => {
@@ -45,63 +39,14 @@ const hasArabic = (text: string): boolean => {
  * - الحل: عكس كل شيء، ثم إعادة عكس الأجزاء اللاتينية/الرقمية داخلياً
  */
 const reverseBidi = (text: string): string => {
-  // تقسيم النص إلى أجزاء: عربية وغير عربية
-  type Segment = { text: string; isRTL: boolean };
-  const segments: Segment[] = [];
-  let current = '';
-  let currentIsRTL = false;
+  // تقسيم النص إلى كلمات (بالمسافات)
+  const words = text.split(' ');
 
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
-    const charIsArabic = isArabicChar(code);
+  // عكس ترتيب الكلمات فقط — الحروف داخل كل كلمة تبقى كما هي
+  // هذا يحافظ على اتصال Presentation Forms-B
+  const reversed = words.reverse();
 
-    // التشكيل والمسافة تتبع السياق الحالي
-    if (isNeutralChar(code)) {
-      current += text[i];
-      continue;
-    }
-
-    if (current.length > 0 && charIsArabic !== currentIsRTL) {
-      segments.push({ text: current, isRTL: currentIsRTL });
-      current = '';
-    }
-
-    currentIsRTL = charIsArabic;
-    current += text[i];
-  }
-
-  if (current.length > 0) {
-    segments.push({ text: current, isRTL: currentIsRTL });
-  }
-
-  // بناء النص النهائي:
-  // - عكس ترتيب الأجزاء (لأن الاتجاه العام RTL)
-  // - الأجزاء العربية: لا تعكس داخلياً (لأنها ستُعكس مع الترتيب العام)
-  // - الأجزاء اللاتينية/الرقمية: تبقى كما هي
-  //
-  // الطريقة: نعكس كل النص حرفاً حرفاً، ثم نعيد ترتيب الأجزاء اللاتينية
-  const fullText = segments.map(s => s.text).join('');
-  const reversed = fullText.split('').reverse().join('');
-
-  // إذا لم يكن هناك نص لاتيني/رقمي، نرجع النص المعكوس مباشرة
-  const hasLTR = segments.some(s => !s.isRTL);
-  if (!hasLTR) return reversed;
-
-  // إعادة ترتيب الأجزاء اللاتينية/الرقمية داخل النص المعكوس
-  // نبحث عنها ونعيد عكسها لتظهر بالترتيب الصحيح
-  let result = reversed;
-  for (const seg of segments) {
-    if (!seg.isRTL && seg.text.trim().length > 0) {
-      const reversedSeg = seg.text.split('').reverse().join('');
-      // نجد الجزء المعكوس في النص ونستبدله بالأصل
-      const idx = result.indexOf(reversedSeg);
-      if (idx !== -1) {
-        result = result.substring(0, idx) + seg.text + result.substring(idx + reversedSeg.length);
-      }
-    }
-  }
-
-  return result;
+  return reversed.join(' ');
 };
 
 /**
