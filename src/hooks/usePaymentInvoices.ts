@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export interface PaymentInvoice {
   id: string;
@@ -49,6 +50,9 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
+      if (data && data.length >= 1000) {
+        logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
+      }
       return data as unknown as PaymentInvoice[];
     },
   });
