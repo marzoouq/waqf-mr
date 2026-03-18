@@ -85,6 +85,7 @@ const MenuCustomizationTab = () => {
     { key: 'invoices', defaultLabel: 'الفواتير' },
     { key: 'audit_log', defaultLabel: 'سجل المراجعة' },
     { key: 'bylaws', defaultLabel: 'اللائحة التنظيمية' },
+    { key: 'chart_of_accounts', defaultLabel: 'الشجرة المحاسبية' },
     { key: 'beneficiary_view', defaultLabel: 'واجهة المستفيد' },
   ];
 
