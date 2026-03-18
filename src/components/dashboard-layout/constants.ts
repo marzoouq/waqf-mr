@@ -6,7 +6,7 @@ import {
   Building2, Home, FileText, Wallet, Users, BarChart3,
   DollarSign, Receipt, UserCog, Eye, Settings, MessageSquare,
   Bell, ShieldCheck, BookOpen, Lock, ArrowDownUp,
-  ClipboardList, Calculator, Headset, GitBranch,
+  ClipboardList, Calculator, Headset, GitBranch, GitCompareArrows,
 } from 'lucide-react';
 import type { MenuLabels } from '@/components/settings/MenuCustomizationTab';
 
@@ -50,6 +50,7 @@ export const allAdminLinks = [
   { to: '/dashboard/support', icon: Headset, label: 'الدعم الفني' },
   { to: '/dashboard/annual-report', icon: ClipboardList, label: 'التقرير السنوي' },
   { to: '/dashboard/chart-of-accounts', icon: GitBranch, label: 'الشجرة المحاسبية' },
+  { to: '/dashboard/comparison', icon: GitCompareArrows, label: 'المقارنة التاريخية' },
   { to: '/beneficiary', icon: Eye, label: 'واجهة المستفيد' },
 ];
 
@@ -186,6 +187,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/annual-report': 'التقرير السنوي',
   '/dashboard/support': 'الدعم الفني',
   '/dashboard/chart-of-accounts': 'الشجرة المحاسبية',
+  '/dashboard/comparison': 'المقارنة التاريخية',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',
