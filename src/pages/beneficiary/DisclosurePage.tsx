@@ -412,8 +412,8 @@ const DisclosurePage = () => {
                     ))}
                     <TableRow className="bg-muted/30 font-bold">
                       <TableCell colSpan={2}>الإجمالي</TableCell>
-                      <TableCell>{contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0), 0)}} ر.س</TableCell>
-                      <TableCell>{Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0) / 12).toLocaleString()} ر.س</TableCell>
+                      <TableCell>{fmt(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0))} ر.س</TableCell>
+                      <TableCell>{fmt(Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0) / 12), 0)} ر.س</TableCell>
                       <TableCell />
                     </TableRow>
                   </TableBody>
