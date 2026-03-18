@@ -308,7 +308,7 @@ const IncomePage = () => {
         <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+              <TableSkeleton rows={5} cols={5} />
             ) : filteredIncome.length === 0 ? (
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery || filters.category || filters.propertyId || filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
