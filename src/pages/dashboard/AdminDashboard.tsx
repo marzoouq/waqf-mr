@@ -145,7 +145,7 @@ const AdminDashboard = () => {
       { title: 'إجمالي الدخل الفعلي', value: `${fmt(totalIncome)} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
       { title: 'إجمالي المصروفات', value: `${fmt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي الريع${sharesNote}`, value: `${fmt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
-      { title: `المتاح للتوزيع${sharesNote}`, value: `${Math.max(0, isYearActive ? netAfterZakat : availableAmount).toLocaleString()} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
+      { title: `المتاح للتوزيع${sharesNote}`, value: `${fmt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
       { title: `حصة الناظر${sharesNote}`, value: `${fmt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
       { title: `حصة الواقف${sharesNote}`, value: `${fmt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
       { title: `ريع الوقف${sharesNote}`, value: `${fmt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
@@ -533,7 +533,7 @@ const AdminDashboard = () => {
                   <TableRow key={contract.id}>
                     <TableCell>{contract.contract_number}</TableCell>
                     <TableCell>{contract.tenant_name}</TableCell>
-                    <TableCell>{safeNumber(contract.rent_amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{fmt(safeNumber(contract.rent_amount))} ر.س</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         contract.status === 'active' 

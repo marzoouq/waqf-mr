@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -112,7 +113,7 @@ const AdvanceRequestsTab = () => {
                 {paginatedRequests.map(req => (
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
-                    <TableCell>{safeNumber(req.amount).toLocaleString()} ر.س</TableCell>
+                    <TableCell>{fmt(safeNumber(req.amount))} ر.س</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>

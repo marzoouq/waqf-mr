@@ -256,7 +256,7 @@ const DistributeDialog = ({
           )}
           <div className="flex justify-between border-t pt-2">
             <span>إجمالي التوزيع (شامل الخصومات)</span>
-            <span className="font-bold">{(totalNet + totalAdvances + totalCarryforward).toLocaleString()} ر.س</span>
+            <span className="font-bold">{fmt(totalNet + totalAdvances + totalCarryforward)} ر.س</span>
           </div>
         </div>
 

@@ -1,3 +1,4 @@
+import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -57,11 +58,11 @@ const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSa
               {accounts.map((account) => (
                 <TableRow key={account.id}>
                   <TableCell className="font-medium">{account.fiscal_year}</TableCell>
-                  <TableCell className="text-success">+{safeNumber(account.total_income).toLocaleString()}</TableCell>
-                  <TableCell className="text-destructive">-{safeNumber(account.total_expenses).toLocaleString()}</TableCell>
-                  <TableCell>{safeNumber(account.admin_share).toLocaleString()}</TableCell>
-                  <TableCell>{safeNumber(account.waqif_share).toLocaleString()}</TableCell>
-                  <TableCell className="text-primary font-medium">{safeNumber(account.waqf_revenue).toLocaleString()}</TableCell>
+                  <TableCell className="text-success">+{fmt(safeNumber(account.total_income))}</TableCell>
+                  <TableCell className="text-destructive">-{fmt(safeNumber(account.total_expenses))}</TableCell>
+                  <TableCell>{fmt(safeNumber(account.admin_share))}</TableCell>
+                  <TableCell>{fmt(safeNumber(account.waqif_share))}</TableCell>
+                  <TableCell className="text-primary font-medium">{fmt(safeNumber(account.waqf_revenue))}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => onDeleteAccount(account.id, `حساب ${account.fiscal_year}`)} className="text-destructive hover:text-destructive">
                       <Trash2 className="w-4 h-4" />

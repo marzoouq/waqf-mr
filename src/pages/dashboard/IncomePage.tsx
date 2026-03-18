@@ -331,7 +331,7 @@ const IncomePage = () => {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
+                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{fmt(safeNumber(item.amount))} ر.س</p></div>
                         <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                         {item.notes && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">ملاحظات</p><p className="text-sm text-muted-foreground">{item.notes}</p></div>}
                       </div>
@@ -361,7 +361,7 @@ const IncomePage = () => {
                   {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
-                      <TableCell className="text-success font-medium">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
+                      <TableCell className="text-success font-medium">+{fmt(safeNumber(item.amount))} ر.س</TableCell>
                       <TableCell>{item.date}</TableCell>
                       <TableCell>{item.property?.property_number || '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
