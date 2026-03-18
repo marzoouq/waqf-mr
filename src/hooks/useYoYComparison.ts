@@ -11,7 +11,6 @@ interface YoYResult {
   prevTotalIncome: number;
   prevTotalExpenses: number;
   prevNetAfterExpenses: number;
-  prevContractualRevenue: number;
   hasPrevYear: boolean;
 }
 
@@ -34,14 +33,13 @@ export const useYoYComparison = (currentFiscalYearId?: string): YoYResult => {
 
   return useMemo(() => {
     if (!prevFiscalYear) {
-      return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, prevContractualRevenue: 0, hasPrevYear: false };
+      return { prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0, hasPrevYear: false };
     }
     const { totalIncome, totalExpenses } = computeTotals(prevIncome, prevExpenses);
     return {
       prevTotalIncome: totalIncome,
       prevTotalExpenses: totalExpenses,
       prevNetAfterExpenses: totalIncome - totalExpenses,
-      prevContractualRevenue: 0, // يتطلب عقود السنة السابقة — يُحسب لاحقاً
       hasPrevYear: true,
     };
   }, [prevFiscalYear, prevIncome, prevExpenses]);
