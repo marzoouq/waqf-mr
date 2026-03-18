@@ -3,7 +3,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info, Loader2, PieChart } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, XCircle, Info, PieChart } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -354,7 +354,7 @@ const MySharePage = () => {
           description="تفاصيل حصتك من ريع الوقف"
           icon={Wallet}
           actions={
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2">
               {advancesEnabled && currentBeneficiary && (
                 <AdvanceRequestDialog
                   beneficiaryId={currentBeneficiary?.id || ''}
@@ -367,25 +367,20 @@ const MySharePage = () => {
                   isFiscalYearActive={selectedFY?.status !== 'closed'}
                 />
               )}
-              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5" disabled={isPdfLoading}>
-                <Printer className="w-4 h-4" />
-                <span className="hidden sm:inline">طباعة</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                <span className="hidden sm:inline">تقرير التوزيع</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                <span className="hidden sm:inline">تقرير شامل</span>
-              </Button>
-              <ExportMenu onExportPdf={handleDownloadPDF} />
+              <ExportMenu
+                onPrint={handlePrintReport}
+                onExportPdf={handleDownloadPDF}
+                extraItems={[
+                  { label: 'تقرير التوزيع', icon: FileDown, onClick: handleDownloadDistributionsPDF },
+                  { label: 'تقرير شامل', icon: FileDown, onClick: handleDownloadComprehensivePDF },
+                ]}
+              />
             </div>
           }
         />
 
         {/* Share Summary - cards */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-3 sm:gap-4`}>
+        <div className={`grid grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'sm:grid-cols-4'} gap-3 sm:gap-4`}>
           {/* BEN-13: بطاقة نسبة الحصة */}
           <Card className="shadow-sm border-primary/20">
             <CardContent className="p-3 sm:p-6">
@@ -501,7 +496,7 @@ const MySharePage = () => {
         {/* Link to Disclosure */}
         <Card className="shadow-sm">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <p className="text-sm text-muted-foreground">
                 لمعرفة تفاصيل احتساب الحصة والتسلسل المالي الكامل
               </p>

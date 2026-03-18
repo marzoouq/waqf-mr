@@ -5,7 +5,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, Printer, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Download, Printer, FileDown, FileSpreadsheet, type LucideIcon } from 'lucide-react';
+
+interface ExtraItem {
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
+}
 
 interface ExportMenuProps {
   onPrint?: () => void;
@@ -15,9 +21,11 @@ interface ExportMenuProps {
   hidePrint?: boolean;
   /** Hide the PDF option */
   hidePdf?: boolean;
+  /** عناصر إضافية مخصصة تُضاف للقائمة */
+  extraItems?: ExtraItem[];
 }
 
-const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf }: ExportMenuProps) => {
+const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf, extraItems }: ExportMenuProps) => {
   const handlePrint = () => {
     if (onPrint) {
       onPrint();
@@ -32,6 +40,13 @@ const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf }: E
     !hidePdf && onExportPdf && { key: 'pdf', label: 'تصدير PDF', icon: FileDown, action: onExportPdf },
     onExportCsv && { key: 'csv', label: 'تصدير Excel', icon: FileSpreadsheet, action: onExportCsv },
   ].filter(Boolean) as { key: string; label: string; icon: typeof Printer; action: () => void }[];
+
+  // إضافة العناصر المخصصة
+  if (extraItems) {
+    extraItems.forEach((item, idx) => {
+      options.push({ key: `extra-${idx}`, label: item.label, icon: item.icon, action: item.onClick });
+    });
+  }
 
   // إذا لا يوجد خيارات
   if (options.length === 0) return null;
