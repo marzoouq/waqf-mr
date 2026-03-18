@@ -157,7 +157,7 @@ const ContractAccordionGroup = ({
                     <span className="font-medium">{contract.contract_number}</span>
                     <span className="text-muted-foreground hidden sm:block">{contract.start_date}</span>
                     <span className="text-muted-foreground hidden sm:block">{contract.end_date}</span>
-                    <span className="hidden sm:block">{Numberfmt(contract.rent_amount)} ر.س</span>
+                    <span className="hidden sm:block">{fmt(Number(contract.rent_amount))} ر.س</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${st.className}`}>
                       {st.label}
                     </span>
