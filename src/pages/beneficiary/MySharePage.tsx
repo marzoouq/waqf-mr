@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
 import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
