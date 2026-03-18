@@ -417,7 +417,7 @@ const AdminDashboard = () => {
                 {/* Mini Pie Chart */}
                 <ErrorBoundary>
                   <Suspense fallback={<div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center"><Skeleton className="w-[140px] h-[140px] rounded-full" /></div>}>
-                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount + collectionSummary.partialCount} />
+                    <CollectionSummaryChart onTime={collectionSummary.paidCount} late={collectionSummary.unpaidCount} partial={collectionSummary.partialCount} />
                   </Suspense>
                 </ErrorBoundary>
 

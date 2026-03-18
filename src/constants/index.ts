@@ -97,6 +97,9 @@ export const TENANT_ID_TYPES = [
   { value: 'TIN', label: 'رقم ضريبي' },
 ] as const;
 
+// ─── ثوابت العقود ───
+export const EXPIRING_SOON_DAYS = 90;
+
 // ─── أدوار المستخدمين ───
 export const ROLE_LABELS: Record<string, string> = {
   admin: 'ناظر الوقف',
