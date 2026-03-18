@@ -93,6 +93,7 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/messages': 'messages',
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/annual-report': 'annual_report',
+  '/dashboard/support': 'support',
 };
 
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
@@ -108,6 +109,7 @@ export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
   '/beneficiary/messages': 'messages',
   '/beneficiary/notifications': 'notifications',
   '/beneficiary/annual-report': 'annual_report',
+  '/beneficiary/support': 'support',
 };
 
 // ─── Routes accountant can never access ───
@@ -118,12 +120,13 @@ export const defaultAdminSections = {
   properties: true, contracts: true, income: true, expenses: true,
   beneficiaries: true, reports: true, accounts: true, users: true,
   invoices: true, bylaws: true, messages: true, audit_log: true,
+  annual_report: true, support: true,
 };
 
 export const defaultBeneficiarySections = {
   properties: true, contracts: true, disclosure: true, share: true,
   accounts: true, reports: true, invoices: true, bylaws: true,
-  messages: true, notifications: true,
+  messages: true, notifications: true, annual_report: true, support: true,
 };
 
 export const ADMIN_SECTION_KEYS: Record<string, string> = {
@@ -139,6 +142,8 @@ export const ADMIN_SECTION_KEYS: Record<string, string> = {
   '/dashboard/bylaws': 'bylaws',
   '/dashboard/messages': 'messages',
   '/dashboard/audit-log': 'audit_log',
+  '/dashboard/annual-report': 'annual_report',
+  '/dashboard/support': 'support',
 };
 
 export const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
@@ -153,6 +158,8 @@ export const BENEFICIARY_SECTION_KEYS: Record<string, string> = {
   '/beneficiary/bylaws': 'bylaws',
   '/beneficiary/messages': 'messages',
   '/beneficiary/notifications': 'notifications',
+  '/beneficiary/annual-report': 'annual_report',
+  '/beneficiary/support': 'support',
 };
 
 // ─── Dynamic mobile header titles ───

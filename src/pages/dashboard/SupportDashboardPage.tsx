@@ -27,7 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useUpdateTicketStatus, useAddTicketReply, useClientErrors,
-  useSupportStats, type SupportTicket,
+  useSupportStats, useSupportAnalytics, type SupportTicket,
 } from '@/hooks/useSupportTickets';
 import { toast } from 'sonner';
 
@@ -97,6 +97,7 @@ const SupportDashboardPage = () => {
   const { data: ticketsData, isLoading } = useSupportTickets(statusFilter);
   const tickets = useMemo(() => ticketsData?.tickets ?? [], [ticketsData?.tickets]);
   const { data: stats } = useSupportStats();
+  const { data: allTickets = [] } = useSupportAnalytics();
   const { data: errors = [] } = useClientErrors();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [showNewTicket, setShowNewTicket] = useState(false);
@@ -133,10 +134,11 @@ const SupportDashboardPage = () => {
     });
   }, [errors, errorSearch]);
 
-  // === تصدير التذاكر ===
+  // === تصدير التذاكر — من allTickets (جميع التذاكر) ===
   const handleExportTickets = useCallback(() => {
     const headers = ['الرقم', 'العنوان', 'التصنيف', 'الأولوية', 'الحالة', 'التاريخ'];
-    const rows = filteredTickets.map(t => [
+    const source = allTickets.length > 0 ? allTickets : filteredTickets;
+    const rows = source.map(t => [
       t.ticket_number,
       t.title,
       CATEGORY_MAP[t.category] || t.category,
@@ -145,7 +147,7 @@ const SupportDashboardPage = () => {
       new Date(t.created_at).toLocaleDateString('ar-SA'),
     ]);
     exportToCsv('support-tickets.csv', headers, rows);
-  }, [filteredTickets]);
+  }, [allTickets, filteredTickets]);
 
   // === تصدير الأخطاء ===
   const handleExportErrors = useCallback(() => {
@@ -162,24 +164,24 @@ const SupportDashboardPage = () => {
     exportToCsv('client-errors.csv', headers, rows);
   }, [filteredErrors]);
 
-  // === إحصائيات التصنيف ===
+  // === إحصائيات التصنيف — من allTickets (جميع التذاكر) ===
   const categoryStats = useMemo(() => {
     const map: Record<string, number> = {};
-    tickets.forEach(t => {
+    allTickets.forEach(t => {
       map[t.category] = (map[t.category] || 0) + 1;
     });
     return Object.entries(map).map(([key, count]) => ({
       key,
       label: CATEGORY_MAP[key] || key,
       count,
-      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+      pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
     }));
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === إحصائيات الأولوية ===
+  // === إحصائيات الأولوية — من allTickets ===
   const priorityStats = useMemo(() => {
     const map: Record<string, number> = {};
-    tickets.forEach(t => {
+    allTickets.forEach(t => {
       map[t.priority] = (map[t.priority] || 0) + 1;
     });
     return Object.entries(map).map(([key, count]) => ({
@@ -187,13 +189,13 @@ const SupportDashboardPage = () => {
       label: PRIORITY_MAP[key]?.label || key,
       color: PRIORITY_MAP[key]?.color || '',
       count,
-      pct: tickets.length > 0 ? Math.round((count / tickets.length) * 100) : 0,
+      pct: allTickets.length > 0 ? Math.round((count / allTickets.length) * 100) : 0,
     }));
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === حساب متوسط وقت الحل (SLA بسيط) ===
+  // === حساب متوسط وقت الحل — من allTickets ===
   const avgResolutionTime = useMemo(() => {
-    const resolved = tickets.filter(t => t.resolved_at);
+    const resolved = allTickets.filter(t => t.resolved_at);
     if (resolved.length === 0) return null;
     const totalHours = resolved.reduce((sum, t) => {
       const created = new Date(t.created_at).getTime();
@@ -204,15 +206,15 @@ const SupportDashboardPage = () => {
     if (avg < 1) return `${Math.round(avg * 60)} دقيقة`;
     if (avg < 24) return `${Math.round(avg)} ساعة`;
     return `${Math.round(avg / 24)} يوم`;
-  }, [tickets]);
+  }, [allTickets]);
 
-  // === متوسط التقييم ===
+  // === متوسط التقييم — من allTickets ===
   const avgRating = useMemo(() => {
-    const rated = tickets.filter(t => t.rating);
+    const rated = allTickets.filter(t => t.rating);
     if (rated.length === 0) return null;
     const total = rated.reduce((sum, t) => sum + (t.rating ?? 0), 0);
     return { avg: (total / rated.length).toFixed(1), count: rated.length };
-  }, [tickets]);
+  }, [allTickets]);
 
   return (
     <DashboardLayout>
