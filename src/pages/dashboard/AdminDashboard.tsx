@@ -246,8 +246,15 @@ const AdminDashboard = () => {
           title="لوحة التحكم"
           icon={Gauge}
           description={
-            (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : `مرحباً بك، ناظر الوقف`) +
-            (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '')
+            (() => {
+              const displayName = user?.user_metadata?.full_name
+                || user?.email?.split('@')[0]
+                || (role === 'accountant' ? 'المحاسب' : 'ناظر الوقف');
+              const greeting = role === 'accountant'
+                ? `مرحباً بك، ${displayName} — يمكنك إدارة الحسابات والعمليات المالية`
+                : `مرحباً بك، ${displayName}`;
+              return greeting + (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '');
+            })()
           }
           actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
