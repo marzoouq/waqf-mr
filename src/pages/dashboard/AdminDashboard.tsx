@@ -255,6 +255,8 @@ const AdminDashboard = () => {
           usingFallbackPct={usingFallbackPct}
           expiringContracts={expiringContracts}
           orphanedContracts={orphanedContracts}
+          pendingAdvancesCount={advanceRequests.filter(r => r.status === 'pending').length}
+          collectionRate={collectionSummary.percentage}
         />
 
         {/* بطاقات الإحصائيات */}
