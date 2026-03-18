@@ -54,6 +54,10 @@ const InvoicesViewPage = () => {
 
   const handleDownloadPDF = async () => {
     try {
+      if (searchQuery) {
+        toast.info(`سيتم تصدير ${filteredInvoices.length} فاتورة مفلترة فقط`);
+      }
+      const fiscalYearLabel = fiscalYear?.label || undefined;
       await generateInvoicesViewPDF(
         filteredInvoices.map(inv => ({
           invoice_type: INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type,
@@ -63,7 +67,8 @@ const InvoicesViewPage = () => {
           property_number: inv.property?.property_number || '-',
           status: inv.status,
         })),
-        pdfWaqfInfo
+        pdfWaqfInfo,
+        fiscalYearLabel
       );
       toast.success('تم تحميل ملف PDF بنجاح');
     } catch {

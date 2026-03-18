@@ -74,7 +74,10 @@ export const generateOverdueInvoicesPDF = async (
   waqfInfo?: PdfWaqfInfo,
 ) => {
   const overdue = invoices.filter(i => i.status === 'overdue');
-  if (overdue.length === 0) return;
+  if (overdue.length === 0) {
+    toast.info('لا توجد فواتير متأخرة للتصدير');
+    return;
+  }
 
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);

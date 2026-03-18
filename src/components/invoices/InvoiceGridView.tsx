@@ -25,7 +25,7 @@ const statusConfig: Record<string, { color: string; bg: string; border: string }
   cancelled: { color: 'text-muted-foreground', bg: 'bg-muted/30', border: 'border-muted' },
 };
 
-const InvoiceGridView: React.FC<InvoiceGridViewProps> = ({ invoices, onEdit, readOnly = false }) => {
+const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridViewProps) => {
   const [viewerFile, setViewerFile] = useState<{ path: string; name: string | null } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
