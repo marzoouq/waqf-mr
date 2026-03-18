@@ -239,7 +239,7 @@ const AdminDashboard = () => {
           icon={Gauge}
           description={
             (role === 'accountant' ? 'مرحباً بك، المحاسب — يمكنك إدارة الحسابات والعمليات المالية' : 'مرحباً بك، ناظر الوقف') +
-            (fiscalYear ? ` — ${fiscalYear.label}` : '')
+            (fiscalYearId === 'all' ? ' — عرض إجمالي جميع السنوات' : fiscalYear ? ` — ${fiscalYear.label}` : '')
           }
           actions={
             <Button variant="outline" onClick={() => window.print()} className="gap-2">
