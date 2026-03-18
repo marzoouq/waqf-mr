@@ -1,125 +1,98 @@
 
 
-# فحص شامل لملفات الهجرات — النتائج والإصلاحات المطلوبة
+# فحص التقرير الجنائي الثامن — التحقق والإصلاحات المطلوبة
 
-## ما تم فحصه
+## التحقق بند بند
 
-فحصت **18 ملف هجرة** يتعلق بـ `contracts_safe` و `beneficiaries_safe` + ملف `.gitignore`. هذا التسلسل الزمني الكامل:
-
-```text
-التسلسل الزمني لـ security_invoker (18 هجرة):
-
-20260218001323  beneficiaries_safe  security_invoker=ON
-20260301194239  beneficiaries_safe  security_invoker=ON
-20260302220345  beneficiaries_safe  security_invoker=ON
-20260306020909  beneficiaries_safe  security_invoker=ON
-20260312072144  beneficiaries_safe  security_invoker=ON
-20260312155031  beneficiaries_safe  security_invoker=TRUE
-20260313162017  BOTH views         security_invoker=FALSE  ← أول إصلاح
-20260314024401  beneficiaries_safe  security_invoker=FALSE + يستدعي decrypt_pii()
-20260314025643  BOTH views         security_invoker=TRUE   ← كسر مجدداً
-20260314041550  ALTER beneficiaries SET security_invoker=TRUE
-20260316013140  contracts_safe     بدون security_invoker   ← إصلاح جزئي
-20260316060846  ALTER contracts    SET security_invoker=TRUE ← كسر مجدداً!
-20260316155751  REVOKE/GRANT فقط
-20260318101512  BOTH views         بدون security_invoker   ← إصلاح + notes مكشوفة
-20260318102000  BOTH views         ★ نسخة مطابقة 100% للملف السابق ★
-20260318124043  contracts_safe     security_invoker=TRUE   ← كسر ثالث!
-20260318131426  BOTH views         بدون security_invoker   ← Round 15 (الحالة النهائية) ✅
-```
-
-## النتائج المؤكدة
-
-### 1. ملفان متطابقان 100% (مؤكد)
-
-| الملف | المحتوى |
-|-------|---------|
-| `20260318101512_29652d94-5bfa-48f5-a46f-a7516caeb189.sql` | 111 سطر: DROP+CREATE كلا العرضين |
-| `20260318102000_fix_safe_views_remove_security_invoker.sql` | 111 سطر: **نفس المحتوى حرفياً** |
-
-كلاهما:
-- يُنشئان `contracts_safe` بدون `security_invoker` لكن **بـ `c.notes` مكشوفة** (سطر 53)
-- يُنشئان `beneficiaries_safe` بتقنيع ثابت `'***'` بدون CASE WHEN (سطر 89-93)
-
-**الأثر**: تنفيذ مزدوج غير ضار (DROP IF EXISTS + CREATE = idempotent) لكنه فوضى في سجل الهجرات.
-
-### 2. `notes` مكشوفة في 4 هجرات (مؤكد)
-
-| الهجرة | `c.notes` | الحالة |
-|--------|-----------|--------|
-| `20260316013140` | `c.notes` مباشرة بدون CASE | مكشوفة |
-| `20260314025643` | `c.notes` مباشرة | مكشوفة |
-| `20260318101512` | `c.notes` مباشرة | مكشوفة |
-| `20260318102000` | `c.notes` مباشرة | مكشوفة (نسخة مكررة) |
-| `20260318124043` | `CASE WHEN admin/accountant THEN c.notes` | **مُقنَّعة** ✅ |
-| `20260318131426` | `CASE WHEN admin/accountant THEN c.notes` | **مُقنَّعة** ✅ |
-
-**الحالة النهائية**: Round 15 يقنّع `notes` بشكل صحيح. لكن 4 هجرات سابقة كشفتها.
-
-### 3. `beneficiaries_safe` في `20260314024401` يستدعي `decrypt_pii()` (مؤكد)
-
-```sql
--- سطر 16-17:
-WHEN ... THEN public.decrypt_pii(b.national_id)
-WHEN ... THEN public.decrypt_pii(b.bank_account)
-```
-
-هذا الـ view كان سيفشل **لو بقي نشطاً** بعد سحب `EXECUTE` من `authenticated` في Round 15. لكنه مُستبدَل بهجرة لاحقة. **الخطر**: إذا عاد أحد لهذه الهجرة في بيئة اختبار = كسر فوري.
-
-### 4. `.gitignore` — سطر مكرر (مؤكد)
-
-```
-31: # Bun lockfiles (not used — npm is preferred)
-32: bun.lock
-33: bun.lockb
-34: bun.lock    ← مكرر!
-```
-
-### 5. `close_fiscal_year` — الهجرة `20260314025643` بدون `FOR UPDATE` (مؤكد)
-
-```sql
--- سطر 89:
-SELECT * INTO v_fy FROM fiscal_years WHERE id = p_fiscal_year_id;
--- ← بدون FOR UPDATE
-```
-
-**الحالة النهائية**: Round 15 (`20260318131426` سطر 211) أعاد `FOR UPDATE`. محلول.
+| # | البند | النتيجة | إصلاح؟ |
+|---|-------|---------|--------|
+| BUG-ACTIVE-01 | myShare=0 بدون تفسير في سنة مقفلة | **🟡 جزئياً صحيح** — التنبيه الحالي (سطر 454) يظهر `!isClosed` فقط. إذا `isClosed && myShare===0` (حصة صفرية فعلية بعد خصومات) لا يظهر تفسير. **لكن** هذا سيناريو نادر جداً ومقبول | لا |
+| BUG-ACTIVE-02 | PDF بأصفار في سنة نشطة | **✅ مؤكد — لكن محمي جزئياً** — بطاقة "الحصة المستحقة" (سطر 398) تعرض "تُحسب عند إغلاق السنة" بدلاً من الرقم. **لكن** أزرار التصدير PDF متاحة ويمكن تحميل PDF بأصفار | **نعم** |
+| BUG-ACTIVE-03 | أزرار تصدير بدون guard | **✅ مؤكد** — `handleDownloadPDF` و `handleDownloadDistributionsPDF` و `handleDownloadComprehensivePDF` لا تتحقق من `isClosed` | **نعم** |
+| ADV-01 | تعارض RPC vs Client | **❌ مدحوض** — Client fallback (سطر 63): `Math.max(0, estimatedShare - carryforwardBalance)`. الـ `estimatedShare` المُمرَّر = `myShare` (سطر 347) الذي يساوي 0 في السنة النشطة. **والأهم**: `isFiscalYearActive` (سطر 352) يُمرَّر ويُستخدم لتعطيل الزر. التعارض نظري فقط لأن Server RPC هي المصدر الأساسي | لا |
+| ADV-02 | فشل RPC صامت | **✅ مؤكد** — سطر 56-58: `catch` يوقف loading بدون أي إشعار. المستفيد لا يعرف أن الحد الأقصى محسوب client-side | **نعم** |
+| QUERY-01 | استعلامات متكررة بدون cache | **❌ مدحوض** — `CarryforwardHistoryPage` تجلب `beneficiaries_safe` بـ queryKey مختلف لأنها تجلب حقولاً مختلفة (`id, name, share_percentage` فقط). هذا مقصود | لا |
+| QUERY-02 | سلسلة استعلامات | **🟡 مقبول بالتصميم** — الاستعلامات 3,4,5 تحتاج `beneficiary.id`. لا يمكن تشغيلها بدون معرفة الـ id. 200ms إضافية مقبولة | لا |
+| QUERY-03 | رصيد مرحّل بدون سنة | **❌ مدحوض** — `CarryforwardHistoryPage` تعرض **إجمالي** الرصيد النشط عبر كل السنوات وهذا مقصود (صفحة "تاريخ" وليست صفحة سنة محددة). العنوان واضح: "رصيد مرحّل نشط" | لا |
+| DISC-01 | invalidateQueries() بدون queryKey | **✅ مؤكد** — سطر 41 + CarryforwardHistoryPage سطر 23: كلاهما `queryClient.invalidateQueries()` بدون تحديد | **نعم** |
+| DISC-02 | PDF شامل بدون سُلف | **🟡 مقبول بالتصميم** — PDF الشامل يعرض التسلسل المالي العام (إيرادات → مصروفات → حصص) وليس تفاصيل الخصومات الفردية. السُلف خاصة بكل مستفيد وتظهر في PDF الحصة | لا |
+| DISC-03 | فلتر توزيعات مختلف | **✅ مؤكد** — MySharePage سطر 102: `d.fiscal_year_id === fiscalYearId`. DisclosurePage سطر 107: `'fiscal_year_id' in d && d.fiscal_year_id === fiscalYearId`. Guard إضافي غير ضروري | **نعم** |
+| CALC-01 | RPC فشل → myShare=0 | **🟡 جزئياً** — إذا فشلت RPC فـ `totalBenPct=0` (default) → `myShare=0`. **لكن** React Query يُعيد المحاولة تلقائياً. والـ error state يُعرض في الـ UI عبر `isError`. الخطر نظري | لا |
+| CALC-02 | pctLoading مهملة → وميض | **✅ مؤكد** — سطر 66: `const { currentBeneficiary, myShare } = useMyShare(...)` — `pctLoading` غير مستخدم. وميض محتمل من 0 للقيمة الحقيقية | **نعم** |
+| CALC-03 | تنسيق أرقام غير موحد | **❌ مدحوض تماماً** — MySharePage تستخدم `fmtAr()` حصرياً (بحث لم يجد أي `toLocaleString()` بدون locale). CarryforwardHistoryPage تستخدم `toLocaleString('ar-SA')` حصرياً. كل صفحة متسقة داخلياً | لا |
+| PRINT-01 | window.print() بدون CSS | **✅ مؤكد** — سطر 113: `window.print()` مباشرة بدون CSS مخصص للطباعة | **نعم** |
 
 ---
 
-## خطة الإصلاح
+## الإصلاحات المطلوبة — 7 تغييرات في 4 ملفات
 
-### الإصلاح 1: حذف الملف المكرر
+### الملف 1: `src/pages/beneficiary/MySharePage.tsx`
 
-حذف `20260318101512_29652d94-5bfa-48f5-a46f-a7516caeb189.sql` — محتواه مطابق 100% لـ `20260318102000` وكلاهما مُلغى بـ Round 15. حذف الأقدم يُنظّف سجل الهجرات بدون أي تأثير وظيفي.
-
-**ملاحظة**: إذا كان الملف مُسجلاً في `supabase_migrations` كهجرة مُطبَّقة، فالحذف من الريبو فقط (الملف المحلي) آمن — لن يُعاد تنفيذه.
-
-### الإصلاح 2: تنظيف `.gitignore`
-
-إزالة السطر المكرر `bun.lock` (سطر 34).
-
-### الإصلاح 3: توثيق — إضافة تعليق في Round 15
-
-إضافة تعليق في أعلى ملف Round 15 يوثّق أنه يُلغي الهجرات السابقة:
-
-```sql
--- يُلغي ويستبدل: 20260318101512, 20260318102000, 20260318124043
--- السبب: تذبذب security_invoker (8 تبديلات عبر 18 هجرة)
+**ACTIVE-02/03**: إضافة guard في أزرار التصدير عند السنة النشطة:
+- في `handleDownloadPDF`, `handleDownloadDistributionsPDF`, `handleDownloadComprehensivePDF`: إضافة فحص أول:
+```tsx
+if (!isClosed) {
+  toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
+  return;
+}
 ```
+- تعطيل الأزرار بصرياً: `disabled={isPdfLoading || !isClosed}`
+
+**CALC-02**: استخدام `pctLoading` في شرط التحميل:
+- سطر 66: تغيير إلى `const { currentBeneficiary, myShare, pctLoading } = useMyShare(...)`
+- سطر 269: تغيير شرط التحميل إلى `if (finLoading || distLoading || pctLoading)`
+
+### الملف 2: `src/pages/beneficiary/DisclosurePage.tsx`
+
+**DISC-01**: تحديد queryKeys في `handleRetry`:
+```tsx
+const handleRetry = () => {
+  queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+  queryClient.invalidateQueries({ queryKey: ['my-distributions'] });
+  queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+};
+```
+
+**DISC-03**: توحيد فلتر التوزيعات مع MySharePage — إزالة `'fiscal_year_id' in d &&` الزائد من سطر 107.
+
+**CALC-02**: استخدام `pctLoading` في شرط التحميل (نفس MySharePage).
+
+### الملف 3: `src/components/beneficiaries/AdvanceRequestDialog.tsx`
+
+**ADV-02**: إضافة toast تحذيري عند فشل RPC:
+```tsx
+}).catch(() => {
+  if (!cancelled) {
+    setLoading(false);
+    toast.warning('تعذّر التحقق من الحد الأقصى — يُرجى المراجعة يدوياً');
+  }
+});
+```
+يتطلب إضافة `import { toast } from 'sonner'`.
+
+### الملف 4: `src/pages/beneficiary/CarryforwardHistoryPage.tsx`
+
+**DISC-01**: تحديد queryKeys في `handleRetry` (سطر 23):
+```tsx
+const handleRetry = () => {
+  queryClient.invalidateQueries({ queryKey: ['my-beneficiary'] });
+  queryClient.invalidateQueries({ queryKey: ['my-carryforwards'] });
+  queryClient.invalidateQueries({ queryKey: ['my-advance-requests'] });
+};
+```
+
+**PRINT-01**: استبدال `window.print()` بتصدير PDF مخصص باستخدام `generateComprehensiveBeneficiaryPDF` أو إنشاء دالة طباعة HTML مخصصة مماثلة لـ `printShareReport`. الأبسط: إضافة تعليق وتحسين الـ UX بإظهار toast قبل الطباعة وليس بعدها.
 
 ---
 
 ## ملخص
 
-| البند | الحالة | الإصلاح |
-|-------|--------|---------|
-| ملفان متطابقان (101512 = 102000) | **مؤكد** | حذف الأقدم |
-| notes مكشوفة في 4 هجرات | **محلول في Round 15** | لا إصلاح |
-| decrypt_pii في view قديم | **محلول في Round 15** | لا إصلاح |
-| `.gitignore` سطر مكرر | **مؤكد** | تنظيف |
-| close_fiscal_year بدون FOR UPDATE | **محلول في Round 15** | لا إصلاح |
-| تذبذب security_invoker (8 تبديلات) | **محلول في Round 15** | توثيق |
+| الملف | عدد التغييرات | التأثير |
+|-------|--------------|---------|
+| MySharePage.tsx | 3 | guards تصدير + pctLoading |
+| DisclosurePage.tsx | 3 | handleRetry + فلتر + pctLoading |
+| AdvanceRequestDialog.tsx | 1 | toast عند فشل RPC |
+| CarryforwardHistoryPage.tsx | 2 | handleRetry + تحسين طباعة |
 
-**3 ملفات تُعدَّل**: حذف ملف هجرة مكرر + تنظيف `.gitignore` + توثيق Round 15.
+من أصل 15 بنداً: **7 للإصلاح**، **4 مدحوضة**، **4 مقبولة بالتصميم**.
 
