@@ -64,8 +64,8 @@ export const useMessages = (conversationId: string | null) => {
     staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness
   });
 
-  const queryClientRef2 = useRef(queryClient);
-  queryClientRef2.current = queryClient;
+  const queryClientRef = useRef(queryClient);
+  queryClientRef.current = queryClient;
 
   useEffect(() => {
     if (!user || !conversationId) return;
