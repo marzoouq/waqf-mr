@@ -44,4 +44,23 @@ describe('useInvoices hooks', () => {
     expect(INVOICE_STATUS_LABELS.paid).toBe('مدفوعة');
     expect(INVOICE_STATUS_LABELS.cancelled).toBe('ملغاة');
   });
+
+  it('GenerateInvoicePdfOptions supports template and forceRegenerate', () => {
+    const opts: GenerateInvoicePdfOptions = {
+      invoice_ids: ['abc'],
+      template: 'professional',
+      forceRegenerate: true,
+    };
+    expect(opts.template).toBe('professional');
+    expect(opts.forceRegenerate).toBe(true);
+  });
+
+  it('GenerateInvoicePdfOptions works with simplified template', () => {
+    const opts: GenerateInvoicePdfOptions = {
+      invoice_ids: ['abc'],
+      template: 'simplified',
+      forceRegenerate: true,
+    };
+    expect(opts.template).toBe('simplified');
+  });
 });
