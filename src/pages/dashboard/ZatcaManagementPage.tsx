@@ -760,7 +760,7 @@ function ZatcaManagementPage() {
                 )}
 
                 {/* Errors */}
-                {(complianceResult.errorMessages?.length > 0 || complianceResult.validationResults?.errorMessages?.length > 0) && (
+                {((complianceResult.errorMessages?.length ?? 0) > 0 || (complianceResult.validationResults?.errorMessages?.length ?? 0) > 0) && (
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-destructive">أخطاء:</p>
                     {(complianceResult.errorMessages || complianceResult.validationResults?.errorMessages || []).map((e: { code: string; message: string }, i: number) => (
