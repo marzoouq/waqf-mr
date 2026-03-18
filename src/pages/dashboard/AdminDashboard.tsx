@@ -289,7 +289,7 @@ const AdminDashboard = () => {
             <AlertTitle>طلبات سُلف معلقة</AlertTitle>
             <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
               <span>{pendingAdvances.length} طلب سُلفة بانتظار الموافقة</span>
-              <Link to="/dashboard/beneficiaries">
+              <Link to="/dashboard/accounts">
                 <Button variant="outline" size="sm" className="shrink-0">مراجعة الطلبات</Button>
               </Link>
             </AlertDescription>

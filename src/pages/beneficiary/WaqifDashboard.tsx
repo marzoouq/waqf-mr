@@ -83,7 +83,16 @@ const WaqifDashboard = () => {
   /* ── KPIs ── */
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    const rentedUnits = allUnits.filter(u => u.status === 'مؤجرة').length;
+    // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
+    const rentedUnitIds = new Set(
+      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
+    );
+    const wholePropertyRentedIds = new Set(
+      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
+    );
+    const rentedUnits = allUnits.filter(u =>
+      rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
+    ).length;
     const totalUnitsCount = allUnits.length;
     const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
