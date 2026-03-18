@@ -9,8 +9,17 @@ interface CollectionSummaryChartProps {
 }
 
 const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) => {
+  // CS-01: guard للبيانات الفارغة
+  if (onTime === 0 && late === 0) {
+    return (
+      <div className="w-[180px] h-[180px] shrink-0 flex items-center justify-center rounded-full bg-muted/30">
+        <span className="text-xs text-muted-foreground">لا توجد بيانات</span>
+      </div>
+    );
+  }
+
   const data = [
-    { name: 'منتظم', value: onTime },
+    { name: 'محصّل', value: onTime },
     { name: 'متأخر', value: late },
   ];
 
@@ -31,7 +40,8 @@ const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) =
             <Cell fill="hsl(var(--success))" />
             <Cell fill="hsl(var(--destructive))" />
           </Pie>
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value) => [`${value} فاتورة`, undefined]} />
+          {/* CS-05: إصلاح Tooltip formatter — إضافة name */}
+          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value: number, name: string) => [`${value} فاتورة`, name]} />
         </PieChart>
       </ResponsiveContainer>
     </div>

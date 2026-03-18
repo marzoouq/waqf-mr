@@ -452,7 +452,7 @@ const AdminDashboard = () => {
 
         {/* D-4: خريطة حرارية للتحصيل الشهري */}
         <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-          <CollectionHeatmap paymentInvoices={paymentInvoices} />
+          <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
         </Suspense>
 
         {/* D-5: جدول الإجراءات المعلقة */}

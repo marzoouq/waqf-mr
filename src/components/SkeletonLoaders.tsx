@@ -54,7 +54,7 @@ export const KpiSkeleton = () => (
       <Skeleton className="h-6 w-56" />
     </CardHeader>
     <CardContent>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
             <Skeleton className="h-4 w-20 mx-auto" />

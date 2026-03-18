@@ -53,6 +53,9 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               {remainingDays}
             </p>
             <p className="text-[10px] text-muted-foreground">من أصل {totalDays} يوم</p>
+            <p className="text-[10px] text-muted-foreground">
+              تنتهي في: {new Date(fiscalYear.end_date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
           </div>
 
           {/* نسبة الإنجاز الزمني */}
