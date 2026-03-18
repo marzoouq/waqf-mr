@@ -96,6 +96,7 @@ export const ADMIN_ROUTE_PERM_KEYS: Record<string, string> = {
   '/dashboard/audit-log': 'audit_log',
   '/dashboard/annual-report': 'annual_report',
   '/dashboard/support': 'support',
+  '/dashboard/chart-of-accounts': 'chart_of_accounts',
 };
 
 export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
