@@ -101,8 +101,9 @@ const AdminDashboard = () => {
     const relevantContractIds = new Set(
       fyContracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
     );
+    const nowDate = new Date();
     const dueInvoices = paymentInvoices.filter(
-      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= new Date()
+      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
     );
     const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
     const totalCollected = dueInvoices.reduce((sum, inv) => {
