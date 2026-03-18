@@ -90,9 +90,11 @@ const BeneficiariesPage = () => {
       bank_account: formData.bank_account || undefined, notes: formData.notes || undefined,
       user_id: formData.user_id || undefined, national_id: formData.national_id || undefined,
     };
-    if (editingBeneficiary) { await updateBeneficiary.mutateAsync({ id: editingBeneficiary.id, ...beneficiaryData }); } else { await createBeneficiary.mutateAsync(beneficiaryData); }
-    setIsOpen(false);
-    resetForm();
+    try {
+      if (editingBeneficiary) { await updateBeneficiary.mutateAsync({ id: editingBeneficiary.id, ...beneficiaryData }); } else { await createBeneficiary.mutateAsync(beneficiaryData); }
+      setIsOpen(false);
+      resetForm();
+    } catch { /* mutationCache handles toast */ }
   };
 
   const handleEdit = (beneficiary: Beneficiary) => {
