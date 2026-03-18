@@ -266,7 +266,30 @@ const CarryforwardHistoryPage = () => {
             {paidAdvances.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground text-sm">لا توجد سُلف مصروفة</p>
             ) : (
-              <div className="overflow-x-auto">
+              {/* Mobile Cards */}
+              <div className="space-y-3 md:hidden">
+                {paidAdvances.map(adv => (
+                  <div key={adv.id} className="border rounded-lg p-3 space-y-2">
+                    <p className="font-medium text-sm">{fmt(safeNumber(adv.amount))} ر.س</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">السبب</p>
+                        <p className="text-xs font-medium">{adv.reason || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">تاريخ الصرف</p>
+                        <p className="text-xs font-medium">{adv.paid_at ? new Date(adv.paid_at).toLocaleDateString('ar-SA') : '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">تاريخ الطلب</p>
+                        <p className="text-xs font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop Table */}
+              <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
