@@ -250,9 +250,9 @@ export const generateAnnualDisclosurePDF = async (data: {
     body: data.beneficiaries.map(b => reshapeRow([
       b.name,
       `${Number(b.share_percentage).toFixed(6)}%`,
-      b.amount.toLocaleString(),
+      fmtAr(b.amount),
     ])),
-    foot: [reshapeRow(['الإجمالي', `${totalBenPct.toFixed(6)}%`, totalBenAmt.toLocaleString()])],
+    foot: [reshapeRow(['الإجمالي', `${totalBenPct.toFixed(6)}%`, fmtAr(totalBenAmt)])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GOLD, fontFamily),
     ...footStyles(TABLE_HEAD_GOLD, fontFamily),
