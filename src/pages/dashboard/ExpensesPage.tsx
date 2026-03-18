@@ -91,6 +91,7 @@ const ExpensesPage = () => {
     try {
       await deleteExpense.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
+      setCurrentPage(1);
     } catch {
       // onError in the mutation already shows a toast
     }
@@ -166,7 +167,7 @@ const ExpensesPage = () => {
           icon={TrendingDown}
           description="تسجيل ومتابعة المصروفات"
           actions={<>
-            <ExportMenu onExportPdf={() => generateExpensesPDF(expenses, totalExpenses, pdfWaqfInfo)} onExportCsv={() => {
+            <ExportMenu onExportPdf={() => generateExpensesPDF(filteredExpenses, totalExpenses, pdfWaqfInfo)} onExportCsv={() => {
               const csv = buildCsv(filteredExpenses.map(item => ({
                 'النوع': item.expense_type,
                 'المبلغ': safeNumber(item.amount),
@@ -250,7 +251,7 @@ const ExpensesPage = () => {
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{Number(item.amount).toLocaleString()} ر.س</p></div>
+                          <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-destructive">-{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
                           <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                           {item.description && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">الوصف</p><p className="text-sm text-muted-foreground">{item.description}</p></div>}
                         </div>
@@ -299,7 +300,7 @@ const ExpensesPage = () => {
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">{item.expense_type}</TableCell>
-                          <TableCell className="text-destructive font-medium">-{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="text-destructive font-medium">-{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
                           <TableCell>{item.date}</TableCell>
                           <TableCell>{item.property?.property_number || '-'}</TableCell>
                           <TableCell>

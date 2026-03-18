@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
+import { buildCsv, downloadCsv } from '@/utils/csv';
 import IncomeMonthlyChart from '@/components/dashboard/IncomeMonthlyChart';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +25,7 @@ import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TableSkeleton } from '@/components/SkeletonLoaders';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -86,6 +89,7 @@ const IncomePage = () => {
     try {
       await deleteIncome.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
+      setCurrentPage(1);
     } catch {
       // onError in the mutation already shows a toast
     }
@@ -107,7 +111,7 @@ const IncomePage = () => {
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
-  const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
+  const totalIncome = income.reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
   // قائمة المصادر الفريدة للفلتر
   const uniqueSources = useMemo(() => {
@@ -121,7 +125,7 @@ const IncomePage = () => {
     const monthMap = new Map<string, number>();
     income.forEach((i) => {
       const month = i.date.slice(0, 7); // YYYY-MM
-      monthMap.set(month, (monthMap.get(month) || 0) + Number(i.amount));
+      monthMap.set(month, (monthMap.get(month) || 0) + safeNumber(i.amount));
     });
     if (monthMap.size < 2) return [];
     const values = Array.from(monthMap.values());
@@ -136,7 +140,7 @@ const IncomePage = () => {
     const count = income.length;
     const avg = count > 0 ? Math.round(totalIncome / count) : 0;
     const sourceMap = new Map<string, number>();
-    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + Number(i.amount)));
+    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + safeNumber(i.amount)));
     let topSource = '-';
     let topSourceAmount = 0;
     sourceMap.forEach((amount, source) => { if (amount > topSourceAmount) { topSourceAmount = amount; topSource = source; } });
@@ -165,7 +169,7 @@ const IncomePage = () => {
     if (sortField) {
       result = [...result].sort((a, b) => {
         let cmp = 0;
-        if (sortField === 'amount') cmp = Number(a.amount) - Number(b.amount);
+        if (sortField === 'amount') cmp = safeNumber(a.amount) - safeNumber(b.amount);
         else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
         else if (sortField === 'source') cmp = a.source.localeCompare(b.source, 'ar');
         return sortDir === 'asc' ? cmp : -cmp;
@@ -183,7 +187,17 @@ const IncomePage = () => {
           icon={TrendingUp}
           description="تسجيل ومتابعة مصادر الدخل"
           actions={<>
-            <ExportMenu onExportPdf={() => generateIncomePDF(income, totalIncome, pdfWaqfInfo)} />
+            <ExportMenu onExportPdf={() => generateIncomePDF(filteredIncome, totalIncome, pdfWaqfInfo)} onExportCsv={() => {
+              const csv = buildCsv(filteredIncome.map(item => ({
+                'المصدر': item.source,
+                'المبلغ': safeNumber(item.amount),
+                'التاريخ': item.date,
+                'العقار': item.property?.property_number || '-',
+                'ملاحظات': item.notes || '-',
+              })));
+              downloadCsv(csv, 'دخل.csv');
+              toast.success('تم تصدير الدخل بنجاح');
+            }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
               <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
               <DialogContent className="max-w-md">
@@ -295,7 +309,7 @@ const IncomePage = () => {
         <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
+              <TableSkeleton rows={5} cols={5} />
             ) : filteredIncome.length === 0 ? (
               <div className="py-12 text-center"><TrendingUp className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">{searchQuery || filters.category || filters.propertyId || filters.dateFrom ? 'لا توجد نتائج للبحث' : 'لا توجد سجلات دخل'}</p></div>
             ) : (
@@ -316,7 +330,7 @@ const IncomePage = () => {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{Number(item.amount).toLocaleString()} ر.س</p></div>
+                        <div><p className="text-[10px] text-muted-foreground">المبلغ</p><p className="text-sm font-medium text-success">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</p></div>
                         <div><p className="text-[10px] text-muted-foreground">العقار</p><p className="text-sm font-medium">{item.property?.property_number || '-'}</p></div>
                         {item.notes && <div className="col-span-2"><p className="text-[10px] text-muted-foreground">ملاحظات</p><p className="text-sm text-muted-foreground">{item.notes}</p></div>}
                       </div>
@@ -346,7 +360,7 @@ const IncomePage = () => {
                   {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.source}</TableCell>
-                      <TableCell className="text-success font-medium">+{Number(item.amount).toLocaleString()} ر.س</TableCell>
+                      <TableCell className="text-success font-medium">+{safeNumber(item.amount).toLocaleString('ar-SA')} ر.س</TableCell>
                       <TableCell>{item.date}</TableCell>
                       <TableCell>{item.property?.property_number || '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>

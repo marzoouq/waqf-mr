@@ -24,11 +24,11 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
     body: income.map((item, i) => reshapeRow([
       i + 1,
       item.source,
-      `${Number(item.amount).toLocaleString()} ر.س`,
+      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
       item.date,
       item.notes || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_GREEN, fontFamily),
     ...footStyles(TABLE_HEAD_GREEN, fontFamily),
@@ -37,7 +37,7 @@ export const generateIncomePDF = async (income: Array<{ source: string; amount: 
 
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
-  doc.save('income-report.pdf');
+  doc.save(`income-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
 export const generateExpensesPDF = async (expenses: Array<{ expense_type: string; amount: number; date: string; description?: string | null }>, total: number, waqfInfo?: PdfWaqfInfo) => {
@@ -57,11 +57,11 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
     body: expenses.map((item, i) => reshapeRow([
       i + 1,
       item.expense_type,
-      `${Number(item.amount).toLocaleString()} ر.س`,
+      `${Number(item.amount).toLocaleString('ar-SA')} ر.س`,
       item.date,
       item.description || '-',
     ])),
-    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString()} ر.س`, '', ''])],
+    foot: [reshapeRow(['', 'الإجمالي', `${total.toLocaleString('ar-SA')} ر.س`, '', ''])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),
     ...footStyles(TABLE_HEAD_RED, fontFamily),
@@ -70,5 +70,5 @@ export const generateExpensesPDF = async (expenses: Array<{ expense_type: string
 
   addHeaderToAllPages(doc, fontFamily, waqfInfo);
   addFooter(doc, fontFamily, waqfInfo);
-  doc.save('expenses-report.pdf');
+  doc.save(`expenses-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 };
