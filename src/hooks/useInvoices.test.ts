@@ -23,7 +23,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-import { useInvoices, useCreateInvoice, useUpdateInvoice, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS } from './useInvoices';
+import { useInvoices, useCreateInvoice, useUpdateInvoice, INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, type GenerateInvoicePdfOptions } from './useInvoices';
 
 describe('useInvoices hooks', () => {
   it('exports all CRUD hooks', () => {
