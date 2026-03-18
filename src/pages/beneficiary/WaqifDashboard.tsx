@@ -160,7 +160,7 @@ const WaqifDashboard = () => {
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center"><GreetingIcon className="w-6 h-6" /></div>
-                <div><p className="text-sm text-primary-foreground/80">{greeting}</p><h1 className="text-xl sm:text-2xl font-bold font-display">الواقف</h1></div>
+                <div><p className="text-sm text-primary-foreground/80">{greeting}</p><h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1></div>
               </div>
             </CardContent>
           </Card>
