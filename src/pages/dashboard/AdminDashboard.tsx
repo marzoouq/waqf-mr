@@ -417,7 +417,7 @@ const AdminDashboard = () => {
                   <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
                     <div className="flex items-center justify-center gap-2">
                       <CheckCircle className="w-5 h-5 text-success" />
-                      <span className="text-sm text-muted-foreground">منتظم</span>
+                      <span className="text-sm text-muted-foreground">محصّل</span>
                     </div>
                     <p className="text-3xl font-bold text-success">{collectionSummary.onTime}</p>
                     <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
