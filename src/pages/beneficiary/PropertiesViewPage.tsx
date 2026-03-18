@@ -4,7 +4,7 @@
  */
 import { useProperties } from '@/hooks/useProperties';
 import { useAllUnits } from '@/hooks/useUnits';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
