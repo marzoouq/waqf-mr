@@ -354,7 +354,7 @@ const MySharePage = () => {
           description="تفاصيل حصتك من ريع الوقف"
           icon={Wallet}
           actions={
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2">
               {advancesEnabled && currentBeneficiary && (
                 <AdvanceRequestDialog
                   beneficiaryId={currentBeneficiary?.id || ''}
@@ -367,19 +367,14 @@ const MySharePage = () => {
                   isFiscalYearActive={selectedFY?.status !== 'closed'}
                 />
               )}
-              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5" disabled={isPdfLoading}>
-                <Printer className="w-4 h-4" />
-                <span className="hidden sm:inline">طباعة</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                <span className="hidden sm:inline">تقرير التوزيع</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5" disabled={isPdfLoading}>
-                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                <span className="hidden sm:inline">تقرير شامل</span>
-              </Button>
-              <ExportMenu onExportPdf={handleDownloadPDF} />
+              <ExportMenu
+                onPrint={handlePrintReport}
+                onExportPdf={handleDownloadPDF}
+                extraItems={[
+                  { label: 'تقرير التوزيع', icon: FileDown, onClick: handleDownloadDistributionsPDF },
+                  { label: 'تقرير شامل', icon: FileDown, onClick: handleDownloadComprehensivePDF },
+                ]}
+              />
             </div>
           }
         />
