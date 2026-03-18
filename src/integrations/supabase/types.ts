@@ -1737,7 +1737,7 @@ export type Database = {
           end_date?: string | null
           fiscal_year_id?: string | null
           id?: string | null
-          notes?: string | null
+          notes?: never
           payment_amount?: number | null
           payment_count?: number | null
           payment_type?: string | null
@@ -1764,7 +1764,7 @@ export type Database = {
           end_date?: string | null
           fiscal_year_id?: string | null
           id?: string | null
-          notes?: string | null
+          notes?: never
           payment_amount?: number | null
           payment_count?: number | null
           payment_type?: string | null
