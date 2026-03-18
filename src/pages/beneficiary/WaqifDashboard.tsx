@@ -272,12 +272,12 @@ const WaqifDashboard = () => {
                 <>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-success/5 border border-success/20">
                     <span className="text-sm">تحصيل منتظم</span>
-                    <span className="font-bold text-success">{collectionSummary.onTime} عقد</span>
+                    <span className="font-bold text-success">{collectionSummary.onTime} فاتورة</span>
                   </div>
                   {collectionSummary.late > 0 && (
                     <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                       <span className="text-sm">تحصيل متأخر</span>
-                      <span className="font-bold text-destructive">{collectionSummary.late} عقد</span>
+                      <span className="font-bold text-destructive">{collectionSummary.late} فاتورة</span>
                     </div>
                   )}
                 </>

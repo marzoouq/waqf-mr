@@ -31,7 +31,7 @@ const CollectionSummaryChart = ({ onTime, late }: CollectionSummaryChartProps) =
             <Cell fill="hsl(var(--success))" />
             <Cell fill="hsl(var(--destructive))" />
           </Pie>
-          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} />
+          <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(value: number) => [`${value} فاتورة`, undefined]} />
         </PieChart>
       </ResponsiveContainer>
     </div>

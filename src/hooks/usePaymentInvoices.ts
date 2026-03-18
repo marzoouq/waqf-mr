@@ -50,6 +50,9 @@ export const usePaymentInvoices = (fiscalYearId: string | 'all') => {
       }
       const { data, error } = await query;
       if (error) throw error;
+      if (data && data.length >= 1000) {
+        logger.warn(`payment_invoices query hit limit (1000) for fiscal year ${fiscalYearId}`);
+      }
       return data as unknown as PaymentInvoice[];
     },
   });
