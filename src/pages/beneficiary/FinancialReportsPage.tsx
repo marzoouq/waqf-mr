@@ -40,7 +40,7 @@ const FinancialReportsPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => queryClient.invalidateQueries();
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { user } = useAuth();
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 

@@ -36,7 +36,7 @@ const BeneficiaryDashboard = () => {
   );
 
   // ── Derived financials (computed only when data is valid) ──
-  const { currentBeneficiary, totalBenPct, pctLoading, myShare } = useMyShare({
+  const { currentBeneficiary, pctLoading, myShare } = useMyShare({
     beneficiaries: benError ? [] : beneficiaries,
     availableAmount,
   });

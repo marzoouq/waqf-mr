@@ -31,7 +31,7 @@ const MySharePage = () => {
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
-  const { user } = useAuth();
+  
 
   const {
     beneficiaries,
