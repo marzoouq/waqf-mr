@@ -67,10 +67,10 @@ const AccountsBeneficiariesTable = ({
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
                     <TableCell className="text-primary font-medium">
-                      {(totalBeneficiaryPercentage > 0
+                      {fmt(totalBeneficiaryPercentage > 0
                         ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
                         : 0
-                      ).toLocaleString()}
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
