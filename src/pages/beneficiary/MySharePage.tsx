@@ -354,7 +354,7 @@ const MySharePage = () => {
           description="تفاصيل حصتك من ريع الوقف"
           icon={Wallet}
           actions={
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap">
               {advancesEnabled && currentBeneficiary && (
                 <AdvanceRequestDialog
                   beneficiaryId={currentBeneficiary?.id || ''}
@@ -369,15 +369,15 @@ const MySharePage = () => {
               )}
               <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5" disabled={isPdfLoading}>
                 <Printer className="w-4 h-4" />
-                طباعة
+                <span className="hidden sm:inline">طباعة</span>
               </Button>
               <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5" disabled={isPdfLoading}>
                 {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                تقرير التوزيع
+                <span className="hidden sm:inline">تقرير التوزيع</span>
               </Button>
               <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5" disabled={isPdfLoading}>
                 {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                تقرير شامل
+                <span className="hidden sm:inline">تقرير شامل</span>
               </Button>
               <ExportMenu onExportPdf={handleDownloadPDF} />
             </div>
