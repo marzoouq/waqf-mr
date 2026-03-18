@@ -45,6 +45,7 @@ export const defaultMenuLabels: MenuLabels = {
   audit_log: 'سجل المراجعة',
   bylaws: 'اللائحة التنظيمية',
   beneficiary_view: 'واجهة المستفيد',
+  chart_of_accounts: 'الشجرة المحاسبية',
 };
 
 const MenuCustomizationTab = () => {
