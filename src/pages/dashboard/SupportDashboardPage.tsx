@@ -134,10 +134,11 @@ const SupportDashboardPage = () => {
     });
   }, [errors, errorSearch]);
 
-  // === تصدير التذاكر ===
+  // === تصدير التذاكر — من allTickets (جميع التذاكر) ===
   const handleExportTickets = useCallback(() => {
     const headers = ['الرقم', 'العنوان', 'التصنيف', 'الأولوية', 'الحالة', 'التاريخ'];
-    const rows = filteredTickets.map(t => [
+    const source = allTickets.length > 0 ? allTickets : filteredTickets;
+    const rows = source.map(t => [
       t.ticket_number,
       t.title,
       CATEGORY_MAP[t.category] || t.category,
@@ -146,7 +147,7 @@ const SupportDashboardPage = () => {
       new Date(t.created_at).toLocaleDateString('ar-SA'),
     ]);
     exportToCsv('support-tickets.csv', headers, rows);
-  }, [filteredTickets]);
+  }, [allTickets, filteredTickets]);
 
   // === تصدير الأخطاء ===
   const handleExportErrors = useCallback(() => {
