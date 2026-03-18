@@ -8,7 +8,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useMyShare } from '@/hooks/useMyShare';
-import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -16,6 +16,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
+import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 
 import { fmt } from '@/utils/format';
 
