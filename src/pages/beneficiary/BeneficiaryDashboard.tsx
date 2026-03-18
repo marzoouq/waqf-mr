@@ -17,14 +17,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 
+/** تنسيق الأرقام المالية بشكل موحّد */
+const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
+  // BEN-07: تحديد queryKeys بدلاً من إبطال كل الـ cache
+  const handleRetry = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['beneficiaries'] });
+    queryClient.invalidateQueries({ queryKey: ['financial-summary'] });
+    queryClient.invalidateQueries({ queryKey: ['my-distributions-recent'] });
+  }, [queryClient]);
   const { role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
-  const { data: notifications = [], isLoading: notifLoading } = useNotifications();
+  const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
   // Don't fetch financial data until fiscalYearId is valid
@@ -41,8 +48,8 @@ const BeneficiaryDashboard = () => {
     availableAmount,
   });
 
-  // ── Include notifLoading to prevent FOUC ──
-  const isLoading = authLoading || benLoading || fyLoading || notifLoading || pctLoading || (!fyReady ? false : finLoading);
+  // BEN-02: إزالة notifLoading — الإشعارات غير حرجة ولا يجب أن تحجب العرض
+  const isLoading = authLoading || benLoading || fyLoading || pctLoading || (!fyReady ? false : finLoading);
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -77,6 +84,10 @@ const BeneficiaryDashboard = () => {
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / 86_400_000));
     return { percent, daysLeft };
   })();
+
+  // BEN-01: عرض النص حسب الدور
+  const displayName = currentBeneficiary?.name || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
+  const roleLabel = role === 'admin' ? 'واجهة معاينة المستفيد' : 'واجهة المستفيد';
 
   /* ── Recent distributions via useQuery + Realtime ── */
   const { data: distributions = [] } = useQuery({
@@ -131,7 +142,7 @@ const BeneficiaryDashboard = () => {
     { title: 'اللائحة التنظيمية', description: 'أحكام ولوائح الوقف', icon: BookOpen, path: '/beneficiary/bylaws', color: 'bg-secondary/10 text-secondary' },
   ], [role]);
 
-  // ── Guards: loading first, then error, then noPublishedYears ──
+  // ── Guards: loading → error → unlinked account → noPublishedYears ──
   if (isLoading) {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
@@ -150,30 +161,7 @@ const BeneficiaryDashboard = () => {
     );
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-3 sm:p-6 space-y-4">
-          <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center">
-                  <GreetingIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-sm text-primary-foreground/80">{greeting}</p>
-                  <h1 className="text-xl sm:text-2xl font-bold font-display">{currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : 'مستفيد')}</h1>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // H-1: guard — مستفيد بدون user_id مربوط
+  // BEN-03: نقل guard الحساب غير المرتبط قبل noPublishedYears
   if (!currentBeneficiary && !benLoading) {
     return (
       <DashboardLayout>
@@ -187,6 +175,29 @@ const BeneficiaryDashboard = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (noPublishedYears) {
+    return (
+      <DashboardLayout>
+        <div className="p-3 sm:p-6 space-y-4">
+          <Card className="overflow-hidden border-0 shadow-lg gradient-primary text-primary-foreground">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-primary-foreground/20 flex items-center justify-center">
+                  <GreetingIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm text-primary-foreground/80">{greeting}</p>
+                  <h1 className="text-xl sm:text-2xl font-bold font-display">{displayName}</h1>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <NoPublishedYearsNotice />
         </div>
       </DashboardLayout>
     );
@@ -207,9 +218,9 @@ const BeneficiaryDashboard = () => {
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base text-primary-foreground/80">{greeting}</p>
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-display truncate">
-                    {currentBeneficiary?.name || (role === 'waqif' ? 'الواقف' : 'مستفيد')}
+                    {displayName}
                   </h1>
-                  <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">واجهة المستفيد</p>
+                  <p className="text-xs sm:text-sm text-primary-foreground/70 mt-0.5">{roleLabel}</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-primary-foreground/85 shrink-0">
@@ -236,7 +247,7 @@ const BeneficiaryDashboard = () => {
                   {!isClosed ? (
                     <p className="text-sm font-medium text-muted-foreground">تُحسب عند الإقفال</p>
                   ) : (
-                    <p className="text-lg sm:text-xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                    <p className="text-lg sm:text-xl font-bold truncate">{fmtAr(myShare)} ر.س</p>
                   )}
                 </div>
               </div>
@@ -257,7 +268,7 @@ const BeneficiaryDashboard = () => {
                     return lastPaid ? (
                       <>
                         <p className="text-lg sm:text-xl font-bold truncate">
-                          {Number(lastPaid.amount).toLocaleString()} ر.س
+                          {fmtAr(Number(lastPaid.amount))} ر.س
                         </p>
                         <p className="text-[10px] text-muted-foreground">
                           {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
@@ -338,7 +349,7 @@ const BeneficiaryDashboard = () => {
                   {distributions.map((d) => (
                     <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <div className="min-w-0">
-                        <p className="font-medium text-sm">{Number(d.amount).toLocaleString()} ر.س</p>
+                        <p className="font-medium text-sm">{fmtAr(Number(d.amount))} ر.س</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
                       </div>
                       <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[10px]">
@@ -373,7 +384,8 @@ const BeneficiaryDashboard = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm">{n.title}</p>
-                          {!n.is_read && <Badge variant="default" className="text-[10px] px-1.5 py-0">جديد</Badge>}
+                          {/* BEN-15: تغيير variant لتتوافق مع badge العدد */}
+                          {!n.is_read && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">جديد</Badge>}
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
                       </div>

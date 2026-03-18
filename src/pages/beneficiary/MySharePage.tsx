@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info } from 'lucide-react';
+import { Wallet, Clock, CheckCircle, AlertCircle, FileText, RefreshCw, UserX, Banknote, FileDown, Printer, XCircle, Info, Loader2, PieChart } from 'lucide-react';
 import { printShareReport } from '@/utils/printShareReport';
 import { useNavigate } from 'react-router-dom';
 import ExportMenu from '@/components/ExportMenu';
@@ -23,6 +24,9 @@ import { useMyShare } from '@/hooks/useMyShare';
 import { useAppSettings } from '@/hooks/useAppSettings';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
+/** تنسيق الأرقام المالية بشكل موحّد */
+const fmtAr = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const MySharePage = () => {
   const queryClient = useQueryClient();
   const handleRetry = () => {
@@ -34,7 +38,8 @@ const MySharePage = () => {
   const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
-  
+  // BEN-11: حالة تحميل PDF لمنع الضغط المزدوج
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
 
   const {
     beneficiaries,
@@ -88,6 +93,7 @@ const MySharePage = () => {
   const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
   const advancesEnabled = advanceSettings.enabled;
   const beneficiariesShare = availableAmount;
+  const isClosed = selectedFY?.status === 'closed';
 
   // F6: فلترة التوزيعات بالسنة المالية عند عدم وجود حساب ختامي
   const filteredDistributions = currentAccount
@@ -104,7 +110,14 @@ const MySharePage = () => {
     .filter(d => d.status === 'pending')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
-  const handleDownloadPDF = async () => {
+  // BEN-11: wrapper لمنع الضغط المزدوج أثناء توليد PDF
+  const withPdfLoading = (fn: () => Promise<void>) => async () => {
+    if (isPdfLoading) return;
+    setIsPdfLoading(true);
+    try { await fn(); } finally { setIsPdfLoading(false); }
+  };
+
+  const handleDownloadPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
     try {
       await generateMySharePDF({
@@ -128,9 +141,9 @@ const MySharePage = () => {
     } catch {
       toast.error('حدث خطأ أثناء تصدير PDF');
     }
-  };
+  });
 
-  const handleDownloadDistributionsPDF = async () => {
+  const handleDownloadDistributionsPDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
     try {
       const shareAmount = myShare;
@@ -139,10 +152,8 @@ const MySharePage = () => {
       const totalDeductions = advances + carryforward;
       const rawNet = shareAmount - totalDeductions;
       const net = Math.max(0, rawNet);
-      // O-01 fix: deficit is simply the negative portion of rawNet — no double counting (matching L-02 fix in DistributeDialog)
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
-      // F7: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
       const afterAdvances = Math.max(0, shareAmount - advances);
       const actualCarryforward = Math.min(carryforward, afterAdvances);
 
@@ -163,7 +174,7 @@ const MySharePage = () => {
     } catch {
       toast.error('حدث خطأ أثناء تصدير التقرير');
     }
-  };
+  });
 
   const handlePrintReport = () => {
     if (!currentBeneficiary) return;
@@ -178,7 +189,7 @@ const MySharePage = () => {
     });
   };
 
-  const handleDownloadComprehensivePDF = async () => {
+  const handleDownloadComprehensivePDF = withPdfLoading(async () => {
     if (!currentBeneficiary) return;
     try {
       await generateComprehensiveBeneficiaryPDF({
@@ -218,7 +229,7 @@ const MySharePage = () => {
     } catch {
       toast.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
-  };
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -242,7 +253,8 @@ const MySharePage = () => {
     };
     const s = map[status] || { label: status, cls: 'bg-muted text-muted-foreground', icon: Clock };
     const Icon = s.icon;
-    return <Badge className={`${s.cls} hover:${s.cls}`}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
+    // BEN-18: إصلاح hover class — حذف template literal الخاطئ
+    return <Badge className={s.cls}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
   };
 
   // F4: عرض skeleton أثناء التحميل
@@ -293,7 +305,8 @@ const MySharePage = () => {
     );
   }
 
-  if (isAccountMissing) {
+  // BEN-17: عرض رسالة الحساب المفقود فقط للسنوات المُقفلة
+  if (isAccountMissing && isClosed) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
@@ -331,16 +344,16 @@ const MySharePage = () => {
                   isFiscalYearActive={selectedFY?.status !== 'closed'}
                 />
               )}
-              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5">
+              <Button variant="outline" size="sm" onClick={handlePrintReport} className="gap-1.5" disabled={isPdfLoading}>
                 <Printer className="w-4 h-4" />
                 طباعة
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5">
-                <FileDown className="w-4 h-4" />
+              <Button variant="outline" size="sm" onClick={handleDownloadDistributionsPDF} className="gap-1.5" disabled={isPdfLoading}>
+                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 تقرير التوزيع
               </Button>
-              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5">
-                <FileDown className="w-4 h-4" />
+              <Button variant="outline" size="sm" onClick={handleDownloadComprehensivePDF} className="gap-1.5" disabled={isPdfLoading}>
+                {isPdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
                 تقرير شامل
               </Button>
               <ExportMenu onExportPdf={handleDownloadPDF} />
@@ -348,8 +361,24 @@ const MySharePage = () => {
           }
         />
 
-        {/* Share Summary - 4 cards */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 sm:gap-4`}>
+        {/* Share Summary - cards */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-3 sm:gap-4`}>
+          {/* BEN-13: بطاقة نسبة الحصة */}
+          <Card className="shadow-sm border-primary/20">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                  <PieChart className="w-4 h-4 sm:w-6 sm:h-6 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground">نسبة الحصة</p>
+                  <p className="text-base sm:text-2xl font-bold truncate">{currentBeneficiary.share_percentage ?? 0}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* BEN-14: الحصة المستحقة — مشروطة بحالة السنة */}
           <Card className="shadow-sm gradient-primary text-primary-foreground">
             <CardContent className="p-3 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
@@ -358,7 +387,11 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-primary-foreground/90">الحصة المستحقة</p>
-                  <p className="text-base sm:text-2xl font-bold truncate">{myShare.toLocaleString()} ر.س</p>
+                  {!isClosed ? (
+                    <p className="text-sm font-medium text-primary-foreground/70">تُحسب عند إغلاق السنة</p>
+                  ) : (
+                    <p className="text-base sm:text-2xl font-bold truncate">{fmtAr(myShare)} ر.س</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -372,7 +405,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المستلمة</p>
-                  <p className="text-base sm:text-2xl font-bold text-success truncate">{totalReceived.toLocaleString()} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-success truncate">{fmtAr(totalReceived)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -386,7 +419,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">المبالغ المعلقة</p>
-                  <p className="text-base sm:text-2xl font-bold text-warning truncate">{pendingAmount.toLocaleString()} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-warning truncate">{fmtAr(pendingAmount)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -401,7 +434,7 @@ const MySharePage = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground">السُلف المصروفة</p>
-                  <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{paidAdvancesTotal.toLocaleString()} ر.س</p>
+                  <p className="text-base sm:text-2xl font-bold text-accent-foreground truncate">{fmtAr(paidAdvancesTotal)} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -410,7 +443,7 @@ const MySharePage = () => {
         </div>
 
         {/* تنبيه السنة النشطة — BUG-CF2 */}
-        {myShare === 0 && !isAccountMissing && selectedFY?.status !== 'closed' && currentBeneficiary && (
+        {!isClosed && currentBeneficiary && (
           <Card className="shadow-sm border-info/30 bg-info/5">
             <CardContent className="p-4 flex items-start gap-3">
               <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
@@ -433,7 +466,7 @@ const MySharePage = () => {
                 <div>
                   <p className="font-bold text-sm">فروق مرحّلة من سنوات سابقة</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    لديك مبلغ <span className="font-bold text-warning">{carryforwardBalance.toLocaleString()} ر.س</span> مرحّل من سُلف سابقة تجاوزت حصتك.
+                    لديك مبلغ <span className="font-bold text-warning">{fmtAr(carryforwardBalance)} ر.س</span> مرحّل من سُلف سابقة تجاوزت حصتك.
                     سيتم خصمه تلقائياً من حصتك عند التوزيع القادم.
                   </p>
                 </div>
@@ -479,7 +512,7 @@ const MySharePage = () => {
                   {filteredDistributions.map((dist) => (
                     <div key={dist.id} className="border rounded-lg p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold">{Number(dist.amount).toLocaleString()} ر.س</span>
+                        <span className="text-sm font-bold">{fmtAr(Number(dist.amount))} ر.س</span>
                         {getStatusBadge(dist.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -511,7 +544,7 @@ const MySharePage = () => {
                         <TableRow key={dist.id}>
                           <TableCell>{new Date(dist.date).toLocaleDateString('ar-SA')}</TableCell>
                           <TableCell>{dist.account?.fiscal_year || '-'}</TableCell>
-                          <TableCell className="font-bold">{Number(dist.amount).toLocaleString()} ر.س</TableCell>
+                          <TableCell className="font-bold">{fmtAr(Number(dist.amount))} ر.س</TableCell>
                           <TableCell>{getStatusBadge(dist.status)}</TableCell>
                         </TableRow>
                       ))}
@@ -540,7 +573,7 @@ const MySharePage = () => {
                   return (
                     <div key={adv.id} className={`border rounded-lg border-r-4 ${borderColor} p-3 space-y-2`}>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold">{Number(adv.amount).toLocaleString()} ر.س</span>
+                        <span className="text-sm font-bold">{fmtAr(Number(adv.amount))} ر.س</span>
                         {getAdvanceStatusBadge(adv.status)}
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
@@ -581,7 +614,7 @@ const MySharePage = () => {
                     {myAdvances.map(adv => (
                       <TableRow key={adv.id}>
                         <TableCell>{new Date(adv.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                        <TableCell className="font-bold">{Number(adv.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell className="font-bold">{fmtAr(Number(adv.amount))} ر.س</TableCell>
                         <TableCell className="max-w-[200px] truncate">{adv.reason || '—'}</TableCell>
                         <TableCell>
                           {getAdvanceStatusBadge(adv.status)}
@@ -613,7 +646,7 @@ const MySharePage = () => {
                 {myCarryforwards.map(cf => (
                   <div key={cf.id} className="border rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</span>
+                      <span className="text-sm font-bold text-destructive">{fmtAr(Number(cf.amount))} ر.س</span>
                       <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
                         {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
                       </Badge>
@@ -646,7 +679,7 @@ const MySharePage = () => {
                     {myCarryforwards.map(cf => (
                       <TableRow key={cf.id}>
                         <TableCell>{new Date(cf.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                        <TableCell className="font-bold text-destructive">{Number(cf.amount).toLocaleString()} ر.س</TableCell>
+                        <TableCell className="font-bold text-destructive">{fmtAr(Number(cf.amount))} ر.س</TableCell>
                         <TableCell>
                           <Badge className={cf.status === 'active' ? 'bg-warning/20 text-warning' : 'bg-success/20 text-success'}>
                             {cf.status === 'active' ? 'نشط' : 'تمت التسوية'}
