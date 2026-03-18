@@ -401,7 +401,7 @@ const AdminDashboard = () => {
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Gauge className="w-5 h-5" />
+                <Banknote className="w-5 h-5" />
                 ملخص التحصيل
               </CardTitle>
             </CardHeader>
