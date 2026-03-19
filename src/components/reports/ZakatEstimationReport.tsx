@@ -77,8 +77,44 @@ const ZakatEstimationReport = ({
           </AlertDescription>
         </Alert>
 
-        {/* جدول الخطوات */}
-        <div className="overflow-x-auto">
+        {/* عرض بنود الجوال */}
+        <div className="md:hidden space-y-1.5">
+          {steps.map((step, i) => {
+            const isSubtotal = step.type === 'subtotal';
+            const isZakat = step.type === 'zakat';
+            const isResult = step.type === 'result';
+            const isRecorded = step.type === 'recorded';
+            return (
+              <div
+                key={i}
+                className={`flex items-center justify-between p-2.5 rounded-lg ${
+                  isResult ? 'bg-primary/10 border-2 border-primary/30' :
+                  isSubtotal ? 'bg-muted/30' :
+                  isZakat ? 'bg-warning/10' :
+                  isRecorded ? 'bg-success/10' : 'bg-background'
+                }`}
+              >
+                <span className={`text-sm ${isSubtotal || isResult ? 'font-bold' : ''}`}>{step.label}</span>
+                <span className={`tabular-nums text-sm font-medium ${
+                  step.type === 'subtract' ? 'text-destructive' :
+                  step.type === 'add' ? 'text-success' :
+                  isZakat ? 'text-warning font-bold' :
+                  isResult ? 'text-primary font-bold' :
+                  isRecorded ? 'text-success' : 'font-semibold'
+                }`}>
+                  {step.type === 'subtract' ? '-' : step.type === 'add' ? '+' : ''}
+                  {step.value.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </span>
+              </div>
+            );
+          })}
+          <p className="text-xs text-muted-foreground text-center pt-2">
+            * النصاب التقريبي يعتمد على سعر الذهب (85 جرام × 300 ر.س). يُرجى مراجعة المختص الشرعي للتحقق.
+          </p>
+        </div>
+
+        {/* جدول الخطوات للشاشات الكبيرة */}
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
