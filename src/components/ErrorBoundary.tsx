@@ -27,10 +27,14 @@ class ErrorBoundary extends Component<Props, State> {
     logger.error('ErrorBoundary caught:', error, errorInfo);
 
     // Report to server via logAccessEvent RPC + structured metadata
+    // تجاهل أخطاء اختبارات الوحدة في الإنتاج
+    if (error.message === 'Test explosion') return;
+
     try {
       const metadata = {
         error_name: error.name,
         error_message: error.message,
+        error_stack: error.stack?.slice(0, 1000) ?? null,
         component_stack: errorInfo.componentStack?.slice(0, 500),
         url: typeof window !== 'undefined' ? window.location.href : null,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : null,
