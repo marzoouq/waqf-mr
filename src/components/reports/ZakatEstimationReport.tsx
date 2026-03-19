@@ -103,7 +103,7 @@ const ZakatEstimationReport = ({
                   isRecorded ? 'text-success' : 'font-semibold'
                 }`}>
                   {step.type === 'subtract' ? '-' : step.type === 'add' ? '+' : ''}
-                  {step.value.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  {fmtInt(step.value)}
                 </span>
               </div>
             );
