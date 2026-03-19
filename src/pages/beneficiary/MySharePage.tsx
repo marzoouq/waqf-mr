@@ -291,16 +291,6 @@ const MySharePage = () => {
     );
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="حصتي من الريع" icon={Wallet} description="تفاصيل حصتك من ريع الوقف" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (finError) {
     return (
