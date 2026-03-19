@@ -221,7 +221,7 @@ const BeneficiariesPage = () => {
 
             <div className="relative max-w-md">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+              <Input id="beneficiaries-search" name="beneficiaries-search" aria-label="بحث" placeholder="بحث في المستفيدين..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
             </div>
 
             {isLoading ? (

@@ -246,52 +246,45 @@ export const useNotifications = () => {
   const qcRef = useRef(queryClient);
   useEffect(() => { qcRef.current = queryClient; }, [queryClient]);
 
-  // Realtime subscription with browser push notifications
-  // إصلاح: اسم قناة فريد + فلترة server-side + dependency على user.id فقط
-  useEffect(() => {
-    if (!user) return;
-    const channelName = `notifications-${user.id}`;
-    const userId = user.id;
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${userId}`,
-      }, (payload) => {
-        qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
-        
-        const newNotif = payload.new as Notification;
+  // Realtime subscription with browser push notifications — bfcache safe
+  const userId = user?.id ?? '';
+  const notifSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${userId}`,
+    }, (payload) => {
+      qcRef.current.invalidateQueries({ queryKey: ['notifications', userId] });
+      
+      const newNotif = payload.new as Notification;
 
-        // Play notification chime (if enabled)
-        let soundEnabled = true;
-        try { soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { /* safe default */ }
-        if (soundEnabled) playSoundRef.current();
+      // Play notification chime (if enabled)
+      let soundEnabled = true;
+      try { soundEnabled = localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { /* safe default */ }
+      if (soundEnabled) playSoundRef.current();
 
-        // Show browser push notification
-        if ('Notification' in window && Notification.permission === 'granted') {
-          if (lastNotifIdRef.current !== newNotif.id) {
-            lastNotifIdRef.current = newNotif.id;
-            try {
-              new Notification(newNotif.title, {
-                body: newNotif.message,
-                icon: '/favicon.ico',
-                dir: 'rtl',
-                lang: 'ar',
-                tag: newNotif.id,
-              });
-            } catch {
-              // Silent fail
-            }
+      // Show browser push notification
+      if ('Notification' in window && window.Notification.permission === 'granted') {
+        if (lastNotifIdRef.current !== newNotif.id) {
+          lastNotifIdRef.current = newNotif.id;
+          try {
+            new window.Notification(newNotif.title, {
+              body: newNotif.message,
+              icon: '/favicon.ico',
+              dir: 'rtl',
+              lang: 'ar',
+              tag: newNotif.id,
+            });
+          } catch {
+            // Silent fail
           }
         }
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, user?.id]);
+      }
+    });
+  }, [userId]);
+
+  useBfcacheSafeChannel(`notifications-${userId}`, notifSubscribeFn, !!user);
 
   return { ...query, unreadCount, filteredData, filteredUnreadCount, markAsRead, markAllAsRead, deleteRead, deleteOne };
 };

@@ -68,16 +68,17 @@ export const useMessages = (conversationId: string | null) => {
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
-  useEffect(() => {
-    if (!user || !conversationId) return;
-    const channel = supabase
-      .channel(`messages-${conversationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-        queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, conversationId]);
+  const msgSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
+      queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
+    });
+  }, [conversationId]);
+
+  useBfcacheSafeChannel(
+    `chat-msg-${conversationId ?? 'none'}`,
+    msgSubscribeFn,
+    !!user && !!conversationId,
+  );
 
   return query;
 };

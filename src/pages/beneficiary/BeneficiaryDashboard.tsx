@@ -119,26 +119,27 @@ const BeneficiaryDashboard = () => {
     },
   });
 
-  // Realtime invalidation for distributions
-  useEffect(() => {
-    if (!currentBeneficiary?.id) return;
+  // Realtime invalidation for distributions — bfcache safe
+  const beneficiaryId = currentBeneficiary?.id ?? '';
+  const qcRef = useRef(queryClient);
+  qcRef.current = queryClient;
 
-    const channel = supabase
-      .channel(`beneficiary-distributions-${currentBeneficiary.id}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'distributions',
-        filter: `beneficiary_id=eq.${currentBeneficiary.id}`,
-      }, () => {
-        queryClient.invalidateQueries({ queryKey: ['my-distributions-recent', currentBeneficiary.id] });
-      })
-      .subscribe();
+  const distSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'distributions',
+      filter: `beneficiary_id=eq.${beneficiaryId}`,
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['my-distributions-recent', beneficiaryId] });
+    });
+  }, [beneficiaryId]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentBeneficiary?.id, queryClient]);
+  useBfcacheSafeChannel(
+    `beneficiary-dist-${beneficiaryId}`,
+    distSubscribeFn,
+    !!currentBeneficiary?.id,
+  );
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const recentNotifications = notifications.slice(0, 3);
