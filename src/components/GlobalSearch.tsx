@@ -139,24 +139,28 @@ const GlobalSearch = () => {
         }
       }
 
-      // Search contracts — use contracts_safe for non-admin roles
-      const contractTable = isAdmin ? 'contracts' : 'contracts_safe';
-      let contractsQuery = supabase
-        .from(contractTable)
-        .select('id, contract_number, tenant_name, status, fiscal_year_id')
-        .or(`contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`)
-        .limit(5);
+      // Search contracts — use contracts_safe for non-admin roles to respect RLS
+      const contractSelectFields = 'id, contract_number, tenant_name, status, fiscal_year_id';
+      const contractFilter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
 
-      if (fiscalYearId && fiscalYearId !== '__none__') {
-        contractsQuery = contractsQuery.eq('fiscal_year_id', fiscalYearId);
-      }
+      const fetchContracts = async () => {
+        if (isAdmin) {
+          let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
+          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          return q.abortSignal(controller.signal);
+        } else {
+          let q = supabase.from('contracts_safe').select(contractSelectFields).or(contractFilter).limit(5);
+          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          return q.abortSignal(controller.signal);
+        }
+      };
 
-      const { data: contracts } = await contractsQuery.abortSignal(controller.signal);
+      const { data: contracts } = await fetchContracts();
 
       if (contracts) {
         for (const c of contracts) {
           searchResults.push({
-            id: c.id,
+            id: c.id!,
             title: `عقد ${c.contract_number}`,
             subtitle: c.tenant_name || `حالة: ${c.status}`,
             type: 'contract',
