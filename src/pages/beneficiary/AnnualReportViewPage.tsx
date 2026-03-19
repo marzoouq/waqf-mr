@@ -33,6 +33,7 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat('ar-SA', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
 
 const AnnualReportViewPage = () => {
+  const [viewTab, setViewTab] = useState('property_status');
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: items = [], isLoading } = useAnnualReportItems(fiscalYearId || undefined);
   const { data: reportStatus, isLoading: statusLoading } = useReportStatus(fiscalYearId || undefined);
