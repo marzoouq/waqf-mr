@@ -136,11 +136,11 @@ export function printDistributionReport(params: PrintDistributionParams) {
       <tr class="total-row">
         <td>الإجمالي</td>
         <td>—</td>
-        <td>${availableAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-        <td>${totalAdvances > 0 ? '-' + totalAdvances.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-        <td>${totalCarryforward > 0 ? '-' + totalCarryforward.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-        <td>${totalNet.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-        <td>${totalDeficit > 0 ? totalDeficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
+        <td>${fmt(availableAmount)}</td>
+        <td>${totalAdvances > 0 ? '-' + fmt(totalAdvances) : '—'}</td>
+        <td>${totalCarryforward > 0 ? '-' + fmt(totalCarryforward) : '—'}</td>
+        <td>${fmt(totalNet)}</td>
+        <td>${totalDeficit > 0 ? fmt(totalDeficit) : '—'}</td>
       </tr>
     </tbody>
   </table>
