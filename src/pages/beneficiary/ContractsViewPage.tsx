@@ -56,16 +56,6 @@ const ContractsViewPage = () => {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-SA');
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 md:p-6 space-y-6">
-          <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (isError) {
     return (
