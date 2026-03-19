@@ -48,7 +48,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
       <Card className="border-success/30 bg-success/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-success/15 text-success"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[11px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
+          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.active} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
         </CardContent>
       </Card>
       <Card className="border-destructive/30 bg-destructive/5">
