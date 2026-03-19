@@ -328,7 +328,7 @@ const ChartOfAccountsPage = () => {
             <Card key={s.label}>
               <CardContent className="p-4 text-center">
                 <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>{s.value}</p>
               </CardContent>
             </Card>
           ))}

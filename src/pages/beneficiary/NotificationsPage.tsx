@@ -138,25 +138,25 @@ const NotificationsPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Card className="border-none shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold">{notifications.length}</p>
+              <p className="text-xl sm:text-2xl font-bold">{notifications.length}</p>
               <p className="text-xs text-muted-foreground">الإجمالي</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold text-primary">{unreadCount}</p>
+              <p className="text-xl sm:text-2xl font-bold text-primary">{unreadCount}</p>
               <p className="text-xs text-muted-foreground">غير مقروء</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold text-success">{readCount}</p>
+              <p className="text-xl sm:text-2xl font-bold text-success">{readCount}</p>
               <p className="text-xs text-muted-foreground">مقروء</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm">
             <CardContent className="p-3 text-center">
-              <p className="text-2xl font-bold">{uniqueTypes.length}</p>
+              <p className="text-xl sm:text-2xl font-bold">{uniqueTypes.length}</p>
               <p className="text-xs text-muted-foreground">أنواع</p>
             </CardContent>
           </Card>
