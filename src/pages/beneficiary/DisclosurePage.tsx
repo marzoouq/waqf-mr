@@ -46,7 +46,7 @@ const DisclosurePage = () => {
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
   
-  const isMobile = useIsMobile();
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
