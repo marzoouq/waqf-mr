@@ -168,14 +168,21 @@ const ContractAccordionGroup = ({
                     </div>
                   )}
 
-                  <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1 items-center text-sm">
-                    <span className="font-medium">{contract.contract_number}</span>
-                    <span className="text-muted-foreground hidden sm:block">{contract.start_date}</span>
-                    <span className="text-muted-foreground hidden sm:block">{contract.end_date}</span>
-                    <span className="hidden sm:block">{fmt(Number(contract.rent_amount))} ر.س</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium w-fit ${st.className}`}>
-                      {st.label}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-4 gap-y-1 items-center text-sm">
+                      <span className="font-medium">{contract.contract_number}</span>
+                      <span className="text-muted-foreground hidden sm:block">{contract.start_date}</span>
+                      <span className="text-muted-foreground hidden sm:block">{contract.end_date}</span>
+                      <span className="hidden sm:block">{fmt(Number(contract.rent_amount))} ر.س</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium w-fit ${st.className}`}>
+                        {st.label}
+                      </span>
+                    </div>
+                    {/* بيانات إضافية على الجوال */}
+                    <div className="flex items-center gap-3 mt-1 sm:hidden text-xs text-muted-foreground">
+                      <span>{contract.start_date} → {contract.end_date}</span>
+                      <span className="font-medium text-foreground">{fmt(Number(contract.rent_amount))} ر.س</span>
+                    </div>
                   </div>
 
                   <div className="flex gap-0.5 shrink-0">

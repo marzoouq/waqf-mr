@@ -454,13 +454,13 @@ const ContractsPage = () => {
           </Alert>
         )}
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative max-w-md flex-1">
+        <div className="flex flex-wrap items-start sm:items-center gap-3">
+          <div className="relative w-full sm:max-w-md sm:flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setCurrentPage(1); }}>
-            <SelectTrigger className="w-48 shrink-0">
+            <SelectTrigger className="w-full sm:w-48 shrink-0">
               <Filter className="w-4 h-4 ml-2" />
               <SelectValue />
             </SelectTrigger>
@@ -471,9 +471,8 @@ const ContractsPage = () => {
               <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
             </SelectContent>
           </Select>
-          {/* C-8: فلتر العقار */}
           <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-48 shrink-0">
+            <SelectTrigger className="w-full sm:w-48 shrink-0">
               <SelectValue placeholder="كل العقارات" />
             </SelectTrigger>
             <SelectContent>
@@ -483,9 +482,8 @@ const ContractsPage = () => {
               ))}
             </SelectContent>
           </Select>
-          {/* C-8: فلتر نوع الدفع */}
           <Select value={paymentTypeFilter} onValueChange={(v) => { setPaymentTypeFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-40 shrink-0">
+            <SelectTrigger className="w-full sm:w-40 shrink-0">
               <SelectValue placeholder="نوع الدفع" />
             </SelectTrigger>
             <SelectContent>
