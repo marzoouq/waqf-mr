@@ -478,7 +478,7 @@ const UserManagementPage = () => {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm" dir="ltr">{user.email}</span>
-                              {isSelf(user.id) && <Badge variant="outline" className="text-[10px]">أنت</Badge>}
+                              {isSelf(user.id) && <Badge variant="outline" className="text-xs">أنت</Badge>}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               {getRoleBadge(user.role)}
