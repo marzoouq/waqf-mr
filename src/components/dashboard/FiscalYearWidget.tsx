@@ -71,7 +71,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <TrendingUp className="w-4 h-4 text-success" />
               <span className="text-xs text-muted-foreground">التحصيل المالي</span>
             </div>
-            <p className={`text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
+            <p className={`text-xl sm:text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
               {financialProgress}%
             </p>
             <Progress value={financialProgress} className={`h-2 ${financialProgress >= timeProgress ? '[&>div]:bg-success' : '[&>div]:bg-warning'}`} />

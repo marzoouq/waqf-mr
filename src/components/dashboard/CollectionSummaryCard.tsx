@@ -70,9 +70,9 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
               <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
             </div>
 
-            <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
-              <p className={`text-3xl font-bold ${collectionColor.text}`}>
+              <p className={`text-xl sm:text-3xl font-bold ${collectionColor.text}`}>
                 {collectionSummary.percentage}%
               </p>
               <Progress
