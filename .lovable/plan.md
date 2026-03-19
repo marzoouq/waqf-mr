@@ -1,150 +1,154 @@
 
 
-# الفحص الجنائي الصادق — بدون تلميع
+# وثيقة شاملة — كل ما هو مؤجّل أو غير مُنفَّذ أو جزئي
 
-هذا التقرير يعتمد على بيانات حقيقية من قاعدة البيانات الحية، كود المصدر، والماسح الأمني. لا تقييمات مبالغة.
-
----
-
-## 1. أخطاء حقيقية مسجّلة في قاعدة البيانات (access_log)
-
-**344 خطأ عميل (client_error) في آخر 7 أيام** — هذا رقم مرتفع.
-
-| الخطأ | العدد | التحليل |
-|-------|-------|---------|
-| `Test explosion` | 225 | اختبارات ErrorBoundary — غير حقيقي ✅ |
-| `Failed to load Arabic fonts for PDF` | 21 | **خطأ حقيقي** — خطوط PDF العربية تفشل في التحميل |
-| `QueryCache خطأ في جلب البيانات` | 16 | **خطأ حقيقي** — استعلامات تفشل بصمت |
-| `useAuth must be used within AuthProvider` | 14 | **خطأ حقيقي** — مكوّن يُستدعى خارج AuthProvider |
-| `DialogContainerContext is not defined` | 8 | **خطأ HMR مؤقت** — أثناء التطوير فقط |
-| `EXPIRING_SOON_DAYS is not defined` | 6 | **خطأ HMR مؤقت** — أثناء التطوير |
-| `collectionColor is not defined` | 6 | **خطأ HMR مؤقت** |
-| `removeChild on Node` | 4 | **خطأ DOM حقيقي** — تعارض React مع عنصر محذوف |
-| `getKpiColor before initialization` | 3 | **خطأ HMR مؤقت** |
-| `ResponsiveContainer is not defined` | 2 | **خطأ HMR مؤقت** |
-
-**الحكم الصريح**: من أصل 344 خطأ، ~225 اختبارات (تجاهل)، ~25 أخطاء HMR أثناء التطوير (تُصلح تلقائياً بإعادة التحميل)، **~55 خطأ حقيقي في الإنتاج** يحتاج فحص.
+هذه الوثيقة تجمع **كل** بند مؤجّل أو معلّق من مصادر متعددة: الوثائق الرسمية (`FINAL-AUDIT-REPORT.md`, `INDEX.md`, `CHANGELOG.md`)، الكود المصدري، وتقارير الفحص الجنائي السابقة.
 
 ---
 
-## 2. مشاكل أمنية حقيقية مكتشفة
+## القسم 1: مشاكل أمنية مؤجّلة (من FINAL-AUDIT-REPORT.md + الفحص الجنائي)
 
-### أ. `usePrefetchAccounts.ts` — يقرأ من `beneficiaries` مباشرة بدلاً من `beneficiaries_safe`
-
-```typescript
-// سطر 34: يقرأ من الجدول الأصلي — يتجاوز تقنيع PII
-supabase.from('beneficiaries').select('*')
-```
-
-**الخطورة: متوسطة** — RLS يحمي الصفوف، لكن الناظر/المحاسب يرى `national_id` و `bank_account` غير مشفرة في المتصفح. العرض الآمن `beneficiaries_safe` يقنّع هذه الحقول للأدوار غير المخولة، لكن هذا الـ prefetch يتجاوزه.
-
-### ب. `useWebAuthn.ts` — يستخدم `getSession()` بدون `getUser()` أولاً
-
-```typescript
-// سطر 41, 68: يعتمد على الجلسة المحلية بدون تحقق خادم
-const { data: { session } } = await supabase.auth.getSession();
-```
-
-**الخطورة: منخفضة** — عمليات القراءة فقط (عدد credentials)، لكنها تخالف المعيار المعتمد في المشروع. الوظائف الحساسة (registerBiometric سطر 97) تستخدم `getUser()` بشكل صحيح.
-
-### ج. الماسح الأمني — 2 تحذيرات EXPOSED_SENSITIVE_DATA
-
-العروض الآمنة (`contracts_safe`, `beneficiaries_safe`) تعمل بـ `security_invoker=true` + `security_barrier=true` — **مؤكد من قاعدة البيانات الحية**. الماسح يبلّغ عنها لأن Views لا تملك سياسات RLS مباشرة (ترثها من الجداول الأساسية). **إيجابي كاذب تقنياً**، لكن يجب توثيقه كاستثناء مقبول.
+| # | المشكلة | التفاصيل | الأولوية | المصدر |
+|---|---------|----------|---------|--------|
+| 1 | `strictNullChecks: false` | يسمح بتمرير `null`/`undefined` بدون فحص — خطر حسابات مالية بـ `NaN` | **حرجة** | FINAL-AUDIT §مؤجلة |
+| 2 | `noImplicitAny: false` | متغيرات بدون نوع تُعامَل كـ `any` — يُضعف أمان النوع | **عالية** | FINAL-AUDIT §مؤجلة |
+| 3 | `strict: false` في `tsconfig.app.json` | تناقض مع `tsconfig.node.json` الذي يستخدم `strict: true` | **عالية** | FINAL-AUDIT §مؤجلة |
+| 4 | CSP كـ `<meta>` لا تدعم `frame-ancestors` | يحتاج HTTP header عبر خادم وسيط | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 5 | `unsafe-inline` في `style-src` | React/Vite يتطلب أنماط inline — يحتاج nonce-based CSP | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 6 | `usePrefetchAccounts.ts` يقرأ من `beneficiaries` بدل `beneficiaries_safe` | يتجاوز تقنيع PII (national_id, bank_account) | **حرجة** | فحص جنائي صادق |
+| 7 | `useWebAuthn.ts` يستخدم `getSession()` بدون `getUser()` (أسطر 41, 68) | يخالف المعيار الأمني المعتمد | **منخفضة** | فحص جنائي صادق |
 
 ---
 
-## 3. مشاكل كود حقيقية (ليست تجميلية)
+## القسم 2: مشاكل أداء مؤجّلة
 
-### أ. خطوط PDF العربية — 21 خطأ في 7 أيام
-
-`Failed to load Arabic fonts for PDF: TypeError` — هذا يعني أن تصدير PDF يفشل للمستخدمين فعلياً. السبب المحتمل: مسار الخط غير صحيح أو CORS يمنع تحميله.
-
-**الخطورة: عالية وظيفياً** — ميزة أساسية (تصدير تقارير PDF) معطلة جزئياً.
-
-### ب. `select('*')` مستخدم في 17 ملف
-
-كثير من الاستعلامات تجلب جميع الأعمدة بما فيها الحساسة:
-- `useContracts.ts` → `contracts_safe.select('*')` — مقبول (العرض يقنّع)
-- `useBeneficiaries.ts` → `beneficiaries_safe.select('*')` — مقبول
-- `usePrefetchAccounts.ts` → `beneficiaries.select('*')` — **غير مقبول** (يتجاوز التقنيع)
-- `useSupportTickets.ts` → `support_ticket_replies.select('*')` — يجلب `content` كامل بدون داعي
-- `useTenantPayments.ts` → `tenant_payments.select('*')` — مقبول (لا PII)
-
-### ج. `removeChild on Node` — 4 أخطاء DOM
-
-خطأ React كلاسيكي ينتج عن تعارض بين React وتعديل DOM خارجي (extensions، أو إزالة عنصر أثناء animation). **غير حرج** لكنه يسبب crash للمكوّن.
-
-### د. `useAuth must be used within AuthProvider` — 14 خطأ
-
-مكوّن ما يحاول استخدام `useAuth` خارج `AuthProvider`. السبب المرجح: HMR أو lazy loading يعيد تحميل مكوّن قبل أن يُغلّف بالـ Provider. **مقلق** لأنه يظهر 14 مرة.
+| # | المشكلة | الحل المقترح | الأولوية | المصدر |
+|---|---------|-------------|---------|--------|
+| 8 | `og-image.png` = 903KB | ضغط بـ WebP إلى ~80KB | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 9 | كاش `StaleWhileRevalidate` = 30 يوم | تقليل إلى 7 أيام | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 10 | `vite-plugin-pwa` في `dependencies` بدل `devDependencies` | نقلها يدوياً | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 11 | لا يوجد cursor-based pagination | جميع الاستعلامات تستخدم `limit(500/1000)` — لن يتحمل نمو البيانات | **متوسطة** | فحص جنائي صادق |
+| 12 | 17 ملف يستخدم `select('*')` بدل أعمدة محددة | يجلب بيانات غير ضرورية ويُثقل الشبكة | **منخفضة** | فحص جنائي صادق |
 
 ---
 
-## 4. مشاكل معمارية (ليست bugs لكنها ديون تقنية)
+## القسم 3: مشاكل CI/CD مؤجّلة
 
-### أ. `logger.ts` يُسجّل أخطاء بدون `message` — 299 سجل فارغ
-
-```typescript
-// سطر 20: args[0] قد يكون undefined
-message: String(args[0] ?? '').substring(0, 500),
-```
-
-عندما يُستدعى `logger.error(errorObject)` بدون نص، يُسجّل `message: ""`. هذا يجعل 299 من 344 سجل خطأ **غير مفيدة للتشخيص**.
-
-### ب. عدم وجود pagination حقيقي
-
-جميع الاستعلامات تستخدم `limit(500)` أو `limit(1000)` — تحميل مبكر كامل. لا يوجد cursor-based pagination. للبيانات الصغيرة حالياً هذا مقبول، لكنه لن يتحمل نمو البيانات.
-
-### ج. تكرار منطق إعدادات الصوت
-
-`BeneficiarySettingsPage.tsx` و `SettingsPage.tsx` يحتويان نفس منطق إعدادات الصوت والإشعارات بالحرف — كود مكرر بدلاً من hook مشترك.
+| # | المشكلة | الحل المقترح | الأولوية | المصدر |
+|---|---------|-------------|---------|--------|
+| 13 | تناقض إصدار `package.json` مع `package-lock.json` | `npm install` ثم commit | **حرجة** | FINAL-AUDIT §مؤجلة |
+| 14 | ملفا lock متعارضان (`package-lock.json` + `bun.lock`) | اختيار واحد وحذف الآخر | **عالية** | FINAL-AUDIT §مؤجلة |
+| 15 | لا `coverage.thresholds` في vitest | إضافة حد أدنى 60% | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 16 | `noUnusedLocals/Parameters: false` | تفعيل تدريجي | **متوسطة** | FINAL-AUDIT §مؤجلة |
 
 ---
 
-## 5. التقييم الصادق النهائي
+## القسم 4: تحسينات ZATCA مؤجّلة
+
+| # | المشكلة | الحل المقترح | الأولوية | المصدر |
+|---|---------|-------------|---------|--------|
+| 17 | `invoice_chain.invoice_id` بدون FK | إضافة FOREIGN KEY | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 18 | `seller_name`/`seller_vat` hardcoded في الكود | نقلها لجدول `app_settings` | **متوسطة** | FINAL-AUDIT §مؤجلة |
+| 19 | لا webhook callback من ZATCA | إضافة Edge Function لاستقبال نتائج ZATCA | **منخفضة** | FINAL-AUDIT §مؤجلة |
+
+---
+
+## القسم 5: تحسينات UX مؤجّلة
+
+| # | التحسين | الأولوية | المصدر |
+|---|---------|---------|--------|
+| 20 | مقارنة سنة بسنة في KPI Dashboard | **متوسطة** | FINAL-AUDIT UX-1 |
+| 21 | فلتر تحصيل العقود حسب الفترة | **منخفضة** | FINAL-AUDIT UX-2 |
+| 22 | تصدير Excel بالإضافة لـ PDF | **متوسطة** | FINAL-AUDIT UX-3 |
+| 23 | تصنيف الإشعارات (مالية / نظام / عقود) | **منخفضة** | FINAL-AUDIT UX-4 |
+
+---
+
+## القسم 6: ميزات مؤجّلة (من الجولة 17)
+
+| # | الميزة | السبب | الأولوية | المصدر |
+|---|--------|-------|---------|--------|
+| 24 | حفظ محادثات AI في قاعدة البيانات | ميزة جديدة وليس خلل | **منخفضة** | FINAL-AUDIT MED-AI-1 |
+| 25 | AiAssistant يُحمَّل لجميع الأدوار | تحسين أداء — تحميل مشروط حسب الدور | **منخفضة** | FINAL-AUDIT INFO-AI-1 |
+| 26 | مسارا ZATCA/Support غير موثقَّين في INDEX.md | توثيق فقط | **منخفضة** | FINAL-AUDIT INFO-APP-1 |
+
+---
+
+## القسم 7: أخطاء حقيقية مكتشفة بالفحص الجنائي (لم تُصلح بعد)
+
+| # | المشكلة | التفاصيل | الأولوية | المصدر |
+|---|---------|----------|---------|--------|
+| 27 | خطوط PDF العربية تفشل | 21 خطأ `Failed to load Arabic fonts for PDF` في 7 أيام | **عالية** | access_log |
+| 28 | `logger.ts` يُسجّل رسائل فارغة | `args[0]` قد يكون `Error` object — ينتج `message: ""` (299 سجل فارغ) | **عالية** | access_log |
+| 29 | `useAuth outside AuthProvider` | 14 خطأ — مكوّن يُستدعى خارج AuthProvider | **متوسطة** | access_log |
+| 30 | `removeChild on Node` | 4 أخطاء DOM — تعارض React مع عنصر محذوف | **منخفضة** | access_log |
+
+---
+
+## القسم 8: ديون تقنية (Code Debt)
+
+| # | المشكلة | التفاصيل | الأولوية |
+|---|---------|----------|---------|
+| 31 | تكرار منطق إعدادات الصوت/الإشعارات | `BeneficiarySettingsPage.tsx` و `SettingsPage.tsx` يحتويان نفس المنطق — يحتاج hook مشترك `useNotificationPreferences` | **منخفضة** |
+| 32 | `as any` / `as unknown` في 43 ملف | 397 استخدام — أغلبها في الاختبارات (مقبول) لكن بعضها في كود الإنتاج | **منخفضة** |
+| 33 | `select('*')` في `usePrefetchAccounts` على `beneficiaries` | يتجاوز `beneficiaries_safe` ويجلب PII غير مقنّع | **حرجة** (مكرر مع #6) |
+
+---
+
+## القسم 9: تحديث الوثائق المطلوب
+
+| # | الملف | ما يحتاج تحديث |
+|---|-------|----------------|
+| 34 | `INDEX.md` | عدد الجداول = 37 (مكتوب 28)، Edge Functions = 12 (مكتوب 9)، الدوال = 32+ (تحتاج مراجعة) |
+| 35 | `INDEX.md` | المسارات = 39+ صفحة (مكتوب 27 مسار) — ينقصها: `/install`, `/reset-password`, `/waqif`, `/dashboard/zatca`, `/dashboard/support`, `/dashboard/annual-report`, `/dashboard/chart-of-accounts`, `/dashboard/comparison`, `/beneficiary/annual-report`, `/beneficiary/support` |
+| 36 | `INDEX.md` | تاريخ آخر تحديث = 2026-03-02 (قديم بـ 17 يوم) |
+| 37 | `CHANGELOG.md` | لا يتضمن أي تحديثات بعد 2026-03-02 رغم تنفيذ عشرات الإصلاحات |
+| 38 | `FINAL-AUDIT-REPORT.md` | التقييم 92-93% لكن لا يعكس الإصلاحات الأخيرة (UI responsiveness, charts, AccessLogTab, ArchiveLogTab) |
+
+---
+
+## ملخص إحصائي
 
 ```text
-┌──────────────────────────────────┬──────┬───────────────────────────────────────┐
-│ المجال                            │ النسبة│ السبب الصريح                         │
-├──────────────────────────────────┼──────┼───────────────────────────────────────┤
-│ RLS وأمان قاعدة البيانات          │ 9.5  │ prefetch يتجاوز safe view            │
-│ المصادقة والتفويض                 │ 9    │ 14 خطأ AuthProvider + getSession     │
-│ الواجهة (تجاوب/خطوط)             │ 9.5  │ الإصلاحات الأخيرة فعّالة              │
-│ وظائف PDF                        │ 7    │ 21 فشل خطوط عربية في أسبوع           │
-│ جودة سجل الأخطاء                 │ 6    │ 299 سجل فارغ من 344                  │
-│ نظافة الكود                      │ 8    │ select('*') + تكرار + as any بالاختبار│
-│ الأداء والتحميل                   │ 8.5  │ lazy load ممتاز، لكن لا pagination   │
-│ Edge Functions                   │ 9.5  │ rate limiting + getUser صحيح          │
-│ PWA                              │ 9.5  │ skipWaiting + update banner           │
-│ التشفير (Vault/PII)              │ 9.5  │ AES-256 + pgsodium ممتاز             │
-├──────────────────────────────────┼──────┼───────────────────────────────────────┤
-│ التقييم الحقيقي للتطبيق          │ 8.6  │ ليس 10/10 — هناك مشاكل حقيقية       │
-└──────────────────────────────────┴──────┴───────────────────────────────────────┘
+┌──────────────────────────────────┬───────┐
+│ الفئة                            │ العدد │
+├──────────────────────────────────┼───────┤
+│ مشاكل أمنية مؤجّلة              │   7   │
+│ مشاكل أداء مؤجّلة               │   5   │
+│ مشاكل CI/CD مؤجّلة              │   4   │
+│ تحسينات ZATCA مؤجّلة            │   3   │
+│ تحسينات UX مؤجّلة               │   4   │
+│ ميزات جديدة مؤجّلة              │   3   │
+│ أخطاء حقيقية غير مُصلحة         │   4   │
+│ ديون تقنية                      │   3   │
+│ وثائق تحتاج تحديث               │   5   │
+├──────────────────────────────────┼───────┤
+│ الإجمالي                         │  38   │
+│ منها حرجة (يجب إصلاحها)          │   4   │
+│ منها عالية                       │   6   │
+│ منها متوسطة                      │  15   │
+│ منها منخفضة                      │  13   │
+└──────────────────────────────────┴───────┘
 ```
 
 ---
 
-## 6. خطة الإصلاح المطلوبة للوصول لـ 10/10 فعلي
+## خطة التنفيذ المقترحة (حسب الأولوية)
 
-| # | الملف | الإصلاح | الأولوية |
-|---|-------|---------|---------|
-| 1 | `usePrefetchAccounts.ts` سطر 34 | تغيير `beneficiaries` → `beneficiaries_safe` | **حرجة** |
-| 2 | تشخيص خطوط PDF العربية | فحص مسار الخطوط + CORS في وظيفة `generate-invoice-pdf` | **عالية** |
-| 3 | `logger.ts` سطر 20 | تحسين استخلاص الرسالة: `String(errObj?.message \|\| args[0] \|\| 'unknown')` | **عالية** |
-| 4 | `useWebAuthn.ts` أسطر 41, 68 | إضافة `getUser()` قبل `getSession()` للتحقق من الخادم | **متوسطة** |
-| 5 | استخلاص hook مشترك لإعدادات الصوت | إنشاء `useNotificationPreferences.ts` يُستخدم في الصفحتين | **منخفضة** |
-| 6 | تنظيف سجلات `access_log` القديمة | حذف سجلات `Test explosion` (225 سجل اختبار في الإنتاج) | **منخفضة** |
+### المرحلة 1 — حرجة (4 بنود)
+1. `usePrefetchAccounts.ts`: تغيير `beneficiaries` → `beneficiaries_safe`
+2. `logger.ts`: تحسين استخلاص الرسالة (`errObj?.message || args[0]`)
+3. `strictNullChecks`: تفعيل تدريجي مع إصلاح الأخطاء
+4. تناقض إصدارات `package.json` / lock files
 
----
+### المرحلة 2 — عالية (6 بنود)
+5. تشخيص فشل خطوط PDF العربية
+6. `noImplicitAny` + `strict` في tsconfig
+7. حذف ملف lock المتعارض
+8. `useAuth outside AuthProvider` — تحقق من lazy loading
+9. `og-image.png` ضغط لـ WebP
+10. تحديث الوثائق (`INDEX.md`, `CHANGELOG.md`, `FINAL-AUDIT-REPORT.md`)
 
-## 7. ما هو ممتاز فعلاً (لا مبالغة)
-
-- **129 سياسة RLS** مع **RESTRICTIVE policies** للسنوات المالية — معمارية أمنية متقدمة
-- **security_invoker=true** على العروض — مؤكد من قاعدة البيانات الحية
-- **Event Trigger** لسحب صلاحيات `anon` تلقائياً — دفاع عميق حقيقي
-- **Vault/pgsodium** لمفتاح التشفير — أعلى معيار أمان ممكن
-- **ErrorBoundary** مع chunk recovery + تقارير خطأ للخادم — تعافي ذكي
-- **Idle Timeout** مع visibility API — حماية جلسات شاملة
-- **guard-signup مع rollback** — منع يتامى المستخدمين
-- **معمارية lazy loading** بـ `lazyWithRetry` — إنتاجية عالية
+### المرحلة 3 — متوسطة ومنخفضة (البقية)
+11-38. باقي البنود حسب الأولوية
 
