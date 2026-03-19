@@ -152,7 +152,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
     </div>
     <div class="summary-card info">
       <div class="label">إجمالي التوزيع (شامل الخصومات)</div>
-      <div class="value" style="color:#2980b9">${(totalNet + totalAdvances + totalCarryforward).toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#2980b9">${fmt(totalNet + totalAdvances + totalCarryforward)} ر.س</div>
     </div>
     ${totalAdvances > 0 ? `
     <div class="summary-card danger">
