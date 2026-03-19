@@ -218,13 +218,18 @@ const AdminDashboard = () => {
     const occColor = getKpiColor(occupancyRate, 80, 50);
     const expColor = getKpiColor(expenseRatio, 20, 40, true);
 
+    // حساب YoY للمصروفات
+    const prevExpenseRatio = yoy.hasPrevYear && yoy.prevTotalIncome > 0
+      ? Math.round((yoy.prevTotalExpenses / yoy.prevTotalIncome) * 100) : null;
+    const expenseRatioChange = prevExpenseRatio !== null ? calcChangePercent(expenseRatio, prevExpenseRatio) : null;
+
     return [
       { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: colColor.text, progressColor: colColor.bar },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar },
+      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, yoy]);
 
   return (
     <DashboardLayout>

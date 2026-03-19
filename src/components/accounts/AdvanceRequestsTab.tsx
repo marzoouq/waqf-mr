@@ -115,6 +115,7 @@ const AdvanceRequestsTab = () => {
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
                     <TableCell>{fmt(safeNumber(req.amount))} ر.س</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{req.fiscal_year?.label || '—'}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>
