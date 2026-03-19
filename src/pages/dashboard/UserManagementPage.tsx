@@ -51,6 +51,7 @@ const UserManagementPage = () => {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
