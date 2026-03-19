@@ -1,97 +1,23 @@
 [
   {
-    "version": "2.7.2",
-    "date": "١٢ مارس ٢٠٢٦",
+    "version": "2.9.0",
+    "date": "١٩ مارس ٢٠٢٦",
     "changes": [
       {
         "type": "improvement",
-        "text": "Save plan in Lovable"
-      }
-    ]
-  },
-  {
-    "version": "2.7.1",
-    "date": "١٢ مارس ٢٠٢٦",
-    "changes": [
-      {
-        "type": "improvement",
-        "text": "Changes"
+        "text": "توحيد جميع الأرقام المالية بتنسيق لاتيني موحّد عبر كامل النظام"
       },
       {
         "type": "improvement",
-        "text": "Save plan in Lovable"
+        "text": "منع تجاوز الأرقام والعناوين عن حدود البطاقات على شاشات الجوال (360px+)"
       },
       {
         "type": "improvement",
-        "text": "fix(test): remove brittle text assertion - just check component renders without crash"
+        "text": "دعم bfcache لتسريع التنقل بزر الرجوع"
       },
       {
         "type": "improvement",
-        "text": "Update WaqifDashboard.test.tsx"
-      },
-      {
-        "type": "improvement",
-        "text": "Change npm ci to npm install in workflow"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Fix stale lockfile for deploy"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Regenerated lockfile"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
-      },
-      {
-        "type": "improvement",
-        "text": "Changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Reverted to commit 00db74b73ee0e5538f9f2636983a63a8cbfe58b0"
-      },
-      {
-        "type": "improvement",
-        "text": "Add PerformanceMonitor tests"
-      },
-      {
-        "type": "improvement",
-        "text": "Preceding changes"
-      },
-      {
-        "type": "improvement",
-        "text": "Add integration test for PerformanceMonitorTab"
-      },
-      {
-        "type": "improvement",
-        "text": "Add build trigger comment"
-      },
-      {
-        "type": "improvement",
-        "text": "Save plan in Lovable"
+        "text": "إضافة معرّفات وصول (id/aria-label) لكل حقول الإدخال"
       }
     ]
   },
