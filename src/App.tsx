@@ -139,6 +139,7 @@ function App() {
                 </Suspense>
               </ErrorBoundary>
               <BrowserRouter>
+                <PagePerformanceTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Routes */}
