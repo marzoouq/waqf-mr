@@ -108,3 +108,19 @@ export function getPagePerfSummaries(): PagePerfSummary[] {
     })
     .sort((a, b) => b.avgMs - a.avgMs); // الأبطأ أولاً
 }
+
+/** إشعار المراقبين بتحديث البيانات */
+let revision = 0;
+const listeners = new Set<() => void>();
+
+export function subscribePerfUpdates(cb: () => void) {
+  listeners.add(cb);
+  return () => { listeners.delete(cb); };
+}
+
+export function getPerfRevision() { return revision; }
+
+export function notifyPerfUpdate() {
+  revision++;
+  listeners.forEach(cb => cb());
+}
