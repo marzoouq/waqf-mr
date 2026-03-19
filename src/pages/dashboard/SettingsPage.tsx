@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { TONE_OPTIONS, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
@@ -442,37 +443,7 @@ const NotificationsTab = () => {
   const [expiryDays, setExpiryDays] = useState(settings.contract_expiry_days);
   useEffect(() => { setExpiryDays(settings.contract_expiry_days); }, [settings.contract_expiry_days]);
 
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try { return localStorage.getItem('waqf_notification_sound') !== 'false'; } catch { return true; }
-  });
-
-  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
-    try { return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId; } catch { return 'chime'; }
-  });
-
-  const [volume, setVolume] = useState<VolumeLevel>(() => {
-    try { return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel; } catch { return 'medium'; }
-  });
-
-  const handleSoundChange = (value: boolean) => {
-    setSoundEnabled(value);
-    try { localStorage.setItem('waqf_notification_sound', String(value)); } catch { /* ignored */ }
-    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
-  };
-
-  const handleToneChange = (tone: ToneId) => {
-    setSelectedTone(tone);
-    try { localStorage.setItem(NOTIFICATION_TONE_KEY, tone); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
-    previewTone(tone, vol);
-  };
-
-  const handleVolumeChange = (level: VolumeLevel) => {
-    setVolume(level);
-    try { localStorage.setItem(NOTIFICATION_VOLUME_KEY, level); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
-    previewTone(selectedTone, vol);
-  };
+  const { soundEnabled, selectedTone, volume, handleSoundChange, handleToneChange, handleVolumeChange } = useNotificationPreferences();
 
   const toggleField = (key: string) => {
     updateJsonSetting('notification_settings', { ...settings, [key]: !(settings as Record<string, boolean | number>)[key] });

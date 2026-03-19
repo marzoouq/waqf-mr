@@ -20,7 +20,8 @@ import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TONE_OPTIONS, NOTIF_PREFS_KEY, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
@@ -29,8 +30,6 @@ const passwordSchema = z.object({
   message: 'كلمتا المرور غير متطابقتين',
   path: ['confirmPassword'],
 });
-
-export const NOTIF_SOUND_KEY = 'waqf_notification_sound';
 
 const defaultPrefs = {
   distributions: true,
@@ -63,49 +62,7 @@ const BeneficiarySettingsPage = () => {
     }
   });
 
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try {
-      return localStorage.getItem(NOTIF_SOUND_KEY) !== 'false';
-    } catch {
-      return true;
-    }
-  });
-
-  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
-    try {
-      return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId;
-    } catch {
-      return 'chime';
-    }
-  });
-
-  const [volume, setVolume] = useState<VolumeLevel>(() => {
-    try {
-      return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel;
-    } catch {
-      return 'medium';
-    }
-  });
-
-  const handleSoundChange = (value: boolean) => {
-    setSoundEnabled(value);
-    try { localStorage.setItem(NOTIF_SOUND_KEY, String(value)); } catch { /* ignored */ }
-    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
-  };
-
-  const handleToneChange = (tone: ToneId) => {
-    setSelectedTone(tone);
-    try { localStorage.setItem(NOTIFICATION_TONE_KEY, tone); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
-    previewTone(tone, vol);
-  };
-
-  const handleVolumeChange = (level: VolumeLevel) => {
-    setVolume(level);
-    try { localStorage.setItem(NOTIFICATION_VOLUME_KEY, level); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
-    previewTone(selectedTone, vol);
-  };
+  const { soundEnabled, selectedTone, volume, handleSoundChange, handleToneChange, handleVolumeChange } = useNotificationPreferences();
 
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
     const updated = { ...prefs, [key]: value };
