@@ -32,7 +32,7 @@ const CollectionSummaryChart = ({ onTime, late, partial = 0 }: CollectionSummary
   ];
 
   return (
-    <div className="w-[180px] h-[180px] shrink-0">
+    <div className="w-[180px] h-[180px] min-h-[180px] shrink-0">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie

@@ -67,14 +67,16 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
         <AccordionTrigger className="hover:no-underline py-3">
           <div className="flex items-center gap-3 flex-1 text-right">
             {!isDragDisabled && (
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted text-muted-foreground"
                 {...attributes}
                 {...listeners}
                 onClick={(e) => e.stopPropagation()}
               >
                 <GripVertical className="w-4 h-4" />
-              </button>
+              </div>
             )}
             <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-[3.5rem] justify-center">
               {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
