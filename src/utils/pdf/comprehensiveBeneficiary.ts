@@ -89,10 +89,10 @@ export const generateComprehensiveBeneficiaryPDF = async (
   // ═══ Section 1: My Share Summary ═══
   doc.setFont(f, 'bold');
   doc.setFontSize(14);
-  doc.text(rs('أولاً: ملخص الحصة'), 192, startY + 36, { align: 'right' });
+  doc.text(rs('أولاً: ملخص الحصة'), 192, startY + 36 + disclaimerOffset, { align: 'right' });
 
   autoTable(doc, {
-    startY: startY + 42,
+    startY: startY + 42 + disclaimerOffset,
     head: [reshapeRow(['البيان', 'القيمة (ر.س)'])],
     body: [
       reshapeRow(['حصتي المستحقة', fmt(data.myShare)]),
