@@ -27,8 +27,8 @@ interface WaqifChartsInnerProps {
 const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expenseData }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {monthlyData.length > 0 && (
-      <div className="h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[280px]" style={{ minWidth: 0 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
