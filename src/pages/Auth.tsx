@@ -55,11 +55,11 @@ const Auth = () => {
   useEffect(() => {
     if (user && !loading && role) {
       if (role === 'beneficiary') {
-        navigate('/beneficiary');
+        navigate('/beneficiary', { replace: true });
       } else if (role === 'admin' || role === 'accountant') {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else if (role === 'waqif') {
-        navigate('/waqif');
+        navigate('/waqif', { replace: true });
       }
     }
   }, [user, role, loading, navigate]);
