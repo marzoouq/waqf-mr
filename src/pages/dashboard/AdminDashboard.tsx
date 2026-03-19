@@ -404,6 +404,15 @@ const AdminDashboard = () => {
           </Card>
         )}
 
+        {/* مراقبة أداء الصفحات — للناظر فقط */}
+        {role === 'admin' && (
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+              <PagePerformanceCard />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+
         {/* آخر العقود */}
         <RecentContractsCard contracts={contracts} isLoading={isLoading} />
       </div>
