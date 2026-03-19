@@ -19,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 import { useMyShare } from '@/hooks/useMyShare';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
