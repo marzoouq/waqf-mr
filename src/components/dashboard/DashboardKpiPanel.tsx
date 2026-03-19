@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Gauge } from 'lucide-react';
+import { Gauge, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { KpiSkeleton } from '@/components/SkeletonLoaders';
 import { fmt } from '@/utils/format';
 
