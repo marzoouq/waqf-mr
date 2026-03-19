@@ -58,6 +58,7 @@ const NotificationsPage = () => {
     if (typeFilter !== 'all' && n.type !== typeFilter) return false;
     return true;
   });
+  const readCount = notifications.filter((n) => n.is_read).length;
   const uniqueTypes = [...new Set(notifications.map((n) => n.type))];
 
   const handleClick = (notification: typeof notifications[0]) => {
