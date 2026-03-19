@@ -25,8 +25,9 @@ import {
   Building2, FileText, Users, TrendingUp, TrendingDown, Wallet, BarChart3, BookOpen,
   Sun, Moon, Calendar, Clock, Gauge, CheckCircle, AlertTriangle,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
+const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
 
 
 const ARABIC_MONTHS: Record<string, string> = {

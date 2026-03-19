@@ -280,26 +280,9 @@ function HistoricalComparisonPage() {
                     <CardTitle className="text-base">المقارنة البيانية</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={280}>
-                      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <YAxis type="category" dataKey="metric" width={70} stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <Tooltip
-                          formatter={(value) => fmtSAR(Number(value))}
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            direction: 'rtl',
-                          }}
-                        />
-                        <Legend />
-                        {selectedYears.map((fy, i) => (
-                          <Bar key={fy.id} dataKey={fy.label} fill={YEAR_COLORS[i]} radius={[0, 4, 4, 0]} />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                      <LazyHistoricalChart chartData={chartData} yearLabels={selectedYears.map(fy => fy.label)} />
+                    </Suspense>
                   </CardContent>
                 </Card>
               </>
