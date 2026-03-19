@@ -76,6 +76,16 @@ export const generateComprehensiveBeneficiaryPDF = async (
   doc.text(rs(`السنة المالية: ${data.fiscalYear}`), 105, startY + 16, { align: 'center' });
   doc.text(rs(`المستفيد: ${data.beneficiaryName}`), 105, startY + 24, { align: 'center' });
 
+  // DEFER-12: علامة تقديرية للسنة النشطة
+  let disclaimerOffset = 0;
+  if (data.isFiscalYearActive) {
+    doc.setFontSize(9);
+    doc.setTextColor(200, 100, 0);
+    doc.text(rs('⚠ الأرقام تقديرية — السنة المالية لم تُقفل بعد'), 105, startY + 32, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    disclaimerOffset = 10;
+  }
+
   // ═══ Section 1: My Share Summary ═══
   doc.setFont(f, 'bold');
   doc.setFontSize(14);
