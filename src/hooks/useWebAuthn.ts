@@ -65,8 +65,8 @@ export function useWebAuthn() {
 
   // جلب بيانات الاعتماد المسجلة
   const fetchCredentials = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       setCredentials([]);
       return [];
     }
@@ -74,7 +74,7 @@ export function useWebAuthn() {
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20);
 

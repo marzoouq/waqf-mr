@@ -31,8 +31,8 @@ export function usePrefetchAccounts() {
       staleTime: 60_000,
       queryFn: async () => {
         const { data, error } = await supabase
-          .from('beneficiaries')
-          .select('*')
+          .from('beneficiaries_safe')
+          .select('id, name, share_percentage, user_id, created_at, updated_at')
           .order('name');
         if (error) throw error;
         return data;
