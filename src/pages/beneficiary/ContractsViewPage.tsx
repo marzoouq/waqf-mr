@@ -80,6 +80,7 @@ const ContractsViewPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="العقود" icon={FileText} description="عرض عقود الإيجار">
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" actions={
