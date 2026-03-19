@@ -473,7 +473,18 @@ const UserManagementPage = () => {
                   <TableSkeleton rows={4} cols={5} />
                 </div>
               </>
-            ) : (
+            ) : isError ? (
+              <div className="p-6">
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    تعذّر تحميل قائمة المستخدمين: {error instanceof Error ? error.message : 'خطأ غير متوقع'}
+                    <Button variant="outline" size="sm" className="mr-3" onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}>
+                      إعادة المحاولة
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </div>
               <>
                 {/* Mobile cards */}
                 <div className="space-y-3 p-4 md:hidden">
