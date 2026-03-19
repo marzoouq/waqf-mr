@@ -499,7 +499,7 @@ const UserManagementPage = () => {
 
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                           <div>
-                            <p className="text-[10px] text-muted-foreground">آخر دخول</p>
+                            <p className="text-[11px] text-muted-foreground">آخر دخول</p>
                             <p className="text-sm font-medium">
                               {user.last_sign_in_at
                                 ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })
