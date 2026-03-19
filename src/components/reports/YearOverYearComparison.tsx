@@ -384,7 +384,53 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
           <CardTitle className="text-sm sm:text-base">جدول المقارنة التفصيلي</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile cards */}
+          <div className="space-y-2 md:hidden">
+            {comparisonData.map((row) => {
+              const diff = row.net2 - row.net1;
+              return (
+                <div key={row.month} className="p-3 rounded-lg border bg-card space-y-2">
+                  <p className="text-sm font-bold">{row.month}</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="space-y-1 p-2 rounded bg-muted/30">
+                      <p className="text-[11px] text-muted-foreground">{year1Label}</p>
+                      <p className="text-success">دخل: {fmt(row[`دخل ${year1Label}`] as number)}</p>
+                      <p className="text-destructive">مصروفات: {fmt(row[`مصروفات ${year1Label}`] as number)}</p>
+                      <p className="font-bold">صافي: {fmt(row.net1)}</p>
+                    </div>
+                    <div className="space-y-1 p-2 rounded bg-muted/30">
+                      <p className="text-[11px] text-muted-foreground">{year2Label}</p>
+                      <p className="text-success">دخل: {fmt(row[`دخل ${year2Label}`] as number)}</p>
+                      <p className="text-destructive">مصروفات: {fmt(row[`مصروفات ${year2Label}`] as number)}</p>
+                      <p className="font-bold">صافي: {fmt(row.net2)}</p>
+                    </div>
+                  </div>
+                  <div className={`text-center text-xs font-bold ${diff > 0 ? 'text-success' : diff < 0 ? 'text-destructive' : ''}`}>
+                    الفرق: {diff > 0 ? '+' : ''}{fmt(diff)} ر.س
+                  </div>
+                </div>
+              );
+            })}
+            {/* Mobile totals */}
+            <div className="p-3 rounded-lg border-2 border-primary/30 bg-primary/5 space-y-2">
+              <p className="text-sm font-bold text-center">الإجمالي</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="space-y-1 p-2 rounded bg-muted/30">
+                  <p className="text-[11px] text-muted-foreground">{year1Label}</p>
+                  <p className="font-bold">{fmt(yearTotals.year1.net)} ر.س</p>
+                </div>
+                <div className="space-y-1 p-2 rounded bg-muted/30">
+                  <p className="text-[11px] text-muted-foreground">{year2Label}</p>
+                  <p className="font-bold">{fmt(yearTotals.year2.net)} ر.س</p>
+                </div>
+              </div>
+              <div className={`text-center text-xs font-bold ${(yearTotals.year2.net - yearTotals.year1.net) > 0 ? 'text-success' : 'text-destructive'}`}>
+                فرق الصافي: {(yearTotals.year2.net - yearTotals.year1.net) > 0 ? '+' : ''}{fmt(yearTotals.year2.net - yearTotals.year1.net)} ر.س
+              </div>
+            </div>
+          </div>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -155,39 +155,64 @@ const AccessLogTab = () => {
             <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">التاريخ والوقت</TableHead>
-                    <TableHead className="text-right">نوع الحدث</TableHead>
-                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                    <TableHead className="text-right">المسار</TableHead>
-                    <TableHead className="text-right">تفاصيل</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginated.map(log => {
-                    const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
-                    const Icon = config.icon;
-                    return (
-                      <TableRow key={log.id}>
-                        <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
-                        <TableCell>
-                          <Badge className={config.color} variant="outline">
-                            <Icon className="w-3 h-3 ml-1" />
-                            {config.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>
-                        <TableCell className="text-sm font-mono" dir="ltr">{log.target_path || '—'}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
-                          {log.metadata ? JSON.stringify(log.metadata) : '—'}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              {/* Mobile cards */}
+              <div className="space-y-2 p-3 md:hidden">
+                {paginated.map(log => {
+                  const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
+                  const Icon = config.icon;
+                  return (
+                    <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge className={config.color} variant="outline">
+                          <Icon className="w-3 h-3 ml-1" />
+                          {config.label}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground shrink-0">
+                          {new Date(log.created_at).toLocaleString('ar-SA')}
+                        </span>
+                      </div>
+                      {log.email && <p className="text-xs font-mono" dir="ltr">{log.email}</p>}
+                      {log.target_path && <p className="text-[11px] text-muted-foreground font-mono truncate" dir="ltr">{log.target_path}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">التاريخ والوقت</TableHead>
+                      <TableHead className="text-right">نوع الحدث</TableHead>
+                      <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                      <TableHead className="text-right">المسار</TableHead>
+                      <TableHead className="text-right">تفاصيل</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginated.map(log => {
+                      const config = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: Activity };
+                      const Icon = config.icon;
+                      return (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
+                          <TableCell>
+                            <Badge className={config.color} variant="outline">
+                              <Icon className="w-3 h-3 ml-1" />
+                              {config.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm font-mono" dir="ltr">{log.email || '—'}</TableCell>
+                          <TableCell className="text-sm font-mono" dir="ltr">{log.target_path || '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                            {log.metadata ? JSON.stringify(log.metadata) : '—'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
               <TablePagination
                 currentPage={currentPage}
                 totalItems={totalCount}
