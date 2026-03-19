@@ -139,9 +139,10 @@ const GlobalSearch = () => {
         }
       }
 
-      // Search contracts — filter by fiscal_year
+      // Search contracts — use contracts_safe for non-admin roles
+      const contractTable = isAdmin ? 'contracts' : 'contracts_safe';
       let contractsQuery = supabase
-        .from('contracts')
+        .from(contractTable)
         .select('id, contract_number, tenant_name, status, fiscal_year_id')
         .or(`contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`)
         .limit(5);

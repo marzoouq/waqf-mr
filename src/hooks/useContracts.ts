@@ -8,10 +8,14 @@ import { Contract } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+/** أعمدة العقد المطلوبة للواجهة — بدون PII خام */
+const CONTRACT_SELECT_FIELDS = 'id, contract_number, tenant_name, property_id, unit_id, start_date, end_date, rent_amount, payment_type, payment_count, payment_amount, status, fiscal_year_id, notes, tenant_id_number, tenant_id_type, tenant_tax_number, tenant_crn, tenant_street, tenant_district, tenant_city, tenant_postal_code, tenant_building, created_at, updated_at';
+const CONTRACT_SELECT_WITH_JOINS = `${CONTRACT_SELECT_FIELDS}, property:properties(id, property_number, property_type, location), unit:units(id, unit_number, unit_type, floor, status)`;
+
 const contractsCrud = createCrudFactory<'contracts', Contract>({
   table: 'contracts',
   queryKey: 'contracts',
-  select: '*, property:properties(*), unit:units(*)',
+  select: CONTRACT_SELECT_WITH_JOINS,
   label: 'العقد',
 });
 
