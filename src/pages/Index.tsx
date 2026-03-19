@@ -32,11 +32,11 @@ const Index = () => {
   useEffect(() => {
     if (!loading && user) {
       if (role === 'admin' || role === 'accountant') {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else if (role === 'waqif') {
-        navigate('/waqif');
+        navigate('/waqif', { replace: true });
       } else if (role === 'beneficiary') {
-        navigate('/beneficiary');
+        navigate('/beneficiary', { replace: true });
       }
     }
   }, [user, role, loading, navigate]);
