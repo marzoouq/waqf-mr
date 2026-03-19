@@ -53,7 +53,7 @@ export const useMessages = (conversationId: string | null) => {
       if (!conversationId) return [];
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, conversation_id, sender_id, content, is_read, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
         .limit(50);

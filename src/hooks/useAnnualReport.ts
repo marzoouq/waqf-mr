@@ -122,7 +122,7 @@ export const useReportStatus = (fiscalYearId?: string) => {
       if (!fiscalYearId) return null;
       const { data, error } = await supabase
         .from('annual_report_status')
-        .select('*')
+        .select('id, fiscal_year_id, status, published_at, created_at')
         .eq('fiscal_year_id', fiscalYearId)
         .maybeSingle();
       if (error) throw error;

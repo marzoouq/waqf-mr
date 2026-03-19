@@ -144,7 +144,7 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
         .from('advance_carryforward')
-        .select('*')
+        .select('id, beneficiary_id, from_fiscal_year_id, to_fiscal_year_id, amount, status, notes, created_at')
         .eq('beneficiary_id', beneficiaryId)
         .order('created_at', { ascending: false })
         .limit(100);

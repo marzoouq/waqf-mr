@@ -22,7 +22,7 @@ export const useContractAllocations = (fiscalYearId?: string | null) => {
   return useQuery({
     queryKey: ['contract_fiscal_allocations', fiscalYearId],
     queryFn: async () => {
-      let query = fromAllocations().select('*').limit(500);
+      let query = fromAllocations().select('id, contract_id, fiscal_year_id, period_start, period_end, allocated_payments, allocated_amount, created_at').limit(500);
       if (fiscalYearId && fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }

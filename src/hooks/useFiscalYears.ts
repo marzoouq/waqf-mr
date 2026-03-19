@@ -15,7 +15,7 @@ export const useFiscalYears = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fiscal_years')
-        .select('*')
+        .select('id, label, start_date, end_date, status, published, created_at')
         .order('start_date', { ascending: false })
         .limit(50);
       if (error) throw error;
