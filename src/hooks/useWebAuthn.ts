@@ -43,7 +43,7 @@ export function useWebAuthn() {
       const { count } = await supabase
         .from('webauthn_credentials')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', session.user.id);
+        .eq('user_id', user.id);
       if (cancelled) return;
       const dbEnabled = (count ?? 0) > 0;
       setIsEnabled(dbEnabled);
@@ -52,7 +52,7 @@ export function useWebAuthn() {
         const { data: creds } = await supabase
           .from('webauthn_credentials')
           .select('id, device_name, created_at')
-          .eq('user_id', session.user.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20);
         if (!cancelled && creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
