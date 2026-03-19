@@ -54,7 +54,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[11px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
+          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expired}</p></div>
         </CardContent>
       </Card>
       <Card className="border-accent/30 bg-accent/5">
