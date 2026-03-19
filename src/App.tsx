@@ -49,6 +49,7 @@ const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/Suppo
 const AnnualReportPage = lazyWithRetry(() => import("./pages/dashboard/AnnualReportPage"));
 const ChartOfAccountsPage = lazyWithRetry(() => import("./pages/dashboard/ChartOfAccountsPage"));
 const HistoricalComparisonPage = lazyWithRetry(() => import("./pages/dashboard/HistoricalComparisonPage"));
+const SystemDiagnosticsPage = lazyWithRetry(() => import("./pages/dashboard/SystemDiagnosticsPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));

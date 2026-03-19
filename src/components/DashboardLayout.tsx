@@ -22,6 +22,7 @@ import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
+import DiagnosticOverlay from '@/components/DiagnosticOverlay';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/useAccessLog';
