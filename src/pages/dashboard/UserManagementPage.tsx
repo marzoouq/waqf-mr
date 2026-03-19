@@ -147,6 +147,7 @@ const UserManagementPage = () => {
         .is('user_id', null);
       return data || [];
     },
+    enabled: !!currentUser,
   });
 
   // U-1: ربط مستخدم بمستفيد
