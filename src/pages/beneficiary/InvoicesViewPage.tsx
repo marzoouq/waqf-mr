@@ -26,10 +26,10 @@ const InvoicesViewPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, noPublishedYears, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId);
+  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
