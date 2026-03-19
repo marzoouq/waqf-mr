@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
+import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';

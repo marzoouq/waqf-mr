@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import type { Notification } from '@/types/database';
 import { logger } from '@/lib/logger';
+import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
 
 export type { Notification };
 
