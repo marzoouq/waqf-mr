@@ -41,6 +41,12 @@ const Index = () => {
     }
   }, [user, role, loading, navigate]);
 
+  const placeholderStats = [
+    { label: 'عقار مُدار', value: '0' },
+    { label: 'مستفيد', value: '0' },
+    { label: 'تقرير سنوي', value: '0' },
+  ];
+
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['public-stats'],
     queryFn: async () => {
@@ -53,8 +59,9 @@ const Index = () => {
         { label: 'تقرير سنوي', value: String(d.fiscal_years ?? 0) },
       ];
     },
-    staleTime: 5 * 60 * 1000, // cache 5 minutes to reduce DB load
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    placeholderData: placeholderStats,
   });
 
   const stats = statsData ?? [
