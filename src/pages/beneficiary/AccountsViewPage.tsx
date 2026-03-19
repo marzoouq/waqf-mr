@@ -13,7 +13,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 
