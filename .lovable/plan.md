@@ -106,8 +106,8 @@
 
 | # | المصدر | البند | الوصف | السبب | الأولوية |
 |---|--------|-------|-------|-------|---------|
-| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
-| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
+| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | ✅ تم إنشاء `RequirePublishedYears` wrapper واستخدامه في 7 صفحات | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
+| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | ✅ كان مُنفذاً — `useMyShare` hook موجود مسبقاً في `src/hooks/useMyShare.ts` | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
 | DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
 | DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
 | DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
