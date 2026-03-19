@@ -13,6 +13,12 @@ import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
+/** مكوّن يتتبع أداء تحميل الصفحات */
+function PagePerformanceTracker() {
+  usePagePerformance();
+  return null;
+}
+
 // Pages - Lazy loaded
 const Index = lazyWithRetry(() => import("./pages/Index"));
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
