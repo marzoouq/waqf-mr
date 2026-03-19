@@ -6,6 +6,21 @@
 
 ---
 
+## 2.9.0 — ١٩ مارس ٢٠٢٦
+
+### 🔒 أمان
+- ترحيل مفتاح التشفير `pii_encryption_key` من `app_settings` إلى Supabase Vault (pgsodium) عبر migration مشروط (Idempotent)
+- تحديث `get_pii_key()` للقراءة من `vault.decrypted_secrets` بدلاً من `app_settings`
+
+### 📄 توثيق (محاذاة شاملة)
+- تصحيح `API.md`: من 9 إلى 11 وظيفة، حذف `auto-expire-contracts` الشبحية، إضافة توثيق كامل لـ `zatca-api` و `zatca-signer` و `zatca-xml-generator`
+- تصحيح `SECURITY-KNOWLEDGE.md`: تحديث نموذج العروض الآمنة من `SECURITY DEFINER` إلى `security_invoker = true` + `security_barrier = true`
+- تصحيح `INDEX.md`: تصحيح عدد Edge Functions من 12 إلى 11
+- تحديث `FINAL-AUDIT-REPORT.md`: رفع الإصدار إلى v2.9.0 مع توثيق جولة Vault migration
+- تحديث `CHANGELOG.md`: إضافة سجل v2.9.0
+
+---
+
 ## 2.8.0 — ١٩ مارس ٢٠٢٦
 
 ### 🔒 أمان (إصلاحات حرجة)
