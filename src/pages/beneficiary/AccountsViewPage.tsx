@@ -55,7 +55,7 @@ const AccountsViewPage = () => {
 
   const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
-  // حارس عدم وجود سنوات منشورة يُعالج عبر RequirePublishedYears في return
+  
 
   if (finError) {
     return (
