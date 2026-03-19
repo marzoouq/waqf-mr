@@ -9,10 +9,7 @@ import { Activity, Trash2, RotateCcw } from 'lucide-react';
 import { getPagePerfSummaries, clearPageLoadEntries, getStoredEntries, subscribePerfUpdates, getPerfRevision, notifyPerfUpdate, type PagePerfSummary } from '@/lib/pagePerformanceTracker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function notifyPerfUpdate() {
-  revision++;
-  listeners.forEach(cb => cb());
-}
+export { notifyPerfUpdate } from '@/lib/pagePerformanceTracker';
 
 /** لون الشريط حسب الوقت */
 function getBarColor(ms: number): string {
