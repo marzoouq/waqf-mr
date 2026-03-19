@@ -16,7 +16,7 @@
 | الجداول/العروض | 37 (33 جدول أصلي + 2 عرض آمن + `invoice_chain` + `invoice_items`) |
 | الدوال المخزنة | 35+ دالة |
 | المشغلات النشطة | 29+ |
-| Edge Functions | 12 وظيفة |
+| Edge Functions | 11 وظيفة |
 | مهام مجدولة (pg_cron) | 7 مهام |
 | سياسات RLS | 129 سياسة |
 | نموذج AI | google/gemini-2.5-pro + flash عبر Lovable AI |
