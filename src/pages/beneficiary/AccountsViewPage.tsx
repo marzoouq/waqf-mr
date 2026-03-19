@@ -24,7 +24,7 @@ const AccountsViewPage = () => {
   const navigate = useNavigate();
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
