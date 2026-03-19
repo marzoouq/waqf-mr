@@ -21,6 +21,7 @@ export interface AdvanceRequest {
   paid_at: string | null;
   created_at: string;
   beneficiary?: { id: string; name: string; share_percentage: number; user_id: string | null };
+  fiscal_year?: { label: string } | null;
 }
 
 export interface AdvanceCarryforward {
