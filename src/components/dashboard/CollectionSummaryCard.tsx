@@ -41,12 +41,12 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
           </ErrorBoundary>
 
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-            <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5 text-success" />
                 <span className="text-sm text-muted-foreground">محصّل بالكامل</span>
               </div>
-              <p className="text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
+              <p className="text-xl sm:text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
               <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
             </div>
 
