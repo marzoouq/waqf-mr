@@ -30,8 +30,8 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
             <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
-                  <p className="text-lg sm:text-2xl font-bold mt-1 truncate">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-tight">{stat.title}</p>
+                  <p className="text-lg sm:text-2xl font-bold mt-1 truncate tabular-nums">{stat.value}</p>
                   {('yoyChange' in stat) && stat.yoyChange !== undefined && (
                     <YoYBadge changePercent={stat.yoyChange} invertColor={stat.invertColor} className="mt-0.5" />
                   )}
