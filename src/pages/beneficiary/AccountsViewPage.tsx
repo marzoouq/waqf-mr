@@ -93,6 +93,7 @@ const AccountsViewPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية">
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
