@@ -6,17 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Trash2, RotateCcw } from 'lucide-react';
-import { getPagePerfSummaries, clearPageLoadEntries, getStoredEntries, type PagePerfSummary } from '@/lib/pagePerformanceTracker';
+import { getPagePerfSummaries, clearPageLoadEntries, getStoredEntries, subscribePerfUpdates, getPerfRevision, notifyPerfUpdate, type PagePerfSummary } from '@/lib/pagePerformanceTracker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-/** حالة خارجية لإعادة العرض عند التحديث */
-let revision = 0;
-const listeners = new Set<() => void>();
-function subscribe(cb: () => void) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-function getSnapshot() { return revision; }
 
 export function notifyPerfUpdate() {
   revision++;
