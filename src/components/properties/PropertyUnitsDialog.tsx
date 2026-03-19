@@ -459,152 +459,234 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                   <p className="text-xs text-muted-foreground mt-1">اضغط "إضافة وحدة" لبدء تسجيل الوحدات السكنية</p>
                 </div>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
-                  <Table className="min-w-[800px]">
-                    <TableHeader>
-                      <TableRow className="bg-muted/40">
-                        <TableHead className="text-right">رقم الوحدة</TableHead>
-                        <TableHead className="text-right">النوع</TableHead>
-                        <TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right min-w-[120px]">المستأجر</TableHead>
-                        <TableHead className="text-right">بداية العقد</TableHead>
-                        <TableHead className="text-right">نهاية العقد</TableHead>
-                        <TableHead className="text-right">الإيجار الشهري</TableHead>
-                        <TableHead className="text-right">الإيجار السنوي</TableHead>
-                        <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
-                        <TableHead className="text-right">حالة التحصيل</TableHead>
-                        <TableHead className="text-right">إجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {units.map((unit, idx) => {
-                        const tenant = getTenant(unit.id);
-                        const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
-                        const isComplete = paid >= 12;
-                        const progressPercent = (paid / 12) * 100;
-                        return (
-                          <TableRow key={unit.id} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
-                            <TableCell className="font-medium">{unit.unit_number}</TableCell>
-                            <TableCell>{unit.unit_type}</TableCell>
-                            <TableCell><Badge variant={statusColor(unit.status)}>{unit.status}</Badge></TableCell>
-                            <TableCell>
-                              {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="whitespace-nowrap">
-                                  {tenant.name}
-                                  {tenant.status !== 'active' && (
-                                    <Badge variant="outline" className="mr-2 text-[11px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
-                                  )}
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell>{tenant?.start_date || <span className="text-muted-foreground">-</span>}</TableCell>
-                            <TableCell>{tenant?.end_date || <span className="text-muted-foreground">-</span>}</TableCell>
-                            <TableCell>
-                              {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">
-                                  {(() => {
-                                    const rent = safeNumber(tenant.rent_amount);
-                                    if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
-                                    if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
-                                    return rent / 12;
-                                  })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <span className="font-medium">{fmt(tenant.rent_amount)} ريال</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {!tenant ? <span className="text-muted-foreground">-</span> : (
-                                <div className="space-y-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
-                                      onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
-                                      <MinusIcon className="w-3 h-3" />
-                                    </Button>
-                                    <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
-                                    <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
-                                      onClick={() => {
-                                        const rent = safeNumber(tenant.rent_amount);
-                                        const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
-                                          : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
-                                          : rent / 12;
-                                        upsertPayment.mutate({
-                                          contract_id: tenant.contract_id,
-                                          paid_months: paid + 1,
-                                          auto_income: {
-                                            payment_amount: monthlyAmount,
-                                            property_id: property.id,
-                                            fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
-                                            tenant_name: tenant.name,
-                                          },
-                                        });
-                                      }}>
-                                      <Plus className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                  <Progress value={progressPercent} className={`h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
+                <div>
+                  {/* Mobile cards */}
+                  <div className="space-y-3 md:hidden">
+                    {units.map((unit) => {
+                      const tenant = getTenant(unit.id);
+                      const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
+                      const isComplete = paid >= 12;
+                      const progressPercent = (paid / 12) * 100;
+                      return (
+                        <Card key={unit.id} className="shadow-sm">
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-sm">وحدة {unit.unit_number}</span>
+                                  <Badge variant={statusColor(unit.status)}>{unit.status}</Badge>
                                 </div>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {!tenant || tenant.status !== 'active' ? (
-                                <span className="text-muted-foreground">-</span>
-                              ) : (() => {
-                                const ps = getPaymentStatus(tenant, paid);
-                                return ps.status === 'ontime'
-                                  ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20">منتظم</Badge>
-                                  : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
-                              })()}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)} aria-label="تعديل الوحدة"><Edit className="w-3 h-3" /></Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)} aria-label="حذف الوحدة"><Trash2 className="w-3 h-3" /></Button>
+                                <p className="text-xs text-muted-foreground mt-0.5">{unit.unit_type}</p>
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                      {(() => {
-                        const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
-                          const rent = safeNumber(t.rent_amount);
-                          if (t.payment_type === 'monthly') return safeNumber(t.payment_amount) || rent / 12;
-                          if (t.payment_type === 'multi') return safeNumber(t.payment_amount) || rent / (t.payment_count || 1);
-                          return rent / 12;
-                        };
-                        let totalAnnual = 0;
-                        let totalMonthly = 0;
-                        units.forEach(u => {
-                          const t = getTenant(u.id);
-                          if (t) {
-                            totalAnnual += safeNumber(t.rent_amount);
-                            totalMonthly += getMonthlyForTenant(t);
-                          }
-                        });
-                        wholePropertyContracts.forEach(wc => {
-                          totalAnnual += safeNumber(wc.rent_amount);
-                          const rent = safeNumber(wc.rent_amount);
-                          if (wc.payment_type === 'monthly') totalMonthly += safeNumber(wc.payment_amount) || rent / 12;
-                          else if (wc.payment_type === 'multi') totalMonthly += safeNumber(wc.payment_amount) || rent / (wc.payment_count || 1);
-                          else totalMonthly += rent / 12;
-                        });
-                        return (
-                          <TableRow className="bg-primary/10 font-bold border-t-2">
-                            <TableCell colSpan={3} className="text-right">
-                              الإجمالي <Badge variant="outline" className="mr-2 text-[11px]">شامل النشط والمنتهي</Badge>
-                            </TableCell>
-                            <TableCell colSpan={3}></TableCell>
-                            <TableCell>{fmtInt(totalMonthly)} ريال</TableCell>
-                            <TableCell>{fmt(totalAnnual)} ريال</TableCell>
-                            <TableCell colSpan={3}></TableCell>
-                          </TableRow>
-                        );
-                      })()}
-                    </TableBody>
-                  </Table>
+                              <div className="flex gap-1 shrink-0">
+                                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEditUnit(unit)} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                                <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                              </div>
+                            </div>
+                            {tenant ? (
+                              <>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">المستأجر</p>
+                                    <p className="text-sm font-medium">{tenant.name}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">الإيجار السنوي</p>
+                                    <p className="text-sm font-medium">{fmt(tenant.rent_amount)} ريال</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">بداية العقد</p>
+                                    <p className="text-sm font-medium">{tenant.start_date}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">نهاية العقد</p>
+                                    <p className="text-sm font-medium">{tenant.end_date}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1">
+                                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
+                                    onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
+                                    <MinusIcon className="w-3 h-3" />
+                                  </Button>
+                                  <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
+                                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
+                                    onClick={() => {
+                                      const rent = safeNumber(tenant.rent_amount);
+                                      const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
+                                        : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
+                                        : rent / 12;
+                                      upsertPayment.mutate({
+                                        contract_id: tenant.contract_id,
+                                        paid_months: paid + 1,
+                                        auto_income: {
+                                          payment_amount: monthlyAmount,
+                                          property_id: property.id,
+                                          fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
+                                          tenant_name: tenant.name,
+                                        },
+                                      });
+                                    }}>
+                                    <Plus className="w-3 h-3" />
+                                  </Button>
+                                  <Progress value={progressPercent} className={`flex-1 h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
+                                </div>
+                              </>
+                            ) : (
+                              <p className="text-xs text-muted-foreground text-center py-2">لا يوجد مستأجر</p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {/* Desktop table */}
+                  <div className="rounded-md border overflow-x-auto hidden md:block">
+                    <Table className="min-w-[800px]">
+                      <TableHeader>
+                        <TableRow className="bg-muted/40">
+                          <TableHead className="text-right">رقم الوحدة</TableHead>
+                          <TableHead className="text-right">النوع</TableHead>
+                          <TableHead className="text-right">الحالة</TableHead>
+                          <TableHead className="text-right min-w-[120px]">المستأجر</TableHead>
+                          <TableHead className="text-right">بداية العقد</TableHead>
+                          <TableHead className="text-right">نهاية العقد</TableHead>
+                          <TableHead className="text-right">الإيجار الشهري</TableHead>
+                          <TableHead className="text-right">الإيجار السنوي</TableHead>
+                          <TableHead className="text-right min-w-[180px]">الدفعات المسددة</TableHead>
+                          <TableHead className="text-right">حالة التحصيل</TableHead>
+                          <TableHead className="text-right">إجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {units.map((unit, idx) => {
+                          const tenant = getTenant(unit.id);
+                          const paid = tenant ? getPaymentInfo(tenant.contract_id) : 0;
+                          const isComplete = paid >= 12;
+                          const progressPercent = (paid / 12) * 100;
+                          return (
+                            <TableRow key={unit.id} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
+                              <TableCell className="font-medium">{unit.unit_number}</TableCell>
+                              <TableCell>{unit.unit_type}</TableCell>
+                              <TableCell><Badge variant={statusColor(unit.status)}>{unit.status}</Badge></TableCell>
+                              <TableCell>
+                                {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                  <span className="whitespace-nowrap">
+                                    {tenant.name}
+                                    {tenant.status !== 'active' && (
+                                      <Badge variant="outline" className="mr-2 text-[11px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
+                                    )}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>{tenant?.start_date || <span className="text-muted-foreground">-</span>}</TableCell>
+                              <TableCell>{tenant?.end_date || <span className="text-muted-foreground">-</span>}</TableCell>
+                              <TableCell>
+                                {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                  <span className="font-medium">
+                                    {(() => {
+                                      const rent = safeNumber(tenant.rent_amount);
+                                      if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
+                                      if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
+                                      return rent / 12;
+                                    })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                  <span className="font-medium">{fmt(tenant.rent_amount)} ريال</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {!tenant ? <span className="text-muted-foreground">-</span> : (
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
+                                        onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
+                                        <MinusIcon className="w-3 h-3" />
+                                      </Button>
+                                      <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
+                                      <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
+                                        onClick={() => {
+                                          const rent = safeNumber(tenant.rent_amount);
+                                          const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
+                                            : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
+                                            : rent / 12;
+                                          upsertPayment.mutate({
+                                            contract_id: tenant.contract_id,
+                                            paid_months: paid + 1,
+                                            auto_income: {
+                                              payment_amount: monthlyAmount,
+                                              property_id: property.id,
+                                              fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
+                                              tenant_name: tenant.name,
+                                            },
+                                          });
+                                        }}>
+                                        <Plus className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                    <Progress value={progressPercent} className={`h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {!tenant || tenant.status !== 'active' ? (
+                                  <span className="text-muted-foreground">-</span>
+                                ) : (() => {
+                                  const ps = getPaymentStatus(tenant, paid);
+                                  return ps.status === 'ontime'
+                                    ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20">منتظم</Badge>
+                                    : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
+                                })()}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditUnit(unit)} aria-label="تعديل الوحدة"><Edit className="w-3 h-3" /></Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUnitTarget(unit)} aria-label="حذف الوحدة"><Trash2 className="w-3 h-3" /></Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        {(() => {
+                          const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
+                            const rent = safeNumber(t.rent_amount);
+                            if (t.payment_type === 'monthly') return safeNumber(t.payment_amount) || rent / 12;
+                            if (t.payment_type === 'multi') return safeNumber(t.payment_amount) || rent / (t.payment_count || 1);
+                            return rent / 12;
+                          };
+                          let totalAnnual = 0;
+                          let totalMonthly = 0;
+                          units.forEach(u => {
+                            const t = getTenant(u.id);
+                            if (t) {
+                              totalAnnual += safeNumber(t.rent_amount);
+                              totalMonthly += getMonthlyForTenant(t);
+                            }
+                          });
+                          wholePropertyContracts.forEach(wc => {
+                            totalAnnual += safeNumber(wc.rent_amount);
+                            const rent = safeNumber(wc.rent_amount);
+                            if (wc.payment_type === 'monthly') totalMonthly += safeNumber(wc.payment_amount) || rent / 12;
+                            else if (wc.payment_type === 'multi') totalMonthly += safeNumber(wc.payment_amount) || rent / (wc.payment_count || 1);
+                            else totalMonthly += rent / 12;
+                          });
+                          return (
+                            <TableRow className="bg-primary/10 font-bold border-t-2">
+                              <TableCell colSpan={3} className="text-right">
+                                الإجمالي <Badge variant="outline" className="mr-2 text-[11px]">شامل النشط والمنتهي</Badge>
+                              </TableCell>
+                              <TableCell colSpan={3}></TableCell>
+                              <TableCell>{fmtInt(totalMonthly)} ريال</TableCell>
+                              <TableCell>{fmt(totalAnnual)} ريال</TableCell>
+                              <TableCell colSpan={3}></TableCell>
+                            </TableRow>
+                          );
+                        })()}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               )}
             </TabsContent>
