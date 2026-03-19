@@ -89,7 +89,7 @@ const UserManagementPage = () => {
     }
   };
 
-  const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading } = useQuery({
+  const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useQuery({
     queryKey: ['admin-users', currentPage],
     queryFn: async () => {
       const result = await callAdminApi({ action: 'list_users', page: currentPage });
@@ -99,6 +99,8 @@ const UserManagementPage = () => {
         nextPage: (result.nextPage as number | null) ?? null,
       };
     },
+    enabled: !!currentUser,
+    retry: 2,
   });
   const allUsers = usersResult.users;
   const totalUsers = usersResult.total;
@@ -132,6 +134,7 @@ const UserManagementPage = () => {
         .or('email.is.null,email.eq.,user_id.is.null');
       return data || [];
     },
+    enabled: !!currentUser,
   });
 
   // U-1: جلب المستفيدين غير المربوطين لربطهم بمستخدمين
@@ -144,6 +147,7 @@ const UserManagementPage = () => {
         .is('user_id', null);
       return data || [];
     },
+    enabled: !!currentUser,
   });
 
   // U-1: ربط مستخدم بمستفيد
@@ -469,6 +473,18 @@ const UserManagementPage = () => {
                   <TableSkeleton rows={4} cols={5} />
                 </div>
               </>
+            ) : isError ? (
+              <div className="p-6">
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    تعذّر تحميل قائمة المستخدمين: {error instanceof Error ? error.message : 'خطأ غير متوقع'}
+                    <Button variant="outline" size="sm" className="mr-3" onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}>
+                      إعادة المحاولة
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              </div>
             ) : (
               <>
                 {/* Mobile cards */}
