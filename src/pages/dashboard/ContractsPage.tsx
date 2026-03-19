@@ -404,12 +404,27 @@ const ContractsPage = () => {
           </>}
         />
 
-        <Tabs defaultValue="contracts" className="space-y-4">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <Tabs defaultValue="contracts" onValueChange={() => {}} className="space-y-4">
+          {/* Select للجوال */}
+          <NativeSelect
+            value="contracts"
+            onValueChange={(v) => {
+              const el = document.querySelector(`[data-state][value="${v}"]`) as HTMLElement;
+              el?.click();
+            }}
+            options={[
+              { value: 'contracts', label: 'العقود' },
+              { value: 'accruals', label: 'الاستحقاقات الشهرية' },
+              { value: 'invoices', label: 'فواتير الدفعات' },
+              { value: 'collection', label: 'تقرير التحصيل' },
+            ]}
+            className="md:hidden"
+          />
+          <TabsList className="hidden md:grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
-            <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" /><span className="hidden sm:inline">الاستحقاقات</span><span className="sm:hidden">شهري</span></TabsTrigger>
-            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" /><span className="hidden sm:inline">فواتير الدفعات</span><span className="sm:hidden">الفواتير</span></TabsTrigger>
-            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" /><span className="hidden sm:inline">تقرير التحصيل</span><span className="sm:hidden">التحصيل</span></TabsTrigger>
+            <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" />الاستحقاقات</TabsTrigger>
+            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" />فواتير الدفعات</TabsTrigger>
+            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
           </TabsList>
 
           <TabsContent value="contracts" className="space-y-5">
