@@ -287,8 +287,8 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
           <CardTitle className="text-sm sm:text-base">مقارنة صافي الدخل الشهري</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] sm:h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[250px] sm:h-[300px]" style={{ minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
