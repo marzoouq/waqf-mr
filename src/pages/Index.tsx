@@ -122,8 +122,8 @@ const Index = () => {
             <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
           </svg>
         </div>
-        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" />
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-secondary/5 blur-3xl -translate-x-1/2 -translate-y-1/2" aria-hidden="true" style={{ contain: 'strict' }} />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-secondary/8 blur-3xl translate-x-1/3 translate-y-1/3" aria-hidden="true" style={{ contain: 'strict' }} />
         <div className="container mx-auto px-4 py-10 sm:py-20 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <div className="mb-10">
