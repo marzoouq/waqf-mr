@@ -38,7 +38,7 @@ const AccountsContractsTable = ({
           <>
             {/* Mobile cards */}
             <div className="space-y-3 md:hidden">
-              {contracts.map((contract, index) => (
+              {contracts.map((contract) => (
                 <div key={contract.id} className="p-3 rounded-lg border bg-card space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
