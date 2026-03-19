@@ -25,6 +25,6 @@ describe('lazyWithRetry', () => {
     );
     // React.lazy يُرجع كائن بـ $$typeof
     expect(Comp).toBeDefined();
-    expect((Comp as Record<string, unknown>).$$typeof).toBeDefined();
+    expect((Comp as unknown as Record<string, unknown>).$$typeof).toBeDefined();
   });
 });

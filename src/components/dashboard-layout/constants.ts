@@ -188,6 +188,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   '/dashboard/support': 'الدعم الفني',
   '/dashboard/chart-of-accounts': 'الشجرة المحاسبية',
   '/dashboard/comparison': 'المقارنة التاريخية',
+  '/dashboard/diagnostics': 'تشخيص النظام',
   '/beneficiary': 'الرئيسية',
   '/beneficiary/properties': 'العقارات',
   '/beneficiary/contracts': 'العقود',

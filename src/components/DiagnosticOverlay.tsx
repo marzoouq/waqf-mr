@@ -2,7 +2,7 @@
  * زر عائم لتشخيص النظام — يظهر فقط للمسؤول
  */
 import { lazy, Suspense, useState } from 'react';
-import { Activity, X } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
