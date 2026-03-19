@@ -115,7 +115,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
 
   <div class="meta">
     <span>السنة المالية: <strong>${escapeHtml(fiscalYearLabel || '—')}</strong></span>
-    <span>المبلغ المتاح للتوزيع: <strong>${availableAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</strong></span>
+    <span>المبلغ المتاح للتوزيع: <strong>${fmt(availableAmount)} ر.س</strong></span>
     <span>عدد المستفيدين: <strong>${distributions.length}</strong></span>
   </div>
 
