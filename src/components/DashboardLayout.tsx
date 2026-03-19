@@ -261,7 +261,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="flex flex-col items-center">
           <span className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{ROUTE_TITLES[location.pathname] || Object.keys(ROUTE_TITLES).filter(r => location.pathname.startsWith(r + '/')).sort((a, b) => b.length - a.length).map(r => ROUTE_TITLES[r])[0] || 'إدارة الوقف'}</span>
           {fiscalYear && (
-            <span className="text-[10px] text-sidebar-foreground/70 leading-none">{fiscalYear.label}</span>
+            <span className="text-[11px] text-sidebar-foreground/70 leading-none">{fiscalYear.label}</span>
           )}
         </div>
         <div className="flex items-center gap-1">
