@@ -351,6 +351,9 @@ const BylawsPage = () => {
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
+            id="bylaws-search"
+            name="bylaws-search"
+            aria-label="بحث"
             placeholder="ابحث في بنود اللائحة..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
