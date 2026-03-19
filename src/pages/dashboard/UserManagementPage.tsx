@@ -486,6 +486,7 @@ const UserManagementPage = () => {
                 </Alert>
               </div>
             ) : (
+              <>
                 {/* Mobile cards */}
                 <div className="space-y-3 p-4 md:hidden">
                   {users.map((user) => (
