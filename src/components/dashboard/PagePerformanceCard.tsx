@@ -25,11 +25,11 @@ function getStatusLabel(ms: number): { text: string; className: string } {
 }
 
 const PagePerformanceCard = () => {
-  useSyncExternalStore(subscribe, getSnapshot);
+  const rev = useSyncExternalStore(subscribePerfUpdates, getPerfRevision);
   const [showAll, setShowAll] = useState(false);
 
-  const summaries = useMemo(() => getPagePerfSummaries(), [revision]); // eslint-disable-line react-hooks/exhaustive-deps
-  const totalEntries = useMemo(() => getStoredEntries().length, [revision]); // eslint-disable-line react-hooks/exhaustive-deps
+  const summaries = useMemo(() => getPagePerfSummaries(), [rev]);
+  const totalEntries = useMemo(() => getStoredEntries().length, [rev]);
 
   const displayed: PagePerfSummary[] = showAll ? summaries : summaries.slice(0, 6);
 
