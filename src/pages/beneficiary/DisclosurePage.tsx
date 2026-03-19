@@ -535,6 +535,7 @@ const DisclosurePage = () => {
         </Card>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

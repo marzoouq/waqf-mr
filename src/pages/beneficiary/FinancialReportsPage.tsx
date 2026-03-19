@@ -170,6 +170,7 @@ const FinancialReportsPage = () => {
         </Suspense>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

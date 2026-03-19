@@ -707,6 +707,7 @@ const MySharePage = () => {
         )}
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 
