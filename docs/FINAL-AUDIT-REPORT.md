@@ -141,13 +141,13 @@
 
 ## 🔮 مشاكل مؤجلة للتنفيذ المستقبلي
 
-### أمان (يتطلب تخطيط تدريجي)
+### أمان (تم إصلاح الحرجة ✅)
 
-| # | المشكلة | السبب | الأولوية |
-|---|---------|-------|---------|
-| CRIT-TS-1 | `strictNullChecks: false` في `tsconfig.json` | يتطلب إصلاح مئات الأخطاء تدريجياً — خطر حسابات مالية بـ `NaN` | 🔴 |
-| HIGH-TS-2 | `noImplicitAny: false` | متغيرات بدون نوع تُعامَل كـ `any` | 🟠 |
-| HIGH-TS-3 | `strict: false` في `tsconfig.app.json` | تناقض مع `tsconfig.node.json` الذي يستخدم `strict: true` | 🟠 |
+| # | المشكلة | الحالة | الأولوية |
+|---|---------|--------|---------|
+| ~~CRIT-TS-1~~ | ~~`strictNullChecks: false`~~ | ✅ تم تفعيل `strict: true` في 2026-03-19 | ~~🔴~~ |
+| ~~HIGH-TS-2~~ | ~~`noImplicitAny: false`~~ | ✅ مشمول في `strict: true` | ~~🟠~~ |
+| ~~HIGH-TS-3~~ | ~~`strict: false` في `tsconfig.app.json`~~ | ✅ تم التفعيل | ~~🟠~~ |
 | MED-HTML-6 | CSP كـ `<meta>` لا تدعم `frame-ancestors` | يحتاج HTTP header عبر خادم وسيط أو Edge Function | 🟡 |
 | HIGH-HTML-2 | `unsafe-inline` في `style-src` | React/Vite يتطلب أنماط inline — يحتاج nonce-based CSP | 🟡 |
 
@@ -163,10 +163,9 @@
 
 | # | المشكلة | الحل المقترح |
 |---|---------|-------------|
-| CRIT-PKG-1 | تناقض إصدار `package.json` (2.7.2) مع `package-lock.json` (2.7.0) | `npm install` ثم commit |
+| CRIT-PKG-1 | تناقض إصدار `package.json` مع `package-lock.json` | `npm install` ثم commit |
 | HIGH-PKG-2 | ملفا lock متعارضان (`package-lock.json` + `bun.lock`) | اختيار واحد وحذف الآخر |
 | MED-VIT-2 | لا `coverage.thresholds` | إضافة حد أدنى 60% بعد استقرار التغطية |
-| MED-TS-4 | `noUnusedLocals/Parameters: false` | تفعيل تدريجي |
 
 ### ZATCA مستقبلي
 
