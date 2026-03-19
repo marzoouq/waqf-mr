@@ -257,8 +257,8 @@ const IncomePage = () => {
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-warning/10"><Star className="w-5 h-5 text-warning" /></div>
-                <div><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate max-w-[120px]">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground">{fmt(summaryCards.topSourceAmount)} ريال</p></div>
+                <div className="p-2 rounded-lg bg-warning/10 shrink-0"><Star className="w-5 h-5 text-warning" /></div>
+                <div className="min-w-0"><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground tabular-nums truncate">{fmt(summaryCards.topSourceAmount)} ريال</p></div>
               </CardContent>
             </Card>
           </div>

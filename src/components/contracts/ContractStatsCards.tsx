@@ -66,7 +66,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
       <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[11px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
+          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.expiringSoon}</p></div>
         </CardContent>
       </Card>
     </div>
