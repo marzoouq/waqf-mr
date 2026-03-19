@@ -89,7 +89,7 @@ const UserManagementPage = () => {
     }
   };
 
-  const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading } = useQuery({
+  const { data: usersResult = { users: [] as ManagedUser[], total: 0, nextPage: null as number | null }, isLoading, isError, error } = useQuery({
     queryKey: ['admin-users', currentPage],
     queryFn: async () => {
       const result = await callAdminApi({ action: 'list_users', page: currentPage });
@@ -99,6 +99,8 @@ const UserManagementPage = () => {
         nextPage: (result.nextPage as number | null) ?? null,
       };
     },
+    enabled: !!currentUser,
+    retry: 2,
   });
   const allUsers = usersResult.users;
   const totalUsers = usersResult.total;
