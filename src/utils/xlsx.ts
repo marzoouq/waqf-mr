@@ -182,7 +182,12 @@ function createZipBlob(entries: ZipEntry[]): Blob {
   ev.setUint32(16, cdOffset, true); // cd offset
   ev.setUint16(20, 0, true); // comment length
 
-  return new Blob([...parts, ...centralDir, eocd], {
+  const allParts: ArrayBuffer[] = [];
+  for (const p of parts) allParts.push(p.buffer as ArrayBuffer);
+  for (const cd of centralDir) allParts.push(cd.buffer as ArrayBuffer);
+  allParts.push(eocd.buffer as ArrayBuffer);
+
+  return new Blob(allParts, {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
 }
