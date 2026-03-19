@@ -8,45 +8,16 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { lazy, Suspense, useState, useEffect, type ComponentType } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/usePagePerformance";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 /** مكوّن يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
   usePagePerformance();
   return null;
 }
-
-// ─── تعافي تلقائي عند فشل تحميل chunk قديم ───
-function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
-  return lazy(() =>
-    importFn().catch((error: Error) => {
-      const isChunkError =
-        error.message.includes('Failed to fetch dynamically imported module') ||
-        error.message.includes('Loading chunk') ||
-        error.message.includes('error loading dynamically imported module');
-
-      if (isChunkError) {
-        const retried = sessionStorage.getItem('chunk_retry');
-        if (!retried) {
-          sessionStorage.setItem('chunk_retry', '1');
-          // مسح كاش الأصول القديمة فقط
-          caches.delete('static-assets').catch(() => {});
-          window.location.reload();
-          // إرجاع وعد لا ينتهي لمنع عرض خطأ قبل إعادة التحميل
-          return new Promise(() => {});
-        }
-        // إذا فشلت المحاولة الثانية، أزل الحارس وارمي الخطأ
-        sessionStorage.removeItem('chunk_retry');
-      }
-      throw error;
-    })
-  );
-}
-
-// مسح حارس إعادة المحاولة عند التحميل الناجح
-sessionStorage.removeItem('chunk_retry');
 
 // Pages - Lazy loaded
 const Index = lazyWithRetry(() => import("./pages/Index"));
@@ -78,6 +49,7 @@ const SupportDashboardPage = lazyWithRetry(() => import("./pages/dashboard/Suppo
 const AnnualReportPage = lazyWithRetry(() => import("./pages/dashboard/AnnualReportPage"));
 const ChartOfAccountsPage = lazyWithRetry(() => import("./pages/dashboard/ChartOfAccountsPage"));
 const HistoricalComparisonPage = lazyWithRetry(() => import("./pages/dashboard/HistoricalComparisonPage"));
+const SystemDiagnosticsPage = lazyWithRetry(() => import("./pages/dashboard/SystemDiagnosticsPage"));
 
 // Beneficiary Pages - Lazy loaded
 const BeneficiaryDashboard = lazyWithRetry(() => import("./pages/beneficiary/BeneficiaryDashboard"));
@@ -180,6 +152,7 @@ function App() {
                     <Route path="/dashboard/annual-report" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><AnnualReportPage /></ProtectedRoute>} />
                     <Route path="/dashboard/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><ChartOfAccountsPage /></ProtectedRoute>} />
                     <Route path="/dashboard/comparison" element={<ProtectedRoute allowedRoles={['admin', 'accountant']}><HistoricalComparisonPage /></ProtectedRoute>} />
+                    <Route path="/dashboard/diagnostics" element={<ProtectedRoute allowedRoles={['admin']}><SystemDiagnosticsPage /></ProtectedRoute>} />
 
                     {/* Beneficiary Routes (admin can also access) */}
                     <Route path="/beneficiary" element={<ProtectedRoute allowedRoles={['admin', 'beneficiary']}><BeneficiaryDashboard /></ProtectedRoute>} />

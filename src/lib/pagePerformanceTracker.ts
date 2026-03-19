@@ -31,6 +31,7 @@ const PAGE_LABELS: Record<string, string> = {
   '/dashboard/bylaws': 'النظام الأساسي',
   '/dashboard/settings': 'الإعدادات',
   '/dashboard/support': 'الدعم الفني',
+  '/dashboard/diagnostics': 'تشخيص النظام',
   '/beneficiary': 'بوابة المستفيد',
 };
 
