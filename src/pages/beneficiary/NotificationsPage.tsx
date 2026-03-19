@@ -48,11 +48,16 @@ const NotificationsPage = () => {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
-  const filtered = typeFilter === 'all'
-    ? notifications
-    : notifications.filter((n) => n.type === typeFilter);
+  // فلترة بالتصنيف أولاً، ثم بالنوع
+  const categoryTypes = categoryFilter === 'all'
+    ? null
+    : NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter)?.types ?? null;
 
-  const readCount = notifications.filter((n) => n.is_read).length;
+  const filtered = notifications.filter((n) => {
+    if (categoryTypes && !categoryTypes.includes(n.type)) return false;
+    if (typeFilter !== 'all' && n.type !== typeFilter) return false;
+    return true;
+  });
   const uniqueTypes = [...new Set(notifications.map((n) => n.type))];
 
   const handleClick = (notification: typeof notifications[0]) => {
