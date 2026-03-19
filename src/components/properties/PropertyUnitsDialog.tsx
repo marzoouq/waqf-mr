@@ -574,7 +574,50 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         </Card>
                       );
                     })}
-                  </div>
+                   </div>
+                  {/* ملخص الإجماليات على الجوال */}
+                  {(() => {
+                    const getMonthlyForTenant = (t: NonNullable<ReturnType<typeof getTenant>>) => {
+                      const rent = safeNumber(t.rent_amount);
+                      if (t.payment_type === 'monthly') return safeNumber(t.payment_amount) || rent / 12;
+                      if (t.payment_type === 'multi') return safeNumber(t.payment_amount) || rent / (t.payment_count || 1);
+                      return rent / 12;
+                    };
+                    let totalAnnual = 0;
+                    let totalMonthly = 0;
+                    units.forEach(u => {
+                      const t = getTenant(u.id);
+                      if (t) {
+                        totalAnnual += safeNumber(t.rent_amount);
+                        totalMonthly += getMonthlyForTenant(t);
+                      }
+                    });
+                    wholePropertyContracts.forEach(wc => {
+                      totalAnnual += safeNumber(wc.rent_amount);
+                      const rent = safeNumber(wc.rent_amount);
+                      if (wc.payment_type === 'monthly') totalMonthly += safeNumber(wc.payment_amount) || rent / 12;
+                      else if (wc.payment_type === 'multi') totalMonthly += safeNumber(wc.payment_amount) || rent / (wc.payment_count || 1);
+                      else totalMonthly += rent / 12;
+                    });
+                    if (totalAnnual === 0) return null;
+                    return (
+                      <Card className="md:hidden bg-primary/10 border-primary/20">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="text-center flex-1">
+                              <p className="text-[11px] text-muted-foreground">إجمالي الشهري</p>
+                              <p className="text-sm font-bold">{fmtInt(totalMonthly)} ريال</p>
+                            </div>
+                            <div className="w-px h-8 bg-border" />
+                            <div className="text-center flex-1">
+                              <p className="text-[11px] text-muted-foreground">إجمالي السنوي</p>
+                              <p className="text-sm font-bold">{fmt(totalAnnual)} ريال</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })()}
                   {/* Desktop table */}
                   <div className="rounded-md border overflow-x-auto hidden md:block">
                     <Table className="min-w-[800px]">
