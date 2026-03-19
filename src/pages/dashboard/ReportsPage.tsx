@@ -21,7 +21,8 @@ import ExportMenu from '@/components/ExportMenu';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
+import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -321,50 +322,19 @@ const ReportsPage = () => {
         </div>
         )}
 
-        <Tabs defaultValue="financial" dir="rtl">
-          <TabsList className="print:hidden w-full sm:w-auto">
-            <TabsTrigger value="financial" className="text-xs sm:text-sm">
-              <FileText className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">التقارير المالية</span>
-              <span className="sm:hidden">المالية</span>
-            </TabsTrigger>
-            <TabsTrigger value="performance" className="text-xs sm:text-sm">
-              <TrendingUp className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">مقارنة أداء العقارات</span>
-              <span className="sm:hidden">الأداء</span>
-            </TabsTrigger>
-            <TabsTrigger value="monthly" className="text-xs sm:text-sm">
-              <CalendarRange className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">الأداء الشهري</span>
-              <span className="sm:hidden">شهري</span>
-            </TabsTrigger>
-            <TabsTrigger value="comparison" className="text-xs sm:text-sm">
-              <GitCompareArrows className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">مقارنة سنوية</span>
-              <span className="sm:hidden">مقارنة</span>
-            </TabsTrigger>
-            <TabsTrigger value="cashflow" className="text-xs sm:text-sm">
-              <Banknote className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">التدفق النقدي</span>
-              <span className="sm:hidden">نقدي</span>
-            </TabsTrigger>
-            <TabsTrigger value="balance" className="text-xs sm:text-sm">
-              <Scale className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">الميزانية العمومية</span>
-              <span className="sm:hidden">ميزانية</span>
-            </TabsTrigger>
-            <TabsTrigger value="overdue" className="text-xs sm:text-sm">
-              <FileText className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">المتأخرون</span>
-              <span className="sm:hidden">متأخرون</span>
-            </TabsTrigger>
-            <TabsTrigger value="zakat" className="text-xs sm:text-sm">
-              <Calculator className="w-4 h-4 ml-1 sm:ml-2" />
-              <span className="hidden sm:inline">تقدير الزكاة</span>
-              <span className="sm:hidden">زكاة</span>
-            </TabsTrigger>
-          </TabsList>
-
+        <ResponsiveTabs
+          defaultValue="financial"
+          items={[
+            { value: 'financial', label: 'التقارير المالية', icon: <FileText className="w-4 h-4" /> },
+            { value: 'performance', label: 'مقارنة أداء العقارات', icon: <TrendingUp className="w-4 h-4" /> },
+            { value: 'monthly', label: 'الأداء الشهري', icon: <CalendarRange className="w-4 h-4" /> },
+            { value: 'comparison', label: 'مقارنة سنوية', icon: <GitCompareArrows className="w-4 h-4" /> },
+            { value: 'cashflow', label: 'التدفق النقدي', icon: <Banknote className="w-4 h-4" /> },
+            { value: 'balance', label: 'الميزانية العمومية', icon: <Scale className="w-4 h-4" /> },
+            { value: 'overdue', label: 'المتأخرون', icon: <FileText className="w-4 h-4" /> },
+            { value: 'zakat', label: 'تقدير الزكاة', icon: <Calculator className="w-4 h-4" /> },
+          ] satisfies TabItem[]}
+        >
           <TabsContent value="financial" className="space-y-6">
             {/* Annual Disclosure */}
             <Card className="shadow-sm print:break-before-page">
@@ -721,7 +691,7 @@ const ReportsPage = () => {
               fiscalYearLabel={fiscalYear?.label}
             />
           </TabsContent>
-        </Tabs>
+        </ResponsiveTabs>
       </div>
     </DashboardLayout>
   );

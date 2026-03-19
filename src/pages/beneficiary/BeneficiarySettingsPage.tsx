@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
+import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -192,30 +193,17 @@ const BeneficiarySettingsPage = () => {
           icon={User}
         />
 
-        <Tabs defaultValue="account" dir="rtl" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto gap-1">
-            <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm py-2">
-              <User className="w-4 h-4 hidden sm:block" />
-              الحساب
-            </TabsTrigger>
-            <TabsTrigger value="password" className="gap-1.5 text-xs sm:text-sm py-2">
-              <Lock className="w-4 h-4 hidden sm:block" />
-              كلمة المرور
-            </TabsTrigger>
-            <TabsTrigger value="biometric" className="gap-1.5 text-xs sm:text-sm py-2">
-              <Shield className="w-4 h-4 hidden sm:block" />
-              البصمة
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm py-2">
-              <Bell className="w-4 h-4 hidden sm:block" />
-              الإشعارات
-            </TabsTrigger>
-            <TabsTrigger value="theme" className="gap-1.5 text-xs sm:text-sm py-2">
-              <Palette className="w-4 h-4 hidden sm:block" />
-              المظهر
-            </TabsTrigger>
-          </TabsList>
-
+        <ResponsiveTabs
+          defaultValue="account"
+          className="space-y-4"
+          items={[
+            { value: 'account', label: 'الحساب', icon: <User className="w-4 h-4" /> },
+            { value: 'password', label: 'كلمة المرور', icon: <Lock className="w-4 h-4" /> },
+            { value: 'biometric', label: 'البصمة', icon: <Shield className="w-4 h-4" /> },
+            { value: 'notifications', label: 'الإشعارات', icon: <Bell className="w-4 h-4" /> },
+            { value: 'theme', label: 'المظهر', icon: <Palette className="w-4 h-4" /> },
+          ] satisfies TabItem[]}
+        >
           {/* Account Info Tab - removed share percentage */}
           <TabsContent value="account">
             <Card className="shadow-sm">
@@ -407,7 +395,7 @@ const BeneficiarySettingsPage = () => {
           <TabsContent value="theme">
             <ThemeColorPicker />
           </TabsContent>
-        </Tabs>
+        </ResponsiveTabs>
       </div>
     </DashboardLayout>
   );
