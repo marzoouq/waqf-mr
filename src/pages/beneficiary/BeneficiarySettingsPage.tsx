@@ -31,8 +31,6 @@ const passwordSchema = z.object({
   path: ['confirmPassword'],
 });
 
-export const NOTIF_SOUND_KEY = 'waqf_notification_sound';
-
 const defaultPrefs = {
   distributions: true,
   contracts: true,
