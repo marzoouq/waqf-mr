@@ -12,6 +12,8 @@ import { fmt, fmtInt } from '@/utils/format';
 export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;
   fiscalYear: string;
+  /** هل السنة المالية لا تزال نشطة (غير مقفلة)؟ */
+  isFiscalYearActive?: boolean;
   totalIncome: number;
   totalExpenses: number;
   netAfterExpenses: number;
