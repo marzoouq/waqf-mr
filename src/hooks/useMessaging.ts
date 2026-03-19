@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
+import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
 
 export type { Conversation, Message };
 
@@ -28,17 +29,17 @@ export const useConversations = (type?: string) => {
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
-  useEffect(() => {
-    if (!user) return;
-    const channelName = `conversations-${user.id}-${type || 'all'}`;
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-        queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, type]);
+  const convSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
+      queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
+    });
+  }, []);
+
+  useBfcacheSafeChannel(
+    `chat-conv-${user?.id ?? 'none'}-${type || 'all'}`,
+    convSubscribeFn,
+    !!user,
+  );
 
   return query;
 };
@@ -67,16 +68,17 @@ export const useMessages = (conversationId: string | null) => {
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
-  useEffect(() => {
-    if (!user || !conversationId) return;
-    const channel = supabase
-      .channel(`messages-${conversationId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
-        queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, conversationId]);
+  const msgSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, () => {
+      queryClientRef.current.invalidateQueries({ queryKey: ['messages', conversationId] });
+    });
+  }, [conversationId]);
+
+  useBfcacheSafeChannel(
+    `chat-msg-${conversationId ?? 'none'}`,
+    msgSubscribeFn,
+    !!user && !!conversationId,
+  );
 
   return query;
 };

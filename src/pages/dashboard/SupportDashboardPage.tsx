@@ -362,7 +362,7 @@ function NewTicketDialog({ open, onClose }: { open: boolean; onClose: () => void
           <DialogDescription>أدخل تفاصيل المشكلة أو الطلب</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Input placeholder="عنوان التذكرة *" value={title} onChange={e => setTitle(e.target.value)} />
+          <Input id="ticket-title" name="ticket-title" placeholder="عنوان التذكرة *" value={title} onChange={e => setTitle(e.target.value)} />
           <Textarea placeholder="وصف تفصيلي..." value={description} onChange={e => setDescription(e.target.value)} />
           <div className="grid grid-cols-2 gap-3">
             <NativeSelect value={category} onValueChange={setCategory} options={[

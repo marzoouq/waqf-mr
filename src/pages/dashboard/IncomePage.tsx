@@ -204,14 +204,14 @@ const IncomePage = () => {
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل دخل</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2"><Label>المصدر *</Label><Input value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} placeholder="إيجار، استثمار، تبرع..." /></div>
-                  <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
-                  <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
+                  <div className="space-y-2"><Label htmlFor="income-source">المصدر *</Label><Input id="income-source" name="income-source" value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} placeholder="إيجار، استثمار، تبرع..." /></div>
+                  <div className="space-y-2"><Label htmlFor="income-amount">المبلغ (ر.س) *</Label><Input id="income-amount" name="income-amount" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="10000" /></div>
+                  <div className="space-y-2"><Label htmlFor="income-date">التاريخ *</Label><Input id="income-date" name="income-date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
                   <div className="space-y-2">
                     <Label>العقار (اختياري)</Label>
                     <NativeSelect value={formData.property_id} onValueChange={(value) => setFormData({ ...formData, property_id: value })} placeholder="اختر العقار" options={properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
                   </div>
-                  <div className="space-y-2"><Label>ملاحظات</Label><Input value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
+                  <div className="space-y-2"><Label htmlFor="income-notes">ملاحظات</Label><Input id="income-notes" name="income-notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending || updateIncome.isPending}>{editingIncome ? 'تحديث' : 'إضافة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
@@ -295,7 +295,7 @@ const IncomePage = () => {
         <div className="space-y-3">
           <div className="relative max-w-md">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
+            <Input id="income-search" name="income-search" aria-label="بحث" placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
           <AdvancedFiltersBar
             filters={filters}

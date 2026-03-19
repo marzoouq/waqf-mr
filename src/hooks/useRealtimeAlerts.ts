@@ -3,11 +3,11 @@
  * يستمع لتغييرات على جداول support_tickets و contracts
  * وينبّه المستخدم عبر toast + إشعار في قاعدة البيانات
  */
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   active: 'نشط',
@@ -18,16 +18,14 @@ const CONTRACT_STATUS_LABELS: Record<string, string> = {
 
 export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
   const { user, role } = useAuth();
-  const subscribedRef = useRef(false);
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
-  useEffect(() => {
-    // Only admin and accountant get realtime alerts
-    if (!user || (role !== 'admin' && role !== 'accountant')) return;
-    if (subscribedRef.current) return;
-    subscribedRef.current = true;
+  const isEnabled = !!user && (role === 'admin' || role === 'accountant');
+  const userId = user?.id ?? '';
 
-    const channel = supabase
-      .channel(`admin-realtime-alerts-${user.id}`)
+  const subscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel
       // 1) New support ticket
       .on('postgres_changes', {
         event: 'INSERT',
@@ -35,14 +33,13 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
         table: 'support_tickets',
       }, (payload) => {
         const ticket = payload.new as { ticket_number?: string; title?: string; priority?: string; created_by?: string };
-        // Don't notify if the admin created it themselves
-        if (ticket.created_by === user.id) return;
+        if (ticket.created_by === userId) return;
         const priorityLabel = ticket.priority === 'critical' ? '🔴 حرج' : ticket.priority === 'high' ? '🟠 عالي' : '';
         toast.info(`تذكرة دعم جديدة ${priorityLabel}`, {
           description: `${ticket.ticket_number}: ${ticket.title}`,
           action: {
             label: 'عرض',
-            onClick: () => navigate ? navigate('/dashboard/support') : window.location.assign('/dashboard/support'),
+            onClick: () => navigateRef.current ? navigateRef.current('/dashboard/support') : window.location.assign('/dashboard/support'),
           },
           duration: 8000,
         });
@@ -78,7 +75,7 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
             description: `عقد ${newC.contract_number} (${newC.tenant_name}): ${oldLabel} ← ${newLabel}`,
             action: {
               label: 'عرض',
-              onClick: () => navigate ? navigate('/dashboard/contracts') : window.location.assign('/dashboard/contracts'),
+              onClick: () => navigateRef.current ? navigateRef.current('/dashboard/contracts') : window.location.assign('/dashboard/contracts'),
             },
             duration: 8000,
           });
@@ -96,17 +93,12 @@ export const useRealtimeAlerts = (navigate?: (path: string) => void) => {
           description: `تم إضافة عقد ${c.contract_number} - ${c.tenant_name}`,
           duration: 6000,
         });
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          logger.warn('[RealtimeAlerts] Channel error/timeout, will retry on next render');
-          subscribedRef.current = false;
-        }
       });
+  }, [userId]);
 
-    return () => {
-      subscribedRef.current = false;
-      supabase.removeChannel(channel);
-    };
-  }, [user, user?.id, role, navigate]);
+  useBfcacheSafeChannel(
+    `admin-realtime-alerts-${userId}`,
+    subscribeFn,
+    isEnabled,
+  );
 };

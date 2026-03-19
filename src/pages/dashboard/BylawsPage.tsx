@@ -351,6 +351,9 @@ const BylawsPage = () => {
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
+            id="bylaws-search"
+            name="bylaws-search"
+            aria-label="بحث"
             placeholder="ابحث في بنود اللائحة..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -410,8 +413,10 @@ const BylawsPage = () => {
           <div className="space-y-4" dir="rtl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">رقم الجزء</label>
+                <label htmlFor="bylaw-part-number" className="text-sm font-medium">رقم الجزء</label>
                 <Input
+                  id="bylaw-part-number"
+                  name="bylaw-part-number"
                   type="number"
                   min={0}
                   value={newBylaw.part_number}
@@ -419,8 +424,10 @@ const BylawsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">عنوان الجزء *</label>
+                <label htmlFor="bylaw-part-title" className="text-sm font-medium">عنوان الجزء *</label>
                 <Input
+                  id="bylaw-part-title"
+                  name="bylaw-part-title"
                   value={newBylaw.part_title}
                   onChange={(e) => setNewBylaw((p) => ({ ...p, part_title: e.target.value }))}
                   placeholder="مثال: أحكام عامة"
@@ -428,16 +435,20 @@ const BylawsPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+              <label htmlFor="bylaw-chapter-title" className="text-sm font-medium">عنوان الفصل (اختياري)</label>
               <Input
+                id="bylaw-chapter-title"
+                name="bylaw-chapter-title"
                 value={newBylaw.chapter_title}
                 onChange={(e) => setNewBylaw((p) => ({ ...p, chapter_title: e.target.value }))}
                 placeholder="مثال: الفصل الأول - التعريفات"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
+              <label htmlFor="bylaw-content" className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
               <Textarea
+                id="bylaw-content"
+                name="bylaw-content"
                 value={newBylaw.content}
                 onChange={(e) => setNewBylaw((p) => ({ ...p, content: e.target.value }))}
                 className="min-h-[200px] font-mono text-sm"
@@ -469,8 +480,10 @@ const BylawsPage = () => {
           <div className="space-y-4 overflow-y-auto max-h-[50vh]" dir="rtl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">رقم الجزء</label>
+                <label htmlFor="edit-bylaw-part-number" className="text-sm font-medium">رقم الجزء</label>
                 <Input
+                  id="edit-bylaw-part-number"
+                  name="edit-bylaw-part-number"
                   type="number"
                   min={0}
                   value={editPartNumber}
@@ -478,8 +491,10 @@ const BylawsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">عنوان الجزء *</label>
+                <label htmlFor="edit-bylaw-part-title" className="text-sm font-medium">عنوان الجزء *</label>
                 <Input
+                  id="edit-bylaw-part-title"
+                  name="edit-bylaw-part-title"
                   value={editPartTitle}
                   onChange={(e) => setEditPartTitle(e.target.value)}
                 />
@@ -487,8 +502,10 @@ const BylawsPage = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">رقم الفصل (اختياري)</label>
+                <label htmlFor="edit-bylaw-chapter-number" className="text-sm font-medium">رقم الفصل (اختياري)</label>
                 <Input
+                  id="edit-bylaw-chapter-number"
+                  name="edit-bylaw-chapter-number"
                   type="number"
                   min={0}
                   value={editChapterNumber ?? ''}
@@ -497,16 +514,20 @@ const BylawsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+                <label htmlFor="edit-bylaw-chapter-title" className="text-sm font-medium">عنوان الفصل (اختياري)</label>
                 <Input
+                  id="edit-bylaw-chapter-title"
+                  name="edit-bylaw-chapter-title"
                   value={editChapterTitle}
                   onChange={(e) => setEditChapterTitle(e.target.value)}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
+              <label htmlFor="edit-bylaw-content" className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
               <Textarea
+                id="edit-bylaw-content"
+                name="edit-bylaw-content"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 className="min-h-[250px] font-mono text-sm"
