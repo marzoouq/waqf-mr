@@ -108,7 +108,7 @@ const AccessLogTab = () => {
               <Activity className="w-4 h-4" />إجمالي الأحداث
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
+          <CardContent><p className="text-xl sm:text-2xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card className="border-destructive/30">
           <CardHeader className="pb-2">
@@ -116,7 +116,7 @@ const AccessLogTab = () => {
               <XCircle className="w-4 h-4" />محاولات دخول فاشلة اليوم
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-destructive">{failedToday}</p></CardContent>
+          <CardContent><p className="text-xl sm:text-2xl font-bold text-destructive">{failedToday}</p></CardContent>
         </Card>
         <Card className="border-warning/30">
           <CardHeader className="pb-2">
@@ -124,7 +124,7 @@ const AccessLogTab = () => {
               <ShieldAlert className="w-4 h-4" />وصول غير مصرح اليوم
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-warning">{unauthorizedToday}</p></CardContent>
+          <CardContent><p className="text-xl sm:text-2xl font-bold text-warning">{unauthorizedToday}</p></CardContent>
         </Card>
       </div>
 
