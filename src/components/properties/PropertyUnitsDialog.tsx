@@ -667,7 +667,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                       if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
                                       if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
                                       return rent / 12;
-                                    })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
+                                    })())} ريال
                                   </span>
                                 )}
                               </TableCell>
