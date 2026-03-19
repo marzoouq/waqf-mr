@@ -42,7 +42,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
       <Card className="border-info/30 bg-info/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-info/15 text-info"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[11px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
+          <div className="min-w-0"><p className="text-[11px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold tabular-nums">{stats.total}</p></div>
         </CardContent>
       </Card>
       <Card className="border-success/30 bg-success/5">
