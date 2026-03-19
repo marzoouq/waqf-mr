@@ -116,7 +116,7 @@ const AccessLogTab = () => {
               <XCircle className="w-4 h-4" />محاولات دخول فاشلة اليوم
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold text-destructive">{failedToday}</p></CardContent>
+          <CardContent><p className="text-xl sm:text-2xl font-bold text-destructive">{failedToday}</p></CardContent>
         </Card>
         <Card className="border-warning/30">
           <CardHeader className="pb-2">
