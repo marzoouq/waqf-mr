@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFoo
 import { Badge } from '@/components/ui/badge';
 import { Calculator, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { fmt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format';
 
 interface ZakatEstimationReportProps {
   totalIncome: number;
@@ -103,7 +103,7 @@ const ZakatEstimationReport = ({
                   isRecorded ? 'text-success' : 'font-semibold'
                 }`}>
                   {step.type === 'subtract' ? '-' : step.type === 'add' ? '+' : ''}
-                  {step.value.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  {fmtInt(step.value)}
                 </span>
               </div>
             );
@@ -150,7 +150,7 @@ const ZakatEstimationReport = ({
                       'font-semibold'
                     }`}>
                       {step.type === 'subtract' ? '-' : step.type === 'add' ? '+' : ''}
-                      {step.value.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      {fmtInt(step.value)}
                     </TableCell>
                   </TableRow>
                 );

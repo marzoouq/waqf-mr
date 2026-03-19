@@ -5,6 +5,7 @@
 import { useMemo, useState } from 'react';
 import { Contract } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmtInt } from '@/utils/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +35,7 @@ const isMonthInRange = (year: number, month: number, start: Date, end: Date): bo
   return monthStart <= end && monthEnd >= start;
 };
 
-const fmtNum = (v: number) => v.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtNum = (v: number) => fmtInt(v);
 
 /** بطاقة عقد واحد للجوال مع تفاصيل الأشهر القابلة للتوسيع */
 const MobileAccrualCard = ({ contract, months, total }: { contract: Contract; months: number[]; total: number }) => {

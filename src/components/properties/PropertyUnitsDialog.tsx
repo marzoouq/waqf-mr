@@ -662,12 +662,12 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               <TableCell>
                                 {!tenant ? <span className="text-muted-foreground">-</span> : (
                                   <span className="font-medium">
-                                    {(() => {
+                                    {fmtInt((() => {
                                       const rent = safeNumber(tenant.rent_amount);
                                       if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
                                       if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
                                       return rent / 12;
-                                    })().toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
+                                    })())} ريال
                                   </span>
                                 )}
                               </TableCell>
@@ -874,7 +874,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         <div className="bg-muted/50 rounded-lg p-3 text-sm">
                           <span className="text-muted-foreground">قيمة الدفعة الواحدة: </span>
                           <span className="font-semibold">
-                            {(parseFloat(wholeRentalForm.rent_amount) / (wholeRentalForm.payment_type === 'monthly' ? 12 : wholeRentalForm.payment_type === 'multi' ? parseInt(wholeRentalForm.payment_count || '1') : 1)).toLocaleString('ar-SA')} ريال
+                            {fmt(parseFloat(wholeRentalForm.rent_amount) / (wholeRentalForm.payment_type === 'monthly' ? 12 : wholeRentalForm.payment_type === 'multi' ? parseInt(wholeRentalForm.payment_count || '1') : 1))} ريال
                           </span>
                         </div>
                       )}

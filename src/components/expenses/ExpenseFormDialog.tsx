@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { EXPENSE_TYPES } from '@/constants';
+import { fmt } from '@/utils/format';
 
 interface ExpenseFormData {
   expense_type: string;
@@ -68,7 +69,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
                 <Label className="text-sm font-medium">خاضعة لضريبة القيمة المضافة</Label>
                 {vatEnabled && amount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    VAT {vatRate}%: {vatAmount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س — الإجمالي: {(amount + vatAmount).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                    VAT {vatRate}%: {fmt(vatAmount)} ر.س — الإجمالي: {fmt(amount + vatAmount)} ر.س
                   </p>
                 )}
               </div>

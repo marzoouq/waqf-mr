@@ -298,25 +298,25 @@ const ReportsPage = () => {
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">إجمالي الدخل</p>
-              <p className="text-lg sm:text-2xl font-bold text-success">{fmt(totalIncome)} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-success tabular-nums truncate">{fmt(totalIncome)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">إجمالي المصروفات</p>
-              <p className="text-lg sm:text-2xl font-bold text-destructive">{fmt(totalExpenses)} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-destructive tabular-nums truncate">{fmt(totalExpenses)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">صافي الريع</p>
-              <p className="text-lg sm:text-2xl font-bold text-primary">{fmt(netRevenue)} ر.س</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary tabular-nums truncate">{fmt(netRevenue)} ر.س</p>
             </CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardContent className="p-3 sm:p-4">
               <p className="text-xs sm:text-sm text-muted-foreground">عدد العقارات</p>
-              <p className="text-lg sm:text-2xl font-bold">{properties.length}</p>
+              <p className="text-lg sm:text-2xl font-bold tabular-nums">{properties.length}</p>
             </CardContent>
           </Card>
         </div>

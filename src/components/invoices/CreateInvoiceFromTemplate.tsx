@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 import { FileText, Eye, Save, Plus, Trash2, AlertCircle } from 'lucide-react';
 import type { Contract } from '@/types/database';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type AllowanceChargeItem } from './InvoiceTemplates';
@@ -319,7 +320,7 @@ export default function CreateInvoiceFromTemplate({
                           />
                         </td>
                         <td className="p-1.5 text-center text-xs font-semibold">
-                          {item.total.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
+                          {fmt(item.total)} ر.س
                         </td>
                         <td className="p-1.5">
                           {items.length > 1 && (
@@ -337,10 +338,10 @@ export default function CreateInvoiceFromTemplate({
               {/* إجماليات */}
               <div className="flex justify-start">
                 <div className="w-full sm:w-72 space-y-1.5 bg-muted/20 rounded-lg p-3 border text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">بدون الضريبة</span><span>{totalExVat.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">ضريبة القيمة المضافة</span><span>{totalVat.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">بدون الضريبة</span><span>{fmt(totalExVat)} ر.س</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">ضريبة القيمة المضافة</span><span>{fmt(totalVat)} ر.س</span></div>
                   <div className="border-t pt-1.5 flex justify-between font-bold text-primary">
-                    <span>الإجمالي</span><span>{grandTotal.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</span>
+                    <span>الإجمالي</span><span>{fmt(grandTotal)} ر.س</span>
                   </div>
                 </div>
               </div>

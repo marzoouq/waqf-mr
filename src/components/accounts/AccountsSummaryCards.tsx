@@ -64,66 +64,66 @@ const AccountsSummaryCards = ({
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
               <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
-              <p className="text-base sm:text-xl font-bold">{fmt(waqfCorpusPrevious)}</p>
+              <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusPrevious)}</p>
             </div>
           )}
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">إجمالي الدخل</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(totalIncome)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(totalIncome)}</p>
           </div>
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
               <p className="text-xs sm:text-sm text-primary-foreground/90">الإجمالي الشامل</p>
-              <p className="text-base sm:text-xl font-bold">{fmt(grandTotal)}</p>
+              <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(grandTotal)}</p>
             </div>
           )}
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">المصروفات التشغيلية</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(totalExpenses)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(totalExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد المصاريف</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(netAfterExpenses)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterExpenses)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">ضريبة القيمة المضافة</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(manualVat)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الضريبة</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(netAfterVat)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(netAfterVat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الزكاة</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(zakatAmount)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(zakatAmount)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الصافي بعد الزكاة</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(computedNetAfterZakat)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(computedNetAfterZakat)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الناظر ({adminPercent}%)</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(adminShare)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(adminShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">حصة الواقف ({waqifPercent}%)</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(waqifShare)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqifShare)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">ريع الوقف</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(waqfRevenue)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfRevenue)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة الوقف (الحالي)</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(waqfCorpusManual)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusManual)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">التوزيعات</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(manualDistributions)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualDistributions)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الرصيد المتبقي</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(remainingBalance)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(remainingBalance)}</p>
           </div>
         </div>
       </CardContent>

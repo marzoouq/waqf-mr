@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateZatcaQrTLV } from '@/utils/zatcaQr';
 import { FileText, Receipt, AlertCircle } from 'lucide-react';
@@ -120,7 +121,7 @@ const InfoRow = ({ label, value, mono, warn }: { label: string; value: string; m
   </div>
 );
 
-const fmtNum = (n: number) => n.toLocaleString('ar-SA', { minimumFractionDigits: 2 });
+const fmtNum = (n: number) => fmt(n);
 
 // =========================================
 // القالب الاحترافي (Standard B2B)

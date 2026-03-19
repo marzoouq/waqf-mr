@@ -288,7 +288,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                         );
                       })}
                       <div className="text-xs text-muted-foreground pt-1">
-                        الإجمالي: {formData.selected_unit_ids.reduce((sum, id) => sum + (parseFloat(formData.rent_per_unit[id]) || 0), 0).toLocaleString('ar-SA')} ر.س
+                        الإجمالي: {fmt(formData.selected_unit_ids.reduce((sum, id) => sum + (parseFloat(formData.rent_per_unit[id]) || 0), 0))} ر.س
                       </div>
                     </div>
                   )}
@@ -347,7 +347,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <Label>{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
               <Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
               {isMulti && perUnitAmount > 0 && (
-                <p className="text-xs text-muted-foreground">= {perUnitAmount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س لكل وحدة</p>
+                <p className="text-xs text-muted-foreground">= {fmt(perUnitAmount)} ر.س لكل وحدة</p>
               )}
             </div>
           )}
@@ -384,7 +384,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <div className="flex justify-between">
                 <span className="text-muted-foreground">قيمة الدفعة الواحدة:</span>
                 <span className="font-bold text-primary">
-                  {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                  {fmt(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1)))} ر.س
                 </span>
               </div>
               {formData.vat_applicable && (
@@ -392,13 +392,13 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">ضريبة القيمة المضافة (15%):</span>
                     <span className="text-muted-foreground">
-                      {((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 0.15).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                      {fmt((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 0.15)} ر.س
                     </span>
                   </div>
                   <div className="flex justify-between text-xs border-t border-border pt-1 mt-1">
                     <span className="font-medium">الإجمالي شاملاً الضريبة:</span>
                     <span className="font-bold text-primary">
-                      {((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 1.15).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                      {fmt((parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))) * 1.15)} ر.س
                     </span>
                   </div>
                 </>

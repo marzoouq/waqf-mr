@@ -2,6 +2,7 @@
  * طباعة تقرير التوزيع الشامل مباشرة من المتصفح بتنسيق رسمي
  */
 import { toast } from 'sonner';
+import { fmt } from '@/utils/format';
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -48,11 +49,11 @@ export function printDistributionReport(params: PrintDistributionParams) {
     <tr${d.deficit > 0 ? ' class="deficit-row"' : ''}>
       <td class="name-cell">${escapeHtml(d.beneficiary_name)}</td>
       <td>${d.share_percentage.toFixed(2)}%</td>
-      <td>${d.share_amount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-      <td>${d.advances_paid > 0 ? '-' + d.advances_paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-      <td>${d.carryforward_deducted > 0 ? '-' + d.carryforward_deducted.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-      <td class="net-cell">${d.deficit > 0 ? '0.00' : d.net_amount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-      <td>${d.deficit > 0 ? d.deficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
+      <td>${fmt(d.share_amount)}</td>
+      <td>${d.advances_paid > 0 ? '-' + fmt(d.advances_paid) : '—'}</td>
+      <td>${d.carryforward_deducted > 0 ? '-' + fmt(d.carryforward_deducted) : '—'}</td>
+      <td class="net-cell">${d.deficit > 0 ? '0.00' : fmt(d.net_amount)}</td>
+      <td>${d.deficit > 0 ? fmt(d.deficit) : '—'}</td>
     </tr>
   `).join('');
 
@@ -114,7 +115,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
 
   <div class="meta">
     <span>السنة المالية: <strong>${escapeHtml(fiscalYearLabel || '—')}</strong></span>
-    <span>المبلغ المتاح للتوزيع: <strong>${availableAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</strong></span>
+    <span>المبلغ المتاح للتوزيع: <strong>${fmt(availableAmount)} ر.س</strong></span>
     <span>عدد المستفيدين: <strong>${distributions.length}</strong></span>
   </div>
 
@@ -135,11 +136,11 @@ export function printDistributionReport(params: PrintDistributionParams) {
       <tr class="total-row">
         <td>الإجمالي</td>
         <td>—</td>
-        <td>${availableAmount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-        <td>${totalAdvances > 0 ? '-' + totalAdvances.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-        <td>${totalCarryforward > 0 ? '-' + totalCarryforward.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-        <td>${totalNet.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-        <td>${totalDeficit > 0 ? totalDeficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
+        <td>${fmt(availableAmount)}</td>
+        <td>${totalAdvances > 0 ? '-' + fmt(totalAdvances) : '—'}</td>
+        <td>${totalCarryforward > 0 ? '-' + fmt(totalCarryforward) : '—'}</td>
+        <td>${fmt(totalNet)}</td>
+        <td>${totalDeficit > 0 ? fmt(totalDeficit) : '—'}</td>
       </tr>
     </tbody>
   </table>
@@ -147,21 +148,21 @@ export function printDistributionReport(params: PrintDistributionParams) {
   <div class="summary">
     <div class="summary-card primary">
       <div class="label">صافي المبلغ المطلوب صرفه</div>
-      <div class="value" style="color:#27ae60">${totalNet.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#27ae60">${fmt(totalNet)} ر.س</div>
     </div>
     <div class="summary-card info">
       <div class="label">إجمالي التوزيع (شامل الخصومات)</div>
-      <div class="value" style="color:#2980b9">${(totalNet + totalAdvances + totalCarryforward).toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#2980b9">${fmt(totalNet + totalAdvances + totalCarryforward)} ر.س</div>
     </div>
     ${totalAdvances > 0 ? `
     <div class="summary-card danger">
       <div class="label">إجمالي السُلف المخصومة</div>
-      <div class="value" style="color:#c0392b">-${totalAdvances.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#c0392b">-${fmt(totalAdvances)} ر.س</div>
     </div>` : ''}
     ${totalDeficit > 0 ? `
     <div class="summary-card warning">
       <div class="label">فروق مرحّلة للسنة القادمة (${distributions.filter(d => d.deficit > 0).length} مستفيد)</div>
-      <div class="value" style="color:#e67e22">${totalDeficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#e67e22">${fmt(totalDeficit)} ر.س</div>
     </div>` : ''}
   </div>
 
