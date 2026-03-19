@@ -22,6 +22,9 @@ interface ComputedParams {
   fiscalYearStatus?: string;
 }
 
+// H5 fix: exact VAT keywords only — 'ضريبة' alone is too broad
+const VAT_KEYWORDS = ['ضريبة القيمة المضافة', 'vat', 'ضريبة قيمة مضافة'] as const;
+
 /**
  * Pure computation hook — derives all financial metrics from raw data.
  */
