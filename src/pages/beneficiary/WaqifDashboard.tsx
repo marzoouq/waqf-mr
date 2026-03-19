@@ -203,7 +203,7 @@ const WaqifDashboard = () => {
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center gap-3">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.bg}`}><stat.icon className="w-5 h-5" /></div>
-                  <div className="min-w-0"><p className="text-xs text-muted-foreground">{stat.title}</p><p className="text-lg sm:text-xl font-bold truncate">{stat.value}</p></div>
+                  <div className="min-w-0"><p className="text-xs text-muted-foreground">{stat.title}</p><p className="text-lg sm:text-xl font-bold truncate tabular-nums">{stat.value}</p></div>
                 </div>
               </CardContent>
             </Card>
