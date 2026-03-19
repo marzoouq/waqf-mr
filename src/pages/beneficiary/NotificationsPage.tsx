@@ -266,7 +266,7 @@ const NotificationsPage = () => {
                               <span className="text-xs text-muted-foreground/60">
                                 {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ar })}
                               </span>
-                              <Badge variant="outline" className={cn('text-[10px] px-1.5 py-0', config.color)}>
+                              <Badge variant="outline" className={cn('text-xs px-1.5 py-0', config.color)}>
                                 {config.label}
                               </Badge>
                             </div>
