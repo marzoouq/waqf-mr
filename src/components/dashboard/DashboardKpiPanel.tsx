@@ -10,6 +10,10 @@ export interface KpiItem {
   suffix: string;
   color: string;
   progressColor: string;
+  /** نسبة التغيير سنة بسنة (YoY) */
+  yoyChange?: number | null;
+  /** عكس اللون: ارتفاع = سيئ (مثل المصروفات) */
+  invertColor?: boolean;
 }
 
 interface DashboardKpiPanelProps {
