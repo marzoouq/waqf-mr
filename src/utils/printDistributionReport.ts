@@ -162,7 +162,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
     ${totalDeficit > 0 ? `
     <div class="summary-card warning">
       <div class="label">فروق مرحّلة للسنة القادمة (${distributions.filter(d => d.deficit > 0).length} مستفيد)</div>
-      <div class="value" style="color:#e67e22">${totalDeficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#e67e22">${fmt(totalDeficit)} ر.س</div>
     </div>` : ''}
   </div>
 
