@@ -190,7 +190,7 @@ const ContractsViewPage = () => {
                       <div className="flex flex-col items-end gap-1">
                         <Badge variant={st.variant}>{st.label}</Badge>
                         {isExpiringSoon(contract) && (
-                          <Badge variant="outline" className="text-warning border-warning text-[10px]">
+                          <Badge variant="outline" className="text-warning border-warning text-[11px]">
                             <AlertTriangle className="w-3 h-3 ml-1" />ينتهي قريباً
                           </Badge>
                         )}
@@ -247,7 +247,7 @@ const ContractsViewPage = () => {
                           <div className="flex items-center gap-1.5">
                             <Badge variant={st.variant}>{st.label}</Badge>
                             {isExpiringSoon(contract) && (
-                              <Badge variant="outline" className="text-warning border-warning text-[10px]">
+                              <Badge variant="outline" className="text-warning border-warning text-[11px]">
                                 <AlertTriangle className="w-3 h-3 ml-1" />قريب
                               </Badge>
                             )}

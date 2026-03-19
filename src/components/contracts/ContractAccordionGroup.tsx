@@ -104,7 +104,7 @@ const ContractAccordionGroup = ({
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm truncate">{baseNumber}</span>
               {hasMultiple && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">
+                <Badge variant="outline" className="text-[11px] px-1.5 py-0 shrink-0">
                   {contracts.length} إصدار
                 </Badge>
               )}
@@ -158,7 +158,7 @@ const ContractAccordionGroup = ({
                     <span className="text-muted-foreground hidden sm:block">{contract.start_date}</span>
                     <span className="text-muted-foreground hidden sm:block">{contract.end_date}</span>
                     <span className="hidden sm:block">{fmt(Number(contract.rent_amount))} ر.س</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${st.className}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium w-fit ${st.className}`}>
                       {st.label}
                     </span>
                   </div>
@@ -195,7 +195,7 @@ const ContractAccordionGroup = ({
                     {invoiceStatusIcon[inv.status] || <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
                     <span className="text-muted-foreground">دفعة {inv.payment_number}</span>
                     <span className="font-medium mr-auto">{fmt(Number(inv.amount))} ر.س</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${
                       inv.status === 'paid' ? 'bg-success/15 text-success'
                         : inv.status === 'overdue' ? 'bg-destructive/15 text-destructive'
                         : 'bg-warning/15 text-warning'

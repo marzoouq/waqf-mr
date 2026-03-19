@@ -316,7 +316,7 @@ const PropertiesPage = () => {
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">{property.property_number}</CardTitle>
                       {property.vat_exempt && (
-                        <span className="text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
+                        <span className="text-[11px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
                       )}
                     </div>
                     <div className="flex gap-1">

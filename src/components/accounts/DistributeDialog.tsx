@@ -207,7 +207,7 @@ const DistributeDialog = ({
                   <div><span className="text-muted-foreground">الصافي:</span> <span className="font-bold text-primary">{d.deficit > 0 ? '0' : fmt(d.net_amount)}</span></div>
                 </div>
                 {d.deficit > 0 && (
-                  <Badge className="bg-destructive/20 text-destructive text-[10px]">
+                  <Badge className="bg-destructive/20 text-destructive text-xs">
                     <ArrowLeftRight className="w-3 h-3 ml-1 inline" />
                     يُرحّل {fmt(d.deficit)}
                   </Badge>
@@ -248,7 +248,7 @@ const DistributeDialog = ({
                     {d.deficit > 0 ? (
                       <div className="space-y-1">
                         <span className="font-bold text-destructive">0</span>
-                        <Badge className="bg-destructive/20 text-destructive text-[10px] block w-fit">
+                        <Badge className="bg-destructive/20 text-destructive text-xs block w-fit">
                           <ArrowLeftRight className="w-3 h-3 ml-1 inline" />
                           يُرحّل {fmt(d.deficit)}
                         </Badge>

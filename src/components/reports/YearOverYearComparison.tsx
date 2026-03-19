@@ -205,7 +205,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">التغير في الدخل</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">التغير في الدخل</p>
             <div className="flex items-center gap-2">
               {incomeChange > 0 ? <TrendingUp className="w-5 h-5 text-success" /> :
                incomeChange < 0 ? <TrendingDown className="w-5 h-5 text-destructive" /> :
@@ -214,7 +214,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 {incomeChange > 0 ? '+' : ''}{incomeChange.toFixed(1)}%
               </span>
             </div>
-            <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
+            <div className="flex gap-2 mt-1 text-[11px] sm:text-xs text-muted-foreground">
               <span>{year1Label}: {fmt(yearTotals.year1.income)}</span>
               <span>→</span>
               <span>{year2Label}: {fmt(yearTotals.year2.income)}</span>
@@ -223,7 +223,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">التغير في المصروفات</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">التغير في المصروفات</p>
             <div className="flex items-center gap-2">
               {expenseChange < 0 ? <TrendingDown className="w-5 h-5 text-success" /> :
                expenseChange > 0 ? <TrendingUp className="w-5 h-5 text-destructive" /> :
@@ -232,7 +232,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 {expenseChange > 0 ? '+' : ''}{expenseChange.toFixed(1)}%
               </span>
             </div>
-            <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
+            <div className="flex gap-2 mt-1 text-[11px] sm:text-xs text-muted-foreground">
               <span>{year1Label}: {fmt(yearTotals.year1.expenses)}</span>
               <span>→</span>
               <span>{year2Label}: {fmt(yearTotals.year2.expenses)}</span>
@@ -241,7 +241,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">التغير في الصافي</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">التغير في الصافي</p>
             <div className="flex items-center gap-2">
               {netChange > 0 ? <TrendingUp className="w-5 h-5 text-success" /> :
                netChange < 0 ? <TrendingDown className="w-5 h-5 text-destructive" /> :
@@ -250,7 +250,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
                 {netChange > 0 ? '+' : ''}{netChange.toFixed(1)}%
               </span>
             </div>
-            <div className="flex gap-2 mt-1 text-[10px] sm:text-xs text-muted-foreground">
+            <div className="flex gap-2 mt-1 text-[11px] sm:text-xs text-muted-foreground">
               <span>{year1Label}: {fmt(yearTotals.year1.net)}</span>
               <span>→</span>
               <span>{year2Label}: {fmt(yearTotals.year2.net)}</span>

@@ -185,8 +185,8 @@ function HistoricalComparisonPage() {
                       className="gap-1"
                     >
                       {fy.label}
-                      {fy.status === 'closed' && <Badge variant="secondary" className="text-[10px] px-1">مقفلة</Badge>}
-                      {fy.status === 'active' && <Badge variant="default" className="text-[10px] px-1">نشطة</Badge>}
+                      {fy.status === 'closed' && <Badge variant="secondary" className="text-[11px] px-1">مقفلة</Badge>}
+                      {fy.status === 'active' && <Badge variant="default" className="text-[11px] px-1">نشطة</Badge>}
                     </Button>
                   );
                 })}
@@ -222,7 +222,7 @@ function HistoricalComparisonPage() {
                               <div className="grid grid-cols-2 gap-2">
                                 {selectedYears.map((fy, i) => (
                                   <div key={fy.id}>
-                                    <p className="text-[10px] text-muted-foreground">{fy.label}</p>
+                                    <p className="text-[11px] text-muted-foreground">{fy.label}</p>
                                     <p className="text-sm font-medium font-mono">{fmtSAR(values[i])}</p>
                                   </div>
                                 ))}

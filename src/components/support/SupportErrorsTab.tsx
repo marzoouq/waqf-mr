@@ -69,7 +69,7 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
                       {meta?.error_name}: {meta?.error_message}
                     </p>
                     {meta?.user_agent && (
-                      <p className="text-[10px] text-muted-foreground/60 truncate" dir="ltr">{meta.user_agent.slice(0, 80)}</p>
+                      <p className="text-[11px] text-muted-foreground/60 truncate" dir="ltr">{meta.user_agent.slice(0, 80)}</p>
                     )}
                   </div>
                 );

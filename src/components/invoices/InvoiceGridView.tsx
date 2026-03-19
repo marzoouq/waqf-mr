@@ -77,7 +77,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
               {isImage(inv.file_name) && inv.file_path ? (
                 <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
                   <ImageIcon className="h-8 w-8" />
-                  <span className="text-[10px] truncate max-w-[120px]">{inv.file_name}</span>
+                  <span className="text-[11px] truncate max-w-[120px]">{inv.file_name}</span>
                 </div>
               ) : (
                 <div className={cn('rounded-full p-4', config.bg)}>
@@ -100,7 +100,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
               )}
               <Badge
                 variant={statusBadgeVariant(inv.status)}
-                className="absolute top-2 right-2 text-[10px]"
+                className="absolute top-2 right-2 text-[11px]"
               >
                 {INVOICE_STATUS_LABELS[inv.status] || inv.status}
               </Badge>
@@ -113,7 +113,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
                   {INVOICE_TYPE_LABELS[inv.invoice_type] || inv.invoice_type}
                 </span>
                 {inv.invoice_number && (
-                  <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded">
+                  <span className="text-[11px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded">
                     {inv.invoice_number}
                   </span>
                 )}
@@ -145,7 +145,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
               </div>
 
               {inv.file_name && (
-                <p className="text-[10px] text-muted-foreground truncate bg-muted/30 px-2 py-1 rounded" title={inv.file_name}>
+                <p className="text-[11px] text-muted-foreground truncate bg-muted/30 px-2 py-1 rounded" title={inv.file_name}>
                   📎 {inv.file_name}
                 </p>
               )}

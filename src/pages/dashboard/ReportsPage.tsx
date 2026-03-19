@@ -549,29 +549,48 @@ const ReportsPage = () => {
               </CardHeader>
               <CardContent>
                 {distributionData.length > 0 ? (
-                  <div className="overflow-x-auto"><Table className="min-w-[500px]">
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="text-right">المستفيد</TableHead>
-                        <TableHead className="text-right">النسبة</TableHead>
-                        <TableHead className="text-right">المبلغ المستحق</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <>
+                    {/* Mobile cards */}
+                    <div className="space-y-2 md:hidden">
                       {distributionData.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
-                          <TableCell className="text-primary font-medium">{fmt(item.amount)} ر.س</TableCell>
-                        </TableRow>
+                        <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+                          <div>
+                            <p className="font-medium text-sm">{item.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatPercentage(item.percentage ?? 0)}</p>
+                          </div>
+                          <span className="text-primary font-bold text-sm">{fmt(item.amount)} ر.س</span>
+                        </div>
                       ))}
-                      <TableRow className="bg-muted/50 font-bold">
-                        <TableCell>الإجمالي</TableCell>
-                        <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0))}</TableCell>
-                        <TableCell className="text-primary">{fmt(beneficiariesShare)} ر.س</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table></div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border font-bold">
+                        <span>الإجمالي</span>
+                        <span className="text-primary">{fmt(beneficiariesShare)} ر.س</span>
+                      </div>
+                    </div>
+                    {/* Desktop table */}
+                    <div className="hidden md:block overflow-x-auto"><Table className="min-w-[500px]">
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="text-right">المستفيد</TableHead>
+                          <TableHead className="text-right">النسبة</TableHead>
+                          <TableHead className="text-right">المبلغ المستحق</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {distributionData.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{item.name}</TableCell>
+                            <TableCell>{formatPercentage(item.percentage ?? 0)}</TableCell>
+                            <TableCell className="text-primary font-medium">{fmt(item.amount)} ر.س</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/50 font-bold">
+                          <TableCell>الإجمالي</TableCell>
+                          <TableCell>{formatPercentage(beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0))}</TableCell>
+                          <TableCell className="text-primary">{fmt(beneficiariesShare)} ر.س</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table></div>
+                  </>
                 ) : (
                   <div className="py-12 text-center text-muted-foreground">لا يوجد مستفيدين مسجلين</div>
                 )}
@@ -588,7 +607,46 @@ const ReportsPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {/* Mobile cards */}
+                <div className="space-y-3 md:hidden">
+                  {propertyPerformance.map((p) => {
+                    const occupancyColor = p.occupancy >= 80 ? 'text-success' : p.occupancy >= 50 ? 'text-warning' : 'text-destructive';
+                    return (
+                      <Card key={p.id} className="shadow-sm">
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm">{p.name}</span>
+                            <span className={`text-xs font-semibold ${occupancyColor}`}>{p.occupancy}%</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">النوع</p>
+                              <p className="text-sm">{p.type}</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">الوحدات</p>
+                              <p className="text-sm">{p.totalUnits > 0 ? p.totalUnits : (p.occupancy === 100 ? 'كامل' : '-')}</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">الإيجار السنوي</p>
+                              <p className="text-sm font-medium">{fmt(p.annualRent, 0)} ر.س</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">المصروفات</p>
+                              <p className="text-sm text-destructive">{fmt(p.totalExpenses, 0)} ر.س</p>
+                            </div>
+                            <div className="col-span-2">
+                              <p className="text-[11px] text-muted-foreground">صافي الدخل</p>
+                              <p className={`text-sm font-bold ${p.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(p.netIncome, 0)} ر.س</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                {/* Desktop table */}
+                <div className="hidden md:block overflow-x-auto">
                   <Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow className="bg-muted/50">

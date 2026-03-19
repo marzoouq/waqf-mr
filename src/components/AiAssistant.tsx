@@ -186,7 +186,7 @@ const AiAssistant = () => {
             </div>
             <div>
               <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
-              <p className="text-[10px] text-sidebar-foreground/60 flex items-center gap-1">
+              <p className="text-[11px] text-sidebar-foreground/60 flex items-center gap-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 {mode === 'analysis' ? 'Gemini 2.5 Pro' : 'Gemini 2.5 Flash'}
               </p>

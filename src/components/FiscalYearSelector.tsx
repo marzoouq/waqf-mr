@@ -33,10 +33,10 @@ const FiscalYearSelector: React.FC<FiscalYearSelectorProps> = ({ value, onChange
               <span className="flex items-center gap-2">
                 {fy.label}
                 {fy.status === 'active' && (
-                  <Badge variant="default" className="text-[10px] px-1.5 py-0">نشطة</Badge>
+                  <Badge variant="default" className="text-[11px] px-1.5 py-0">نشطة</Badge>
                 )}
                 {fy.status === 'closed' && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">مقفلة</Badge>
+                  <Badge variant="secondary" className="text-[11px] px-1.5 py-0">مقفلة</Badge>
                 )}
               </span>
             </SelectItem>

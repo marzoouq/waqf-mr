@@ -126,12 +126,12 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{type}</span>
                   {isOver80 && !isOver100 && (
-                    <Badge variant="outline" className="text-warning border-warning/40 gap-1 text-[10px]">
+                    <Badge variant="outline" className="text-warning border-warning/40 gap-1 text-[11px]">
                       <AlertTriangle className="w-3 h-3" /> تحذير 80%
                     </Badge>
                   )}
                   {isOver100 && (
-                    <Badge variant="destructive" className="gap-1 text-[10px]">
+                    <Badge variant="destructive" className="gap-1 text-[11px]">
                       <AlertTriangle className="w-3 h-3" /> تجاوز!
                     </Badge>
                   )}

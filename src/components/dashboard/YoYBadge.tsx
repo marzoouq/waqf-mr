@@ -34,7 +34,7 @@ const YoYBadge: React.FC<YoYBadgeProps> = ({ changePercent, invertColor = false,
   const Icon = isNeutral ? Minus : isPositive ? TrendingUp : TrendingDown;
 
   return (
-    <span className={cn('inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-medium', color, className)}>
+    <span className={cn('inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-medium', color, className)}>
       <Icon className="w-3 h-3" />
       {isNeutral ? null : <>{Math.abs(changePercent)}%</>}
     </span>

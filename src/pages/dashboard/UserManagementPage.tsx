@@ -478,17 +478,17 @@ const UserManagementPage = () => {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm" dir="ltr">{user.email}</span>
-                              {isSelf(user.id) && <Badge variant="outline" className="text-[10px]">أنت</Badge>}
+                              {isSelf(user.id) && <Badge variant="outline" className="text-xs">أنت</Badge>}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               {getRoleBadge(user.role)}
                               {user.email_confirmed_at ? (
-                                <Badge className="bg-success/20 text-success gap-1 text-[10px]">
+                                <Badge className="bg-success/20 text-success gap-1 text-xs">
                                   <CheckCircle className="w-3 h-3" />
                                   مفعل
                                 </Badge>
                               ) : (
-                                <Badge className="bg-destructive/20 text-destructive gap-1 text-[10px]">
+                                <Badge className="bg-destructive/20 text-destructive gap-1 text-xs">
                                   <XCircle className="w-3 h-3" />
                                   غير مفعل
                                 </Badge>
@@ -499,7 +499,7 @@ const UserManagementPage = () => {
 
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                           <div>
-                            <p className="text-[10px] text-muted-foreground">آخر دخول</p>
+                            <p className="text-[11px] text-muted-foreground">آخر دخول</p>
                             <p className="text-sm font-medium">
                               {user.last_sign_in_at
                                 ? new Date(user.last_sign_in_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })
@@ -507,7 +507,7 @@ const UserManagementPage = () => {
                             </p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-muted-foreground">تاريخ الإنشاء</p>
+                            <p className="text-[11px] text-muted-foreground">تاريخ الإنشاء</p>
                             <p className="text-sm font-medium">
                               {new Date(user.created_at).toLocaleDateString('ar-SA', { timeZone: 'Asia/Riyadh' })}
                             </p>
@@ -587,7 +587,7 @@ const UserManagementPage = () => {
                         <TableCell dir="ltr">
                           <span className="flex items-center gap-1">
                             {user.email}
-                            {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                            {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-xs">أنت</Badge>}
                             {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
                               <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
                             )}

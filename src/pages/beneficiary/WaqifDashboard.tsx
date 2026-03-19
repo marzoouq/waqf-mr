@@ -225,7 +225,7 @@ const WaqifDashboard = () => {
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Gauge className="w-5 h-5" />
               مؤشرات الأداء الرئيسية
-              <Badge variant="outline" className="text-[10px]">{fiscalYear?.label || '—'}</Badge>
+              <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -247,7 +247,7 @@ const WaqifDashboard = () => {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Wallet className="w-5 h-5" /> التسلسل المالي
-                <Badge variant="outline" className="text-[10px]">{fiscalYear?.label || '—'}</Badge>
+                <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">

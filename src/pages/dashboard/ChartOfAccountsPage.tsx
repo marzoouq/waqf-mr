@@ -82,7 +82,7 @@ function CategoryRow({
         <span className={`text-sm font-medium truncate ${!node.is_active ? 'line-through text-muted-foreground' : ''}`}>
           {node.name}
         </span>
-        <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${cfg.color}`}>
+        <Badge variant="secondary" className={`text-[11px] px-1.5 py-0 ${cfg.color}`}>
           {cfg.label}
         </Badge>
       </div>

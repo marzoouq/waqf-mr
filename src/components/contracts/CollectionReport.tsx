@@ -342,7 +342,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                           <span className="font-bold text-sm">{row.contract.contract_number}</span>
                           <p className="text-xs text-muted-foreground">{row.contract.tenant_name}</p>
                           {row.contract.status === 'expired' && (
-                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[10px] mt-1">منتهي</Badge>
+                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[11px] mt-1">منتهي</Badge>
                           )}
                         </div>
                         {getStatusBadge(row.status)}
@@ -352,7 +352,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                           <p className="font-medium">
                             {row.paid}/{row.paymentCount}
                             {row.spansMultipleYears && (
-                              <span className="text-muted-foreground text-[10px] mr-1">({row.totalContractPayments} إجمالي)</span>
+                              <span className="text-muted-foreground text-[11px] mr-1">({row.totalContractPayments} إجمالي)</span>
                             )}
                           </p>
                         </div>
@@ -394,7 +394,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                         <TableCell className="font-medium">
                           {row.contract.contract_number}
                           {row.contract.status === 'expired' && (
-                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[10px] mr-2">منتهي</Badge>
+                            <Badge variant="outline" className="text-destructive border-destructive/30 text-[11px] mr-2">منتهي</Badge>
                           )}
                         </TableCell>
                         <TableCell>{row.contract.tenant_name}</TableCell>
@@ -410,7 +410,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
                                   <TooltipTrigger asChild>
                                     <span className="inline-flex items-center gap-0.5 mr-1 cursor-help">
                                       <CalendarRange className="w-3 h-3 text-warning inline" />
-                                      <span className="text-muted-foreground text-[10px]">/{row.totalContractPayments}</span>
+                                      <span className="text-muted-foreground text-[11px]">/{row.totalContractPayments}</span>
                                     </span>
                                   </TooltipTrigger>
                                   <TooltipContent side="top" className="max-w-xs text-right">

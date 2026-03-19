@@ -301,7 +301,7 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
             ) : replies.map(reply => (
               <div key={reply.id} className={`rounded-lg p-3 text-sm ${reply.is_internal ? 'bg-warning/10 border border-warning/20' : 'bg-muted/50'}`}>
                 <p>{reply.content}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
+                <p className="text-[11px] text-muted-foreground mt-1">
                   {new Date(reply.created_at).toLocaleString('ar-SA')}
                   {reply.is_internal && ' — ملاحظة داخلية'}
                 </p>

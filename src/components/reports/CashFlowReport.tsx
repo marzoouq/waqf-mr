@@ -159,7 +159,36 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
           <CardTitle className="text-base">جدول التدفق النقدي الشهري</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile cards */}
+          <div className="space-y-2 md:hidden">
+            {monthlyData.map((row) => (
+              <div key={row.month} className="p-3 rounded-lg border bg-card space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">{row.month}</span>
+                  <span className={`text-xs font-bold ${row.cumulative >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                    تراكمي: {fmt(row.cumulative)}
+                  </span>
+                </div>
+                <div className="flex gap-3 text-xs">
+                  <span className="text-success">+{fmt(row.income)}</span>
+                  <span className="text-destructive">-{fmt(row.expenses)}</span>
+                  <span className={`font-medium ${row.net >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    صافي: {fmt(row.net)}
+                  </span>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border font-bold text-sm">
+              <span>الإجمالي</span>
+              <div className="flex gap-3 text-xs">
+                <span className="text-success">{fmt(totals.totalIncome)}</span>
+                <span className="text-destructive">{fmt(totals.totalExpenses)}</span>
+                <span className={totals.totalNet >= 0 ? 'text-success' : 'text-destructive'}>{fmt(totals.totalNet)}</span>
+              </div>
+            </div>
+          </div>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

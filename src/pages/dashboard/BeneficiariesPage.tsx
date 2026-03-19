@@ -182,7 +182,7 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
-                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">إجمالي المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">إجمالي المستفيدين</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length}</p></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -190,7 +190,7 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/10 rounded-xl flex items-center justify-center"><UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-success" /></div>
-                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">نشطون (نسبة {'>'} 0)</p><p className="text-xl sm:text-3xl font-bold text-success">{activeBeneficiaries}</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">نشطون (نسبة {'>'} 0)</p><p className="text-xl sm:text-3xl font-bold text-success">{activeBeneficiaries}</p></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -201,9 +201,9 @@ const BeneficiariesPage = () => {
                         {percentageExceeds ? <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-destructive" /> : <Percent className="w-4 h-4 sm:w-6 sm:h-6 text-secondary" />}
                       </div>
                       <div>
-                        <p className="text-[10px] sm:text-sm text-muted-foreground">مجموع النسب</p>
+                        <p className="text-[11px] sm:text-sm text-muted-foreground">مجموع النسب</p>
                         <p className={`text-xl sm:text-3xl font-bold ${percentageExceeds ? 'text-destructive' : ''}`}>{totalPercentage.toFixed(2)}%</p>
-                        {percentageExceeds && <p className="text-[10px] text-destructive">تجاوز 100%!</p>}
+                        {percentageExceeds && <p className="text-[11px] text-destructive">تجاوز 100%!</p>}
                       </div>
                     </div>
                   </CardContent>
@@ -212,7 +212,7 @@ const BeneficiariesPage = () => {
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-xl flex items-center justify-center"><Wallet className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" /></div>
-                      <div><p className="text-[10px] sm:text-sm text-muted-foreground">متوسط الحصة</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length > 0 ? (totalPercentage / beneficiaries.length).toFixed(1) : 0}%</p></div>
+                      <div><p className="text-[11px] sm:text-sm text-muted-foreground">متوسط الحصة</p><p className="text-xl sm:text-3xl font-bold">{beneficiaries.length > 0 ? (totalPercentage / beneficiaries.length).toFixed(1) : 0}%</p></div>
                     </div>
                   </CardContent>
                 </Card>

@@ -280,7 +280,7 @@ const BeneficiaryDashboard = () => {
                         <p className="text-lg sm:text-xl font-bold truncate">
                           {fmt(Number(lastPaid.amount))} ر.س
                         </p>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {new Date(lastPaid.date).toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })}
                         </p>
                       </>
@@ -298,7 +298,7 @@ const BeneficiaryDashboard = () => {
             <CardContent className="p-4 sm:p-5 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">السنة المالية</p>
-                <Badge variant="outline" className="text-[10px]">{fiscalYear?.label || '—'}</Badge>
+                <Badge variant="outline" className="text-[11px]">{fiscalYear?.label || '—'}</Badge>
               </div>
               <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${fyProgress.percent}%` }} />
@@ -393,7 +393,7 @@ const BeneficiaryDashboard = () => {
                         <p className="font-medium text-sm">{fmt(Number(d.amount))} ر.س</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(d.date).toLocaleDateString('ar-SA')}</p>
                       </div>
-                      <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[10px]">
+                      <Badge variant={d.status === 'paid' ? 'default' : 'secondary'} className="text-[11px]">
                         {d.status === 'paid' ? 'مدفوع' : 'معلق'}
                       </Badge>
                     </div>
@@ -410,7 +410,7 @@ const BeneficiaryDashboard = () => {
                 <Bell className="w-5 h-5" />
                 آخر الإشعارات
                 {unreadCount > 0 && (
-                  <Badge variant="destructive" className="text-[10px] px-1.5">{unreadCount}</Badge>
+                  <Badge variant="destructive" className="text-[11px] px-1.5">{unreadCount}</Badge>
                 )}
               </CardTitle>
               <Button variant="ghost" size="sm" onClick={() => navigate('/beneficiary/notifications')}>عرض الكل</Button>
@@ -426,11 +426,11 @@ const BeneficiaryDashboard = () => {
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm">{n.title}</p>
                           {/* BEN-15: تغيير variant لتتوافق مع badge العدد */}
-                          {!n.is_read && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">جديد</Badge>}
+                          {!n.is_read && <Badge variant="secondary" className="text-[11px] px-1.5 py-0">جديد</Badge>}
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>
                       </div>
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('ar-SA')}</span>
+                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">{new Date(n.created_at).toLocaleDateString('ar-SA')}</span>
                     </div>
                   ))}
                 </div>
