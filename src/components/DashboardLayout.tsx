@@ -358,7 +358,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <span className="text-xs font-medium text-foreground leading-tight truncate max-w-[120px]">
                     {user.email?.split('@')[0] || 'مستخدم'}
                   </span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 leading-none">
+                  <Badge variant="secondary" className="text-[11px] px-1.5 py-0 h-4 leading-none">
                     {role === 'admin' ? 'ناظر' : role === 'accountant' ? 'محاسب' : role === 'beneficiary' ? 'مستفيد' : role === 'waqif' ? 'واقف' : role || '—'}
                   </Badge>
                 </div>

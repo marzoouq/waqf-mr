@@ -587,7 +587,7 @@ const UserManagementPage = () => {
                         <TableCell dir="ltr">
                           <span className="flex items-center gap-1">
                             {user.email}
-                            {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-[10px]">أنت</Badge>}
+                            {isSelf(user.id) && <Badge variant="outline" className="mr-2 text-xs">أنت</Badge>}
                             {user.role === 'beneficiary' && orphanedBeneficiaries.some((b) => b.email === user.email || (!b.email && b.user_id === user.id)) && (
                               <span title="مستفيد بدون ربط صحيح"><AlertTriangle className="w-4 h-4 text-destructive shrink-0" /></span>
                             )}
