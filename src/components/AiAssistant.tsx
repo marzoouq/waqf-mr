@@ -274,7 +274,10 @@ const AiAssistant = () => {
 
         {/* Input */}
         <div className="p-3 border-t border-border flex gap-2">
+          <label htmlFor="ai-assistant-input" className="sr-only">اسأل المساعد الذكي</label>
           <Input
+            id="ai-assistant-input"
+            name="ai-assistant-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={currentConfig.placeholder}
