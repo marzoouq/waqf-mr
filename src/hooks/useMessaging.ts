@@ -29,17 +29,17 @@ export const useConversations = (type?: string) => {
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
 
-  useEffect(() => {
-    if (!user) return;
-    const channelName = `conversations-${user.id}-${type || 'all'}`;
-    const channel = supabase
-      .channel(channelName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-        queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, type]);
+  const convSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
+      queryClientRef.current.invalidateQueries({ queryKey: ['conversations'] });
+    });
+  }, []);
+
+  useBfcacheSafeChannel(
+    `chat-conv-${user?.id ?? 'none'}-${type || 'all'}`,
+    convSubscribeFn,
+    !!user,
+  );
 
   return query;
 };
