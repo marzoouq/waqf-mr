@@ -76,16 +76,6 @@ const InvoicesViewPage = () => {
     }
   };
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الفواتير" icon={FileText} description="عرض جميع فواتير الوقف" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (isError) {
     return (
