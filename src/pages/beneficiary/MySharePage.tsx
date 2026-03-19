@@ -38,7 +38,7 @@ const MySharePage = () => {
     queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
   // BEN-11: حالة تحميل PDF لمنع الضغط المزدوج
