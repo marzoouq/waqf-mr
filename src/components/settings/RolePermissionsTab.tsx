@@ -83,7 +83,32 @@ const RolePermissionsTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="overflow-x-auto">
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {SECTIONS.map(section => (
+            <div key={section.key} className="p-3 rounded-lg border bg-card space-y-2">
+              <p className="font-medium text-sm text-foreground">{section.label}</p>
+              <div className="flex flex-wrap gap-3">
+                {ROLES.map(role => {
+                  const available = section.roles.includes(role.key);
+                  if (!available) return null;
+                  return (
+                    <label key={role.key} className="flex items-center gap-1.5 text-sm">
+                      <Checkbox
+                        checked={perms[role.key]?.[section.key] ?? false}
+                        onCheckedChange={() => toggle(role.key, section.key)}
+                      />
+                      <span className="text-muted-foreground">{role.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
