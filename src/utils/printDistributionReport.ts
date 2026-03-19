@@ -157,7 +157,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
     ${totalAdvances > 0 ? `
     <div class="summary-card danger">
       <div class="label">إجمالي السُلف المخصومة</div>
-      <div class="value" style="color:#c0392b">-${totalAdvances.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#c0392b">-${fmt(totalAdvances)} ر.س</div>
     </div>` : ''}
     ${totalDeficit > 0 ? `
     <div class="summary-card warning">
