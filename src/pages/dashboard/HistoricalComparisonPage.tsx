@@ -1,7 +1,7 @@
 /**
  * صفحة المقارنة التاريخية — مقارنة 2-4 سنوات مالية جنباً إلى جنب
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
