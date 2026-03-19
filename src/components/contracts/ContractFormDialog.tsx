@@ -288,7 +288,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                         );
                       })}
                       <div className="text-xs text-muted-foreground pt-1">
-                        الإجمالي: {formData.selected_unit_ids.reduce((sum, id) => sum + (parseFloat(formData.rent_per_unit[id]) || 0), 0).toLocaleString('ar-SA')} ر.س
+                        الإجمالي: {fmt(formData.selected_unit_ids.reduce((sum, id) => sum + (parseFloat(formData.rent_per_unit[id]) || 0), 0))} ر.س
                       </div>
                     </div>
                   )}
