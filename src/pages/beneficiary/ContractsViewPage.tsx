@@ -252,6 +252,7 @@ const ContractsViewPage = () => {
         )}
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 
