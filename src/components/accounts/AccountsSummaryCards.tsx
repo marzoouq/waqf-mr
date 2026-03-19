@@ -119,7 +119,7 @@ const AccountsSummaryCards = ({
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">التوزيعات</p>
-            <p className="text-base sm:text-xl font-bold">{fmt(manualDistributions)}</p>
+            <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(manualDistributions)}</p>
           </div>
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
             <p className="text-xs sm:text-sm text-primary-foreground/90">الرصيد المتبقي</p>
