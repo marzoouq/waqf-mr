@@ -208,6 +208,7 @@ const AccountsViewPage = () => {
         </Card>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 
