@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { Wallet, Pencil, Check, X, CalendarRange } from 'lucide-react';
 
 export interface CollectionItem {
@@ -68,148 +69,279 @@ const AccountsCollectionTable = ({
         {contracts.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">لا توجد عقود مسجلة</p>
         ) : (
-          <div className="overflow-x-auto">
-          <Table className="min-w-[850px]">
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="text-right w-12">#</TableHead>
-                <TableHead className="text-right">المستأجر</TableHead>
-                <TableHead className="text-right">الإيجار الشهري</TableHead>
-                <TableHead className="text-right">الدفعات المتوقعة</TableHead>
-                <TableHead className="text-right">الدفعات المحصّلة</TableHead>
-                <TableHead className="text-right">الإجمالي المحصّل</TableHead>
-                <TableHead className="text-right">المتأخرات</TableHead>
-                <TableHead className="text-right">الحالة</TableHead>
-                <TableHead className="text-right w-24">إجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Mobile cards */}
+            <div className="space-y-3 md:hidden">
               {collectionData.map((item, idx) => {
                 const isEditing = editingIndex === idx;
                 const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                 const editPaid = editData?.paidMonths ?? item.paidMonths;
                 const editTotal = editRent * editPaid;
-                // N-08 fix: clamp arrears to zero to prevent negative display
                 const editArrears = Math.max(0, (editRent * item.expectedPayments) - editTotal);
 
                 return (
-                  <TableRow key={item.index}>
-                    <TableCell className="text-muted-foreground">{item.index}</TableCell>
-                    <TableCell className="font-medium">
-                      {isEditing ? (
-                        <Input
-                          value={editData?.tenantName ?? ''}
-                          onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
-                          className="h-8 w-32"
-                        />
-                      ) : item.tenantName}
-                    </TableCell>
-                    <TableCell className="font-bold text-primary">
-                      {isEditing ? (
-                        <Input
-                          type="number"
-                          value={editData?.monthlyRent ?? 0}
-                          onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
-                          className="h-8 w-24"
-                        />
-                      ) : `${fmt(item.paymentPerPeriod)} ريال`}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {item.spansMultipleYears ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 cursor-help">
-                                <CalendarRange className="w-3.5 h-3.5 text-warning" />
-                                <span className="font-bold">{item.expectedPayments}</span>
-                                <span className="text-muted-foreground text-xs">/ {item.totalContractPayments}</span>
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs text-right">
-                              <p className="font-bold mb-1">هذا العقد يمتد على أكثر من سنة مالية</p>
-                              <p>المخصص لهذه السنة: {item.allocatedToThisYear} دفعات</p>
-                              <p>المخصص لسنة أخرى: {item.allocatedToOtherYears} دفعات</p>
-                              <p className="text-muted-foreground mt-1">إجمالي العقد: {item.totalContractPayments} دفعة</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        item.expectedPayments
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {isEditing ? (
-                        <Input
-                          type="number"
-                          min={0}
-                          max={item.expectedPayments}
-                          value={editData?.paidMonths ?? 0}
-                          onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
-                          className="h-8 w-16"
-                        />
-                      ) : item.paidMonths}
-                    </TableCell>
-                    <TableCell className="font-bold text-primary">
-                      {isEditing ? `${fmt(editTotal)} ريال` : `${fmt(item.totalCollected)} ريال`}
-                    </TableCell>
-                    <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
-                      {fmt(isEditing ? editArrears : item.arrears)} ريال
-                    </TableCell>
-                    <TableCell>
-                      {isEditing ? (
-                        <Select
-                          value={editData?.status ?? 'متأخر'}
-                          onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : prev)}
-                        >
-                          <SelectTrigger className="h-8 w-24">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="مكتمل">مكتمل</SelectItem>
-                            <SelectItem value="متأخر">متأخر</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
-                          {item.status}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isEditing ? (
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => onSaveEdit()} disabled={isUpdatePending || isUpsertPending}>
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit}>
-                            <X className="w-4 h-4" />
-                          </Button>
+                  <div key={item.index} className="p-3 rounded-lg border bg-card space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isEditing ? (
+                            <Input
+                              value={editData?.tenantName ?? ''}
+                              onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
+                              className="h-8 w-full"
+                            />
+                          ) : (
+                            <>
+                              <span className="font-bold text-sm">{item.tenantName}</span>
+                              <Badge variant={item.status === 'مكتمل' ? 'default' : 'destructive'} className="text-xs">
+                                {isEditing ? editData?.status : item.status}
+                              </Badge>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onStartEdit(idx)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        {isEditing ? (
+                          <>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-success" onClick={onSaveEdit} disabled={isUpdatePending || isUpsertPending}>
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={onCancelEdit}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => onStartEdit(idx)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {isEditing && (
+                      <Select
+                        value={editData?.status ?? 'متأخر'}
+                        onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : prev)}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="مكتمل">مكتمل</SelectItem>
+                          <SelectItem value="متأخر">متأخر</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                      <div>
+                        <p className="text-[11px] text-muted-foreground">الإيجار الشهري</p>
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={editData?.monthlyRent ?? 0}
+                            onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
+                            className="h-8 w-full mt-0.5"
+                          />
+                        ) : (
+                          <p className="text-sm font-bold text-primary">{fmt(item.paymentPerPeriod)} ريال</p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground">الدفعات المحصّلة</p>
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            max={item.expectedPayments}
+                            value={editData?.paidMonths ?? 0}
+                            onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
+                            className="h-8 w-full mt-0.5"
+                          />
+                        ) : (
+                          <p className="text-sm font-medium">
+                            {item.paidMonths}
+                            {item.spansMultipleYears && (
+                              <span className="text-xs text-muted-foreground"> / {item.expectedPayments}</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground">الإجمالي المحصّل</p>
+                        <p className="text-sm font-bold text-primary">
+                          {fmt(isEditing ? editTotal : item.totalCollected)} ريال
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-muted-foreground">المتأخرات</p>
+                        <p className={`text-sm font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
+                          {fmt(isEditing ? editArrears : item.arrears)} ريال
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-            <TableFooter>
-              <TableRow className="bg-muted/70 font-bold">
-                <TableCell>الإجمالي</TableCell>
-                <TableCell>{contracts.length} مستأجر</TableCell>
-                <TableCell className="text-primary font-bold">{fmt(collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
-                <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-center text-muted-foreground">—</TableCell>
-                <TableCell className="text-primary font-bold">{fmt(totalCollectedAll)} ريال</TableCell>
-                <TableCell className="text-destructive font-bold">{fmt(totalArrearsAll)} ريال</TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-          </div>
+              <div className="p-3 bg-muted/50 rounded-lg space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">عدد المستأجرين</span>
+                  <span className="font-bold">{contracts.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">إجمالي المحصّل</span>
+                  <span className="font-bold text-primary">{fmt(totalCollectedAll)} ريال</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">إجمالي المتأخرات</span>
+                  <span className="font-bold text-destructive">{fmt(totalArrearsAll)} ريال</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+            <Table className="min-w-[850px]">
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="text-right w-12">#</TableHead>
+                  <TableHead className="text-right">المستأجر</TableHead>
+                  <TableHead className="text-right">الإيجار الشهري</TableHead>
+                  <TableHead className="text-right">الدفعات المتوقعة</TableHead>
+                  <TableHead className="text-right">الدفعات المحصّلة</TableHead>
+                  <TableHead className="text-right">الإجمالي المحصّل</TableHead>
+                  <TableHead className="text-right">المتأخرات</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
+                  <TableHead className="text-right w-24">إجراءات</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collectionData.map((item, idx) => {
+                  const isEditing = editingIndex === idx;
+                  const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
+                  const editPaid = editData?.paidMonths ?? item.paidMonths;
+                  const editTotal = editRent * editPaid;
+                  const editArrears = Math.max(0, (editRent * item.expectedPayments) - editTotal);
+
+                  return (
+                    <TableRow key={item.index}>
+                      <TableCell className="text-muted-foreground">{item.index}</TableCell>
+                      <TableCell className="font-medium">
+                        {isEditing ? (
+                          <Input
+                            value={editData?.tenantName ?? ''}
+                            onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
+                            className="h-8 w-32"
+                          />
+                        ) : item.tenantName}
+                      </TableCell>
+                      <TableCell className="font-bold text-primary">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            value={editData?.monthlyRent ?? 0}
+                            onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
+                            className="h-8 w-24"
+                          />
+                        ) : `${fmt(item.paymentPerPeriod)} ريال`}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item.spansMultipleYears ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-flex items-center gap-1 cursor-help">
+                                  <CalendarRange className="w-3.5 h-3.5 text-warning" />
+                                  <span className="font-bold">{item.expectedPayments}</span>
+                                  <span className="text-muted-foreground text-xs">/ {item.totalContractPayments}</span>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs text-right">
+                                <p className="font-bold mb-1">هذا العقد يمتد على أكثر من سنة مالية</p>
+                                <p>المخصص لهذه السنة: {item.allocatedToThisYear} دفعات</p>
+                                <p>المخصص لسنة أخرى: {item.allocatedToOtherYears} دفعات</p>
+                                <p className="text-muted-foreground mt-1">إجمالي العقد: {item.totalContractPayments} دفعة</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          item.expectedPayments
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            max={item.expectedPayments}
+                            value={editData?.paidMonths ?? 0}
+                            onChange={(e) => setEditData(prev => prev ? { ...prev, paidMonths: Number(e.target.value) } : prev)}
+                            className="h-8 w-16"
+                          />
+                        ) : item.paidMonths}
+                      </TableCell>
+                      <TableCell className="font-bold text-primary">
+                        {isEditing ? `${fmt(editTotal)} ريال` : `${fmt(item.totalCollected)} ريال`}
+                      </TableCell>
+                      <TableCell className={`font-bold ${(isEditing ? editArrears : item.arrears) > 0 ? 'text-destructive' : 'text-success'}`}>
+                        {fmt(isEditing ? editArrears : item.arrears)} ريال
+                      </TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <Select
+                            value={editData?.status ?? 'متأخر'}
+                            onValueChange={(val) => setEditData(prev => prev ? { ...prev, status: val } : prev)}
+                          >
+                            <SelectTrigger className="h-8 w-24">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="مكتمل">مكتمل</SelectItem>
+                              <SelectItem value="متأخر">متأخر</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'مكتمل' ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+                            {item.status}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-success" onClick={() => onSaveEdit()} disabled={isUpdatePending || isUpsertPending}>
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onCancelEdit}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onStartEdit(idx)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+              <TableFooter>
+                <TableRow className="bg-muted/70 font-bold">
+                  <TableCell>الإجمالي</TableCell>
+                  <TableCell>{contracts.length} مستأجر</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
+                  <TableCell className="text-center text-muted-foreground">—</TableCell>
+                  <TableCell className="text-center text-muted-foreground">—</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(totalCollectedAll)} ريال</TableCell>
+                  <TableCell className="text-destructive font-bold">{fmt(totalArrearsAll)} ريال</TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

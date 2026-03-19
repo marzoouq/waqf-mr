@@ -29,6 +29,11 @@ const AccountsBeneficiariesTable = ({
 }: AccountsBeneficiariesTableProps) => {
   const [distributeOpen, setDistributeOpen] = useState(false);
 
+  const getShare = (b: Beneficiary) =>
+    totalBeneficiaryPercentage > 0
+      ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
+      : 0;
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -53,29 +58,45 @@ const AccountsBeneficiariesTable = ({
           <p className="text-center text-muted-foreground py-8">لا يوجد مستفيدون مسجلون</p>
         ) : (
           <>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="text-right">المستفيد</TableHead>
-                  <TableHead className="text-right">النسبة</TableHead>
-                  <TableHead className="text-right">المبلغ المستحق</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {beneficiaries.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
-                    <TableCell className="text-primary font-medium">
-                      {fmt(totalBeneficiaryPercentage > 0
-                        ? availableAmount * Number(b.share_percentage) / totalBeneficiaryPercentage
-                        : 0
-                      )}
-                    </TableCell>
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {beneficiaries.map((b) => (
+                <div key={b.id} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">{b.name}</p>
+                    <p className="text-xs text-muted-foreground">{formatPercentage(b.share_percentage)}</p>
+                  </div>
+                  <span className="text-sm font-bold text-primary whitespace-nowrap">
+                    {fmt(getShare(b))} ريال
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="text-right">المستفيد</TableHead>
+                    <TableHead className="text-right">النسبة</TableHead>
+                    <TableHead className="text-right">المبلغ المستحق</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {beneficiaries.map((b) => (
+                    <TableRow key={b.id}>
+                      <TableCell className="font-medium">{b.name}</TableCell>
+                      <TableCell>{formatPercentage(b.share_percentage)}</TableCell>
+                      <TableCell className="text-primary font-medium">
+                        {fmt(getShare(b))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
             {totalBeneficiaryPercentage > 0 && totalBeneficiaryPercentage !== 100 && (
               <div className="mt-2 px-3 py-2 bg-warning/10 border border-warning/30 rounded-md text-xs text-warning flex items-center gap-1">
                 ⚠ مجموع نسب المستفيدين ({totalBeneficiaryPercentage}%) لا يساوي 100% — التوزيع يتم بشكل تناسبي
