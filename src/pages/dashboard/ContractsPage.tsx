@@ -6,6 +6,7 @@ import {} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { NativeSelect } from '@/components/ui/native-select';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useProperties } from '@/hooks/useProperties';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
@@ -74,6 +75,7 @@ const ContractsPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('contracts');
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
@@ -403,12 +405,24 @@ const ContractsPage = () => {
           </>}
         />
 
-        <Tabs defaultValue="contracts" className="space-y-4">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          {/* Select للجوال */}
+          <NativeSelect
+            value={activeTab}
+            onValueChange={setActiveTab}
+            options={[
+              { value: 'contracts', label: 'العقود' },
+              { value: 'accruals', label: 'الاستحقاقات الشهرية' },
+              { value: 'invoices', label: 'فواتير الدفعات' },
+              { value: 'collection', label: 'تقرير التحصيل' },
+            ]}
+            className="md:hidden"
+          />
+          <TabsList className="hidden md:grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="contracts" className="gap-2"><FileText className="w-4 h-4" />العقود</TabsTrigger>
-            <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" /><span className="hidden sm:inline">الاستحقاقات</span><span className="sm:hidden">شهري</span></TabsTrigger>
-            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" /><span className="hidden sm:inline">فواتير الدفعات</span><span className="sm:hidden">الفواتير</span></TabsTrigger>
-            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" /><span className="hidden sm:inline">تقرير التحصيل</span><span className="sm:hidden">التحصيل</span></TabsTrigger>
+            <TabsTrigger value="accruals" className="gap-2"><CalendarDays className="w-4 h-4" />الاستحقاقات</TabsTrigger>
+            <TabsTrigger value="invoices" className="gap-2"><Receipt className="w-4 h-4" />فواتير الدفعات</TabsTrigger>
+            <TabsTrigger value="collection" className="gap-2"><BarChart3 className="w-4 h-4" />تقرير التحصيل</TabsTrigger>
           </TabsList>
 
           <TabsContent value="contracts" className="space-y-5">
@@ -438,13 +452,13 @@ const ContractsPage = () => {
           </Alert>
         )}
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative max-w-md flex-1">
+        <div className="flex flex-wrap items-start sm:items-center gap-3">
+          <div className="relative w-full sm:max-w-md sm:flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input placeholder="بحث في العقود..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setCurrentPage(1); }}>
-            <SelectTrigger className="w-48 shrink-0">
+            <SelectTrigger className="w-full sm:w-48 shrink-0">
               <Filter className="w-4 h-4 ml-2" />
               <SelectValue />
             </SelectTrigger>
@@ -455,9 +469,8 @@ const ContractsPage = () => {
               <SelectItem value="overdue">متأخر &gt; 30 يوم ({statusCounts.overdue})</SelectItem>
             </SelectContent>
           </Select>
-          {/* C-8: فلتر العقار */}
           <Select value={propertyFilter} onValueChange={(v) => { setPropertyFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-48 shrink-0">
+            <SelectTrigger className="w-full sm:w-48 shrink-0">
               <SelectValue placeholder="كل العقارات" />
             </SelectTrigger>
             <SelectContent>
@@ -467,9 +480,8 @@ const ContractsPage = () => {
               ))}
             </SelectContent>
           </Select>
-          {/* C-8: فلتر نوع الدفع */}
           <Select value={paymentTypeFilter} onValueChange={(v) => { setPaymentTypeFilter(v); setCurrentPage(1); }}>
-            <SelectTrigger className="w-40 shrink-0">
+            <SelectTrigger className="w-full sm:w-40 shrink-0">
               <SelectValue placeholder="نوع الدفع" />
             </SelectTrigger>
             <SelectContent>
