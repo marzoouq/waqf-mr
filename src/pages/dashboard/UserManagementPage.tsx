@@ -134,6 +134,7 @@ const UserManagementPage = () => {
         .or('email.is.null,email.eq.,user_id.is.null');
       return data || [];
     },
+    enabled: !!currentUser,
   });
 
   // U-1: جلب المستفيدين غير المربوطين لربطهم بمستخدمين
