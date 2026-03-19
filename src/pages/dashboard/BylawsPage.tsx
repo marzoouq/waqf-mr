@@ -413,8 +413,10 @@ const BylawsPage = () => {
           <div className="space-y-4" dir="rtl">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">رقم الجزء</label>
+                <label htmlFor="bylaw-part-number" className="text-sm font-medium">رقم الجزء</label>
                 <Input
+                  id="bylaw-part-number"
+                  name="bylaw-part-number"
                   type="number"
                   min={0}
                   value={newBylaw.part_number}
@@ -422,8 +424,10 @@ const BylawsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">عنوان الجزء *</label>
+                <label htmlFor="bylaw-part-title" className="text-sm font-medium">عنوان الجزء *</label>
                 <Input
+                  id="bylaw-part-title"
+                  name="bylaw-part-title"
                   value={newBylaw.part_title}
                   onChange={(e) => setNewBylaw((p) => ({ ...p, part_title: e.target.value }))}
                   placeholder="مثال: أحكام عامة"
@@ -431,16 +435,20 @@ const BylawsPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">عنوان الفصل (اختياري)</label>
+              <label htmlFor="bylaw-chapter-title" className="text-sm font-medium">عنوان الفصل (اختياري)</label>
               <Input
+                id="bylaw-chapter-title"
+                name="bylaw-chapter-title"
                 value={newBylaw.chapter_title}
                 onChange={(e) => setNewBylaw((p) => ({ ...p, chapter_title: e.target.value }))}
                 placeholder="مثال: الفصل الأول - التعريفات"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
+              <label htmlFor="bylaw-content" className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
               <Textarea
+                id="bylaw-content"
+                name="bylaw-content"
                 value={newBylaw.content}
                 onChange={(e) => setNewBylaw((p) => ({ ...p, content: e.target.value }))}
                 className="min-h-[200px] font-mono text-sm"
