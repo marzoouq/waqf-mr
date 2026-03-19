@@ -347,7 +347,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <Label>{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
               <Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
               {isMulti && perUnitAmount > 0 && (
-                <p className="text-xs text-muted-foreground">= {perUnitAmount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س لكل وحدة</p>
+                <p className="text-xs text-muted-foreground">= {fmt(perUnitAmount)} ر.س لكل وحدة</p>
               )}
             </div>
           )}
