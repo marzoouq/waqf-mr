@@ -145,9 +145,8 @@ export const useComputedFinancials = ({
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
+  // DEFER-4: ثابت خارج useMemo لتجنب إعادة الإنشاء
   const expensesByTypeExcludingVat = useMemo(() => {
-    // H5 fix: use exact VAT keywords only — 'ضريبة' alone is too broad
-    const vatKeywords = ['ضريبة القيمة المضافة', 'vat', 'ضريبة قيمة مضافة'];
     const filtered = expenses.filter(e => {
       const desc = (e.description || '').trim().toLowerCase();
       const type = (e.expense_type || '').trim().toLowerCase();
