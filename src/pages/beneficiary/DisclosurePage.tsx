@@ -19,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useIsMobile } from '@/hooks/use-mobile';
+
 import { useMyShare } from '@/hooks/useMyShare';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
@@ -46,7 +46,7 @@ const DisclosurePage = () => {
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
   
-  const isMobile = useIsMobile();
+  
 
   const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
 
@@ -360,65 +360,66 @@ const DisclosurePage = () => {
               </div>
             ) : contracts.length === 0 ? (
               <p className="text-center text-muted-foreground py-6 text-sm">لا توجد عقود مسجلة</p>
-            ) : isMobile ? (
-              /* Mobile: Card-based grid */
-              <div className="grid grid-cols-1 gap-3">
-                {contracts.map(c => (
-                  <div key={c.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm">{c.contract_number}</span>
-                      <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
-                        {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
-                    <div className="flex justify-between text-xs">
-                      <span>سنوي: {fmt(safeNumber(c.rent_amount))} ر.س</span>
-                      <span>شهري: {fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</span>
-                    </div>
-                  </div>
-                ))}
-                <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
-                  <span>الإجمالي</span>
-                  <span>{fmt(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0))} ر.س</span>
-                </div>
-              </div>
             ) : (
-              /* Desktop: Table */
-              <div className="overflow-x-auto">
-                <Table className="min-w-[600px]">
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="text-right">رقم العقد</TableHead>
-                      <TableHead className="text-right">المستأجر</TableHead>
-                      <TableHead className="text-right">الإيجار السنوي</TableHead>
-                      <TableHead className="text-right">الإيجار الشهري</TableHead>
-                      <TableHead className="text-right">الحالة</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contracts.map(c => (
-                      <TableRow key={c.id}>
-                        <TableCell className="font-medium">{c.contract_number}</TableCell>
-                        <TableCell>{c.tenant_name}</TableCell>
-                        <TableCell>{fmt(safeNumber(c.rent_amount))} ر.س</TableCell>
-                        <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
-                        <TableCell>
-                          <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
-                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
-                          </Badge>
-                        </TableCell>
+              <>
+                {/* Mobile: Card-based grid */}
+                <div className="space-y-3 md:hidden">
+                  {contracts.map(c => (
+                    <div key={c.id} className="p-3 rounded-lg border bg-muted/20 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm">{c.contract_number}</span>
+                        <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
+                          {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
+                      <div className="flex justify-between text-xs">
+                        <span>سنوي: {fmt(safeNumber(c.rent_amount))} ر.س</span>
+                        <span>شهري: {fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="p-3 rounded-lg bg-primary/10 font-bold text-sm flex justify-between">
+                    <span>الإجمالي</span>
+                    <span>{fmt(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0))} ر.س</span>
+                  </div>
+                </div>
+                {/* Desktop: Table */}
+                <div className="overflow-x-auto hidden md:block">
+                  <Table className="min-w-[600px]">
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-right">رقم العقد</TableHead>
+                        <TableHead className="text-right">المستأجر</TableHead>
+                        <TableHead className="text-right">الإيجار السنوي</TableHead>
+                        <TableHead className="text-right">الإيجار الشهري</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-muted/30 font-bold">
-                      <TableCell colSpan={2}>الإجمالي</TableCell>
-                      <TableCell>{fmt(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0))} ر.س</TableCell>
-                      <TableCell>{fmt(Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0) / 12), 0)} ر.س</TableCell>
-                      <TableCell />
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {contracts.map(c => (
+                        <TableRow key={c.id}>
+                          <TableCell className="font-medium">{c.contract_number}</TableCell>
+                          <TableCell>{c.tenant_name}</TableCell>
+                          <TableCell>{fmt(safeNumber(c.rent_amount))} ر.س</TableCell>
+                          <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
+                          <TableCell>
+                            <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
+                              {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/30 font-bold">
+                        <TableCell colSpan={2}>الإجمالي</TableCell>
+                        <TableCell>{fmt(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0))} ر.س</TableCell>
+                        <TableCell>{fmt(Math.round(contracts.filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0) / 12), 0)} ر.س</TableCell>
+                        <TableCell />
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
