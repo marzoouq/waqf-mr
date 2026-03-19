@@ -405,7 +405,7 @@ const DisclosurePage = () => {
                         <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
                         <TableCell>
                           <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
-                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
+                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
                           </Badge>
                         </TableCell>
                       </TableRow>
