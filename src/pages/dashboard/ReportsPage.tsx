@@ -334,7 +334,7 @@ const ReportsPage = () => {
             { value: 'overdue', label: 'المتأخرون', icon: <FileText className="w-4 h-4" /> },
             { value: 'zakat', label: 'تقدير الزكاة', icon: <Calculator className="w-4 h-4" /> },
           ] satisfies TabItem[]}
-
+        >
           <TabsContent value="financial" className="space-y-6">
             {/* Annual Disclosure */}
             <Card className="shadow-sm print:break-before-page">

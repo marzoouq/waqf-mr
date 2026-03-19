@@ -203,7 +203,7 @@ const BeneficiarySettingsPage = () => {
             { value: 'notifications', label: 'الإشعارات', icon: <Bell className="w-4 h-4" /> },
             { value: 'theme', label: 'المظهر', icon: <Palette className="w-4 h-4" /> },
           ] satisfies TabItem[]}
-
+        >
           {/* Account Info Tab - removed share percentage */}
           <TabsContent value="account">
             <Card className="shadow-sm">
