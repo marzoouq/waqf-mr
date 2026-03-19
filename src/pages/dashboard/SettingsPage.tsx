@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield, Upload, Trash2, ImageIcon, Globe, Download, Calendar, Megaphone, LayoutList, FlaskConical, Volume2, Play, Fingerprint, Banknote, FileText, Settings, MessageSquare } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
 
