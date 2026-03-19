@@ -194,7 +194,7 @@ const FinancialReportsPage = () => {
                 <BarChart data={incomeVsExpenses}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 11 }} width={50} />
+                   <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
                   <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {incomeVsExpenses.map((entry, index) => (
@@ -290,7 +290,7 @@ const FinancialReportsPage = () => {
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} width={50} />
+                  <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
                   <Tooltip formatter={(value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
                   <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
                 </BarChart>

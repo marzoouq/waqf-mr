@@ -368,7 +368,7 @@ const DisclosurePage = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-sm">{c.contract_number}</span>
                       <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
-                        {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
+                        {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{c.tenant_name}</p>
@@ -405,7 +405,7 @@ const DisclosurePage = () => {
                         <TableCell>{fmt(Math.round(safeNumber(c.rent_amount) / 12), 0)} ر.س</TableCell>
                         <TableCell>
                           <Badge variant={c.status === 'active' ? 'default' : 'secondary'}>
-                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status}
+                            {c.status === 'active' ? 'نشط' : c.status === 'expired' ? 'منتهي' : c.status === 'cancelled' ? 'ملغي' : c.status}
                           </Badge>
                         </TableCell>
                       </TableRow>
