@@ -30,7 +30,7 @@ const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     income,
