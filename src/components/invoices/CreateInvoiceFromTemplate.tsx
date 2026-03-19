@@ -319,7 +319,7 @@ export default function CreateInvoiceFromTemplate({
                           />
                         </td>
                         <td className="p-1.5 text-center text-xs font-semibold">
-                          {item.total.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س
+                          {fmt(item.total)} ر.س
                         </td>
                         <td className="p-1.5">
                           {items.length > 1 && (
