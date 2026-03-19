@@ -318,7 +318,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">الرقم الضريبي (VAT)</Label>
-                <Input className="h-9" value={formData.tenant_tax_number} onChange={(e) => setFormData({ ...formData, tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
+                <Input id="tenant-tax-number" name="tenant_tax_number" className="h-9" value={formData.tenant_tax_number} onChange={(e) => setFormData({ ...formData, tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">رقم السجل التجاري</Label>

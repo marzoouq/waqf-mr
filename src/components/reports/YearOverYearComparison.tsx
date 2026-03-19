@@ -351,7 +351,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
           </CardHeader>
           <CardContent>
             {expensesByType2.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={280} minWidth={0}>
                 <PieChart>
                   <Pie
                     data={expensesByType2}
