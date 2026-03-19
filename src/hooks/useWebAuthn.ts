@@ -38,8 +38,8 @@ export function useWebAuthn() {
     // التحقق من DB لضمان التزامن عبر الأجهزة/المتصفحات
     let cancelled = false;
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session || cancelled) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
       const { count } = await supabase
         .from('webauthn_credentials')
         .select('id', { count: 'exact', head: true })
