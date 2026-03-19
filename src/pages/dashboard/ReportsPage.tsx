@@ -607,7 +607,46 @@ const ReportsPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
+                {/* Mobile cards */}
+                <div className="space-y-3 md:hidden">
+                  {propertyPerformance.map((p, index) => {
+                    const occupancyColor = p.occupancy >= 80 ? 'text-success' : p.occupancy >= 50 ? 'text-warning' : 'text-destructive';
+                    return (
+                      <Card key={p.id} className="shadow-sm">
+                        <CardContent className="p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm">{p.name}</span>
+                            <span className={`text-xs font-semibold ${occupancyColor}`}>{p.occupancy}%</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">النوع</p>
+                              <p className="text-sm">{p.type}</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">الوحدات</p>
+                              <p className="text-sm">{p.totalUnits > 0 ? p.totalUnits : (p.occupancy === 100 ? 'كامل' : '-')}</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">الإيجار السنوي</p>
+                              <p className="text-sm font-medium">{fmt(p.annualRent, 0)} ر.س</p>
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">المصروفات</p>
+                              <p className="text-sm text-destructive">{fmt(p.totalExpenses, 0)} ر.س</p>
+                            </div>
+                            <div className="col-span-2">
+                              <p className="text-[11px] text-muted-foreground">صافي الدخل</p>
+                              <p className={`text-sm font-bold ${p.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(p.netIncome, 0)} ر.س</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                {/* Desktop table */}
+                <div className="hidden md:block overflow-x-auto">
                   <Table className="min-w-[900px]">
                     <TableHeader>
                       <TableRow className="bg-muted/50">
