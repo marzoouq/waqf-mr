@@ -232,6 +232,7 @@ const InvoicesViewPage = () => {
         />
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 
