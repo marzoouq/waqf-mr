@@ -133,6 +133,7 @@ const AuditLogPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState('operations');
   const [exporting, setExporting] = useState(false);
   
   const waqfInfo = usePdfWaqfInfo();
@@ -214,8 +215,22 @@ const AuditLogPage = () => {
            }
          />
 
-        <Tabs defaultValue="operations" dir="rtl">
-          <TabsList className="mb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+          {/* Mobile: Select */}
+          <div className="mb-4 md:hidden">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="operations">سجل العمليات</SelectItem>
+                <SelectItem value="access">محاولات الوصول</SelectItem>
+                <SelectItem value="archive">الأرشيف</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Desktop: TabsList */}
+          <TabsList className="mb-4 hidden md:inline-flex">
             <TabsTrigger value="operations" className="gap-2">
               <Activity className="w-4 h-4" />
               سجل العمليات
@@ -249,38 +264,40 @@ const AuditLogPage = () => {
               </div>
 
               {/* Filters */}
-              <div className="flex flex-wrap gap-3">
-                <div className="relative flex-1 min-w-[200px]">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                <div className="relative flex-1 min-w-0">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input placeholder="بحث..." value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-9" />
                 </div>
-                <Select value={tableFilter} onValueChange={v => { setTableFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="الجدول" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع الجداول</SelectItem>
-                    <SelectItem value="income">الدخل</SelectItem>
-                    <SelectItem value="expenses">المصروفات</SelectItem>
-                    <SelectItem value="accounts">الحسابات</SelectItem>
-                    <SelectItem value="distributions">التوزيعات</SelectItem>
-                    <SelectItem value="invoices">الفواتير</SelectItem>
-                    <SelectItem value="properties">العقارات</SelectItem>
-                    <SelectItem value="contracts">العقود</SelectItem>
-                    <SelectItem value="beneficiaries">المستفيدين</SelectItem>
-                    <SelectItem value="units">الوحدات</SelectItem>
-                    <SelectItem value="fiscal_years">السنوات المالية</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={opFilter} onValueChange={v => { setOpFilter(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[140px]"><SelectValue placeholder="العملية" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">جميع العمليات</SelectItem>
-                    <SelectItem value="INSERT">إضافة</SelectItem>
-                    <SelectItem value="UPDATE">تعديل</SelectItem>
-                    <SelectItem value="DELETE">حذف</SelectItem>
-                    <SelectItem value="REOPEN">إعادة فتح</SelectItem>
-                    <SelectItem value="CLOSE">إقفال</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-3">
+                  <Select value={tableFilter} onValueChange={v => { setTableFilter(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="flex-1 sm:w-[160px]"><SelectValue placeholder="الجدول" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع الجداول</SelectItem>
+                      <SelectItem value="income">الدخل</SelectItem>
+                      <SelectItem value="expenses">المصروفات</SelectItem>
+                      <SelectItem value="accounts">الحسابات</SelectItem>
+                      <SelectItem value="distributions">التوزيعات</SelectItem>
+                      <SelectItem value="invoices">الفواتير</SelectItem>
+                      <SelectItem value="properties">العقارات</SelectItem>
+                      <SelectItem value="contracts">العقود</SelectItem>
+                      <SelectItem value="beneficiaries">المستفيدين</SelectItem>
+                      <SelectItem value="units">الوحدات</SelectItem>
+                      <SelectItem value="fiscal_years">السنوات المالية</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={opFilter} onValueChange={v => { setOpFilter(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="flex-1 sm:w-[140px]"><SelectValue placeholder="العملية" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع العمليات</SelectItem>
+                      <SelectItem value="INSERT">إضافة</SelectItem>
+                      <SelectItem value="UPDATE">تعديل</SelectItem>
+                      <SelectItem value="DELETE">حذف</SelectItem>
+                      <SelectItem value="REOPEN">إعادة فتح</SelectItem>
+                      <SelectItem value="CLOSE">إقفال</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Table */}
@@ -295,7 +312,6 @@ const AuditLogPage = () => {
                       {/* Mobile Cards */}
                       <div className="block md:hidden space-y-3 p-3">
                         {paginated.map(log => {
-                          const isExpanded = expandedRows.has(log.id);
                           const summary = log.operation === 'INSERT'
                             ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
                             : log.operation === 'DELETE'
@@ -304,32 +320,36 @@ const AuditLogPage = () => {
                                 ? `إعادة فتح ${getTableNameAr(log.table_name)}`
                                 : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
                           return (
-                            <Card key={log.id} className="shadow-sm">
-                              <CardContent className="p-3 space-y-2" onClick={() => toggleRow(log.id)}>
-                                <div className="flex items-center justify-between">
-                                  <Badge className={operationColor(log.operation)} variant="outline">
-                                    {getOperationNameAr(log.operation)}
-                                  </Badge>
-                                  <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="font-medium">{getTableNameAr(log.table_name)}</span>
-                                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                  </Button>
-                                </div>
-                                <p className="text-xs text-muted-foreground">{summary}</p>
-                                {isExpanded && (
-                                  <div className="pt-2 border-t">
+                            <Collapsible key={log.id} open={expandedRows.has(log.id)} onOpenChange={() => toggleRow(log.id)}>
+                              <Card className="shadow-sm">
+                                <CollapsibleTrigger asChild>
+                                  <CardContent className="p-3 space-y-2 cursor-pointer">
+                                    <div className="flex items-center justify-between">
+                                      <Badge className={operationColor(log.operation)} variant="outline">
+                                        {getOperationNameAr(log.operation)}
+                                      </Badge>
+                                      <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="font-medium">{getTableNameAr(log.table_name)}</span>
+                                      <span className="h-6 w-6 flex items-center justify-center">
+                                        {expandedRows.has(log.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{summary}</p>
+                                  </CardContent>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent>
+                                  <div className="px-3 pb-3 pt-2 border-t">
                                     <DataDiff
                                       oldData={log.old_data as Record<string, unknown> | null}
                                       newData={log.new_data as Record<string, unknown> | null}
                                       operation={log.operation}
                                     />
                                   </div>
-                                )}
-                              </CardContent>
-                            </Card>
+                                </CollapsibleContent>
+                              </Card>
+                            </Collapsible>
                           );
                         })}
                       </div>
