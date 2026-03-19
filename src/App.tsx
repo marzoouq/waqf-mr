@@ -10,6 +10,13 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense, useState, useEffect, type ComponentType } from "react";
 import { Loader2 } from "lucide-react";
+import { usePagePerformance } from "@/hooks/usePagePerformance";
+
+/** مكوّن يتتبع أداء تحميل الصفحات */
+function PagePerformanceTracker() {
+  usePagePerformance();
+  return null;
+}
 
 // ─── تعافي تلقائي عند فشل تحميل chunk قديم ───
 function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
@@ -139,6 +146,7 @@ function App() {
                 </Suspense>
               </ErrorBoundary>
               <BrowserRouter>
+                <PagePerformanceTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Routes */}

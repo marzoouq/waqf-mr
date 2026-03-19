@@ -38,6 +38,7 @@ const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverY
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
+const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
 
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -401,6 +402,15 @@ const AdminDashboard = () => {
               </p>
             </CardContent>
           </Card>
+        )}
+
+        {/* مراقبة أداء الصفحات — للناظر فقط */}
+        {role === 'admin' && (
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+              <PagePerformanceCard />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         {/* آخر العقود */}
