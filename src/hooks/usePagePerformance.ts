@@ -4,6 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { recordPageLoad } from '@/lib/pagePerformanceTracker';
+import { notifyPerfUpdate } from '@/components/dashboard/PagePerformanceCard';
 import { logger } from '@/lib/logger';
 
 export function usePagePerformance(): void {
