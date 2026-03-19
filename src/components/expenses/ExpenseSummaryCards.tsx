@@ -47,8 +47,8 @@ const ExpenseSummaryCards = ({ expenses, totalExpenses, documentedCount, documen
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Card className="shadow-sm">
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-destructive/10"><TrendingDown className="w-5 h-5 text-destructive" /></div>
-          <div><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-xl font-bold text-destructive">{fmt(totalExpenses)} <span className="text-xs font-normal">ريال</span></p></div>
+          <div className="p-2 rounded-lg bg-destructive/10 shrink-0"><TrendingDown className="w-5 h-5 text-destructive" /></div>
+          <div className="min-w-0"><p className="text-xs text-muted-foreground">إجمالي المصروفات</p><p className="text-base sm:text-xl font-bold text-destructive tabular-nums truncate">{fmt(totalExpenses)} <span className="text-xs font-normal">ريال</span></p></div>
         </CardContent>
       </Card>
       <Card className="shadow-sm">
