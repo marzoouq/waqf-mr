@@ -52,8 +52,8 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
             <p className={`text-2xl font-bold ${remainingDays <= 7 ? 'text-destructive' : remainingDays <= 30 ? 'text-warning' : 'text-foreground'}`}>
               {remainingDays}
             </p>
-            <p className="text-[10px] text-muted-foreground">من أصل {totalDays} يوم</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">من أصل {totalDays} يوم</p>
+            <p className="text-[11px] text-muted-foreground">
               تنتهي في: {new Date(fiscalYear.end_date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>

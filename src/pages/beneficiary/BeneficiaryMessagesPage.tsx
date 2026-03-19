@@ -205,7 +205,7 @@ const BeneficiaryMessagesPage = () => {
                             isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'
                           )}>
                             <p>{msg.content}</p>
-                            <p className={cn('text-[10px] mt-1 opacity-60', isMe ? 'text-primary-foreground' : 'text-muted-foreground')}>
+                            <p className={cn('text-[11px] mt-1 opacity-60', isMe ? 'text-primary-foreground' : 'text-muted-foreground')}>
                               {new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>

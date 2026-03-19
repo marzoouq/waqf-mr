@@ -42,31 +42,31 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
       <Card className="border-info/30 bg-info/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-info/15 text-info"><FileText className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[10px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
+          <div><p className="text-[11px] sm:text-xs text-muted-foreground">إجمالي العقود</p><p className="text-lg sm:text-xl font-bold">{stats.total}</p></div>
         </CardContent>
       </Card>
       <Card className="border-success/30 bg-success/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-success/15 text-success"><CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[10px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
+          <div><p className="text-[11px] sm:text-xs text-muted-foreground">العقود النشطة</p><p className="text-lg sm:text-xl font-bold">{stats.active} <span className="text-[11px] sm:text-xs font-normal text-muted-foreground">({stats.activePercent}%)</span></p></div>
         </CardContent>
       </Card>
       <Card className="border-destructive/30 bg-destructive/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-destructive/15 text-destructive"><XCircle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[10px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
+          <div><p className="text-[11px] sm:text-xs text-muted-foreground">العقود المنتهية</p><p className="text-lg sm:text-xl font-bold">{stats.expired}</p></div>
         </CardContent>
       </Card>
       <Card className="border-accent/30 bg-accent/5">
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg bg-accent/15 text-accent-foreground"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[10px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold truncate">{fmt(stats.totalRent)} <span className="text-[10px] sm:text-xs font-normal">ر.س</span></p><p className="text-[10px] text-muted-foreground">نشط: {fmt(stats.activeRent)}</p></div>
+          <div><p className="text-[11px] sm:text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-base sm:text-lg font-bold truncate">{fmt(stats.totalRent)} <span className="text-[11px] sm:text-xs font-normal">ر.س</span></p><p className="text-[11px] text-muted-foreground">نشط: {fmt(stats.activeRent)}</p></div>
         </CardContent>
       </Card>
       <Card className={`${stats.expiringSoon > 0 ? 'border-warning/40 bg-warning/10' : 'border-warning/20 bg-warning/5'}`}>
         <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
           <div className={`p-1.5 sm:p-2 rounded-lg ${stats.expiringSoon > 0 ? 'bg-warning/20 text-warning' : 'bg-warning/10 text-warning/60'}`}><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-          <div><p className="text-[10px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
+          <div><p className="text-[11px] sm:text-xs text-muted-foreground">تنتهي خلال 3 أشهر</p><p className="text-lg sm:text-xl font-bold">{stats.expiringSoon}</p></div>
         </CardContent>
       </Card>
     </div>

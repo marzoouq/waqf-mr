@@ -64,7 +64,7 @@ const BiometricSettings = () => {
           <Fingerprint className="w-5 h-5" />
           تسجيل الدخول بالبصمة
           {isEnabled && (
-            <Badge className="bg-success/20 text-success text-[10px]">
+            <Badge className="bg-success/20 text-success text-[11px]">
               <ShieldCheck className="w-3 h-3 ml-1" />
               مفعّل
             </Badge>
@@ -102,7 +102,7 @@ const BiometricSettings = () => {
                   <Smartphone className="w-4 h-4 text-primary" />
                   <div>
                     <p className="text-sm font-medium">{cred.device_name || 'جهاز غير مسمى'}</p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {new Date(cred.created_at).toLocaleDateString('ar-SA')}
                     </p>
                   </div>

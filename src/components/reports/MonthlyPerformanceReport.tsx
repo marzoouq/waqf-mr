@@ -93,19 +93,19 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط الدخل الشهري</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">متوسط الدخل الشهري</p>
             <p className="text-base sm:text-xl font-bold text-success">{fmt(Math.round(avgMonthlyIncome))} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
             <p className="text-base sm:text-xl font-bold text-destructive">{fmt(Math.round(avgMonthlyExpenses))} ر.س</p>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">أفضل شهر (صافي)</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">أفضل شهر (صافي)</p>
             <div className="flex items-center gap-1">
               <TrendingUp className="w-4 h-4 text-success" />
               <p className="text-base sm:text-xl font-bold">{bestMonth?.label}</p>
@@ -115,7 +115,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         </Card>
         <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
-            <p className="text-[10px] sm:text-xs text-muted-foreground">أضعف شهر (صافي)</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground">أضعف شهر (صافي)</p>
             <div className="flex items-center gap-1">
               <TrendingDown className="w-4 h-4 text-destructive" />
               <p className="text-base sm:text-xl font-bold">{worstMonth?.label}</p>

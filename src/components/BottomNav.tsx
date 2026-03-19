@@ -79,7 +79,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium leading-none">{link.label}</span>
+              <span className="text-[11px] font-medium leading-none">{link.label}</span>
             </Link>
           );
         })}
@@ -88,7 +88,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenSidebar }) => {
           className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-muted-foreground transition-colors active:text-primary"
         >
           <Menu className="w-5 h-5" />
-          <span className="text-[10px] font-medium leading-none">المزيد</span>
+          <span className="text-[11px] font-medium leading-none">المزيد</span>
         </button>
       </div>
     </nav>

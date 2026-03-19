@@ -196,20 +196,20 @@ const CarryforwardHistoryPage = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                         <div>
-                          <p className="text-[10px] text-muted-foreground">من سنة</p>
+                          <p className="text-[11px] text-muted-foreground">من سنة</p>
                           <p className="text-xs font-medium">{fyLabel(cf.from_fiscal_year_id)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground">إلى سنة</p>
+                          <p className="text-[11px] text-muted-foreground">إلى سنة</p>
                           <p className="text-xs font-medium">{fyLabel(cf.to_fiscal_year_id)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground">التاريخ</p>
+                          <p className="text-[11px] text-muted-foreground">التاريخ</p>
                           <p className="text-xs font-medium">{new Date(cf.created_at).toLocaleDateString('ar-SA')}</p>
                         </div>
                         {cf.notes && (
                           <div>
-                            <p className="text-[10px] text-muted-foreground">ملاحظات</p>
+                            <p className="text-[11px] text-muted-foreground">ملاحظات</p>
                             <p className="text-xs font-medium">{cf.notes}</p>
                           </div>
                         )}
@@ -276,15 +276,15 @@ const CarryforwardHistoryPage = () => {
                     <p className="font-medium text-sm">{fmt(safeNumber(adv.amount))} ر.س</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                       <div>
-                        <p className="text-[10px] text-muted-foreground">السبب</p>
+                        <p className="text-[11px] text-muted-foreground">السبب</p>
                         <p className="text-xs font-medium">{adv.reason || '—'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground">تاريخ الصرف</p>
+                        <p className="text-[11px] text-muted-foreground">تاريخ الصرف</p>
                         <p className="text-xs font-medium">{adv.paid_at ? new Date(adv.paid_at).toLocaleDateString('ar-SA') : '—'}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground">تاريخ الطلب</p>
+                        <p className="text-[11px] text-muted-foreground">تاريخ الطلب</p>
                         <p className="text-xs font-medium">{new Date(adv.created_at).toLocaleDateString('ar-SA')}</p>
                       </div>
                     </div>

@@ -122,7 +122,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
                     <div
                       className={`rounded-lg p-2 sm:p-3 text-center cursor-default transition-colors ${INTENSITY_CLASSES[intensity]} ${isCurrentMonth ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}`}
                     >
-                      <p className="text-[10px] sm:text-xs font-medium truncate">{label}</p>
+                      <p className="text-[11px] sm:text-xs font-medium truncate">{label}</p>
                       <p className="text-xs sm:text-sm font-bold mt-1 tabular-nums">
                         {formatCompactAmount(amount)}
                       </p>

@@ -85,11 +85,11 @@ const BeneficiarySupportPage = () => {
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <p className="text-[10px] text-muted-foreground">التاريخ</p>
+                              <p className="text-[11px] text-muted-foreground">التاريخ</p>
                               <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString('ar-SA')}</p>
                             </div>
                             <div>
-                              <p className="text-[10px] text-muted-foreground">التقييم</p>
+                              <p className="text-[11px] text-muted-foreground">التقييم</p>
                               {ticket.rating ? (
                                 <div className="flex items-center gap-0.5">
                                   {[1, 2, 3, 4, 5].map(i => (
@@ -242,7 +242,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
             ) : replies.map(r => (
               <div key={r.id} className="bg-muted/50 rounded p-2 text-sm">
                 <p>{r.content}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString('ar-SA')}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">{new Date(r.created_at).toLocaleDateString('ar-SA')}</p>
               </div>
             ))}
           </div>

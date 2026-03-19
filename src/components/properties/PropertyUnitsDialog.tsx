@@ -492,7 +492,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                 <span className="whitespace-nowrap">
                                   {tenant.name}
                                   {tenant.status !== 'active' && (
-                                    <Badge variant="outline" className="mr-2 text-[10px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
+                                    <Badge variant="outline" className="mr-2 text-[11px] px-1.5 py-0 text-destructive border-destructive/30">منتهي</Badge>
                                   )}
                                 </span>
                               )}
@@ -594,7 +594,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                         return (
                           <TableRow className="bg-primary/10 font-bold border-t-2">
                             <TableCell colSpan={3} className="text-right">
-                              الإجمالي <Badge variant="outline" className="mr-2 text-[10px]">شامل النشط والمنتهي</Badge>
+                              الإجمالي <Badge variant="outline" className="mr-2 text-[11px]">شامل النشط والمنتهي</Badge>
                             </TableCell>
                             <TableCell colSpan={3}></TableCell>
                             <TableCell>{fmtInt(totalMonthly)} ريال</TableCell>

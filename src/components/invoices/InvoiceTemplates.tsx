@@ -160,7 +160,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
           {data.sellerLogo ? (
             <img src={data.sellerLogo} alt="شعار" className="h-12 w-auto mb-2 object-contain" />
           ) : (
-            <div className="h-12 w-28 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-[10px] text-muted-foreground mb-2">شعار المنشأة</div>
+            <div className="h-12 w-28 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-[11px] text-muted-foreground mb-2">شعار المنشأة</div>
           )}
           <h2 className="text-lg font-bold text-foreground">{data.sellerName}</h2>
           {data.sellerAddress && <p className="text-xs text-muted-foreground">{data.sellerAddress}</p>}
@@ -170,7 +170,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
         <div className="text-start space-y-2 shrink-0">
           <div className="rounded-lg px-5 py-3 text-center border bg-primary text-primary-foreground border-primary">
             <p className="text-sm font-bold">{isStandard ? 'فاتورة ضريبية' : 'فاتورة ضريبية مبسطة'}</p>
-            <p className="text-[10px] opacity-80">{isStandard ? 'Tax Invoice' : 'Simplified Tax Invoice'}</p>
+            <p className="text-[11px] opacity-80">{isStandard ? 'Tax Invoice' : 'Simplified Tax Invoice'}</p>
           </div>
           <Badge variant={statusColor(data.status)} className="w-full justify-center">{statusLabel(data.status)}</Badge>
         </div>
@@ -291,7 +291,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
             {qrData ? (
               <>
                 <QRCodeSVG value={qrData} size={120} level="H" className="border p-1 rounded bg-white" />
-                <p className="text-[10px] text-muted-foreground">رمز QR — ZATCA Phase 2</p>
+                <p className="text-[11px] text-muted-foreground">رمز QR — ZATCA Phase 2</p>
               </>
             ) : (
               <div className="w-[120px] h-[120px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">
@@ -356,8 +356,8 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
         )}
 
         <div className="text-center pt-4 border-t space-y-1">
-          <p className="text-[10px] text-muted-foreground">هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم</p>
-          <p className="text-[10px] text-muted-foreground font-mono" dir="ltr">This is an electronically generated invoice per ZATCA e-invoicing requirements</p>
+          <p className="text-[11px] text-muted-foreground">هذه الفاتورة صادرة إلكترونياً وفقاً لمتطلبات هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم</p>
+          <p className="text-[11px] text-muted-foreground font-mono" dir="ltr">This is an electronically generated invoice per ZATCA e-invoicing requirements</p>
         </div>
       </div>
     </div>

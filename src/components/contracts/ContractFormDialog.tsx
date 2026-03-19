@@ -235,7 +235,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                               <span className="text-sm font-medium">{u.unit_type} {u.unit_number}</span>
                               {u.floor && <span className="text-xs text-muted-foreground mr-2">({u.floor})</span>}
                             </div>
-                            {isOccupied && <span className="text-[10px] text-destructive">مؤجرة</span>}
+                            {isOccupied && <span className="text-[11px] text-destructive">مؤجرة</span>}
                           </label>
                         </TooltipTrigger>
                         {isOccupied && (

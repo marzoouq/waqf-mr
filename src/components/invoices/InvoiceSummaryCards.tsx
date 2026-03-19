@@ -96,7 +96,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
                 <div className="space-y-1 min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">{card.label}</p>
                   <p className={cn('text-lg sm:text-2xl font-bold', card.color)}>{card.value}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{card.sub}</p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">{card.sub}</p>
                 </div>
                 <div className={cn('rounded-lg p-2 shrink-0', card.bg)}>
                   <Icon className={cn('w-4 h-4 sm:w-5 sm:h-5', card.color)} />

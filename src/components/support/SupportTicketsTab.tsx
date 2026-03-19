@@ -136,12 +136,12 @@ export default function SupportTicketsTab({
                         <p className="text-sm font-medium line-clamp-2">{ticket.title}</p>
                         <p className="text-xs text-muted-foreground font-mono mt-0.5">{ticket.ticket_number}</p>
                       </div>
-                      <Badge className={s.color + ' shrink-0 text-[10px]'}>
+                      <Badge className={s.color + ' shrink-0 text-[11px]'}>
                         <Icon className="w-3 h-3 ml-0.5" />{s.label}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap text-xs">
-                      <Badge className={p.color + ' text-[10px]'}>{p.label}</Badge>
+                      <Badge className={p.color + ' text-[11px]'}>{p.label}</Badge>
                       <span className="text-muted-foreground">{CATEGORY_MAP[ticket.category] || ticket.category}</span>
                       <span className="text-muted-foreground">•</span>
                       <SlaIndicator ticket={ticket} />
