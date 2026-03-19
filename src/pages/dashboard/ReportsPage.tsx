@@ -1,5 +1,5 @@
 import { fmt } from '@/utils/format';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
@@ -18,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
 import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
 import ExportMenu from '@/components/ExportMenu';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
