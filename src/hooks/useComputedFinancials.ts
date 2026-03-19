@@ -150,7 +150,7 @@ export const useComputedFinancials = ({
     const filtered = expenses.filter(e => {
       const desc = (e.description || '').trim().toLowerCase();
       const type = (e.expense_type || '').trim().toLowerCase();
-      return !vatKeywords.some(kw => desc.includes(kw) || type.includes(kw));
+      return !VAT_KEYWORDS.some((kw: string) => desc.includes(kw) || type.includes(kw));
     });
     return groupExpensesByType(filtered);
   }, [expenses]);
