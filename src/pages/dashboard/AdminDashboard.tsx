@@ -1,4 +1,4 @@
-import { fmt, fmtInt } from '@/utils/format';
+import { fmtInt } from '@/utils/format';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';

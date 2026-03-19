@@ -71,27 +71,29 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {expenseTypes.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={expenseTypes}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                  style={{ fontSize: '12px' }}
-                >
-                  {expenseTypes.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div style={{ minWidth: 0, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={expenseTypes}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
+                    outerRadius={90}
+                    fill="#8884d8"
+                    dataKey="value"
+                    style={{ fontSize: '12px' }}
+                  >
+                    {expenseTypes.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number | undefined) => `${fmt(value ?? 0)} ر.س`} contentStyle={tooltipStyle} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
           )}
