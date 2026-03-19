@@ -74,9 +74,6 @@ const PropertiesViewPage = () => {
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
 
-  if (noPublishedYears) {
-    return <DashboardLayout><div className="p-4 md:p-6"><NoPublishedYearsNotice /></div></DashboardLayout>;
-  }
 
   if (isLoading) {
     return <DashboardLayout><div className="p-4 md:p-6 space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div></DashboardLayout>;
