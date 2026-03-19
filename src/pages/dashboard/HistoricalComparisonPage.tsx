@@ -14,16 +14,10 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { fmt, fmtSAR } from '@/utils/format';
 import { GitCompareArrows, TrendingUp, TrendingDown, Minus, FileDown, Loader2 } from 'lucide-react';
-import { lazy, Suspense } from 'react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
-/** ألوان الأعمدة في الرسم البياني */
-const YEAR_COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-];
+const LazyHistoricalChart = lazy(() => import('@/components/reports/HistoricalComparisonChartInner'));
 
 /** مؤشر نسبة التغيير */
 function ChangeIndicator({ current, previous }: { current: number; previous: number }) {
