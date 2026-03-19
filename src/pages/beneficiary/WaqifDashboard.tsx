@@ -3,11 +3,10 @@ import { fmt } from '@/utils/format';
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -23,22 +22,14 @@ import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import ExportMenu from '@/components/ExportMenu';
 import { Progress } from '@/components/ui/progress';
 import {
-  Building2, FileText, Users, TrendingUp, TrendingDown, Wallet, BarChart3, BookOpen,
+  Building2, FileText, Users, TrendingUp, Wallet, BarChart3, BookOpen,
   Sun, Moon, Calendar, Clock, Gauge, CheckCircle, AlertTriangle,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--info))', 'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--warning))', 'hsl(var(--accent-foreground))', 'hsl(var(--muted-foreground))'];
+const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
 
 
-const ARABIC_MONTHS: Record<string, string> = {
-  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-};
-const formatArabicMonth = (month: unknown) => {
-  const parts = String(month ?? '').split('-');
-  return ARABIC_MONTHS[parts[1]] || String(month);
-};
 
 const WaqifDashboard = () => {
   const { user } = useAuth();
@@ -300,54 +291,21 @@ const WaqifDashboard = () => {
         </div>
 
         {/* ═══ Charts ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Monthly Income vs Expenses */}
-          {monthlyData.length > 0 && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الدخل والمصروفات الشهرية</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => fmt(v)} />
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} labelFormatter={formatArabicMonth} />
-                      <Bar dataKey="income" name="الدخل" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="expenses" name="المصروفات" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Expense Distribution */}
-          {expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0 && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><TrendingDown className="w-5 h-5" /> توزيع المصروفات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
-                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" startAngle={90} endAngle={-270} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                      >
-                        {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                <LazyWaqifCharts
+                  monthlyData={monthlyData}
+                  expenseData={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
+                />
+              </Suspense>
+            </CardContent>
+          </Card>
+        )}
 
         {/* ═══ Quick Links ═══ */}
         <div>

@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,31 +10,15 @@ import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, Legend } from 'recharts';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyShare } from '@/hooks/useMyShare';
-import { fmt } from '@/utils/format';
 
-const COLORS = [
-  'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
-  'hsl(var(--warning))', 'hsl(var(--chart-4))', 'hsl(var(--primary))',
-];
+import { Skeleton } from '@/components/ui/skeleton';
 
-const formatArabicMonth = (month: unknown) => {
-  const arabicMonths: Record<string, string> = {
-    '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-    '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-    '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-  };
-  const s = String(month ?? '');
-  const parts = s.split('-');
-  return arabicMonths[parts[1]] || s;
-};
-
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
 
 const FinancialReportsPage = () => {
   const queryClient = useQueryClient();
@@ -183,123 +167,16 @@ const FinancialReportsPage = () => {
           </Link>
         </p>
 
-        {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm sm:text-base">مقارنة الإيرادات والمصروفات</CardTitle>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={incomeVsExpenses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                   <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {incomeVsExpenses.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm sm:text-base">حصتي من الريع</CardTitle>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              {distributionData.some(d => d.value > 0) ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <RePieChart>
-                  <Pie data={distributionData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
-                    {distributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </RePieChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm sm:text-base">الإيرادات حسب المصدر</CardTitle>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              {incomePieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <RePieChart>
-                  <Pie data={incomePieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
-                    {incomePieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </RePieChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm sm:text-base">المصروفات حسب النوع</CardTitle>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              {expensesPieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <RePieChart>
-                  <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
-                    {expensesPieData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number | undefined) => fmt(value ?? 0) + ' ر.س'} contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                </RePieChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Monthly Trend */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm sm:text-base">الإيرادات الشهرية</CardTitle>
-          </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} width={40} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-                  <Tooltip formatter={(value: number | undefined) => fmt(Math.round(value ?? 0)) + ' ر.س'} contentStyle={tooltipStyle} labelFormatter={formatArabicMonth} />
-                  <Bar dataKey="income" fill="hsl(var(--success))" name="الإيرادات" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">لا توجد بيانات شهرية</div>
-              )}
-            </CardContent>
-        </Card>
+        {/* Charts */}
+        <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-lg" />}>
+          <LazyFinancialCharts
+            incomeVsExpenses={incomeVsExpenses}
+            distributionData={distributionData}
+            incomePieData={incomePieData}
+            expensesPieData={expensesPieData}
+            monthlyData={monthlyData}
+          />
+        </Suspense>
       </div>
     </DashboardLayout>
   );

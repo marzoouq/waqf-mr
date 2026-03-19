@@ -1,7 +1,7 @@
 /**
  * صفحة المقارنة التاريخية — مقارنة 2-4 سنوات مالية جنباً إلى جنب
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,18 +12,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useFiscalYears } from '@/hooks/useFiscalYears';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
-import { fmt, fmtSAR } from '@/utils/format';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { fmtSAR } from '@/utils/format';
 import { GitCompareArrows, TrendingUp, TrendingDown, Minus, FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
-/** ألوان الأعمدة في الرسم البياني */
-const YEAR_COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-];
+const LazyHistoricalChart = lazy(() => import('@/components/reports/HistoricalComparisonChartInner'));
 
 /** مؤشر نسبة التغيير */
 function ChangeIndicator({ current, previous }: { current: number; previous: number }) {
@@ -245,7 +239,7 @@ function HistoricalComparisonPage() {
                           <TableRow>
                             <TableHead className="text-right">المؤشر</TableHead>
                             {selectedYears.map((fy, i) => (
-                              <TableHead key={fy.id} className="text-center" style={{ color: YEAR_COLORS[i] }}>
+                            <TableHead key={fy.id} className="text-center" style={{ color: ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'][i] }}>
                                 {fy.label}
                               </TableHead>
                             ))}
@@ -286,26 +280,9 @@ function HistoricalComparisonPage() {
                     <CardTitle className="text-base">المقارنة البيانية</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={280}>
-                      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <YAxis type="category" dataKey="metric" width={70} stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                        <Tooltip
-                          formatter={(value) => fmtSAR(Number(value))}
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            direction: 'rtl',
-                          }}
-                        />
-                        <Legend />
-                        {selectedYears.map((fy, i) => (
-                          <Bar key={fy.id} dataKey={fy.label} fill={YEAR_COLORS[i]} radius={[0, 4, 4, 0]} />
-                        ))}
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                      <LazyHistoricalChart chartData={chartData} yearLabels={selectedYears.map(fy => fy.label)} />
+                    </Suspense>
                   </CardContent>
                 </Card>
               </>
