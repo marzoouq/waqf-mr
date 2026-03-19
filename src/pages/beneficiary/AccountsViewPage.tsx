@@ -55,16 +55,7 @@ const AccountsViewPage = () => {
 
   const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // حارس عدم وجود سنوات منشورة يُعالج عبر RequirePublishedYears في return
 
   if (finError) {
     return (
