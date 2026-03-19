@@ -23,7 +23,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { Progress } from '@/components/ui/progress';
 import {
   Building2, FileText, Users, TrendingUp, TrendingDown, Wallet, BarChart3, BookOpen,
-  Sun, Moon, Calendar, Clock, Gauge, CheckCircle, AlertTriangle,
+  } from 'lucide-react';
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
