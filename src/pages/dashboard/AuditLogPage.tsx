@@ -215,8 +215,22 @@ const AuditLogPage = () => {
            }
          />
 
-        <Tabs defaultValue="operations" dir="rtl">
-          <TabsList className="mb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
+          {/* Mobile: Select */}
+          <div className="mb-4 md:hidden">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="operations">سجل العمليات</SelectItem>
+                <SelectItem value="access">محاولات الوصول</SelectItem>
+                <SelectItem value="archive">الأرشيف</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Desktop: TabsList */}
+          <TabsList className="mb-4 hidden md:inline-flex">
             <TabsTrigger value="operations" className="gap-2">
               <Activity className="w-4 h-4" />
               سجل العمليات
