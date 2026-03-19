@@ -129,7 +129,7 @@ const Index = () => {
             <div className="mb-10">
               {waqfInfo?.waqf_logo_url ? (
                 <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" fetchPriority="high" />
+                  <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" />
                 </div>
               ) : (
                 <div className="mx-auto w-24 h-24 gradient-gold rounded-3xl flex items-center justify-center shadow-gold animate-glow mb-8">
