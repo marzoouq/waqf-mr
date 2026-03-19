@@ -609,7 +609,7 @@ const ReportsPage = () => {
               <CardContent>
                 {/* Mobile cards */}
                 <div className="space-y-3 md:hidden">
-                  {propertyPerformance.map((p, index) => {
+                  {propertyPerformance.map((p) => {
                     const occupancyColor = p.occupancy >= 80 ? 'text-success' : p.occupancy >= 50 ? 'text-warning' : 'text-destructive';
                     return (
                       <Card key={p.id} className="shadow-sm">
