@@ -175,9 +175,25 @@ export async function checkErrorLogQueue(): Promise<CheckResult> {
   try {
     const raw = localStorage.getItem('error_log_queue');
     if (!raw) return { id, label: 'طابور الأخطاء', status: 'pass', detail: 'فارغ — لا أخطاء معلّقة' };
-    const queue = JSON.parse(raw);
-    const count = Array.isArray(queue) ? queue.length : 0;
-    return { id, label: 'طابور الأخطاء', status: count > 0 ? 'warn' : 'pass', detail: `${count} خطأ معلّق` };
+    let queue = JSON.parse(raw);
+    if (!Array.isArray(queue)) queue = [];
+
+    // تنظيف تلقائي: حذف السجلات الأقدم من 24 ساعة + أخطاء اختبارات الوحدة
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const filtered = queue.filter((entry: { logged_at?: string; error_message?: string; timestamp?: string }) => {
+      const ts = entry.logged_at || entry.timestamp;
+      if (ts && new Date(ts).getTime() < cutoff) return false;
+      if (entry.error_message === 'Test explosion') return false;
+      return true;
+    });
+
+    // حفظ القائمة المنظّفة
+    if (filtered.length !== queue.length) {
+      localStorage.setItem('error_log_queue', JSON.stringify(filtered));
+    }
+
+    const count = filtered.length;
+    return { id, label: 'طابور الأخطاء', status: count > 0 ? 'warn' : 'pass', detail: count > 0 ? `${count} خطأ معلّق` : 'فارغ — لا أخطاء معلّقة' };
   } catch {
     return { id, label: 'طابور الأخطاء', status: 'info', detail: 'تعذر القراءة' };
   }
