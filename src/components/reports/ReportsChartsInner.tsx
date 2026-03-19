@@ -21,7 +21,7 @@ interface ReportsChartsInnerProps {
 
 const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceData, expenseTypeData }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:break-before-page">
-    <div>
+    <div style={{ minWidth: 0 }}>
       {incomeSourceData.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
@@ -38,7 +38,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
       )}
     </div>
-    <div>
+    <div style={{ minWidth: 0 }}>
       {expenseTypeData.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={expenseTypeData}>

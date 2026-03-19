@@ -131,7 +131,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
           <CardTitle className="text-sm sm:text-base">مقارنة الدخل والمصروفات الشهرية</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] sm:h-[400px]">
+          <div className="h-[300px] sm:h-[400px]" style={{ minWidth: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -160,7 +160,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
           <CardTitle className="text-sm sm:text-base">اتجاه صافي الدخل الشهري</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[250px] sm:h-[300px]">
+          <div className="h-[250px] sm:h-[300px]" style={{ minWidth: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
