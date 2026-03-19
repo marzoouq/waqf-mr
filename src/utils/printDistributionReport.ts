@@ -49,11 +49,11 @@ export function printDistributionReport(params: PrintDistributionParams) {
     <tr${d.deficit > 0 ? ' class="deficit-row"' : ''}>
       <td class="name-cell">${escapeHtml(d.beneficiary_name)}</td>
       <td>${d.share_percentage.toFixed(2)}%</td>
-      <td>${d.share_amount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-      <td>${d.advances_paid > 0 ? '-' + d.advances_paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-      <td>${d.carryforward_deducted > 0 ? '-' + d.carryforward_deducted.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
-      <td class="net-cell">${d.deficit > 0 ? '0.00' : d.net_amount.toLocaleString('ar-SA', { minimumFractionDigits: 2 })}</td>
-      <td>${d.deficit > 0 ? d.deficit.toLocaleString('ar-SA', { minimumFractionDigits: 2 }) : '—'}</td>
+      <td>${fmt(d.share_amount)}</td>
+      <td>${d.advances_paid > 0 ? '-' + fmt(d.advances_paid) : '—'}</td>
+      <td>${d.carryforward_deducted > 0 ? '-' + fmt(d.carryforward_deducted) : '—'}</td>
+      <td class="net-cell">${d.deficit > 0 ? '0.00' : fmt(d.net_amount)}</td>
+      <td>${d.deficit > 0 ? fmt(d.deficit) : '—'}</td>
     </tr>
   `).join('');
 
