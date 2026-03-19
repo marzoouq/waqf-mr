@@ -2,7 +2,7 @@
  * صفحة التقرير السنوي — المستفيد (قراءة + طباعة + تصدير فقط)
  * تظهر فقط التقارير المنشورة
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -33,6 +33,7 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat('ar-SA', { style: 'decimal', maximumFractionDigits: 0 }).format(v);
 
 const AnnualReportViewPage = () => {
+  const [viewTab, setViewTab] = useState('property_status');
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: items = [], isLoading } = useAnnualReportItems(fiscalYearId || undefined);
   const { data: reportStatus, isLoading: statusLoading } = useReportStatus(fiscalYearId || undefined);
@@ -140,19 +141,32 @@ const AnnualReportViewPage = () => {
 
         <IncomeComparisonChart />
 
-        <Tabs defaultValue="property_status" dir="rtl">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
-            <TabsTrigger value="property_status" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
-              <Building2 className="h-4 w-4 hidden sm:block" /> حالة العقارات
+        <Tabs defaultValue={viewTab} value={viewTab} onValueChange={setViewTab} dir="rtl">
+          {/* قائمة Select للجوال */}
+          <div className="md:hidden mb-4">
+            <select
+              value={viewTab}
+              onChange={(e) => setViewTab(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="property_status">حالة العقارات</option>
+              <option value="achievement">الإنجازات</option>
+              <option value="challenge">التحديات</option>
+              <option value="future_plan">الخطط المستقبلية</option>
+            </select>
+          </div>
+          <TabsList className="w-full justify-start hidden md:flex">
+            <TabsTrigger value="property_status" className="gap-1 text-sm">
+              <Building2 className="h-4 w-4" /> حالة العقارات
             </TabsTrigger>
-            <TabsTrigger value="achievement" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
-              <Trophy className="h-4 w-4 hidden sm:block" /> الإنجازات
+            <TabsTrigger value="achievement" className="gap-1 text-sm">
+              <Trophy className="h-4 w-4" /> الإنجازات
             </TabsTrigger>
-            <TabsTrigger value="challenge" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
-              <AlertTriangle className="h-4 w-4 hidden sm:block" /> التحديات
+            <TabsTrigger value="challenge" className="gap-1 text-sm">
+              <AlertTriangle className="h-4 w-4" /> التحديات
             </TabsTrigger>
-            <TabsTrigger value="future_plan" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
-              <Lightbulb className="h-4 w-4 hidden sm:block" /> الخطط المستقبلية
+            <TabsTrigger value="future_plan" className="gap-1 text-sm">
+              <Lightbulb className="h-4 w-4" /> الخطط المستقبلية
             </TabsTrigger>
           </TabsList>
 
