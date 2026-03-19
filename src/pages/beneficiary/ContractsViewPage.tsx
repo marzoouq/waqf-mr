@@ -27,7 +27,7 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 };
 
 const ContractsViewPage = () => {
-  const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   
   const pdfWaqfInfo = usePdfWaqfInfo();
