@@ -30,15 +30,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner'));
 
 
-const ARABIC_MONTHS: Record<string, string> = {
-  '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-  '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-  '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-};
-const formatArabicMonth = (month: unknown) => {
-  const parts = String(month ?? '').split('-');
-  return ARABIC_MONTHS[parts[1]] || String(month);
-};
 
 const WaqifDashboard = () => {
   const { user } = useAuth();

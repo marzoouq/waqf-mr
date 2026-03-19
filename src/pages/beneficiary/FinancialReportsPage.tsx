@@ -15,7 +15,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyShare } from '@/hooks/useMyShare';
-import { fmt } from '@/utils/format';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
