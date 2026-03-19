@@ -396,6 +396,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           onStayActive={stayActive}
         />
       )}
+      {role === 'admin' && <DiagnosticOverlay />}
     </div>
   );
 };
