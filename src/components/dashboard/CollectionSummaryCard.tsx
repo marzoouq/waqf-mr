@@ -51,12 +51,12 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
             </div>
 
             {collectionSummary.partialCount > 0 && (
-              <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+              <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
                 <div className="flex items-center justify-center gap-2">
                   <Clock className="w-5 h-5 text-warning" />
                   <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
                 </div>
-                <p className="text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
+                <p className="text-xl sm:text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
                 <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
               </div>
             )}
