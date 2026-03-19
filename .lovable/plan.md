@@ -1,55 +1,62 @@
 
 
-## خطة: إضافة مفتاح التشفير إلى Vault بشكل مشروط (Idempotent)
+## نتائج فحص الخطة بالتفصيل
 
-### المشكلة
-- الـ migration السابق (`20260318171433`) نجح في **Test** لأن المفتاح لم يكن في Vault
-- في **Production**: المفتاح موجود في `app_settings` لكن غير موجود في Vault
-- محاولة تشغيل `vault.create_secret` يدوياً فشلت (ربما بسبب صلاحيات أو خطأ في الصيغة)
+### ✅ ادعاءات صحيحة ومؤكدة
 
-### الحل
-إنشاء migration جديد **مشروط** (idempotent) يقوم بـ:
+**1. API.md — العنوان يقول "9 وظائف" ← خاطئ**
+- مؤكد: السطر 3 يقول `9 وظائف`
+- العدد الفعلي في `supabase/functions/`: **11 مجلد** (بدون `_shared`)
+- الخطة صحيحة: يجب تصحيحه إلى 11
 
-1. التحقق من وجود المفتاح في Vault أولاً
-2. إذا غير موجود → نسخه من `app_settings` إلى Vault
-3. إذا لم يوجد في `app_settings` أيضاً → إدراجه مباشرة بالقيمة المعروفة
-4. لا يحذف من `app_settings` (للأمان)
+**2. `auto-expire-contracts` — وظيفة شبحية**
+- مؤكد: موثقة كبند #3 (أسطر 137-152) لكن **لا يوجد مجلد لها** في `supabase/functions/`
+- يوجد فقط دالة قاعدة بيانات `cron_auto_expire_contracts()` تؤدي نفس الغرض
+- الخطة صحيحة: يجب حذفها من التوثيق
 
-### التعديل
-**ملف واحد: migration SQL جديد**
+**3. وظائف ZATCA الثلاث غير موثقة**
+- مؤكد: `zatca-api`, `zatca-signer`, `zatca-xml-generator` موجودة كمجلدات ومُعرَّفة في `config.toml` لكنها غائبة تماماً من API.md
+- الخطة صحيحة
 
-```sql
-DO $$
-DECLARE
-  v_exists boolean;
-  v_key text;
-BEGIN
-  -- هل المفتاح موجود في Vault؟
-  SELECT EXISTS (
-    SELECT 1 FROM vault.decrypted_secrets WHERE name = 'pii_encryption_key'
-  ) INTO v_exists;
+**4. SECURITY-KNOWLEDGE.md — معلومات قديمة عن العروض الآمنة**
+- مؤكد: السطر 49 يقول `SECURITY DEFINER` + `security_barrier`
+- الحالة الفعلية (migration `20260318174953`): `security_invoker = true` + `security_barrier = true`
+- **ملاحظة إضافية**: السطران 59-60 يذكران أيضاً `SECURITY DEFINER` ← يجب تحديثهما
+- السطر 66 يذكر `SECURITY DEFINER VIEW` ← يجب تحديثه
+- الخطة صحيحة
 
-  IF NOT v_exists THEN
-    -- محاولة قراءته من app_settings
-    SELECT value INTO v_key
-    FROM public.app_settings WHERE key = 'pii_encryption_key';
+**5. INDEX.md — يذكر "12 Edge Function"**
+- مؤكد: السطر 19 يقول `12 وظيفة`، والسطران 33 و51 يذكران `12` أيضاً
+- العدد الفعلي: 11
+- الخطة صحيحة
 
-    IF v_key IS NOT NULL AND v_key != '' THEN
-      PERFORM vault.create_secret(v_key, 'pii_encryption_key', 'PII encryption key');
-    ELSE
-      -- إدراج القيمة المعروفة مباشرة
-      PERFORM vault.create_secret(
-        '4df9561b2a17ed738b0a622e9088dd1139d000c33d600a839649cc7b43452553',
-        'pii_encryption_key',
-        'PII encryption key for beneficiary data'
-      );
-    END IF;
-  END IF;
-END $$;
-```
+**6. FINAL-AUDIT-REPORT.md — ناقص**
+- مؤكد: الإصدار v2.8.0 (سطر 6)، لا ذكر لإصلاح Vault migration
+- الخطة صحيحة
 
-### النتيجة المتوقعة
-- **Test**: لا تغيير (المفتاح موجود بالفعل في Vault) ✅
-- **Production عند النشر**: ينسخ المفتاح من `app_settings` إلى Vault ✅
-- تسجيل الدخول برقم الهوية يعمل في الإنتاج ✅
+**7. CHANGELOG.md — ناقص**
+- مؤكد: لا يوجد قسم v2.9.0، لا ذكر لترحيل مفتاح التشفير إلى Vault
+- الخطة صحيحة
 
+---
+
+### ⚠️ تصحيحات وتوسيعات للخطة
+
+**تصحيح 1: SECURITY-KNOWLEDGE.md أعمق مما ذُكر**
+
+الخطة ذكرت الأسطر 49, 50, 59-62, 66 — لكن التحديث يحتاج أيضاً:
+- **سطر 49**: تغيير "عروض VIEW بـ `SECURITY DEFINER` + `security_barrier`" → "`security_invoker = true` + `security_barrier = true`"
+- **سطر 50**: تغيير "العروض تقرأ من الجدول الأصلي **بصلاحيات المالك**" → "العروض تقرأ بصلاحيات **المستخدم المستدعي** عبر وراثة RLS"
+- **سطر 59**: `SECURITY DEFINER` → `security_invoker`
+- **سطر 60**: نفس التصحيح
+- **سطر 66**: `SECURITY DEFINER VIEW` → `security_invoker VIEW`
+- **إضافة ملاحظة**: توضيح أن الفلترة تتم عبر `CASE WHEN has_role()` داخل العرض + وراثة RLS من الجدول الأصلي
+
+**تصحيح 2: INDEX.md يحتاج 3 أماكن تعديل، ليس واحداً**
+- سطر 19: `12 وظيفة` → `11 وظيفة`
+- سطر 33: `12 Edge Function` → `11 Edge Function`
+- سطر 51: القائمة التفصيلية تذكر 12 — يجب حذف `auto-expire-contracts` وتحديث العدد
+
+**إضافة 3: أخطاء النشر**
+- أخطاء النشر (`driver: bad connection` / `Circuit breaker open`) هي مشاكل بنية تحتية مؤقتة
+- **لا تحتاج أي تعديل في الكود** — فقط إ
