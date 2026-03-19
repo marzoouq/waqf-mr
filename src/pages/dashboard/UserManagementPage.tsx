@@ -338,8 +338,10 @@ const UserManagementPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>كلمة المرور</Label>
+                  <Label htmlFor="create-user-password">كلمة المرور</Label>
                   <Input
+                    id="create-user-password"
+                    name="password"
                     type="password"
                     value={createForm.password}
                     onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
@@ -782,8 +784,10 @@ const UserManagementPage = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>كلمة المرور الجديدة</Label>
+                <Label htmlFor="change-user-password">كلمة المرور الجديدة</Label>
                 <Input
+                  id="change-user-password"
+                  name="new-password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}

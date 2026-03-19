@@ -324,7 +324,7 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
             )}
             {(ticket.status === 'open' || ticket.status === 'in_progress') && (
               <>
-                <Input placeholder="ملاحظات الحل..." value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} className="flex-1 min-w-0 sm:min-w-[200px]" />
+                <Input id="resolution-notes" name="resolution_notes" placeholder="ملاحظات الحل..." value={resolutionNotes} onChange={e => setResolutionNotes(e.target.value)} className="flex-1 min-w-0 sm:min-w-[200px]" />
                 <Button className="gradient-primary" onClick={() => handleStatusChange('resolved')} disabled={updateStatus.isPending}>
                   <CheckCircle className="w-4 h-4 ml-1" />تم الحل
                 </Button>

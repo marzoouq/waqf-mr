@@ -136,7 +136,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل عقد إيجار</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2"><Label>رقم العقد *</Label><Input value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
+          <div className="space-y-2"><Label htmlFor="contract-number">رقم العقد *</Label><Input id="contract-number" name="contract_number" value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
           <div className="space-y-2">
             <Label>العقار *</Label>
             <NativeSelect
@@ -297,7 +297,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
             </div>
           )}
 
-          <div className="space-y-2"><Label>اسم المستأجر *</Label><Input value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
+          <div className="space-y-2"><Label htmlFor="tenant-name">اسم المستأجر *</Label><Input id="tenant-name" name="tenant_name" value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
 
           {/* بيانات هوية المستأجر */}
           <div className="space-y-3 p-3 rounded-lg border border-border bg-muted/30">
@@ -314,11 +314,11 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">رقم الهوية</Label>
-                <Input className="h-9" value={formData.tenant_id_number} onChange={(e) => setFormData({ ...formData, tenant_id_number: e.target.value })} placeholder="رقم الهوية" maxLength={20} />
+                <Input id="tenant-id-number" name="tenant_id_number" className="h-9" value={formData.tenant_id_number} onChange={(e) => setFormData({ ...formData, tenant_id_number: e.target.value })} placeholder="رقم الهوية" maxLength={20} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">الرقم الضريبي (VAT)</Label>
-                <Input className="h-9" value={formData.tenant_tax_number} onChange={(e) => setFormData({ ...formData, tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
+                <Input id="tenant-tax-number" name="tenant_tax_number" className="h-9" value={formData.tenant_tax_number} onChange={(e) => setFormData({ ...formData, tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">رقم السجل التجاري</Label>
