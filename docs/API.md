@@ -1,6 +1,6 @@
 <div dir="rtl">
 
-# توثيق الوظائف الخلفية (Edge Functions) — 9 وظائف
+# توثيق الوظائف الخلفية (Edge Functions) — 11 وظيفة
 
 جميع الوظائف تعمل على Lovable Cloud وتُستدعى عبر:
 ```typescript
@@ -134,25 +134,7 @@ const response = await supabase.functions.invoke('ai-assistant', {
 
 ---
 
-## 3. `auto-expire-contracts` — انتهاء العقود تلقائياً
-
-**الوصف**: يبحث عن العقود النشطة التي انتهى تاريخها ويغير حالتها إلى `expired`.
-
-**المصادقة**: يقبل service_role key (للجدولة) أو JWT admin.
-
-```typescript
-// استدعاء يدوي من الناظر
-const { data } = await supabase.functions.invoke('auto-expire-contracts', {
-  body: {}
-});
-// الاستجابة: { success: true, expired_count: 3, contracts: [...] }
-```
-
-> يرسل إشعاراً للناظر عند انتهاء عقود.
-
----
-
-## 4. `check-contract-expiry` — تنبيهات انتهاء العقود
+## 3. `check-contract-expiry` — تنبيهات انتهاء العقود
 
 **الوصف**: يبحث عن العقود التي ستنتهي خلال 30 يوماً ويرسل إشعارات تحذيرية للناظر والمستفيدين.
 
@@ -173,7 +155,7 @@ const { data } = await supabase.functions.invoke('check-contract-expiry', {
 
 ---
 
-## 5. `lookup-national-id` — البحث بالهوية الوطنية
+## 4. `lookup-national-id` — البحث بالهوية الوطنية
 
 **الوصف**: يبحث عن البريد الإلكتروني المرتبط برقم هوية وطنية (يُرجع البريد مُقنّعاً). يدعم أيضاً تسجيل الدخول المباشر عبر تمرير كلمة المرور.
 
@@ -200,7 +182,7 @@ const { data } = await supabase.functions.invoke('lookup-national-id', {
 
 ---
 
-## 6. `guard-signup` — حماية التسجيل
+## 5. `guard-signup` — حماية التسجيل
 
 **الوصف**: يتحقق من إعداد `registration_enabled` قبل السماح بإنشاء حساب جديد. يُستخدم بدلاً من التسجيل المباشر عبر نظام المصادقة.
 
@@ -218,7 +200,7 @@ const { data } = await supabase.functions.invoke('guard-signup', {
 
 ---
 
-## 7. `generate-invoice-pdf` — توليد فاتورة PDF
+## 6. `generate-invoice-pdf` — توليد فاتورة PDF
 
 **الوصف**: يولّد ملف PDF لفاتورة محددة بناءً على بياناتها المخزنة. لا يكشف معرفات الفواتير غير الصالحة في الاستجابة.
 
@@ -233,7 +215,7 @@ const { data } = await supabase.functions.invoke('generate-invoice-pdf', {
 
 ---
 
-## 8. `webauthn` — المصادقة البيومترية
+## 7. `webauthn` — المصادقة البيومترية
 
 **الوصف**: وظيفة للتسجيل والتحقق عبر WebAuthn (بصمة الإصبع / Face ID). تدير التحديات (`challenges`) وبيانات الاعتماد (`credentials`).
 
@@ -272,7 +254,7 @@ const { data } = await supabase.functions.invoke('webauthn', {
 
 ---
 
-## 9. `auth-email-hook` — قوالب البريد المخصصة
+## 8. `auth-email-hook` — قوالب البريد المخصصة
 
 **الوصف**: Hook يعالج أحداث البريد الإلكتروني للمصادقة (تأكيد التسجيل، استعادة كلمة المرور، رابط سحري، دعوة، تغيير البريد، إعادة المصادقة) ويُرسل رسائل بتصميم مخصص عبر React Email.
 
@@ -287,6 +269,104 @@ const { data } = await supabase.functions.invoke('webauthn', {
 | `invite.tsx` | دعوة مستخدم جديد |
 | `email-change.tsx` | تأكيد تغيير البريد |
 | `reauthentication.tsx` | إعادة المصادقة |
+
+---
+
+## 9. `zatca-xml-generator` — توليد فاتورة إلكترونية (XML)
+
+**الوصف**: يولّد مستند XML بصيغة UBL 2.1 لفاتورة محددة وفق متطلبات هيئة الزكاة والضريبة والجمارك (ZATCA). يدعم الفواتير القياسية والمبسطة وإشعارات المدين والدائن. يحفظ XML في جدول الفاتورة تلقائياً.
+
+**المصادقة**: يتطلب JWT صالح + دور admin أو accountant.
+
+```typescript
+const { data } = await supabase.functions.invoke('zatca-xml-generator', {
+  body: {
+    invoice_id: 'uuid',
+    table: 'invoices' // أو 'payment_invoices'
+  }
+});
+// الاستجابة: { success: true, xml_length: 4523 }
+```
+
+**أنواع الفواتير المدعومة**:
+| النوع | الكود | الوصف |
+|-------|-------|-------|
+| `standard` / `قياسية` | 388 | فاتورة قياسية |
+| `simplified` / `مبسطة` | 388 | فاتورة مبسطة |
+| `debit_note` / `إشعار مدين` | 383 | إشعار مدين |
+| `credit_note` / `إشعار دائن` | 381 | إشعار دائن |
+
+---
+
+## 10. `zatca-signer` — توقيع الفاتورة الإلكترونية
+
+**الوصف**: يوقّع فاتورة XML رقمياً وفق معيار XMLDSig باستخدام ECDSA P-256. يتضمن: تخصيص ICV ذري، حساب Hash، بناء `SignedProperties` و `SignedInfo`، توليد التوقيع الرقمي، حقن رمز QR (TLV)، وحفظ النتيجة. يمنع التوقيع المزدوج.
+
+**المصادقة**: يتطلب JWT صالح + دور admin أو accountant.
+
+```typescript
+const { data } = await supabase.functions.invoke('zatca-signer', {
+  body: {
+    invoice_id: 'uuid',
+    table: 'invoices' // أو 'payment_invoices'
+  }
+});
+// الاستجابة: { success: true, icv: 42, invoice_hash: '...', qr_base64: '...' }
+```
+
+**التحقق قبل التوقيع**:
+- وجود مبلغ الفاتورة ومبلغ الضريبة ومعرّف UUID
+- اتساق المبالغ: `المبلغ بدون ضريبة + الضريبة = الإجمالي`
+- وجود عناصر ZATCA المطلوبة في XML (ICV، UBLExtensions)
+- عدم وجود توقيع سابق (منع التوقيع المزدوج)
+
+---
+
+## 11. `zatca-api` — التكامل مع بوابة فاتورة (ZATCA)
+
+**الوصف**: يتواصل مع بوابة ZATCA الرسمية لتنفيذ عمليات الربط والإرسال. يدعم بيئتي الإنتاج والمحاكاة (Sandbox). يسجّل جميع العمليات في `zatca_operation_log`.
+
+**المصادقة**: يتطلب JWT صالح + دور admin.
+
+### العمليات المتاحة (`action`):
+
+#### `test-connection` — اختبار الاتصال بالبوابة
+```typescript
+const { data } = await supabase.functions.invoke('zatca-api', {
+  body: { action: 'test-connection' }
+});
+// الاستجابة: { connected: true, url: '...', status_code: 200, tested_at: '...' }
+```
+
+#### `onboard` — التسجيل في بوابة فاتورة (CCSID + PCSID)
+```typescript
+const { data } = await supabase.functions.invoke('zatca-api', {
+  body: { action: 'onboard' }
+});
+```
+
+#### `compliance` — فحص المطابقة
+```typescript
+const { data } = await supabase.functions.invoke('zatca-api', {
+  body: { action: 'compliance', invoice_id: 'uuid', table: 'invoices' }
+});
+```
+
+#### `report` — إرسال فاتورة (Reporting)
+```typescript
+const { data } = await supabase.functions.invoke('zatca-api', {
+  body: { action: 'report', invoice_id: 'uuid', table: 'invoices' }
+});
+```
+
+#### `clearance` — اعتماد فاتورة (Clearance)
+```typescript
+const { data } = await supabase.functions.invoke('zatca-api', {
+  body: { action: 'clearance', invoice_id: 'uuid', table: 'invoices' }
+});
+```
+
+> يحدد URL البوابة تلقائياً من إعداد `zatca_platform` في `app_settings` (إنتاج/محاكاة).
 
 ---
 
@@ -312,6 +392,8 @@ const { data } = await supabase.functions.invoke('webauthn', {
 | `403` | ممنوع (ليس admin) |
 | `404` | غير موجود |
 | `405` | طريقة غير مسموحة |
+| `409` | تعارض (مثل توقيع مزدوج) |
+| `422` | فشل التحقق قبل المعالجة |
 | `429` | تجاوز حد الطلبات |
 | `500` | خطأ داخلي |
 

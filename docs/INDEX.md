@@ -48,7 +48,7 @@
 ← [DATABASE.md](./DATABASE.md) — 37 جدول/عرض، 29+ مشغل، علاقات، سياسات أمان، 35+ دالة مخزنة
 
 ### 🔌 الواجهات البرمجية
-← [API.md](./API.md) — 12 Edge Function: إدارة المستخدمين، المساعد الذكي (gemini-2.5-pro + flash)، انتهاء العقود، البحث بالهوية، حماية التسجيل، توليد فواتير PDF، المصادقة البيومترية (WebAuthn)، قوالب البريد، ZATCA API، ZATCA Signer، ZATCA XML Generator
+← [API.md](./API.md) — 11 Edge Function: إدارة المستخدمين، المساعد الذكي (gemini-2.5-pro + flash)، تنبيهات انتهاء العقود، البحث بالهوية، حماية التسجيل، توليد فواتير PDF، المصادقة البيومترية (WebAuthn)، قوالب البريد، ZATCA API، ZATCA Signer، ZATCA XML Generator
 
 ### 👥 واجهة المستفيد
 ← [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) — الإفصاح السنوي، حصتي من الريع، التقارير المالية، الحسابات
