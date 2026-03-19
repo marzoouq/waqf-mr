@@ -297,7 +297,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
             </div>
           )}
 
-          <div className="space-y-2"><Label>اسم المستأجر *</Label><Input value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
+          <div className="space-y-2"><Label htmlFor="tenant-name">اسم المستأجر *</Label><Input id="tenant-name" name="tenant_name" value={formData.tenant_name} onChange={(e) => setFormData({ ...formData, tenant_name: e.target.value })} placeholder="اسم المستأجر" /></div>
 
           {/* بيانات هوية المستأجر */}
           <div className="space-y-3 p-3 rounded-lg border border-border bg-muted/30">
