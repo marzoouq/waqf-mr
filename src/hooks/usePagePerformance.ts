@@ -19,6 +19,7 @@ export function usePagePerformance(): void {
       // تجاهل الأوقات الطويلة جداً (المستخدم ترك التبويب)
       if (duration < 120_000) {
         recordPageLoad(lastPathRef.current, duration);
+        notifyPerfUpdate();
         logger.info(`[Perf] صفحة "${lastPathRef.current}" عُرضت لمدة ${Math.round(duration)}ms`);
       }
       lastPathRef.current = pathname;
