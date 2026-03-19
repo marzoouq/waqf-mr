@@ -46,7 +46,7 @@ export const useUnits = (propertyId?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('units')
-        .select('*')
+        .select('id, property_id, unit_number, unit_type, floor, area, status, notes, created_at, updated_at')
         .eq('property_id', propertyId!)
         .order('unit_number');
       if (error) throw error;

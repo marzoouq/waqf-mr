@@ -112,7 +112,7 @@ function ZatcaManagementPage() {
   const { data: chain = [], isLoading: chainLoading } = useQuery({
     queryKey: ['invoice-chain'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('invoice_chain').select('*').order('icv', { ascending: false }).limit(100);
+      const { data, error } = await supabase.from('invoice_chain').select('id, invoice_id, icv, previous_hash, invoice_hash, source_table, created_at').order('icv', { ascending: false }).limit(100);
       if (error) throw error;
       return data;
     },

@@ -1,14 +1,15 @@
 /**
- * تبويب تصدير البيانات (CSV)
- * يتيح للناظر تصدير بيانات أي جدول بصيغة CSV
+ * تبويب تصدير البيانات (CSV + Excel)
+ * يتيح للناظر تصدير بيانات أي جدول بصيغة CSV أو Excel
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Database, Loader2 } from 'lucide-react';
+import { Download, Database, Loader2, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { buildCsv, downloadCsv } from '@/utils/csv';
+import { buildXlsx, downloadXlsx } from '@/utils/xlsx';
 
 type ExportableTable = 'properties' | 'contracts' | 'income' | 'expenses' | 'beneficiaries' | 'accounts' | 'invoices' | 'distributions' | 'units' | 'fiscal_years' | 'tenant_payments';
 
@@ -39,8 +40,21 @@ async function fetchTableData(table: ExportableTable) {
   return { data: data as unknown as Record<string, unknown>[] | null, error };
 }
 
+type ExportFormat = 'csv' | 'xlsx';
+
 const DataExportTab = () => {
   const [exporting, setExporting] = useState<string | null>(null);
+  const [format, setFormat] = useState<ExportFormat>('xlsx');
+
+  const exportData = (data: Record<string, unknown>[], filename: string) => {
+    if (format === 'xlsx') {
+      const blob = buildXlsx(data);
+      downloadXlsx(blob, filename.replace('.csv', '.xlsx'));
+    } else {
+      const csv = buildCsv(data);
+      downloadCsv(csv, filename);
+    }
+  };
 
   const handleExport = async (table: ExportableTable, label: string) => {
     setExporting(table);
@@ -54,9 +68,9 @@ const DataExportTab = () => {
       if (data.length >= 5000) {
         toast.warning(`تنبيه: تم تصدير 5000 سجل فقط من ${label}. قد توجد بيانات إضافية لم تُصدَّر.`);
       }
-      const csv = buildCsv(data);
       const date = new Date().toISOString().slice(0, 10);
-      downloadCsv(csv, `${table}_${date}.csv`);
+      const ext = format === 'xlsx' ? 'xlsx' : 'csv';
+      exportData(data, `${table}_${date}.${ext}`);
       toast.success(`تم تصدير ${data.length} سجل من ${label}`);
     } catch {
       toast.error(`حدث خطأ أثناء تصدير ${label}`);
@@ -73,9 +87,9 @@ const DataExportTab = () => {
         const { data, error } = await fetchTableData(table.key);
         if (error) { failedTables.push(table.label); continue; }
         if (data && data.length > 0) {
-          const csv = buildCsv(data);
           const date = new Date().toISOString().slice(0, 10);
-          downloadCsv(csv, `${table.key}_${date}.csv`);
+          const ext = format === 'xlsx' ? 'xlsx' : 'csv';
+          exportData(data, `${table.key}_${date}.${ext}`);
         }
       }
       if (failedTables.length > 0) {
@@ -98,9 +112,34 @@ const DataExportTab = () => {
             <Database className="w-5 h-5" />
             تصدير البيانات
           </CardTitle>
-          <CardDescription>تصدير بيانات النظام بصيغة CSV لاستخدامها في Excel أو حفظها كنسخة احتياطية</CardDescription>
+          <CardDescription>تصدير بيانات النظام بصيغة CSV أو Excel لاستخدامها في جداول البيانات أو حفظها كنسخة احتياطية</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* اختيار الصيغة */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground">صيغة التصدير:</span>
+            <div className="flex gap-1 rounded-lg border p-1">
+              <Button
+                variant={format === 'xlsx' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFormat('xlsx')}
+                className="gap-1.5"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Excel
+              </Button>
+              <Button
+                variant={format === 'csv' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFormat('csv')}
+                className="gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                CSV
+              </Button>
+            </div>
+          </div>
+
           <Button
             onClick={handleExportAll}
             disabled={exporting !== null}

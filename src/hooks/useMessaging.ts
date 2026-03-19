@@ -15,7 +15,7 @@ export const useConversations = (type?: string) => {
   const query = useQuery({
     queryKey: ['conversations', type],
     queryFn: async (): Promise<Conversation[]> => {
-      let q = supabase.from('conversations').select('*').order('updated_at', { ascending: false }).limit(100);
+      let q = supabase.from('conversations').select('id, type, subject, status, created_by, participant_id, created_at, updated_at').order('updated_at', { ascending: false }).limit(100);
       if (type) q = q.eq('type', type);
       const { data, error } = await q;
       if (error) throw error;
@@ -53,7 +53,7 @@ export const useMessages = (conversationId: string | null) => {
       if (!conversationId) return [];
       const { data, error } = await supabase
         .from('messages')
-        .select('*')
+        .select('id, conversation_id, sender_id, content, is_read, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
         .limit(50);

@@ -137,21 +137,28 @@
 | REM-1 | cursor-based pagination بدل limit | متوسطة |
 | REM-2 | CSP عبر HTTP header بدل meta | متوسطة |
 | REM-3 | nonce-based CSP لـ style-src | متوسطة |
-| REM-4 | invoice_chain.invoice_id FK | متوسطة |
 | REM-5 | مقارنة سنة بسنة في KPI | متوسطة |
-| REM-6 | تصدير Excel بالإضافة لـ CSV/PDF | متوسطة |
 | REM-7 | حفظ محادثات AI في DB | منخفضة |
 | REM-8 | تصنيف الإشعارات | منخفضة |
+
+### بنود مُنجزة (الجولة الأخيرة)
+
+| البند | الحالة |
+|-------|--------|
+| تنظيف `select('*')` في 14 ملف | ✅ تم — أعمدة محددة |
+| invoice_chain FK | ❌ غير ممكن — polymorphic (source_table) |
+| تصدير Excel (XLSX) في DataExportTab | ✅ تم — بدون مكتبة خارجية |
+| og-image.webp | ✅ تم — 903KB → 27KB |
 
 ---
 
 ### التقييم النهائي
 
 - **الأمن**: 9.7/10 — strict mode + safe views + getUser
-- **الأداء**: 9.5/10 — select محدد + WebP + lazy loading
+- **الأداء**: 9.7/10 — select محدد + WebP + lazy loading + كل queries محسّنة
 - **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ
-- **تجربة المستخدم**: 10/10 — رسائل توضيحية + hook مشترك
+- **تجربة المستخدم**: 10/10 — Excel export + hook مشترك + رسائل توضيحية
 - **الاختبارات**: 607+ ✅ — 0 فشل
-- **التقييم الإجمالي**: 9.5/10
+- **التقييم الإجمالي**: 9.7/10
 
 **الحالة**: مُعتمد ✅

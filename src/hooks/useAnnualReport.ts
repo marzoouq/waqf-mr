@@ -42,7 +42,7 @@ export const useAnnualReportItems = (fiscalYearId?: string) => {
       if (!fiscalYearId) return [];
       const { data, error } = await supabase
         .from('annual_report_items')
-        .select('*')
+        .select('id, fiscal_year_id, section_type, title, content, property_id, sort_order, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId)
         .order('sort_order', { ascending: true });
       if (error) throw error;
@@ -122,7 +122,7 @@ export const useReportStatus = (fiscalYearId?: string) => {
       if (!fiscalYearId) return null;
       const { data, error } = await supabase
         .from('annual_report_status')
-        .select('*')
+        .select('id, fiscal_year_id, status, published_at, created_at')
         .eq('fiscal_year_id', fiscalYearId)
         .maybeSingle();
       if (error) throw error;
