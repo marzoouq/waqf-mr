@@ -68,11 +68,11 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
           <div className="flex items-center gap-3 flex-1 text-right">
             {!isDragDisabled && (
               <div
-                role="button"
-                tabIndex={0}
                 className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted text-muted-foreground"
                 {...attributes}
                 {...listeners}
+                role="button"
+                tabIndex={0}
                 onClick={(e) => e.stopPropagation()}
               >
                 <GripVertical className="w-4 h-4" />
