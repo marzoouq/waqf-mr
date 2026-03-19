@@ -1,39 +1,55 @@
 
 
-## تحليل سجل الأخطاء — جميعها تاريخية ومُعالَجة
+## خطة: إضافة مفتاح التشفير إلى Vault بشكل مشروط (Idempotent)
 
-### تصنيف الأخطاء المعروضة
+### المشكلة
+- الـ migration السابق (`20260318171433`) نجح في **Test** لأن المفتاح لم يكن في Vault
+- في **Production**: المفتاح موجود في `app_settings` لكن غير موجود في Vault
+- محاولة تشغيل `vault.create_secret` يدوياً فشلت (ربما بسبب صلاحيات أو خطأ في الصيغة)
 
-| الفترة | الخطأ | العدد | الحالة |
-|---|---|---|---|
-| 16/3 | `Test explosion` | ~20 | **اختبار وحدة** — من ملف `ErrorBoundary.test.tsx` وليس خطأ حقيقي |
-| 16/3 | `useAuth must be used within AuthProvider` | 7 | **تم إصلاحه** — أُضيف `fallbackAuthContext` في `useAuthContext.ts` |
-| 16/3 | `useFiscalYear must be used within FiscalYearProvider` | 1 | **تم إصلاحه** — أُضيف `FALLBACK` في `FiscalYearContext.tsx` |
-| 17-18/3 | `TypeError:` (بدون تفاصيل) | ~25 | **تاريخية** — الرسائل مبتورة، لا يمكن تشخيصها |
-| 18/3 | `Error:` (بدون تفاصيل) | 4 | **تاريخية** — مبتورة أيضاً |
+### الحل
+إنشاء migration جديد **مشروط** (idempotent) يقوم بـ:
 
-### الخلاصة
+1. التحقق من وجود المفتاح في Vault أولاً
+2. إذا غير موجود → نسخه من `app_settings` إلى Vault
+3. إذا لم يوجد في `app_settings` أيضاً → إدراجه مباشرة بالقيمة المعروفة
+4. لا يحذف من `app_settings` (للأمان)
 
-- **لا توجد أخطاء نشطة حالياً** — كل ما يظهر هو من 16-18 مارس وتم إصلاحه
-- أخطاء `Test explosion` ليست أخطاء حقيقية بل نتائج اختبار `ErrorBoundary.test.tsx`
-- أخطاء `TypeError:` المبتورة (بدون رسالة) تشير إلى أن `ErrorBoundary` لم يلتقط تفاصيل الخطأ كاملة — وهذه مشكلة في آلية التسجيل وليست في التطبيق
+### التعديل
+**ملف واحد: migration SQL جديد**
 
-### التوصية: تحسين طابور الأخطاء
+```sql
+DO $$
+DECLARE
+  v_exists boolean;
+  v_key text;
+BEGIN
+  -- هل المفتاح موجود في Vault؟
+  SELECT EXISTS (
+    SELECT 1 FROM vault.decrypted_secrets WHERE name = 'pii_encryption_key'
+  ) INTO v_exists;
 
-بدلاً من إصلاح أخطاء قديمة، الأجدر هو:
+  IF NOT v_exists THEN
+    -- محاولة قراءته من app_settings
+    SELECT value INTO v_key
+    FROM public.app_settings WHERE key = 'pii_encryption_key';
 
-1. **تنظيف الطابور** — حذف السجلات القديمة (أقدم من 24 ساعة) تلقائياً
-2. **تحسين التقاط الأخطاء** — إضافة `error.stack` في metadata لمنع الرسائل المبتورة
-3. **فلترة اختبارات الوحدة** — استبعاد أخطاء `Test explosion` من التسجيل في الإنتاج
+    IF v_key IS NOT NULL AND v_key != '' THEN
+      PERFORM vault.create_secret(v_key, 'pii_encryption_key', 'PII encryption key');
+    ELSE
+      -- إدراج القيمة المعروفة مباشرة
+      PERFORM vault.create_secret(
+        '4df9561b2a17ed738b0a622e9088dd1139d000c33d600a839649cc7b43452553',
+        'pii_encryption_key',
+        'PII encryption key for beneficiary data'
+      );
+    END IF;
+  END IF;
+END $$;
+```
 
-### التعديلات المطلوبة
-
-**ملف `src/components/ErrorBoundary.tsx`:**
-- إضافة `error.stack?.slice(0, 1000)` في metadata (سطر 31-38)
-- فلترة الأخطاء من user agent يحتوي `linux` + رسالة `Test explosion`
-
-**ملف `src/utils/diagnostics/checks.ts`:**
-- في `checkErrorLogQueue`: تصفية السجلات الأقدم من 24 ساعة قبل العرض
-
-هل تريد تنفيذ هذه التحسينات؟
+### النتيجة المتوقعة
+- **Test**: لا تغيير (المفتاح موجود بالفعل في Vault) ✅
+- **Production عند النشر**: ينسخ المفتاح من `app_settings` إلى Vault ✅
+- تسجيل الدخول برقم الهوية يعمل في الإنتاج ✅
 
