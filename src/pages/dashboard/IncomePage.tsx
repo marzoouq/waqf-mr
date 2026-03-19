@@ -239,8 +239,8 @@ const IncomePage = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Card className="shadow-sm">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-success/10"><TrendingUp className="w-5 h-5 text-success" /></div>
-                <div><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-xl font-bold text-success">{fmt(totalIncome)} <span className="text-xs font-normal">ريال</span></p></div>
+                <div className="p-2 rounded-lg bg-success/10 shrink-0"><TrendingUp className="w-5 h-5 text-success" /></div>
+                <div className="min-w-0"><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-base sm:text-xl font-bold text-success tabular-nums truncate">{fmt(totalIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
