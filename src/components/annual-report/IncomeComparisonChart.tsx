@@ -33,7 +33,7 @@ const IncomeComparisonChart: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[250px] w-full" dir="ltr">
+        <div className="h-[250px] w-full" dir="ltr" style={{ minWidth: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />

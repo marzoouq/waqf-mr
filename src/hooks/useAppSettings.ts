@@ -33,6 +33,7 @@ export const useAppSettings = () => {
     retry: 2,
     retryDelay: 1500,
     gcTime: 1000 * 60 * 30,
+    placeholderData: {} as Record<string, string>,
   });
 
   const updateSetting = useMutation({

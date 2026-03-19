@@ -64,11 +64,7 @@ const Index = () => {
     placeholderData: placeholderStats,
   });
 
-  const stats = statsData ?? [
-    { label: 'عقار مُدار', value: '0' },
-    { label: 'مستفيد', value: '0' },
-    { label: 'تقرير سنوي', value: '0' },
-  ];
+  const stats = statsData ?? placeholderStats;
 
   const features = [
     { icon: Building2, title: 'إدارة العقارات', description: 'تسجيل ومتابعة جميع عقارات الوقف وتفاصيلها' },
