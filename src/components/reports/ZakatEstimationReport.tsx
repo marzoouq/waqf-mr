@@ -7,7 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFoo
 import { Badge } from '@/components/ui/badge';
 import { Calculator, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { fmt } from '@/utils/format';
+import { fmt, fmtInt } from '@/utils/format';
 
 interface ZakatEstimationReportProps {
   totalIncome: number;

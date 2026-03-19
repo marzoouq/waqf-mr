@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Switch } from '@/components/ui/switch';
 import { Plus } from 'lucide-react';
 import { EXPENSE_TYPES } from '@/constants';
+import { fmt } from '@/utils/format';
 
 interface ExpenseFormData {
   expense_type: string;

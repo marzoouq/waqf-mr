@@ -5,6 +5,7 @@
 import { useMemo, useState } from 'react';
 import { Contract } from '@/types/database';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmtInt } from '@/utils/format';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

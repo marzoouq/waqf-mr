@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { safeNumber } from '@/utils/safeNumber';
+import { fmt } from '@/utils/format';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateZatcaQrTLV } from '@/utils/zatcaQr';
 import { FileText, Receipt, AlertCircle } from 'lucide-react';
