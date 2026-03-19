@@ -10,15 +10,17 @@
 
 | البند | القيمة |
 |-------|--------|
-| آخر تحديث | 2026-03-02 |
+| آخر تحديث | 2026-03-19 |
 | الحالة | ✅ مستقر — جاهز للنشر |
 | النطاق المخصص | `waqf-wise.net` |
-| الجداول/العروض | 28 (24 أصلي + `payment_invoices` + `contract_fiscal_allocations` + `rate_limits` + `beneficiaries_safe`) |
-| الدوال المخزنة | 32 دالة |
-| المشغلات النشطة | 29 (10 audit + 4 prevent_closed_fy + 9 updated_at + 6 storage/realtime/cron) |
-| Edge Functions | 9 وظائف (مع تقييد AI حسب الدور) |
-| نموذج AI | google/gemini-2.5-pro + flash |
-| التقييم الأمني | 9.8/10 |
+| الجداول/العروض | 37 (33 جدول أصلي + 2 عرض آمن + `invoice_chain` + `invoice_items`) |
+| الدوال المخزنة | 35+ دالة |
+| المشغلات النشطة | 29+ |
+| Edge Functions | 12 وظيفة |
+| مهام مجدولة (pg_cron) | 7 مهام |
+| سياسات RLS | 129 سياسة |
+| نموذج AI | google/gemini-2.5-pro + flash عبر Lovable AI |
+| التقييم الأمني | 9.4/10 |
 
 ---
 
@@ -27,13 +29,13 @@
 | # | الملف | الوصف | الرابط |
 |---|-------|-------|--------|
 | 1 | **README** | التوثيق الرئيسي: البنية، التقنيات، الأدوار، المسارات | [README.md](../README.md) |
-| 2 | **قاعدة البيانات** | مخطط ERD، 28 جدول/عرض، الأعمدة، سياسات RLS، 32 دالة، 29 مشغل | [DATABASE.md](./DATABASE.md) |
-| 3 | **واجهة البرمجة** | توثيق 9 Edge Functions مع أمثلة الاستدعاء | [API.md](./API.md) |
+| 2 | **قاعدة البيانات** | مخطط ERD، 37 جدول/عرض، الأعمدة، سياسات RLS، 35+ دالة، 29+ مشغل | [DATABASE.md](./DATABASE.md) |
+| 3 | **واجهة البرمجة** | توثيق 12 Edge Function مع أمثلة الاستدعاء | [API.md](./API.md) |
 | 4 | **صفحات المستفيد** | الإفصاح، حصتي، التقارير المالية، الحسابات | [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) |
 | 5 | **صفحات الناظر** | لوحة التحكم، الحسابات الختامية، التقارير، آلية الإقفال | [ADMIN-PAGES.md](./ADMIN-PAGES.md) |
 | 6 | **سجل التغييرات** | التحديثات الرئيسية بترتيب زمني | [CHANGELOG.md](./CHANGELOG.md) |
-| 7 | **تقرير التدقيق** | ملخص 15 جولة تدقيق — جميع الإصلاحات مُنجزة | [FINAL-AUDIT-REPORT.md](./FINAL-AUDIT-REPORT.md) |
-
+| 7 | **تقرير التدقيق** | ملخص 17+ جولة تدقيق — جميع الإصلاحات الحرجة مُنجزة | [FINAL-AUDIT-REPORT.md](./FINAL-AUDIT-REPORT.md) |
+| 8 | **المعرفة الأمنية** | إرشادات CSP، التشفير، سياسات RLS | [SECURITY-KNOWLEDGE.md](./SECURITY-KNOWLEDGE.md) |
 
 ---
 
@@ -43,10 +45,10 @@
 ← [README.md](../README.md) — هيكل المجلدات، التقنيات المستخدمة، أنماط التصميم
 
 ### 🗄️ قاعدة البيانات
-← [DATABASE.md](./DATABASE.md) — 28 جدول/عرض، 29 مشغل، علاقات، سياسات أمان، 32 دالة مخزنة
+← [DATABASE.md](./DATABASE.md) — 37 جدول/عرض، 29+ مشغل، علاقات، سياسات أمان، 35+ دالة مخزنة
 
 ### 🔌 الواجهات البرمجية
-← [API.md](./API.md) — 9 Edge Functions: إدارة المستخدمين، المساعد الذكي (gemini-2.5-pro + flash مع تقييد حسب الدور)، انتهاء العقود، تنبيهات العقود، البحث بالهوية، حماية التسجيل، توليد فواتير PDF، المصادقة البيومترية، قوالب البريد
+← [API.md](./API.md) — 12 Edge Function: إدارة المستخدمين، المساعد الذكي (gemini-2.5-pro + flash)، انتهاء العقود، البحث بالهوية، حماية التسجيل، توليد فواتير PDF، المصادقة البيومترية (WebAuthn)، قوالب البريد، ZATCA API، ZATCA Signer، ZATCA XML Generator
 
 ### 👥 واجهة المستفيد
 ← [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) — الإفصاح السنوي، حصتي من الريع، التقارير المالية، الحسابات
@@ -55,8 +57,13 @@
 ← [ADMIN-PAGES.md](./ADMIN-PAGES.md) — لوحة التحكم، الحسابات الختامية، التقارير، آلية الإقفال والأرشفة
 
 ### 📄 الصفحات العامة
-- سياسة الخصوصية (`/privacy-policy`)
-- شروط الاستخدام (`/terms-of-use`)
+- الصفحة الرئيسية (`/`)
+- تسجيل الدخول (`/auth`)
+- إعادة تعيين كلمة المرور (`/reset-password`)
+- تثبيت التطبيق (`/install`)
+- سياسة الخصوصية (`/privacy`)
+- شروط الاستخدام (`/terms`)
+- غير مصرح (`/unauthorized`)
 
 ---
 
@@ -64,7 +71,7 @@
 
 | الدور | الوصف | الصلاحيات الرئيسية |
 |-------|-------|-------------------|
-| `admin` (ناظر) | مدير الوقف بصلاحيات كاملة | جميع الصفحات + إقفال السنة + إدارة المستخدمين + الإعدادات |
+| `admin` (ناظر) | مدير الوقف بصلاحيات كاملة | جميع الصفحات + إقفال السنة + إدارة المستخدمين + الإعدادات + ZATCA |
 | `accountant` (محاسب) | محاسب بصلاحيات تشغيلية | جميع صفحات الناظر **عدا** إدارة المستخدمين والإعدادات وإقفال السنة المالية |
 | `beneficiary` (مستفيد) | مستفيد من الوقف (عرض فقط) | الإفصاح، حصتي، التقارير، الحسابات، الترحيلات |
 | `waqif` (واقف) | الواقف (عرض فقط) | العقارات، العقود، التقارير، الحسابات |
@@ -73,18 +80,20 @@
 
 ---
 
-## خريطة المسارات (27 مسار)
+## خريطة المسارات (39+ مسار)
 
-### مسارات عامة
+### مسارات عامة (7)
 | المسار | الوصف |
 |--------|-------|
 | `/` | الصفحة الرئيسية |
 | `/auth` | تسجيل الدخول |
+| `/reset-password` | إعادة تعيين كلمة المرور |
+| `/install` | تثبيت التطبيق (PWA) |
 | `/privacy` | سياسة الخصوصية |
 | `/terms` | شروط الاستخدام |
 | `/unauthorized` | صفحة عدم الصلاحية |
 
-### مسارات الناظر والمحاسب (`/dashboard/*`)
+### مسارات الناظر والمحاسب (`/dashboard/*`) — 17+
 | المسار | الأدوار | الوصف |
 |--------|---------|-------|
 | `/dashboard` | admin, accountant | لوحة التحكم الرئيسية |
@@ -101,11 +110,17 @@
 | `/dashboard/users` | admin فقط | إدارة المستخدمين |
 | `/dashboard/audit-log` | admin, accountant | سجل المراجعة |
 | `/dashboard/bylaws` | admin, accountant | اللائحة التنظيمية |
+| `/dashboard/zatca` | admin فقط | إدارة ZATCA |
+| `/dashboard/support` | admin, accountant | الدعم الفني |
+| `/dashboard/annual-report` | admin, accountant | التقرير السنوي |
+| `/dashboard/chart-of-accounts` | admin, accountant | شجرة الحسابات |
+| `/dashboard/comparison` | admin, accountant | المقارنة التاريخية |
 
-### مسارات المستفيد والواقف (`/beneficiary/*`)
+### مسارات المستفيد والواقف (`/beneficiary/*`) — 15+
 | المسار | الأدوار | الوصف |
 |--------|---------|-------|
-| `/beneficiary` | beneficiary, waqif | لوحة المستفيد/الواقف |
+| `/beneficiary` | beneficiary | لوحة المستفيد |
+| `/waqif` | waqif | لوحة الواقف |
 | `/beneficiary/properties` | beneficiary, waqif | عرض العقارات |
 | `/beneficiary/contracts` | beneficiary, waqif | عرض العقود |
 | `/beneficiary/disclosure` | beneficiary | الإفصاح السنوي |
@@ -114,10 +129,12 @@
 | `/beneficiary/financial-reports` | beneficiary, waqif | التقارير المالية |
 | `/beneficiary/accounts` | beneficiary, waqif | عرض الحسابات |
 | `/beneficiary/invoices` | beneficiary, waqif | عرض الفواتير |
-| `/beneficiary/messages` | beneficiary | المراسلات |
+| `/beneficiary/messages` | beneficiary, waqif | المراسلات |
 | `/beneficiary/notifications` | beneficiary, waqif | الإشعارات |
 | `/beneficiary/bylaws` | beneficiary, waqif | اللائحة التنظيمية |
 | `/beneficiary/settings` | beneficiary, waqif | الإعدادات الشخصية |
+| `/beneficiary/support` | جميع الأدوار | الدعم الفني |
+| `/beneficiary/annual-report` | beneficiary, waqif | التقرير السنوي |
 
 ---
 
@@ -141,17 +158,19 @@
 
 | التاريخ | الإصلاح |
 |---------|---------|
-| 2026-02-20 | تشديد `log_access_event` — تقييد `anon` لأحداث login/signup فقط |
-| 2026-02-20 | سحب صلاحيات `EXECUTE` من `anon`/`PUBLIC` للدوال الحساسة |
-| 2026-02-20 | إزالة `unsafe-eval` من CSP |
-| 2026-02-20 | تأمين `check-contract-expiry` بمصادقة مزدوجة (service_role + admin JWT) |
+| 2026-03-19 | تفعيل `strict: true` في `tsconfig.app.json` |
+| 2026-03-19 | إصلاح تسريب PII في `usePrefetchAccounts` — تحويل لـ `beneficiaries_safe` |
+| 2026-03-19 | إصلاح `getSession()` → `getUser()` في `useWebAuthn.ts` |
+| 2026-03-19 | تحسين `logger.ts` — استخلاص رسائل الخطأ بشكل صحيح |
 | 2026-02-27 | تعقيم `body.name` في `admin-manage-users` (create_user + bulk_create_users) |
 | 2026-02-27 | إخفاء تفاصيل العقد عن المستفيدين في `cron_check_contract_expiry` |
 | 2026-02-27 | دمج SELECT+UPDATE في `useUpdateAdvanceStatus` لمنع TOCTOU |
 | 2026-02-27 | تعقيم رسائل خطأ WebAuthn و `generate-invoice-pdf` |
 | 2026-02-27 | تقييد `fetchWaqfData` حسب الدور (AI Assistant) |
 | 2026-02-27 | رفض طلب AI عند فشل جلب الدور (بدلاً من الافتراض كمستفيد) |
-| 2026-02-27 | تعقيم `error.message` في `useAccountsPage` (موضعان) |
-| 2026-02-27 | إصلاح `isAdmin` temporal dead zone في `fetchWaqfData` |
+| 2026-02-20 | تشديد `log_access_event` — تقييد `anon` لأحداث login/signup فقط |
+| 2026-02-20 | سحب صلاحيات `EXECUTE` من `anon`/`PUBLIC` للدوال الحساسة |
+| 2026-02-20 | إزالة `unsafe-eval` من CSP |
+| 2026-02-20 | تأمين `check-contract-expiry` بمصادقة مزدوجة (service_role + admin JWT) |
 
 </div>

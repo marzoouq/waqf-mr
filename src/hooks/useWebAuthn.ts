@@ -38,12 +38,12 @@ export function useWebAuthn() {
     // التحقق من DB لضمان التزامن عبر الأجهزة/المتصفحات
     let cancelled = false;
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session || cancelled) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
       const { count } = await supabase
         .from('webauthn_credentials')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', session.user.id);
+        .eq('user_id', user.id);
       if (cancelled) return;
       const dbEnabled = (count ?? 0) > 0;
       setIsEnabled(dbEnabled);
@@ -52,7 +52,7 @@ export function useWebAuthn() {
         const { data: creds } = await supabase
           .from('webauthn_credentials')
           .select('id, device_name, created_at')
-          .eq('user_id', session.user.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20);
         if (!cancelled && creds) setCredentials(creds.map(c => ({ ...c, device_name: c.device_name ?? '' })));
@@ -65,8 +65,8 @@ export function useWebAuthn() {
 
   // جلب بيانات الاعتماد المسجلة
   const fetchCredentials = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       setCredentials([]);
       return [];
     }
@@ -74,7 +74,7 @@ export function useWebAuthn() {
     const { data, error } = await supabase
       .from('webauthn_credentials')
       .select('id, device_name, created_at')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20);
 

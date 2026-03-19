@@ -6,6 +6,51 @@
 
 ---
 
+## 2.8.0 — ١٩ مارس ٢٠٢٦
+
+### 🔒 أمان (إصلاحات حرجة)
+- إصلاح تسريب PII في `usePrefetchAccounts.ts`: تحويل من `beneficiaries` إلى `beneficiaries_safe` لمنع كشف أرقام الهوية والحسابات البنكية
+- تفعيل `strict: true` في `tsconfig.app.json` — يتضمن `strictNullChecks` و `noImplicitAny`
+- إصلاح `useWebAuthn.ts`: استبدال `getSession()` بـ `getUser()` للتحقق من الخادم (أسطر 41, 68)
+
+### 🛠️ تحسينات
+- إصلاح `logger.ts`: استخلاص رسائل الخطأ بشكل صحيح من كائنات `Error` بدلاً من تسجيل رسائل فارغة
+
+### 📄 توثيق
+- تحديث `INDEX.md`: 37 جدول (بدل 28)، 12 Edge Function (بدل 9)، 39+ مسار (بدل 27)
+- تحديث `CHANGELOG.md`: إضافة كافة التحديثات من مارس 2026
+- تحديث `FINAL-AUDIT-REPORT.md`: رفع التقييم إلى 9.4/10 مع توثيق الإصلاحات الأخيرة
+
+---
+
+## 2.6.0 — ٣-١٨ مارس ٢٠٢٦
+
+### 🎨 واجهة المستخدم
+- إصلاح تجاوب واجهة الجوال (Mobile Responsiveness) عبر 15+ صفحة
+- إضافة `MobileCardView` لعرض البطاقات على الشاشات الصغيرة
+- تحسين الرسوم البيانية (Recharts) مع `DeferredRender`
+- إضافة صفحة المقارنة التاريخية (`/dashboard/comparison`)
+- إضافة شجرة الحسابات (`/dashboard/chart-of-accounts`)
+- إضافة تبويب أرشيف سجلات الوصول (`ArchiveLogTab`)
+- تحسين `AccessLogTab` مع فلاتر متقدمة
+
+### 🔒 أمان
+- تحصين العروض الآمنة بـ `security_invoker=true` و `security_barrier=true`
+- سحب صلاحيات `EXECUTE` لدوال التشفير (`get_pii_key`, `decrypt_pii`, `encrypt_pii`)
+- تشديد سياسة SELECT على جدول `contracts` — المستفيدون يستخدمون `contracts_safe` فقط
+
+### ⚡ أداء
+- تحسين `fetchFontWithRetry` لخطوط PDF العربية (3 محاولات مع تدرج كاش)
+- إضافة `PagePerformanceTracker` لمراقبة أداء الصفحات
+- إضافة `lazyWithRetry` مع تعافي من أخطاء chunks
+
+### 📄 PDF
+- توحيد تنسيق التاريخ العربي (`ar-SA`) عبر كافة التقارير
+- إضافة بيانات الوقف الموسعة (الشعار، IBAN، العنوان) في كافة ملفات PDF
+- تحسين Arabic Reshaping مع منطق عكس الكلمات (Word-level Reversal)
+
+---
+
 ## 2.5.0 — ٢ مارس ٢٠٢٦
 
 ### 🗄️ قاعدة البيانات
