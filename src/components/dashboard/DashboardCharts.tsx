@@ -43,7 +43,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
         <CardHeader>
           <CardTitle>الدخل والمصروفات الشهرية</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-h-[300px]">
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
