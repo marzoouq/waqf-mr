@@ -178,6 +178,34 @@ const NotificationsPage = () => {
           </Card>
         </div>
 
+        {/* Category Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {NOTIFICATION_CATEGORIES.map((cat) => {
+            const count = cat.id === 'all'
+              ? notifications.length
+              : notifications.filter(n => cat.types.includes(n.type)).length;
+            return (
+              <Button
+                key={cat.id}
+                variant={categoryFilter === cat.id ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5 flex-shrink-0"
+                onClick={() => {
+                  setCategoryFilter(cat.id);
+                  setTypeFilter('all');
+                }}
+              >
+                {cat.label}
+                {count > 0 && (
+                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline'} className="text-xs px-1.5 min-w-[1.25rem] h-5">
+                    {count}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
         {/* Actions Bar */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
@@ -188,7 +216,10 @@ const NotificationsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
-                {uniqueTypes.map((t) => {
+                {(categoryFilter === 'all' ? uniqueTypes : uniqueTypes.filter(t => {
+                  const cat = NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter);
+                  return cat?.types.includes(t);
+                })).map((t) => {
                   const config = typeConfig[t] || typeConfig.info;
                   return (
                     <SelectItem key={t} value={t}>
