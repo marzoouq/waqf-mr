@@ -34,7 +34,7 @@ const isMonthInRange = (year: number, month: number, start: Date, end: Date): bo
   return monthStart <= end && monthEnd >= start;
 };
 
-const fmtNum = (v: number) => v.toLocaleString('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtNum = (v: number) => fmtInt(v);
 
 /** بطاقة عقد واحد للجوال مع تفاصيل الأشهر القابلة للتوسيع */
 const MobileAccrualCard = ({ contract, months, total }: { contract: Contract; months: number[]; total: number }) => {

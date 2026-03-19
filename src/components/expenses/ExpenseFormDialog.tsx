@@ -68,7 +68,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
                 <Label className="text-sm font-medium">خاضعة لضريبة القيمة المضافة</Label>
                 {vatEnabled && amount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    VAT {vatRate}%: {vatAmount.toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س — الإجمالي: {(amount + vatAmount).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                    VAT {vatRate}%: {fmt(vatAmount)} ر.س — الإجمالي: {fmt(amount + vatAmount)} ر.س
                   </p>
                 )}
               </div>
