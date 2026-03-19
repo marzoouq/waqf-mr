@@ -103,6 +103,7 @@ const AdvanceRequestsTab = () => {
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">المستفيد</TableHead>
                   <TableHead className="text-right">المبلغ</TableHead>
+                  <TableHead className="text-right">السنة المالية</TableHead>
                   <TableHead className="text-right">السبب</TableHead>
                   <TableHead className="text-right">التاريخ</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
