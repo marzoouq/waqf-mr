@@ -384,7 +384,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               <div className="flex justify-between">
                 <span className="text-muted-foreground">قيمة الدفعة الواحدة:</span>
                 <span className="font-bold text-primary">
-                  {(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1))).toLocaleString('ar-SA', { maximumFractionDigits: 2 })} ر.س
+                  {fmt(parseFloat(formData.rent_amount) / (formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'annual' ? 1 : (parseInt(formData.payment_count) || 1)))} ر.س
                 </span>
               </div>
               {formData.vat_applicable && (
