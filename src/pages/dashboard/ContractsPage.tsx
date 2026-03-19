@@ -75,6 +75,7 @@ const ContractsPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('contracts');
   const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
