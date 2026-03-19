@@ -20,7 +20,8 @@ import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TONE_OPTIONS, NOTIF_PREFS_KEY, NOTIFICATION_TONE_KEY, NOTIFICATION_VOLUME_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
+import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone } from '@/hooks/useNotifications';
+import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
