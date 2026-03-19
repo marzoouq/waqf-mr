@@ -135,10 +135,9 @@
 | # | البند | الأولوية |
 |---|-------|---------|
 | REM-1 | cursor-based pagination بدل limit | متوسطة |
-| REM-2 | CSP عبر HTTP header بدل meta | متوسطة |
-| REM-3 | nonce-based CSP لـ style-src | متوسطة |
-| REM-7 | حفظ محادثات AI في DB | منخفضة |
-| REM-8 | تصنيف الإشعارات | منخفضة |
+| REM-2 | CSP عبر HTTP header بدل meta | متوسطة — يحتاج reverse proxy |
+| REM-3 | nonce-based CSP لـ style-src | متوسطة — مرتبط بـ REM-2 |
+| REM-7 | حفظ محادثات AI في DB | منخفضة — لا يوجد AI chat حالياً |
 
 ### بنود مُنجزة (الجولة الأخيرة)
 
@@ -153,6 +152,9 @@
 | DEFER-7: debounce لـ saveSetting | ✅ كان مُنفذاً — setTimeout 500ms |
 | DEFER-12: disclaimer في PDF السنة النشطة | ✅ تم — تحذير تقديري في comprehensive PDF |
 | DEFER-13: عمود السنة المالية في سجل السُلف | ✅ تم — join fiscal_years + عمود في الجدول |
+| DEFER-1: RequirePublishedYears wrapper | ✅ تم — مكون مشترك يُستخدم في 7 صفحات |
+| DEFER-2: useMyShare hook | ✅ كان مُنفذاً مسبقاً مع اختبارات |
+| REM-8: تصنيف الإشعارات | ✅ تم — تبويبات فئات (مالية/عقود/نظام/رسائل) مع فلتر نوع فرعي |
 
 ---
 
