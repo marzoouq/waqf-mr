@@ -41,38 +41,38 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
           </ErrorBoundary>
 
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
-            <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5 text-success" />
                 <span className="text-sm text-muted-foreground">محصّل بالكامل</span>
               </div>
-              <p className="text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
+              <p className="text-xl sm:text-3xl font-bold text-success">{collectionSummary.paidCount}</p>
               <Badge className="bg-success/20 text-success border-success/30 hover:bg-success/30">فاتورة</Badge>
             </div>
 
             {collectionSummary.partialCount > 0 && (
-              <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+              <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
                 <div className="flex items-center justify-center gap-2">
                   <Clock className="w-5 h-5 text-warning" />
                   <span className="text-sm text-muted-foreground">محصّل جزئياً</span>
                 </div>
-                <p className="text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
+                <p className="text-xl sm:text-3xl font-bold text-warning">{collectionSummary.partialCount}</p>
                 <Badge className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">فاتورة</Badge>
               </div>
             )}
 
-            <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-destructive" />
                 <span className="text-sm text-muted-foreground">متأخر</span>
               </div>
-              <p className="text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
+              <p className="text-xl sm:text-3xl font-bold text-destructive">{collectionSummary.unpaidCount}</p>
               <Badge className="bg-destructive/20 text-destructive border-destructive/30 hover:bg-destructive/30">فاتورة</Badge>
             </div>
 
-            <div className="text-center p-4 rounded-lg bg-muted/30 space-y-2">
+            <div className="text-center p-2 sm:p-4 rounded-lg bg-muted/30 space-y-2">
               <span className="text-sm text-muted-foreground">نسبة التحصيل</span>
-              <p className={`text-3xl font-bold ${collectionColor.text}`}>
+              <p className={`text-xl sm:text-3xl font-bold ${collectionColor.text}`}>
                 {collectionSummary.percentage}%
               </p>
               <Progress

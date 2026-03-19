@@ -49,7 +49,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <Clock className="w-4 h-4 text-primary" />
               <span className="text-xs text-muted-foreground">أيام متبقية</span>
             </div>
-            <p className={`text-2xl font-bold ${remainingDays <= 7 ? 'text-destructive' : remainingDays <= 30 ? 'text-warning' : 'text-foreground'}`}>
+            <p className={`text-xl sm:text-2xl font-bold ${remainingDays <= 7 ? 'text-destructive' : remainingDays <= 30 ? 'text-warning' : 'text-foreground'}`}>
               {remainingDays}
             </p>
             <p className="text-[11px] text-muted-foreground">من أصل {totalDays} يوم</p>
@@ -61,7 +61,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
           {/* نسبة الإنجاز الزمني */}
           <div className="text-center p-3 rounded-lg bg-muted/30 space-y-2">
             <span className="text-xs text-muted-foreground">التقدم الزمني</span>
-            <p className="text-2xl font-bold text-foreground">{timeProgress}%</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground">{timeProgress}%</p>
             <Progress value={timeProgress} className="h-2 [&>div]:bg-primary" />
           </div>
 
@@ -71,7 +71,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <TrendingUp className="w-4 h-4 text-success" />
               <span className="text-xs text-muted-foreground">التحصيل المالي</span>
             </div>
-            <p className={`text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
+            <p className={`text-xl sm:text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
               {financialProgress}%
             </p>
             <Progress value={financialProgress} className={`h-2 ${financialProgress >= timeProgress ? '[&>div]:bg-success' : '[&>div]:bg-warning'}`} />
