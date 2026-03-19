@@ -48,7 +48,7 @@ const DisclosurePage = () => {
   
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
