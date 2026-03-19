@@ -62,49 +62,7 @@ const BeneficiarySettingsPage = () => {
     }
   });
 
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try {
-      return localStorage.getItem(NOTIF_SOUND_KEY) !== 'false';
-    } catch {
-      return true;
-    }
-  });
-
-  const [selectedTone, setSelectedTone] = useState<ToneId>(() => {
-    try {
-      return (localStorage.getItem(NOTIFICATION_TONE_KEY) || 'chime') as ToneId;
-    } catch {
-      return 'chime';
-    }
-  });
-
-  const [volume, setVolume] = useState<VolumeLevel>(() => {
-    try {
-      return (localStorage.getItem(NOTIFICATION_VOLUME_KEY) || 'medium') as VolumeLevel;
-    } catch {
-      return 'medium';
-    }
-  });
-
-  const handleSoundChange = (value: boolean) => {
-    setSoundEnabled(value);
-    try { localStorage.setItem(NOTIF_SOUND_KEY, String(value)); } catch { /* ignored */ }
-    toast.success(value ? 'تم تفعيل صوت التنبيه' : 'تم تعطيل صوت التنبيه');
-  };
-
-  const handleToneChange = (tone: ToneId) => {
-    setSelectedTone(tone);
-    try { localStorage.setItem(NOTIFICATION_TONE_KEY, tone); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === volume)?.gain ?? 0.5;
-    previewTone(tone, vol);
-  };
-
-  const handleVolumeChange = (level: VolumeLevel) => {
-    setVolume(level);
-    try { localStorage.setItem(NOTIFICATION_VOLUME_KEY, level); } catch { /* ignored */ }
-    const vol = VOLUME_OPTIONS.find(v => v.id === level)?.gain ?? 0.5;
-    previewTone(selectedTone, vol);
-  };
+  const { soundEnabled, selectedTone, volume, handleSoundChange, handleToneChange, handleVolumeChange } = useNotificationPreferences();
 
   const handlePrefChange = (key: keyof typeof defaultPrefs, value: boolean) => {
     const updated = { ...prefs, [key]: value };
