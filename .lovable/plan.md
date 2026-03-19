@@ -1,46 +1,57 @@
 
 
-# تحليل: عدم ظهور بيانات صفحة إدارة المستخدمين
+# تشخيص: فشل تسجيل الدخول بعد تحديث كلمة المرور من لوحة الناظر
 
-## المشكلة المحددة
+## ما تم التحقق منه
 
-استعلام `useQuery` في `UserManagementPage.tsx` (سطر 92) **لا يحتوي على شرط `enabled`** لانتظار جاهزية المصادقة. هذا يعني:
+| الفحص | النتيجة |
+|-------|---------|
+| `lookup_by_national_id` (البحث بالهوية) | ✅ يعمل — يجد الهوية ويُرجع البريد الصحيح |
+| تطابق البريد بين `beneficiaries` و `auth.users` | ✅ متطابق لجميع الـ 14 مستفيد |
+| تأكيد البريد (`email_confirmed_at`) | ✅ جميعهم مؤكدون |
+| تدفق `update_password` في Edge Function | ✅ لا أخطاء مسجلة |
+| اختبار مباشر للدخول | ❌ يُرجع `"كلمة المرور غير صحيحة"` |
 
-1. الاستعلام يُنفذ فوراً عند تحميل الصفحة
-2. إذا لم تكن الجلسة جاهزة بعد، `getUser()` أو `getSession()` تفشل
-3. React Query يعتبرها خطأ ويعرض البيانات الافتراضية (مصفوفة فارغة)
-4. **لا يوجد عرض لرسالة الخطأ** — الكود لا يستخدم `isError` أو يعرض أي تنبيه عند فشل جلب البيانات
+## السبب الجذري المرجح
+
+وظيفة `update_password` في Edge Function تستدعي `updateUserById(userId, { password })` **بدون أي تحقق من نجاح التحديث الفعلي**. الاحتمالات:
+
+1. **GoTrue يرفض كلمة المرور بسبب HaveIBeenPwned** — GoTrue مُفعّل عليه فحص كلمات المرور المُسربة (Pwned passwords cache: 292 KB). إذا اختار الناظر كلمة مرور شائعة أو مسربة، قد يُرفض التحديث بخطأ لا يظهر بوضوح في الواجهة
+2. **خطأ صامت من SDK** — `updateUserById` قد يُرجع خطأ بصيغة غير متوقعة لا يلتقطها الكود الحالي
+
+الحل: إضافة **تحقق مباشر** بعد تحديث كلمة المرور — محاولة تسجيل دخول تجريبية بالبيانات الجديدة للتأكد من نجاح التحديث فعلياً.
+
+---
 
 ## خطة الإصلاح
 
-### 1. إضافة `enabled` guard للاستعلامات
+### 1. Edge Function: إضافة تحقق بعد تحديث كلمة المرور
+**الملف**: `supabase/functions/admin-manage-users/index.ts`
+
+بعد `updateUserById(userId, { password })` الناجح:
+- جلب بريد المستخدم عبر `adminClient.auth.admin.getUserById(userId)`
+- محاولة تسجيل دخول تجريبية عبر `POST /auth/v1/token?grant_type=password`
+- إذا فشل الدخول التجريبي → إرجاع خطأ واضح للناظر: "فشل تحديث كلمة المرور — جرّب كلمة مرور أقوى"
+- تسجيل خروج الجلسة التجريبية فوراً بعد التحقق
+
+### 2. Edge Function: تسجيل تفصيلي للأخطاء
+**الملف**: `supabase/functions/admin-manage-users/index.ts`
+
+إضافة `console.log` لنتيجة `updateUserById` لتسهيل التشخيص المستقبلي.
+
+### 3. واجهة الناظر: تحسين حوار تغيير كلمة المرور
 **الملف**: `src/pages/dashboard/UserManagementPage.tsx`
 
-- إضافة `enabled: !!currentUser` لاستعلام `admin-users` (سطر 92)
-- إضافة نفس الحارس لاستعلامات `orphaned-beneficiaries` و `unlinked-beneficiaries`
-
-```typescript
-const { data: usersResult, isLoading, isError, error } = useQuery({
-  queryKey: ['admin-users', currentPage],
-  queryFn: async () => { ... },
-  enabled: !!currentUser,  // ← لا تُنفذ حتى تتأكد من وجود مستخدم
-});
-```
-
-### 2. عرض رسالة خطأ واضحة عند الفشل
-إضافة معالجة `isError` لعرض تنبيه واضح للناظر بدلاً من صفحة فارغة بدون تفسير.
-
-### 3. إضافة `retry` معقول
-إضافة `retry: 2` للسماح بمحاولتين إضافيتين في حالة فشل مؤقت في الشبكة.
+- إضافة زر إظهار/إخفاء كلمة المرور (eye toggle) لمنع أخطاء الإدخال
+- إضافة متطلبات واضحة (8+ أحرف، أحرف وأرقام)
 
 ---
 
 ## التفاصيل التقنية
 
-| الملف | التعديل |
-|-------|---------|
-| `UserManagementPage.tsx` سطر 92 | إضافة `enabled: !!currentUser` + `retry: 2` |
-| `UserManagementPage.tsx` سطر 126 | إضافة `enabled: !!currentUser` لـ orphaned-beneficiaries |
-| `UserManagementPage.tsx` سطر 138 | إضافة `enabled: !!currentUser` لـ unlinked-beneficiaries |
-| `UserManagementPage.tsx` سطر ~450 | إضافة كتلة `isError` لعرض رسالة خطأ |
+| # | الملف | التعديل |
+|---|-------|---------|
+| 1 | `supabase/functions/admin-manage-users/index.ts` | إضافة تحقق تسجيل دخول تجريبي بعد `updateUserById` + تسجيل خروج فوري |
+| 2 | `supabase/functions/admin-manage-users/index.ts` | إضافة `console.log` لنتائج التحديث |
+| 3 | `src/pages/dashboard/UserManagementPage.tsx` | إضافة toggle إظهار كلمة المرور + رسائل متطلبات |
 
