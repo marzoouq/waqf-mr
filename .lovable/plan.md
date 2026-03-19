@@ -1,62 +1,84 @@
 
 
-## نتائج فحص الخطة بالتفصيل
+# فحص أمني جنائي شامل — النتائج والإصلاحات
 
-### ✅ ادعاءات صحيحة ومؤكدة
+## منهجية الفحص
 
-**1. API.md — العنوان يقول "9 وظائف" ← خاطئ**
-- مؤكد: السطر 3 يقول `9 وظائف`
-- العدد الفعلي في `supabase/functions/`: **11 مجلد** (بدون `_shared`)
-- الخطة صحيحة: يجب تصحيحه إلى 11
-
-**2. `auto-expire-contracts` — وظيفة شبحية**
-- مؤكد: موثقة كبند #3 (أسطر 137-152) لكن **لا يوجد مجلد لها** في `supabase/functions/`
-- يوجد فقط دالة قاعدة بيانات `cron_auto_expire_contracts()` تؤدي نفس الغرض
-- الخطة صحيحة: يجب حذفها من التوثيق
-
-**3. وظائف ZATCA الثلاث غير موثقة**
-- مؤكد: `zatca-api`, `zatca-signer`, `zatca-xml-generator` موجودة كمجلدات ومُعرَّفة في `config.toml` لكنها غائبة تماماً من API.md
-- الخطة صحيحة
-
-**4. SECURITY-KNOWLEDGE.md — معلومات قديمة عن العروض الآمنة**
-- مؤكد: السطر 49 يقول `SECURITY DEFINER` + `security_barrier`
-- الحالة الفعلية (migration `20260318174953`): `security_invoker = true` + `security_barrier = true`
-- **ملاحظة إضافية**: السطران 59-60 يذكران أيضاً `SECURITY DEFINER` ← يجب تحديثهما
-- السطر 66 يذكر `SECURITY DEFINER VIEW` ← يجب تحديثه
-- الخطة صحيحة
-
-**5. INDEX.md — يذكر "12 Edge Function"**
-- مؤكد: السطر 19 يقول `12 وظيفة`، والسطران 33 و51 يذكران `12` أيضاً
-- العدد الفعلي: 11
-- الخطة صحيحة
-
-**6. FINAL-AUDIT-REPORT.md — ناقص**
-- مؤكد: الإصدار v2.8.0 (سطر 6)، لا ذكر لإصلاح Vault migration
-- الخطة صحيحة
-
-**7. CHANGELOG.md — ناقص**
-- مؤكد: لا يوجد قسم v2.9.0، لا ذكر لترحيل مفتاح التشفير إلى Vault
-- الخطة صحيحة
+تم فحص 5 طبقات بشكل منهجي:
+1. **الكود المصدري**: جميع الملفات (.ts/.tsx) — بحث عن XSS, injection, eval, innerHTML, localStorage abuse, credential leaks
+2. **وظائف الحافة (Edge Functions)**: جميع الـ 11 وظيفة — تحقق من المصادقة، CORS، rate limiting، تعقيم المدخلات
+3. **سياسات RLS**: جميع الجداول — تناسق بين السياسات والكود المُستهلك
+4. **أنماط الوصول للبيانات**: تتبع كل استعلام `.from()` في الواجهة — مطابقة مع الصلاحيات
+5. **تسرب البيانات**: البحث عن `select('*')`, dangerouslySetInnerHTML, document.cookie, postMessage
 
 ---
 
-### ⚠️ تصحيحات وتوسيعات للخطة
+## ❌ مشاكل مستوى WARN — تحتاج إصلاح فوري
 
-**تصحيح 1: SECURITY-KNOWLEDGE.md أعمق مما ذُكر**
+### 1. GlobalSearch يقرأ من `contracts` مباشرة — كسر وظيفي + تسرب محتمل
 
-الخطة ذكرت الأسطر 49, 50, 59-62, 66 — لكن التحديث يحتاج أيضاً:
-- **سطر 49**: تغيير "عروض VIEW بـ `SECURITY DEFINER` + `security_barrier`" → "`security_invoker = true` + `security_barrier = true`"
-- **سطر 50**: تغيير "العروض تقرأ من الجدول الأصلي **بصلاحيات المالك**" → "العروض تقرأ بصلاحيات **المستخدم المستدعي** عبر وراثة RLS"
-- **سطر 59**: `SECURITY DEFINER` → `security_invoker`
-- **سطر 60**: نفس التصحيح
-- **سطر 66**: `SECURITY DEFINER VIEW` → `security_invoker VIEW`
-- **إضافة ملاحظة**: توضيح أن الفلترة تتم عبر `CASE WHEN has_role()` داخل العرض + وراثة RLS من الجدول الأصلي
+**الملف**: `src/components/GlobalSearch.tsx` (سطر 143-145)
 
-**تصحيح 2: INDEX.md يحتاج 3 أماكن تعديل، ليس واحداً**
-- سطر 19: `12 وظيفة` → `11 وظيفة`
-- سطر 33: `12 Edge Function` → `11 Edge Function`
-- سطر 51: القائمة التفصيلية تذكر 12 — يجب حذف `auto-expire-contracts` وتحديث العدد
+**المشكلة**: بعد تشديد RLS على جدول `contracts` (تقييده لـ admin+accountant فقط)، البحث الشامل يستعلم من `contracts` مباشرة لجميع الأدوار. النتيجة:
+- المستفيد والواقف لا يحصلان على نتائج بحث العقود (كسر وظيفي صامت)
+- إذا تم التراجع عن RLS مستقبلاً، سيتسرب `tenant_name` لأدوار غير مخولة
 
-**إضافة 3: أخطاء النشر**
-- أخطاء النشر (`driver: bad connection` / `Circuit breaker open`) هي مشاكل بنية تحتية مؤقتة
-- **لا تحتاج أي تعديل في الكود** — فقط إ
+**الإصلاح**: استخدام `contracts_safe` بدلاً من `contracts` للأدوار غير الإدارية:
+```typescript
+const contractTable = isAdmin ? 'contracts' : 'contracts_safe';
+let contractsQuery = supabase
+  .from(contractTable)
+  .select('id, contract_number, tenant_name, status, fiscal_year_id')
+```
+
+### 2. DataExportTab يصدّر PII كاملة من `contracts`
+
+**الملف**: `src/components/settings/DataExportTab.tsx` (سطر 39)
+
+**المشكلة**: `select('*')` على `contracts` يصدّر جميع الأعمدة بما فيها:
+- `tenant_id_number` (رقم هوية المستأجر)
+- `tenant_tax_number` (الرقم الضريبي)
+- `tenant_crn`, `tenant_street`, `tenant_city` (بيانات شخصية)
+
+رغم أن الوصول مقيد بالناظر فقط، إلا أن مبدأ "أقل بيانات ممكنة" يتطلب تحديد الأعمدة.
+
+**الإصلاح**: تحديد الأعمدة المصدَّرة بشكل صريح واستبعاد PII الخام، أو إضافة تحذير واضح عند التصدير.
+
+### 3. `useContractsByFiscalYear` يستخدم `select('*')` مع join
+
+**الملف**: `src/hooks/useContracts.ts` (سطر 32)
+
+**المشكلة**: `select('*, property:properties(*), unit:units(*)')` يجلب جميع أعمدة العقد بما فيها PII إلى الذاكرة في المتصفح. RLS يحمي من الأدوار غير المخولة، لكن البيانات تظهر في DevTools/Network tab لأي admin/accountant.
+
+**الإصلاح**: تحديد الأعمدة المطلوبة فعلاً في الـ select بدلاً من `*`.
+
+---
+
+## ✅ نتائج الفحص — أمور سليمة
+
+| الطبقة | النتيجة |
+|--------|---------|
+| **XSS / innerHTML** | `dangerouslySetInnerHTML` مستخدم فقط مع `JSON.stringify()` لـ structured data (آمن) وفي chart.tsx لـ CSS ثابت |
+| **eval / Function** | لا يوجد استخدام لـ `eval()` أو `new Function()` |
+| **CORS** | جميع Edge Functions تستخدم `getCorsHeaders(req)` مع قائمة بيضاء صارمة (4 origins + regex للمعاينة) |
+| **المصادقة في Edge Functions** | جميع الوظائف تستخدم `getUser()` للتحقق من الهوية (ليس getSession) |
+| **Rate Limiting** | `lookup-national-id` و `guard-signup` يستخدمان rate limiting عبر DB + fail-closed |
+| **منع تعداد المستخدمين** | `lookup-national-id` يرجع بنية متطابقة سواء وُجدت الهوية أم لا + تأخير ثابت |
+| **تعقيم المدخلات** | UUID validation, email regex, national_id (10 digits), password length checks |
+| **service_role** | مستخدم فقط في Edge Functions (server-side)، لا تسرب في الواجهة |
+| **Audit Log حصانة** | INSERT/UPDATE/DELETE محظورة عبر RLS (`false`) |
+| **Cookie** | `document.cookie` مستخدم فقط لحالة الشريط الجانبي (غير حساس) |
+| **localStorage** | يخزن فقط: fiscal_year_id (UUID), PWA update flag, beta banner dismiss — لا بيانات حساسة |
+| **postMessage** | لا استخدام مباشر |
+| **verify_jwt = false** | جميع Edge Functions في config.toml — لكنها تتحقق يدوياً من JWT عبر `getUser()` (نمط صحيح) |
+
+---
+
+## خطة الإصلاح
+
+| # | الملف | التعديل | الخطورة |
+|---|-------|---------|---------|
+| 1 | `src/components/GlobalSearch.tsx` | استخدام `contracts_safe` للأدوار غير الإدارية | عالي (كسر وظيفي) |
+| 2 | `src/components/settings/DataExportTab.tsx` | تحديد أعمدة التصدير بشكل صريح لـ contracts بدل `select('*')` | متوسط |
+| 3 | `src/hooks/useContracts.ts` | استبدال `select('*')` بأعمدة محددة في `useContractsByFiscalYear` و crud factory | متوسط |
+
