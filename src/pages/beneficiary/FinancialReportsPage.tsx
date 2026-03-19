@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/useMyShare';
 
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ const FinancialReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     income,
@@ -112,16 +112,6 @@ const FinancialReportsPage = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="التقارير المالية" icon={BarChart3} />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (isError) {
     return (
@@ -152,6 +142,7 @@ const FinancialReportsPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="التقارير المالية" icon={BarChart3}>
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         {/* Header */}
@@ -179,6 +170,7 @@ const FinancialReportsPage = () => {
         </Suspense>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

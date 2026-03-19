@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyAdvanceRequests, usePaidAdvancesTotal, useCarryforwardBalance, useMyCarryforwards } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
 import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
@@ -38,7 +38,7 @@ const MySharePage = () => {
     queryClient.invalidateQueries({ queryKey: ['total-beneficiary-percentage'] });
   };
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const selectedFY = fiscalYear;
   const navigate = useNavigate();
   // BEN-11: حالة تحميل PDF لمنع الضغط المزدوج
@@ -291,16 +291,6 @@ const MySharePage = () => {
     );
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="حصتي من الريع" icon={Wallet} description="تفاصيل حصتك من ريع الوقف" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (finError) {
     return (
@@ -347,6 +337,7 @@ const MySharePage = () => {
   }
 
   return (
+    <RequirePublishedYears title="حصتي من الريع" icon={Wallet} description="تفاصيل حصتك من ريع الوقف">
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
@@ -716,6 +707,7 @@ const MySharePage = () => {
         )}
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

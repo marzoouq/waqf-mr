@@ -18,16 +18,25 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
-const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  info: { label: 'معلومات', icon: Info, color: 'text-info', bg: 'bg-info/10' },
-  payment: { label: 'مالي', icon: Wallet, color: 'text-success', bg: 'bg-success/10' },
-  message: { label: 'رسالة', icon: Mail, color: 'text-accent-foreground', bg: 'bg-accent/10' },
-  warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10' },
-  contract: { label: 'عقود', icon: FileText, color: 'text-info', bg: 'bg-info/10' },
-  system: { label: 'نظام', icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/30' },
-  distribution: { label: 'توزيع', icon: Wallet, color: 'text-primary', bg: 'bg-primary/10' },
-  success: { label: 'نجاح', icon: CheckCheck, color: 'text-success', bg: 'bg-success/10' },
-  error: { label: 'خطأ', icon: AlertCircle, color: 'text-destructive', bg: 'bg-destructive/10' },
+// تصنيفات الإشعارات (مالية / نظام / عقود / عام)
+const NOTIFICATION_CATEGORIES: { id: string; label: string; types: string[] }[] = [
+  { id: 'all', label: 'الكل', types: [] },
+  { id: 'financial', label: 'مالية', types: ['payment', 'distribution', 'success'] },
+  { id: 'contracts', label: 'عقود', types: ['contract', 'warning'] },
+  { id: 'system', label: 'نظام', types: ['system', 'error', 'info'] },
+  { id: 'messages', label: 'رسائل', types: ['message'] },
+];
+
+const typeConfig: Record<string, { label: string; icon: React.ElementType; color: string; bg: string; category: string }> = {
+  info: { label: 'معلومات', icon: Info, color: 'text-info', bg: 'bg-info/10', category: 'system' },
+  payment: { label: 'مالي', icon: Wallet, color: 'text-success', bg: 'bg-success/10', category: 'financial' },
+  message: { label: 'رسالة', icon: Mail, color: 'text-accent-foreground', bg: 'bg-accent/10', category: 'messages' },
+  warning: { label: 'تنبيه', icon: AlertTriangle, color: 'text-warning', bg: 'bg-warning/10', category: 'contracts' },
+  contract: { label: 'عقود', icon: FileText, color: 'text-info', bg: 'bg-info/10', category: 'contracts' },
+  system: { label: 'نظام', icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/30', category: 'system' },
+  distribution: { label: 'توزيع', icon: Wallet, color: 'text-primary', bg: 'bg-primary/10', category: 'financial' },
+  success: { label: 'نجاح', icon: CheckCheck, color: 'text-success', bg: 'bg-success/10', category: 'financial' },
+  error: { label: 'خطأ', icon: AlertCircle, color: 'text-destructive', bg: 'bg-destructive/10', category: 'system' },
 };
 
 const NotificationsPage = () => {
@@ -35,13 +44,20 @@ const NotificationsPage = () => {
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { data: _allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
-  const filtered = typeFilter === 'all'
-    ? notifications
-    : notifications.filter((n) => n.type === typeFilter);
+  // فلترة بالتصنيف أولاً، ثم بالنوع
+  const categoryTypes = categoryFilter === 'all'
+    ? null
+    : NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter)?.types ?? null;
 
+  const filtered = notifications.filter((n) => {
+    if (categoryTypes && !categoryTypes.includes(n.type)) return false;
+    if (typeFilter !== 'all' && n.type !== typeFilter) return false;
+    return true;
+  });
   const readCount = notifications.filter((n) => n.is_read).length;
   const uniqueTypes = [...new Set(notifications.map((n) => n.type))];
 
@@ -162,6 +178,34 @@ const NotificationsPage = () => {
           </Card>
         </div>
 
+        {/* Category Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {NOTIFICATION_CATEGORIES.map((cat) => {
+            const count = cat.id === 'all'
+              ? notifications.length
+              : notifications.filter(n => cat.types.includes(n.type)).length;
+            return (
+              <Button
+                key={cat.id}
+                variant={categoryFilter === cat.id ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5 flex-shrink-0"
+                onClick={() => {
+                  setCategoryFilter(cat.id);
+                  setTypeFilter('all');
+                }}
+              >
+                {cat.label}
+                {count > 0 && (
+                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline'} className="text-xs px-1.5 min-w-[1.25rem] h-5">
+                    {count}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
+
         {/* Actions Bar */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
@@ -172,7 +216,10 @@ const NotificationsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
-                {uniqueTypes.map((t) => {
+                {(categoryFilter === 'all' ? uniqueTypes : uniqueTypes.filter(t => {
+                  const cat = NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter);
+                  return cat?.types.includes(t);
+                })).map((t) => {
                   const config = typeConfig[t] || typeConfig.info;
                   return (
                     <SelectItem key={t} value={t}>

@@ -10,7 +10,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -26,10 +26,10 @@ const InvoicesViewPage = () => {
   const queryClient = useQueryClient();
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, noPublishedYears, fiscalYear } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(noPublishedYears ? '__none__' : fiscalYearId);
+  const { data: invoices = [], isLoading, isError } = useInvoicesByFiscalYear(fiscalYearId);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -76,16 +76,6 @@ const InvoicesViewPage = () => {
     }
   };
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الفواتير" icon={FileText} description="عرض جميع فواتير الوقف" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (isError) {
     return (
@@ -102,6 +92,7 @@ const InvoicesViewPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="الفواتير" icon={FileText} description="عرض جميع فواتير الوقف">
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
@@ -241,6 +232,7 @@ const InvoicesViewPage = () => {
         />
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

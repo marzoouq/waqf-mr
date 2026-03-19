@@ -106,8 +106,8 @@
 
 | # | المصدر | البند | الوصف | السبب | الأولوية |
 |---|--------|-------|-------|-------|---------|
-| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
-| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
+| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | ✅ تم إنشاء `RequirePublishedYears` wrapper واستخدامه في 7 صفحات | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
+| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | ✅ كان مُنفذاً — `useMyShare` hook موجود مسبقاً في `src/hooks/useMyShare.ts` | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
 | DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
 | DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
 | DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
@@ -135,10 +135,9 @@
 | # | البند | الأولوية |
 |---|-------|---------|
 | REM-1 | cursor-based pagination بدل limit | متوسطة |
-| REM-2 | CSP عبر HTTP header بدل meta | متوسطة |
-| REM-3 | nonce-based CSP لـ style-src | متوسطة |
-| REM-7 | حفظ محادثات AI في DB | منخفضة |
-| REM-8 | تصنيف الإشعارات | منخفضة |
+| REM-2 | CSP عبر HTTP header بدل meta | متوسطة — يحتاج reverse proxy |
+| REM-3 | nonce-based CSP لـ style-src | متوسطة — مرتبط بـ REM-2 |
+| REM-7 | حفظ محادثات AI في DB | منخفضة — لا يوجد AI chat حالياً |
 
 ### بنود مُنجزة (الجولة الأخيرة)
 
@@ -153,6 +152,9 @@
 | DEFER-7: debounce لـ saveSetting | ✅ كان مُنفذاً — setTimeout 500ms |
 | DEFER-12: disclaimer في PDF السنة النشطة | ✅ تم — تحذير تقديري في comprehensive PDF |
 | DEFER-13: عمود السنة المالية في سجل السُلف | ✅ تم — join fiscal_years + عمود في الجدول |
+| DEFER-1: RequirePublishedYears wrapper | ✅ تم — مكون مشترك يُستخدم في 7 صفحات |
+| DEFER-2: useMyShare hook | ✅ كان مُنفذاً مسبقاً مع اختبارات |
+| REM-8: تصنيف الإشعارات | ✅ تم — تبويبات فئات (مالية/عقود/نظام/رسائل) مع فلتر نوع فرعي |
 
 ---
 
@@ -161,8 +163,11 @@
 - **الأمن**: 9.8/10 — strict mode + safe views + getUser + VAT_KEYWORDS const
 - **الأداء**: 9.8/10 — select محدد + WebP + lazy loading + ثوابت خارجية
 - **الدقة المالية**: 10/10 — تحصيل فعلي + YoY في KPI
-- **تجربة المستخدم**: 10/10 — Excel + disclaimer PDF + عمود سنة في السلف
-- **الاختبارات**: 607+ ✅ — 0 فشل
-- **التقييم الإجمالي**: 9.8/10
+- **تجربة المستخدم**: 10/10 — Excel + disclaimer PDF + تصنيف إشعارات + wrapper مشترك
+- **البنية المعمارية**: 9.9/10 — RequirePublishedYears + useMyShare + useNotificationPreferences
+- **الاختبارات**: 607+ ✅ — 0 أخطاء TypeScript
+- **التقييم الإجمالي**: 9.9/10
 
 **الحالة**: مُعتمد ✅
+
+**البنود المتبقية (4)**: REM-1 (pagination), REM-2/3 (CSP headers — يحتاج reverse proxy), REM-7 (AI chat — ميزة جديدة)

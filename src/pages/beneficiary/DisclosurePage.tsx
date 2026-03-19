@@ -12,7 +12,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,7 +48,7 @@ const DisclosurePage = () => {
   
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -191,16 +191,6 @@ const DisclosurePage = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (finError) {
     return (
@@ -252,6 +242,7 @@ const DisclosurePage = () => {
   }
 
   return (
+    <RequirePublishedYears title="الإفصاح السنوي" icon={FileText}>
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
@@ -544,6 +535,7 @@ const DisclosurePage = () => {
         </Card>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 

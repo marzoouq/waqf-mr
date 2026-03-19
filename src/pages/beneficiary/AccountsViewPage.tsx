@@ -13,7 +13,7 @@ import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
+import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/useMyShare';
 import { safeNumber } from '@/utils/safeNumber';
 
@@ -24,7 +24,7 @@ const AccountsViewPage = () => {
   const navigate = useNavigate();
   
 
-  const { fiscalYearId, fiscalYear: selectedFY, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear: selectedFY } = useFiscalYear();
 
   const {
     beneficiaries,
@@ -55,16 +55,7 @@ const AccountsViewPage = () => {
 
   const { currentBeneficiary, myShare } = useMyShare({ beneficiaries, availableAmount });
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية" />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  
 
   if (finError) {
     return (
@@ -102,6 +93,7 @@ const AccountsViewPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="الحسابات الختامية" icon={Wallet} description="ملخص الأرقام النهائية">
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
@@ -216,6 +208,7 @@ const AccountsViewPage = () => {
         </Card>
       </div>
     </DashboardLayout>
+    </RequirePublishedYears>
   );
 };
 
