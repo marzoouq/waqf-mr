@@ -39,11 +39,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // === الخطوة 1: onAuthStateChange يحدّث user/session فقط (بدون await) ===
+  // إصلاح Lock warning: إزالة getSession() المتوازي والاعتماد على INITIAL_SESSION فقط
+  // إضافة حارس isMounted لمنع تحديث الحالة بعد unmount في StrictMode
   useEffect(() => {
-    let initialSessionHandled = false;
+    let isMounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        if (!isMounted) return;
+
         const newUserId = currentSession?.user?.id ?? null;
 
         // حماية ضد الأحداث المتكررة لنفس المستخدم (INITIAL_SESSION + SIGNED_IN)
@@ -63,24 +67,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           lastUserIdRef.current = null;
         }
         setAuthReady(true);
-        initialSessionHandled = true;
       }
     );
 
-    // Fallback: getSession for initial load
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (!initialSessionHandled) {
-        logger.info('[Auth] getSession fallback used');
-        setSession(s);
-        setUser(s?.user ?? null);
-        if (!s?.user) {
-          setLoading(false);
-        }
-        setAuthReady(true);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [setRoleWithRef]);
 
   // === الخطوة 2: useEffect منفصل لجلب الدور عند تغيّر user ===
