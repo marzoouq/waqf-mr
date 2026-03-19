@@ -14,6 +14,6 @@ export function sanitizeDiagnosticOutput(text: string): string {
     .replace(JWT_RE, '[JWT]')
     .replace(EMAIL_RE, '[EMAIL]')
     .replace(UUID_RE, '[UUID]')
-    .replace(PHONE_RE, '[PHONE]')
-    .replace(NATIONAL_ID_RE, '[NATIONAL_ID]');
+    .replace(NATIONAL_ID_RE, '[NATIONAL_ID]')
+    .replace(PHONE_RE, '[PHONE]');
 }
