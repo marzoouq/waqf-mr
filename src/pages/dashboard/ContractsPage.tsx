@@ -405,14 +405,11 @@ const ContractsPage = () => {
           </>}
         />
 
-        <Tabs defaultValue="contracts" onValueChange={() => {}} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           {/* Select للجوال */}
           <NativeSelect
-            value="contracts"
-            onValueChange={(v) => {
-              const el = document.querySelector(`[data-state][value="${v}"]`) as HTMLElement;
-              el?.click();
-            }}
+            value={activeTab}
+            onValueChange={setActiveTab}
             options={[
               { value: 'contracts', label: 'العقود' },
               { value: 'accruals', label: 'الاستحقاقات الشهرية' },
