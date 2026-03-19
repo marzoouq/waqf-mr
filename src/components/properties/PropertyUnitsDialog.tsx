@@ -503,6 +503,35 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                     <p className="text-sm font-medium">{tenant.end_date}</p>
                                   </div>
                                 </div>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">المستأجر</p>
+                                    <p className="text-sm font-medium">{tenant.name}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">الإيجار السنوي</p>
+                                    <p className="text-sm font-medium">{fmt(tenant.rent_amount)} ريال</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">الإيجار الشهري</p>
+                                    <p className="text-sm font-medium">
+                                      {fmtInt((() => {
+                                        const rent = safeNumber(tenant.rent_amount);
+                                        if (tenant.payment_type === 'monthly') return safeNumber(tenant.payment_amount) || rent / 12;
+                                        if (tenant.payment_type === 'multi') return safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1);
+                                        return rent / 12;
+                                      })())} ريال
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">بداية العقد</p>
+                                    <p className="text-sm font-medium">{tenant.start_date}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[11px] text-muted-foreground">نهاية العقد</p>
+                                    <p className="text-sm font-medium">{tenant.end_date}</p>
+                                  </div>
+                                </div>
                                 <div className="flex items-center gap-2 pt-1">
                                   <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
                                     onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
@@ -530,6 +559,13 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                   </Button>
                                   <Progress value={progressPercent} className={`flex-1 h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                                 </div>
+                                {/* حالة التحصيل */}
+                                {tenant.status === 'active' && (() => {
+                                  const ps = getPaymentStatus(tenant, paid);
+                                  return ps.status === 'ontime'
+                                    ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20 w-fit">منتظم</Badge>
+                                    : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20 w-fit">متأخر ({ps.overdueCount} دفعة)</Badge>;
+                                })()}
                               </>
                             ) : (
                               <p className="text-xs text-muted-foreground text-center py-2">لا يوجد مستأجر</p>
