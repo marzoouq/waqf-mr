@@ -33,7 +33,7 @@ export const useContractsByFiscalYear = (fiscalYearId: string | 'all') => {
     queryFn: async () => {
       let query = supabase
         .from('contracts')
-        .select('*, property:properties(*), unit:units(*)')
+        .select(CONTRACT_SELECT_WITH_JOINS)
         .order('start_date', { ascending: false });
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId);
