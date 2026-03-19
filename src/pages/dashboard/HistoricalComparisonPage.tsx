@@ -239,7 +239,7 @@ function HistoricalComparisonPage() {
                           <TableRow>
                             <TableHead className="text-right">المؤشر</TableHead>
                             {selectedYears.map((fy, i) => (
-                              <TableHead key={fy.id} className="text-center" style={{ color: YEAR_COLORS[i] }}>
+                            <TableHead key={fy.id} className="text-center" style={{ color: ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'][i] }}>
                                 {fy.label}
                               </TableHead>
                             ))}
