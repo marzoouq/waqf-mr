@@ -300,54 +300,21 @@ const WaqifDashboard = () => {
         </div>
 
         {/* ═══ Charts ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Monthly Income vs Expenses */}
-          {monthlyData.length > 0 && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الدخل والمصروفات الشهرية</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => fmt(v)} />
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right', fontFamily: 'inherit' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} labelFormatter={formatArabicMonth} />
-                      <Bar dataKey="income" name="الدخل" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="expenses" name="المصروفات" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Expense Distribution */}
-          {expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0 && (
-            <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><TrendingDown className="w-5 h-5" /> توزيع المصروفات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
-                        cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" startAngle={90} endAngle={-270} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                      >
-                        {Object.keys(expensesByTypeExcludingVat).map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                      </Pie>
-                      <Tooltip contentStyle={{ direction: 'rtl', textAlign: 'right' }} formatter={(v: number | undefined) => fmt(v ?? 0) + ' ر.س'} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-lg" />}>
+                <LazyWaqifCharts
+                  monthlyData={monthlyData}
+                  expenseData={Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }))}
+                />
+              </Suspense>
+            </CardContent>
+          </Card>
+        )}
 
         {/* ═══ Quick Links ═══ */}
         <div>

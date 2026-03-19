@@ -16,24 +16,9 @@ import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import { useMyShare } from '@/hooks/useMyShare';
 import { fmt } from '@/utils/format';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const COLORS = [
-  'hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))',
-  'hsl(var(--warning))', 'hsl(var(--chart-4))', 'hsl(var(--primary))',
-];
-
-const formatArabicMonth = (month: unknown) => {
-  const arabicMonths: Record<string, string> = {
-    '01': 'يناير', '02': 'فبراير', '03': 'مارس', '04': 'أبريل',
-    '05': 'مايو', '06': 'يونيو', '07': 'يوليو', '08': 'أغسطس',
-    '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر',
-  };
-  const s = String(month ?? '');
-  const parts = s.split('-');
-  return arabicMonths[parts[1]] || s;
-};
-
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+const LazyFinancialCharts = lazy(() => import('@/components/financial/FinancialChartsInner'));
 
 const FinancialReportsPage = () => {
   const queryClient = useQueryClient();
