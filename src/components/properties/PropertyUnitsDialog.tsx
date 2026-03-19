@@ -662,7 +662,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                               <TableCell>
                                 {!tenant ? <span className="text-muted-foreground">-</span> : (
                                   <span className="font-medium">
-                                    {(() => {
+                                    {fmtInt((() => {
                                       const rent = safeNumber(tenant.rent_amount);
                                       if (tenant.payment_type === 'monthly') return (safeNumber(tenant.payment_amount) || rent / 12);
                                       if (tenant.payment_type === 'multi') return (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1));
