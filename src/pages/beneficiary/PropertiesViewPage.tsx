@@ -28,7 +28,7 @@ import { fmt, fmtInt } from '@/utils/format';
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId, noPublishedYears } = useFiscalYear();
+  const { fiscalYearId } = useFiscalYear();
   const isSpecificYear = fiscalYearId !== 'all';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
