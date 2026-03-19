@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
-import { Users, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Lock, Unlock, AlertTriangle, Search, Link2 } from 'lucide-react';
+import { Users, Edit, Trash2, CheckCircle, XCircle, Key, Mail, Shield, UserPlus, Lock, Unlock, AlertTriangle, Search, Link2, Eye, EyeOff } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -51,6 +51,7 @@ const UserManagementPage = () => {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
   const [passwordDialog, setPasswordDialog] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [createForm, setCreateForm] = useState({ email: '', password: '', role: 'beneficiary', nationalId: '', name: '' });
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
@@ -792,32 +793,56 @@ const UserManagementPage = () => {
         </Dialog>
 
         {/* Password Dialog */}
-        <Dialog open={!!passwordDialog} onOpenChange={(open) => { if (!open) { setPasswordDialog(null); setNewPassword(''); } }}>
+        <Dialog open={!!passwordDialog} onOpenChange={(open) => { if (!open) { setPasswordDialog(null); setNewPassword(''); setShowPassword(false); } }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>تغيير كلمة المرور</DialogTitle>
-              <DialogDescription className="sr-only">إدخال كلمة مرور جديدة للمستخدم</DialogDescription>
+              <DialogDescription>أدخل كلمة مرور جديدة قوية للمستخدم</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="change-user-password">كلمة المرور الجديدة</Label>
-                <Input
-                  id="change-user-password"
-                  name="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••"
-                  dir="ltr"
-                  minLength={8}
-                />
+                <div className="relative">
+                  <Input
+                    id="change-user-password"
+                    name="new-password"
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                    dir="ltr"
+                    minLength={8}
+                    className="pl-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {/* متطلبات كلمة المرور */}
+                <div className="text-xs space-y-1 mt-1">
+                  <p className={newPassword.length >= 8 ? 'text-success' : 'text-muted-foreground'}>
+                    • 8 أحرف على الأقل {newPassword.length >= 8 && '✓'}
+                  </p>
+                  <p className={/[A-Za-z]/.test(newPassword) && /\d/.test(newPassword) ? 'text-success' : 'text-muted-foreground'}>
+                    • أحرف وأرقام معاً {/[A-Za-z]/.test(newPassword) && /\d/.test(newPassword) && '✓'}
+                  </p>
+                  <p className="text-muted-foreground">
+                    • تجنّب كلمات المرور الشائعة (مثل 12345678)
+                  </p>
+                </div>
               </div>
               <Button
                 className="w-full"
                 onClick={() => passwordDialog && newPassword && updatePassword.mutate({ userId: passwordDialog, password: newPassword })}
                 disabled={updatePassword.isPending || newPassword.length < 8}
               >
-                {updatePassword.isPending ? 'جاري التحديث...' : 'تحديث كلمة المرور'}
+                {updatePassword.isPending ? 'جاري التحديث والتحقق...' : 'تحديث كلمة المرور'}
               </Button>
             </div>
           </DialogContent>

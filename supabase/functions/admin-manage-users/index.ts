@@ -147,9 +147,54 @@ Deno.serve(async (req) => {
         validateUuid(userId);
         validatePassword(password);
         if (!userId || !password) throw new Error("userId and password required");
-        const { error } = await adminClient.auth.admin.updateUserById(userId, { password });
-        if (error) throw error;
-        return new Response(JSON.stringify({ success: true }), {
+
+        // 1) تحديث كلمة المرور
+        const { data: updResult, error: updError } = await adminClient.auth.admin.updateUserById(userId, { password });
+        if (updError) {
+          console.error("updateUserById error:", JSON.stringify(updError));
+          // رسالة واضحة إذا رُفضت كلمة المرور
+          if (updError.message?.includes("banned") || updError.message?.includes("pwned") || updError.message?.includes("compromised")) {
+            throw new Error("كلمة المرور مرفوضة لأنها شائعة أو مُسربة — اختر كلمة مرور أقوى");
+          }
+          throw updError;
+        }
+        console.log("updateUserById success for user:", userId);
+
+        // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
+        const userEmail = updResult?.user?.email;
+        if (userEmail) {
+          const verifyRes = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": anonKey,
+            },
+            body: JSON.stringify({ email: userEmail, password }),
+          });
+
+          if (!verifyRes.ok) {
+            const verifyBody = await verifyRes.text();
+            console.error("Password verify login FAILED:", verifyRes.status, verifyBody);
+            // كلمة المرور لم تتغير فعلياً
+            throw new Error("فشل تحديث كلمة المرور — قد تكون كلمة المرور مرفوضة من نظام الحماية. جرّب كلمة مرور أطول وأكثر تعقيداً");
+          }
+
+          // تسجيل خروج فوري للجلسة التجريبية
+          const verifyData = await verifyRes.json();
+          if (verifyData.access_token) {
+            await fetch(`${supabaseUrl}/auth/v1/logout`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": anonKey,
+                "Authorization": `Bearer ${verifyData.access_token}`,
+              },
+            }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
+          }
+          console.log("Password verify login SUCCESS for:", userEmail);
+        }
+
+        return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -416,7 +461,7 @@ Deno.serve(async (req) => {
       "Maximum 50 users at a time": "الحد الأقصى 50 مستخدماً في المرة",
     };
     const safeMsg = safeMessages[msg]
-      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") ? msg : "حدث خطأ في العملية");
+      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") || msg.startsWith("فشل تحديث كلمة") ? msg : "حدث خطأ في العملية");
     return new Response(JSON.stringify({ error: safeMsg }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
