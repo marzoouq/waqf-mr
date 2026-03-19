@@ -109,10 +109,12 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // — مكتبات أساسية —
+          // — React core —
           if (id.includes('node_modules/react-dom')) return 'vendor-react';
-          if (id.includes('node_modules/react-router')) return 'vendor-react';
           if (id.includes('node_modules/react/')) return 'vendor-react';
+
+          // — Router (منفصل لأنه أكبر) —
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/turbo-stream') || id.includes('node_modules/@remix-run/')) return 'vendor-router';
 
           // — Radix UI —
           if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
