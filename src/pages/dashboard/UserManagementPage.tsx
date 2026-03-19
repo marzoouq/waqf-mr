@@ -488,7 +488,7 @@ const UserManagementPage = () => {
                                   مفعل
                                 </Badge>
                               ) : (
-                                <Badge className="bg-destructive/20 text-destructive gap-1 text-[10px]">
+                                <Badge className="bg-destructive/20 text-destructive gap-1 text-xs">
                                   <XCircle className="w-3 h-3" />
                                   غير مفعل
                                 </Badge>
