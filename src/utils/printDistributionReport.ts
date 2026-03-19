@@ -2,6 +2,7 @@
  * طباعة تقرير التوزيع الشامل مباشرة من المتصفح بتنسيق رسمي
  */
 import { toast } from 'sonner';
+import { fmt } from '@/utils/format';
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
