@@ -80,7 +80,7 @@ const ArchiveLogTab = () => {
               <Archive className="w-4 h-4" />إجمالي السجلات المؤرشفة
             </CardTitle>
           </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
+          <CardContent><p className="text-xl sm:text-2xl font-bold">{totalCount}</p></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
