@@ -43,7 +43,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('expense_budgets')
-        .select('*')
+        .select('id, fiscal_year_id, expense_type, budget_amount, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId);
       if (error) throw error;
       return (data || []) as BudgetRow[];

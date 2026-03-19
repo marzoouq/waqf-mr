@@ -64,7 +64,7 @@ const ZatcaOperationsLog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('zatca_operation_log')
-        .select('*')
+        .select('id, operation_type, invoice_id, status, error_message, request_summary, response_summary, user_id, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
