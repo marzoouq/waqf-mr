@@ -242,6 +242,7 @@ const DisclosurePage = () => {
   }
 
   return (
+    <RequirePublishedYears title="الإفصاح السنوي" icon={FileText}>
     <DashboardLayout>
       <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
         <PageHeaderCard
