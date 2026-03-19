@@ -691,7 +691,7 @@ const ReportsPage = () => {
               fiscalYearLabel={fiscalYear?.label}
             />
           </TabsContent>
-        </Tabs>
+        </ResponsiveTabs>
       </div>
     </DashboardLayout>
   );

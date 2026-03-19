@@ -395,7 +395,7 @@ const BeneficiarySettingsPage = () => {
           <TabsContent value="theme">
             <ThemeColorPicker />
           </TabsContent>
-        </Tabs>
+        </ResponsiveTabs>
       </div>
     </DashboardLayout>
   );
