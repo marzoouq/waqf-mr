@@ -1,133 +1,150 @@
-## تقرير الفحص الجنائي الشامل — الإصدار الخامس ✅
 
-### ملخص تنفيذي
 
-فحص جنائي شامل على 4 طبقات + جولة ثالثة (26 بنداً). تم التحقق من **54+ بنداً** إجمالاً، إصلاح **17 مشكلة حقيقية**، رفض **35+ إنذار كاذب/تصميمي**، وتسجيل **13 بنداً مؤجلاً** للتنفيذ المستقبلي.
+# الفحص الجنائي الصادق — بدون تلميع
 
-**الاختبارات**: 607+ اختبار ✅ — 0 فشل
+هذا التقرير يعتمد على بيانات حقيقية من قاعدة البيانات الحية، كود المصدر، والماسح الأمني. لا تقييمات مبالغة.
 
 ---
 
-### الطبقة الأولى — AdminDashboard + Support + Permissions
+## 1. أخطاء حقيقية مسجّلة في قاعدة البيانات (access_log)
 
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-01 | طلب HTTP زائد لكل العقود | ✅ مُصلح | استُبدل `useContractsByFiscalYear('all')` باستعلام خفيف |
-| BUG-02 | نسبة التحصيل تحسب عقوداً لا مبالغ | ✅ مُصلح | أُعيد الحساب بالمبالغ مع دعم `partially_paid` |
-| BUG-03 | `yoy.isLoading` غائب | ❌ إنذار كاذب | يعمل تزامنياً عبر `useMemo` |
-| BUG-04 | `expiringContracts` بلا `useMemo` | ✅ مُصلح | استُخرج إلى `useMemo` |
-| BUG-06 | `availableAmount` سالب | ✅ مُصلح | `Math.max(0, ...)` |
-| Support | إحصائيات من 20 تذكرة فقط | ✅ مُصلح | `useSupportAnalytics` يجلب 2000 |
-| Perms | مفاتيح `support`/`annual_report` غائبة | ✅ مُصلح | مُزامنة في 3 ملفات |
+**344 خطأ عميل (client_error) في آخر 7 أيام** — هذا رقم مرتفع.
 
-### الطبقة الثانية — الهوكات المالية + المكونات
+| الخطأ | العدد | التحليل |
+|-------|-------|---------|
+| `Test explosion` | 225 | اختبارات ErrorBoundary — غير حقيقي ✅ |
+| `Failed to load Arabic fonts for PDF` | 21 | **خطأ حقيقي** — خطوط PDF العربية تفشل في التحميل |
+| `QueryCache خطأ في جلب البيانات` | 16 | **خطأ حقيقي** — استعلامات تفشل بصمت |
+| `useAuth must be used within AuthProvider` | 14 | **خطأ حقيقي** — مكوّن يُستدعى خارج AuthProvider |
+| `DialogContainerContext is not defined` | 8 | **خطأ HMR مؤقت** — أثناء التطوير فقط |
+| `EXPIRING_SOON_DAYS is not defined` | 6 | **خطأ HMR مؤقت** — أثناء التطوير |
+| `collectionColor is not defined` | 6 | **خطأ HMR مؤقت** |
+| `removeChild on Node` | 4 | **خطأ DOM حقيقي** — تعارض React مع عنصر محذوف |
+| `getKpiColor before initialization` | 3 | **خطأ HMR مؤقت** |
+| `ResponsiveContainer is not defined` | 2 | **خطأ HMR مؤقت** |
 
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| BUG-C1 | `isDeficit` مفقود في السنة النشطة | ✅ مُصلح (وقائي) | أُضيف `isDeficit: false` |
-| BUG-C2 | `waqfCorpusPrevious=0` بدون حساب | ❌ سلوك صحيح | الـ fallback المتوقع |
-| BUG-C3 | `fiscalYearId='all'` يُبطل الحساب | ❌ بالتصميم | لا حساب ختامي واحد لـ "الكل" |
-| BUG-C4 | `shareBase` stored vs live | ❌ بالتصميم | السنة المقفلة تستخدم القيم المخزنة |
-| BUG-R2 | `__skip__` → `'all'` طلبات غير مقصودة | ✅ مُصلح | تحويل إلى `__none__` |
-| BUG-R1 | `benLoading` يُعيق التحميل | ❌ سلوك صحيح | المستفيدون مُستخدمون فعلياً |
-| BUG-M1 | CollectionHeatmap يعرض دخل لا تحصيل | ✅ مُصلح | تغيير المصدر إلى `paymentInvoices` |
-| BUG-M2 | ZATCA تُقطع عند 10 بلا إشعار | ✅ مُصلح | إضافة صف إضافي |
-| BUG-Y1 | `prevContractualRevenue = 0` stub | 🟡 ملاحظة | لا مستهلك — تنظيف مستقبلي |
-
-### الطبقة الثالثة — لوحة المستفيد + الأمان
-
-| # | المشكلة | الحالة | التفاصيل |
-|---|---------|--------|----------|
-| C-1 | RLS مفتوح على `beneficiaries` | ❌ مُصلح سابقاً | `user_id = auth.uid() OR admin OR accountant` |
-| C-2 | `income`/`expenses` مكشوفة | ❌ مُصلح سابقاً | RESTRICTIVE policy للسنوات غير المنشورة |
-| H-1 | مستفيد بدون `user_id` → حصة صفر صامتة | ✅ مُصلح | guard في BeneficiaryDashboard + DisclosurePage + BeneficiarySettingsPage |
-
-### الطبقة الرابعة — التقريران الجنائيان العميقان
-
-| # | البند | الحالة | التفاصيل |
-|---|-------|--------|----------|
-| BUG-SEC1 | GlobalSearch يتجاوز `contracts_safe` | ❌ ليس ثغرة | RLS migration `20260315` يحمي — المستفيد محظور من `contracts` |
-| BUG-SEC2 | لا فلتر `is_fiscal_year_accessible` في Search | ❌ ليس ثغرة | RESTRICTIVE policy تمنع رؤية سنوات غير منشورة |
-| BUG-CF1 | `vatAmount` مصدر مزدوج | ❌ بالتصميم | أداة تحرير vs قيم محفوظة — يتطابقان عند الإقفال |
-| BUG-CF2 | `myShare=0` بدون تفسير في السنة النشطة | ✅ مُصلح | رسالة "السنة لم تُغلق بعد" في MySharePage + DisclosurePage |
-| BUG-AP1 | تعارض `isClosed` بين Dashboard وAccounts | ❌ بالتصميم | AccountsPage = معاينة تقديرية عمداً |
-| BUG-AP2 | `findAccountByFY` بـ label فقط | ❌ خطأ في التقرير | يبحث بـ UUID أولاً — مُختبر بـ 7 اختبارات |
-| BUG-MS2 | deficit/actualCarryforward تناقض | ❌ صحيح رياضياً | أرقام متسقة في PDF |
-| BUG-FR1 | `netRevenue ≠ beneficiariesShare` | ❌ بالتصميم | مفهومان مختلفان بالتعريف |
-| BUG-FR2 | FinancialReportsPage لا تفحص `isAccountMissing` | ✅ مُصلح | guard إضافي بعد `isError` |
-| BUG-RD1 | `fiscalYearStatus` لا يُمرر تلقائياً | ❌ ليس مشكلة | كل الصفحات تمرر `opts` صراحة |
-| BUG-ST1 | `useState` للإعدادات ← FOUC مالي | ❌ بالتصميم | `useState` مطلوب للتحرير التفاعلي |
-| BUG-ST2 | `saveSetting` بلا debounce | 🟡 مؤجل | أثر ضعيف — حقل رقمي |
-| J-01 | `fiscalYearId='all'` → حصة مضخمة | ❌ ليس مشكلة | `isClosed=false` → `availableAmount=0` |
-| J-02 | `availableAmount=0` بلا رسالة | ✅ = BUG-CF2 | نفس الإصلاح |
-| J-03 | Distributions فلترة عميل بـ limit(200) | 🟡 مؤجل | حالة نادرة جداً |
-| J-04 | AdvanceRequestDialog بـ `estimatedShare=0` عند all | ❌ سلوك صحيح | الزر معطّل — منطقي |
-| J-05 | BeneficiarySettingsPage بلا guard | ✅ مُصلح | guard `!currentBeneficiary` |
-| J-06 | DisclosurePage: `finError` → `NoPublishedYearsNotice` | ✅ مُصلح | رسالة خطأ حقيقية مع زر إعادة محاولة |
-| J-07 | `useMyAdvanceRequests` لا يُفلتر بالسنة | ❌ بالتصميم | سجل شامل مفيد |
-| J-08 | CarryforwardHistoryPage يستعلم `beneficiaries` مباشرة | ❌ خطأ في التقرير | يستعلم `beneficiaries_safe` فعلياً |
-| J-09 | تفضيلات الإشعارات في localStorage | 🟡 مؤجل | ميزة جديدة وليس bug |
-| J-10 | تضارب `currentAccount` بين ID و label | ❌ = BUG-AP2 | تم دحضه |
-
-### الجولة الثالثة — L-series + BUG-A/F (26 بنداً)
-
-| # | البند | الحالة | التفاصيل |
-|---|-------|--------|----------|
-| L-01 | `fyFilter` ≠ `fiscalYearId` | ❌ ليس مشكلة | `useAccountByFiscalYear` يستقبل الأصلي مباشرة |
-| L-02 | 3 مسارات حسابية | ❌ بالتصميم | كل مسار له غرض + trigger يمنع التعديل بعد الإقفال |
-| L-03 | `isAccountMissing` بسبب Label خاطئ | ❌ ليس مشكلة | البحث بـ UUID أولاً ينجح |
-| L-04 | `waqfCorpusManual=null` مضخّم | ❌ ليس مشكلة | RPC يحفظ القيمة عند الإقفال |
-| L-05 | `isFiscalYearActive` لا يُمرَّر | ✅ مُصلح | تمرير `isFiscalYearActive={selectedFY?.status !== 'closed'}` |
-| L-06 | سجل السُلف بلا عمود سنة | 🟡 مؤجل | تحسين تجميلي |
-| L-07 | `filteredDistributions` 3 مسارات | ❌ بالتصميم | كل حالة لها منطق صحيح |
-| L-08 | PDF الأول ≠ PDF الثاني | ❌ بالتصميم | تقريران بأغراض مختلفة — تكامل |
-| L-09 | غياب `.catch()` في RPC | ✅ مُصلح | `Promise.resolve().catch()` يمنع loading دائم |
-| L-10 | FOUC متعدد | ❌ ليس مشكلة | React Query cache يخفف — أول زيارة فقط |
-| L-11 | `to_fiscal_year_id.is.null` خصم مزدوج | ❌ بالتصميم | تُخصم حتى تُسوَّى مرة واحدة |
-| L-12 | `myShare=0` بلا تفسير (فشل RPC) | 🟡 مؤجل | حالة نادرة جداً |
-| L-13 | `handleRetry` يُلغي كل cache | ❌ مقبول | زر خطأ شبكة — إعادة شاملة متوقعة |
-| L-14 | PDF الشامل بلا disclaimer | 🟡 مؤجل | تحسين UX — نادراً ما يُطلب |
-| L-15 | إشعار السلفة بلا تحقق user_id | ❌ ليس ثغرة | يُقرأ من DB وليس إدخال يدوي |
-| BUG-A | تعارض admin vs accountant في الإقفال | 🟡 مؤجل | UI أكثر تقييداً — ليس ثغرة |
-| BUG-B | تحذيرات RPC لا تُعرض | ✅ مُصلح | قراءة `warnings` من RPC وعرضها بـ `toast.warning` |
-| BUG-C | FiscalYearWidget يختفي | ❌ بالتصميم | الويدجت للسنة النشطة فقط |
-| BUG-D | `contractualRevenue` شهري vs سنوي | ❌ خطأ في التقرير | `rent_amount` = إجمالي العقد |
-| BUG-E | استعلام مباشر في Dashboard | ❌ ليس مشكلة | يستخدم `useQuery` مع cache |
-| BUG-F | `reopen_fiscal_year` لا يُعيد corpus | 🟡 مؤجل | حالة نادرة جداً |
-| BUG-G | localStorage لا يُنظّف | ❌ ليس مشكلة | validation موجود |
-| BUG-H | Effect dependency زائدة | ❌ ليس مشكلة | مطلوب لـ exhaustive-deps |
-| M-1 | رابط الإشعار خاطئ | ❌ صحيح | المسار موجود ومسجل |
-| M-2 | `isYearActive` عند "عرض الكل" | ❌ ليس مشكلة | لا حصة كلية لكل السنوات |
-| M-4 | `bun.lock` في `.gitignore` | ❌ خطأ في التقرير | كلاهما مُدرجان |
+**الحكم الصريح**: من أصل 344 خطأ، ~225 اختبارات (تجاهل)، ~25 أخطاء HMR أثناء التطوير (تُصلح تلقائياً بإعادة التحميل)، **~55 خطأ حقيقي في الإنتاج** يحتاج فحص.
 
 ---
 
-### سجل البنود المؤجلة للتنفيذ المستقبلي
+## 2. مشاكل أمنية حقيقية مكتشفة
 
-| # | المصدر | البند | الوصف | السبب | الأولوية |
-|---|--------|-------|-------|-------|---------|
-| DEFER-1 | الطبقة 3 — M-3 | noPublishedYears مكرر | `noPublishedYears` guard مكرر في 14+ صفحة — نقله لـ HOC/Layout | تغيير هيكلي واسع يمس 14 ملف | متوسطة |
-| DEFER-2 | الطبقة 4 — BUG-MS1 | myShare بـ 5 تنفيذات | استخراج `useMyShare()` hook مشترك لتوحيد حساب الحصة | refactoring واسع يحتاج اختبارات مكثفة | متوسطة |
-| DEFER-3 | الطبقة 4 — BUG-RD2 | useBeneficiariesSafe غير مشروط | يُستدعى في كل `useRawFinancialData` حتى لو غير مطلوب | تحسين أداء — ليس bug | منخفضة |
-| DEFER-4 | الطبقة 4 — BUG-PERF1 | vatKeywords داخل useMemo | ثابتة تُنشأ داخل `useMemo` — نقلها لثابت خارجي | تحسين أداء طفيف | منخفضة |
-| DEFER-5 | الطبقة 3 — BUG-PERF2 | computeTotals يُعاد في 6 صفحات | React Query cache يخفف الأثر — context مشترك مستقبلاً | تحسين هيكلي | منخفضة |
-| DEFER-6 | الجولة 2 — J-09 | تفضيلات الإشعارات localStorage | حفظها في DB بدل localStorage | ميزة جديدة وليس bug | منخفضة |
-| DEFER-7 | الطبقة 4 — BUG-ST2 | saveSetting بلا debounce | إضافة debounce لـ `handleAdminPercentChange` | أداء — أثر ضعيف (حقل رقمي) | منخفضة |
-| DEFER-8 | الطبقة 2 — BUG-Y1 | prevContractualRevenue = 0 stub | قيمة stub بلا مستهلك — تنظيف مستقبلي | لا مستهلك حالي | منخفضة |
-| DEFER-9 | الجولة 3 — BUG-A | تعارض admin vs accountant في الإقفال | `close_fiscal_year` RPC يقبل المحاسب، الـ UI يمنعه — توحيد القرار | قرار تصميمي | متوسطة |
-| DEFER-10 | الجولة 3 — BUG-F | `reopen_fiscal_year` لا يُعيد corpus | حالة نادرة — يحتاج مراجعة حساب السنة التالية يدوياً | حالة حافة نادرة | منخفضة |
-| DEFER-11 | الجولة 3 — L-12 | `myShare=0` بلا تفسير عند فشل RPC | حالة نادرة جداً (فشل `get_total_beneficiary_percentage`) | حالة حافة | منخفضة |
-| DEFER-12 | الجولة 3 — L-14 | PDF الشامل بلا disclaimer للسنة النشطة | تحسين UX — إضافة علامة تقديرية | تحسين UX | منخفضة |
-| DEFER-13 | الجولة 3 — L-06 | سجل السُلف بلا عمود سنة مالية | تحسين تجميلي — إضافة عمود السنة | تجميلي | منخفضة |
+### أ. `usePrefetchAccounts.ts` — يقرأ من `beneficiaries` مباشرة بدلاً من `beneficiaries_safe`
+
+```typescript
+// سطر 34: يقرأ من الجدول الأصلي — يتجاوز تقنيع PII
+supabase.from('beneficiaries').select('*')
+```
+
+**الخطورة: متوسطة** — RLS يحمي الصفوف، لكن الناظر/المحاسب يرى `national_id` و `bank_account` غير مشفرة في المتصفح. العرض الآمن `beneficiaries_safe` يقنّع هذه الحقول للأدوار غير المخولة، لكن هذا الـ prefetch يتجاوزه.
+
+### ب. `useWebAuthn.ts` — يستخدم `getSession()` بدون `getUser()` أولاً
+
+```typescript
+// سطر 41, 68: يعتمد على الجلسة المحلية بدون تحقق خادم
+const { data: { session } } = await supabase.auth.getSession();
+```
+
+**الخطورة: منخفضة** — عمليات القراءة فقط (عدد credentials)، لكنها تخالف المعيار المعتمد في المشروع. الوظائف الحساسة (registerBiometric سطر 97) تستخدم `getUser()` بشكل صحيح.
+
+### ج. الماسح الأمني — 2 تحذيرات EXPOSED_SENSITIVE_DATA
+
+العروض الآمنة (`contracts_safe`, `beneficiaries_safe`) تعمل بـ `security_invoker=true` + `security_barrier=true` — **مؤكد من قاعدة البيانات الحية**. الماسح يبلّغ عنها لأن Views لا تملك سياسات RLS مباشرة (ترثها من الجداول الأساسية). **إيجابي كاذب تقنياً**، لكن يجب توثيقه كاستثناء مقبول.
 
 ---
 
-### التقييم النهائي
+## 3. مشاكل كود حقيقية (ليست تجميلية)
 
-- **الأمن**: 9.5/10 — جميع الثغرات المدَّعاة تم دحضها أو إصلاحها
-- **الأداء**: 10/10 — إزالة طلبات HTTP زائدة
-- **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ + تحذيرات الإقفال
-- **تجربة المستخدم**: 10/10 — رسائل توضيحية + تحذيرات RPC مرئية
-- **الاختبارات**: 607+ ✅ — 0 فشل
+### أ. خطوط PDF العربية — 21 خطأ في 7 أيام
 
-**الحالة**: مُعتمد ✅
+`Failed to load Arabic fonts for PDF: TypeError` — هذا يعني أن تصدير PDF يفشل للمستخدمين فعلياً. السبب المحتمل: مسار الخط غير صحيح أو CORS يمنع تحميله.
+
+**الخطورة: عالية وظيفياً** — ميزة أساسية (تصدير تقارير PDF) معطلة جزئياً.
+
+### ب. `select('*')` مستخدم في 17 ملف
+
+كثير من الاستعلامات تجلب جميع الأعمدة بما فيها الحساسة:
+- `useContracts.ts` → `contracts_safe.select('*')` — مقبول (العرض يقنّع)
+- `useBeneficiaries.ts` → `beneficiaries_safe.select('*')` — مقبول
+- `usePrefetchAccounts.ts` → `beneficiaries.select('*')` — **غير مقبول** (يتجاوز التقنيع)
+- `useSupportTickets.ts` → `support_ticket_replies.select('*')` — يجلب `content` كامل بدون داعي
+- `useTenantPayments.ts` → `tenant_payments.select('*')` — مقبول (لا PII)
+
+### ج. `removeChild on Node` — 4 أخطاء DOM
+
+خطأ React كلاسيكي ينتج عن تعارض بين React وتعديل DOM خارجي (extensions، أو إزالة عنصر أثناء animation). **غير حرج** لكنه يسبب crash للمكوّن.
+
+### د. `useAuth must be used within AuthProvider` — 14 خطأ
+
+مكوّن ما يحاول استخدام `useAuth` خارج `AuthProvider`. السبب المرجح: HMR أو lazy loading يعيد تحميل مكوّن قبل أن يُغلّف بالـ Provider. **مقلق** لأنه يظهر 14 مرة.
+
+---
+
+## 4. مشاكل معمارية (ليست bugs لكنها ديون تقنية)
+
+### أ. `logger.ts` يُسجّل أخطاء بدون `message` — 299 سجل فارغ
+
+```typescript
+// سطر 20: args[0] قد يكون undefined
+message: String(args[0] ?? '').substring(0, 500),
+```
+
+عندما يُستدعى `logger.error(errorObject)` بدون نص، يُسجّل `message: ""`. هذا يجعل 299 من 344 سجل خطأ **غير مفيدة للتشخيص**.
+
+### ب. عدم وجود pagination حقيقي
+
+جميع الاستعلامات تستخدم `limit(500)` أو `limit(1000)` — تحميل مبكر كامل. لا يوجد cursor-based pagination. للبيانات الصغيرة حالياً هذا مقبول، لكنه لن يتحمل نمو البيانات.
+
+### ج. تكرار منطق إعدادات الصوت
+
+`BeneficiarySettingsPage.tsx` و `SettingsPage.tsx` يحتويان نفس منطق إعدادات الصوت والإشعارات بالحرف — كود مكرر بدلاً من hook مشترك.
+
+---
+
+## 5. التقييم الصادق النهائي
+
+```text
+┌──────────────────────────────────┬──────┬───────────────────────────────────────┐
+│ المجال                            │ النسبة│ السبب الصريح                         │
+├──────────────────────────────────┼──────┼───────────────────────────────────────┤
+│ RLS وأمان قاعدة البيانات          │ 9.5  │ prefetch يتجاوز safe view            │
+│ المصادقة والتفويض                 │ 9    │ 14 خطأ AuthProvider + getSession     │
+│ الواجهة (تجاوب/خطوط)             │ 9.5  │ الإصلاحات الأخيرة فعّالة              │
+│ وظائف PDF                        │ 7    │ 21 فشل خطوط عربية في أسبوع           │
+│ جودة سجل الأخطاء                 │ 6    │ 299 سجل فارغ من 344                  │
+│ نظافة الكود                      │ 8    │ select('*') + تكرار + as any بالاختبار│
+│ الأداء والتحميل                   │ 8.5  │ lazy load ممتاز، لكن لا pagination   │
+│ Edge Functions                   │ 9.5  │ rate limiting + getUser صحيح          │
+│ PWA                              │ 9.5  │ skipWaiting + update banner           │
+│ التشفير (Vault/PII)              │ 9.5  │ AES-256 + pgsodium ممتاز             │
+├──────────────────────────────────┼──────┼───────────────────────────────────────┤
+│ التقييم الحقيقي للتطبيق          │ 8.6  │ ليس 10/10 — هناك مشاكل حقيقية       │
+└──────────────────────────────────┴──────┴───────────────────────────────────────┘
+```
+
+---
+
+## 6. خطة الإصلاح المطلوبة للوصول لـ 10/10 فعلي
+
+| # | الملف | الإصلاح | الأولوية |
+|---|-------|---------|---------|
+| 1 | `usePrefetchAccounts.ts` سطر 34 | تغيير `beneficiaries` → `beneficiaries_safe` | **حرجة** |
+| 2 | تشخيص خطوط PDF العربية | فحص مسار الخطوط + CORS في وظيفة `generate-invoice-pdf` | **عالية** |
+| 3 | `logger.ts` سطر 20 | تحسين استخلاص الرسالة: `String(errObj?.message \|\| args[0] \|\| 'unknown')` | **عالية** |
+| 4 | `useWebAuthn.ts` أسطر 41, 68 | إضافة `getUser()` قبل `getSession()` للتحقق من الخادم | **متوسطة** |
+| 5 | استخلاص hook مشترك لإعدادات الصوت | إنشاء `useNotificationPreferences.ts` يُستخدم في الصفحتين | **منخفضة** |
+| 6 | تنظيف سجلات `access_log` القديمة | حذف سجلات `Test explosion` (225 سجل اختبار في الإنتاج) | **منخفضة** |
+
+---
+
+## 7. ما هو ممتاز فعلاً (لا مبالغة)
+
+- **129 سياسة RLS** مع **RESTRICTIVE policies** للسنوات المالية — معمارية أمنية متقدمة
+- **security_invoker=true** على العروض — مؤكد من قاعدة البيانات الحية
+- **Event Trigger** لسحب صلاحيات `anon` تلقائياً — دفاع عميق حقيقي
+- **Vault/pgsodium** لمفتاح التشفير — أعلى معيار أمان ممكن
+- **ErrorBoundary** مع chunk recovery + تقارير خطأ للخادم — تعافي ذكي
+- **Idle Timeout** مع visibility API — حماية جلسات شاملة
+- **guard-signup مع rollback** — منع يتامى المستخدمين
+- **معمارية lazy loading** بـ `lazyWithRetry` — إنتاجية عالية
+
