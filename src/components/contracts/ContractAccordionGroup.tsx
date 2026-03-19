@@ -100,35 +100,50 @@ const ContractAccordionGroup = ({
           <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
 
           {/* معلومات العقد الرئيسية */}
-          <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 items-center">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm truncate">{baseNumber}</span>
-              {hasMultiple && (
-                <Badge variant="outline" className="text-[11px] px-1.5 py-0 shrink-0">
-                  {contracts.length} إصدار
-                </Badge>
-              )}
-            </div>
-            <span className="text-sm text-muted-foreground truncate">{latest.tenant_name}</span>
-            <span className="text-sm text-muted-foreground truncate hidden sm:block">
-              {latest.property?.property_number || '-'}
-              {latest.unit ? ` / و${latest.unit.unit_number}` : ''}
-            </span>
-            <span className="text-sm font-medium hidden lg:block">
-              {fmt(Number(latest.rent_amount))} ر.س
-            </span>
-            <div className="hidden lg:flex items-center gap-2">
-              <span className={`text-xs font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>
-                {paid}/{paymentCount}
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1 items-center">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm truncate">{baseNumber}</span>
+                {hasMultiple && (
+                  <Badge variant="outline" className="text-[11px] px-1.5 py-0 shrink-0">
+                    {contracts.length} إصدار
+                  </Badge>
+                )}
+              </div>
+              <span className="text-sm text-muted-foreground truncate">{latest.tenant_name}</span>
+              <span className="text-sm text-muted-foreground truncate hidden sm:block">
+                {latest.property?.property_number || '-'}
+                {latest.unit ? ` / و${latest.unit.unit_number}` : ''}
               </span>
-              <Progress
-                value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0}
-                className={`h-1.5 w-16 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
-              />
+              <span className="text-sm font-medium hidden lg:block">
+                {fmt(Number(latest.rent_amount))} ر.س
+              </span>
+              <div className="hidden lg:flex items-center gap-2">
+                <span className={`text-xs font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>
+                  {paid}/{paymentCount}
+                </span>
+                <Progress
+                  value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0}
+                  className={`h-1.5 w-16 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
+                />
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium w-fit ${latestStatus.className}`}>
+                {latestStatus.label}
+              </span>
             </div>
-            <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium w-fit ${latestStatus.className}`}>
-              {latestStatus.label}
-            </span>
+            {/* سطر ثانٍ على الجوال: الإيجار + تقدم الدفعات */}
+            <div className="flex items-center gap-3 mt-1.5 lg:hidden text-xs">
+              <span className="font-medium text-foreground">{fmt(Number(latest.rent_amount))} ر.س</span>
+              <div className="flex items-center gap-1.5">
+                <span className={`font-bold ${paid >= paymentCount ? 'text-success' : paid > 0 ? 'text-warning' : 'text-destructive'}`}>
+                  {paid}/{paymentCount}
+                </span>
+                <Progress
+                  value={paymentCount > 0 ? (paid / paymentCount) * 100 : 0}
+                  className={`h-1 w-12 ${paid >= paymentCount ? '[&>div]:bg-success' : paid >= paymentCount / 2 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`}
+                />
+              </div>
+            </div>
           </div>
         </button>
       </CollapsibleTrigger>
