@@ -95,6 +95,7 @@ const PropertiesViewPage = () => {
   }
 
   return (
+    <RequirePublishedYears title="العقارات" icon={Building2} description="عرض العقارات والوحدات">
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         <PageHeaderCard
