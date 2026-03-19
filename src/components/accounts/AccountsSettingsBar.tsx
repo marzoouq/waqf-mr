@@ -74,54 +74,54 @@ const AccountsSettingsBar = ({
             />
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">رقبة وقف مرحلة من عام سابق (ر.س):</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3 pt-3 border-t">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">رقبة وقف مرحّلة من عام سابق (ر.س)</Label>
             <Input
               type="number"
               value={waqfCorpusPrevious}
               onChange={(e) => onWaqfCorpusPreviousChange(safeNumber(e.target.value))}
-              className="h-8 w-28"
+              className="h-8"
               min={0}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">ضريبة القيمة المضافة (ر.س):</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">ضريبة القيمة المضافة (ر.س)</Label>
             <Input
               type="number"
               value={manualVat}
               onChange={(e) => onManualVatChange(safeNumber(e.target.value))}
-              className="h-8 w-28"
+              className="h-8"
               min={0}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">مبلغ الزكاة (ر.س):</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">مبلغ الزكاة (ر.س)</Label>
             <Input
               type="number"
               value={zakatAmount}
               onChange={(e) => onZakatAmountChange(safeNumber(e.target.value))}
-              className="h-8 w-28"
+              className="h-8"
               min={0}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">رقبة الوقف للعام الحالي (ر.س):</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">رقبة الوقف للعام الحالي (ر.س)</Label>
             <Input
               type="number"
               value={waqfCorpusManual}
               onChange={(e) => onWaqfCorpusManualChange(safeNumber(e.target.value))}
-              className="h-8 w-28"
+              className="h-8"
               min={0}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm whitespace-nowrap">مبلغ التوزيعات (ر.س):</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">مبلغ التوزيعات (ر.س)</Label>
             <Input
               type="number"
               value={manualDistributions}
               onChange={(e) => onManualDistributionsChange(safeNumber(e.target.value))}
-              className="h-8 w-28"
+              className="h-8"
               min={0}
             />
           </div>
