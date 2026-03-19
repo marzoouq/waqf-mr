@@ -44,6 +44,7 @@ const NotificationsPage = () => {
   const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
   const { data: _allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
