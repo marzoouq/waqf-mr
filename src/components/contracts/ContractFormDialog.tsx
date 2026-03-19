@@ -136,7 +136,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل عقد إيجار</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2"><Label>رقم العقد *</Label><Input value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
+          <div className="space-y-2"><Label htmlFor="contract-number">رقم العقد *</Label><Input id="contract-number" name="contract_number" value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
           <div className="space-y-2">
             <Label>العقار *</Label>
             <NativeSelect
