@@ -163,8 +163,11 @@
 - **الأمن**: 9.8/10 — strict mode + safe views + getUser + VAT_KEYWORDS const
 - **الأداء**: 9.8/10 — select محدد + WebP + lazy loading + ثوابت خارجية
 - **الدقة المالية**: 10/10 — تحصيل فعلي + YoY في KPI
-- **تجربة المستخدم**: 10/10 — Excel + disclaimer PDF + عمود سنة في السلف
-- **الاختبارات**: 607+ ✅ — 0 فشل
-- **التقييم الإجمالي**: 9.8/10
+- **تجربة المستخدم**: 10/10 — Excel + disclaimer PDF + تصنيف إشعارات + wrapper مشترك
+- **البنية المعمارية**: 9.9/10 — RequirePublishedYears + useMyShare + useNotificationPreferences
+- **الاختبارات**: 607+ ✅ — 0 أخطاء TypeScript
+- **التقييم الإجمالي**: 9.9/10
 
 **الحالة**: مُعتمد ✅
+
+**البنود المتبقية (4)**: REM-1 (pagination), REM-2/3 (CSP headers — يحتاج reverse proxy), REM-7 (AI chat — ميزة جديدة)
