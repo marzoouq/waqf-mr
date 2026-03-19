@@ -64,7 +64,7 @@ const AccountsSummaryCards = ({
           {waqfCorpusPrevious > 0 && (
             <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
               <p className="text-xs sm:text-sm text-primary-foreground/90">رقبة وقف مرحلة</p>
-              <p className="text-base sm:text-xl font-bold">{fmt(waqfCorpusPrevious)}</p>
+              <p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(waqfCorpusPrevious)}</p>
             </div>
           )}
           <div className="text-center p-2 sm:p-4 bg-primary-foreground/10 rounded-lg">
