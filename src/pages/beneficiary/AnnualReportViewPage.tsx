@@ -2,7 +2,7 @@
  * صفحة التقرير السنوي — المستفيد (قراءة + طباعة + تصدير فقط)
  * تظهر فقط التقارير المنشورة
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
