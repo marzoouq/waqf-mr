@@ -128,7 +128,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
               <div className="space-y-1 pt-1 border-t border-border/50">
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Calendar className="w-3 h-3 shrink-0" />
-                  <span>{inv.date}</span>
+                  <span>{new Date(inv.date).toLocaleDateString('ar-SA')}</span>
                 </div>
                 {inv.property?.property_number && (
                   <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
