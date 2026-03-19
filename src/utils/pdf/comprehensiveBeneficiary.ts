@@ -12,6 +12,8 @@ import { fmt, fmtInt } from '@/utils/format';
 export interface ComprehensiveBeneficiaryData {
   beneficiaryName: string;
   fiscalYear: string;
+  /** هل السنة المالية لا تزال نشطة (غير مقفلة)؟ */
+  isFiscalYearActive?: boolean;
   totalIncome: number;
   totalExpenses: number;
   netAfterExpenses: number;
@@ -74,13 +76,23 @@ export const generateComprehensiveBeneficiaryPDF = async (
   doc.text(rs(`السنة المالية: ${data.fiscalYear}`), 105, startY + 16, { align: 'center' });
   doc.text(rs(`المستفيد: ${data.beneficiaryName}`), 105, startY + 24, { align: 'center' });
 
+  // DEFER-12: علامة تقديرية للسنة النشطة
+  let disclaimerOffset = 0;
+  if (data.isFiscalYearActive) {
+    doc.setFontSize(9);
+    doc.setTextColor(200, 100, 0);
+    doc.text(rs('⚠ الأرقام تقديرية — السنة المالية لم تُقفل بعد'), 105, startY + 32, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    disclaimerOffset = 10;
+  }
+
   // ═══ Section 1: My Share Summary ═══
   doc.setFont(f, 'bold');
   doc.setFontSize(14);
-  doc.text(rs('أولاً: ملخص الحصة'), 192, startY + 36, { align: 'right' });
+  doc.text(rs('أولاً: ملخص الحصة'), 192, startY + 36 + disclaimerOffset, { align: 'right' });
 
   autoTable(doc, {
-    startY: startY + 42,
+    startY: startY + 42 + disclaimerOffset,
     head: [reshapeRow(['البيان', 'القيمة (ر.س)'])],
     body: [
       reshapeRow(['حصتي المستحقة', fmt(data.myShare)]),

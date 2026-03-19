@@ -21,6 +21,7 @@ export interface AdvanceRequest {
   paid_at: string | null;
   created_at: string;
   beneficiary?: { id: string; name: string; share_percentage: number; user_id: string | null };
+  fiscal_year?: { label: string } | null;
 }
 
 export interface AdvanceCarryforward {
@@ -44,7 +45,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
     queryFn: async () => {
       let query = supabase
       .from('advance_requests')
-        .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id)')
+        .select('*, beneficiary:beneficiaries(id, name, share_percentage, user_id), fiscal_year:fiscal_years(label)')
         .order('created_at', { ascending: false })
         .limit(100);
       if (fiscalYearId) {

@@ -103,6 +103,7 @@ const AdvanceRequestsTab = () => {
                 <TableRow className="bg-muted/50">
                   <TableHead className="text-right">المستفيد</TableHead>
                   <TableHead className="text-right">المبلغ</TableHead>
+                  <TableHead className="text-right">السنة المالية</TableHead>
                   <TableHead className="text-right">السبب</TableHead>
                   <TableHead className="text-right">التاريخ</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
@@ -114,6 +115,7 @@ const AdvanceRequestsTab = () => {
                   <TableRow key={req.id}>
                     <TableCell className="font-medium">{req.beneficiary?.name || '—'}</TableCell>
                     <TableCell>{fmt(safeNumber(req.amount))} ر.س</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{req.fiscal_year?.label || '—'}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{req.reason || '—'}</TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleDateString('ar-SA')}</TableCell>
                     <TableCell>{getStatusBadge(req.status)}</TableCell>

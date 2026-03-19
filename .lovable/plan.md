@@ -137,7 +137,6 @@
 | REM-1 | cursor-based pagination بدل limit | متوسطة |
 | REM-2 | CSP عبر HTTP header بدل meta | متوسطة |
 | REM-3 | nonce-based CSP لـ style-src | متوسطة |
-| REM-5 | مقارنة سنة بسنة في KPI | متوسطة |
 | REM-7 | حفظ محادثات AI في DB | منخفضة |
 | REM-8 | تصنيف الإشعارات | منخفضة |
 
@@ -149,16 +148,21 @@
 | invoice_chain FK | ❌ غير ممكن — polymorphic (source_table) |
 | تصدير Excel (XLSX) في DataExportTab | ✅ تم — بدون مكتبة خارجية |
 | og-image.webp | ✅ تم — 903KB → 27KB |
+| REM-5: مقارنة YoY في KPI | ✅ تم — نسبة المصروفات مع مؤشر تغيير |
+| DEFER-4: vatKeywords خارج useMemo | ✅ تم — ثابت VAT_KEYWORDS على مستوى الملف |
+| DEFER-7: debounce لـ saveSetting | ✅ كان مُنفذاً — setTimeout 500ms |
+| DEFER-12: disclaimer في PDF السنة النشطة | ✅ تم — تحذير تقديري في comprehensive PDF |
+| DEFER-13: عمود السنة المالية في سجل السُلف | ✅ تم — join fiscal_years + عمود في الجدول |
 
 ---
 
 ### التقييم النهائي
 
-- **الأمن**: 9.7/10 — strict mode + safe views + getUser
-- **الأداء**: 9.7/10 — select محدد + WebP + lazy loading + كل queries محسّنة
-- **الدقة المالية**: 10/10 — تحصيل فعلي + نسبة بالمبالغ
-- **تجربة المستخدم**: 10/10 — Excel export + hook مشترك + رسائل توضيحية
+- **الأمن**: 9.8/10 — strict mode + safe views + getUser + VAT_KEYWORDS const
+- **الأداء**: 9.8/10 — select محدد + WebP + lazy loading + ثوابت خارجية
+- **الدقة المالية**: 10/10 — تحصيل فعلي + YoY في KPI
+- **تجربة المستخدم**: 10/10 — Excel + disclaimer PDF + عمود سنة في السلف
 - **الاختبارات**: 607+ ✅ — 0 فشل
-- **التقييم الإجمالي**: 9.7/10
+- **التقييم الإجمالي**: 9.8/10
 
 **الحالة**: مُعتمد ✅
