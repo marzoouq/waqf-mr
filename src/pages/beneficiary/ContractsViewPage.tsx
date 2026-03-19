@@ -15,7 +15,6 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback } from 'react';
-import { useMemo, useCallback } from 'react';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import { toast } from 'sonner';
