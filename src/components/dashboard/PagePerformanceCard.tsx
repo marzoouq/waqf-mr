@@ -117,7 +117,7 @@ const PagePerformanceCard = () => {
             return (
               <div key={s.path} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium truncate max-w-[50%]">{s.label}</span>
+                  <span className="font-medium truncate max-w-[40%] sm:max-w-[50%]">{s.label}</span>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span>{s.count} زيارة</span>
                     <span className={`font-bold ${status.className}`}>
