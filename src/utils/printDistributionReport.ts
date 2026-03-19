@@ -148,7 +148,7 @@ export function printDistributionReport(params: PrintDistributionParams) {
   <div class="summary">
     <div class="summary-card primary">
       <div class="label">صافي المبلغ المطلوب صرفه</div>
-      <div class="value" style="color:#27ae60">${totalNet.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</div>
+      <div class="value" style="color:#27ae60">${fmt(totalNet)} ر.س</div>
     </div>
     <div class="summary-card info">
       <div class="label">إجمالي التوزيع (شامل الخصومات)</div>
