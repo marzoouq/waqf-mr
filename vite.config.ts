@@ -139,7 +139,10 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
 
           // — PDF وتبعياتها —
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/canvg') || id.includes('node_modules/html2canvas') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas') || id.includes('node_modules/css-line-break')) return 'vendor-pdf';
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf';
+
+          // — HTML to Canvas (تبعية PDF ثقيلة) —
+          if (id.includes('node_modules/html2canvas') || id.includes('node_modules/css-line-break')) return 'vendor-html2canvas';
 
           // — رسوم بيانية —
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-') || id.includes('node_modules/victory-vendor')) return 'vendor-charts';
