@@ -191,16 +191,6 @@ const DisclosurePage = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (noPublishedYears) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 sm:p-6 space-y-5">
-          <PageHeaderCard title="الإفصاح السنوي" icon={FileText} />
-          <NoPublishedYearsNotice />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (finError) {
     return (
