@@ -61,7 +61,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
           {/* نسبة الإنجاز الزمني */}
           <div className="text-center p-3 rounded-lg bg-muted/30 space-y-2">
             <span className="text-xs text-muted-foreground">التقدم الزمني</span>
-            <p className="text-2xl font-bold text-foreground">{timeProgress}%</p>
+            <p className="text-xl sm:text-2xl font-bold text-foreground">{timeProgress}%</p>
             <Progress value={timeProgress} className="h-2 [&>div]:bg-primary" />
           </div>
 
