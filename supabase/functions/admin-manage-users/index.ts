@@ -461,7 +461,7 @@ Deno.serve(async (req) => {
       "Maximum 50 users at a time": "الحد الأقصى 50 مستخدماً في المرة",
     };
     const safeMsg = safeMessages[msg]
-      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") ? msg : "حدث خطأ في العملية");
+      || (msg.startsWith("دور غير صالح") || msg.startsWith("لا يمكنك") || msg.startsWith("البريد") || msg.startsWith("كلمة المرور") || msg.startsWith("رقم الهوية") || msg.startsWith("فشل تحديث كلمة") ? msg : "حدث خطأ في العملية");
     return new Response(JSON.stringify({ error: safeMsg }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
