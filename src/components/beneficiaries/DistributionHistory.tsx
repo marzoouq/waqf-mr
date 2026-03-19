@@ -99,7 +99,32 @@ const DistributionHistory = ({ beneficiary }: Props) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        {/* Mobile cards */}
+        <div className="space-y-2 p-3 md:hidden">
+          {yearlyData.map((row, idx) => {
+            const prevRow = yearlyData[idx + 1];
+            const change = prevRow ? ((row.total - prevRow.total) / prevRow.total) * 100 : null;
+            return (
+              <div key={row.year} className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold">{row.year}</p>
+                  <p className="text-xs text-muted-foreground">{row.count} دفعات</p>
+                </div>
+                <div className="text-left shrink-0 space-y-0.5">
+                  <p className="text-sm font-bold text-success">{fmt(row.total)} ر.س</p>
+                  {change !== null && (
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${change > 0 ? 'text-success' : change < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {change > 0 ? <TrendingUp className="w-3 h-3" /> : change < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+                      {Math.abs(change).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
