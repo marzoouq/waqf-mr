@@ -38,6 +38,7 @@ const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverY
 const DashboardCharts = lazy(() => import('@/components/dashboard/DashboardCharts'));
 const CollectionHeatmap = lazy(() => import('@/components/dashboard/CollectionHeatmap'));
 const PendingActionsTable = lazy(() => import('@/components/dashboard/PendingActionsTable'));
+const PagePerformanceCard = lazy(() => import('@/components/dashboard/PagePerformanceCard'));
 
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
