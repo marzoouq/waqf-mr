@@ -53,8 +53,8 @@ const ExpenseSummaryCards = ({ expenses, totalExpenses, documentedCount, documen
       </Card>
       <Card className="shadow-sm">
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10"><Paperclip className="w-5 h-5 text-primary" /></div>
-          <div><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-xl font-bold">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{expenses.length}</p></div>
+          <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Paperclip className="w-5 h-5 text-primary" /></div>
+          <div className="min-w-0"><p className="text-xs text-muted-foreground">نسبة التوثيق</p><p className="text-base sm:text-xl font-bold tabular-nums">{documentationRate}%</p><p className="text-xs text-muted-foreground">{documentedCount}/{expenses.length}</p></div>
         </CardContent>
       </Card>
       <Card className="shadow-sm">
