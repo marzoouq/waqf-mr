@@ -338,8 +338,10 @@ const UserManagementPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>كلمة المرور</Label>
+                  <Label htmlFor="create-user-password">كلمة المرور</Label>
                   <Input
+                    id="create-user-password"
+                    name="password"
                     type="password"
                     value={createForm.password}
                     onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
