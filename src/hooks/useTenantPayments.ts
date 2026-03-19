@@ -33,7 +33,7 @@ export const useTenantPayments = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tenant_payments')
-        .select('*')
+        .select('id, contract_id, paid_months, notes, created_at, updated_at')
         .limit(500);
       if (error) throw error;
       return data as TenantPayment[];

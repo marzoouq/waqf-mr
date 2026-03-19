@@ -80,7 +80,7 @@ export const useTicketReplies = (ticketId?: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('support_ticket_replies')
-        .select('*')
+        .select('id, ticket_id, sender_id, content, is_internal, created_at')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })
         .limit(500); // Ticket replies rarely exceed this; prevents unbounded fetch

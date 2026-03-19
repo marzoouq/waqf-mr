@@ -74,7 +74,7 @@ export const useBeneficiariesSafe = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('beneficiaries_safe')
-        .select('*')
+        .select('id, name, share_percentage, user_id, email, phone, national_id, bank_account, notes, created_at, updated_at')
         .order('name', { ascending: true })
         .limit(500);
       if (error) {
