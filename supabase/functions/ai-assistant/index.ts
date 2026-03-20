@@ -117,8 +117,13 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // ─── جلب البيانات الحقيقية من قاعدة البيانات ───
-    const dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
+    // ─── جلب البيانات مع cache لتقليل استعلامات DB المتكررة ───
+    const cacheKey = `${userData.user.id}:${userRole}`;
+    let dataContext = dataCache.get(cacheKey);
+    if (!dataContext) {
+      dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
+      dataCache.set(cacheKey, dataContext);
+    }
 
     // بناء system prompt حسب الدور
     const isAdmin = userRole === "admin" || userRole === "accountant";
