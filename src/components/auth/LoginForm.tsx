@@ -24,6 +24,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
   const [nationalId, setNationalId] = useState('');
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
