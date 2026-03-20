@@ -78,9 +78,11 @@ const BeneficiaryDashboard = () => {
   const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
   const GreetingIcon = hour < 12 ? Sun : Moon;
 
-  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  const { hijriDate, gregorianDate, timeStr } = useMemo(() => ({
+    hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+    gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+    timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+  }), [now]);
 
   /* ── Fiscal year progress ── */
   const isClosed = fiscalYear?.status === 'closed';

@@ -75,24 +75,20 @@ const Auth = () => {
     return () => clearTimeout(timer);
   }, [user, role, loading]);
 
-  // Fetch registration setting
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('app_settings')
-          .select('value')
-          .eq('key', 'registration_enabled')
-          .maybeSingle();
-        if (!error && data) {
-          setRegistrationEnabled(data.value === 'true');
-        }
-      } catch {
-        // الافتراضي false
-      }
-    };
-    fetchSettings();
-  }, []);
+  // استعلام cached لإعداد التسجيل — آمن للمستخدم المجهول
+  const { data: registrationEnabled = false } = useQuery({
+    queryKey: ['registration-enabled'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'registration_enabled')
+        .maybeSingle();
+      return data?.value === 'true';
+    },
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+  });
 
   // Waiting for role resolution
   if (user && !loading && !role) {

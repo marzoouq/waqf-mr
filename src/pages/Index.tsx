@@ -117,9 +117,6 @@ const Index = () => {
                 <path d="M60 15L105 60L60 105L15 60Z" fill="none" stroke="#d4af37" strokeWidth="0.5"/>
                 <path d="M60 30L90 60L60 90L30 60Z" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
                 <circle cx="60" cy="60" r="10" fill="none" stroke="#d4af37" strokeWidth="0.4"/>
-                <circle cx="60" cy="60" r="4" fill="none" stroke="#d4af37" strokeWidth="0.3"/>
-                <line x1="60" y1="0" x2="60" y2="120" stroke="#d4af37" strokeWidth="0.2"/>
-                <line x1="0" y1="60" x2="120" y2="60" stroke="#d4af37" strokeWidth="0.2"/>
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#islamicPattern)"/>
