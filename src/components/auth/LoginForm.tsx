@@ -72,14 +72,17 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           body: { national_id: cleanId, password: loginPassword }
         });
 
-        if (lookupError) {
-          const errorBody = typeof lookupError === 'object' && lookupError !== null
-            ? (lookupError as Record<string, unknown>)
-            : null;
-          const errMessage = errorBody?.message || lookupError?.message || '';
-          
-          if (String(errMessage).includes('تم تجاوز حد المحاولات') || data?.remaining === 0) {
-            const retryAfter = data?.retry_after || 120;
+        // معالجة أخطاء Rate Limit و أخطاء الاتصال
+        if (lookupError || data?.error) {
+          // فحص Rate Limit: الخطأ قد يكون في lookupError أو في data مباشرة
+          const isRateLimited =
+            data?.remaining === 0 ||
+            data?.retry_after ||
+            String(data?.error || '').includes('تم تجاوز حد المحاولات') ||
+            String(lookupError?.message || '').includes('تم تجاوز حد المحاولات');
+
+          if (isRateLimited) {
+            const retryAfter = data?.retry_after || 180;
             const lockTime = Date.now() + retryAfter * 1000;
             setNidLockedUntil(lockTime);
             try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
@@ -87,8 +90,12 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
             return;
           }
-          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
-          return;
+
+          // أخطاء أخرى (خطأ شبكة، خطأ خادم)
+          if (lookupError) {
+            toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+            return;
+          }
         }
 
         if (data?.remaining !== undefined) {
