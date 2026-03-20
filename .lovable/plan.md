@@ -1,130 +1,137 @@
 
 
-# تقرير الفحص الجنائي التفصيلي — الملاحظات الأربع
+# تقرير التحقق من الملاحظات — تنفيذ سيناريوهات حقيقية
 
 ---
 
-## F-01: بطاقات "0 ر.س *تقديري" في لوحة الناظر
+## F-01: بطاقات "0 ر.س *تقديري" في لوحة الناظر ✅ تم الإصلاح
 
-### الجذر
-في `AdminDashboard.tsx` سطر 128: `sharesNote = isYearActive ? ' *تقديري' : ''`
+**السيناريو:** الناظر يدخل لوحة التحكم → يختار السنة النشطة 2025-2026
 
-ثم في سطر 100-106 من `useComputedFinancials.ts`: عند السنة النشطة (`!isClosed`) يتم تصفير الحصص عمداً:
+**التحقق من الكود (سطر 161-163):**
 ```text
-adminShare: 0, waqifShare: 0, waqfRevenue: 0, availableAmount: 0
+حصة الناظر → "تُحسب عند الإقفال" (بدل "0 ر.س *تقديري")
+حصة الواقف → "تُحسب عند الإقفال"
+ريع الوقف  → "تُحسب عند الإقفال"
 ```
 
-**النتيجة:** البطاقات تعرض "0 ر.س *تقديري" — وهذا **صحيح بالتصميم** لأن الحصص لا تُحسب إلا بعد الإقفال. لكن "تقديري" لقيمة صفرية مربك للمستخدم.
+**النتيجة:** ✅ الإصلاح مطبّق بشكل صحيح. القيم النصية تظهر بدل الأرقام الصفرية المربكة.
 
-### سبب عدم إصلاحها أثناء البناء
-القرار المعماري (memory: `beneficiary-access-guards`) كان إخفاء الحصص للسنة النشطة. تمت إضافة كلمة "*تقديري" لاحقاً كعلامة توضيحية دون مراجعة أنها تظهر على قيم صفرية.
-
-### الإصلاح المقترح
-في `AdminDashboard.tsx`: إخفاء بطاقات الحصص (الناظر، الواقف، ريع الوقف) من المصفوفة عندما `isYearActive` أو استبدال القيمة بـ "تُحسب عند الإقفال" بدل "0 ر.س *تقديري".
+**ملاحظة متبقية:** المتغير `sharesNote` (سطر 128) لا يزال موجوداً ويُستخدم في بطاقات أخرى مثل "صافي الريع" و"التدفق النقدي". هذا **مقبول** لأن هذه البطاقات تعرض قيماً حقيقية (876,300 ر.س مثلاً) وليست صفرية.
 
 ---
 
-## F-02: ساعة الواقف لا تتوقف عند hidden
+## F-02: ساعة الواقف لا تتوقف عند hidden ✅ تم الإصلاح
 
-### الجذر
-في `WaqifDashboard.tsx` سطر 122-126:
+**السيناريو:** الواقف يفتح لوحته → ينتقل لتبويب آخر → يعود
+
+**التحقق من الكود (سطر 123-129):**
 ```text
-const id = setInterval(() => setNow(new Date()), 60_000);
-const onVisibility = () => { if (document.visibilityState === 'visible') setNow(new Date()); };
-return () => { clearInterval(id); document.removeEventListener(...); };
+start() → setInterval
+stop()  → clearInterval + id = undefined
+onVisibility → hidden? stop() : start()
+cleanup → stop() + removeEventListener
 ```
 
-المقارنة مع `BeneficiaryDashboard.tsx` سطر 68-71:
-```text
-const start = () => { id = setInterval(...) };
-const stop = () => { if (id) { clearInterval(id); id = undefined; } };
-const onVisibility = () => { if (document.hidden) stop(); else { setNow(...); start(); } };
-```
-
-**الفرق:** BeneficiaryDashboard يوقف `setInterval` تماماً عند الإخفاء ويعيد تشغيله عند الظهور. WaqifDashboard يترك `setInterval` يعمل دائماً ويكتفي بتحديث القيمة عند العودة.
-
-### سبب عدم إصلاحها أثناء البناء
-WaqifDashboard بُنيت قبل تحسين BeneficiaryDashboard. لم تُطبّق نفس المعالجة بأثر رجعي.
-
-### الإصلاح المقترح
-نسخ نفس نمط start/stop من BeneficiaryDashboard إلى WaqifDashboard (5 أسطر).
+**النتيجة:** ✅ مطابق تماماً لنمط BeneficiaryDashboard. الـ interval يتوقف عند الإخفاء ويُعاد تشغيله عند الظهور.
 
 ---
 
-## F-03: زر PDF نشط بصرياً رغم حظر التصدير في السنة النشطة
+## F-03: زر PDF نشط رغم حظر التصدير ✅ تم الإصلاح
 
-### الجذر
-في `MySharePage.tsx` سطر 123-128:
+**السيناريو:** مستفيد يفتح "حصتي" → السنة النشطة → يحاول التصدير
+
+**التحقق من الكود (سطر 361-368):**
 ```text
-const handleDownloadPDF = withPdfLoading(async () => {
-    if (!currentBeneficiary) return;
-    if (!isClosed) {
-      toast.warning('السنة المالية لم تُغلق بعد — الأرقام غير نهائية');
-      return;   // ← يمنع التصدير لكن الزر يبدو نشطاً
-    }
+onExportPdf={isClosed ? handleDownloadPDF : undefined}
+extraItems={isClosed ? [...] : undefined}
 ```
 
-الزر في سطر 361-363 يستخدم `ExportMenu` بدون خاصية `disabled`:
-```text
-<ExportMenu onPrint={...} onExportPdf={handleDownloadPDF} ... />
-```
-
-**النتيجة:** المستخدم يضغط → يظهر toast تحذيري → تجربة مربكة.
-
-### سبب عدم إصلاحها أثناء البناء
-`ExportMenu` لا يدعم خاصية `disabled` حالياً. تم اختيار الحل الأسرع (toast) بدل تعديل المكوّن.
-
-### الإصلاح المقترح
-إضافة خاصية `disabled` لمكوّن `ExportMenu` أو تمرير `null` بدل `handleDownloadPDF` عندما `!isClosed` لإخفاء خيار PDF تماماً.
+**النتيجة:** ✅ عند السنة النشطة (`isClosed = false`):
+- خيار PDF يختفي تماماً من القائمة (undefined)
+- خيار "تقرير شامل" يختفي أيضاً
+- يبقى فقط زر الطباعة
 
 ---
 
-## F-04 (الأهم): تناقض guard الحساب الختامي المفقود
+## F-04: تناقض guard بين الصفحات ✅ تم الإصلاح
 
-### الجذر
-`isAccountMissing` يتحقق في `useComputedFinancials.ts` سطر 162:
-```text
-const isAccountMissing = !currentAccount && !!fiscalYearId && fiscalYearId !== 'all';
-```
+**السيناريو:** مستفيد يختار السنة النشطة 2025-2026 (لها حساب بقيم صفرية seed)
 
-هذا يعود `true` للسنة **النشطة** أيضاً إذا لم يُنشأ حساب ختامي لها بعد.
+**التحقق من قاعدة البيانات:**
+- السنة النشطة `ad5da366` لها حساب `672a6ffc` ← `isAccountMissing = false`
+- الدخل الحي: 876,300 ر.س (الحساب يحتوي 0 لكن الكود يحسب من البيانات الحية)
 
-**السلوك المتناقض بين الصفحات:**
+**التحقق من الكود — جميع الصفحات الأربع متسقة الآن:**
 
-| الصفحة | الشرط | السنة النشطة بلا حساب |
-|--------|-------|-----------------------|
-| `DisclosurePage` سطر 227 | `isAccountMissing && selectedFY?.status === 'closed'` | **تمرّ** ← تعرض البيانات الحية |
-| `MySharePage` سطر 322 | `isAccountMissing && isClosed` | **تمرّ** ← تعرض البيانات الحية |
-| `FinancialReportsPage` سطر 130 | `isAccountMissing` (بدون شرط!) | **تحظر** ← شاشة فارغة |
-| `AccountsViewPage` سطر 78 | `isAccountMissing` (بدون شرط!) | **تحظر** ← شاشة فارغة |
+| الصفحة | الشرط | السطر |
+|--------|-------|-------|
+| DisclosurePage | `isAccountMissing && selectedFY?.status === 'closed'` | 227 |
+| MySharePage | `isAccountMissing && isClosed` | 322 |
+| FinancialReportsPage | `isAccountMissing && selectedFY?.status === 'closed'` | 130 |
+| AccountsViewPage | `isAccountMissing && selectedFY?.status === 'closed'` | 78 |
 
-### سبب عدم إصلاحها أثناء البناء
-`isAccountMissing` أُضيفت كحماية (memory: `account-loading-guards`) لمنع عرض أرقام غير دقيقة. الصفحتان القديمتان (FinancialReports + AccountsView) استخدمت الشرط الأولي البسيط. لاحقاً عند بناء DisclosurePage وMySharePage، تم تحسين الشرط بإضافة `&& isClosed` لكن لم يُطبّق بأثر رجعي على الصفحتين القديمتين.
+**النتيجة:** ✅ جميع الصفحات تمرّر السنة النشطة وتعرض البيانات الحية.
 
-### سيناريو التحقق
-1. مستفيد يدخل النظام → يختار السنة النشطة (2025-2026)
-2. يذهب لصفحة الإفصاح → **يرى البيانات الحية** (دخل 876,300 مثلاً)
-3. يذهب لصفحة التقارير المالية → **شاشة "لم يتم العثور على الحساب الختامي"**
-4. يذهب لصفحة الحسابات الختامية → **نفس شاشة الحظر**
-
-**تناقض واضح** — نفس البيانات متاحة في صفحة ومحجوبة في أخرى.
-
-### الإصلاح المقترح
-تعديل سطرين فقط:
-- `FinancialReportsPage.tsx` سطر 130: `if (isAccountMissing && selectedFY?.status === 'closed')`
-- `AccountsViewPage.tsx` سطر 78: `if (isAccountMissing && selectedFY?.status === 'closed')`
+**سيناريو حافة:** إذا حُذف حساب السنة النشطة يدوياً → `isAccountMissing = true` + `status = 'active'` → الصفحات تمرّر ← **صحيح** (البيانات الحية متاحة).
 
 ---
 
-## ملخص الأولويات
+## S-01: security_barrier للعروض الآمنة ✅ مُطبّق مسبقاً
 
-| # | الملاحظة | الخطورة | جهد الإصلاح |
-|---|----------|---------|------------|
-| **F-04** | تناقض guard بين الصفحات | **متوسطة-عالية** | دقيقتان (سطران) |
-| F-03 | زر PDF نشط بلا فائدة | منخفضة | 10 دقائق |
-| F-01 | "0 ر.س *تقديري" مربكة | منخفضة | 5 دقائق |
-| F-02 | ساعة الواقف لا تتوقف | منخفضة جداً | 3 دقائق |
+**التحقق من قاعدة البيانات:**
+```text
+beneficiaries_safe → [security_invoker=true, security_barrier=true]
+contracts_safe     → [security_invoker=false, security_barrier=true]
+```
 
-### التوصية
-إصلاح الأربعة دفعة واحدة — مجموع الجهد لا يتجاوز 20 دقيقة.
+**النتيجة:** ✅ `security_barrier = true` موجود بالفعل في كلا العرضين. لا يحتاج إجراء.
+
+**ملاحظة:** `beneficiaries_safe` يستخدم `security_invoker=true` بينما `contracts_safe` يستخدم `security_invoker=false`. هذا **تناقض طفيف** لكنه لا يؤثر أمنياً لأن كلاهما يعتمد على `has_role(auth.uid())` داخلياً.
+
+---
+
+## S-03: سياسة UPDATE مفقودة لـ webauthn_credentials ⚠️ لا تزال مفقودة
+
+**التحقق من قاعدة البيانات:**
+| السياسة | العملية |
+|---------|---------|
+| Users can delete own | DELETE |
+| Users can insert own | INSERT |
+| Admins can view all | SELECT |
+| Users can view own | SELECT |
+| **UPDATE** | **مفقودة** |
+
+**التأثير:** منخفض عملياً (التحديث يتم عبر service role في Edge Function). لكن بدون سياسة UPDATE صريحة، أي محاولة UPDATE عبر client SDK ستُرفض — وهذا سلوك آمن بالتصميم.
+
+**التوصية:** إضافة سياسة UPDATE كطبقة حماية إضافية (defense-in-depth).
+
+---
+
+## U-01: timeout تراكمي 10 ثوانٍ ⚠️ لا يزال كما هو
+
+**التحقق من الكود:**
+- ProtectedRoute سطر 60: `setTimeout(() => setShowSignOut(true), 5000)` — **لا يزال 5 ثوانٍ**
+
+**التوصية:** تقليل إلى 3 ثوانٍ.
+
+---
+
+## ملخص التنفيذ
+
+| # | الملاحظة | الحالة | ملاحظة |
+|---|----------|--------|--------|
+| **F-01** | بطاقات الحصص الصفرية | ✅ مُصلح | "تُحسب عند الإقفال" |
+| **F-02** | ساعة الواقف | ✅ مُصلح | start/stop pattern |
+| **F-03** | زر PDF | ✅ مُصلح | يختفي في السنة النشطة |
+| **F-04** | تناقض guard | ✅ مُصلح | 4 صفحات متسقة |
+| **S-01** | security_barrier | ✅ مُطبّق مسبقاً | لا يحتاج إجراء |
+| **S-03** | UPDATE policy webauthn | ⚠️ مفقودة | إصلاح بسيط: migration |
+| **U-01** | timeout 5→3 ثوانٍ | ⚠️ لم يُنفّذ | إصلاح بسيط: سطر واحد |
+
+### الإصلاحات المتبقية (سطران فقط)
+1. **S-03:** إضافة سياسة UPDATE لـ `webauthn_credentials` عبر migration
+2. **U-01:** تقليل timeout في `ProtectedRoute.tsx` سطر 60 من `5000` إلى `3000`
+
+هل تريد تنفيذ هذين الإصلاحين المتبقيين؟
 
