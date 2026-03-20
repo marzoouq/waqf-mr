@@ -120,10 +120,13 @@ const WaqifDashboard = () => {
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    const onVisibility = () => { if (document.visibilityState === 'visible') setNow(new Date()); };
+    let id: ReturnType<typeof setInterval> | undefined;
+    const start = () => { id = setInterval(() => setNow(new Date()), 60_000); };
+    const stop = () => { if (id) { clearInterval(id); id = undefined; } };
+    const onVisibility = () => { if (document.hidden) stop(); else { setNow(new Date()); start(); } };
+    start();
     document.addEventListener('visibilitychange', onVisibility);
-    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisibility); };
+    return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
   const hour = now.getHours();
