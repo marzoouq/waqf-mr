@@ -73,12 +73,12 @@ Deno.serve(async (req: Request) => {
       if (!user) return new Response(JSON.stringify({ error: "غير مصرح" }), { status: 401, headers: cors });
 
       // Rate limiting: 10 requests/minute per user
-      const { data: rlAllowed, error: rlError } = await admin.rpc("check_rate_limit", {
+      const { data: isLimited, error: rlError } = await admin.rpc("check_rate_limit", {
         p_key: `webauthn:register:${user.id}`,
         p_limit: 10,
         p_window_seconds: 60,
       });
-      if (rlError || rlAllowed === false) {
+      if (rlError || isLimited) {
         return new Response(JSON.stringify({ error: "طلبات كثيرة، حاول لاحقاً" }), { status: 429, headers: cors });
       }
 
@@ -190,13 +190,13 @@ Deno.serve(async (req: Request) => {
       const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
         || req.headers.get("x-real-ip")
         || "unknown";
-      const { data: allowed, error: rlError } = await admin.rpc("check_rate_limit", {
+      const { data: isLimited, error: rlError } = await admin.rpc("check_rate_limit", {
         p_key: `webauthn:auth:${clientIp}`,
         p_limit: 10,
         p_window_seconds: 60,
       });
       // Fail-closed: إذا فشل الفحص أو تجاوز الحد → رفض
-      if (rlError || allowed === false) {
+      if (rlError || isLimited) {
         return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، حاول بعد دقيقة" }), {
           status: 429,
           headers: { ...cors, "Content-Type": "application/json" },
