@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { logAccessEvent } from '@/hooks/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
@@ -24,6 +24,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
   const [nationalId, setNationalId] = useState('');
   const [loginMethod, setLoginMethod] = useState<'email' | 'national_id'>('email');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [nidAttemptsRemaining, setNidAttemptsRemaining] = useState<number | null>(null);
   const [nidLockedUntil, setNidLockedUntil] = useState<number | null>(() => {
     try {
@@ -71,14 +72,17 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
           body: { national_id: cleanId, password: loginPassword }
         });
 
-        if (lookupError) {
-          const errorBody = typeof lookupError === 'object' && lookupError !== null
-            ? (lookupError as Record<string, unknown>)
-            : null;
-          const errMessage = errorBody?.message || lookupError?.message || '';
-          
-          if (String(errMessage).includes('تم تجاوز حد المحاولات') || data?.remaining === 0) {
-            const retryAfter = data?.retry_after || 120;
+        // معالجة أخطاء Rate Limit و أخطاء الاتصال
+        if (lookupError || data?.error) {
+          // فحص Rate Limit: الخطأ قد يكون في lookupError أو في data مباشرة
+          const isRateLimited =
+            data?.remaining === 0 ||
+            data?.retry_after ||
+            String(data?.error || '').includes('تم تجاوز حد المحاولات') ||
+            String(lookupError?.message || '').includes('تم تجاوز حد المحاولات');
+
+          if (isRateLimited) {
+            const retryAfter = data?.retry_after || 180;
             const lockTime = Date.now() + retryAfter * 1000;
             setNidLockedUntil(lockTime);
             try { sessionStorage.setItem('nidLockedUntil', String(lockTime)); } catch { /* silent */ }
@@ -86,8 +90,12 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             toast.error(`تم تجاوز حد المحاولات. يرجى الانتظار ${retryAfter} ثانية`);
             return;
           }
-          toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
-          return;
+
+          // أخطاء أخرى (خطأ شبكة، خطأ خادم)
+          if (lookupError) {
+            toast.error('حدث خطأ في الاتصال، يرجى المحاولة مرة أخرى');
+            return;
+          }
         }
 
         if (data?.remaining !== undefined) {
@@ -252,15 +260,26 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
 
       <div className="space-y-2">
         <Label htmlFor={`signin-password${idSuffix}`}>كلمة المرور</Label>
-        <Input
-          id={`signin-password${idSuffix}`}
-          type="password"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          placeholder="••••••••"
-          dir="ltr"
-          className="h-11"
-        />
+        <div className="relative">
+          <Input
+            id={`signin-password${idSuffix}`}
+            type={showPassword ? 'text' : 'password'}
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            placeholder="••••••••"
+            dir="ltr"
+            className="h-11 pe-10"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
       <div className="flex justify-center">
         <Button
