@@ -1,6 +1,39 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
+// ─── Cache بسيط في الذاكرة لتقليل استعلامات DB المتكررة ───
+class SimpleCache {
+  private cache = new Map<string, { data: string; ts: number }>();
+  private readonly ttl: number;
+  private readonly maxSize: number;
+
+  constructor(ttlMs = 300_000, maxSize = 50) {
+    this.ttl = ttlMs;
+    this.maxSize = maxSize;
+  }
+
+  get(key: string): string | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.ts > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  set(key: string, data: string): void {
+    if (this.cache.size >= this.maxSize) {
+      // حذف الأقدم (أول مدخل في Map)
+      const oldest = this.cache.keys().next().value;
+      if (oldest) this.cache.delete(oldest);
+    }
+    this.cache.set(key, { data, ts: Date.now() });
+  }
+}
+
+const dataCache = new SimpleCache();
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
