@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +14,6 @@ import SignupForm from '@/components/auth/SignupForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 
 const Auth = () => {
-  const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const { signIn, signUp, user, role, loading, signOut } = useAuth();
   const navigate = useNavigate();
