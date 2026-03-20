@@ -127,7 +127,7 @@ const FinancialReportsPage = () => {
     );
   }
 
-  if (isAccountMissing) {
+  if (isAccountMissing && selectedFY?.status === 'closed') {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">

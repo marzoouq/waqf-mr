@@ -360,11 +360,11 @@ const MySharePage = () => {
               )}
               <ExportMenu
                 onPrint={handlePrintReport}
-                onExportPdf={handleDownloadPDF}
-                extraItems={[
+                onExportPdf={isClosed ? handleDownloadPDF : undefined}
+                extraItems={isClosed ? [
                   { label: 'تقرير التوزيع', icon: FileDown, onClick: handleDownloadDistributionsPDF },
                   { label: 'تقرير شامل', icon: FileDown, onClick: handleDownloadComprehensivePDF },
-                ]}
+                ] : undefined}
               />
             </div>
           }
