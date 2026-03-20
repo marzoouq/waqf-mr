@@ -1,5 +1,4 @@
 export const ALLOWED_ORIGINS = [
-  "https://waqf-mr.lovable.app",
   "https://waqf-wise-net.lovable.app",
   "https://waqf-wise.net",
   "https://www.waqf-wise.net",
