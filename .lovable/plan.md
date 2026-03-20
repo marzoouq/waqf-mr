@@ -1,107 +1,127 @@
 
 
-# خطة تنفيذ إصلاح المشاكل الأربع المكتشفة
+# تقرير الفحص الإضافي العميق — التحقق النهائي قبل التنفيذ
 
 ---
 
-## المشكلة 1: سياسة SELECT على حزمة `invoices` فضفاضة
+## الإصلاح 1: Auth.tsx — استبدال useEffect بـ useQuery مخصص
 
-**السيناريو:** مستفيد مصادق يستطيع قراءة فواتير عقود لا تخصه عبر `storage.objects` — السياسة الحالية `Authenticated users can view invoices` تسمح لأي مستخدم مصادق.
-
-**الحل:** حذف السياسة الفضفاضة. يبقى `Accountants can read invoices` + `Admins can upload invoices` (admin لديه INSERT/UPDATE/DELETE = ضمنياً SELECT عبر الرفع). نضيف سياسة SELECT للأدمن صريحة.
-
-**Migration SQL:**
-```sql
-DROP POLICY "Authenticated users can view invoices" ON storage.objects;
-CREATE POLICY "Admins can read invoices" ON storage.objects
-  FOR SELECT USING (bucket_id = 'invoices' AND has_role(auth.uid(), 'admin'));
-```
-
----
-
-## المشكلة 2: حزمة `invoices` بدون تقييد MIME types
-
-**السيناريو:** رغم التحقق من magic bytes في الواجهة، يمكن لمحاسب/أدمن تجاوز الواجهة ورفع ملف تنفيذي عبر API مباشر.
-
-**الحل:** تقييد `allowed_mime_types` على الحزمة.
-
-**Migration SQL:**
-```sql
-UPDATE storage.buckets 
-SET allowed_mime_types = ARRAY['application/pdf','image/jpeg','image/png','image/webp']
-WHERE id = 'invoices';
-```
-
----
-
-## المشكلة 3: إضافة Caching للمساعد الذكي (EF-02)
-
-**السيناريو:** محادثة من 5 رسائل في دقيقة = 45 استعلام DB بلا داعٍ (9 × 5).
-
-**الحل:** إضافة `SimpleCache` (Map + TTL 5 دقائق + حد 50 مدخل) في أعلى `supabase/functions/ai-assistant/index.ts`:
-
+### الوضع الحالي (سطر 16, 78-95)
 ```typescript
-// ─── Cache بسيط في الذاكرة ───
-class SimpleCache {
-  private cache = new Map<string, { data: string; ts: number }>();
-  private readonly ttl: number;
-  private readonly maxSize: number;
-
-  constructor(ttlMs = 300_000, maxSize = 50) {
-    this.ttl = ttlMs;
-    this.maxSize = maxSize;
-  }
-
-  get(key: string): string | null {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.ts > this.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-    return entry.data;
-  }
-
-  set(key: string, data: string): void {
-    if (this.cache.size >= this.maxSize) {
-      // حذف الأقدم (أول مدخل)
-      const oldest = this.cache.keys().next().value;
-      if (oldest) this.cache.delete(oldest);
-    }
-    this.cache.set(key, { data, ts: Date.now() });
-  }
-}
-
-const dataCache = new SimpleCache();
+const [registrationEnabled, setRegistrationEnabled] = useState(false);
+// ...
+useEffect(() => {
+  supabase.from('app_settings').select('value').eq('key','registration_enabled').maybeSingle()
+  // ...
+}, []);
 ```
 
-ثم في `fetchWaqfData` (سطر 88):
+### التحقق من RLS
+سياسة `Anon can read registration_enabled` تسمح فقط بـ `key = 'registration_enabled'` — مطابقة تماماً للاستعلام الحالي. ✅
+
+### لماذا لا نستخدم `useAppSettings()`؟
+- يستعلم `SELECT key, value FROM app_settings` **بدون فلتر**
+- للمستخدم المجهول: RLS ترجع صفاً واحداً فقط → يُخزَّن في cache بمفتاح `['app-settings-all']`
+- بعد تسجيل الدخول في نفس الجلسة: صفحات أخرى تقرأ من نفس الـ cache الناقص حتى انتهاء `staleTime`
+- **خطر فعلي**: 5 دقائق من إعدادات ناقصة بعد تسجيل الدخول
+
+### الحل الآمن
+استبدال `useState + useEffect` بـ `useQuery` مخصص بمفتاح منفصل:
 ```typescript
-const cacheKey = `${userData.user.id}:${userRole}`;
-let dataContext = dataCache.get(cacheKey);
-if (!dataContext) {
-  dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
-  dataCache.set(cacheKey, dataContext);
-}
+import { useQuery } from '@tanstack/react-query';
+
+// بدل useState + useEffect:
+const { data: registrationEnabled = false } = useQuery({
+  queryKey: ['registration-enabled'],
+  queryFn: async () => {
+    const { data } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'registration_enabled')
+      .maybeSingle();
+    return data?.value === 'true';
+  },
+  staleTime: 5 * 60_000,
+  gcTime: 30 * 60_000,
+});
+```
+- **لا تعارض مع `['app-settings-all']`** — مفتاح cache مختلف ✅
+- **يعمل للمجهول** — نفس الاستعلام المفلتر ✅
+- **يُلغي الاستعلام المكرر** عند إعادة فتح الصفحة ✅
+
+---
+
+## الإصلاح 2: BeneficiarySettingsPage.tsx — تحديد queryKey
+
+### التحقق
+- السطر 42: `queryClient.invalidateQueries()` — بدون queryKey = يُبطل **كل** الـ cache
+- يُستدعى فقط من زر "إعادة المحاولة" عند `benError` (سطر 111)
+- `useBeneficiariesSafe` يستخدم queryKey `['beneficiaries-safe']`
+
+### فحص التأثير الجانبي
+عند الضغط على "إعادة المحاولة" حالياً: يُبطل cache كل الصفحات → إذا كان المستفيد في تبويب آخر يُعاد تحميل كل شيء. **مشكلة أداء حقيقية.**
+
+### الحل
+```typescript
+const handleRetry = useCallback(
+  () => queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] }),
+  [queryClient]
+);
+```
+- **لا تعارض** — الزر يظهر فقط عند خطأ في تحميل بيانات المستفيد ✅
+- **لا يُبطل cache غير ذي صلة** ✅
+
+---
+
+## الإصلاح 3: Index.tsx — تبسيط SVG pattern
+
+### التحقق
+السطر 119-122 يحتوي 3 عناصر زخرفية إضافية:
+```xml
+<circle cx="60" cy="60" r="4" .../>     ← دائرة صغيرة بالكاد مرئية
+<line x1="60" y1="0" x2="60" y2="120"/> ← خط عمودي
+<line x1="0" y1="60" x2="120" y2="60"/> ← خط أفقي
+```
+- الأنماط الأساسية (3 ماسات + دائرة كبيرة) تبقى
+- **لا تعارض بصري جوهري** — العناصر المحذوفة بـ `strokeWidth: 0.2-0.3` وبالكاد مرئية عند `opacity: 0.07`
+
+### الحل
+حذف السطور 120-122 (3 عناصر SVG)
+
+---
+
+## الإصلاح 4: BeneficiaryDashboard.tsx — useMemo للتواريخ
+
+### التحقق
+السطور 81-83:
+```typescript
+const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', ...);
+const gregorianDate = now.toLocaleDateString('ar-SA', ...);
+const timeStr = now.toLocaleTimeString('ar-SA', ...);
+```
+- `now` يتغير كل 60 ثانية (من `setInterval` سطر 66)
+- بدون `useMemo`: تُحسب كل render (حتى لو تغير state آخر)
+- **تحسين طفيف** لكن بدون مخاطر
+
+### الحل
+```typescript
+const { hijriDate, gregorianDate, timeStr } = useMemo(() => ({
+  hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
+  gregorianDate: now.toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' }),
+  timeStr: now.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' }),
+}), [now]);
 ```
 
 ---
 
-## المشكلة 4: نطاق CORS قديم
+## ملخص الحكم النهائي
 
-**السيناريو:** `waqf-mr.lovable.app` نطاق قديم — إذا تم اختطافه نظرياً يمكنه إرسال طلبات CORS.
+| # | الملف | الحكم | مخاطر |
+|---|-------|-------|-------|
+| 1 | Auth.tsx | ✅ آمن (useQuery مخصص بدل useAppSettings) | صفر |
+| 2 | BeneficiarySettingsPage.tsx | ✅ آمن | صفر |
+| 3 | Index.tsx | ✅ آمن (تجميلي) | طفيف بصرياً |
+| 4 | BeneficiaryDashboard.tsx | ✅ آمن (تحسين طفيف) | صفر |
 
-**الحل:** في `supabase/functions/_shared/cors.ts`:
-- حذف `"https://waqf-mr.lovable.app"` من `ALLOWED_ORIGINS`
-- تحديث fallback default إلى `"https://waqf-wise-net.lovable.app"`
-
----
-
-## ملخص الملفات المتأثرة
-
-| # | الملف | التغيير |
-|---|-------|---------|
-| 1-2 | Migration SQL | حذف سياسة Storage + تقييد MIME + إضافة سياسة admin SELECT |
-| 3 | `supabase/functions/ai-assistant/index.ts` | إضافة SimpleCache class + استخدامه قبل fetchWaqfData |
-| 4 | `supabase/functions/_shared/cors.ts` | حذف النطاق القديم + تحديث fallback |
+**لا توجد تعارضات أو مشاكل. الخطة جاهزة للتنفيذ.**
 
