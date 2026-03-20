@@ -1,181 +1,107 @@
 
 
-# تقرير الفحص الجنائي الهجين الشامل — waqf-wise-net.lovable.app
+# خطة تنفيذ إصلاح المشاكل الأربع المكتشفة
 
 ---
 
-## المنهجية
+## المشكلة 1: سياسة SELECT على حزمة `invoices` فضفاضة
 
-فحص جذور كل ملف في 11 Edge Function + 37 جدول + 52 دالة قاعدة بيانات + البنية الأمامية الكاملة. تم التحقق المباشر من الكود والبيانات الحية.
+**السيناريو:** مستفيد مصادق يستطيع قراءة فواتير عقود لا تخصه عبر `storage.objects` — السياسة الحالية `Authenticated users can view invoices` تسمح لأي مستخدم مصادق.
 
----
+**الحل:** حذف السياسة الفضفاضة. يبقى `Accountants can read invoices` + `Admins can upload invoices` (admin لديه INSERT/UPDATE/DELETE = ضمنياً SELECT عبر الرفع). نضيف سياسة SELECT للأدمن صريحة.
 
-## القسم 1: Edge Functions (11 وظيفة)
-
-### ✅ سليم بالكامل (10/11)
-
-| الوظيفة | المصادقة | Rate Limit | التحقق من المدخلات | CORS | الحكم |
-|---------|----------|------------|-------------------|------|-------|
-| **guard-signup** | service role (no user) | ✅ DB-based `isLimited` | ✅ email regex + password 8-128 | ✅ strict | ✅ |
-| **lookup-national-id** | service role (no user) | ✅ DB-based + progressive delay | ✅ 10-digit + Arabic numeral conversion | ✅ strict | ✅ |
-| **webauthn** | `getUser()` + service role | ✅ `isLimited` (مُصحح) | ✅ challenge_id mandatory | ✅ strict + origin whitelist | ✅ |
-| **admin-manage-users** | `getUser()` + admin role check | — (admin only) | ✅ UUID/email/password/role validators | ✅ strict | ✅ |
-| **ai-assistant** | `getUser()` + role check | ✅ 30/min per user | ✅ messages sliced to 10, content to 2000 chars | ✅ strict | ✅ |
-| **zatca-signer** | `getUser()` + admin/accountant | — | ✅ table whitelist + double-sign prevention | ✅ strict | ✅ |
-| **zatca-api** | `getUser()` + admin only | — | ✅ action whitelist + field validation | ✅ strict | ✅ |
-| **zatca-xml-generator** | `getUser()` + admin/accountant | — | ✅ table whitelist + `escapeXml()` | ✅ strict | ✅ |
-| **check-contract-expiry** | timing-safe service role OR admin | — | ✅ no user input (cron) | ✅ strict | ✅ |
-| **generate-invoice-pdf** | `getUser()` + role check | — | ✅ reshapeArabic, fontkit | ✅ strict | ✅ |
-
-### ✅ auth-email-hook (11/11)
-- يستخدم `verifyWebhookRequest` من Lovable SDK
-- لا يقبل مدخلات مستخدم مباشرة
-- القوالب آمنة (React Email)
-
-### ملخص Edge Functions: 0 ثغرات
-
----
-
-## القسم 2: CORS والحماية من CSRF
-
-```text
-ALLOWED_ORIGINS:
-  - https://waqf-mr.lovable.app
-  - https://waqf-wise-net.lovable.app  
-  - https://waqf-wise.net
-  - https://www.waqf-wise.net
-
-ALLOWED_ORIGIN_PATTERNS:
-  - UUID-scoped regex for preview subdomains only
-  
-Default fallback: waqf-mr.lovable.app (NOT wildcard *)
+**Migration SQL:**
+```sql
+DROP POLICY "Authenticated users can view invoices" ON storage.objects;
+CREATE POLICY "Admins can read invoices" ON storage.objects
+  FOR SELECT USING (bucket_id = 'invoices' AND has_role(auth.uid(), 'admin'));
 ```
 
-**الحكم:** ✅ محصّن — لا يوجد `*` في CORS، والأصول محددة بدقة.
-
 ---
 
-## القسم 3: قاعدة البيانات — 52 دالة
+## المشكلة 2: حزمة `invoices` بدون تقييد MIME types
 
-| الفئة | العدد | `SECURITY DEFINER` | الحكم |
-|-------|-------|-------------------|-------|
-| دوال الأعمال (close_fiscal_year, execute_distribution...) | 28 | ✅ جميعها | ✅ مقصود — تتجاوز RLS بأمان |
-| دوال التشفير (encrypt_pii, decrypt_pii, get_pii_key) | 3 | ✅ | ✅ EXECUTE سُحب من authenticated |
-| دوال التحقق (has_role, is_fiscal_year_accessible) | 2 | ✅ stable | ✅ أساس أمان RLS |
-| مشغلات (triggers) | 12 | مختلط | ✅ لا تقبل مدخلات مستخدم |
-| دوال cron | 7 | ✅ | ✅ تعمل بسياق service role |
+**السيناريو:** رغم التحقق من magic bytes في الواجهة، يمكن لمحاسب/أدمن تجاوز الواجهة ورفع ملف تنفيذي عبر API مباشر.
 
-**فحص صلاحيات التنفيذ:**
-- `anon`: لا توجد أي صلاحية EXECUTE (تم سحبها بالكامل)
-- `authenticated`: لا توجد أي صلاحية EXECUTE مباشرة (تم سحبها)
-- الوصول يتم فقط عبر `SECURITY DEFINER` داخل RLS policies
+**الحل:** تقييد `allowed_mime_types` على الحزمة.
 
-**الحكم:** ✅ محصّن بالكامل
-
----
-
-## القسم 4: RLS — 37 جدول
-
-تم التأكيد سابقاً (10/10). ملخص سريع:
-- ✅ 37/37 جدول — RLS مفعّل
-- ✅ 12 جدول مالي — RESTRICTIVE fiscal year filter
-- ✅ 4 سجلات تدقيق — غير قابلة للتعديل
-- ✅ 2 جدول محصّن بـ `USING(false)` — service role فقط
-
----
-
-## القسم 5: البنية الأمامية
-
-### المصادقة (AuthContext)
-- ✅ `onAuthStateChange` + `getUser()` للجلسة
-- ✅ Role من `user_roles` عبر Supabase SDK (ليس localStorage)
-- ✅ لا يوجد `service_role` في أي ملف frontend
-- ✅ لا يوجد تخزين أدوار في localStorage/sessionStorage
-- ✅ Stale closure fix بـ `roleRef`
-- ✅ Safety timeout 3 ثوانٍ لجلب الدور
-
-### ProtectedRoute
-- ✅ يعتمد على AuthContext فقط
-- ✅ تسجيل unauthorized_access في access_log
-- ✅ Redirect to /auth بدون user
-- ✅ Redirect to /unauthorized بدون دور مناسب
-
-### IdleTimeout
-- ✅ 15 دقيقة timeout مع تحذير 60 ثانية
-- ✅ Visibility API — يكتشف العودة من tab مخفي
-- ✅ تنظيف كامل عند unmount
-
-### SecurityGuard
-- ✅ حماية `data-sensitive` من النسخ والسحب
-- ✅ تعليق واضح أنها طبقة UI فقط (ليست أمان حقيقي)
-
----
-
-## القسم 6: config.toml
-
-```text
-جميع الوظائف: verify_jwt = false
+**Migration SQL:**
+```sql
+UPDATE storage.buckets 
+SET allowed_mime_types = ARRAY['application/pdf','image/jpeg','image/png','image/webp']
+WHERE id = 'invoices';
 ```
 
-**هل هذا آمن؟** ✅ نعم — كل وظيفة تتحقق يدوياً عبر `getUser()` + role check داخلياً. هذا النمط مطلوب لـ:
-- `guard-signup`: لا يوجد مستخدم بعد
-- `webauthn auth-options`: لا يوجد token عند تسجيل الدخول بالبصمة
-- `check-contract-expiry`: cron job بـ service role
-- `auth-email-hook`: webhook من Lovable
-
 ---
 
-## القسم 7: نقاط القوة المميزة
+## المشكلة 3: إضافة Caching للمساعد الذكي (EF-02)
 
-1. **Anti-enumeration:** `lookup-national-id` يُرجع `found: true` + `***@***.com` حتى للهويات غير الموجودة — يمنع تعداد المستخدمين
-2. **Progressive delay:** تأخير تصاعدي (300ms + 200ms لكل محاولة) ضد brute force
-3. **Timing-safe comparison:** `check-contract-expiry` يستخدم constant-time comparison لـ service role token
-4. **Double-sign prevention:** ZATCA signer يرفض التوقيع المزدوج (`invoice_hash` موجود)
-5. **Rollback on failure:** ZATCA signer يحذف chain record عند فشل التوقيع
-6. **OTP cleanup:** `zatca-api` يمسح رموز OTP بعد نجاح Onboarding
-7. **PII function revocation:** `encrypt_pii`/`decrypt_pii`/`get_pii_key` محجوبة عن `authenticated` و `anon`
-8. **Audit trail immutability:** 4 جداول سجلات بـ INSERT/UPDATE/DELETE = false
+**السيناريو:** محادثة من 5 رسائل في دقيقة = 45 استعلام DB بلا داعٍ (9 × 5).
 
----
+**الحل:** إضافة `SimpleCache` (Map + TTL 5 دقائق + حد 50 مدخل) في أعلى `supabase/functions/ai-assistant/index.ts`:
 
-## القسم 8: الملاحظات والتوصيات
+```typescript
+// ─── Cache بسيط في الذاكرة ───
+class SimpleCache {
+  private cache = new Map<string, { data: string; ts: number }>();
+  private readonly ttl: number;
+  private readonly maxSize: number;
 
-### ملاحظة 1: `waqf-mr.lovable.app` في CORS (منخفضة الخطورة)
-**الملف:** `supabase/functions/_shared/cors.ts` سطر 2
+  constructor(ttlMs = 300_000, maxSize = 50) {
+    this.ttl = ttlMs;
+    this.maxSize = maxSize;
+  }
 
-CORS يتضمن `waqf-mr.lovable.app` كأصل مسموح. إذا كان هذا نطاقاً قديماً لم يعد مستخدماً، فمن الأفضل حذفه لتقليل سطح الهجوم. إذا كان لا يزال نشطاً فلا مشكلة.
+  get(key: string): string | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.ts > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
 
-**التأثير:** منخفض — لا يمكن استغلاله إلا إذا تم اختطاف النطاق القديم.
+  set(key: string, data: string): void {
+    if (this.cache.size >= this.maxSize) {
+      // حذف الأقدم (أول مدخل)
+      const oldest = this.cache.keys().next().value;
+      if (oldest) this.cache.delete(oldest);
+    }
+    this.cache.set(key, { data, ts: Date.now() });
+  }
+}
 
-### ملاحظة 2: `contracts` SELECT بدون `count` guard في `check-contract-expiry` (معدومة الخطورة)
-السطر 87-91 و198-202 يجلبان عقوداً بـ `limit(500)` و `limit(2000)`. إذا تجاوز عدد العقود هذه الحدود ستُفقد بعض التنبيهات. **لا يؤثر أمنياً** — فقط اكتمال التنبيهات.
-
-### ملاحظة 3: `ai-assistant` يكشف أسماء المستأجرين للأدمن فقط ✅
-السطر 284-307: العقود بالتفاصيل للأدمن/محاسب فقط، المستفيد يرى العدد فقط. **سليم**.
-
----
-
-## الخلاصة النهائية
-
-```text
-╔════════════════════════════════════════════════════════════╗
-║  11/11 Edge Function — مصادقة + تحقق كامل ✅            ║
-║  37/37 جدول — RLS مفعّل ✅                               ║
-║  52/52 دالة DB — SECURITY DEFINER مناسب ✅               ║
-║  0 صلاحيات EXECUTE لـ anon/authenticated ✅              ║
-║  0 service_role في الواجهة الأمامية ✅                    ║
-║  0 تخزين أدوار في localStorage ✅                        ║
-║  CORS صارم بدون wildcard ✅                               ║
-║                                                            ║
-║  الثغرات الحرجة: 0                                        ║
-║  الثغرات المتوسطة: 0                                      ║
-║  الملاحظات المنخفضة: 1 (نطاق CORS قديم محتمل)           ║
-║                                                            ║
-║  التقييم النهائي: 10/10                                   ║
-╚════════════════════════════════════════════════════════════╝
+const dataCache = new SimpleCache();
 ```
 
-**لا يوجد أي إصلاح مطلوب.** النظام محصّن على جميع الطبقات.
+ثم في `fetchWaqfData` (سطر 88):
+```typescript
+const cacheKey = `${userData.user.id}:${userRole}`;
+let dataContext = dataCache.get(cacheKey);
+if (!dataContext) {
+  dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
+  dataCache.set(cacheKey, dataContext);
+}
+```
 
-التوصية الوحيدة: مراجعة ما إذا كان نطاق `waqf-mr.lovable.app` لا يزال مطلوباً في CORS — إذا لم يكن، حذفه.
+---
+
+## المشكلة 4: نطاق CORS قديم
+
+**السيناريو:** `waqf-mr.lovable.app` نطاق قديم — إذا تم اختطافه نظرياً يمكنه إرسال طلبات CORS.
+
+**الحل:** في `supabase/functions/_shared/cors.ts`:
+- حذف `"https://waqf-mr.lovable.app"` من `ALLOWED_ORIGINS`
+- تحديث fallback default إلى `"https://waqf-wise-net.lovable.app"`
+
+---
+
+## ملخص الملفات المتأثرة
+
+| # | الملف | التغيير |
+|---|-------|---------|
+| 1-2 | Migration SQL | حذف سياسة Storage + تقييد MIME + إضافة سياسة admin SELECT |
+| 3 | `supabase/functions/ai-assistant/index.ts` | إضافة SimpleCache class + استخدامه قبل fetchWaqfData |
+| 4 | `supabase/functions/_shared/cors.ts` | حذف النطاق القديم + تحديث fallback |
 
