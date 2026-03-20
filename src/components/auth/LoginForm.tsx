@@ -260,15 +260,26 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
 
       <div className="space-y-2">
         <Label htmlFor={`signin-password${idSuffix}`}>كلمة المرور</Label>
-        <Input
-          id={`signin-password${idSuffix}`}
-          type="password"
-          value={loginPassword}
-          onChange={(e) => setLoginPassword(e.target.value)}
-          placeholder="••••••••"
-          dir="ltr"
-          className="h-11"
-        />
+        <div className="relative">
+          <Input
+            id={`signin-password${idSuffix}`}
+            type={showPassword ? 'text' : 'password'}
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            placeholder="••••••••"
+            dir="ltr"
+            className="h-11 pe-10"
+          />
+          <button
+            type="button"
+            tabIndex={-1}
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
       <div className="flex justify-center">
         <Button

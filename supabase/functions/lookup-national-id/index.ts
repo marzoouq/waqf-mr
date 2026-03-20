@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
-const RATE_LIMIT = 3;
-const RATE_WINDOW_SECONDS = 300;
+const RATE_LIMIT = 5;
+const RATE_WINDOW_SECONDS = 180;
 
 /** Mask email: "user@example.com" → "u***@example.com" */
 function maskEmail(email: string): string {
