@@ -73,12 +73,12 @@ Deno.serve(async (req: Request) => {
       if (!user) return new Response(JSON.stringify({ error: "غير مصرح" }), { status: 401, headers: cors });
 
       // Rate limiting: 10 requests/minute per user
-      const { data: rlAllowed, error: rlError } = await admin.rpc("check_rate_limit", {
+      const { data: isLimited, error: rlError } = await admin.rpc("check_rate_limit", {
         p_key: `webauthn:register:${user.id}`,
         p_limit: 10,
         p_window_seconds: 60,
       });
-      if (rlError || rlAllowed === false) {
+      if (rlError || isLimited) {
         return new Response(JSON.stringify({ error: "طلبات كثيرة، حاول لاحقاً" }), { status: 429, headers: cors });
       }
 
