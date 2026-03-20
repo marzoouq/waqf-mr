@@ -57,7 +57,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   // إصلاح #4: إظهار زر الخروج فقط بعد 5 ثوانٍ لتجنب الإرباك أثناء التحقق الأولي
   useEffect(() => {
     if (allowedRoles && !role && !loading && user) {
-      const timer = setTimeout(() => setShowSignOut(true), 5000);
+      const timer = setTimeout(() => setShowSignOut(true), 3000);
       return () => clearTimeout(timer);
     }
     setShowSignOut(false);
