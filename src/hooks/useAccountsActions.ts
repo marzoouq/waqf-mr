@@ -13,15 +13,12 @@ import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import { findAccountByFY } from '@/utils/findAccountByFY';
 
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any — الأنواع تأتي من hooks متعددة مع اختلاف null/undefined
-type AnyRecord = Record<string, any>;
-
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
-  accounts: AnyRecord[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  accounts: any[];
   totalIncome: number;
   totalExpenses: number;
   adminShare: number;
@@ -33,8 +30,10 @@ interface ActionsParams {
   grandTotal: number;
   availableAmount: number;
   remainingBalance: number;
-  contracts: AnyRecord[];
-  beneficiaries: AnyRecord[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contracts: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  beneficiaries: any[];
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   appSettingsData: Record<string, string> | undefined;
@@ -47,6 +46,7 @@ export function useAccountsActions(params: ActionsParams) {
   const appSettings = useAppSettings();
 
   // حفظ آخر قيم params في ref لاستخدامها في buildAccountData/handleExportPdf
+  // هذا يحل مشكلة تمرير الأصفار الأولية — paramsRef يُحدّث كل render بالقيم الفعلية
   const paramsRef = useRef(params);
   paramsRef.current = params;
 

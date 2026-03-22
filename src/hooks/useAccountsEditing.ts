@@ -23,15 +23,14 @@ interface ContractEditData {
   contract_number: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any — الأنواع تأتي من hooks متعددة
-type AnyRecord = Record<string, any>;
-
 interface EditingParams {
-  contracts: AnyRecord[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contracts: any[];
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
   fiscalYearId: string | null | undefined;
-  getExpectedPayments: (contract: AnyRecord) => number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getExpectedPayments: (contract: any) => number;
 }
 
 export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
@@ -71,7 +70,7 @@ export function useAccountsEditing({ contracts, collectionData, tenantPayments, 
 
   const handleSaveEdit = async () => {
     if (!editData) return;
-    const contract = contracts.find(c => c.id === editData.contractId);
+    const contract = contracts.find((c: { id: string }) => c.id === editData.contractId);
     if (!contract) { toast.error('العقد غير موجود'); return; }
     try {
       await updateContract.mutateAsync({
