@@ -1,10 +1,16 @@
-import { loadSync } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
-loadSync({ export: true, allowEmptyValues: true });
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/assert.ts";
 
-const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
+// Read env vars from .env file manually (avoid dotenv strict mode)
+const envText = await Deno.readTextFile(".env").catch(() => "");
+const envMap: Record<string, string> = {};
+for (const line of envText.split("\n")) {
+  const match = line.match(/^([A-Z_]+)=(.*)$/);
+  if (match) envMap[match[1]] = match[2].replace(/^["']|["']$/g, "");
+}
+
+const SUPABASE_URL = envMap["VITE_SUPABASE_URL"] || Deno.env.get("VITE_SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = envMap["VITE_SUPABASE_PUBLISHABLE_KEY"] || Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
 const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/lookup-national-id`;
 
 const headers = {
