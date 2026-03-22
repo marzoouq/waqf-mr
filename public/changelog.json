@@ -1,5 +1,19 @@
 [
   {
+    "version": "3.0.7",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Hardened beneficiaries and roles"
+      },
+      {
+        "type": "improvement",
+        "text": "Harden security views and roles"
+      }
+    ]
+  },
+  {
     "version": "3.0.6",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
