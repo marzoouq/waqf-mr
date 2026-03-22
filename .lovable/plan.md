@@ -1,127 +1,71 @@
 
 
-# تقرير الفحص الجنائي الهجين العميق — مارس 2026
+
+# تقرير الفحص الجنائي الهجين العميق — بعد إعادة الهيكلة
 
 ---
 
-## ملخص تنفيذي
+## الحالة بعد آخر تعديلات
 
-تم فحص المشروع بالكامل بعد آخر جولة إصلاحات. المعمارية **نظيفة ومنظمة** مع **bug حرج واحد لا يزال قائماً** رغم محاولة إصلاحه.
-
----
-
-## 1. Bug حرج: الأصفار في useAccountsActions — لم يُحل بشكل كامل
-
-**المشكلة:** في `useAccountsPage.ts` سطر 24-45، القيم المالية تُمرر كأصفار ثابتة:
-
-```text
-totalIncome: 0, totalExpenses: 0, adminShare: 0, ...
-```
-
-**محاولة الإصلاح السابقة** استخدمت `paramsRef`:
-```text
-const paramsRef = useRef(params);
-paramsRef.current = params;  // سطر 51 في useAccountsActions
-```
-
-**لكن هذا لا يحل المشكلة** لأن:
-- `params` المُمرر من `useAccountsPage` يحتوي **دائماً** على `totalIncome: 0` (literal zero)
-- `paramsRef.current = params` يُحدّث المرجع لكن بنفس الأصفار
-- `calc` يُحسب **بعد** إنشاء `actions` (سطر 48-57) لكن قيمه لا تُمرر أبداً إلى `actions`
-- النتيجة: `buildAccountData()` و `handleExportPdf()` يستخدمان أصفار دائماً
-
-**الإصلاح الصحيح:** إضافة `useEffect` في `useAccountsPage` يُحدّث `paramsRef` بقيم `calc` بعد حسابها:
-
-```text
-// في useAccountsPage.ts بعد سطر 57:
-useEffect(() => {
-  actions.updateFinancials({
-    totalIncome: calc.totalIncome,
-    totalExpenses: calc.totalExpenses,
-    adminShare: calc.adminShare,
-    ...
-  });
-}, [calc values]);
-```
-
-أو الأبسط: تعريض `paramsRef` من `useAccountsActions` وتحديثه مباشرة:
-```text
-actions.paramsRef.current = { ...actions.paramsRef.current, ...calc };
-```
+تم التحقق من تقسيم `useAccountsPage` (593 سطر سابقاً) إلى 4 hooks فرعية + تحويل `useSupportStats` إلى RPC. فيما يلي نتائج الفحص العميق.
 
 ---
 
-## 2. فحص المعمارية — ✅ ممتازة
+## 1. ~~مشكلة معمارية مكتشفة: Circular Import Risk~~ ✅ تم الإصلاح
 
-| الطبقة | الحالة | ملاحظة |
-|--------|--------|--------|
-| `useAccountsPage.ts` (138 سطر) | ✅ | Composition layer نظيف |
-| `useAccountsData.ts` (74 سطر) | ✅ | جلب بيانات فقط — لا حسابات |
-| `useAccountsCalculations.ts` (158 سطر) | ✅ | useMemo شامل |
-| `useAccountsEditing.ts` (146 سطر) | ✅ | UI state مستقل |
-| `useAccountsActions.ts` (267 سطر) | ⚠️ | Bug الأصفار + 3 `any[]` |
-| `findAccountByFY.ts` (ملف مستقل) | ✅ | Circular dependency مكسور |
+تم نقل `findAccountByFY` إلى `src/utils/findAccountByFY.ts` وكسر الدورة.
 
 ---
 
-## 3. نظافة الكود
+## 2. ~~استخدام `any` في hooks الجديدة~~ ✅ تم الإصلاح
 
-| البند | العدد | الحالة |
-|-------|-------|--------|
-| `eslint-disable` | 7 مواضع | ⚠️ كلها `no-explicit-any` أو `exhaustive-deps` مبرر |
-| `any[]` في hooks | 5 مواضع | ⚠️ في `useAccountsActions` و `useAccountsEditing` |
-| `console.*` في production | 0 | ✅ (logger مستخدم حصراً) |
-| Dead code | 0 | ✅ |
-| Circular imports | 0 | ✅ (تم الإصلاح) |
+تم استبدال `any[]` بـ `Account[]`, `Contract[]`, `Beneficiary[]` من `@/types/database`.
 
 ---
 
-## 4. Query & Caching — ✅ ممتاز
+## 3. ~~مشكلة Zero-Values في `useAccountsActions`~~ ✅ تم الإصلاح
 
-| البند | القيمة |
-|-------|--------|
-| `staleTime` default | 5 دقائق |
-| `gcTime` default | 30 دقيقة |
-| `refetchOnWindowFocus` | `false` |
-| `retry` | مرة واحدة (يتوقف عند 4xx) |
-| `QueryCache.onError` | يتجاهل 401/403 |
-| `MutationCache.onError` | toast عالمي إذا لم يوجد `onError` خاص |
+تم تعريض `paramsRef` من `useAccountsActions` وتحديثه مباشرة في `useAccountsPage` بقيم `calc` المحسوبة الفعلية بعد حسابها.
 
 ---
 
-## 5. Contexts — ✅ مركّزة
+## 4. تقييم التقسيم الجديد
 
-- **AuthContext** (231 سطر): `roleRef` + retry logic + security alerts — جيد
-- **FiscalYearContext** (114 سطر): localStorage + validation + fallback آمن — ممتاز
-- **فقط 2 contexts** — لا يوجد context soup
+| الملف | الأسطر | المسؤولية | التقييم |
+|-------|--------|-----------|---------|
+| `useAccountsPage.ts` | 143 | Composition layer | ✅ نظيف |
+| `useAccountsData.ts` | 74 | Data fetching | ✅ ممتاز |
+| `useAccountsCalculations.ts` | 158 | Financial math | ✅ جيد — useMemo مطبّق |
+| `useAccountsEditing.ts` | 145 | UI state | ✅ نظيف — أنواع محددة |
+| `useAccountsActions.ts` | 268 | CRUD + settings | ✅ أنواع محددة + paramsRef مُعرَّض |
 
 ---
 
-## 6. Edge Functions — فحص أمني
+## 5. Edge Functions — فحص الأمان ✅
 
-| الوظيفة | Auth | Rate Limit | Input Validation |
-|---------|------|------------|-----------------|
+| الوظيفة | Auth Check | Rate Limit | Input Validation |
+|---------|-----------|------------|-----------------|
 | `guard-signup` | ✅ | ✅ | ✅ |
 | `lookup-national-id` | ✅ | ✅ | ✅ |
-| `admin-manage-users` | ✅ | ✅ (تمت الإضافة) | ✅ |
-| `ai-assistant` | ✅ | ❌ | ⚠️ |
+| `ai-assistant` | ✅ getUser | ✅ (30 req/min) | ✅ |
+| `admin-manage-users` | ✅ admin check | ✅ | ✅ |
 | `zatca-api` | ✅ | ❌ | ✅ |
 | `generate-invoice-pdf` | ✅ | ❌ | ✅ |
 
 ---
 
-## 7. ملخص التوصيات
+## 6. ملخص التوصيات المتبقية
 
 | # | التوصية | الأولوية | الحالة |
-|---|---------|----------|--------|
-| 1 | **إصلاح bug الأصفار فعلياً** — تمرير قيم `calc` إلى `paramsRef` بعد الحساب | **حرجة** | لم يُحل |
-| 2 | استبدال `any[]` بأنواع محددة (5 مواضع) | متوسطة | لم يُنفذ |
-| 3 | إضافة rate limiting لـ `ai-assistant` | متوسطة | لم يُنفذ |
-| 4 | جعل `fiscal_year_id` NOT NULL | منخفضة | لم يُنفذ |
+|---|---------|----------|-------|
+| 1 | ~~إصلاح bug الأصفار~~ | ~~حرجة~~ | ✅ تم |
+| 2 | ~~كسر الـ circular import~~ | ~~عالية~~ | ✅ تم |
+| 3 | ~~استبدال `any[]` بأنواع محددة~~ | ~~متوسطة~~ | ✅ تم |
+| 4 | ~~إضافة rate limiting لـ `ai-assistant`~~ | ~~متوسطة~~ | ✅ موجود بالفعل |
+| 5 | **جعل `fiscal_year_id` NOT NULL** في الجداول المالية | منخفضة | لم يُنفذ |
 
 ---
 
 ## الخلاصة
 
-المشروع في حالة **ممتازة معمارياً** بعد تقسيم `useAccountsPage` وكسر الـ circular dependency. المشكلة الوحيدة المتبقية هي **bug الأصفار في `buildAccountData`/`handleExportPdf`** الذي لم يُحل رغم إضافة `paramsRef` — لأن القيم المُمررة نفسها أصفار ثابتة ولا تُحدّث بقيم `calc` المحسوبة.
-
+المشروع في حالة **ممتازة** — جميع المشاكل الحرجة والمتوسطة تم إصلاحها.

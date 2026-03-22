@@ -12,13 +12,13 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import { findAccountByFY } from '@/utils/findAccountByFY';
+import type { Account, Contract, Beneficiary } from '@/types/database';
 
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  accounts: any[];
+  accounts: Account[];
   totalIncome: number;
   totalExpenses: number;
   adminShare: number;
@@ -30,10 +30,8 @@ interface ActionsParams {
   grandTotal: number;
   availableAmount: number;
   remainingBalance: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contracts: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  beneficiaries: any[];
+  contracts: Contract[];
+  beneficiaries: Beneficiary[];
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   appSettingsData: Record<string, string> | undefined;
@@ -255,6 +253,8 @@ export function useAccountsActions(params: ActionsParams) {
     // الإعدادات
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
     manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount,
+    // Ref للقيم المالية — يُحدّث من useAccountsPage بقيم calc المحسوبة
+    paramsRef,
     // Setters
     setWaqfCorpusPrevious, setManualVat, setZakatAmount, setWaqfCorpusManual, setManualDistributions,
     // Handlers
