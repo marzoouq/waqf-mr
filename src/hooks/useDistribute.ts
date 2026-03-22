@@ -5,6 +5,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { notifyUser } from '@/utils/notifications';
 
 interface DistributionInput {
   beneficiary_id: string;
@@ -49,13 +50,29 @@ export const useDistributeShares = () => {
         p_distributions: sanitized,
       });
       if (error) throw error;
-      return data as { success: boolean; with_share: number; with_deficit: number };
+      return {
+        result: data as { success: boolean; with_share: number; with_deficit: number },
+        distributions,
+      };
     },
-    onSuccess: (result) => {
+    onSuccess: ({ result, distributions }) => {
       invalidateAll();
       let msg = `تم توزيع الحصص بنجاح لـ ${result.with_share} مستفيد`;
       if (result.with_deficit > 0) msg += ` (${result.with_deficit} مستفيد لديهم فروق مرحّلة)`;
       toast.success(msg);
+
+      // إشعار شخصي لكل مستفيد لديه حساب مرتبط
+      for (const d of distributions) {
+        if (d.beneficiary_user_id && d.net_amount > 0) {
+          notifyUser(
+            d.beneficiary_user_id,
+            'صدور حصتك المالية',
+            `تم توزيع حصتك بمبلغ ${d.net_amount.toLocaleString('ar-SA')} ر.س. يرجى مراجعة التفاصيل.`,
+            'success',
+            '/beneficiary/my-share',
+          );
+        }
+      }
     },
     onError: () => {
       // M-09 fix: لا حاجة لـ invalidateAll — العملية ذرية ولم تُغير شيئاً

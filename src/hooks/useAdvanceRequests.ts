@@ -217,6 +217,25 @@ export const useCreateAdvanceRequest = () => {
         'info',
         '/dashboard/beneficiaries',
       );
+      // إشعار تأكيد استلام للمستفيد نفسه (fire-and-forget)
+      if (result.beneficiary_id) {
+        supabase
+          .from('beneficiaries')
+          .select('user_id')
+          .eq('id', result.beneficiary_id)
+          .single()
+          .then(({ data: benData }) => {
+            if (benData?.user_id) {
+              notifyUser(
+                benData.user_id,
+                'تم استلام طلب السلفة',
+                `تم استلام طلبك بمبلغ ${fmt(Number(vars.amount))} ر.س وسيتم مراجعته من قبل الناظر.`,
+                'info',
+                '/beneficiary/my-share',
+              );
+            }
+          });
+      }
     },
     onError: () => toast.error('فشل إرسال طلب السلفة'),
   });
