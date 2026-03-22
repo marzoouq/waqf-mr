@@ -2,6 +2,7 @@
  * حالة التحرير في صفحة الحسابات — collection editing + contract editing + delete
  */
 import { useState } from 'react';
+import type { Tables } from '@/integrations/supabase/types';
 import { useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useDeleteAccount } from '@/hooks/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/useTenantPayments';
