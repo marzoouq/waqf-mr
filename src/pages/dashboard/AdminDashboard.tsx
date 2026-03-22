@@ -1,6 +1,7 @@
 import { fmtInt } from '@/utils/format';
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useMemo, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
