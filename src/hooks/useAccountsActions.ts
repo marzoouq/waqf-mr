@@ -30,8 +30,10 @@ interface ActionsParams {
   grandTotal: number;
   availableAmount: number;
   remainingBalance: number;
-  contracts: Array<{ id: string; tenant_name: string; rent_amount: number; property_id: string; contract_number: string; status: string }>;
-  beneficiaries: Array<{ name: string; share_percentage: number }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contracts: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  beneficiaries: any[];
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   appSettingsData: Record<string, string> | undefined;
