@@ -253,6 +253,8 @@ export function useAccountsActions(params: ActionsParams) {
     // الإعدادات
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
     manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount,
+    // Ref للقيم المالية — يُحدّث من useAccountsPage بقيم calc المحسوبة
+    paramsRef,
     // Setters
     setWaqfCorpusPrevious, setManualVat, setZakatAmount, setWaqfCorpusManual, setManualDistributions,
     // Handlers

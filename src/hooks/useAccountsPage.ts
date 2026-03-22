@@ -65,15 +65,24 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
-  // تحديث paramsRef في useAccountsActions بالقيم المحسوبة الفعلية
-  // هذا يحدث في كل render — فعندما يُستدعى buildAccountData أو handleExportPdf
-  // سيحصلان على أحدث القيم من paramsRef.current
-  // لا حاجة لاستدعاء setter — الـ ref يُحدّث تلقائياً في useAccountsActions عبر:
-  // paramsRef.current = params (في بداية الـ hook)
-  // لكن params هنا تحتوي على أصفار — لذا نحتاج تمرير القيم المحسوبة مباشرة
-  // الحل: useAccountsActions يستخدم paramsRef الذي يتحدث كل render
-  // والقيم المُمررة هنا ستكون الأصفار فقط في أول render
-  // بعدها ستكون calc جاهزة وسيتم تمرير القيم الصحيحة
+  // مزامنة القيم المحسوبة الفعلية من calc إلى paramsRef في useAccountsActions
+  // هذا يضمن أن buildAccountData و handleExportPdf يستخدمان القيم الحقيقية وليس الأصفار الأولية
+  actions.paramsRef.current = {
+    ...actions.paramsRef.current,
+    totalIncome: calc.totalIncome,
+    totalExpenses: calc.totalExpenses,
+    adminShare: calc.adminShare,
+    waqifShare: calc.waqifShare,
+    waqfRevenue: calc.waqfRevenue,
+    netAfterExpenses: calc.netAfterExpenses,
+    netAfterVat: calc.netAfterVat,
+    netAfterZakat: calc.netAfterZakat,
+    grandTotal: calc.grandTotal,
+    availableAmount: calc.availableAmount,
+    remainingBalance: calc.remainingBalance,
+    incomeBySource: calc.incomeBySource,
+    expensesByType: calc.expensesByType,
+  };
 
   return {
     // Data
