@@ -96,7 +96,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async (payload: Insert<T>) => {
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as never)
+          .insert(payload as Tables[T]['Insert'])
           .select()
           .maybeSingle();
 
