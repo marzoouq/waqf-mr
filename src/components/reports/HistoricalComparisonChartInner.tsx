@@ -17,7 +17,7 @@ interface Props {
 }
 
 const HistoricalComparisonChartInner: React.FC<Props> = ({ chartData, yearLabels }) => (
-  <ResponsiveContainer width="100%" height={280} minWidth={0}>
+  <ResponsiveContainer width="100%" height={280} minWidth={1}>
     <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
       <XAxis type="number" tickFormatter={(v: number) => fmt(v, 0)} stroke="hsl(var(--muted-foreground))" fontSize={10} />

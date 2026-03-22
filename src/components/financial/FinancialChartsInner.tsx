@@ -117,7 +117,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
     {/* Monthly Trend */}
     <div className="px-2 sm:px-0">
       {monthlyData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={250} minWidth={1}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
