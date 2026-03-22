@@ -60,6 +60,20 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
+  const queryClient = useQueryClient();
+
+  // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
+  useEffect(() => {
+    const tables = ['income', 'expenses', 'accounts', 'payment_invoices'] as const;
+    const channel = supabase.channel('admin-dashboard-realtime');
+    tables.forEach((table) => {
+      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+        queryClient.invalidateQueries({ queryKey: [table] });
+      });
+    });
+    channel.subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
