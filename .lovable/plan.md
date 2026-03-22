@@ -1,84 +1,102 @@
 
 
-# تقرير الفحص الجنائي — أخطاء البناء ومشاكل البرمجة
+# تحقق من خطة RPC الموحد — تنفيذ سيناريوهات
 
 ---
 
-## المنهجية
+## السيناريو 1: هل الـ RPC يغطي كل البيانات المطلوبة؟
 
-فحص شامل لـ: TypeScript type safety، أنماط React، أمان قاعدة البيانات، أداء الكود، وأنماط البرمجة السيئة.
+**التحقق المباشر من `BeneficiaryDashboard.tsx`:**
 
----
+| البيانات المستخدمة | المصدر الحالي | هل RPC يغطيها؟ |
+|---|---|---|
+| `currentBeneficiary` (name, id, share_percentage, user_id) | `useBeneficiariesSafe()` + `useMyShare()` | ✅ `SELECT * FROM beneficiaries WHERE user_id = auth.uid()` |
+| `totalBenPct` | `useTotalBeneficiaryPercentage()` RPC | ✅ `SELECT SUM(share_percentage) FROM beneficiaries` |
+| `availableAmount` | `useFinancialSummary()` → `useComputedFinancials()` | ⚠️ **يحتاج تبسيط** |
+| `myShare` | `useMyShare()` = `availableAmount × pct / totalPct` | ✅ حساب بسيط |
+| `distributions` (آخر 3) | inline `useQuery` | ✅ |
+| `advanceRequests.filter(pending).length` | `useAdvanceRequests()` | ✅ `COUNT(*)` كافٍ |
+| `advanceSettings` | `useAppSettings()` → `getJsonSetting` | ✅ `SELECT value FROM app_settings WHERE key = 'advance_settings'` |
+| `fiscalYear` (label, status, dates) | `useFiscalYear()` context | ❌ **يبقى منفصلاً** — سياق مشترك |
+| `notifications` | `useNotifications()` | ❌ **يبقى منفصلاً** — realtime |
 
-## المشاكل المكتشفة
+### ⚠️ نقطة حرجة: حساب `availableAmount`
 
-### 🔴 B-01: `supabase as any` غير ضروري في ExpenseBudgetBar (متوسطة)
+الخطة تقول RPC يُرجع `availableAmount`. لكن `useComputedFinancials` يحسبها بمنطق معقد (60+ سطر). **المفاجأة**: الداشبورد لا يعرض `availableAmount` مباشرة — يعرض `myShare` فقط، وفقط عند `isClosed`.
 
-**الملف:** `src/components/expenses/ExpenseBudgetBar.tsx` سطر 44, 81
+**عند السنة المقفلة** (سطر 126 من useComputedFinancials):
+```text
+availableAmount = accounts.waqf_revenue - accounts.waqf_corpus_manual
+myShare = availableAmount × share_percentage / totalBenPct
+```
 
-**المشكلة:** يستخدم `(supabase as any).from('expense_budgets')` رغم أن جدول `expense_budgets` **موجود بالفعل** في `types.ts` (سطر 759-793) بتعريف كامل (Row, Insert, Update).
+**عند السنة النشطة**: يعرض "تُحسب عند الإقفال" (سطر 262) — لا حاجة لحساب.
 
-**التأثير:**
-- فقدان Type Safety على جميع عمليات SELECT/INSERT/UPDATE
-- لا يكتشف المترجم أخطاء الأعمدة أو القيم
-- ضد المعايير المتبعة في باقي المشروع
-
-**الإصلاح:** إزالة `as any` واستخدام `supabase.from('expense_budgets')` مباشرة (3 مواضع).
-
----
-
-### 🟡 B-02: 5 صفحات بـ `invalidateQueries()` بدون queryKey (منخفضة-متوسطة)
-
-**الملفات:**
-
-| الصفحة | السطر | queryKey المناسب |
-|--------|-------|-----------------|
-| `NotificationsPage.tsx` | 44 | `['notifications']` |
-| `InvoicesViewPage.tsx` | 27 | `['invoices']` |
-| `BylawsViewPage.tsx` | 21 | `['bylaws']` |
-| `BeneficiaryMessagesPage.tsx` | 21 | `['conversations']` |
-| `AccountsViewPage.tsx` | 22 | `['accounts']` |
-
-**التأثير:** ضغط "إعادة المحاولة" يمسح **كل** cache التطبيق — يُعيد تحميل جميع البيانات بلا داعٍ.
-
-**الإصلاح:** تحديد `queryKey` مناسب لكل صفحة (سطر واحد لكل ملف).
+**القرار**: RPC يحسب `availableAmount` بالمعادلة البسيطة أعلاه عند `status='closed'`، ويُرجع `0` عند `active`. ✅ **لا حاجة لنقل كل منطق useComputedFinancials**
 
 ---
 
-### 🟡 B-03: Security Definer View — `contracts_safe` (تمت مناقشتها سابقاً)
+## السيناريو 2: هل حذف الهوكات يكسر صفحات أخرى؟
 
-**المصدر:** Supabase Linter + Security Scan
+| الهوك | مستخدم في صفحات أخرى؟ | القرار |
+|---|---|---|
+| `useBeneficiariesSafe` | ✅ useRawFinancialData, MySharePage, DisclosurePage | **لا يُحذف** — يبقى كما هو |
+| `useFinancialSummary` | ✅ AccountsPage, DisclosurePage, FinancialReports | **لا يُحذف** |
+| `useMyShare` | ✅ MySharePage | **لا يُحذف** |
+| `useAdvanceRequests` | ✅ admin AdvanceRequests page | **لا يُحذف** |
+| `useTotalBeneficiaryPercentage` | ✅ useMyShare (used elsewhere) | **لا يُحذف** |
 
-العرضان `beneficiaries_safe` و `contracts_safe` يستخدمان `security_invoker=false`. هذا **مقصود بالتصميم** (memory مؤكدة) لأن المستفيد/الواقف لا يملكان صلاحية SELECT مباشرة على الجداول الأساسية. التقنيع يتم عبر `CASE WHEN`.
-
-**الحكم:** ⚠️ ملاحظة معروفة ومقبولة — لا إصلاح مطلوب حالياً.
-
----
-
-### 🟢 B-04: استخدام `key={index}` في القوائم (منخفضة جداً)
-
-**38 ملف** يستخدم `key={index}` أو `key={i}`. معظمها في:
-- قوائم ثابتة (skeletons، نجوم التقييم، إحصائيات) — **مقبول**
-- قوائم ديناميكية (بعض الجداول) — **لا تأثير عملي** لأن العناصر لا تُعاد ترتيبها
-
-**الحكم:** لا إصلاح مطلوب — الاستخدام مقبول في السياقات الحالية.
+**الحكم**: ✅ الخطة صحيحة — الهوكات تبقى كاملة، فقط الداشبورد يستبدلها بالـ RPC.
 
 ---
 
-### 🟢 B-05: `as any` في ملفات الاختبار فقط (مقبول)
+## السيناريو 3: أمان الـ RPC
 
-22 ملف اختبار يستخدم `as any` لـ mocking — **هذا نمط قياسي** في اختبارات TypeScript/Vitest.
+**سيناريو هجوم**: مستفيد يستدعي `get_beneficiary_dashboard` بـ `p_fiscal_year_id` لسنة غير منشورة.
 
-**الحكم:** مقبول — لا إصلاح مطلوب.
+**الحماية المطلوبة في RPC**:
+```sql
+-- يجب التحقق من أن السنة منشورة للمستفيد
+SELECT * FROM fiscal_years 
+WHERE id = p_fiscal_year_id 
+  AND (published = true OR has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'accountant'))
+```
+✅ الخطة تذكر هذا صراحةً.
+
+**سيناريو هجوم 2**: مستفيد يحاول رؤية بيانات مستفيد آخر.
+```sql
+-- RPC يستخدم auth.uid() داخلياً — لا يقبل user_id كمدخل
+SELECT * FROM beneficiaries WHERE user_id = auth.uid()
+```
+✅ محصّن.
 
 ---
 
-### 🟢 B-06: `@ts-ignore` واحد فقط (مقبول)
+## السيناريو 4: Realtime invalidation
 
-في `src/utils/pdf/arabicReshaper.ts` — مكتبة `arabic-reshaper` بدون تعريفات TypeScript. **لا بديل**.
+**الوضع الحالي**: `useBfcacheSafeChannel` يراقب `distributions` ويُبطل `['my-distributions-recent']`.
+
+**بعد التغيير**: يحتاج لإبطال `['beneficiary-dashboard']` بدلاً منه.
+
+**هل يؤثر؟** لا — نفس المنطق، فقط queryKey مختلف. ✅
 
 ---
 
-### 🟢 B-07: `console.log/error` في الواجهة (سليم)
+## السيناريو 5: `AdvanceRequestDialog` props
 
-الواجهة الأمامية (`src/`) تستخدم `logger` مركزي يكتم الرسائل في الإنتاج. المواضع الوحيدة المباشرة:
+السطر 343-351:
+```typescript
+<AdvanceRequestDialog
+  beneficiaryId={currentBeneficiary.id!}
+  fiscalYearId={fiscalYearId}
+  estimatedShare={myShare}
+  paidAdvances={0}          // ← مُثبّت حالياً على 0
+  isFiscalYearActive={!isClosed}
+  minAmount={advanceSettings?.min_amount ?? 500}
+  maxPercentage={advanceSettings?.max_percentage ?? 50}
+/>
+```
+
+كل هذه القيم متوفرة من RPC (`beneficiary.id`, `myShare` محسوب, `advanceSettings`). ✅
+
+**ملاحظة**: `paidAdvances={0}` مُثبّت — هذا خطأ موجود مسبقاً (لا
