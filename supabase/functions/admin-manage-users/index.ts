@@ -46,6 +46,25 @@ Deno.serve(async (req) => {
 
     // Check admin role using service role client to bypass RLS
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Rate limiting: 60 طلب/دقيقة لكل مستخدم admin
+    const { data: isLimited, error: rlError } = await adminClient.rpc('check_rate_limit', {
+      p_key: `admin-manage:${callerId}`,
+      p_limit: 60,
+      p_window_seconds: 60,
+    });
+    if (rlError) {
+      console.error("admin-manage rate_limit check failed");
+      return new Response(JSON.stringify({ error: "خطأ مؤقت في الخادم" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (isLimited) {
+      return new Response(JSON.stringify({ error: "تم تجاوز حد الطلبات، يرجى الانتظار" }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
