@@ -1,5 +1,43 @@
 [
   {
+    "version": "3.0.4",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Refactored types and preconnect"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor as never usage"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      }
+    ]
+  },
+  {
     "version": "3.0.3",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
