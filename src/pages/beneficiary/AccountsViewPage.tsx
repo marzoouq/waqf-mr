@@ -19,7 +19,7 @@ import { safeNumber } from '@/utils/safeNumber';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['accounts'] }), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
   

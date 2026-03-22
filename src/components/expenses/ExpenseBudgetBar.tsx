@@ -76,8 +76,6 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const saveBudget = useMutation({
     mutationFn: async ({ expenseType, amount }: { expenseType: string; amount: number }) => {
       const existing = budgetMap.get(expenseType);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any;
       if (existing) {
         const { error } = await db
           .from('expense_budgets')
