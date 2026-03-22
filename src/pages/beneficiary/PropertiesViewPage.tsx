@@ -29,10 +29,12 @@ import { fmt, fmtInt } from '@/utils/format';
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const isSpecificYear = fiscalYearId !== 'all';
+  const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
+  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
 
