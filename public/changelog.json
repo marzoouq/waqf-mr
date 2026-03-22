@@ -1,5 +1,31 @@
 [
   {
+    "version": "3.0.39",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Add findAccountByFY util"
+      },
+      {
+        "type": "improvement",
+        "text": "Add helper findAccountByFY"
+      },
+      {
+        "type": "improvement",
+        "text": "Add findAccountByFY helper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add findAccountByFY util"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أصفار الحسابات وتفكيك تبعية"
+      }
+    ]
+  },
+  {
     "version": "3.0.38",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
