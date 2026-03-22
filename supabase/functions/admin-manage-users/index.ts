@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
           }
           throw updError;
         }
-        console.log("updateUserById success for user:", userId);
+        console.log("updateUserById success");
 
         // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
         const userEmail = updResult?.user?.email;
@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
               },
             }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
           }
-          console.log("Password verify login SUCCESS for:", userEmail);
+          console.log("Password verify login SUCCESS");
         }
 
         return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {
