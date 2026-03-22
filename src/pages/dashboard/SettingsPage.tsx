@@ -326,13 +326,14 @@ const WaqfSettingsTab = () => {
 const SectionsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true };
+  const defaultSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true, annual_report: true, support: true, chart_of_accounts: true };
   const sections = getJsonSetting('sections_visibility', defaultSections);
 
   const labels: Record<string, string> = {
     properties: 'العقارات', contracts: 'العقود', income: 'الدخل', expenses: 'المصروفات',
     beneficiaries: 'المستفيدين', reports: 'التقارير', accounts: 'الحسابات', users: 'إدارة المستخدمين',
     invoices: 'الفواتير', bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', audit_log: 'سجل المراجعة',
+    annual_report: 'التقرير السنوي', support: 'الدعم الفني', chart_of_accounts: 'الشجرة المحاسبية',
   };
 
   const toggle = (key: string) => {
@@ -363,13 +364,14 @@ const SectionsTab = () => {
 const BeneficiaryTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true };
+  const defaultSections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true, annual_report: true, support: true };
   const sections = getJsonSetting('beneficiary_sections', defaultSections);
 
   const labels: Record<string, string> = {
     properties: 'العقارات', contracts: 'العقود', disclosure: 'الإفصاح السنوي', share: 'حصتي من الريع',
     accounts: 'الحسابات الختامية', reports: 'التقارير المالية', invoices: 'الفواتير',
     bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', notifications: 'سجل الإشعارات',
+    annual_report: 'التقرير السنوي', support: 'الدعم الفني',
   };
 
   const toggle = (key: string) => {
