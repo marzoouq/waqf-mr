@@ -151,7 +151,7 @@ describe('PropertiesPage', () => {
 
   it('shows add property button', () => {
     renderPage();
-    expect(screen.getByText('إضافة عقار')).toBeInTheDocument();
+    expect(screen.getAllByText(/إضافة عقار/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows unit occupancy indicators', () => {

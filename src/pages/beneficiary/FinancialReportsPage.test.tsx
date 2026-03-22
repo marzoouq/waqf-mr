@@ -85,7 +85,7 @@ vi.mock('@/components/NoPublishedYearsNotice', () => ({ default: () => null }));
 vi.mock('@/components/RequirePublishedYears', () => ({ default: ({ children }: any) => <>{children}</> }));
 vi.mock('@/components/SkeletonLoaders', () => ({ DashboardSkeleton: () => <div>loading</div> }));
 vi.mock('@/utils/pdf', () => ({ generateAnnualReportPDF: vi.fn().mockResolvedValue(undefined) }));
-vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title }: any) => <div>{title}</div> }));
+vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title, actions }: any) => <div>{title}{actions}</div> }));
 
 // Mock the lazy-loaded charts component
 vi.mock('@/components/financial/FinancialChartsInner', () => ({
