@@ -97,7 +97,7 @@ const FinancialChartsInner: React.FC<FinancialChartsInnerProps> = ({
 
       <div className="px-2 sm:px-0">
         {expensesPieData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={250} minWidth={1}>
             <PieChart>
               <Pie data={expensesPieData} cx="50%" cy="50%" outerRadius={80} dataKey="value" labelLine={false} label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} style={{ fontSize: '11px' }}>
                 {expensesPieData.map((_, index) => (
