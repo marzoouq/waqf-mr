@@ -17,7 +17,8 @@ interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
-  accounts: Array<{ fiscal_year_id?: string | null; fiscal_year: string; zakat_amount?: number; waqf_corpus_manual?: number; waqf_corpus_previous?: number; vat_amount?: number; distributions_amount?: number }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  accounts: any[];
   totalIncome: number;
   totalExpenses: number;
   adminShare: number;
