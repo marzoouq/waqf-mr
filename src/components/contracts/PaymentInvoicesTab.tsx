@@ -210,6 +210,14 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const handleDownloadPdf = async (inv: PaymentInvoice, templateOverride?: 'classic' | 'tax_professional' | 'compact') => {
     setLoadingInvoiceId(inv.id);
     try {
+      // جلب بيانات العقد الكاملة (الرقم الضريبي + العنوان) لتضمينها في PDF
+      const fullContract = contracts.find(c => c.id === inv.contract_id);
+      const tenantAddress = [
+        fullContract?.tenant_street,
+        fullContract?.tenant_district,
+        fullContract?.tenant_city,
+      ].filter(Boolean).join('، ') || undefined;
+
       const blobUrl = await generatePaymentInvoicePDF({
         id: inv.id,
         invoiceNumber: inv.invoice_number,
@@ -226,6 +234,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         notes: inv.notes,
         vatRate: inv.vat_rate ?? 0,
         vatAmount: inv.vat_amount ?? 0,
+        tenantVatNumber: fullContract?.tenant_tax_number || undefined,
+        tenantAddress,
       }, waqfInfo, templateOverride ?? invoiceTemplate);
 
       if (blobUrl) {

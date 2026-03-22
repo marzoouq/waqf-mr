@@ -19,6 +19,7 @@ export interface AllowanceChargeItem {
 }
 
 export interface InvoiceTemplateData {
+  id?: string;
   invoiceNumber: string;
   date: string;
   type: 'simplified' | 'standard';
