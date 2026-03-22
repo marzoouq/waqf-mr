@@ -79,6 +79,7 @@ const InvoicesPage = () => {
     const hasBuyerTax = !!contract?.tenant_tax_number;
 
     return {
+      id: inv.id,
       invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
       date: inv.date,
       type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
@@ -505,6 +506,7 @@ const InvoicesPage = () => {
           invoice={previewInvoice}
           onDownloadPdf={async (template) => {
             const origInv = invoices.find(i =>
+              i.id === previewInvoice?.id ||
               (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
               `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
             );
