@@ -1,5 +1,31 @@
 [
   {
+    "version": "3.0.12",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Enable Realtime tables added"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable Realtime tables"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable Realtime for more tables"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable Realtime publications for new tables"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable Realtime for dashboards"
+      }
+    ]
+  },
+  {
     "version": "3.0.11",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
