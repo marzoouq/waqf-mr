@@ -20,6 +20,7 @@ vi.mock('./core', () => ({
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
   fmtDate: (d: string) => d,
 }));
+vi.mock('@/utils/format', () => ({ fmt: (n: number) => String(n) }));
 
 import { generateIncomePDF, generateExpensesPDF } from './expenses';
 
@@ -28,7 +29,6 @@ describe('generateIncomePDF', () => {
 
   it('saves income-report.pdf', async () => {
     await generateIncomePDF([{ source: 'إيجارات', amount: 50000, date: '2024-01-01' }], 50000);
-    // Filename now includes date suffix
     expect(mockSave).toHaveBeenCalledTimes(1);
     expect(mockSave.mock.calls[0][0]).toMatch(/^income-report/);
   });

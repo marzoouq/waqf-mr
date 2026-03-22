@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Mock all external hooks
 const mockProperties = [
-  { id: 'p1', property_number: 'W-001', property_type: 'مبنى سكني', location: 'حي النزهة', area: 500, description: 'مبنى وقفي', created_at: '', updated_at: '' },
-  { id: 'p2', property_number: 'W-002', property_type: 'أرض', location: 'حي الملك فهد', area: 1200, description: '', created_at: '', updated_at: '' },
+  { id: 'p1', property_number: 'W-001', property_type: 'مبنى سكني', location: 'حي النزهة', area: 500, description: 'مبنى وقفي', vat_exempt: false, created_at: '', updated_at: '' },
+  { id: 'p2', property_number: 'W-002', property_type: 'أرض', location: 'حي الملك فهد', area: 1200, description: '', vat_exempt: false, created_at: '', updated_at: '' },
 ];
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
@@ -28,9 +29,7 @@ vi.mock('@/hooks/useUnits', () => ({
 }));
 
 vi.mock('@/hooks/useContracts', () => ({
-  useContracts: vi.fn(() => ({ data: [
-    { id: 'c1', contract_number: 'C-001', property_id: 'p1', unit_id: 'u1', tenant_name: 'أحمد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 24000, status: 'active', payment_type: 'annual', payment_count: 1, notes: '', created_at: '', updated_at: '' },
-  ] })),
+  useContracts: vi.fn(() => ({ data: [] })),
   useContractsByFiscalYear: vi.fn(() => ({ data: [
     { id: 'c1', contract_number: 'C-001', property_id: 'p1', unit_id: 'u1', tenant_name: 'أحمد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 24000, status: 'active', payment_type: 'annual', payment_count: 1, notes: '', created_at: '', updated_at: '' },
   ] })),
@@ -44,6 +43,14 @@ vi.mock('@/hooks/useExpenses', () => ({
   useExpensesByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
+vi.mock('@/hooks/useFinancialSummary', () => ({
+  useFinancialSummary: vi.fn(() => ({
+    accounts: [], totalIncome: 0, totalExpenses: 0, availableAmount: 0,
+    income: [], expenses: [], expensesByTypeExcludingVat: {},
+    isLoading: false, isError: false,
+  })),
+}));
+
 vi.mock('@/hooks/useTenantPayments', () => ({
   useTenantPayments: vi.fn(() => ({ data: [] })),
   useUpsertTenantPayment: vi.fn(() => mockMutate),
@@ -55,6 +62,30 @@ vi.mock('@/hooks/usePdfWaqfInfo', () => ({
 
 vi.mock('@/components/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock('@/components/SkeletonLoaders', () => ({
+  StatsGridSkeleton: () => <div>loading</div>,
+}));
+
+vi.mock('@/components/PageHeaderCard', () => ({
+  default: ({ title }: any) => <div>{title}</div>,
+}));
+
+vi.mock('@/components/ExportMenu', () => ({
+  default: () => <div>export</div>,
+}));
+
+vi.mock('@/components/TablePagination', () => ({
+  default: () => null,
+}));
+
+vi.mock('@/components/properties/PropertyUnitsDialog', () => ({
+  default: () => null,
+}));
+
+vi.mock('@/components/properties/PropertySummaryCards', () => ({
+  default: () => <div data-testid="summary-cards">summary</div>,
 }));
 
 vi.mock('@/contexts/FiscalYearContext', () => ({
@@ -74,26 +105,37 @@ vi.mock('@/utils/pdf', () => ({
 
 import PropertiesPage from './PropertiesPage';
 
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>
+        <PropertiesPage />
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+};
+
 describe('PropertiesPage', () => {
   it('renders page title', () => {
-    render(<PropertiesPage />);
+    renderPage();
     expect(screen.getByText('إدارة العقارات')).toBeInTheDocument();
   });
 
   it('renders property cards', () => {
-    render(<PropertiesPage />);
+    renderPage();
     expect(screen.getByText('W-001')).toBeInTheDocument();
     expect(screen.getByText('W-002')).toBeInTheDocument();
   });
 
   it('displays property details on cards', () => {
-    render(<PropertiesPage />);
+    renderPage();
     expect(screen.getByText('حي النزهة')).toBeInTheDocument();
     expect(screen.getAllByText('مبنى سكني').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters properties by search query', () => {
-    render(<PropertiesPage />);
+    renderPage();
     const searchInput = screen.getByPlaceholderText('بحث في العقارات...');
     fireEvent.change(searchInput, { target: { value: 'النزهة' } });
     expect(screen.getByText('W-001')).toBeInTheDocument();
@@ -101,19 +143,19 @@ describe('PropertiesPage', () => {
   });
 
   it('shows empty state when search has no results', () => {
-    render(<PropertiesPage />);
+    renderPage();
     const searchInput = screen.getByPlaceholderText('بحث في العقارات...');
     fireEvent.change(searchInput, { target: { value: 'غير موجود' } });
     expect(screen.getByText('لا توجد نتائج للبحث')).toBeInTheDocument();
   });
 
   it('shows add property button', () => {
-    render(<PropertiesPage />);
+    renderPage();
     expect(screen.getByText('إضافة عقار')).toBeInTheDocument();
   });
 
   it('shows unit occupancy indicators', () => {
-    render(<PropertiesPage />);
+    renderPage();
     // Property p1 has 1 rented, 1 vacant out of 2 = 50%
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
