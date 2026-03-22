@@ -15,6 +15,7 @@ import { useAllUnits } from '@/hooks/useUnits';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
