@@ -1,51 +1,48 @@
 
 
-# فحص أداء صفحة المستفيد — النتائج والملاحظات
+# تقرير فحص أخطاء البناء ومشاكل البرمجة — النتائج
 
 ---
 
-## الوضع الحالي
-
-الكود بعد دمج الاستعلامات في RPC واحد **سليم هيكلياً**:
-- التواريخ (هجري + ميلادي + الوقت) تُحسب بـ `useMemo` مع locale `ar-SA` — **تظهر بشكل صحيح**
-- تواريخ التوزيعات والإشعارات تستخدم `toLocaleDateString('ar-SA')` — **صحيحة**
-- RPC يجلب البيانات في استعلام واحد بدل 8 — **تحسين الأداء مطبّق**
+## المنهجية
+فحص شامل: TypeScript type safety، أنماط React، Security Scan، Supabase Linter، console errors، network errors، `as any`، `@ts-ignore`، `invalidateQueries`، `dangerouslySetInnerHTML`، empty catch blocks.
 
 ---
 
-## ملاحظة مكتشفة: تعارض في القيمة الافتراضية لـ `advanceEnabled`
+## النتائج
 
-**الملف:** `BeneficiaryDashboard.tsx` سطر 41-42
+### ✅ لا توجد أخطاء بناء أو مشاكل برمجية جديدة
 
-```text
-const advanceSettings = dashData?.advance_settings ?? { enabled: true, ... };
-const advanceEnabled = advanceSettings?.enabled ?? false;  // ← false!
-```
-
-عندما RPC يُرجع `advance_settings = null` (لم تُضبط بعد):
-- `advanceSettings` = `{ enabled: true }` (من الفولباك)
-- `advanceEnabled` = `true` ✅
-
-لكن عندما RPC يُرجع `advance_settings = {}` (كائن فارغ):
-- `advanceSettings` = `{}`
-- `advanceEnabled` = `false` ← **تعارض مع MySharePage التي تُرجع `true` كافتراضي**
-
-**الإصلاح:** توحيد المنطق ليطابق `MySharePage.tsx`:
-```typescript
-const advanceEnabled = advanceSettings?.enabled ?? true;
-```
+| الفحص | النتيجة |
+|-------|---------|
+| Console errors | 0 ✅ |
+| Network errors | 0 ✅ |
+| `supabase as any` في الواجهة | 0 ✅ (تم إصلاحه سابقاً) |
+| `invalidateQueries()` بلا queryKey | 0 ✅ (تم إصلاحه سابقاً) |
+| Empty catch blocks | 0 ✅ |
+| `useEffect` مع Supabase مباشر | 0 ✅ (كلها محولة لـ useQuery) |
+| `console.log/error` مباشر | 1 فقط — في DEV mode بـ FiscalYearContext ✅ مقبول |
+| `@ts-ignore` | 1 فقط — `arabic-reshaper` بلا types ✅ لا بديل |
+| `dangerouslySetInnerHTML` | 2 — JSON-LD ثابت + chart styles ✅ آمن |
 
 ---
 
-## ملخص
+### 🟡 نتائج Security Scan — مُوثّقة ومقبولة
 
-| البند | الحالة |
-|-------|--------|
-| التواريخ (هجري/ميلادي/وقت) | ✅ سليمة |
-| RPC الموحد | ✅ يعمل |
-| Loading guards | ✅ بالترتيب الصحيح |
-| Realtime invalidation | ✅ يستهدف queryKey واحد |
-| `advanceEnabled` default | ⚠️ يحتاج توحيد (سطر واحد) |
+| # | البند | الحالة |
+|---|-------|--------|
+| 1 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | **مقصود بالتصميم** — العروض تستخدم `CASE WHEN has_role()` لتقنيع البيانات الحساسة. لا تملك RLS خاصة بها لأنها views تعمل بصلاحيات المالك وتطبق التقنيع داخلياً. الجداول الأصلية (`beneficiaries`, `contracts`) محمية بـ RLS كاملة |
+| 2 | Extension in public schema | تحذير Supabase قياسي — لا تأثير أمني |
 
-**الإصلاح المطلوب:** تغيير سطر 42 من `?? false` إلى `?? true` لمطابقة سلوك بقية التطبيق.
+---
+
+### ملاحظة وحيدة (طفيفة جداً)
+
+**`(navigator as any).deviceMemory`** في `checks.ts` سطر 95 — `deviceMemory` API غير موجود في TypeScript DOM types الرسمية. الاستخدام مع `eslint-disable` مبرر ومقبول.
+
+---
+
+## الخلاصة
+
+**التطبيق نظيف من أخطاء البناء ومشاكل البرمجة.** جميع الإصلاحات السابقة (type safety، cache invalidation، CORS) مطبقة وفعّالة. النتائج الأمنية الأربع كلها مُوثّقة ومقبولة بالتصميم.
 
