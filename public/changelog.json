@@ -1,5 +1,27 @@
 [
   {
+    "version": "3.0.5",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Improve type safety and perf"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين التحديثات واختبار التشغيل"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين التوافق مع التحديثات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      }
+    ]
+  },
+  {
     "version": "3.0.4",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
