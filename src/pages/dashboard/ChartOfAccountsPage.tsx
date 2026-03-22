@@ -467,9 +467,7 @@ const ChartOfAccountsPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">بدون فئة أب</SelectItem>
-                  {rootCategories
-                    .filter(c => c.id !== editingCategory?.id)
-                    .map(c => (
+                  {parentCandidates.map(c => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.code} — {c.name}
                       </SelectItem>
