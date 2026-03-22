@@ -1,82 +1,133 @@
 
 
-# فحص جنائي عميق — لوحة الناظر (المناطق غير المفحوصة سابقاً)
+# فحص جنائي محاسبي — لوحة المحاسب
 
 ---
 
 ## المنهجية
 
-فحص المناطق التي لم تُغطَّ في الفحوصات السابقة: الشجرة المحاسبية، المقارنة التاريخية، التقرير السنوي، إدارة المستخدمين، تشخيص النظام، أنماط الرسائل، وأنماط Type Safety العميقة.
+فحص شامل لكل ما يراه المحاسب: الصفحات المتاحة، الأقسام المحظورة، أزرار الإجراءات، الشريط الجانبي، الشريط السفلي، تناسق الصلاحيات بين Sidebar و Route Guards.
 
 ---
 
 ## النتائج
 
-### 🔴 F-01: قائمة اختيار الأب محدودة بالجذور فقط — ChartOfAccountsPage (متوسطة)
+### 🔴 F-01: المحاسب يرى رابط "تشخيص النظام" لكنه محظور عند النقر (متوسطة)
 
-**الملف:** `ChartOfAccountsPage.tsx` سطر 228-231
+**التعارض:**
+- `ACCOUNTANT_EXCLUDED_ROUTES` = `['/dashboard/users', '/dashboard/settings', '/dashboard/zatca']` — **لا يشمل `/dashboard/diagnostics`**
+- `App.tsx` سطر 154: `<ProtectedRoute allowedRoles={['admin']}>` — **admin فقط**
 
-```text
-const rootCategories = useMemo(
-  () => categories.filter(c => !c.parent_id),
-  [categories],
-);
-```
+**السيناريو:** المحاسب يفتح القائمة الجانبية ← يرى "تشخيص النظام" ← ينقر ← يُحوَّل لصفحة "غير مصرّح". تجربة مستخدم سيئة.
 
-**المشكلة:** عند إضافة/تعديل حساب، قائمة "الفئة الأب" تعرض فقط الفئات الجذرية (بلا أب). **لا يمكن اختيار فئة فرعية كأب**، مما يمنع بناء شجرة بعمق أكبر من مستويين.
-
-**سيناريو:** الناظر يريد إنشاء شجرة:
-```text
-100 - إيرادات (جذر)
-  110 - إيجارات (فرع)
-    111 - إيجارات تجارية (حفيد) ← ❌ لا يمكن اختيار 110 كأب!
-```
-
-**الإصلاح:** تغيير `rootCategories` إلى `categories` (كل الفئات) مع استبعاد الفئة المُعدَّلة وفروعها فقط لمنع الحلقات.
+**الإصلاح:** إضافة `'/dashboard/diagnostics'` إلى `ACCOUNTANT_EXCLUDED_ROUTES`.
 
 ---
 
-### 🟡 F-02: `as never` type cast في ChartOfAccountsPage (منخفضة)
+### 🔴 F-02: المحاسب يرى رابط "واجهة المستفيد" لكنه محظور (متوسطة)
 
-**الملف:** سطر 276
+**التعارض:**
+- `allAdminLinks` يحتوي على `{ to: '/beneficiary', ... }` — يظهر لكل الأدوار الإدارية
+- `ACCOUNTANT_EXCLUDED_ROUTES` — **لا يشمل `/beneficiary`**
+- `App.tsx` سطر 157: `allowedRoles={['admin', 'beneficiary']}` — **لا يشمل accountant**
 
-```text
-createMutation.mutate(payload as never, { ... });
-```
+**السيناريو:** المحاسب يرى "واجهة المستفيد" في الشريط الجانبي ← ينقر ← يُحوَّل لصفحة "غير مصرّح".
 
-**المشكلة:** `as never` يتجاوز فحص TypeScript بالكامل. إذا تغير schema الجدول مستقبلاً، لن تظهر أخطاء compilation.
-
-**الإصلاح:** استخدام `as Parameters<typeof createMutation.mutate>[0]` كبقية الصفحات (IncomePage, ExpensesPage, ContractsPage).
-
----
-
-### 🟡 F-03: Security Definer View تحذير غير مُعالج في Supabase Linter (منخفضة)
-
-**من Security Scan:**
-```json
-{
-  "id": "SUPA_security_definer_view",
-  "level": "error",
-  "ignore": false
-}
-```
-
-جميع بنود Agent Security مُعالجة ومُوثّقة (`ignore: true`)، لكن تحذير Supabase Linter لـ `security_definer_view` لا يزال `ignore: false`. هذا تحذير عرض فقط (لا تأثير أمني — تم التحقق سابقاً) لكنه يظهر كـ "error" في فحص الأمان.
-
-**الإصلاح:** تعليم البند كـ `ignore: true` عبر أداة إدارة الأمان.
+**الإصلاح:** إضافة `'/beneficiary'` إلى `ACCOUNTANT_EXCLUDED_ROUTES`.
 
 ---
 
-### ✅ بنود تم فحصها وأثبتت سلامتها
+### ✅ F-03: أزرار الإجراءات السريعة — سليمة
 
-| البند | النتيجة |
-|-------|---------|
-| Console errors | 0 |
-| Network errors | 0 |
-| HistoricalComparisonPage — hooks pattern | ✅ سليم — 4 hooks ثابتة مع slice |
-| HistoricalComparisonPage — PDF تصدير | ✅ يتعامل مع القسمة على صفر |
-| AnnualReportPage — reorder race condition | ✅ محمي بـ mutateAsync متتابع |
-| AnnualReportPage — fiscal year guard | ✅ `if (!fiscalYearId) return` |
-| SystemDiagnosticsPage — access logging | ✅ يسجل في access_log |
-| SystemDiagnosticsPage — تصدير مُطهّر | ✅ يستخدم sanitizeDiagnosticOutput |
-| UserManagementPage — server-side auth | ✅ `getUser()` قب
+المحاسب يرى 4 أزرار مخصصة (سطر 292-317):
+| الزر | المسار | متاح للمحاسب؟ |
+|------|--------|:---:|
+| تسجيل دخل | `/dashboard/income` | ✅ |
+| تسجيل مصروف | `/dashboard/expenses` | ✅ |
+| الحسابات الختامية | `/dashboard/accounts` | ✅ |
+| إدارة الفواتير | `/dashboard/invoices` | ✅ |
+
+جميعها مسارات صالحة ومتاحة للمحاسب.
+
+---
+
+### ✅ F-04: الشريط السفلي (BottomNav) — سليم
+
+المحاسب يرى 4 روابط مخصصة + زر "المزيد":
+| الرابط | المسار | متاح؟ |
+|--------|--------|:---:|
+| الرئيسية | `/dashboard` | ✅ |
+| الدخل | `/dashboard/income` | ✅ |
+| المصروفات | `/dashboard/expenses` | ✅ |
+| الفواتير | `/dashboard/invoices` | ✅ |
+
+---
+
+### ✅ F-05: تطابق الصلاحيات (Sidebar vs Route Guard)
+
+| المسار | في Sidebar | في Route Guard | متطابق؟ |
+|--------|:---:|:---:|:---:|
+| `/dashboard` | ✅ | admin, accountant | ✅ |
+| `/dashboard/properties` | ✅ | admin, accountant | ✅ |
+| `/dashboard/contracts` | ✅ | admin, accountant | ✅ |
+| `/dashboard/income` | ✅ | admin, accountant | ✅ |
+| `/dashboard/expenses` | ✅ | admin, accountant | ✅ |
+| `/dashboard/beneficiaries` | ✅ | admin, accountant | ✅ |
+| `/dashboard/reports` | ✅ | admin, accountant | ✅ |
+| `/dashboard/accounts` | ✅ | admin, accountant | ✅ |
+| `/dashboard/messages` | ✅ | admin, accountant | ✅ |
+| `/dashboard/invoices` | ✅ | admin, accountant | ✅ |
+| `/dashboard/audit-log` | ✅ | admin, accountant | ✅ |
+| `/dashboard/bylaws` | ✅ | admin, accountant | ✅ |
+| `/dashboard/support` | ✅ | admin, accountant | ✅ |
+| `/dashboard/annual-report` | ✅ | admin, accountant | ✅ |
+| `/dashboard/chart-of-accounts` | ✅ | admin, accountant | ✅ |
+| `/dashboard/comparison` | ✅ | admin, accountant | ✅ |
+| `/dashboard/users` | ❌ محظور | admin only | ✅ |
+| `/dashboard/settings` | ❌ محظور | admin only | ✅ |
+| `/dashboard/zatca` | ❌ محظور | admin only | ✅ |
+| `/dashboard/diagnostics` | ⚠️ **يظهر** | admin only | 🔴 **تعارض** |
+| `/beneficiary` | ⚠️ **يظهر** | admin, beneficiary | 🔴 **تعارض** |
+
+---
+
+### ✅ F-06: مراقبة أداء الصفحات — محصّنة
+
+`PagePerformanceCard` يظهر فقط عند `role === 'admin'` (سطر 413). المحاسب لا يراه. ✅
+
+---
+
+### ✅ F-07: Console & Network Errors — صفر
+
+لا أخطاء في الكونسول أو الشبكة.
+
+---
+
+## ملخص
+
+| # | البند | الحالة | أولوية |
+|---|-------|--------|--------|
+| F-01 | رابط "تشخيص النظام" يظهر للمحاسب (محظور) | 🔴 تعارض | متوسطة |
+| F-02 | رابط "واجهة المستفيد" يظهر للمحاسب (محظور) | 🔴 تعارض | متوسطة |
+| F-03 | أزرار الإجراءات السريعة | ✅ سليم | — |
+| F-04 | الشريط السفلي | ✅ سليم | — |
+| F-05 | تطابق 17 مسار Sidebar/Route | ✅ سليم | — |
+| F-06 | مراقبة الأداء (admin only) | ✅ محصّن | — |
+| F-07 | أخطاء Console/Network | ✅ صفر | — |
+
+---
+
+## الإصلاح المطلوب
+
+**ملف واحد — سطر واحد:** تحديث `ACCOUNTANT_EXCLUDED_ROUTES` في `constants.ts`:
+
+```typescript
+// قبل:
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca'];
+
+// بعد:
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary'];
+```
+
+هذا يمنع ظهور الروابط المحظورة في القائمة الجانبية للمحاسب.
+
