@@ -1,5 +1,39 @@
 [
   {
+    "version": "3.0.31",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "استكمال اختبارات الوقف"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات الصفحات المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix remaining 6 test failures"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات الصفحات المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات الواجهة المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات الواجهة المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح اختبارات الصفحات المتبقية"
+      }
+    ]
+  },
+  {
     "version": "3.0.30",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
