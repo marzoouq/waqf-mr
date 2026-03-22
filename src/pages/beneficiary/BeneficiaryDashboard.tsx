@@ -39,7 +39,7 @@ const BeneficiaryDashboard = () => {
   const distributions = dashData?.recent_distributions ?? [];
   const pendingAdvanceCount = dashData?.pending_advance_count ?? 0;
   const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
-  const advanceEnabled = advanceSettings?.enabled ?? false;
+  const advanceEnabled = advanceSettings?.enabled ?? true;
 
   const fyReady = fiscalYearId && fiscalYearId !== '__none__';
   const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
