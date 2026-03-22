@@ -1,56 +1,40 @@
 
 
-# إضافة تنبيهات ذكية للمستفيد
+# تنفيذ الإصلاح F-01: إضافة guard للمستفيد غير المرتبط في التقارير المالية
 
 ---
 
-## الوضع الحالي
+## البند والسيناريو
 
-| الحدث | إشعار موجود؟ |
-|-------|:---:|
-| تحديث الحسابات الختامية | ✅ `notifyAllBeneficiaries` |
-| تحديث التوزيعات المالية | ✅ `notifyAllBeneficiaries` |
-| إقفال السنة المالية | ✅ `notifyAllBeneficiaries` |
-| تغيّر حالة طلب السلفة (موافقة/رفض/صرف) | ✅ `notifyUser` للمستفيد |
-| **تنفيذ التوزيع الفعلي (execute_distribution)** | ❌ **لا يوجد** |
-| **طلب سلفة جديد → إشعار للمستفيد بتأكيد الاستلام** | ❌ **لا يوجد** |
+**F-01**: `FinancialReportsPage` لا يتحقق من ارتباط حساب المستفيد، بينما `DisclosurePage` و `MySharePage` يفعلان ذلك.
+
+**السيناريو**: مستفيد جديد (حسابه غير مرتبط بسجل مستفيد) يفتح "التقارير المالية" ← يرى رسوم بيانية بأرقام صفرية بلا توضيح ← **تجربة مربكة**.
+
+**النتيجة المطلوبة**: عرض رسالة واضحة "حسابك غير مرتبط" بدلاً من رسوم بيانية فارغة.
 
 ---
 
-## التغييرات المطلوبة
+## التغيير
 
-### 1. إشعار كل مستفيد عند تنفيذ التوزيع — `useDistribute.ts`
+**ملف واحد**: `src/pages/beneficiary/FinancialReportsPage.tsx`
 
-عند نجاح `execute_distribution`، إرسال إشعار شخصي لكل مستفيد لديه `beneficiary_user_id` بمبلغ حصته الصافية:
+إضافة guard بعد فحص `isAccountMissing` (سطر 142):
 
-```
-📢 صدور حصتك المالية
-تم توزيع حصتك بمبلغ X ر.س. يرجى مراجعة التفاصيل.
-→ رابط: /beneficiary/my-share
-```
-
-**التنفيذ:** في `onSuccess`، التكرار على `distributions` المُمررة وإرسال `notifyUser` لكل مستفيد لديه `user_id`.
-
-يتطلب تمرير `distributions` الأصلية إلى `onSuccess` عبر `mutationFn` (إعادتها مع النتيجة).
-
-### 2. تأكيد استلام طلب السلفة للمستفيد — `useAdvanceRequests.ts`
-
-عند إنشاء طلب سلفة، إرسال إشعار تأكيد للمستفيد نفسه:
-
-```
-✅ تم استلام طلب السلفة
-تم استلام طلبك بمبلغ X ر.س وسيتم مراجعته من قبل الناظر.
-→ رابط: /beneficiary/my-share
+```typescript
+if (!currentBeneficiary && !isLoading) {
+  return (
+    <DashboardLayout>
+      <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <AlertCircle className="w-16 h-16 text-warning" />
+        <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
+        <p className="text-muted-foreground text-center max-w-md">
+          حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
+        </p>
+      </div>
+    </DashboardLayout>
+  );
+}
 ```
 
-**التنفيذ:** في `onSuccess` لـ `useCreateAdvanceRequest`، جلب `user_id` للمستفيد من البيانات المتاحة وإرسال `notifyUser`.
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| `src/hooks/useDistribute.ts` | إضافة `notifyUser` لكل مستفيد في `onSuccess` + تمرير distributions مع النتيجة |
-| `src/hooks/useAdvanceRequests.ts` | إضافة `notifyUser` تأكيد استلام في `useCreateAdvanceRequest.onSuccess` |
+هذا يجعل الصفحات الثلاث (Disclosure, MyShare, FinancialReports) متسقة في التعامل مع الحسابات غير المرتبطة.
 
