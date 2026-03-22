@@ -1,60 +1,82 @@
 
 
-# تقرير الفحص الجنائي — تحقق مباشر من السيناريوهات
+# فحص جنائي عميق — لوحة الناظر (المناطق غير المفحوصة سابقاً)
 
 ---
 
-## F-01: أقسام ناقصة في إعدادات الإظهار/الإخفاء — مؤكد 🔴
+## المنهجية
 
-**التحقق المباشر من الكود:**
-
-`constants.ts` (سطر 124-135) يُعرّف:
-- Admin: 15 قسم (يشمل `annual_report`, `support`, `chart_of_accounts`)
-- Beneficiary: 12 قسم (يشمل `annual_report`, `support`)
-
-`SettingsPage.tsx` — `SectionsTab` (سطر 332-336) يعرض 12 فقط:
-
-| القسم | في constants.ts | في SectionsTab labels | النتيجة |
-|-------|:---:|:---:|---------|
-| `annual_report` | ✅ | ❌ | **ناقص** |
-| `support` | ✅ | ❌ | **ناقص** |
-| `chart_of_accounts` | ✅ | ❌ | **ناقص** |
-
-`SettingsPage.tsx` — `BeneficiaryTab` (سطر 369-373) يعرض 10 فقط:
-
-| القسم | في constants.ts | في BeneficiaryTab labels | النتيجة |
-|-------|:---:|:---:|---------|
-| `annual_report` | ✅ | ❌ | **ناقص** |
-| `support` | ✅ | ❌ | **ناقص** |
-
-**سيناريو التأثير:** الناظر يفتح الإعدادات → تبويب "الأقسام" → لا يرى خيار إخفاء التقرير السنوي أو الدعم الفني أو الشجرة المحاسبية. هذه الأقسام تظهر دائماً بالقيمة الافتراضية `true` بلا تحكم.
-
-**الإصلاح:** إضافة 3 مفاتيح لـ `SectionsTab.labels` + إضافة 2 مفاتيح لـ `BeneficiaryTab.labels` + تحديث `defaultSections` المحلي في كلا المكونين.
+فحص المناطق التي لم تُغطَّ في الفحوصات السابقة: الشجرة المحاسبية، المقارنة التاريخية، التقرير السنوي، إدارة المستخدمين، تشخيص النظام، أنماط الرسائل، وأنماط Type Safety العميقة.
 
 ---
 
-## F-02: استيراد فارغ في ContractsPage — مؤكد 🟡
+## النتائج
 
-**التحقق المباشر:** سطر 5 في `ContractsPage.tsx`:
-```
-import {} from '@/components/ui/card';
+### 🔴 F-01: قائمة اختيار الأب محدودة بالجذور فقط — ChartOfAccountsPage (متوسطة)
+
+**الملف:** `ChartOfAccountsPage.tsx` سطر 228-231
+
+```text
+const rootCategories = useMemo(
+  () => categories.filter(c => !c.parent_id),
+  [categories],
+);
 ```
 
-لا يستورد شيئاً. كود ميت.
+**المشكلة:** عند إضافة/تعديل حساب، قائمة "الفئة الأب" تعرض فقط الفئات الجذرية (بلا أب). **لا يمكن اختيار فئة فرعية كأب**، مما يمنع بناء شجرة بعمق أكبر من مستويين.
 
-**الإصلاح:** حذف السطر.
+**سيناريو:** الناظر يريد إنشاء شجرة:
+```text
+100 - إيرادات (جذر)
+  110 - إيجارات (فرع)
+    111 - إيجارات تجارية (حفيد) ← ❌ لا يمكن اختيار 110 كأب!
+```
+
+**الإصلاح:** تغيير `rootCategories` إلى `categories` (كل الفئات) مع استبعاد الفئة المُعدَّلة وفروعها فقط لمنع الحلقات.
 
 ---
 
-## خطة التنفيذ
+### 🟡 F-02: `as never` type cast في ChartOfAccountsPage (منخفضة)
 
-### 1. إصلاح `SectionsTab` في SettingsPage.tsx (سطر 329-336)
-- إضافة `annual_report: true, support: true, chart_of_accounts: true` إلى `defaultSections`
-- إضافة `annual_report: 'التقرير السنوي', support: 'الدعم الفني', chart_of_accounts: 'الشجرة المحاسبية'` إلى `labels`
+**الملف:** سطر 276
 
-### 2. إصلاح `BeneficiaryTab` في SettingsPage.tsx (سطر 366-373)
-- إضافة `annual_report: true, support: true` إلى `defaultSections`
-- إضافة `annual_report: 'التقرير السنوي', support: 'الدعم الفني'` إلى `labels`
+```text
+createMutation.mutate(payload as never, { ... });
+```
 
-### 3. حذف الاستيراد الفارغ في ContractsPage.tsx (سطر 5)
+**المشكلة:** `as never` يتجاوز فحص TypeScript بالكامل. إذا تغير schema الجدول مستقبلاً، لن تظهر أخطاء compilation.
 
+**الإصلاح:** استخدام `as Parameters<typeof createMutation.mutate>[0]` كبقية الصفحات (IncomePage, ExpensesPage, ContractsPage).
+
+---
+
+### 🟡 F-03: Security Definer View تحذير غير مُعالج في Supabase Linter (منخفضة)
+
+**من Security Scan:**
+```json
+{
+  "id": "SUPA_security_definer_view",
+  "level": "error",
+  "ignore": false
+}
+```
+
+جميع بنود Agent Security مُعالجة ومُوثّقة (`ignore: true`)، لكن تحذير Supabase Linter لـ `security_definer_view` لا يزال `ignore: false`. هذا تحذير عرض فقط (لا تأثير أمني — تم التحقق سابقاً) لكنه يظهر كـ "error" في فحص الأمان.
+
+**الإصلاح:** تعليم البند كـ `ignore: true` عبر أداة إدارة الأمان.
+
+---
+
+### ✅ بنود تم فحصها وأثبتت سلامتها
+
+| البند | النتيجة |
+|-------|---------|
+| Console errors | 0 |
+| Network errors | 0 |
+| HistoricalComparisonPage — hooks pattern | ✅ سليم — 4 hooks ثابتة مع slice |
+| HistoricalComparisonPage — PDF تصدير | ✅ يتعامل مع القسمة على صفر |
+| AnnualReportPage — reorder race condition | ✅ محمي بـ mutateAsync متتابع |
+| AnnualReportPage — fiscal year guard | ✅ `if (!fiscalYearId) return` |
+| SystemDiagnosticsPage — access logging | ✅ يسجل في access_log |
+| SystemDiagnosticsPage — تصدير مُطهّر | ✅ يستخدم sanitizeDiagnosticOutput |
+| UserManagementPage — server-side auth | ✅ `getUser()` قب
