@@ -89,7 +89,7 @@ vi.mock('@/components/PageHeaderCard', () => ({ default: ({ title }: any) => <di
 
 // Mock the lazy-loaded charts component
 vi.mock('@/components/financial/FinancialChartsInner', () => ({
-  default: ({ incomeVsExpenses, distributionData, incomePieData, expensesPieData }: any) => (
+  default: () => (
     <div>
       <h3>مقارنة الإيرادات والمصروفات</h3>
       <h3>حصتي من الريع</h3>
