@@ -77,7 +77,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
     mutationFn: async ({ expenseType, amount }: { expenseType: string; amount: number }) => {
       const existing = budgetMap.get(expenseType);
       if (existing) {
-        const { error } = await db
+        const { error } = await supabase
           .from('expense_budgets')
           .update({ budget_amount: amount, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
