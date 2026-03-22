@@ -12,13 +12,17 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import { findAccountByFY } from '@/utils/findAccountByFY';
-import type { Tables } from '@/integrations/supabase/types';
+
+/** أنواع مبسطة لتجنب عدم توافق null/undefined بين الـ hooks والـ Tables */
+interface AccountLike { fiscal_year_id?: string | null; fiscal_year: string; zakat_amount?: number; waqf_corpus_manual?: number; waqf_corpus_previous?: number; vat_amount?: number; distributions_amount?: number; [key: string]: unknown; }
+interface ContractLike { id: string; property_id: string; [key: string]: unknown; }
+interface BeneficiaryLike { id: string; name: string; share_percentage: number; [key: string]: unknown; }
 
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
-  accounts: Tables<'accounts'>[];
+  accounts: AccountLike[];
   totalIncome: number;
   totalExpenses: number;
   adminShare: number;
@@ -30,8 +34,8 @@ interface ActionsParams {
   grandTotal: number;
   availableAmount: number;
   remainingBalance: number;
-  contracts: Tables<'contracts'>[];
-  beneficiaries: Tables<'beneficiaries'>[];
+  contracts: ContractLike[];
+  beneficiaries: BeneficiaryLike[];
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   appSettingsData: Record<string, string> | undefined;

@@ -6,7 +6,6 @@ import { useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
 import { useDeleteAccount } from '@/hooks/useAccounts';
 import { useUpsertTenantPayment } from '@/hooks/useTenantPayments';
 import { toast } from 'sonner';
-import type { Tables } from '@/integrations/supabase/types';
 
 interface CollectionEditData {
   contractId: string;
@@ -24,12 +23,15 @@ interface ContractEditData {
   contract_number: string;
 }
 
+/** نوع مبسط للعقد يتوافق مع ما يُرجعه useAccountsData */
+interface ContractLike { id: string; property_id: string; [key: string]: unknown; }
+
 interface EditingParams {
-  contracts: Tables<'contracts'>[];
+  contracts: ContractLike[];
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
   fiscalYearId: string | null | undefined;
-  getExpectedPayments: (contract: Tables<'contracts'>) => number;
+  getExpectedPayments: (contract: ContractLike) => number;
 }
 
 export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
