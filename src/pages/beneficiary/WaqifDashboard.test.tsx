@@ -3,7 +3,6 @@ import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 
-// Mock supabase
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: () => ({
@@ -20,6 +19,11 @@ vi.mock('@/integrations/supabase/client', () => ({
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
     rpc: () => Promise.resolve({ data: 0, error: null }),
+    channel: () => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn(),
+    }),
+    removeChannel: vi.fn(),
   },
 }));
 
@@ -88,7 +92,6 @@ describe('WaqifDashboard', () => {
       </QueryClientProvider>
     );
 
-    // Check that the component renders something in the DOM
     expect(container.firstChild).not.toBeNull();
   }, 15_000);
 });

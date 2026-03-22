@@ -15,10 +15,14 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
-  TABLE_HEAD_GREEN: [22, 101, 52],
+  TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_RED: [180, 40, 40],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})), footStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
+  fmtDate: (d: string) => d,
 }));
+vi.mock('@/utils/safeNumber', () => ({ safeNumber: (n: any) => Number(n) || 0 }));
+vi.mock('@/utils/format', () => ({ fmt: (n: number) => String(n) }));
+vi.mock('sonner', () => ({ toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() } }));
 
 import { generateInvoicesViewPDF } from './invoices';
 

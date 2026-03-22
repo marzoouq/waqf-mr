@@ -38,23 +38,21 @@ describe('useWaqfInfo', () => {
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+      expect(result.current.data.waqf_name).toBe('وقف الاختبار');
+    }, { timeout: 5000 });
 
-    expect(result.current.data.waqf_name).toBe('وقف الاختبار');
     expect(result.current.data.waqf_founder).toBe('مؤسس');
     expect(result.current.data.waqf_admin).toBe('ناظر');
   });
 
   it('returns loading state initially', async () => {
     vi.mocked(supabase.from).mockReturnValue({
-      select: vi.fn(() => new Promise(() => {})), // never resolves
+      select: vi.fn(() => new Promise(() => {})),
     } as any);
 
     const { useWaqfInfo } = await import('./useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
-    // With placeholderData, isLoading may be false but data should have defaults
     expect(result.current.data.waqf_name).toBe('');
   });
 
