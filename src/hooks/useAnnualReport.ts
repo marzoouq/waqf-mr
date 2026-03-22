@@ -82,7 +82,7 @@ export const useUpdateReportItem = () => {
     mutationFn: async ({ id, ...updates }: Partial<AnnualReportItem> & { id: string }) => {
       const { data, error } = await supabase
         .from('annual_report_items')
-        .update({ ...updates, updated_at: new Date().toISOString() } as never)
+        .update({ ...updates, updated_at: new Date().toISOString() } as Database['public']['Tables']['annual_report_items']['Update'])
         .eq('id', id)
         .select()
         .single();
