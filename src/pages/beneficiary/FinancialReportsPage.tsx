@@ -141,6 +141,20 @@ const FinancialReportsPage = () => {
     );
   }
 
+  if (!currentBeneficiary && !isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <AlertCircle className="w-16 h-16 text-warning" />
+          <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
+          <p className="text-muted-foreground text-center max-w-md">
+            حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <RequirePublishedYears title="التقارير المالية" icon={BarChart3}>
     <DashboardLayout>
