@@ -1,5 +1,19 @@
 [
   {
+    "version": "3.0.17",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Fix distributions data and RLS"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح توزيعات وربط FY"
+      }
+    ]
+  },
+  {
     "version": "3.0.16",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
