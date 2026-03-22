@@ -1,5 +1,47 @@
 [
   {
+    "version": "3.0.37",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Split AccountsPage hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Split accounts hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Reorganized Accounts hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor accounts hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored accounts hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Segregated accounts page logic"
+      },
+      {
+        "type": "improvement",
+        "text": "Split accounts page hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor accounts hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Split useAccountsPage into hooks"
+      }
+    ]
+  },
+  {
     "version": "3.0.36",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
