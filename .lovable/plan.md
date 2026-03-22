@@ -1,55 +1,62 @@
 
 
-# تقرير أداء التطبيق على الجوال (390×844)
+# تقرير الفحص الجنائي الهجين — النتائج الكاملة
 
 ---
 
-## النتائج المقاسة
+## المنهجية
 
-| المقياس | القيمة | التقييم |
-|---------|--------|---------|
-| FCP (First Contentful Paint) | **492ms** | ✅ ممتاز (أقل من 1.8s) |
-| Full Page Load | **2,465ms** | ✅ جيد (أقل من 3s) |
-| TTFB | **394ms** | ✅ جيد |
-| CLS (Layout Shift) | **0.012** | ✅ ممتاز (أقل من 0.1) |
-| JS Heap Used | **23MB** | ✅ خفيف |
-| DOM Nodes | **885** | ✅ خفيف (أقل من 1500) |
-| Script Duration | **489ms** | ✅ مقبول |
+فحص شامل: Console errors, Network errors, Security scan, Supabase linter, TypeScript safety (`as any`, `@ts-ignore`), React patterns, `console.*` مباشر, `invalidateQueries`, `dangerouslySetInnerHTML`.
 
 ---
 
-## الموارد الأكبر حجماً
+## النتائج
 
-| المورد | الحجم |
-|--------|-------|
-| lucide-react | 189KB |
-| react-dom | 166KB |
-| react-router-dom | 97KB |
-| supabase-js | 85KB |
-| react-markdown | 69KB |
+### ✅ لا توجد أخطاء بناء أو تشغيل
 
-**الملاحظة**: `react-markdown` (69KB) يُحمَّل في الصفحة الرئيسية رغم عدم استخدامه فيها — يبدو أنه يُستورد في مكون محمّل مبكراً.
+| الفحص | النتيجة |
+|-------|---------|
+| Console errors | 0 |
+| Network errors | 0 |
+| `invalidateQueries()` بلا queryKey | 0 (تم إصلاحها سابقاً) |
+| `supabase as any` في الواجهة | 0 (تم إصلاحها سابقاً) |
+| Empty catch blocks | 0 |
 
 ---
 
-## أبطأ الطلبات
+### نتائج Security Scan — 4 بنود (جميعها مُوثّقة ومقبولة)
 
-| الطلب | المدة |
-|-------|-------|
-| `app_settings` (fetch) | 619ms |
-| `get_public_stats` (RPC) | 550ms |
+| # | البند | الحالة |
+|---|-------|--------|
+| 1 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | **مقصود بالتصميم** — العروض تستخدم `CASE WHEN has_role()` لتقنيع PII. الجداول الأصلية محمية بـ RLS كاملة |
+| 2 | `beneficiaries_safe` بلا RLS policies | **آمن** — هي View وليست Table، وRLS مُفعّل عليها (deny-all افتراضي). الوصول يمر عبر Security Definer الذي يُطبّق التقنيع |
+| 3 | `contracts_safe` بلا RLS policies | **نفس البند 2** — View مع Security Definer |
+| 4 | Extension in public schema | تحذير قياسي — لا تأثير أمني |
 
-هذان الطلبان يعملان بالتوازي — لا يوجد شلال. المدة مرتبطة بزمن الشبكة وليس بالكود.
+---
+
+### TypeScript Safety
+
+| البند | العدد | الحالة |
+|-------|-------|--------|
+| `as any` في كود الإنتاج | **1 فقط** — `navigator.deviceMemory` (API غير معرّف في DOM types) | ✅ مبرر |
+| `as any` في تعليقات (توثيق إصلاحات سابقة) | 4 تعليقات | ✅ لا تأثير |
+| `@ts-ignore` | **1 فقط** — `arabic-reshaper` بلا types | ✅ لا بديل |
+
+---
+
+### React Patterns
+
+| البند | النتيجة |
+|-------|---------|
+| `dangerouslySetInnerHTML` | 2 مواضع: JSON-LD ثابت + chart styles — **آمن** |
+| `console.*` مباشر في src/ | 2 ملفات: DEV-only في FiscalYearContext + test setup — **مقبول** |
 
 ---
 
 ## الخلاصة
 
-**التطبيق سريع جداً على الجوال.** جميع مقاييس Web Vitals في المنطقة الخضراء. لا توجد مشاكل أداء تحتاج إصلاح.
+**التطبيق نظيف تماماً.** لا أخطاء بناء، لا مشاكل برمجية، لا ثغرات أمنية جديدة. جميع الإصلاحات السابقة (type safety, cache invalidation, CORS, cleanup) مطبقة وفعّالة. نتائج Security Scan الأربع كلها مُوثّقة ومقبولة بالتصميم.
 
-### تحسين اختياري واحد (طفيف)
-
-**`react-markdown` يُحمَّل مبكراً** — إذا لم يُستخدم في الصفحة الرئيسية، يمكن تأجيل تحميله بـ `lazyWithRetry` لتوفير 69KB من الحزمة الأولية. هذا تحسين طفيف (الصفحة سريعة أصلاً) لكنه يُقلل وقت التحليل على الأجهزة الضعيفة.
-
-**هل تريد تنفيذ هذا التحسين الاختياري؟**
+**لا يوجد إصلاح مطلوب.**
 
