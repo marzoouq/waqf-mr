@@ -1,5 +1,31 @@
 [
   {
+    "version": "3.0.10",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Improve beneficiary pages guards"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      }
+    ]
+  },
+  {
     "version": "3.0.9",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
