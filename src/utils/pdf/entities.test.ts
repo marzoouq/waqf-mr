@@ -19,6 +19,7 @@ vi.mock('./core', () => ({
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_GOLD: [161, 128, 48],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})), footStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
+  fmtDate: (d: string) => d,
 }));
 
 import { generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF } from './entities';
@@ -45,6 +46,7 @@ describe('entities PDF', () => {
     await generateUnitsPDF('P-1', 'الرياض', [
       { unit_number: 'U-1', unit_type: 'محل', status: 'مؤجرة', tenant_name: 'خالد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 5000, paid_months: 6, payment_type: 'monthly', payment_count: 12 },
     ]);
-    expect(mockSave).toHaveBeenCalledWith('units-report-P-1.pdf');
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave.mock.calls[0][0]).toMatch(/^units-report/);
   });
 });

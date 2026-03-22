@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react';
 
 import { FiscalYearProvider, useFiscalYear } from './FiscalYearContext';
 
-// Mock dependencies
+// Use valid UUIDs since context validates UUID format
 const mockFiscalYears = [
-  { id: 'fy-1', label: '1446-1447', start_date: '2024-10-01', end_date: '2025-10-01', status: 'active', published: true, created_at: '' },
-  { id: 'fy-2', label: '1445-1446', start_date: '2023-10-01', end_date: '2024-10-01', status: 'closed', published: true, created_at: '' },
+  { id: 'a0000000-0000-0000-0000-000000000001', label: '1446-1447', start_date: '2024-10-01', end_date: '2025-10-01', status: 'active', published: true, created_at: '' },
+  { id: 'b0000000-0000-0000-0000-000000000002', label: '1445-1446', start_date: '2023-10-01', end_date: '2024-10-01', status: 'closed', published: true, created_at: '' },
 ];
 
 vi.mock('@/hooks/useFiscalYears', () => ({
@@ -18,7 +18,7 @@ vi.mock('@/hooks/useFiscalYears', () => ({
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => ({ role: 'admin', user: { id: 'u1' } }),
+  useAuth: () => ({ role: 'admin', user: { id: 'u1' }, loading: false }),
 }));
 
 const TestConsumer = () => {
@@ -50,15 +50,15 @@ describe('FiscalYearContext', () => {
       <FiscalYearProvider><TestConsumer /></FiscalYearProvider>
     );
     // admin with no stored selection and active FY → uses active FY id
-    expect(screen.getByTestId('fy-id').textContent).toBe('fy-1');
+    expect(screen.getByTestId('fy-id').textContent).toBe('a0000000-0000-0000-0000-000000000001');
   });
 
   it('persists selected fiscal year in localStorage', () => {
-    localStorage.setItem('waqf_selected_fiscal_year', 'fy-2');
+    localStorage.setItem('waqf_selected_fiscal_year', 'b0000000-0000-0000-0000-000000000002');
     render(
       <FiscalYearProvider><TestConsumer /></FiscalYearProvider>
     );
-    expect(screen.getByTestId('fy-id').textContent).toBe('fy-2');
+    expect(screen.getByTestId('fy-id').textContent).toBe('b0000000-0000-0000-0000-000000000002');
     expect(screen.getByTestId('is-closed').textContent).toBe('true');
   });
 

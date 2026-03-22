@@ -17,7 +17,6 @@ const mockAccounts = [
 describe('AccountsSavedTable', () => {
   it('يعرض رسالة التحميل', () => {
     const { container } = render(<AccountsSavedTable accounts={[]} isLoading={true} onDeleteAccount={vi.fn()} />);
-    // Loading shows Skeleton placeholders
     expect(container.querySelectorAll('[class*="animate-pulse"]').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -28,7 +27,8 @@ describe('AccountsSavedTable', () => {
 
   it('يعرض بيانات الحسابات', () => {
     render(<AccountsSavedTable accounts={mockAccounts} isLoading={false} onDeleteAccount={vi.fn()} />);
-    expect(screen.getByText('1446-1447هـ')).toBeInTheDocument();
+    // Both mobile and desktop views render in jsdom
+    expect(screen.getAllByText('1446-1447هـ').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('السجلات السابقة')).toBeInTheDocument();
   });
 });

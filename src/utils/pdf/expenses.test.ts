@@ -18,6 +18,7 @@ vi.mock('./core', () => ({
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_RED: [180, 40, 40],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})), footStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
+  fmtDate: (d: string) => d,
 }));
 
 import { generateIncomePDF, generateExpensesPDF } from './expenses';
@@ -27,13 +28,16 @@ describe('generateIncomePDF', () => {
 
   it('saves income-report.pdf', async () => {
     await generateIncomePDF([{ source: 'إيجارات', amount: 50000, date: '2024-01-01' }], 50000);
-    expect(mockSave).toHaveBeenCalledWith('income-report.pdf');
+    // Filename now includes date suffix
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave.mock.calls[0][0]).toMatch(/^income-report/);
   });
 });
 
 describe('generateExpensesPDF', () => {
   it('saves expenses-report.pdf', async () => {
     await generateExpensesPDF([{ expense_type: 'صيانة', amount: 10000, date: '2024-02-01' }], 10000);
-    expect(mockSave).toHaveBeenCalledWith('expenses-report.pdf');
+    expect(mockSave).toHaveBeenCalledTimes(1);
+    expect(mockSave.mock.calls[0][0]).toMatch(/^expenses-report/);
   });
 });

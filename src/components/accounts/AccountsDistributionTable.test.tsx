@@ -31,29 +31,29 @@ describe('AccountsDistributionTable', () => {
 
   it('shows income row', () => {
     render(<AccountsDistributionTable {...defaultProps} />);
-    expect(screen.getByText('إجمالي الدخل')).toBeInTheDocument();
+    expect(screen.getAllByText('إجمالي الدخل').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows expenses row', () => {
     render(<AccountsDistributionTable {...defaultProps} />);
-    expect(screen.getByText(/المصروفات التشغيلية/)).toBeInTheDocument();
+    expect(screen.getAllByText(/المصروفات التشغيلية/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows admin share with percentage', () => {
     render(<AccountsDistributionTable {...defaultProps} />);
-    expect(screen.getByText('10%')).toBeInTheDocument();
-    expect(screen.getByText(/حصة الناظر/)).toBeInTheDocument();
+    expect(screen.getAllByText('10%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/حصة الناظر/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows waqif share with percentage', () => {
     render(<AccountsDistributionTable {...defaultProps} />);
-    expect(screen.getByText('5%')).toBeInTheDocument();
-    expect(screen.getByText(/حصة الواقف/)).toBeInTheDocument();
+    expect(screen.getAllByText('5%').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/حصة الواقف/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows remaining balance', () => {
     render(<AccountsDistributionTable {...defaultProps} />);
-    expect(screen.getByText('الرصيد المتبقي')).toBeInTheDocument();
+    expect(screen.getAllByText('الرصيد المتبقي').length).toBeGreaterThanOrEqual(1);
   });
 
   it('hides previous corpus row when zero', () => {
@@ -63,8 +63,8 @@ describe('AccountsDistributionTable', () => {
 
   it('shows previous corpus row when > 0', () => {
     render(<AccountsDistributionTable {...defaultProps} waqfCorpusPrevious={5000} grandTotal={105000} />);
-    expect(screen.getByText('رقبة الوقف المرحلة من العام السابق')).toBeInTheDocument();
-    expect(screen.getByText('الإجمالي الشامل')).toBeInTheDocument();
+    expect(screen.getAllByText('رقبة الوقف المرحلة من العام السابق').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الإجمالي الشامل').length).toBeGreaterThanOrEqual(1);
   });
 
   it('applies destructive color for negative balance', () => {
