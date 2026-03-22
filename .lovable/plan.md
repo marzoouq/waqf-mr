@@ -1,94 +1,114 @@
 
 
-# فحص جنائي للخطة — التحقق قبل التنفيذ
+# تقرير الفحص الجنائي — التحقق من اكتمال الخطة
 
 ---
 
-## البيانات الحية في الإنتاج (تم التحقق الآن)
+## البيانات الحية المؤكدة الآن
 
 | الحقيقة | القيمة |
 |---------|--------|
 | عدد التوزيعات | **14 سجل** |
-| `fiscal_year_id` في جميعها | **NULL** ← السبب الجذري |
+| `fiscal_year_id` في جميعها | **NULL** ← لم يُصلَح بعد |
 | السنة المنشورة | `2024-2025` — `published=true`, `status=closed`, `id=1fe1394b...` |
 | السنة النشطة | `2025-2026` — `published=false`, `status=active` |
-| `account_fy_id` في جميع التوزيعات | `1fe1394b...` (= السنة المنشورة) ← الربط موجود عبر `accounts` |
+| `account_fy_id` في جميع التوزيعات | `1fe1394b...` (= السنة المنشورة) |
+| Trigger `set_distribution_fiscal_year` | **غير موجود في الإنتاج** — الدالة غير مُنشأة |
+| Trigger `trg_set_distribution_fiscal_year` | **غير موجود** — فقط `audit_distributions` و `prevent_closed_fy_distributions` |
 
 ---
 
-## تتبع المشكلة خطوة بخطوة
+## حالة الـ Migrations
+
+الملفان موجودان لكن **لم يُطبَّقا** بسبب خطأ "Circuit breaker open" (مشكلة اتصال مؤقتة بقاعدة البيانات).
+
+**المشكلة:** الملف الأول يُنشئ الدالة **والـ Trigger معاً**، والملف الثاني يُعيد إنشاء الدالة فقط (بإضافة `SET search_path`). لكن **لا يوجد ملف يحتوي على M-01** (تصحيح البيانات — UPDATE).
+
+---
+
+## تتبع السيناريو
 
 ```text
-مستفيد يفتح "حصتي" ← MySharePage
+الحالة الحالية:
+  14 توزيع → fiscal_year_id = NULL
   ↓
-supabase.from('distributions').select('*').eq('beneficiary_id', X)
+  is_fiscal_year_accessible(NULL) → false (H-12 fix)
   ↓
-سياسة RESTRICTIVE: is_fiscal_year_accessible(fiscal_year_id)
+  مستفيد يستعلم distributions → 0 صفوف
   ↓
-fiscal_year_id = NULL
-  ↓
-is_fiscal_year_accessible(NULL) → false  (بسبب H-12 fix)
-  ↓
-❌ 0 صفوف ← بطاقات فارغة ← PDF فارغ
-```
+  ❌ بطاقات فارغة + PDF فارغ
 
-**الخطة صحيحة في تشخيص السبب الجذري.**
+بعد تطبيق M-01 (UPDATE):
+  14 توزيع → fiscal_year_id = 1fe1394b...
+  ↓
+  is_fiscal_year_accessible('1fe1394b...') → published=true → true
+  ↓
+  مستفيد يستعلم distributions → 14 صف
+  ↓
+  ✅ بطاقات تعرض المبالغ + PDF يتضمن البيانات
+```
 
 ---
 
-## تقييم كل بند في الخطة
+## تقييم اكتمال الخطة
 
-### ✅ M-01: تصحيح البيانات — **ضروري وكافي**
+| البند | موجود في الملفات؟ | مطلوب؟ |
+|-------|:-:|:-:|
+| **M-01: تصحيح البيانات (UPDATE)** | ❌ **مفقود!** | ✅ ضروري |
+| **M-03: Trigger (ملف 1)** | ✅ موجود | ✅ تحصين |
+| **M-03: SET search_path (ملف 2)** | ✅ موجود | ✅ أمان |
+| **M-02: تعديل RLS** | ❌ غير موجود | ✅ صحيح — محذوف عمداً |
+
+### ⚠️ الخطة ناقصة!
+
+**M-01 (تصحيح البيانات)** هو البند الأهم ولم يُضمَّن في أي من الملفين. بدونه:
+- الـ Trigger يحمي المستقبل فقط
+- الـ 14 سجل الحالية تبقى بـ NULL
+- البطاقات تبقى فارغة
+
+---
+
+## الإصلاح المطلوب
+
+### 1. دمج الملفين في migration واحدة تحتوي على:
 
 ```sql
-UPDATE distributions d SET fiscal_year_id = a.fiscal_year_id
-FROM accounts a WHERE d.account_id = a.id AND d.fiscal_year_id IS NULL;
+-- M-01: تصحيح البيانات الحالية
+UPDATE distributions d
+SET fiscal_year_id = a.fiscal_year_id
+FROM accounts a
+WHERE d.account_id = a.id
+  AND d.fiscal_year_id IS NULL;
+
+-- M-03: Trigger لمنع NULL مستقبلاً
+CREATE OR REPLACE FUNCTION public.set_distribution_fiscal_year()
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.fiscal_year_id IS NULL AND NEW.account_id IS NOT NULL THEN
+    SELECT fiscal_year_id INTO NEW.fiscal_year_id
+    FROM public.accounts WHERE id = NEW.account_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_set_distribution_fiscal_year
+  BEFORE INSERT ON public.distributions
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_distribution_fiscal_year();
 ```
 
-**التحقق:** جميع الـ 14 سجل لديها `account_fy_id = 1fe1394b...` (السنة المنشورة). بعد التنفيذ:
-- `is_fiscal_year_accessible('1fe1394b...')` → `published=true` → **true** للمستفيد ✅
-- البطاقات ستظهر فوراً ✅
-- PDF سيتضمن البيانات ✅
-
-### ⚠️ M-02: تعديل RLS للسماح بـ NULL — **يجب حذفه من الخطة**
-
-**المشكلة:** إضافة `fiscal_year_id IS NULL` في السياسة RESTRICTIVE يفتح ثغرة:
-- أي توزيع بدون `fiscal_year_id` سيكون مرئياً حتى لو لم يكن منشوراً
-- يتناقض مع حماية H-12 التي أُضيفت عمداً لمنع تسريب بيانات غير مرتبطة
-
-**بعد M-01:** لا توجد سجلات بـ NULL. **بعد M-03:** لن تُنشأ سجلات بـ NULL. → M-02 غير مطلوب.
-
-### ✅ M-03: Trigger للمنع المستقبلي — **تحصين ممتاز**
-
-يملأ `fiscal_year_id` تلقائياً من `account_id` عند الإدراج → يمنع تكرار المشكلة.
+### 2. حذف الملفين القديمين واستبدالهما بملف واحد
 
 ---
 
-## هل الخطة تغطي السنة المنشورة؟
-
-| السيناريو | قبل الإصلاح | بعد M-01 |
-|-----------|:-----------:|:--------:|
-| مستفيد يختار `2024-2025` (منشورة) | ❌ 0 صفوف (NULL) | ✅ 14 سجل |
-| بطاقة "المبالغ المستلمة" | ❌ 0 ر.س | ✅ المجموع الصحيح |
-| تصدير PDF | ❌ فارغ | ✅ يتضمن التوزيعات |
-| مستفيد يختار `2025-2026` (غير منشورة) | ❌ | ❌ (صحيح — لم تُنشر) |
-
----
-
-## الخطة المعدلة (بعد الفحص الجنائي)
-
-### Migration واحدة تحتوي على بندين فقط:
-
-**M-01:** تصحيح البيانات — ربط `fiscal_year_id` من `accounts`
-
-**M-03:** Trigger `trg_set_distribution_fiscal_year` لمنع NULL مستقبلاً
-
-**M-02 محذوف** — لا حاجة لتعديل RLS، وإضافته ستُضعف الحماية.
-
-### الملفات المتأثرة
+## الملفات المتأثرة
 
 | الملف | التغيير |
 |-------|---------|
-| Migration SQL | M-01 + M-03 فقط |
-| **لا تغييرات في الكود الأمامي** | الاستعلام سليم، المشكلة في البيانات فقط |
+| حذف `20260322202733_*.sql` | ملف قديم ناقص |
+| حذف `20260322202741_*.sql` | ملف مكرر |
+| إنشاء migration جديدة | M-01 + M-03 كاملة |
 
