@@ -79,6 +79,7 @@ const InvoicesPage = () => {
     const hasBuyerTax = !!contract?.tenant_tax_number;
 
     return {
+      id: inv.id,
       invoiceNumber: inv.invoice_number || `INV-${inv.id.slice(0, 6)}`,
       date: inv.date,
       type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
