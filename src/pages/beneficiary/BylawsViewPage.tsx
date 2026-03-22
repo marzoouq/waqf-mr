@@ -18,7 +18,7 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 
 const BylawsViewPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['bylaws'] }), [queryClient]);
   const { data: bylaws, isLoading, isError } = useBylaws();
   const { data: settings, isLoading: settingsLoading } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();

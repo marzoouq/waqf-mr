@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, PieChart, Calculator, AlertCircle, RefreshCw } from 'lucide-react';
@@ -19,7 +20,7 @@ import { safeNumber } from '@/utils/safeNumber';
 
 const AccountsViewPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = () => queryClient.invalidateQueries();
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['accounts'] }), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const navigate = useNavigate();
   

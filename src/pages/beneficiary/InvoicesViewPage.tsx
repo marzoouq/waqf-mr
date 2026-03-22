@@ -24,7 +24,7 @@ import { fmt } from '@/utils/format';
 
 const InvoicesViewPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['invoices'] }), [queryClient]);
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');

@@ -40,8 +40,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
     queryKey: ['expense_budgets', fiscalYearId],
     enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('expense_budgets')
         .select('id, fiscal_year_id, expense_type, budget_amount, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId);
@@ -77,16 +76,14 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
   const saveBudget = useMutation({
     mutationFn: async ({ expenseType, amount }: { expenseType: string; amount: number }) => {
       const existing = budgetMap.get(expenseType);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any;
       if (existing) {
-        const { error } = await db
+        const { error } = await supabase
           .from('expense_budgets')
           .update({ budget_amount: amount, updated_at: new Date().toISOString() })
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await db
+        const { error } = await supabase
           .from('expense_budgets')
           .insert({ fiscal_year_id: fiscalYearId, expense_type: expenseType, budget_amount: amount });
         if (error) throw error;

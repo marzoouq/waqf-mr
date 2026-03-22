@@ -41,7 +41,7 @@ const typeConfig: Record<string, { label: string; icon: React.ElementType; color
 
 const NotificationsPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['notifications'] }), [queryClient]);
   const { data: _allNotifications = [], filteredData: notifications = [], markAsRead, markAllAsRead, deleteRead, deleteOne, filteredUnreadCount: unreadCount, isLoading, isError } = useNotifications();
   const { isSupported, permission, requestPermission } = usePushNotifications();
   const [categoryFilter, setCategoryFilter] = useState<string>('all');

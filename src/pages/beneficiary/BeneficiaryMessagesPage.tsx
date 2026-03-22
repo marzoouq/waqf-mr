@@ -18,7 +18,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 
 const BeneficiaryMessagesPage = () => {
   const queryClient = useQueryClient();
-  const handleRetry = useCallback(() => queryClient.invalidateQueries(), [queryClient]);
+  const handleRetry = useCallback(() => queryClient.invalidateQueries({ queryKey: ['conversations'] }), [queryClient]);
   const { user } = useAuth();
   const { data: chatConversations = [], isLoading: chatLoading, isError: chatError } = useConversations('chat');
   const { data: broadcastConversations = [] } = useConversations('broadcast');
