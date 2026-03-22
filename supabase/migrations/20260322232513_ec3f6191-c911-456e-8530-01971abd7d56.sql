@@ -1,0 +1,1 @@
+ALTER TABLE public.contracts DROP CONSTRAINT IF EXISTS unique_contract_number;

@@ -201,39 +201,26 @@ export const useClientErrors = () => {
   });
 };
 
-/** إحصائيات الدعم الفني — بطاقات العدّ فقط (head: true) */
+/** إحصائيات الدعم الفني — RPC واحد بدلاً من 9 استعلامات */
 export const useSupportStats = () => {
   return useQuery({
     queryKey: ['support_stats'],
     staleTime: 30_000,
     queryFn: async () => {
-      const now = new Date();
-      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-      const [totalRes, openRes, inProgressRes, resolvedRes, highRes, tickets7dRes, errorsRes, errors24hRes, errors7dRes] = await Promise.all([
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).in('priority', ['high', 'critical']),
-        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).gte('created_at', last7d),
-        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error'),
-        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last24h),
-        supabase.from('access_log').select('*', { count: 'exact', head: true }).eq('event_type', 'client_error').gte('created_at', last7d),
-      ]);
-
-      return {
-        totalTickets: totalRes.count ?? 0,
-        openTickets: openRes.count ?? 0,
-        inProgressTickets: inProgressRes.count ?? 0,
-        resolvedTickets: resolvedRes.count ?? 0,
-        highPriorityTickets: highRes.count ?? 0,
-        totalErrors: errorsRes.count ?? 0,
-        errorsLast24h: errors24hRes.count ?? 0,
-        errorsLast7d: errors7dRes.count ?? 0,
-        ticketsLast7d: tickets7dRes.count ?? 0,
+      const { data, error } = await supabase.rpc('get_support_stats');
+      if (error) throw error;
+      const stats = data as {
+        totalTickets: number;
+        openTickets: number;
+        inProgressTickets: number;
+        resolvedTickets: number;
+        highPriorityTickets: number;
+        ticketsLast7d: number;
+        totalErrors: number;
+        errorsLast24h: number;
+        errorsLast7d: number;
       };
+      return stats;
     },
   });
 };
