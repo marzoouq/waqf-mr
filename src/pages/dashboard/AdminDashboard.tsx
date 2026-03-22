@@ -12,7 +12,7 @@ import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useFinancialSummary } from '@/hooks/useFinancialSummary';
 import { useYoYComparison, calcChangePercent } from '@/hooks/useYoYComparison';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, ArrowUpDown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle } from 'lucide-react';
+import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, ArrowUpDown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle, GitBranch } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
