@@ -59,7 +59,7 @@ export const useCreateReportItem = () => {
     mutationFn: async (item: Omit<AnnualReportItem, 'id' | 'created_at' | 'updated_at'> & { property_id?: string | null }) => {
       const { data, error } = await supabase
         .from('annual_report_items')
-        .insert(item as never)
+        .insert(item as Database['public']['Tables']['annual_report_items']['Insert'])
         .select()
         .single();
       if (error) throw error;
