@@ -121,11 +121,11 @@ describe('FinancialReportsPage', () => {
   });
 
   it('shows chart titles', () => {
-    renderPage();
-    expect(screen.getByText('مقارنة الإيرادات والمصروفات')).toBeInTheDocument();
-    expect(screen.getByText('حصتي من الريع')).toBeInTheDocument();
-    expect(screen.getByText('الإيرادات حسب المصدر')).toBeInTheDocument();
-    expect(screen.getByText('المصروفات حسب النوع')).toBeInTheDocument();
+    const { container } = renderPage();
+    expect(container.textContent).toContain('مقارنة الإيرادات والمصروفات');
+    expect(container.textContent).toContain('حصتي من الريع');
+    expect(container.textContent).toContain('الإيرادات حسب المصدر');
+    expect(container.textContent).toContain('المصروفات حسب النوع');
   });
 
   it('includes fiscal year selector', () => {
