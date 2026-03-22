@@ -27,7 +27,7 @@ interface EditingParams {
   contracts: Array<{ id: string; tenant_name: string; rent_amount: number; status: string; contract_number: string; property_id: string; payment_amount: number | null; unit_id: string | null; payment_type: string; payment_count: number; start_date: string; end_date: string }>;
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
-  fiscalYearId: string | undefined;
+  fiscalYearId: string | null | undefined;
   getExpectedPayments: (contract: { id: string; start_date: string; end_date: string; payment_type: string; payment_count: number }) => number;
 }
 
