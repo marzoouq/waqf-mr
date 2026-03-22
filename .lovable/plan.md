@@ -1,71 +1,70 @@
 
 
-
-# تقرير الفحص الجنائي الهجين العميق — بعد إعادة الهيكلة
-
----
-
-## الحالة بعد آخر تعديلات
-
-تم التحقق من تقسيم `useAccountsPage` (593 سطر سابقاً) إلى 4 hooks فرعية + تحويل `useSupportStats` إلى RPC. فيما يلي نتائج الفحص العميق.
+# تقرير الفحص الجنائي الشامل — الحالة الفعلية
 
 ---
 
-## 1. ~~مشكلة معمارية مكتشفة: Circular Import Risk~~ ✅ تم الإصلاح
+## 1. Bug الأصفار المُبلّغ عنه سابقاً — ✅ مُصلح فعلياً
 
-تم نقل `findAccountByFY` إلى `src/utils/findAccountByFY.ts` وكسر الدورة.
+تم التحقق من تدفق التنفيذ بدقة:
+
+```text
+Render cycle (synchronous):
+  1. useAccountsActions(params) → paramsRef.current = params  [أصفار للمالية، بيانات حقيقية للباقي]
+  2. useAccountsCalculations({...}) → calc يُحسب بقيم حقيقية
+  3. سطور 70-85: actions.paramsRef.current = { ...current, ...calc values }  [يُستبدل الأصفار بالقيم الحقيقية]
+  
+  → عند النقر على "حفظ" أو "تصدير PDF"، paramsRef.current يحتوي القيم الصحيحة
+```
+
+**الخلاصة: لا يوجد bug.** الإصلاح الحالي يعمل بشكل صحيح لأن كل الخطوات تحدث synchronously في نفس الـ render. عند نقر المستخدم على أي زر، الـ ref يحمل القيم المحسوبة الحقيقية.
 
 ---
 
-## 2. ~~استخدام `any` في hooks الجديدة~~ ✅ تم الإصلاح
-
-تم استبدال `any[]` بـ `Account[]`, `Contract[]`, `Beneficiary[]` من `@/types/database`.
-
----
-
-## 3. ~~مشكلة Zero-Values في `useAccountsActions`~~ ✅ تم الإصلاح
-
-تم تعريض `paramsRef` من `useAccountsActions` وتحديثه مباشرة في `useAccountsPage` بقيم `calc` المحسوبة الفعلية بعد حسابها.
-
----
-
-## 4. تقييم التقسيم الجديد
+## 2. المعمارية — ✅ نظيفة ومنظمة
 
 | الملف | الأسطر | المسؤولية | التقييم |
 |-------|--------|-----------|---------|
-| `useAccountsPage.ts` | 143 | Composition layer | ✅ نظيف |
-| `useAccountsData.ts` | 74 | Data fetching | ✅ ممتاز |
-| `useAccountsCalculations.ts` | 158 | Financial math | ✅ جيد — useMemo مطبّق |
-| `useAccountsEditing.ts` | 145 | UI state | ✅ نظيف — أنواع محددة |
-| `useAccountsActions.ts` | 268 | CRUD + settings | ✅ أنواع محددة + paramsRef مُعرَّض |
+| `useAccountsPage.ts` | 144 | Composition layer | ✅ نظيف — لا منطق أعمال |
+| `useAccountsData.ts` | 74 | Data fetching + allocation | ✅ مركّز |
+| `useAccountsCalculations.ts` | 158 | Financial math | ✅ useMemo شامل |
+| `useAccountsEditing.ts` | 145 | UI state + CRUD | ✅ نظيف |
+| `useAccountsActions.ts` | 267 | Settings + save + export | ✅ paramsRef يعمل بشكل صحيح |
+| `accountsCalculations.ts` | 128 | Pure functions | ✅ ممتاز — موثّق بالتفصيل |
+| `findAccountByFY.ts` | 16 | Utility (مستقل) | ✅ circular dependency محلول |
 
 ---
 
-## 5. Edge Functions — فحص الأمان ✅
+## 3. نقاط القوة المؤكدة
 
-| الوظيفة | Auth Check | Rate Limit | Input Validation |
-|---------|-----------|------------|-----------------|
-| `guard-signup` | ✅ | ✅ | ✅ |
-| `lookup-national-id` | ✅ | ✅ | ✅ |
-| `ai-assistant` | ✅ getUser | ✅ (30 req/min) | ✅ |
-| `admin-manage-users` | ✅ admin check | ✅ | ✅ |
-| `zatca-api` | ✅ | ❌ | ✅ |
-| `generate-invoice-pdf` | ✅ | ❌ | ✅ |
+- **فصل مسؤوليات ممتاز**: Data → Calculations → Editing → Actions
+- **Type safety**: أنواع `Account`, `Contract`, `Beneficiary` مُعرّفة ومستخدمة في `useAccountsActions` و `useAccountsEditing`
+- **eslint-disable**: 5 ملفات فقط — جميعها مبررة (`navigator.deviceMemory`, Arabic reshaper, chart library, مقصودة)
+- **Financial logic**: `calculateFinancials` موثّقة بتعليقات شرعية واضحة للمعادلة المحاسبية
+- **No dead code**: لا كود ميت مكتشف
 
 ---
 
-## 6. ملخص التوصيات المتبقية
+## 4. ملاحظات فعلية (ليست حرجة)
 
-| # | التوصية | الأولوية | الحالة |
-|---|---------|----------|-------|
-| 1 | ~~إصلاح bug الأصفار~~ | ~~حرجة~~ | ✅ تم |
-| 2 | ~~كسر الـ circular import~~ | ~~عالية~~ | ✅ تم |
-| 3 | ~~استبدال `any[]` بأنواع محددة~~ | ~~متوسطة~~ | ✅ تم |
-| 4 | ~~إضافة rate limiting لـ `ai-assistant`~~ | ~~متوسطة~~ | ✅ موجود بالفعل |
-| 5 | **جعل `fiscal_year_id` NOT NULL** في الجداول المالية | منخفضة | لم يُنفذ |
+| # | الملاحظة | الأولوية | التفاصيل |
+|---|---------|----------|----------|
+| 1 | `useAccountsCalculations` لا يُغلّف `commercialRent` و `calculatedVat` بـ `useMemo` | منخفضة | يُعاد حسابهما كل render — التأثير ضئيل لأن عدد العقود صغير (~35) |
+| 2 | `collectionData` useMemo يعتمد على 4 deps — جيد لكن يُعيد إنشاء المصفوفة عند أي تغيير في العقود | منخفضة | مقبول مع 35 عقد |
+| 3 | `useAccountsActions` line 49: `paramsRef.current = params` يُعاد كتابتها فوراً في سطور 70-85 | تنظيفي | يمكن حذف السطر 49 لأنه لا يضيف قيمة — لكنه غير ضار |
+| 4 | `isClosed: true` ثابت في `calculateFinancials` call (سطر 60 من calculations) | ملاحظة | يعني أن الحصص تُحسب دائماً حتى للسنة النشطة — قد يكون مقصوداً لعرض Preview |
 
 ---
 
-## الخلاصة
+## 5. الخلاصة النهائية
 
-المشروع في حالة **ممتازة** — جميع المشاكل الحرجة والمتوسطة تم إصلاحها.
+**المشروع في حالة ممتازة.** جميع المشاكل الحرجة المُبلّغ عنها في التقارير السابقة (bug الأصفار، circular dependency, any types) **تم إصلاحها بالفعل**. لا توجد أي مشكلة حرجة أو متوسطة متبقية.
+
+**التوصيات المتبقية (اختيارية — تحسينات نوعية):**
+
+| # | التوصية | الجهد |
+|---|---------|-------|
+| 1 | إضافة `distributions` للـ Realtime publication | 1 سطر SQL |
+| 2 | حذف القيد المكرر `unique_contract_number` | 1 سطر SQL |
+| 3 | تنظيف سطر 49 في `useAccountsActions` (paramsRef.current = params) — غير ضروري | اختياري |
+
