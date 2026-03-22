@@ -25,13 +25,11 @@ interface ContractEditData {
 }
 
 interface EditingParams {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contracts: any[];
+  contracts: Contract[];
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
   fiscalYearId: string | null | undefined;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getExpectedPayments: (contract: any) => number;
+  getExpectedPayments: (contract: Contract) => number;
 }
 
 export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
