@@ -1,5 +1,19 @@
 [
   {
+    "version": "3.0.14",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Add distribution fiscal year trigger"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix distributions fiscal_year_id"
+      }
+    ]
+  },
+  {
     "version": "3.0.13",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
