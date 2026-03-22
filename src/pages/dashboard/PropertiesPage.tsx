@@ -35,12 +35,15 @@ import { fmt, fmtInt } from '@/utils/format';
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
-  const { fiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const isSpecificYear = fiscalYearId !== 'all';
+  const isClosed = fiscalYear?.status === 'closed';
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
+  // بيانات الحساب الختامي للسنة المغلقة
+  const { income: fyIncome, expenses: fyExpenses, accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const createProperty = useCreateProperty();
   const updateProperty = useUpdateProperty();
   const deleteProperty = useDeleteProperty();
