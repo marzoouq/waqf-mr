@@ -83,7 +83,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
           .eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await db
+        const { error } = await supabase
           .from('expense_budgets')
           .insert({ fiscal_year_id: fiscalYearId, expense_type: expenseType, budget_amount: amount });
         if (error) throw error;
