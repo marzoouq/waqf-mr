@@ -1,102 +1,51 @@
 
 
-# تحقق من خطة RPC الموحد — تنفيذ سيناريوهات
+# فحص أداء صفحة المستفيد — النتائج والملاحظات
 
 ---
 
-## السيناريو 1: هل الـ RPC يغطي كل البيانات المطلوبة؟
+## الوضع الحالي
 
-**التحقق المباشر من `BeneficiaryDashboard.tsx`:**
+الكود بعد دمج الاستعلامات في RPC واحد **سليم هيكلياً**:
+- التواريخ (هجري + ميلادي + الوقت) تُحسب بـ `useMemo` مع locale `ar-SA` — **تظهر بشكل صحيح**
+- تواريخ التوزيعات والإشعارات تستخدم `toLocaleDateString('ar-SA')` — **صحيحة**
+- RPC يجلب البيانات في استعلام واحد بدل 8 — **تحسين الأداء مطبّق**
 
-| البيانات المستخدمة | المصدر الحالي | هل RPC يغطيها؟ |
-|---|---|---|
-| `currentBeneficiary` (name, id, share_percentage, user_id) | `useBeneficiariesSafe()` + `useMyShare()` | ✅ `SELECT * FROM beneficiaries WHERE user_id = auth.uid()` |
-| `totalBenPct` | `useTotalBeneficiaryPercentage()` RPC | ✅ `SELECT SUM(share_percentage) FROM beneficiaries` |
-| `availableAmount` | `useFinancialSummary()` → `useComputedFinancials()` | ⚠️ **يحتاج تبسيط** |
-| `myShare` | `useMyShare()` = `availableAmount × pct / totalPct` | ✅ حساب بسيط |
-| `distributions` (آخر 3) | inline `useQuery` | ✅ |
-| `advanceRequests.filter(pending).length` | `useAdvanceRequests()` | ✅ `COUNT(*)` كافٍ |
-| `advanceSettings` | `useAppSettings()` → `getJsonSetting` | ✅ `SELECT value FROM app_settings WHERE key = 'advance_settings'` |
-| `fiscalYear` (label, status, dates) | `useFiscalYear()` context | ❌ **يبقى منفصلاً** — سياق مشترك |
-| `notifications` | `useNotifications()` | ❌ **يبقى منفصلاً** — realtime |
+---
 
-### ⚠️ نقطة حرجة: حساب `availableAmount`
+## ملاحظة مكتشفة: تعارض في القيمة الافتراضية لـ `advanceEnabled`
 
-الخطة تقول RPC يُرجع `availableAmount`. لكن `useComputedFinancials` يحسبها بمنطق معقد (60+ سطر). **المفاجأة**: الداشبورد لا يعرض `availableAmount` مباشرة — يعرض `myShare` فقط، وفقط عند `isClosed`.
+**الملف:** `BeneficiaryDashboard.tsx` سطر 41-42
 
-**عند السنة المقفلة** (سطر 126 من useComputedFinancials):
 ```text
-availableAmount = accounts.waqf_revenue - accounts.waqf_corpus_manual
-myShare = availableAmount × share_percentage / totalBenPct
+const advanceSettings = dashData?.advance_settings ?? { enabled: true, ... };
+const advanceEnabled = advanceSettings?.enabled ?? false;  // ← false!
 ```
 
-**عند السنة النشطة**: يعرض "تُحسب عند الإقفال" (سطر 262) — لا حاجة لحساب.
+عندما RPC يُرجع `advance_settings = null` (لم تُضبط بعد):
+- `advanceSettings` = `{ enabled: true }` (من الفولباك)
+- `advanceEnabled` = `true` ✅
 
-**القرار**: RPC يحسب `availableAmount` بالمعادلة البسيطة أعلاه عند `status='closed'`، ويُرجع `0` عند `active`. ✅ **لا حاجة لنقل كل منطق useComputedFinancials**
+لكن عندما RPC يُرجع `advance_settings = {}` (كائن فارغ):
+- `advanceSettings` = `{}`
+- `advanceEnabled` = `false` ← **تعارض مع MySharePage التي تُرجع `true` كافتراضي**
 
----
-
-## السيناريو 2: هل حذف الهوكات يكسر صفحات أخرى؟
-
-| الهوك | مستخدم في صفحات أخرى؟ | القرار |
-|---|---|---|
-| `useBeneficiariesSafe` | ✅ useRawFinancialData, MySharePage, DisclosurePage | **لا يُحذف** — يبقى كما هو |
-| `useFinancialSummary` | ✅ AccountsPage, DisclosurePage, FinancialReports | **لا يُحذف** |
-| `useMyShare` | ✅ MySharePage | **لا يُحذف** |
-| `useAdvanceRequests` | ✅ admin AdvanceRequests page | **لا يُحذف** |
-| `useTotalBeneficiaryPercentage` | ✅ useMyShare (used elsewhere) | **لا يُحذف** |
-
-**الحكم**: ✅ الخطة صحيحة — الهوكات تبقى كاملة، فقط الداشبورد يستبدلها بالـ RPC.
-
----
-
-## السيناريو 3: أمان الـ RPC
-
-**سيناريو هجوم**: مستفيد يستدعي `get_beneficiary_dashboard` بـ `p_fiscal_year_id` لسنة غير منشورة.
-
-**الحماية المطلوبة في RPC**:
-```sql
--- يجب التحقق من أن السنة منشورة للمستفيد
-SELECT * FROM fiscal_years 
-WHERE id = p_fiscal_year_id 
-  AND (published = true OR has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'accountant'))
-```
-✅ الخطة تذكر هذا صراحةً.
-
-**سيناريو هجوم 2**: مستفيد يحاول رؤية بيانات مستفيد آخر.
-```sql
--- RPC يستخدم auth.uid() داخلياً — لا يقبل user_id كمدخل
-SELECT * FROM beneficiaries WHERE user_id = auth.uid()
-```
-✅ محصّن.
-
----
-
-## السيناريو 4: Realtime invalidation
-
-**الوضع الحالي**: `useBfcacheSafeChannel` يراقب `distributions` ويُبطل `['my-distributions-recent']`.
-
-**بعد التغيير**: يحتاج لإبطال `['beneficiary-dashboard']` بدلاً منه.
-
-**هل يؤثر؟** لا — نفس المنطق، فقط queryKey مختلف. ✅
-
----
-
-## السيناريو 5: `AdvanceRequestDialog` props
-
-السطر 343-351:
+**الإصلاح:** توحيد المنطق ليطابق `MySharePage.tsx`:
 ```typescript
-<AdvanceRequestDialog
-  beneficiaryId={currentBeneficiary.id!}
-  fiscalYearId={fiscalYearId}
-  estimatedShare={myShare}
-  paidAdvances={0}          // ← مُثبّت حالياً على 0
-  isFiscalYearActive={!isClosed}
-  minAmount={advanceSettings?.min_amount ?? 500}
-  maxPercentage={advanceSettings?.max_percentage ?? 50}
-/>
+const advanceEnabled = advanceSettings?.enabled ?? true;
 ```
 
-كل هذه القيم متوفرة من RPC (`beneficiary.id`, `myShare` محسوب, `advanceSettings`). ✅
+---
 
-**ملاحظة**: `paidAdvances={0}` مُثبّت — هذا خطأ موجود مسبقاً (لا
+## ملخص
+
+| البند | الحالة |
+|-------|--------|
+| التواريخ (هجري/ميلادي/وقت) | ✅ سليمة |
+| RPC الموحد | ✅ يعمل |
+| Loading guards | ✅ بالترتيب الصحيح |
+| Realtime invalidation | ✅ يستهدف queryKey واحد |
+| `advanceEnabled` default | ⚠️ يحتاج توحيد (سطر واحد) |
+
+**الإصلاح المطلوب:** تغيير سطر 42 من `?? false` إلى `?? true` لمطابقة سلوك بقية التطبيق.
+
