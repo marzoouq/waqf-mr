@@ -5,7 +5,6 @@ import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
-// N10: removed unused useRef import
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,7 @@ const ReportsPage = () => {
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
-  // reportRef removed (N10 — was unused)
+  
 
   const selectedFiscalYearLabel = fiscalYear?.label;
 

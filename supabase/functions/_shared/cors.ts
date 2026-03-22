@@ -30,7 +30,3 @@ export function getCorsHeaders(req?: Request) {
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
   };
 }
-
-// DEPRECATED: All functions now use getCorsHeaders(req). Keeping for safety.
-/** @deprecated Use getCorsHeaders(req) instead */
-export const corsHeaders = getCorsHeaders();
