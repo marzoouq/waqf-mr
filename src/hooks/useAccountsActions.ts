@@ -13,16 +13,15 @@ import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
 import { findAccountByFY } from '@/utils/findAccountByFY';
 
-/** أنواع مبسطة لتجنب عدم توافق null/undefined بين الـ hooks والـ Tables */
-interface AccountLike { fiscal_year_id?: string | null; fiscal_year: string; zakat_amount?: number; waqf_corpus_manual?: number; waqf_corpus_previous?: number; vat_amount?: number; distributions_amount?: number; [key: string]: unknown; }
-interface ContractLike { id: string; property_id: string; [key: string]: unknown; }
-interface BeneficiaryLike { id: string; name: string; share_percentage: number; [key: string]: unknown; }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any — الأنواع تأتي من hooks متعددة مع اختلاف null/undefined
+type AnyRecord = Record<string, any>;
 
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
   fiscalYear: string;
   fiscalYearId: string | undefined;
-  accounts: AccountLike[];
+  accounts: AnyRecord[];
   totalIncome: number;
   totalExpenses: number;
   adminShare: number;
@@ -34,8 +33,8 @@ interface ActionsParams {
   grandTotal: number;
   availableAmount: number;
   remainingBalance: number;
-  contracts: ContractLike[];
-  beneficiaries: BeneficiaryLike[];
+  contracts: AnyRecord[];
+  beneficiaries: AnyRecord[];
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
   appSettingsData: Record<string, string> | undefined;

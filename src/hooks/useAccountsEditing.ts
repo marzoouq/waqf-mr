@@ -23,15 +23,15 @@ interface ContractEditData {
   contract_number: string;
 }
 
-/** نوع مبسط للعقد يتوافق مع ما يُرجعه useAccountsData */
-interface ContractLike { id: string; property_id: string; [key: string]: unknown; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any — الأنواع تأتي من hooks متعددة
+type AnyRecord = Record<string, any>;
 
 interface EditingParams {
-  contracts: ContractLike[];
+  contracts: AnyRecord[];
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
   fiscalYearId: string | null | undefined;
-  getExpectedPayments: (contract: ContractLike) => number;
+  getExpectedPayments: (contract: AnyRecord) => number;
 }
 
 export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
