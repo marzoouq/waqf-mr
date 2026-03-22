@@ -1,80 +1,60 @@
 
 
-# فحص صفحات المستفيد — النتائج والإصلاحات المطلوبة
+# فحص جنائي — البطاقات والوظائف والتحديث المباشر
 
 ---
 
-## نتائج الفحص
+## ملخص الفحص
 
-### ✅ صفحات سليمة (Guards كاملة)
-
-| الصفحة | Loading | Error | مستفيد غير مرتبط | حساب مفقود | RequirePublishedYears |
-|--------|:---:|:---:|:---:|:---:|:---:|
-| **MySharePage** | ✅ | ✅ | ✅ | — | ✅ |
-| **DisclosurePage** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **FinancialReportsPage** | ✅ | ✅ | ✅ | ✅ | ✅ |
+تم فحص جميع البطاقات (Cards) في 3 لوحات تحكم: الناظر/المحاسب، المستفيد، والواقف.
 
 ---
 
-### 🟡 M-01: AccountsViewPage — guard المستفيد غير المرتبط مفقود
+## النتائج
 
-**الملف:** `src/pages/beneficiary/AccountsViewPage.tsx`
+### ✅ بطاقات تعمل بشكل صحيح وتقرأ بيانات حقيقية
 
-**المشكلة:** الصفحة لا تعرض رسالة "حسابك غير مرتبط" عند عدم وجود `currentBeneficiary`. بدلاً من ذلك تعرض الأرقام العامة مع إخفاء بطاقة "حصتي" فقط بشرط `{currentBeneficiary && ...}`.
+| اللوحة | البطاقة | مصدر البيانات | حالة |
+|--------|---------|--------------|:---:|
+| **الناظر** | 13 بطاقة إحصائية (عقارات، عقود، دخل...) | `useFinancialSummary` + `useProperties` + `useContracts` + `usePaymentInvoices` | ✅ |
+| **الناظر** | 4 مؤشرات KPI (تحصيل، إشغال، إيجار، مصروفات) | محسوبة من نفس البيانات | ✅ |
+| **الناظر** | ويدجت السنة المالية (أيام، تقدم زمني، مالي) | `fiscalYear` + `totalIncome` + `contractualRevenue` | ✅ |
+| **الناظر** | ملخص التحصيل (دائري + أعداد) | `paymentInvoices` + `contracts` عبر `useMemo` | ✅ |
+| **الناظر** | 5 تنبيهات ذكية | عقود تنتهي، يتامى، سُلف، تحصيل، نسب | ✅ |
+| **الناظر** | مقارنة سنوية YoY | `useYoYComparison` | ✅ |
+| **المستفيد** | حصتي من الريع | RPC `get_beneficiary_dashboard` | ✅ |
+| **المستفيد** | آخر توزيع مستلم | من نفس RPC | ✅ |
+| **المستفيد** | تقدم السنة المالية | `fiscalYear` context | ✅ |
+| **المستفيد** | طلب سلفة | RPC + `AdvanceRequestDialog` | ✅ |
+| **الواقف** | 4 بطاقات (عقارات، عقود، مستفيدون، قابل للتوزيع) | `useProperties` + `useContracts` + `useBeneficiariesSafe` + `useFinancialSummary` | ✅ |
+| **الواقف** | 3 KPIs (تحصيل، إشغال، مصروفات) | محسوبة | ✅ |
+| **الواقف** | التسلسل المالي + حالة العقود | `useFinancialSummary` + `contracts` | ✅ |
 
-**التأثير:** منخفض — الصفحة تعمل لكنها غير متسقة مع باقي الصفحات.
+---
 
-**الإصلاح:** إضافة guard بعد فحص `isAccountMissing` (سطر 94):
+### 🔴 مشكلة رئيسية: لوحة الناظر/المحاسب بدون تحديث مباشر (Realtime)
+
+**التحليل:**
+- **لوحة المستفيد**: ✅ لديها Realtime subscription على جدول `distributions` → عند إضافة/تعديل توزيع، البيانات تتحدث فوراً
+- **لوحة الناظر/المحاسب**: ❌ **لا يوجد أي اشتراك Realtime** — البطاقات تعتمد فقط على `staleTime: 60_000` (دقيقة واحدة)
+- **لوحة الواقف**: ❌ نفس المشكلة — لا Realtime
+
+**الجداول المفقودة من Realtime publication:**
+- `income` — غير مفعّل
+- `expenses` — غير مفعّل  
+- `accounts` — غير مفعّل
+- `payment_invoices` — غير مفعّل
+- `properties` — غير مفعّل
+
+**التأثير:** عند تسجيل دخل أو مصروف جديد من تبويب آخر أو مستخدم آخر (محاسب)، البطاقات في لوحة التحكم لا تتحدث إلا بعد إعادة تحميل الصفحة أو انتظار انتهاء `staleTime`.
+
+---
+
+### 🟡 مشكلة ثانوية: الواقف يرى "القابل للتوزيع" حتى في السنة النشطة
+
+**الدليل:** `WaqifDashboard.tsx` سطر 203:
 ```typescript
-if (!currentBeneficiary && !finLoading) {
-  return (
-    <DashboardLayout>
-      <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <AlertCircle className="w-16 h-16 text-warning" />
-        <h2 className="text-xl font-bold">حسابك غير مرتبط</h2>
-        <p className="text-muted-foreground text-center max-w-md">
-          حسابك لم يُربط بسجل مستفيد بعد. يرجى التواصل مع ناظر الوقف.
-        </p>
-      </div>
-    </DashboardLayout>
-  );
-}
+{ title: 'القابل للتوزيع', value: `${fmt(safeNumber(availableAmount))} ر.س` }
 ```
 
----
-
-### 🟡 M-02: تحذيرات Recharts — أبعاد سالبة (-1 × -1)
-
-**المصدر:** Console logs — `The width(-1) and height(-1) of chart should be greater than 0`
-
-**الملف:** `src/components/financial/FinancialChartsInner.tsx`
-
-**المشكلة:** `ResponsiveContainer` يُعرض قبل أن يحصل الحاوي الأب على أبعاد فعلية (خاصة عند lazy loading مع `Suspense`). هذا يولّد 6 تحذيرات في Console.
-
-**الإصلاح:** إضافة `minHeight` و `minWidth` لـ `ResponsiveContainer`:
-```typescript
-<ResponsiveContainer width="100%" height={250} minWidth={1}>
-```
-هذا يمنع القيم السالبة ويزيل التحذيرات.
-
----
-
-## ملخص
-
-| # | البند | الحالة | أولوية |
-|---|-------|--------|--------|
-| M-01 | AccountsViewPage بلا guard مستفيد | 🟡 تحسيني | منخفضة |
-| M-02 | تحذيرات Recharts أبعاد سالبة | 🟡 تحسيني | منخفضة |
-| DisclosurePage | جميع Guards سليمة | ✅ | — |
-| MySharePage | جميع Guards سليمة | ✅ | — |
-| FinancialReportsPage | جميع Guards سليمة | ✅ | — |
-
----
-
-## الملفات المتأثرة
-
-| الملف | التغيير |
-|-------|---------|
-| `src/pages/beneficiary/AccountsViewPage.tsx` | إضافة guard المستفيد غير المرتبط |
-| `src/components/financial/FinancialChartsInner.tsx` | إضافة `minWidth={1}` لإزالة تحذيرات Recharts |
-
+في السنة النشطة `availableAmount = 0` (من `useComputedFinancials` سطر 103). لذا يعرض `0
