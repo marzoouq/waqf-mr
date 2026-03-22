@@ -335,7 +335,7 @@ export function useAccountsPage() {
 
   const buildAccountData = () => ({
     fiscal_year: selectedFY?.label || fiscalYear,
-    fiscal_year_id: selectedFY?.id || null,
+    fiscal_year_id: selectedFY?.id || '',
     total_income: totalIncome,
     total_expenses: totalExpenses,
     admin_share: adminShare,
