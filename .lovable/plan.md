@@ -1,48 +1,71 @@
 
 
-# تقرير فحص أخطاء البناء ومشاكل البرمجة — النتائج
+# تقرير الفحص الجنائي لخطة التنظيف — تحقق مباشر من الكود
 
 ---
 
-## المنهجية
-فحص شامل: TypeScript type safety، أنماط React، Security Scan، Supabase Linter، console errors، network errors، `as any`، `@ts-ignore`، `invalidateQueries`، `dangerouslySetInnerHTML`، empty catch blocks.
+## البند 1: حذف `src/App.css`
+
+**التحقق المباشر:**
+- المحتوى: سطر واحد فقط: `/* App styles are managed via index.css and Tailwind */`
+- البحث عن استيراد: `import.*App\.css` → **0 نتائج**
+
+**سيناريو الحذف:** حذف الملف → لا يتأثر أي ملف آخر. لا استيراد، لا CSS فعلي.
+
+**الحكم:** ✅ آمن 100% — ملف ميت فعلاً.
 
 ---
 
-## النتائج
+## البند 2: حذف تعليقات `// N10` في `ReportsPage.tsx`
 
-### ✅ لا توجد أخطاء بناء أو مشاكل برمجية جديدة
+**التحقق المباشر:**
+- السطر 8: `// N10: removed unused useRef import` — تعليق يوثق حذفاً قديماً
+- السطر 41: `// reportRef removed (N10 — was unused)` — نفس التوثيق
 
-| الفحص | النتيجة |
-|-------|---------|
-| Console errors | 0 ✅ |
-| Network errors | 0 ✅ |
-| `supabase as any` في الواجهة | 0 ✅ (تم إصلاحه سابقاً) |
-| `invalidateQueries()` بلا queryKey | 0 ✅ (تم إصلاحه سابقاً) |
-| Empty catch blocks | 0 ✅ |
-| `useEffect` مع Supabase مباشر | 0 ✅ (كلها محولة لـ useQuery) |
-| `console.log/error` مباشر | 1 فقط — في DEV mode بـ FiscalYearContext ✅ مقبول |
-| `@ts-ignore` | 1 فقط — `arabic-reshaper` بلا types ✅ لا بديل |
-| `dangerouslySetInnerHTML` | 2 — JSON-LD ثابت + chart styles ✅ آمن |
+**سيناريو الحذف:** حذف التعليقين → لا تأثير على الكود. الأسطر المحيطة:
+- سطر 7 (`usePaymentInvoices`) وسطر 9 (`DashboardLayout`) — استيرادات مستقلة
+- سطر 40 (`paymentInvoices`) وسطر 43 (`selectedFiscalYearLabel`) — كود مستقل
+
+**الحكم:** ✅ آمن 100% — تعليقات توثيقية فقط.
 
 ---
 
-### 🟡 نتائج Security Scan — مُوثّقة ومقبولة
+## البند 3: حذف `corsHeaders` المهمل في `cors.ts`
 
-| # | البند | الحالة |
-|---|-------|--------|
-| 1 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | **مقصود بالتصميم** — العروض تستخدم `CASE WHEN has_role()` لتقنيع البيانات الحساسة. لا تملك RLS خاصة بها لأنها views تعمل بصلاحيات المالك وتطبق التقنيع داخلياً. الجداول الأصلية (`beneficiaries`, `contracts`) محمية بـ RLS كاملة |
-| 2 | Extension in public schema | تحذير Supabase قياسي — لا تأثير أمني |
+**التحقق المباشر:**
+- السطور 34-36: export مهمل مع تعليق `DEPRECATED`
+- بحث في 11 edge function: **كلها** تستورد `getCorsHeaders` فقط
+- **لا يوجد أي استيراد مباشر** لـ `corsHeaders` من `_shared/cors.ts`
+- الدوال تُعرّف `const corsHeaders = getCorsHeaders(req)` كمتغير محلي يُظلّل الاسم
+
+**سيناريو الحذف:** حذف السطور 34-36 → لا يتأثر أي ملف. المتغيرات المحلية `corsHeaders` في كل دالة مستقلة تماماً عن الـ export المحذوف.
+
+**الحكم:** ✅ آمن 100% — export غير مستخدم.
 
 ---
 
-### ملاحظة وحيدة (طفيفة جداً)
+## البند 4: حذف سطر فارغ مكرر في `App.tsx`
 
-**`(navigator as any).deviceMemory`** في `checks.ts` سطر 95 — `deviceMemory` API غير موجود في TypeScript DOM types الرسمية. الاستخدام مع `eslint-disable` مبرر ومقبول.
+**التحقق المباشر:**
+- السطر 103: `}` (نهاية `IdleLoad`)
+- السطر 104: فارغ
+- السطر 105: فارغ (مكرر)
+- السطر 106: `function App() {`
+
+**سيناريو الحذف:** حذف سطر فارغ واحد → تنسيق فقط، لا تأثير على الكود.
+
+**الحكم:** ✅ آمن 100% — تنسيقي بحت.
 
 ---
 
-## الخلاصة
+## الملخص النهائي
 
-**التطبيق نظيف من أخطاء البناء ومشاكل البرمجة.** جميع الإصلاحات السابقة (type safety، cache invalidation، CORS) مطبقة وفعّالة. النتائج الأمنية الأربع كلها مُوثّقة ومقبولة بالتصميم.
+| # | البند | التحقق | مخاطر |
+|---|-------|--------|-------|
+| 1 | حذف `App.css` | ✅ لا استيرادات | صفر |
+| 2 | حذف تعليقات N10 | ✅ تعليقات فقط | صفر |
+| 3 | حذف `corsHeaders` export | ✅ لا استيراد مباشر في 11 دالة | صفر |
+| 4 | حذف سطر فارغ مكرر | ✅ تنسيقي | صفر |
+
+**الخطة مُتحقق منها بالكامل — جميع البنود آمنة للتنفيذ بدون أي تعارض أو كسر.**
 
