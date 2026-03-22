@@ -284,7 +284,7 @@ const ChartOfAccountsPage = () => {
         { onSuccess: () => setDialogOpen(false) },
       );
     } else {
-      createMutation.mutate(payload as never, {
+      createMutation.mutate(payload as Parameters<typeof createMutation.mutate>[0], {
         onSuccess: () => setDialogOpen(false),
       });
     }
