@@ -41,7 +41,7 @@ const mkAccount = (overrides: Partial<Tables<'accounts'>> = {}): Tables<'account
   waqf_corpus_manual: 0,
   waqf_corpus_previous: 0,
   created_at: '2024-01-01',
-  fiscal_year_id: null,
+  fiscal_year_id: 'test-fy-id',
   updated_at: '2024-01-01',
   ...overrides,
 });
