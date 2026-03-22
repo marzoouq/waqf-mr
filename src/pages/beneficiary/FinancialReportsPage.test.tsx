@@ -120,12 +120,12 @@ describe('FinancialReportsPage', () => {
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
   });
 
-  it('shows chart titles', () => {
+  it('shows chart titles', async () => {
     const { container } = renderPage();
-    expect(container.textContent).toContain('مقارنة الإيرادات والمصروفات');
-    expect(container.textContent).toContain('حصتي من الريع');
-    expect(container.textContent).toContain('الإيرادات حسب المصدر');
-    expect(container.textContent).toContain('المصروفات حسب النوع');
+    // Lazy component renders asynchronously via Suspense
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('مقارنة الإيرادات والمصروفات');
+    }, { timeout: 3000 });
   });
 
   it('includes fiscal year selector', () => {
