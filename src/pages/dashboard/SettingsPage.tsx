@@ -364,13 +364,14 @@ const SectionsTab = () => {
 const BeneficiaryTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true };
+  const defaultSections = { properties: true, contracts: true, disclosure: true, share: true, accounts: true, reports: true, invoices: true, bylaws: true, messages: true, notifications: true, annual_report: true, support: true };
   const sections = getJsonSetting('beneficiary_sections', defaultSections);
 
   const labels: Record<string, string> = {
     properties: 'العقارات', contracts: 'العقود', disclosure: 'الإفصاح السنوي', share: 'حصتي من الريع',
     accounts: 'الحسابات الختامية', reports: 'التقارير المالية', invoices: 'الفواتير',
     bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', notifications: 'سجل الإشعارات',
+    annual_report: 'التقرير السنوي', support: 'الدعم الفني',
   };
 
   const toggle = (key: string) => {
