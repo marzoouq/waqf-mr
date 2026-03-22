@@ -1,5 +1,7219 @@
 [
   {
+    "version": "3.0.1",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Upgrade to v3.0.0 docs and logs"
+      },
+      {
+        "type": "improvement",
+        "text": "Update v3.0.0 docs and version"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Remove sensitive logs from admin-manage-users"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add smart beneficiary alerts"
+      },
+      {
+        "type": "improvement",
+        "text": "Add smart beneficiary alerts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix unpublished distributions leak in RPC"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add accountant chart links"
+      },
+      {
+        "type": "improvement",
+        "text": "Add accountant shortcuts 8 buttons"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve ChartOfAccounts parent selection and cleanup"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix F-01 and F-02 updates"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Cleaned up codebase"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust advanceEnabled default"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement beneficiary dashboard RPC"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج دالة RPC للمستفيد"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج RPC المستفيد"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة تحويل asAny في ExpenseBudgetBar"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix type safety and cache keys"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Optimize four pages performance"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "حدّث سياسات invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Storage invoices tightened"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح سياسات Storage وفحص الكاش"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix inverted rate limit checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add webauthn update policy"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix F-04 guard logic"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add vault key & fallback"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "رفع حد المحاولات وتحديث واجهة تسجيل الدخول"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented password update verifications"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix admin password update flow"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve admin users fetch guards"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve admin user data loading"
+      },
+      {
+        "type": "improvement",
+        "text": "Guarded user-management queries"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix contract search queries"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix 3 security query issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix search/export to use safe queries"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Align security scan fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح توثيق API وSecurity"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add conditional Vault key migration"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين التقاط الأخطاء"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add diagnostics sidebar link"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Integrate diagnostics UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add diagnostics UI and utils"
+      },
+      {
+        "type": "improvement",
+        "text": "Add diagnostics UI and utils"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement diagnostics system UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add system diagnostics features"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract lazyWithRetry"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust redirects to use replace"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Cleaned changelog entries"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update site info for publish"
+      },
+      {
+        "type": "improvement",
+        "text": "Unguarded numeric formats fixed"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify financial numbers"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify numbers across files"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد الأرقام وتصحيح العرض"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified numeric formatting"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement bfcache safe hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Add useBfcacheSafeChannel hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبيق تحسين الأداء الشامل"
+      },
+      {
+        "type": "improvement",
+        "text": "Performance fixes rollout"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix auth, chart, and form refs"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix ai input accessibility"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add published-years wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add PublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add no-published-years wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add published-years wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor enforce published years"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add NoPublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add published-years gate wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add published years wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add NoPublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add PublishedYearsGuard wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add NoPublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Introduce RequirePublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Add NoPublishedYears wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Published Years Wrapper"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add wrapper for published years"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفذ بقية الخطة"
+      },
+      {
+        "type": "improvement",
+        "text": "Implementation of remaining fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented remaining plan fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance KPI YoY and fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented remaining plan items"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement YoY KPI and cleanups"
+      },
+      {
+        "type": "improvement",
+        "text": "إضاف YoY إلى KPIPanel"
+      },
+      {
+        "type": "improvement",
+        "text": "Finish remaining audit fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Excel export support"
+      },
+      {
+        "type": "improvement",
+        "text": "Add direct XLSX export utility"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Excel export utility"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor remaining selects"
+      },
+      {
+        "type": "improvement",
+        "text": "Refined queries and FK"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement remaining deferred fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Updated og-image to WebP"
+      },
+      {
+        "type": "improvement",
+        "text": "Compress og-image to WebP"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix DataExportTab query"
+      },
+      {
+        "type": "improvement",
+        "text": "Add shared notification hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Add shared notification hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Add shared notification preferences hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Diagnose pdf Arabic fonts"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix PII leak fixed"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix PII read fix"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix PIIs in prefetched accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix PII access in prefetch"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust audit texts to responsive"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust audit cards text size"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust audit text sizing"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix audit tabs typography"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أحجام الأرقام المتجاوبة"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust responsive numbers across dashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "استعراض وتعديل أحجام الأرقام"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile responsiveness"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add perf monitoring UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add performance monitoring UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add perf monitoring UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add page performance monitoring"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت مراقبة أداء الصفحات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add page performance monitoring"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Performance Monitoring"
+      },
+      {
+        "type": "improvement",
+        "text": "Add tab content animation"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement responsive tabs component"
+      },
+      {
+        "type": "improvement",
+        "text": "Convert tabs to responsive component"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Responsive tabs component added"
+      },
+      {
+        "type": "improvement",
+        "text": "Tabs to mobile Selects"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy-load charts for reports"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored charts to lazy-load"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored charts to lazy-loads"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve charts lazy-loading"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy load charts for reports"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve charts lazy loading"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored charts to lazy-load"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored charts to lazy-load"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored charts to lazy-load"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy-load recharts across pages"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Convert contracts UI for mobile"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحويل تبويبات العقود للجوال"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile unit cards"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile unit cards UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve AuditLog mobile UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile AuditLog UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add mobile cards to admin tables"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات جوال للصفحات الناقصة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات جوال لصفحات ناقصة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات جوال للصفحات المختارة"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات جوال للصفحات"
+      },
+      {
+        "type": "improvement",
+        "text": "Add mobile card views for tables"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم الحزمة الرئيسية إضافياً"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم الحزمة الرئيسية إضافياً"
+      },
+      {
+        "type": "improvement",
+        "text": "تفصيل حزم إضافية"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم حزمة رئيسية"
+      },
+      {
+        "type": "improvement",
+        "text": "Split index bundle into chunks"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile text truncation and wrapping"
+      },
+      {
+        "type": "improvement",
+        "text": "Tested mobile audit deeper"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix Bylaws button nesting"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix bylaw button fix"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تImplemented mobile cards للجداول المتبقية"
+      },
+      {
+        "type": "improvement",
+        "text": "تحقق جنائي شامل للجوال"
+      },
+      {
+        "type": "improvement",
+        "text": "Mobile cards for reports implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement mobile cards plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile UI across pages"
+      },
+      {
+        "type": "improvement",
+        "text": "Refined mobile typography and added mobile cards"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified mobile typography and dashboards"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث حجم الخطوط وتحسّن الجوال"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply mobile cards to more pages"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add mobile cards to tables"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات الجوال للجداول الستة"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاحات الجوال للفواتير"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة بطاقات جوال للفواتير"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبيق fmtDate مركزي لتنسيق التواريخ"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين تقارير PDF وتنسيق التواريخ"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تطبـيق fmtDate عبر PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "بالإمضاء على إصلاحات تقارير PDF شاملة"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة دالة تنسيق التاريخ بالعربي"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافت دالة توليد فاتورة عميل"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add client-side invoice export"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تصدير فواتير client-side"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix table overflow on mobile"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile delete button"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust PageHeaderCard actions layout"
+      },
+      {
+        "type": "improvement",
+        "text": "Consolidated export actions"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored MySharePage actions"
+      },
+      {
+        "type": "improvement",
+        "text": "Consolidated export actions"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add seo indexing assets"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix SupportTicketsTab mobile"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile UI fixes implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "DistributeDialog mobile overflow fix"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile UI tweaks and dialogs"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile dialog overflow"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile UI gaps"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix mobile popovers"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "CarryforwardHistory mobile cards"
+      },
+      {
+        "type": "improvement",
+        "text": "CarryforwardHistory mobile cards added"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve mobile views across pages"
+      },
+      {
+        "type": "improvement",
+        "text": "CarryforwardHistory mobile cards implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented mobile responsiveness plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update site info for publish"
+      },
+      {
+        "type": "improvement",
+        "text": "Consolidated security findings"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Create SECURITY.md for security policy and reporting"
+      },
+      {
+        "type": "improvement",
+        "text": "Added RLS on invoice_items"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Migrate pii key to Vault"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix beneficiaries_safe RLS"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix security definer view policy"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix WaqfInfoBar to upsert"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix late payments schedule"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Remove dead waqf-info keys"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix otp cleanup after onboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT fallback and validate VAT"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT fallback and validate VAT"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافه واجهة المقارنة التاريخية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إعادة تنظيم ZATCA والدعم"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented plan tasks"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance dashboard alerts"
+      },
+      {
+        "type": "improvement",
+        "text": "Add dashboard alerts props"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor dashboard components"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor dashboard components"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor dashboard collections"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم لوحة التحصيل إلى مكوّنات فرعية"
+      },
+      {
+        "type": "improvement",
+        "text": "تقسيم داشبورد إلى مكونات فرعية"
+      },
+      {
+        "type": "improvement",
+        "text": "Split AdminDashboard EU"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify dashboard constants"
+      },
+      {
+        "type": "improvement",
+        "text": "Consolidated dashboard constants"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Cleaned up dashboard constants"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة ثوابت مكررة من DashboardLayout"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix overdue label and UI issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إظهار شعار الوقف في Sidebar"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Update branding and UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement branding and UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Sidebar شعار الواقف ظاهر"
+      },
+      {
+        "type": "improvement",
+        "text": "Sidebar شعار الواقف ظاهر"
+      },
+      {
+        "type": "improvement",
+        "text": "Update UI branding fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Update branding and constants"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح شعـار Sidebar وواجهات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح شعار Sidebar والواقف"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Chart of Accounts support"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Chart of Accounts feature"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Chart of Accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add account_categories table"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Chart of Accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add header user badge"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Move getKpiColor to module scope"
+      },
+      {
+        "type": "improvement",
+        "text": "Move getKpiColor to module level"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored AdminDashboard UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "M2, M4, M5, M6 fixes AdminDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Adjust AdminDashboard logic"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor payment PDF rewrite"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix paymentInvoice.ts issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix fmtAr removal in reports"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix unused fmtAr in reports.ts"
+      },
+      {
+        "type": "improvement",
+        "text": "Phase 2: Converted PDFs to fmt"
+      },
+      {
+        "type": "improvement",
+        "text": "نظمت_phase2 PDF والطباعة"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify dashboard numbers"
+      },
+      {
+        "type": "improvement",
+        "text": "Phase 1: standardized formatting across dashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Uplift: Standardized formatting"
+      },
+      {
+        "type": "improvement",
+        "text": "Phase 1: unified fmt usage"
+      },
+      {
+        "type": "improvement",
+        "text": "Phase 1 dashboard updates"
+      },
+      {
+        "type": "improvement",
+        "text": "موحدة أرقام لوحة الناظر"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify numeric formatting"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified numeric formatting utilities"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify numeric formatting"
+      },
+      {
+        "type": "improvement",
+        "text": "Add centralized format utilities"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified format utilities created"
+      },
+      {
+        "type": "improvement",
+        "text": "Centralized format utilities created"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Sync 7 fixes across pages"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix queryKeys and safeguards"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "remove duplicate bun.lock entry from .gitignore"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد عروض القريبة الانتهاء"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement six fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement six fixes for FY plan"
+      },
+      {
+        "type": "improvement",
+        "text": "6 fixes implemented for plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Cleaned up admin plan files"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix .gitignore + docs fix"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented plan rollout"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إزالة reverseBidi في arabicReshaper"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تصدير PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix reverseBidi issue in PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح icv_seq وواجهات"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve Beneficiary UI and PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Refined Beneficiary UI flows"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "ربط القوالب الافتراضية وتحسين التصدير"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement PDF plan fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Synchronize invoice previews"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث فواتير وتوليد PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Restricted PII access and masked notes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement round 11 fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "6 fixes applied in hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement six fixes for Round 10"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix dashboard components edits"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement heatmap, charts fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement heatmap, charts fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix CollectionHeatmap and Charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored AdminDashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix AdminDashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify occupancy and fix links"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified occupancy and fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Added RLS warn and report fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix L-05 L-09 BUG-B"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Integrate three fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix L-05 L-09 BUG-B"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract useMyShare hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة رسائل السنة النشطة"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Guard added for unlinked account"
+      },
+      {
+        "type": "improvement",
+        "text": "Add guards for linked accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Tried: unify WaqifDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد collectionSummary في WaqifDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح عدة فروقات"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح مؤشرات مالية متعددة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح ربط البيانات المالية"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix test mocks for dashboards"
+      },
+      {
+        "type": "improvement",
+        "text": "نفّذ الاختبارات والتحقق"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented forensic-aligned fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "أتمّ إصلاحات AdminDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح حزمة البيانات والدوال"
+      },
+      {
+        "type": "improvement",
+        "text": "Optimize AdminDashboard 4 fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix dashboard optimizations"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Optimize AdminDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أربعة أخطاء في AdminDashboard"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Use contractsSafeByFiscalYear in beneficiary page"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve safe views security"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Aplicated safe views fix"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update SQL migration file to fix views and security configurations."
+      },
+      {
+        "type": "improvement",
+        "text": "Fix SupabaseClient types"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح وظيفي: إزالة security_invoker من العروض الآمنة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين build: إزالة dynamic imports غير الفعالة في AuthContext/logger"
+      },
+      {
+        "type": "improvement",
+        "text": "أمن: ترقية سلسلة PWA وPDF وإزالة ثغرات npm audit"
+      },
+      {
+        "type": "improvement",
+        "text": "نشر تقرير فحص جنائي هجومي"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح: تنظيف lint كامل — صفر أخطاء وتحذيرات، جميع الاختبارات تمر (1028/1028)"
+      },
+      {
+        "type": "improvement",
+        "text": "add bun lockfiles to .gitignore"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply restrictive RLS policies"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Mitigated user enumeration"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify invoice export flow"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Sync invoice export path"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify invoice export path"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج مسار التصدير مع المعاينة"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add unit tests for reshapeArabic"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor reverseBidi to words"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix Arabic PDF text rendering"
+      },
+      {
+        "type": "improvement",
+        "text": "Investigated critical issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix preview cache guard"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add CSV export support"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Added csv export support"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add CSV export support"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified CSV utility implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified CSV utility added"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified CSV utility added"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified CSV utility created"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unified CSV export utility"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply Arabic reshaping to PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic reshaping applied to PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Arabic reshaper to PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshaping added"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshape added"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic invoice PDF reshape"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic reshaping and policy update"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF shaping added"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshape implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshaping and storage policy update"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshape and policies"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshape integrated"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshape implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic PDF reshaping utility and storage policy update"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance Arabic PDF support"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Arabic reshaper added for PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Add accountant update policy"
+      },
+      {
+        "type": "improvement",
+        "text": "Add accountant update policy"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement storage and PDF fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Securitize anon access"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "RTL UI fixes and enhancements"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "RTL UI fixes and enhancements"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify PDF with HTML allowances"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify PDF with AllowanceCharge"
+      },
+      {
+        "type": "improvement",
+        "text": "Unify PDF with AllowanceCharge"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب PDF ومعاينة شامل"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix invoices improvements"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve invoice workflow reliability"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Execute invoice fixes and plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Added PDF preview click handler"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة SLA وتحديث واجهات"
+      },
+      {
+        "type": "improvement",
+        "text": "اكتملت تحسينات PDF والفواتير"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "معاينة PDF في صفحة الفواتير"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix Blob URL leak and wiring"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict ZATCA select fields"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تحقّق من الخطوط العربية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add ZATCA operation log"
+      },
+      {
+        "type": "improvement",
+        "text": "Add ZATCA operation log"
+      },
+      {
+        "type": "improvement",
+        "text": "Add ZATCA operation log"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Dynamic ZATCA URL and UI tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Dynamic ZATCA URL and UI hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Dynamic ZATCA URL from settings"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add ZATCA onboarding UI"
+      },
+      {
+        "type": "improvement",
+        "text": "إدراج صفحة إعدادات ZATCA"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve template data flow for invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين قالب فواتير"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب فواتير في الدفع"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع قالب الدفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب الفواتير في دفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "دمع قالب دفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب الفواتير في الدفع"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب دفعات الدفع"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج قوالب دفعات"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج معاينة القوالب في مدفوعات"
+      },
+      {
+        "type": "improvement",
+        "text": "Update rental templates wiring"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-line invoice templates"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance invoice templates"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "طوّرت قوالب فواتير وتدعم البنود المتعددة"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة واجهة إنشاء فاتورة من قالب"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة نموذج فاتورة من قالب"
+      },
+      {
+        "type": "improvement",
+        "text": "إضفاء قالب فاتورة"
+      },
+      {
+        "type": "improvement",
+        "text": "إنشاء نموذج فاتورة من قالب"
+      },
+      {
+        "type": "improvement",
+        "text": "Add template access for invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance ZATCA invoice UI presets"
+      },
+      {
+        "type": "improvement",
+        "text": "تطوير قالب الفاتورة الاحترافي"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة معاينة فاتورة احترافية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة معاينة فاتورة احترافية"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة معاينة فاتورة احترافية"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة معاينة فاتورة احترافية"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسين فواتير وعرضها"
+      },
+      {
+        "type": "improvement",
+        "text": "Extend storage safety coverage"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance audit readiness"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Run tests and fix failures"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix vitest types reference"
+      },
+      {
+        "type": "improvement",
+        "text": "Add vitest globals reference"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix vitest globals types"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix vitest types path"
+      },
+      {
+        "type": "improvement",
+        "text": "تنظيف ملفات Lock المكررة"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Hardened national-id endpoint"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict national-id lookup"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix Exposed Tables RBAC"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix FiscalYear use error"
+      },
+      {
+        "type": "improvement",
+        "text": "أتم تنفيذ فحص"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "إضاف رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "أضفت رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت رسائل جماعية وتنبيهات أمان"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف إرسال رسائل جماعية"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح SECURITY DEFINER VIEW"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح SECURITY DEFINER VIEW"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح SECURITY DEFINER VIEW"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح-عرضContractsSafe"
+      },
+      {
+        "type": "improvement",
+        "text": "أجري فحص للشجرة"
+      },
+      {
+        "type": "improvement",
+        "text": "تحويل أعداد آمنة وتحسين الاستبدال"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحويل أعداد مالية إلى safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor financial safety"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحويل أعداد إلى safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "تحويل Number إلى safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Separated useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Decoupled useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate Auth hook created"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate useAuth hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Separate auth hook created"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح SEC-1 Views و13"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix useAuth provider issue"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix AuthContext fallback"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Diagnosed AuthProvider error"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Migrate to safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "Migrate Number to safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "Migrate Number to safeNumber"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable noUnusedLocals and noUnusedParameters; add vitest thresholds; fix noImplicitAny overrides; document CSP as HTTP header"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict null checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Tightened test cleanups"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict TS and fix tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict tests cleanup"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Tighten TS safety"
+      },
+      {
+        "type": "improvement",
+        "text": "Tuned multi-layer security tasks"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable incremental security fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تفعيل أمان تدريجي كامل"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict TS checks setup"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable gradual security tasks"
+      },
+      {
+        "type": "improvement",
+        "text": "Tighten strict types across UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict null handling and fix usages"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث صارم null-checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable safeNumber across UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strict null checks safely"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strictNullChecks phase1-2"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Toggled strict mode on"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strictNullChecks Progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable safeNumber fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable strictNullChecks progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utility and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement safeNumber utilities"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utility and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utility and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utility and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utility and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber utilities"
+      },
+      {
+        "type": "improvement",
+        "text": "Add safeNumber util and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement safeNumber utility"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update dependencies to fix vulns"
+      },
+      {
+        "type": "improvement",
+        "text": "Update dependencies for security"
+      },
+      {
+        "type": "improvement",
+        "text": "Index all missing columns"
+      },
+      {
+        "type": "improvement",
+        "text": "كشف ثغرات أمنية وتحديثات"
+      },
+      {
+        "type": "improvement",
+        "text": "Optimize contracts_safe queries and scan"
+      },
+      {
+        "type": "improvement",
+        "text": "Add ON DELETE constraints"
+      },
+      {
+        "type": "improvement",
+        "text": "Add FKs with ON DELETE rules"
+      },
+      {
+        "type": "improvement",
+        "text": "Add cascade/fk constraints"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أمان ومنطق الاستحقاق"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح أدوات أمان وإستحقاقات"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Z-8 FK polymorphic update"
+      },
+      {
+        "type": "improvement",
+        "text": "Add polymorphic FK support"
+      },
+      {
+        "type": "improvement",
+        "text": "Z-8 and Z-9 implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve security scans and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add heatmap & pending actions"
+      },
+      {
+        "type": "improvement",
+        "text": "Add heatmap and pending actions UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add heatmap and pending actions UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add financial UI scaffolding"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented planned fixes and features"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 C-1 U-1 E-2 updates"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 C-1 U-1 E-2 updates"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1, C-1, U-1, E-2 fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 and C-1 fixes implemented"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 C-1 U-1 E-2 UX"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 C-1 U-1 E-2 fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "SEC-1 and more"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تقارير الميزانية والتوزيعات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "أضاف تقارير الميزانية والتوزيعات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تقارير الميزانية وتاريخ التوزيعات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تقرير الميزانية وتاريخ التوزيعات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تقارير الميزانية والتوزيعات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافت تاريخ التوزيعات للمستفيدين ونموذج الميزانية العمومية"
+      },
+      {
+        "type": "improvement",
+        "text": "Add balance sheet & history reports"
+      },
+      {
+        "type": "improvement",
+        "text": "Add distribution history and balance sheet"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات شاملة متقدمة"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement forensic audit checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Add income chart and overdue report"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add income monthly chart and overdue report"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة مخطط دخل شهري وتقرير متأخرين وتصفية العقارات"
+      },
+      {
+        "type": "improvement",
+        "text": "Add monthly income chart and overdue report"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة مخطط الدخل الشهري والمتأخرين"
+      },
+      {
+        "type": "improvement",
+        "text": "Add income monthly chart and overdue report"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافت رسم الدخل الشهري الفعلي مقابل المتوقع"
+      },
+      {
+        "type": "improvement",
+        "text": "Add income chart & overdue report"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Income Monthly Chart"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة الدخل الشهري مع المتوقَّع"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة رسم دخل شهري مقابل المتوقع وتقرير مستأجرين متأخرين"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة رسم دخل شهري مقابل المتوقع وتقرير مستأجرين متأخرين"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add income/overdue charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement high-priority fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add cash flow report component"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add CashFlowReport component"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement cash flow chart report"
+      },
+      {
+        "type": "improvement",
+        "text": "Add CashFlowReport chart"
+      },
+      {
+        "type": "improvement",
+        "text": "إضاف تدفق نقدي شهري"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement high-priority fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix test suite issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix build and tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix test/build issues"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix build issues and apply fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expense pie chart UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expense pie chart UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add Expense pie chart feature"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expense pie chart"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement pie chart for expenses"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expenses pie chart UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expense pie chart"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expenses pie chart component"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement Pie chart for expenses"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement high-priority fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قائمة تحقق للإقفال"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close year checklist"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة خطط الإقفال ومراجعة YoY"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close year checklist and YoY UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close-year checklist"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قائمة تحقق قبل الإقفال"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close year checklist"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close year checklist"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add close year checklist UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented prioritized fixes and enhancements"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة فلاتر متقدمة وعداد رسائل"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة فلاتر متقدمة وعداد رسائل"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "تحسينات شاملة للأداء والنطاق"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT exemption check and deps"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT exemption gap and assets"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT exemption gap"
+      },
+      {
+        "type": "improvement",
+        "text": "استمرار الإصلاحات"
+      },
+      {
+        "type": "improvement",
+        "text": "Extract dashboard constants"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve auth has_role access"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Grant has_role to anon"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Update site info for publish"
+      },
+      {
+        "type": "improvement",
+        "text": "انشأت تقارير سنويه"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement annual report feature set"
+      },
+      {
+        "type": "improvement",
+        "text": "أطلقت صفحة التقرير السنوي"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement annual report feature"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة تقارير سنوية كاملة"
+      },
+      {
+        "type": "improvement",
+        "text": "Add annual report feature"
+      },
+      {
+        "type": "improvement",
+        "text": "Create annual_report tables"
+      },
+      {
+        "type": "improvement",
+        "text": "أتم إنشاء جداول التقرير السنوي"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix advance settings loop"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تكرار التحديث"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح مشاكل إعدادات متعددة"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح مشاكل صفحة الإعدادات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح إعدادات المستحدثات"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة شفافية تخصيص الدفعات عبر السنوات"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add year-allocation transparency"
+      },
+      {
+        "type": "improvement",
+        "text": "Add year allocation hints"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add year allocation transparency"
+      },
+      {
+        "type": "improvement",
+        "text": "Add transparent year allocations"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix for closed-year data fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix incomplete invoices handling"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "تصحيح VAT للعقارات"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT by property type"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT per property"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix VAT for residentials"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement forced update banner"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Overhauled QR for ZATCA"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح ترويسة الفاتورة الضريبية"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث فاتورة ضريبية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح تخطيط الفاتورة الضريبية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance multi-template invoice"
+      },
+      {
+        "type": "improvement",
+        "text": "Add multi-template preview UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة معاينة وتحديث القوالب"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف معاينة الفاتورة القالب الضريبي"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قوالب فاتورة متعددة"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف قالب ضريبي ثابت"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح قالب الفاتورة الاحترافي"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت معاينة وتحديث القالب الضريبي"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف معاينة وفاتورة QR دائماً"
+      },
+      {
+        "type": "improvement",
+        "text": "أضاف معاينة الفاتورة قبل التحميل"
+      },
+      {
+        "type": "improvement",
+        "text": "Multitemplate invoice updates"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Expanded PdfWaqfInfo and added templates"
+      },
+      {
+        "type": "improvement",
+        "text": "Expanded multi-template PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة قوالب فواتير متعددة"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented icv sequence and zatca key encryption"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented icv sequence and encryption"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement icv sequence"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix zatca fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve contracts invoices UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add contract status filter and UI tweaks"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve contracts UI filters"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة فلتر حالة العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all feature"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all support"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand/collapse all"
+      },
+      {
+        "type": "improvement",
+        "text": "Add bulk expand toggle"
+      },
+      {
+        "type": "improvement",
+        "text": "Add expand all for contracts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Group contracts as accordion"
+      },
+      {
+        "type": "improvement",
+        "text": "Organized contracts with accordion"
+      },
+      {
+        "type": "improvement",
+        "text": "Organize contracts via accordion"
+      },
+      {
+        "type": "improvement",
+        "text": "Organized contracts with accordion"
+      },
+      {
+        "type": "improvement",
+        "text": "Organized contracts accordion"
+      },
+      {
+        "type": "improvement",
+        "text": "Create ContractAccordionGroup component"
+      },
+      {
+        "type": "improvement",
+        "text": "Reorganized contracts UI"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve AI safety and caching"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix AiAssistant getSession"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implented infrastructure fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Applied infrastructure fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "تنفيذ تحسينات بنية تحتية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add migration: security and perf"
+      },
+      {
+        "type": "improvement",
+        "text": "Plan approved migration steps"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented forensic DB fixes plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Database migrations prepared and plan approved"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Harden invoices security"
+      },
+      {
+        "type": "improvement",
+        "text": "Security: Harden invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Add invoice security migrations"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply VAT and storage fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add VAT triggers and policies"
+      },
+      {
+        "type": "improvement",
+        "text": "Add invoice security migrations"
+      },
+      {
+        "type": "improvement",
+        "text": "Security plan approved"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Drop open beneficiary policy"
+      },
+      {
+        "type": "improvement",
+        "text": "Strengthened PII protections"
+      },
+      {
+        "type": "improvement",
+        "text": "Add dashboard cards UI updates"
+      },
+      {
+        "type": "improvement",
+        "text": "Add dashboard net gains cards"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add dashboard cards for metrics"
+      },
+      {
+        "type": "improvement",
+        "text": "Sanitized pdf path and UI fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix invoices UI and safety"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Clean up dashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Cleaned dashboard fixes round 2"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored dashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored dashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored dashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor dashboard fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored user management"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix UserMgmt validations"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Validate amounts on forms"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix critical edge fixes plan"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply security fixes migration"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict tenant payments access"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update beneficiaries_safe view"
+      },
+      {
+        "type": "improvement",
+        "text": "Implemented planned fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add payment date param"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance payment and FY close"
+      },
+      {
+        "type": "improvement",
+        "text": "Add payment date param"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix pending-related checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update advance trigger logic"
+      },
+      {
+        "type": "improvement",
+        "text": "Mask notes and safeguards"
+      },
+      {
+        "type": "improvement",
+        "text": "Keep design and mask notes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add overdue PDF export"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add visual guide for tax invoice"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add get_next_icv guard"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix get_next_icv guard"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance pii key guard and views"
+      },
+      {
+        "type": "improvement",
+        "text": "Fortified forensic checks"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix navigate in FY tab"
+      },
+      {
+        "type": "improvement",
+        "text": "Switch to navigate in FiscalYearManagementTab"
+      },
+      {
+        "type": "improvement",
+        "text": "Replace window.location.assign with navigate in FiscalYearManagementTab"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix remaining forensic bugs"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix remaining forensic bugs"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إغلاق نافذة الطباعة تلقائياً"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Change asset cache strategy"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix stale chunk recovery"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix popup by using InvoiceViewer"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Exported invoice PDFs on click"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix pdf export handle"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات متبقية لمحاور مختلفة"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات للملفات غير المخدومة"
+      },
+      {
+        "type": "improvement",
+        "text": "كشف عن اختبارات مفقودة"
+      },
+      {
+        "type": "improvement",
+        "text": "Add useAccountsPage tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add useAccountsPage tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add tests for hooks and PDFs"
+      },
+      {
+        "type": "improvement",
+        "text": "Add AccountsPage and PDF tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add test plan coverage review"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Added tests for untested hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Add tests for five hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Added tests for remaining hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات مكونات وحزم"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات hooks ومكونات الحسابات"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبارات_hooks_accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add BottomNav frontend tests"
+      },
+      {
+        "type": "improvement",
+        "text": "أتمت فحص أمني واختبارات جديدة"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add frontend tests suite"
+      },
+      {
+        "type": "improvement",
+        "text": "Added tests for auth and utils"
+      },
+      {
+        "type": "improvement",
+        "text": "Added tests for auth and utils"
+      },
+      {
+        "type": "improvement",
+        "text": "Add frontend test coverage"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Added extensive unit tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Added test suites for auth and helpers"
+      },
+      {
+        "type": "improvement",
+        "text": "Added full test suite run"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Enhance ResetPassword tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Test ResetPassword enhancements"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve ResetPassword tests"
+      },
+      {
+        "type": "improvement",
+        "text": "اختبار إضافي ل ResetPassword"
+      },
+      {
+        "type": "improvement",
+        "text": "Add deeper ResetPassword tests"
+      },
+      {
+        "type": "improvement",
+        "text": "إضافة اختبار RLS waqf_bylaws"
+      },
+      {
+        "type": "improvement",
+        "text": "Security scan run completed"
+      },
+      {
+        "type": "improvement",
+        "text": "Expanded test suite and stabilized Sidebar tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve Sidebar tests isolation"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix Sidebar test mocks"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Run all project tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Display fixes for Contracts and Invoices"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Document security review"
+      },
+      {
+        "type": "improvement",
+        "text": "Update security docs"
+      },
+      {
+        "type": "improvement",
+        "text": "Automated security fix function"
+      },
+      {
+        "type": "improvement",
+        "text": "Check anon privileges on prod"
+      },
+      {
+        "type": "improvement",
+        "text": "Apply security migrations update"
+      },
+      {
+        "type": "improvement",
+        "text": "Security privileges enforced"
+      },
+      {
+        "type": "improvement",
+        "text": "Verify production privileges"
+      },
+      {
+        "type": "improvement",
+        "text": "Add post-pg_dump migration"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Applied live privilege check results"
+      },
+      {
+        "type": "improvement",
+        "text": "Deploy production fix check"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor index footer links"
+      },
+      {
+        "type": "improvement",
+        "text": "Replace footer with links"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "سحب صلاحياتEXECUTE للدوال الحساسة"
+      },
+      {
+        "type": "improvement",
+        "text": "سحب صلاحيات الدوال الحساسة"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Move lazy-load for charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Move lazy-load for charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve dashboard charts and prefetch"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy load dashboard charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy-load dashboard charts"
+      },
+      {
+        "type": "improvement",
+        "text": "Lazy-load DashboardCharts and prefetch accounts"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد استعلامات العقود جزئياً"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد استعلامات العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد عقود الاستعلامات"
+      },
+      {
+        "type": "improvement",
+        "text": "تحديث استعلامات العقود والتقييد"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد استعلامات العقود"
+      },
+      {
+        "type": "improvement",
+        "text": "توحيد استعلامات العقود في AccountsPage"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add LoginForm tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add login form tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add LoginForm tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add login form tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Add login form tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix tests for contracts safe hook"
+      },
+      {
+        "type": "improvement",
+        "text": "Synchronize contracts safe mock"
+      },
+      {
+        "type": "improvement",
+        "text": "Run tests and fix failures"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "فحص التزام AGENTS.md"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Implement semantic tokens and fixes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح جميع الملاحظات الأمنية"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict waqif access"
+      },
+      {
+        "type": "improvement",
+        "text": "Narrowed waqif access to data"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Tightened data access"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Migrate safe views to security_definer"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict waqif data access"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Extend pgcrypto search_path"
+      },
+      {
+        "type": "improvement",
+        "text": "Review pgcrypto search_path"
+      },
+      {
+        "type": "improvement",
+        "text": "Move pgcrypto to extensions"
+      },
+      {
+        "type": "improvement",
+        "text": "Move pgcrypto to extensions"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor bylaws hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor bylaws hooks to factory"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactored bylaws hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor bylaws hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Refactor bylaws hooks"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Correct lookup-national-id docs"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "فحص جنائي أتم"
+      },
+      {
+        "type": "improvement",
+        "text": "إنشاء ملف معرفة أمنية"
+      },
+      {
+        "type": "improvement",
+        "text": "Changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Update site info for publish"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "أضف README لأمان Edge Functions"
+      },
+      {
+        "type": "improvement",
+        "text": "Update CI and env handling"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Update vulnerable dependencies"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Vulnerabilities audited in npm"
+      },
+      {
+        "type": "improvement",
+        "text": "Restrict contracts access"
+      },
+      {
+        "type": "improvement",
+        "text": "Improve RLS with policies"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح الملاخطات"
+      },
+      {
+        "type": "improvement",
+        "text": "Add envignore and overlay"
+      },
+      {
+        "type": "improvement",
+        "text": "Work in progress"
+      },
+      {
+        "type": "improvement",
+        "text": "Update site info for publish"
+      },
+      {
+        "type": "improvement",
+        "text": "Reverted to commit a669d14d1015fd9fb73a56b890741cce7d781ab4"
+      },
+      {
+        "type": "improvement",
+        "text": "Reverted to commit 8f1a3e3947a9af5ac893e4b85f284aec5c5913d0"
+      },
+      {
+        "type": "improvement",
+        "text": "Reverted to commit e80f94dcba8f4ac641f5e2e54324751a463160cb"
+      }
+    ]
+  },
+  {
     "version": "2.9.0",
     "date": "١٩ مارس ٢٠٢٦",
     "changes": [
