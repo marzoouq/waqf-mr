@@ -1,5 +1,15 @@
 [
   {
+    "version": "3.0.19",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Update distributions fix attempt"
+      }
+    ]
+  },
+  {
     "version": "3.0.18",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
