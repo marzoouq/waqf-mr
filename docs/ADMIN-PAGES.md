@@ -1,6 +1,6 @@
 # توثيق صفحات الناظر (Admin Pages)
 
-> المرجع التقني لصفحات لوحة تحكم الناظر والمنطق المالي والأرشفة
+> المرجع التقني لصفحات لوحة تحكم الناظر والمحاسب والمنطق المالي والأرشفة
 
 ---
 
@@ -11,6 +11,7 @@
 | لوحة التحكم | `src/pages/dashboard/AdminDashboard.tsx` | نظرة عامة مع KPIs ورسوم بيانية |
 | الحسابات الختامية | `src/pages/dashboard/AccountsPage.tsx` | إدارة التسلسل المالي والإقفال |
 | التقارير | `src/pages/dashboard/ReportsPage.tsx` | عرض وتصدير التقارير والإفصاحات |
+| تشخيص النظام | `src/pages/dashboard/SystemDiagnosticsPage.tsx` | فحص حالة النظام (admin فقط) |
 
 ---
 
