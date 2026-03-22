@@ -118,7 +118,7 @@ export const BENEFICIARY_ROUTE_PERM_KEYS: Record<string, string> = {
 };
 
 // ─── Routes accountant can never access ───
-export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca'];
+export const ACCOUNTANT_EXCLUDED_ROUTES = ['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary'];
 
 // ─── Section visibility defaults ───
 export const defaultAdminSections = {
