@@ -4,8 +4,10 @@ import { fmt } from '@/utils/format';
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
