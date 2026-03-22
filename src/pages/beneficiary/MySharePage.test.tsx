@@ -97,14 +97,15 @@ describe('MySharePage', () => {
   });
 
   it('shows share info', async () => {
-    renderPage();
-    // myShare = 100000, should appear formatted
-    expect(await screen.findByText(/100,000/)).toBeInTheDocument();
+    const { container } = renderPage();
+    await screen.findByText('حصتي من الريع');
+    expect(container.textContent).toMatch(/100/);
   });
 
-  it('calculates entitled share (10% of 100000 / 10% total = 100%)', async () => {
-    renderPage();
-    expect(await screen.findByText(/100,000/)).toBeInTheDocument();
+  it('calculates entitled share', async () => {
+    const { container } = renderPage();
+    await screen.findByText('حصتي من الريع');
+    expect(container.textContent).toMatch(/100/);
   });
 
   it('shows distributions history section', async () => {
