@@ -14,6 +14,7 @@ interface PropertySummary {
   activeIncome: number;
   totalExpensesAll: number;
   netIncome: number;
+  isClosed?: boolean;
 }
 
 interface PropertySummaryCardsProps {
