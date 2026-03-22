@@ -1,5 +1,51 @@
 [
   {
+    "version": "3.0.21",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Harden realtime pubs"
+      },
+      {
+        "type": "improvement",
+        "text": "Enable realtime for extra tables"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Fix property and contract cards"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "أضافت نشر الوقت الحقيقي للجداول"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "إصلاح بيانات التوزيعات"
+      }
+    ]
+  },
+  {
     "version": "3.0.20",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
