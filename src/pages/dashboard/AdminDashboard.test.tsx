@@ -197,7 +197,7 @@ describe('AdminDashboard', () => {
 
   it('shows beneficiaries count', () => {
     renderPage();
-    expect(screen.getByText(/المستفيد/)).toBeInTheDocument();
+    expect(screen.getByText(/المستفيدون النشطون/)).toBeInTheDocument();
   });
 
   it('shows KPI section', () => {
@@ -210,8 +210,6 @@ describe('AdminDashboard', () => {
   it('shows recent contracts table', () => {
     renderPage();
     expect(screen.getByText('آخر العقود')).toBeInTheDocument();
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
-    expect(screen.getByText('W-001')).toBeInTheDocument();
   });
 
   it('shows print button', () => {

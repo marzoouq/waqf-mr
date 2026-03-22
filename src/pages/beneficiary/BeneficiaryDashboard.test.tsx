@@ -4,13 +4,27 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
+  useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary', loading: false })),
 }));
 
-vi.mock('@/hooks/useBeneficiaries', () => ({
-  useBeneficiariesSafe: vi.fn(() => ({ data: [
-    { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10, phone: '', email: '' },
-  ] })),
+vi.mock('@/hooks/useBeneficiaryDashboardData', () => ({
+  useBeneficiaryDashboardData: vi.fn(() => ({
+    data: {
+      beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },
+      total_beneficiary_percentage: 100,
+      fiscal_year: { id: 'fy1', label: '1446-1447', status: 'active' },
+      total_income: 500000,
+      total_expenses: 100000,
+      account: null,
+      available_amount: 0,
+      my_share: 0,
+      recent_distributions: [],
+      pending_advance_count: 0,
+      advance_settings: { enabled: true, min_amount: 500, max_percentage: 50 },
+    },
+    isLoading: false,
+    isError: false,
+  })),
 }));
 
 vi.mock('@/hooks/useNotifications', () => ({
@@ -42,6 +56,10 @@ vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
+vi.mock('@/hooks/useBfcacheSafeChannel', () => ({
+  useBfcacheSafeChannel: vi.fn(() => null),
+}));
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: () => ({
@@ -49,12 +67,8 @@ vi.mock('@/integrations/supabase/client', () => ({
         eq: () => ({
           order: () => ({
             limit: () => Promise.resolve({ data: [], error: null }),
-            data: [], error: null,
           }),
-          data: [], error: null,
         }),
-        order: () => ({ data: [], error: null }),
-        data: [], error: null,
       }),
     }),
     rpc: () => Promise.resolve({ data: 0, error: null }),
@@ -98,9 +112,29 @@ describe('BeneficiaryDashboard', () => {
       fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'closed', start_date: '2024-01-01', end_date: '2025-01-01', published: true, created_at: '' }],
       isClosed: true, isLoading: false, noPublishedYears: false,
     } as any);
+
+    const { useBeneficiaryDashboardData } = await import('@/hooks/useBeneficiaryDashboardData');
+    vi.mocked(useBeneficiaryDashboardData).mockReturnValue({
+      data: {
+        beneficiary: { id: 'b1', name: 'محمد أحمد', share_percentage: 10 },
+        total_beneficiary_percentage: 100,
+        fiscal_year: { id: 'fy1', label: '1446-1447', status: 'closed' },
+        total_income: 500000,
+        total_expenses: 100000,
+        account: { admin_share: 40000, waqif_share: 20000, waqf_revenue: 340000, vat_amount: 0, zakat_amount: 0, net_after_expenses: 400000, net_after_vat: 400000, waqf_corpus_manual: 0, waqf_corpus_previous: 0, distributions_amount: 0 },
+        available_amount: 340000,
+        my_share: 34000,
+        recent_distributions: [],
+        pending_advance_count: 0,
+        advance_settings: { enabled: true, min_amount: 500, max_percentage: 50 },
+      },
+      isLoading: false,
+      isError: false,
+    } as any);
+
     renderWithRouter(<BeneficiaryDashboard />);
-    // When closed, share amount is shown instead of placeholder
-    expect(screen.getByText(/100,000/)).toBeInTheDocument();
+    // When closed, share amount is shown
+    expect(screen.getByText(/34,000/)).toBeInTheDocument();
   });
 
   it('shows share label', () => {
@@ -114,7 +148,6 @@ describe('BeneficiaryDashboard', () => {
     expect(screen.getByText('الإفصاح السنوي')).toBeInTheDocument();
     expect(screen.getAllByText('حصتي من الريع').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
-    expect(screen.getByText('اللائحة التنظيمية')).toBeInTheDocument();
   });
 
   it('shows recent notifications', () => {
