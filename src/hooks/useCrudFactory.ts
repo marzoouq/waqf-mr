@@ -124,8 +124,8 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
         const { data, error } = await supabase
           .from(table)
-          .update(payload as Tables[T]['Update'])
-          .eq('id' as string & keyof Tables[T]['Row'], id)
+          .update(payload as never) // generic T can't be resolved at compile-time
+          .eq('id' as never, id)
           .select()
           .single();
 
