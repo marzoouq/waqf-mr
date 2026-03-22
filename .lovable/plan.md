@@ -1,76 +1,22 @@
 
 
-# تقرير الفحص الجنائي — مراجعة الوثائق والتقارير v3.0.0
+# إصلاح البندين المتبقيين — الوصول إلى 10/10
 
 ---
 
-## المنهجية
+## F-01: استبدال `as never` بأنواع آمنة
 
-فحص مطابقة كل بند في الوثائق (7 ملفات) مع الكود الفعلي عبر تنفيذ سيناريو تحقق لكل ادعاء.
+### `src/hooks/useCrudFactory.ts` (3 مواضع)
 
----
+استبدال `as never` بتحويلات أكثر دقة باستخدام `Parameters` type:
 
-## تنفيذ السيناريوهات
+| السطر | الحالي | الجديد |
+|-------|--------|--------|
+| 99 | `payload as never` | `payload as Tables[T]['Insert']` |
+| 127 | `payload as never` | `payload as Tables[T]['Update']` |
+| 128 | `'id' as never` | `'id' as string & keyof Tables[T]['Row']` |
+| 156 | `'id' as never` | `'id' as string & keyof Tables[T]['Row']` |
 
-### السيناريو 1: رقم الإصدار
-- **الادعاء:** `package.json` = v3.0.0
-- **التحقق:** ✅ سطر 4: `"version": "3.0.0"` — مطابق
-- **تقاطع:** INDEX.md يقول v3.0.0 ✅ | FINAL-AUDIT يقول v3.0.0 ✅ | CHANGELOG أول قسم 3.0.0 ✅
+### `src/hooks/useAnnualReport.ts` (3 مواضع)
 
-### السيناريو 2: ACCOUNTANT_EXCLUDED_ROUTES
-- **الادعاء:** 5 مسارات محظورة على المحاسب
-- **التحقق:** ✅ `constants.ts` سطر 121: `['/dashboard/users', '/dashboard/settings', '/dashboard/zatca', '/dashboard/diagnostics', '/beneficiary']`
-- **تقاطع:** INDEX.md يذكر الخمسة ✅ | CHANGELOG يذكر الإصلاح ✅ | FINAL-AUDIT الجولة 21 ✅
-
-### السيناريو 3: إشعارات المستفيد الذكية
-- **الادعاء:** إشعار توزيع + تأكيد سلفة
-- **التحقق:** ✅ `useDistribute.ts` سطر 67: `notifyUser(d.beneficiary_user_id, 'صدور حصتك المالية'...)` | `useAdvanceRequests.ts` سطر 229: `notifyUser(..., 'تم استلام طلب السلفة'...)`
-- **تقاطع:** BENEFICIARY-PAGES.md يوثق 5 أنواع إشعارات ✅ | CHANGELOG ✅
-
-### السيناريو 4: guard المستفيد غير المرتبط في FinancialReportsPage
-- **الادعاء:** عرض "حسابك غير مرتبط" بدلاً من رسوم فارغة
-- **التحقق:** ✅ `FinancialReportsPage.tsx` سطر 149: `<h2>حسابك غير مرتبط</h2>`
-- **تقاطع:** CHANGELOG ✅ | FINAL-AUDIT الجولة 23 ✅
-
-### السيناريو 5: حذف PII من Edge Function logs
-- **الادعاء:** حذف userId و userEmail من console.log
-- **التحقق:** ✅ `admin-manage-users/index.ts` سطر 161: `"updateUserById success"` (بدون userId) | سطر 194: `"Password verify login SUCCESS"` (بدون userEmail)
-- **تقاطع:** CHANGELOG ✅ | FINAL-AUDIT الجولة 24 ✅ | INDEX.md سجل الأمان ✅
-
-### السيناريو 6: أزرار المحاسب 8
-- **الادعاء:** ADMIN-PAGES.md يوثق 8 أزرار
-- **التحقق:** ✅ ADMIN-PAGES.md سطر 342-355: يوثق 8 أزرار (تسجيل دخل، مصروف، حسابات ختامية، فواتير، شجرة محاسبية، مقارنة تاريخية، تقرير سنوي، تقارير مالية)
-
-### السيناريو 7: عدد الجولات
-- **الادعاء:** 24 جولة تدقيق
-- **التحقق:** ✅ FINAL-AUDIT يوثق الجولات 1-15 (مجمعة) + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 = 24 جولة
-
-### السيناريو 8: تقاطع INDEX.md مع الواقع
-| البند | INDEX.md | الواقع | مطابق؟ |
-|-------|---------|--------|:---:|
-| الإصدار | v3.0.0 | v3.0.0 | ✅ |
-| الجداول | 37 | 37 (محسوبة من schema) | ✅ |
-| Edge Functions | 11 | 11 (محسوبة من `supabase/functions/`) | ✅ |
-| الدوال المخزنة | 36+ | 36+ | ✅ |
-| سياسات RLS | 129 | 129 | ✅ |
-| التقييم | 9.5/10 | 9.5/10 | ✅ |
-| مسارات الناظر | 20 مسار | 20 مسار (موثقة) | ✅ |
-
----
-
-## النتيجة
-
-**✅ جميع الوثائق مطابقة للكود الفعلي بنسبة 100%.**
-
-لا توجد تناقضات أو ادعاءات غير مدعومة. كل بند في CHANGELOG و INDEX و FINAL-AUDIT و ADMIN-PAGES و BENEFICIARY-PAGES تم التحقق منه مقابل الكود المصدري.
-
-| الملف | عدد الادعاءات المفحوصة | المطابق | التناقضات |
-|-------|:---:|:---:|:---:|
-| CHANGELOG.md | 8 بنود | 8 ✅ | 0 |
-| INDEX.md | 7 أرقام | 7 ✅ | 0 |
-| FINAL-AUDIT-REPORT.md | 8 جولات (20-24) | 8 ✅ | 0 |
-| ADMIN-PAGES.md | 2 بند (أزرار + مسارات) | 2 ✅ | 0 |
-| BENEFICIARY-PAGES.md | 2 بند (إشعارات + guard) | 2 ✅ | 0 |
-
-**لا يوجد إصلاح مطلوب.** الوثائق والتقارير متسقة ودقيقة.
-
+هن
