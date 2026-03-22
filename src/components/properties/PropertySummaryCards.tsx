@@ -79,7 +79,7 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
         <Card className="shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
-            <div><p className="text-xs text-muted-foreground">الدخل النشط</p><p className="text-lg font-bold text-success">{fmt(summary.activeIncome)} <span className="text-xs font-normal">ريال</span></p></div>
+            <div><p className="text-xs text-muted-foreground">{summary.isClosed ? 'دخل السنة' : 'الدخل النشط'}</p><p className="text-lg font-bold text-success">{fmt(summary.activeIncome)} <span className="text-xs font-normal">ريال</span></p></div>
           </CardContent>
         </Card>
         <Card className="shadow-sm">
