@@ -1,5 +1,15 @@
 [
   {
+    "version": "3.0.29",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Fix test failures and expand tests"
+      }
+    ]
+  },
+  {
     "version": "3.0.28",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
