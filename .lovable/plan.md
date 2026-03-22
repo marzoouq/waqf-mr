@@ -1,127 +1,84 @@
 
 
-# تقرير الفحص الإضافي العميق — التحقق النهائي قبل التنفيذ
+# تقرير الفحص الجنائي — أخطاء البناء ومشاكل البرمجة
 
 ---
 
-## الإصلاح 1: Auth.tsx — استبدال useEffect بـ useQuery مخصص
+## المنهجية
 
-### الوضع الحالي (سطر 16, 78-95)
-```typescript
-const [registrationEnabled, setRegistrationEnabled] = useState(false);
-// ...
-useEffect(() => {
-  supabase.from('app_settings').select('value').eq('key','registration_enabled').maybeSingle()
-  // ...
-}, []);
-```
-
-### التحقق من RLS
-سياسة `Anon can read registration_enabled` تسمح فقط بـ `key = 'registration_enabled'` — مطابقة تماماً للاستعلام الحالي. ✅
-
-### لماذا لا نستخدم `useAppSettings()`؟
-- يستعلم `SELECT key, value FROM app_settings` **بدون فلتر**
-- للمستخدم المجهول: RLS ترجع صفاً واحداً فقط → يُخزَّن في cache بمفتاح `['app-settings-all']`
-- بعد تسجيل الدخول في نفس الجلسة: صفحات أخرى تقرأ من نفس الـ cache الناقص حتى انتهاء `staleTime`
-- **خطر فعلي**: 5 دقائق من إعدادات ناقصة بعد تسجيل الدخول
-
-### الحل الآمن
-استبدال `useState + useEffect` بـ `useQuery` مخصص بمفتاح منفصل:
-```typescript
-import { useQuery } from '@tanstack/react-query';
-
-// بدل useState + useEffect:
-const { data: registrationEnabled = false } = useQuery({
-  queryKey: ['registration-enabled'],
-  queryFn: async () => {
-    const { data } = await supabase
-      .from('app_settings')
-      .select('value')
-      .eq('key', 'registration_enabled')
-      .maybeSingle();
-    return data?.value === 'true';
-  },
-  staleTime: 5 * 60_000,
-  gcTime: 30 * 60_000,
-});
-```
-- **لا تعارض مع `['app-settings-all']`** — مفتاح cache مختلف ✅
-- **يعمل للمجهول** — نفس الاستعلام المفلتر ✅
-- **يُلغي الاستعلام المكرر** عند إعادة فتح الصفحة ✅
+فحص شامل لـ: TypeScript type safety، أنماط React، أمان قاعدة البيانات، أداء الكود، وأنماط البرمجة السيئة.
 
 ---
 
-## الإصلاح 2: BeneficiarySettingsPage.tsx — تحديد queryKey
+## المشاكل المكتشفة
 
-### التحقق
-- السطر 42: `queryClient.invalidateQueries()` — بدون queryKey = يُبطل **كل** الـ cache
-- يُستدعى فقط من زر "إعادة المحاولة" عند `benError` (سطر 111)
-- `useBeneficiariesSafe` يستخدم queryKey `['beneficiaries-safe']`
+### 🔴 B-01: `supabase as any` غير ضروري في ExpenseBudgetBar (متوسطة)
 
-### فحص التأثير الجانبي
-عند الضغط على "إعادة المحاولة" حالياً: يُبطل cache كل الصفحات → إذا كان المستفيد في تبويب آخر يُعاد تحميل كل شيء. **مشكلة أداء حقيقية.**
+**الملف:** `src/components/expenses/ExpenseBudgetBar.tsx` سطر 44, 81
 
-### الحل
-```typescript
-const handleRetry = useCallback(
-  () => queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] }),
-  [queryClient]
-);
-```
-- **لا تعارض** — الزر يظهر فقط عند خطأ في تحميل بيانات المستفيد ✅
-- **لا يُبطل cache غير ذي صلة** ✅
+**المشكلة:** يستخدم `(supabase as any).from('expense_budgets')` رغم أن جدول `expense_budgets` **موجود بالفعل** في `types.ts` (سطر 759-793) بتعريف كامل (Row, Insert, Update).
+
+**التأثير:**
+- فقدان Type Safety على جميع عمليات SELECT/INSERT/UPDATE
+- لا يكتشف المترجم أخطاء الأعمدة أو القيم
+- ضد المعايير المتبعة في باقي المشروع
+
+**الإصلاح:** إزالة `as any` واستخدام `supabase.from('expense_budgets')` مباشرة (3 مواضع).
 
 ---
 
-## الإصلاح 3: Index.tsx — تبسيط SVG pattern
+### 🟡 B-02: 5 صفحات بـ `invalidateQueries()` بدون queryKey (منخفضة-متوسطة)
 
-### التحقق
-السطر 119-122 يحتوي 3 عناصر زخرفية إضافية:
-```xml
-<circle cx="60" cy="60" r="4" .../>     ← دائرة صغيرة بالكاد مرئية
-<line x1="60" y1="0" x2="60" y2="120"/> ← خط عمودي
-<line x1="0" y1="60" x2="120" y2="60"/> ← خط أفقي
-```
-- الأنماط الأساسية (3 ماسات + دائرة كبيرة) تبقى
-- **لا تعارض بصري جوهري** — العناصر المحذوفة بـ `strokeWidth: 0.2-0.3` وبالكاد مرئية عند `opacity: 0.07`
+**الملفات:**
 
-### الحل
-حذف السطور 120-122 (3 عناصر SVG)
+| الصفحة | السطر | queryKey المناسب |
+|--------|-------|-----------------|
+| `NotificationsPage.tsx` | 44 | `['notifications']` |
+| `InvoicesViewPage.tsx` | 27 | `['invoices']` |
+| `BylawsViewPage.tsx` | 21 | `['bylaws']` |
+| `BeneficiaryMessagesPage.tsx` | 21 | `['conversations']` |
+| `AccountsViewPage.tsx` | 22 | `['accounts']` |
 
----
+**التأثير:** ضغط "إعادة المحاولة" يمسح **كل** cache التطبيق — يُعيد تحميل جميع البيانات بلا داعٍ.
 
-## الإصلاح 4: BeneficiaryDashboard.tsx — useMemo للتواريخ
-
-### التحقق
-السطور 81-83:
-```typescript
-const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', ...);
-const gregorianDate = now.toLocaleDateString('ar-SA', ...);
-const timeStr = now.toLocaleTimeString('ar-SA', ...);
-```
-- `now` يتغير كل 60 ثانية (من `setInterval` سطر 66)
-- بدون `useMemo`: تُحسب كل render (حتى لو تغير state آخر)
-- **تحسين طفيف** لكن بدون مخاطر
-
-### الحل
-```typescript
-const { hijriDate, gregorianDate, timeStr } = useMemo(() => ({
-  hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
-  gregorianDate: now.toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' }),
-  timeStr: now.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' }),
-}), [now]);
-```
+**الإصلاح:** تحديد `queryKey` مناسب لكل صفحة (سطر واحد لكل ملف).
 
 ---
 
-## ملخص الحكم النهائي
+### 🟡 B-03: Security Definer View — `contracts_safe` (تمت مناقشتها سابقاً)
 
-| # | الملف | الحكم | مخاطر |
-|---|-------|-------|-------|
-| 1 | Auth.tsx | ✅ آمن (useQuery مخصص بدل useAppSettings) | صفر |
-| 2 | BeneficiarySettingsPage.tsx | ✅ آمن | صفر |
-| 3 | Index.tsx | ✅ آمن (تجميلي) | طفيف بصرياً |
-| 4 | BeneficiaryDashboard.tsx | ✅ آمن (تحسين طفيف) | صفر |
+**المصدر:** Supabase Linter + Security Scan
 
-**لا توجد تعارضات أو مشاكل. الخطة جاهزة للتنفيذ.**
+العرضان `beneficiaries_safe` و `contracts_safe` يستخدمان `security_invoker=false`. هذا **مقصود بالتصميم** (memory مؤكدة) لأن المستفيد/الواقف لا يملكان صلاحية SELECT مباشرة على الجداول الأساسية. التقنيع يتم عبر `CASE WHEN`.
 
+**الحكم:** ⚠️ ملاحظة معروفة ومقبولة — لا إصلاح مطلوب حالياً.
+
+---
+
+### 🟢 B-04: استخدام `key={index}` في القوائم (منخفضة جداً)
+
+**38 ملف** يستخدم `key={index}` أو `key={i}`. معظمها في:
+- قوائم ثابتة (skeletons، نجوم التقييم، إحصائيات) — **مقبول**
+- قوائم ديناميكية (بعض الجداول) — **لا تأثير عملي** لأن العناصر لا تُعاد ترتيبها
+
+**الحكم:** لا إصلاح مطلوب — الاستخدام مقبول في السياقات الحالية.
+
+---
+
+### 🟢 B-05: `as any` في ملفات الاختبار فقط (مقبول)
+
+22 ملف اختبار يستخدم `as any` لـ mocking — **هذا نمط قياسي** في اختبارات TypeScript/Vitest.
+
+**الحكم:** مقبول — لا إصلاح مطلوب.
+
+---
+
+### 🟢 B-06: `@ts-ignore` واحد فقط (مقبول)
+
+في `src/utils/pdf/arabicReshaper.ts` — مكتبة `arabic-reshaper` بدون تعريفات TypeScript. **لا بديل**.
+
+---
+
+### 🟢 B-07: `console.log/error` في الواجهة (سليم)
+
+الواجهة الأمامية (`src/`) تستخدم `logger` مركزي يكتم الرسائل في الإنتاج. المواضع الوحيدة المباشرة:
