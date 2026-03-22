@@ -35,7 +35,7 @@
 | 4 | **صفحات المستفيد** | الإفصاح، حصتي، التقارير المالية، الحسابات | [BENEFICIARY-PAGES.md](./BENEFICIARY-PAGES.md) |
 | 5 | **صفحات الناظر** | لوحة التحكم، الحسابات الختامية، التقارير، آلية الإقفال | [ADMIN-PAGES.md](./ADMIN-PAGES.md) |
 | 6 | **سجل التغييرات** | التحديثات الرئيسية بترتيب زمني | [CHANGELOG.md](./CHANGELOG.md) |
-| 7 | **تقرير التدقيق** | ملخص 17+ جولة تدقيق — جميع الإصلاحات الحرجة مُنجزة | [FINAL-AUDIT-REPORT.md](./FINAL-AUDIT-REPORT.md) |
+| 7 | **تقرير التدقيق** | ملخص 24 جولة تدقيق — جميع الإصلاحات الحرجة مُنجزة | [FINAL-AUDIT-REPORT.md](./FINAL-AUDIT-REPORT.md) |
 | 8 | **المعرفة الأمنية** | إرشادات CSP، التشفير، سياسات RLS | [SECURITY-KNOWLEDGE.md](./SECURITY-KNOWLEDGE.md) |
 
 ---
