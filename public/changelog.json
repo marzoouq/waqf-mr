@@ -1,5 +1,27 @@
 [
   {
+    "version": "3.0.9",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Save plan in Lovable"
+      },
+      {
+        "type": "improvement",
+        "text": "Add buyer data to payment PDF"
+      },
+      {
+        "type": "improvement",
+        "text": "Preceding changes"
+      },
+      {
+        "type": "improvement",
+        "text": "Add tenant data to payment PDF"
+      }
+    ]
+  },
+  {
     "version": "3.0.8",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
