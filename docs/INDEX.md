@@ -94,7 +94,7 @@
 | `/terms` | شروط الاستخدام |
 | `/unauthorized` | صفحة عدم الصلاحية |
 
-### مسارات الناظر والمحاسب (`/dashboard/*`) — 17+
+### مسارات الناظر والمحاسب (`/dashboard/*`) — 18+
 | المسار | الأدوار | الوصف |
 |--------|---------|-------|
 | `/dashboard` | admin, accountant | لوحة التحكم الرئيسية |
@@ -112,6 +112,7 @@
 | `/dashboard/audit-log` | admin, accountant | سجل المراجعة |
 | `/dashboard/bylaws` | admin, accountant | اللائحة التنظيمية |
 | `/dashboard/zatca` | admin فقط | إدارة ZATCA |
+| `/dashboard/diagnostics` | admin فقط | تشخيص النظام |
 | `/dashboard/support` | admin, accountant | الدعم الفني |
 | `/dashboard/annual-report` | admin, accountant | التقرير السنوي |
 | `/dashboard/chart-of-accounts` | admin, accountant | شجرة الحسابات |
