@@ -131,10 +131,10 @@ describe('ReportsPage', () => {
 
   it('renders tab triggers', () => {
     renderPage();
-    expect(screen.getByText('المالية')).toBeInTheDocument();
-    expect(screen.getByText('الأداء')).toBeInTheDocument();
-    expect(screen.getByText('شهري')).toBeInTheDocument();
-    expect(screen.getByText('مقارنة')).toBeInTheDocument();
+    expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    expect(screen.getByText(/مقارنة أداء/)).toBeInTheDocument();
+    expect(screen.getByText('الأداء الشهري')).toBeInTheDocument();
+    expect(screen.getByText('مقارنة سنوية')).toBeInTheDocument();
   });
 
   it('shows disclosure PDF button', () => {

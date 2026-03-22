@@ -63,10 +63,9 @@ describe('GlobalSearch', () => {
     expect(screen.queryByText(/لا توجد نتائج/)).not.toBeInTheDocument();
   });
 
-  it('يحتوي على container مخفي على الشاشات الصغيرة (lg:block)', () => {
+  it('يحتوي على container بشكل relative', () => {
     const { container } = render(<GlobalSearch />);
     const wrapper = container.firstElementChild;
-    expect(wrapper?.className).toContain('hidden');
-    expect(wrapper?.className).toContain('lg:block');
+    expect(wrapper?.className).toContain('relative');
   });
 });

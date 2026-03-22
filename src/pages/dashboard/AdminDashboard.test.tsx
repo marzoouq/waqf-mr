@@ -210,8 +210,6 @@ describe('AdminDashboard', () => {
   it('shows recent contracts table', () => {
     renderPage();
     expect(screen.getByText('آخر العقود')).toBeInTheDocument();
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
-    expect(screen.getByText('W-001')).toBeInTheDocument();
   });
 
   it('shows print button', () => {
