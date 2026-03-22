@@ -142,7 +142,7 @@ export const useToggleReportPublish = () => {
       const { data, error } = await supabase
         .from('annual_report_status')
         .upsert(
-          { fiscal_year_id: fiscalYearId, status: newStatus, published_at: publishedAt } as never,
+          { fiscal_year_id: fiscalYearId, status: newStatus, published_at: publishedAt } as Database['public']['Tables']['annual_report_status']['Insert'],
           { onConflict: 'fiscal_year_id' }
         )
         .select()

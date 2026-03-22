@@ -153,7 +153,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
         const { error } = await supabase
           .from(table)
           .delete()
-          .eq('id' as never, id);
+          .eq('id' as string & keyof Tables[T]['Row'], id);
 
         if (error) throw error;
       },

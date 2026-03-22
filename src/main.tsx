@@ -9,6 +9,15 @@ import { logger } from "./lib/logger";
 // Apply saved theme before render
 initThemeFromStorage();
 
+// Preconnect to backend API — يقلل زمن أول طلب بـ 50-100ms
+const _supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+if (_supabaseUrl) {
+  const link = document.createElement('link');
+  link.rel = 'preconnect';
+  link.href = _supabaseUrl;
+  document.head.appendChild(link);
+}
+
 
 // ─── PWA/cache guard: preview يجب أن يتجاوز أي كاش قديم دائماً ───
 const APP_BUILD_ID = import.meta.env.VITE_APP_BUILD_ID || import.meta.env.VITE_APP_VERSION || '0.0.0';
