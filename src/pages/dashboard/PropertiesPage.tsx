@@ -89,13 +89,23 @@ const PropertiesPage = () => {
     const occupancyBase = totalRented + totalVacant;
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
     const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
-    const activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
-    // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
-    const propertyExpenses = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
-    const netIncome = activeIncome - propertyExpenses;
 
-    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: propertyExpenses, netIncome };
-  }, [properties, allUnits, contracts, expenses]);
+    // في السنة المغلقة: استخدم بيانات الحساب الختامي بدلاً من العقود النشطة
+    const currentAccount = accounts?.[0];
+    let activeIncome: number;
+    let totalExpensesCalc: number;
+    if (isClosed && currentAccount) {
+      activeIncome = Number(currentAccount.total_income) || 0;
+      totalExpensesCalc = Number(currentAccount.total_expenses) || 0;
+    } else {
+      activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+      // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
+      totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
+    }
+    const netIncome = activeIncome - totalExpensesCalc;
+
+    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts]);
 
   const resetForm = () => {
     setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
