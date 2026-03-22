@@ -1,5 +1,27 @@
 [
   {
+    "version": "3.0.33",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Add edge test for national-id"
+      },
+      {
+        "type": "improvement",
+        "text": "Add edge test for national-id"
+      },
+      {
+        "type": "improvement",
+        "text": "Render add property button in tests"
+      },
+      {
+        "type": "improvement",
+        "text": "Complete remaining test fixes"
+      }
+    ]
+  },
+  {
     "version": "3.0.32",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
