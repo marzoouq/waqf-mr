@@ -12,6 +12,9 @@
 - إصلاح تسرب توزيعات السنوات غير المنشورة في `get_beneficiary_dashboard` — إضافة فلتر `published = true`
 - حذف PII (userId, userEmail) من سجلات `admin-manage-users` Edge Function
 - إصلاح تعارض Sidebar المحاسب — إخفاء رابطي "تشخيص النظام" و"واجهة المستفيد" المحظورين
+- تحويل `beneficiaries_safe` إلى `security_invoker=false` (SECURITY DEFINER) لمنع الواقف من قراءة email/phone عبر REST API مباشرة
+- حذف سياسة `Waqif can view beneficiaries` من الجدول الخام — الواقف يقرأ فقط عبر العرض الآمن
+- تقييد سياسة `Admins can manage all roles` على `user_roles` لدور `authenticated` بدل `public`
 
 ### 🎨 واجهة المستخدم
 - توسيع أزرار الإجراءات السريعة للمحاسب من 4 إلى 8 (إضافة: الشجرة المحاسبية، المقارنة التاريخية، التقرير السنوي، التقارير المالية)
