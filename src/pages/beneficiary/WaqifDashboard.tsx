@@ -4,8 +4,10 @@ import { fmt } from '@/utils/format';
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +36,21 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 const WaqifDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
+
+  // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
+  useEffect(() => {
+    const tables = ['income', 'expenses', 'payment_invoices'] as const;
+    const channel = supabase.channel('waqif-dashboard-realtime');
+    tables.forEach((table) => {
+      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+        queryClient.invalidateQueries({ queryKey: [table] });
+      });
+    });
+    channel.subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
   const {
     totalIncome, totalExpenses, availableAmount,
     income, expenses,
@@ -200,7 +216,7 @@ const WaqifDashboard = () => {
             { title: 'العقارات', value: properties.length, icon: Building2, bg: 'bg-primary/10 text-primary' },
             { title: 'العقود النشطة', value: activeContracts.length, icon: FileText, bg: 'bg-accent/10 text-accent-foreground' },
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
-            { title: 'القابل للتوزيع', value: `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
+            { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
             <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
