@@ -506,6 +506,7 @@ const InvoicesPage = () => {
           invoice={previewInvoice}
           onDownloadPdf={async (template) => {
             const origInv = invoices.find(i =>
+              i.id === previewInvoice?.id ||
               (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
               `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
             );
