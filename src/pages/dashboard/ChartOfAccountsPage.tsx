@@ -224,11 +224,22 @@ const ChartOfAccountsPage = () => {
     return filterNodes(tree);
   }, [tree, searchTerm]);
 
-  // ─── فئات رئيسية (بدون أب) لقائمة اختيار الأب ───
-  const rootCategories = useMemo(
-    () => categories.filter(c => !c.parent_id),
-    [categories],
-  );
+  // ─── فئات متاحة لاختيار الأب (كل الفئات ما عدا الفئة المُعدَّلة وفروعها) ───
+  const parentCandidates = useMemo(() => {
+    if (!editingCategory) return categories;
+    // جمع معرّفات الفئة المُعدَّلة وجميع أحفادها لمنع الحلقات
+    const excludeIds = new Set<string>();
+    const collectDescendants = (parentId: string) => {
+      excludeIds.add(parentId);
+      for (const c of categories) {
+        if (c.parent_id === parentId && !excludeIds.has(c.id)) {
+          collectDescendants(c.id);
+        }
+      }
+    };
+    collectDescendants(editingCategory.id);
+    return categories.filter(c => !excludeIds.has(c.id));
+  }, [categories, editingCategory]);
 
   // ─── فتح Dialog للإضافة ───
   const openCreateDialog = () => {
