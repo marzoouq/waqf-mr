@@ -1,79 +1,56 @@
 
 
-# فحص جنائي عميق — لوحة المستفيد
+# إضافة تنبيهات ذكية للمستفيد
 
 ---
 
-## المنهجية
+## الوضع الحالي
 
-فحص: Route Guards، Sidebar filtering، BottomNav، RPC `get_beneficiary_dashboard` (SECURITY DEFINER)، تسرب بيانات السنوات غير المنشورة، quickLinks، تناسق الصلاحيات بين الأدوار الثلاثة (مستفيد، واقف، ناظر).
+| الحدث | إشعار موجود؟ |
+|-------|:---:|
+| تحديث الحسابات الختامية | ✅ `notifyAllBeneficiaries` |
+| تحديث التوزيعات المالية | ✅ `notifyAllBeneficiaries` |
+| إقفال السنة المالية | ✅ `notifyAllBeneficiaries` |
+| تغيّر حالة طلب السلفة (موافقة/رفض/صرف) | ✅ `notifyUser` للمستفيد |
+| **تنفيذ التوزيع الفعلي (execute_distribution)** | ❌ **لا يوجد** |
+| **طلب سلفة جديد → إشعار للمستفيد بتأكيد الاستلام** | ❌ **لا يوجد** |
 
 ---
 
-## النتائج
+## التغييرات المطلوبة
 
-### 🔴 F-01: تسرب توزيعات السنوات غير المنشورة عبر RPC (أمنية - متوسطة)
+### 1. إشعار كل مستفيد عند تنفيذ التوزيع — `useDistribute.ts`
 
-**الملف:** `get_beneficiary_dashboard` — السطر 73-81
+عند نجاح `execute_distribution`، إرسال إشعار شخصي لكل مستفيد لديه `beneficiary_user_id` بمبلغ حصته الصافية:
 
-```sql
-SELECT id, amount, date, status
-  FROM distributions
- WHERE beneficiary_id = v_ben.id
- ORDER BY date DESC
- LIMIT 3
+```
+📢 صدور حصتك المالية
+تم توزيع حصتك بمبلغ X ر.س. يرجى مراجعة التفاصيل.
+→ رابط: /beneficiary/my-share
 ```
 
-**المشكلة:** الدالة `SECURITY DEFINER` تتجاوز كل سياسات RLS بما فيها سياسة RESTRICTIVE `is_fiscal_year_accessible(fiscal_year_id)`. استعلام التوزيعات لا يُفلتر حسب السنة المالية ولا يتحقق من حالة النشر (`published`).
+**التنفيذ:** في `onSuccess`، التكرار على `distributions` المُمررة وإرسال `notifyUser` لكل مستفيد لديه `user_id`.
 
-**سيناريو التسرب:** الناظر يُنشئ سنة مالية جديدة (غير منشورة) ويُدخل توزيعات تجريبية ← المستفيد يفتح لوحته ← يرى التوزيع التجريبي في "آخر التوزيعات" رغم أن السنة غير منشورة.
+يتطلب تمرير `distributions` الأصلية إلى `onSuccess` عبر `mutationFn` (إعادتها مع النتيجة).
 
-**الإصلاح:** إضافة `JOIN` مع `fiscal_years` وشرط `published = true`:
+### 2. تأكيد استلام طلب السلفة للمستفيد — `useAdvanceRequests.ts`
 
-```sql
-SELECT d.id, d.amount, d.date, d.status
-  FROM distributions d
-  LEFT JOIN fiscal_years fy ON fy.id = d.fiscal_year_id
- WHERE d.beneficiary_id = v_ben.id
-   AND (d.fiscal_year_id IS NULL OR fy.published = true
-        OR has_role(v_user_id, 'admin') OR has_role(v_user_id, 'accountant'))
- ORDER BY d.date DESC
- LIMIT 3
+عند إنشاء طلب سلفة، إرسال إشعار تأكيد للمستفيد نفسه:
+
+```
+✅ تم استلام طلب السلفة
+تم استلام طلبك بمبلغ X ر.س وسيتم مراجعته من قبل الناظر.
+→ رابط: /beneficiary/my-share
 ```
 
----
-
-### ✅ بنود تم فحصها وأثبتت سلامتها
-
-| البند | النتيجة | التفصيل |
-|-------|---------|---------|
-| Route Guards — تناسق 16 مسار | ✅ | كل مسار `/beneficiary/*` محمي بـ `ProtectedRoute` مع الأدوار الصحيحة |
-| Sidebar — فلترة الواقف | ✅ | `disclosure: false, share: false` في `DEFAULT_ROLE_PERMS.waqif` ← لا يرى الإفصاح وحصتي |
-| Sidebar — فلترة المستفيد | ✅ | كل الأقسام `true` ← يرى 15 رابط كاملة |
-| BottomNav — 4 روابط مناسبة | ✅ | الرئيسية، حصتي، الإفصاح، المراسلات |
-| quickLinks في Dashboard | ✅ | يستبعد الإفصاح وحصتي للواقف (`role !== 'waqif'`) |
-| RPC — نطاق المستخدم | ✅ | `WHERE user_id = auth.uid()` — لا يمكن لمستفيد رؤية بيانات مستفيد آخر |
-| RPC — فحص السنة المنشورة (مالية) | ✅ | `published = true OR has_role(admin/accountant)` — الدخل والمصروفات محمية |
-| RPC — REVOKE anon | ✅ | `REVOKE FROM anon` + `GRANT TO authenticated` |
-| RPC — طلبات السُلف | ✅ | مُفلترة بـ `fiscal_year_id` المُتحقق منه + `beneficiary_id` |
-| بطاقة السُلفة — إخفاء للواقف | ✅ | `role !== 'waqif'` يمنع ظهورها |
-| حالة "حسابك غير مرتبط" | ✅ | يعرض رسالة واضحة عند عدم وجود سجل مستفيد مرتبط |
-| حالة "لا سنوات منشورة" | ✅ | `NoPublishedYearsNotice` يظهر بشكل صحيح |
-| Realtime invalidation | ✅ | يستمع لتغييرات `distributions` مُفلترة بـ `beneficiary_id` |
-| Console/Network errors | ✅ | صفر أخطاء |
+**التنفيذ:** في `onSuccess` لـ `useCreateAdvanceRequest`، جلب `user_id` للمستفيد من البيانات المتاحة وإرسال `notifyUser`.
 
 ---
 
-## ملخص
+## الملفات المتأثرة
 
-| # | البند | الحالة | أولوية |
-|---|-------|--------|--------|
-| F-01 | تسرب توزيعات سنوات غير منشورة عبر RPC | 🔴 ثغرة | متوسطة |
-| الباقي (14 بند) | Route Guards, Sidebar, BottomNav, RPC scope | ✅ سليم | — |
-
----
-
-## الإصلاح المطلوب
-
-**Migration واحدة** — تحديث دالة `get_beneficiary_dashboard` لإضافة فلتر `published` على استعلام التوزيعات (السطر 73-81). يمنع ظهور توزيعات السنوات غير المنشورة للمستفيد.
+| الملف | التغيير |
+|-------|---------|
+| `src/hooks/useDistribute.ts` | إضافة `notifyUser` لكل مستفيد في `onSuccess` + تمرير distributions مع النتيجة |
+| `src/hooks/useAdvanceRequests.ts` | إضافة `notifyUser` تأكيد استلام في `useCreateAdvanceRequest.onSuccess` |
 
