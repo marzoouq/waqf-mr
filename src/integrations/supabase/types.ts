@@ -133,7 +133,7 @@ export type Database = {
           created_at: string
           distributions_amount: number
           fiscal_year: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           net_after_expenses: number
           net_after_vat: number
@@ -152,7 +152,7 @@ export type Database = {
           created_at?: string
           distributions_amount?: number
           fiscal_year: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           net_after_expenses?: number
           net_after_vat?: number
@@ -171,7 +171,7 @@ export type Database = {
           created_at?: string
           distributions_amount?: number
           fiscal_year?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           net_after_expenses?: number
           net_after_vat?: number
@@ -701,7 +701,7 @@ export type Database = {
           beneficiary_id: string
           created_at: string
           date: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           status: string
         }
@@ -711,7 +711,7 @@ export type Database = {
           beneficiary_id: string
           created_at?: string
           date: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           status?: string
         }
@@ -721,7 +721,7 @@ export type Database = {
           beneficiary_id?: string
           created_at?: string
           date?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           status?: string
         }
@@ -798,7 +798,7 @@ export type Database = {
           date: string
           description: string | null
           expense_type: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           property_id: string | null
         }
@@ -808,7 +808,7 @@ export type Database = {
           date: string
           description?: string | null
           expense_type: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           property_id?: string | null
         }
@@ -818,7 +818,7 @@ export type Database = {
           date?: string
           description?: string | null
           expense_type?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           property_id?: string | null
         }
@@ -875,7 +875,7 @@ export type Database = {
           contract_id: string | null
           created_at: string
           date: string
-          fiscal_year_id: string | null
+          fiscal_year_id: string
           id: string
           notes: string | null
           property_id: string | null
@@ -886,7 +886,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           date: string
-          fiscal_year_id?: string | null
+          fiscal_year_id: string
           id?: string
           notes?: string | null
           property_id?: string | null
@@ -897,7 +897,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           date?: string
-          fiscal_year_id?: string | null
+          fiscal_year_id?: string
           id?: string
           notes?: string | null
           property_id?: string | null
