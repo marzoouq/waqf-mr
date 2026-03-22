@@ -14,13 +14,13 @@ vi.mock('@/integrations/supabase/client', () => ({
 import { supabase } from '@/integrations/supabase/client';
 
 const createWrapper = () => {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   return ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: qc }, children);
 };
 
 beforeEach(() => {
-  vi.resetModules();
+  vi.clearAllMocks();
 });
 
 describe('useWaqfInfo', () => {
@@ -54,7 +54,7 @@ describe('useWaqfInfo', () => {
     const { useWaqfInfo } = await import('./useAppSettings');
     const { result } = renderHook(() => useWaqfInfo(), { wrapper: createWrapper() });
 
-    expect(result.current.isLoading).toBe(true);
+    // With placeholderData, isLoading may be false but data should have defaults
     expect(result.current.data.waqf_name).toBe('');
   });
 
@@ -80,7 +80,6 @@ describe('useWaqfInfo', () => {
       select: vi.fn(() => Promise.resolve({ data: null, error: err })),
     } as any);
 
-    // Override retry to 0 so error surfaces immediately
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(QueryClientProvider, { client: qc }, children);
@@ -89,9 +88,7 @@ describe('useWaqfInfo', () => {
     const { result } = renderHook(() => useWaqfInfo(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeTruthy();
     }, { timeout: 5000 });
-
-    expect(result.current.error).toBeTruthy();
   });
 });

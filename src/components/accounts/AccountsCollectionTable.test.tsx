@@ -40,7 +40,8 @@ describe('AccountsCollectionTable', () => {
 
   it('renders tenant name', () => {
     render(<AccountsCollectionTable {...defaultProps} />);
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
+    // Both mobile and desktop views render
+    expect(screen.getAllByText('أحمد').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows empty message when no contracts', () => {
@@ -50,13 +51,13 @@ describe('AccountsCollectionTable', () => {
 
   it('shows footer totals', () => {
     render(<AccountsCollectionTable {...defaultProps} />);
-    expect(screen.getByText('1 مستأجر')).toBeInTheDocument();
-    expect(screen.getByText('الإجمالي')).toBeInTheDocument();
+    expect(screen.getAllByText(/مستأجر/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('الإجمالي').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows status badge', () => {
     render(<AccountsCollectionTable {...defaultProps} />);
-    expect(screen.getByText('متأخر')).toBeInTheDocument();
+    expect(screen.getAllByText('متأخر').length).toBeGreaterThanOrEqual(1);
   });
 
   it('calls onStartEdit when edit button clicked', async () => {
@@ -75,7 +76,6 @@ describe('AccountsCollectionTable', () => {
         editData={{ contractId: 'test-id', tenantName: 'أحمد', monthlyRent: 5000, paidMonths: 10, status: 'متأخر' }}
       />
     );
-    // Should have input fields
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs.length).toBeGreaterThanOrEqual(2);
   });

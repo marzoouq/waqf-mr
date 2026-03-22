@@ -41,22 +41,23 @@ describe('AccountsContractsTable', () => {
 
   it('يعرض بيانات العقد', () => {
     render(<AccountsContractsTable {...defaultProps} />);
-    expect(screen.getByText('C-001')).toBeInTheDocument();
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
-    expect(screen.getByText('ساري')).toBeInTheDocument();
+    // Both mobile and desktop views render
+    expect(screen.getAllByText('C-001').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('أحمد').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('ساري').length).toBeGreaterThanOrEqual(1);
   });
 
   it('يستدعي onEditContract عند النقر على تعديل', () => {
     render(<AccountsContractsTable {...defaultProps} />);
     const editBtns = screen.getAllByRole('button');
-    // First icon button is edit (Pencil)
-    fireEvent.click(editBtns.find(b => b.querySelector('.lucide-pencil'))!);
+    const editBtn = editBtns.find(b => b.querySelector('.lucide-pencil'));
+    if (editBtn) fireEvent.click(editBtn);
     expect(defaultProps.onEditContract).toHaveBeenCalledWith(mockContract);
   });
 
   it('يعرض إجمالي العقود في التذييل', () => {
     render(<AccountsContractsTable {...defaultProps} />);
-    expect(screen.getByText('الإجمالي')).toBeInTheDocument();
-    expect(screen.getByText('1 عقد')).toBeInTheDocument();
+    expect(screen.getAllByText('الإجمالي').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('1 عقد').length).toBeGreaterThanOrEqual(1);
   });
 });
