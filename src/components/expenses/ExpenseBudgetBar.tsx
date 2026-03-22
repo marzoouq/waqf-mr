@@ -40,8 +40,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
     queryKey: ['expense_budgets', fiscalYearId],
     enabled: !!fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__',
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('expense_budgets')
         .select('id, fiscal_year_id, expense_type, budget_amount, created_at, updated_at')
         .eq('fiscal_year_id', fiscalYearId);
