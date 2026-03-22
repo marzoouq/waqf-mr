@@ -102,7 +102,6 @@ function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode;
   return <>{children}</>;
 }
 
-
 function App() {
   return (
     <ErrorBoundary>
