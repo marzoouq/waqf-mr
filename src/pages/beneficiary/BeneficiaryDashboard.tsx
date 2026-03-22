@@ -1,66 +1,48 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { logger } from '@/lib/logger';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { useMyShare } from '@/hooks/useMyShare';
 import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
-import { useAppSettings } from '@/hooks/useAppSettings';
-import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
+import { useBeneficiaryDashboardData } from '@/hooks/useBeneficiaryDashboardData';
 
 import { fmt } from '@/utils/format';
 
 const BeneficiaryDashboard = () => {
   const queryClient = useQueryClient();
-  // BEN-07: تحديد queryKeys بدلاً من إبطال كل الـ cache
   const handleRetry = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['beneficiaries-safe'] });
-    queryClient.invalidateQueries({ queryKey: ['income'] });
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['my-distributions-recent'] });
+    queryClient.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
   }, [queryClient]);
+
   const { role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: notifications = [] } = useNotifications();
   const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
 
-  // إعدادات السُلف
-  const { getJsonSetting } = useAppSettings();
-  const advanceSettings = getJsonSetting('advance_settings', { enabled: true, min_amount: 500, max_percentage: 50 });
-  const advanceEnabled = advanceSettings?.enabled ?? false;
-  const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== '__none__' ? fiscalYearId : undefined);
-
-  // Don't fetch financial data until fiscalYearId is valid
-  const fyReady = fiscalYearId && fiscalYearId !== '__none__';
-  const { availableAmount, isLoading: finLoading } = useFinancialSummary(
-    fyReady ? fiscalYearId : undefined,
-    fyReady ? fiscalYear?.label : undefined,
-    { fiscalYearStatus: fiscalYear?.status },
+  // ── RPC الموحد — يجلب كل البيانات في استدعاء واحد ──
+  const { data: dashData, isLoading: dashLoading, isError: dashError } = useBeneficiaryDashboardData(
+    fiscalYearId !== '__none__' ? fiscalYearId : undefined,
   );
 
-  // ── Derived financials (computed only when data is valid) ──
-  const { currentBeneficiary, pctLoading, myShare } = useMyShare({
-    beneficiaries: benError ? [] : beneficiaries,
-    availableAmount,
-  });
+  // استخراج البيانات من RPC
+  const currentBeneficiary = dashData?.beneficiary ?? null;
+  const myShare = dashData?.my_share ?? 0;
+  const distributions = dashData?.recent_distributions ?? [];
+  const pendingAdvanceCount = dashData?.pending_advance_count ?? 0;
+  const advanceSettings = dashData?.advance_settings ?? { enabled: true, min_amount: 500, max_percentage: 50 };
+  const advanceEnabled = advanceSettings?.enabled ?? false;
 
-  // BEN-02: إزالة notifLoading — الإشعارات غير حرجة ولا يجب أن تحجب العرض
-  const isLoading = authLoading || benLoading || fyLoading || pctLoading || (!fyReady ? false : finLoading);
+  const fyReady = fiscalYearId && fiscalYearId !== '__none__';
+  const isLoading = authLoading || fyLoading || (!fyReady ? false : dashLoading);
 
   /* ── Live clock ── */
   const [now, setNow] = useState(new Date());
@@ -98,29 +80,8 @@ const BeneficiaryDashboard = () => {
     return { percent, daysLeft };
   })();
 
-  // BEN-01: عرض النص حسب الدور
   const displayName = currentBeneficiary?.name || (role === 'admin' ? 'الناظر' : role === 'waqif' ? 'الواقف' : 'مستفيد');
   const roleLabel = role === 'admin' ? 'واجهة معاينة المستفيد' : 'واجهة المستفيد';
-
-  /* ── Recent distributions via useQuery + Realtime ── */
-  const { data: distributions = [] } = useQuery({
-    queryKey: ['my-distributions-recent', currentBeneficiary?.id],
-    enabled: !!currentBeneficiary?.id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('distributions')
-        .select('id, amount, date, status')
-        .eq('beneficiary_id', currentBeneficiary?.id ?? '')
-        .order('date', { ascending: false })
-        .limit(3);
-      if (error) {
-        logger.error('Failed to fetch distributions:', error.message);
-        return [];
-      }
-      return data || [];
-    },
-  });
 
   // Realtime invalidation for distributions — bfcache safe
   const beneficiaryId = currentBeneficiary?.id ?? '';
@@ -134,7 +95,7 @@ const BeneficiaryDashboard = () => {
       table: 'distributions',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
     }, () => {
-      qcRef.current.invalidateQueries({ queryKey: ['my-distributions-recent', beneficiaryId] });
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });
   }, [beneficiaryId]);
 
@@ -161,7 +122,7 @@ const BeneficiaryDashboard = () => {
     return <DashboardLayout><DashboardSkeleton /></DashboardLayout>;
   }
 
-  if (benError) {
+  if (dashError) {
     return (
       <DashboardLayout>
         <div className="p-6 flex flex-col items-center justify-center min-h-[50vh] gap-4">
@@ -175,8 +136,7 @@ const BeneficiaryDashboard = () => {
     );
   }
 
-  // BEN-03: نقل guard الحساب غير المرتبط قبل noPublishedYears
-  if (!currentBeneficiary && !benLoading) {
+  if (!currentBeneficiary && !dashLoading) {
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
@@ -334,8 +294,8 @@ const BeneficiaryDashboard = () => {
                   <div>
                     <p className="font-bold text-sm">طلب سلفة</p>
                     <p className="text-xs text-muted-foreground">
-                      {advanceRequests.filter(r => r.status === 'pending').length > 0
-                        ? `لديك ${advanceRequests.filter(r => r.status === 'pending').length} طلب قيد المراجعة`
+                      {pendingAdvanceCount > 0
+                        ? `لديك ${pendingAdvanceCount} طلب قيد المراجعة`
                         : 'يمكنك طلب سلفة من حصتك المستقبلية'}
                     </p>
                   </div>
@@ -429,7 +389,6 @@ const BeneficiaryDashboard = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm">{n.title}</p>
-                          {/* BEN-15: تغيير variant لتتوافق مع badge العدد */}
                           {!n.is_read && <Badge variant="secondary" className="text-[11px] px-1.5 py-0">جديد</Badge>}
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">{n.message}</p>

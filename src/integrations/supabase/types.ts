@@ -1904,6 +1904,10 @@ export type Database = {
         Returns: number
       }
       get_active_zatca_certificate: { Args: never; Returns: Json }
+      get_beneficiary_dashboard: {
+        Args: { p_fiscal_year_id?: string }
+        Returns: Json
+      }
       get_beneficiary_decrypted: {
         Args: { p_beneficiary_id: string }
         Returns: {
