@@ -65,15 +65,25 @@ const PropertiesViewPage = () => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
     const contractualRevenue = (contracts ?? []).reduce((s, c) => s + safeNumber(c.rent_amount), 0);
-    const activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0);
-    const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
-    const totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
+
+    // في السنة المغلقة: استخدم بيانات الحساب الختامي
+    const currentAccount = accounts?.[0];
+    let activeIncome: number;
+    let totalExpensesAll: number;
+    if (isClosed && currentAccount) {
+      activeIncome = safeNumber(currentAccount.total_income);
+      totalExpensesAll = safeNumber(currentAccount.total_expenses);
+    } else {
+      activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+      const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
+      totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
+    }
     const netIncome = activeIncome - totalExpensesAll;
     const overallOccupancy = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
     return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
-  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses]);
+  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts]);
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
 

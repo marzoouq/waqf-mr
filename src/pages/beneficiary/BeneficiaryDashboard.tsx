@@ -89,11 +89,21 @@ const BeneficiaryDashboard = () => {
   qcRef.current = queryClient;
 
   const distSubscribeFn = useCallback((channel: import('@supabase/supabase-js').RealtimeChannel) => {
+    // متابعة التوزيعات الخاصة بالمستفيد
     channel.on('postgres_changes', {
       event: '*',
       schema: 'public',
       table: 'distributions',
       filter: `beneficiary_id=eq.${beneficiaryId}`,
+    }, () => {
+      qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
+      qcRef.current.invalidateQueries({ queryKey: ['my-distributions'] });
+    });
+    // متابعة تغييرات الحسابات الختامية
+    channel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'accounts',
     }, () => {
       qcRef.current.invalidateQueries({ queryKey: ['beneficiary-dashboard'] });
     });

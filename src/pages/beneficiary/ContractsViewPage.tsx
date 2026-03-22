@@ -44,11 +44,13 @@ const ContractsViewPage = () => {
   const stats = useMemo(() => {
     if (!contracts) return { total: 0, active: 0, expired: 0, totalRent: 0, expiringSoon: 0 };
     const active = contracts.filter(c => c.status === 'active');
+    // إجمالي الإيجارات = جميع عقود السنة (ليس فقط النشطة)
+    const totalRent = contracts.reduce((sum, c) => sum + (c.rent_amount || 0), 0);
     return {
       total: contracts.length,
       active: active.length,
       expired: contracts.filter(c => c.status === 'expired').length,
-      totalRent: active.reduce((sum, c) => sum + (c.rent_amount || 0), 0),
+      totalRent,
       expiringSoon: active.filter(c => isExpiringSoon(c)).length,
     };
   }, [contracts, isExpiringSoon]);
