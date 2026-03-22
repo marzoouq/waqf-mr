@@ -96,7 +96,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async (payload: Insert<T>) => {
         const { data, error } = await supabase
           .from(table)
-          .insert(payload as never)
+          .insert(payload as never) // generic T can't be resolved at compile-time
           .select()
           .maybeSingle();
 
@@ -124,7 +124,7 @@ export function createCrudFactory<T extends TableName, TData = Row<T>>(
       mutationFn: async ({ id, ...payload }: Update<T> & { id: string }) => {
         const { data, error } = await supabase
           .from(table)
-          .update(payload as never)
+          .update(payload as never) // generic T can't be resolved at compile-time
           .eq('id' as never, id)
           .select()
           .single();

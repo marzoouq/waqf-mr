@@ -2,6 +2,7 @@
  * هوكات التقرير السنوي — CRUD لعناصر التقرير + حالة النشر + مقارنة الدخل
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Database } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
@@ -59,7 +60,7 @@ export const useCreateReportItem = () => {
     mutationFn: async (item: Omit<AnnualReportItem, 'id' | 'created_at' | 'updated_at'> & { property_id?: string | null }) => {
       const { data, error } = await supabase
         .from('annual_report_items')
-        .insert(item as never)
+        .insert(item as Database['public']['Tables']['annual_report_items']['Insert'])
         .select()
         .single();
       if (error) throw error;
@@ -82,7 +83,7 @@ export const useUpdateReportItem = () => {
     mutationFn: async ({ id, ...updates }: Partial<AnnualReportItem> & { id: string }) => {
       const { data, error } = await supabase
         .from('annual_report_items')
-        .update({ ...updates, updated_at: new Date().toISOString() } as never)
+        .update({ ...updates, updated_at: new Date().toISOString() } as Database['public']['Tables']['annual_report_items']['Update'])
         .eq('id', id)
         .select()
         .single();
@@ -142,7 +143,7 @@ export const useToggleReportPublish = () => {
       const { data, error } = await supabase
         .from('annual_report_status')
         .upsert(
-          { fiscal_year_id: fiscalYearId, status: newStatus, published_at: publishedAt } as never,
+          { fiscal_year_id: fiscalYearId, status: newStatus, published_at: publishedAt } as Database['public']['Tables']['annual_report_status']['Insert'],
           { onConflict: 'fiscal_year_id' }
         )
         .select()
