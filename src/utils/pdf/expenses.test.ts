@@ -35,6 +35,8 @@ describe('generateIncomePDF', () => {
 });
 
 describe('generateExpensesPDF', () => {
+  beforeEach(() => vi.clearAllMocks());
+
   it('saves expenses-report.pdf', async () => {
     await generateExpensesPDF([{ expense_type: 'صيانة', amount: 10000, date: '2024-02-01' }], 10000);
     expect(mockSave).toHaveBeenCalledTimes(1);
