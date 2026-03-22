@@ -1,62 +1,60 @@
 
 
-# تقرير الفحص الجنائي الهجين — النتائج الكاملة
+# تقرير الفحص الجنائي — تحقق مباشر من السيناريوهات
 
 ---
 
-## المنهجية
+## F-01: أقسام ناقصة في إعدادات الإظهار/الإخفاء — مؤكد 🔴
 
-فحص شامل: Console errors, Network errors, Security scan, Supabase linter, TypeScript safety (`as any`, `@ts-ignore`), React patterns, `console.*` مباشر, `invalidateQueries`, `dangerouslySetInnerHTML`.
+**التحقق المباشر من الكود:**
 
----
+`constants.ts` (سطر 124-135) يُعرّف:
+- Admin: 15 قسم (يشمل `annual_report`, `support`, `chart_of_accounts`)
+- Beneficiary: 12 قسم (يشمل `annual_report`, `support`)
 
-## النتائج
+`SettingsPage.tsx` — `SectionsTab` (سطر 332-336) يعرض 12 فقط:
 
-### ✅ لا توجد أخطاء بناء أو تشغيل
+| القسم | في constants.ts | في SectionsTab labels | النتيجة |
+|-------|:---:|:---:|---------|
+| `annual_report` | ✅ | ❌ | **ناقص** |
+| `support` | ✅ | ❌ | **ناقص** |
+| `chart_of_accounts` | ✅ | ❌ | **ناقص** |
 
-| الفحص | النتيجة |
-|-------|---------|
-| Console errors | 0 |
-| Network errors | 0 |
-| `invalidateQueries()` بلا queryKey | 0 (تم إصلاحها سابقاً) |
-| `supabase as any` في الواجهة | 0 (تم إصلاحها سابقاً) |
-| Empty catch blocks | 0 |
+`SettingsPage.tsx` — `BeneficiaryTab` (سطر 369-373) يعرض 10 فقط:
 
----
+| القسم | في constants.ts | في BeneficiaryTab labels | النتيجة |
+|-------|:---:|:---:|---------|
+| `annual_report` | ✅ | ❌ | **ناقص** |
+| `support` | ✅ | ❌ | **ناقص** |
 
-### نتائج Security Scan — 4 بنود (جميعها مُوثّقة ومقبولة)
+**سيناريو التأثير:** الناظر يفتح الإعدادات → تبويب "الأقسام" → لا يرى خيار إخفاء التقرير السنوي أو الدعم الفني أو الشجرة المحاسبية. هذه الأقسام تظهر دائماً بالقيمة الافتراضية `true` بلا تحكم.
 
-| # | البند | الحالة |
-|---|-------|--------|
-| 1 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | **مقصود بالتصميم** — العروض تستخدم `CASE WHEN has_role()` لتقنيع PII. الجداول الأصلية محمية بـ RLS كاملة |
-| 2 | `beneficiaries_safe` بلا RLS policies | **آمن** — هي View وليست Table، وRLS مُفعّل عليها (deny-all افتراضي). الوصول يمر عبر Security Definer الذي يُطبّق التقنيع |
-| 3 | `contracts_safe` بلا RLS policies | **نفس البند 2** — View مع Security Definer |
-| 4 | Extension in public schema | تحذير قياسي — لا تأثير أمني |
+**الإصلاح:** إضافة 3 مفاتيح لـ `SectionsTab.labels` + إضافة 2 مفاتيح لـ `BeneficiaryTab.labels` + تحديث `defaultSections` المحلي في كلا المكونين.
 
 ---
 
-### TypeScript Safety
+## F-02: استيراد فارغ في ContractsPage — مؤكد 🟡
 
-| البند | العدد | الحالة |
-|-------|-------|--------|
-| `as any` في كود الإنتاج | **1 فقط** — `navigator.deviceMemory` (API غير معرّف في DOM types) | ✅ مبرر |
-| `as any` في تعليقات (توثيق إصلاحات سابقة) | 4 تعليقات | ✅ لا تأثير |
-| `@ts-ignore` | **1 فقط** — `arabic-reshaper` بلا types | ✅ لا بديل |
+**التحقق المباشر:** سطر 5 في `ContractsPage.tsx`:
+```
+import {} from '@/components/ui/card';
+```
 
----
+لا يستورد شيئاً. كود ميت.
 
-### React Patterns
-
-| البند | النتيجة |
-|-------|---------|
-| `dangerouslySetInnerHTML` | 2 مواضع: JSON-LD ثابت + chart styles — **آمن** |
-| `console.*` مباشر في src/ | 2 ملفات: DEV-only في FiscalYearContext + test setup — **مقبول** |
+**الإصلاح:** حذف السطر.
 
 ---
 
-## الخلاصة
+## خطة التنفيذ
 
-**التطبيق نظيف تماماً.** لا أخطاء بناء، لا مشاكل برمجية، لا ثغرات أمنية جديدة. جميع الإصلاحات السابقة (type safety, cache invalidation, CORS, cleanup) مطبقة وفعّالة. نتائج Security Scan الأربع كلها مُوثّقة ومقبولة بالتصميم.
+### 1. إصلاح `SectionsTab` في SettingsPage.tsx (سطر 329-336)
+- إضافة `annual_report: true, support: true, chart_of_accounts: true` إلى `defaultSections`
+- إضافة `annual_report: 'التقرير السنوي', support: 'الدعم الفني', chart_of_accounts: 'الشجرة المحاسبية'` إلى `labels`
 
-**لا يوجد إصلاح مطلوب.**
+### 2. إصلاح `BeneficiaryTab` في SettingsPage.tsx (سطر 366-373)
+- إضافة `annual_report: true, support: true` إلى `defaultSections`
+- إضافة `annual_report: 'التقرير السنوي', support: 'الدعم الفني'` إلى `labels`
+
+### 3. حذف الاستيراد الفارغ في ContractsPage.tsx (سطر 5)
 
