@@ -1,5 +1,19 @@
 [
   {
+    "version": "3.0.25",
+    "date": "٢٢ مارس ٢٠٢٦",
+    "changes": [
+      {
+        "type": "improvement",
+        "text": "Add realtime and constraints"
+      },
+      {
+        "type": "improvement",
+        "text": "دمج توزيعالت لـ Realtime وتطبيع القيد وتقييد FY"
+      }
+    ]
+  },
+  {
     "version": "3.0.24",
     "date": "٢٢ مارس ٢٠٢٦",
     "changes": [
