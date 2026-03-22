@@ -1,78 +1,84 @@
 
 
-# خطة الاختبار الشامل وفحص الأداء
+# إكمال خطة الاختبار الشامل وفحص الأداء
 
 ---
 
-## الحالة الحالية
+## ما تم إنجازه حتى الآن
 
-### اختبارات الواجهة
-- **156 ملف اختبار** موجودة في المشروع (hooks, components, pages, utils)
-- بنية Vitest + jsdom + React Testing Library مكتملة
-- تغطية مطلوبة: 60% (statements, branches, functions, lines)
-- الجولة السابقة أصلحت 14 اختبار وبقي **46 فاشل**
-
-### اختبارات Edge Functions
-- **12 edge function** بدون أي اختبارات (لا يوجد `index.test.ts`)
-- الوظائف الحرجة: `guard-signup`, `lookup-national-id`, `zatca-api`, `ai-assistant`
-
-### الأداء
-- `staleTime: 5min`, `gcTime: 30min`, `refetchOnWindowFocus: false` — ممتاز
-- 16 manual chunk + lazy loading — ممتاز
-- `useRawFinancialData` يطلق 5 queries متوازية (مقبول مع التخزين المؤقت)
-- `useComputedFinancials` يستخدم `useMemo` — جيد
+| الخطوة | الحالة |
+|--------|--------|
+| 1. تشغيل vitest run | ✅ تم |
+| 2. إصلاح الاختبارات الفاشلة (الجولة 1: 14 ملف) | ✅ تم |
+| 2. إصلاح الاختبارات الفاشلة (الجولة 2: 13 ملف accounts/pdf/contexts) | ✅ تم |
+| 2. إصلاح الاختبارات المتبقية (~33 ملف صفحات) | ❌ متبقي |
+| 3. اختبار المتصفح | ❌ متبقي (يتطلب تسجيل دخول) |
+| 4. إنشاء اختبارات Edge Functions | ❌ متبقي |
+| 5. قياس الأداء | ❌ متبقي |
 
 ---
 
-## خطة التنفيذ
+## الخطوات المتبقية للتنفيذ
 
-### المرحلة 1: تشغيل اختبارات الواجهة
-- تشغيل `vitest run` لفحص جميع الـ 156 ملف
-- تصنيف الفشل: drift في labels/structure vs أخطاء حقيقية
-- إصلاح الاختبارات الفاشلة بأولوية: hooks المالية > components الحسابات > PDF utils
+### الخطوة 2 (تكملة): إصلاح اختبارات الصفحات المتبقية (~33 ملف)
 
-### المرحلة 2: اختبار المتصفح
-يتطلب تسجيل دخول في Preview أولاً. التدفقات المطلوب اختبارها:
+الصفحات التي لم تُصلح بعد وتحتاج مطابقة مع الواجهة الحالية:
 
-1. **لوحة المستفيد** — ظهور البطاقات المالية
-2. **تبديل السنة المالية** — التحقق من تغير الأرقام بين النشطة والمغلقة
-3. **صفحة العقارات** — بطاقات الدخل/المصروفات/صافي الدخل
-4. **صفحة العقود** — إجمالي الإيجارات
-5. **صفحة حصتي** — المبالغ المستلمة
+**صفحات المستفيد:**
+- `WaqifDashboard.test.tsx` — تحديث mocks لتطابق hooks الجديدة
+- `MySharePage.test.tsx` — تحديث mock `useFinancialSummary` والتسميات
+- `DisclosurePage.test.tsx` — مطابقة بنية البطاقات الحالية
+- `AccountsViewPage.test.tsx` — مطابقة responsive duplicates
+- `CarryforwardHistoryPage.test.tsx` — تحديث بنية الجدول
 
-### المرحلة 3: اختبار Edge Functions
-إنشاء اختبارات للوظائف الحرجة:
-- `guard-signup` — التحقق من validation + rate limiting
-- `lookup-national-id` — التحقق من رفض الطلبات غير المصرح بها
+**صفحات لوحة التحكم:**
+- `InvoicesPage.test.tsx` — تحديث أعمدة الجدول والأزرار
+- `ContractsPage.test.tsx` — مطابقة التسميات
+- `PropertiesPage.test.tsx` — مطابقة البطاقات
+- `ZatcaManagementPage.test.tsx` — تحديث mocks
+- `SettingsPage.test.tsx`, `UserManagementPage.test.tsx`, `BylawsPage.test.tsx`
 
-### المرحلة 4: فحص الأداء
-- تشغيل `browser--performance_profile` لقياس Web Vitals
-- فحص DOM complexity و long tasks
-- التحقق من حجم الحزم الفعلي
+**المنهجية:** نفس النمط المتبع سابقاً:
+1. قراءة الملف المصدر الحالي
+2. تحديث التسميات العربية في التوقعات
+3. معالجة responsive duplicates بـ `getAllByText`
+4. تشغيل vitest للتحقق
 
----
+### الخطوة 4: إنشاء اختبارات Edge Functions
 
-## ملخص التوصيات الحالية (من تحليل الكود)
+`guard-signup` لديها اختبار بالفعل (`index.test.ts`). المطلوب:
 
-| البند | الحالة | ملاحظة |
-|-------|--------|--------|
-| Query caching | ✅ ممتاز | staleTime 5min + gcTime 30min |
-| Re-renders | ✅ جيد | useMemo في computed, useRef في auth |
-| Bundle splitting | ✅ ممتاز | 16 chunk + lazy loading |
-| PWA caching | ✅ ممتاز | NetworkOnly للبيانات الحساسة |
-| Edge function tests | ❌ غير موجودة | 12 وظيفة بدون اختبارات |
-| 46 اختبار فاشل | ⚠️ drift | تحتاج مطابقة مع UI الحالي |
+**إنشاء `lookup-national-id/index.test.ts`:**
+- اختبار رفض GET (405)
+- اختبار رفض طلب بدون body (400)
+- اختبار رفض بدون Authorization header
+- اختبار رقم هوية غير صالح
+- تشغيلها عبر أداة `test_edge_functions`
+
+### الخطوة 5: قياس الأداء
+
+- تشغيل `browser--performance_profile` لقياس Web Vitals و DOM complexity
+- تحليل النتائج وتقديم توصيات
+- ملاحظة: يتطلب أن يكون المستخدم مسجل دخول في Preview
 
 ---
 
 ## ترتيب التنفيذ
 
 ```text
-1. تشغيل vitest run → تقرير الفشل
-2. إصلاح الاختبارات الفاشلة (46)
-3. اختبار المتصفح (يتطلب تسجيل دخول)
-4. إنشاء اختبارات edge functions
-5. قياس الأداء بالمتصفح
-6. تطبيق أي تحسينات مكتشفة
+1. إصلاح ~33 اختبار صفحة متبقية (أكبر مهمة)
+2. تشغيل vitest run للتحقق من النتائج الكاملة
+3. إنشاء اختبار lookup-national-id
+4. تشغيل اختبارات edge functions
+5. قياس الأداء بالمتصفح (يتطلب تسجيل دخول)
 ```
+
+---
+
+## التفاصيل التقنية
+
+معظم الاختبارات الفاشلة تقع في نفس الأنماط المتكررة:
+- **Responsive duplicates:** `jsdom` يُظهر عناصر `md:hidden` و `hidden md:block` معاً → استخدام `getAllByText` أو تحديد الحاوية
+- **Label drift:** تسميات عربية تغيّرت في الواجهة ولم تُحدّث في الاختبارات
+- **Mock mismatch:** hooks جديدة (مثل `useBeneficiaryDashboardData`) تحتاج mocks محدّثة
 
