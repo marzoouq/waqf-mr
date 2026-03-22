@@ -69,7 +69,7 @@ vi.mock('@/components/SkeletonLoaders', () => ({
 }));
 
 vi.mock('@/components/PageHeaderCard', () => ({
-  default: ({ title }: any) => <div>{title}</div>,
+  default: ({ title, actions }: any) => <div>{title}{actions}</div>,
 }));
 
 vi.mock('@/components/ExportMenu', () => ({
