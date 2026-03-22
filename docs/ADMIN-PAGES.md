@@ -336,6 +336,33 @@ ReportsPage (عرض + تصدير)
 | إنشاء عقد جديد | يُربط تلقائياً بالسنة المالية النشطة |
 | تعديل عقد | `fiscal_year_id` لا يتغير |
 | إضافة سنة مالية أقدم | العقود تبقى في سنتها الأصلية |
+
+---
+
+## 9. أزرار الإجراءات السريعة للمحاسب
+
+المحاسب يرى 8 أزرار مخصصة في لوحة التحكم (بدلاً من أزرار الناظر):
+
+| الزر | المسار | الأيقونة |
+|------|--------|----------|
+| تسجيل دخل | `/dashboard/income` | `TrendingUp` |
+| تسجيل مصروف | `/dashboard/expenses` | `FileText` |
+| الحسابات الختامية | `/dashboard/accounts` | `Calculator` |
+| إدارة الفواتير | `/dashboard/invoices` | `Receipt` |
+| الشجرة المحاسبية | `/dashboard/chart-of-accounts` | `GitBranch` |
+| المقارنة التاريخية | `/dashboard/comparison` | `ArrowUpDown` |
+| التقرير السنوي | `/dashboard/annual-report` | `Printer` |
+| التقارير المالية | `/dashboard/reports` | `Gauge` |
+
+### المسارات المحظورة على المحاسب
+
+| المسار | السبب |
+|--------|-------|
+| `/dashboard/users` | إدارة المستخدمين — admin فقط |
+| `/dashboard/settings` | إعدادات النظام — admin فقط |
+| `/dashboard/zatca` | إدارة ZATCA — admin فقط |
+| `/dashboard/diagnostics` | تشخيص النظام — admin فقط |
+| `/beneficiary` | واجهة المستفيد — admin + beneficiary فقط |
 | لوحة التحكم | تعرض فقط عقود السنة المالية المختارة |
 
 ### التوحيد مع بقية النظام

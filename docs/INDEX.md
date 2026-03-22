@@ -160,6 +160,9 @@
 
 | التاريخ | الإصلاح |
 |---------|---------|
+| 2026-03-22 | إصلاح تسرب توزيعات السنوات غير المنشورة في `get_beneficiary_dashboard` |
+| 2026-03-22 | حذف PII من سجلات `admin-manage-users` Edge Function |
+| 2026-03-22 | إصلاح تعارض Sidebar المحاسب — إخفاء المسارات المحظورة |
 | 2026-03-19 | تفعيل `strict: true` في `tsconfig.app.json` |
 | 2026-03-19 | إصلاح تسريب PII في `usePrefetchAccounts` — تحويل لـ `beneficiaries_safe` |
 | 2026-03-19 | إصلاح `getSession()` → `getUser()` في `useWebAuthn.ts` |

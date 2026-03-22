@@ -694,6 +694,13 @@ erDiagram
 | `cron_update_overdue_invoices()` | تحديث حالة الفواتير المتأخرة تلقائياً | SECURITY DEFINER |
 | `sync_unit_status_on_contract_change()` | مزامنة حالة الوحدة (شاغرة/مؤجرة) عند تغيير العقد | SECURITY DEFINER — trigger |
 | `enforce_single_active_fy()` | منع وجود أكثر من سنة مالية نشطة واحدة | SECURITY DEFINER — trigger |
+| `get_beneficiary_dashboard(p_fiscal_year_id?)` | جلب بيانات لوحة المستفيد (ملخص مالي + توزيعات + سلف) | SECURITY DEFINER — authenticated |
+| `get_max_advance_amount(p_beneficiary_id, p_fiscal_year_id)` | حساب الحد الأقصى لمبلغ السلفة | SECURITY DEFINER |
+| `get_active_zatca_certificate()` | جلب شهادة ZATCA النشطة | SECURITY DEFINER |
+| `allocate_icv_and_chain(p_invoice_hash, p_invoice_id, p_source_table?)` | تخصيص ICV وربط سلسلة الفواتير | SECURITY DEFINER |
+| `mask_audit_fields(p_data)` | تقنيع الحقول الحساسة في سجل المراجعة | SECURITY DEFINER |
+| `get_next_icv()` | جلب رقم ICV التالي مع قفل | SECURITY DEFINER |
+| `notify_user(p_user_id, p_title, p_message, p_type?, p_link?)` | إرسال إشعار لمستخدم محدد | SECURITY DEFINER — authenticated |
 
 ### قيود `log_access_event` الأمنية:
 - المستخدم المجهول (`anon`) يمكنه فقط تسجيل: `login_failed`, `login_success`, `signup_attempt`
