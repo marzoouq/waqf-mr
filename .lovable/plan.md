@@ -1,151 +1,130 @@
 
 
-# تقرير الفحص الشامل للكود (Codebase Audit)
+# تقرير الفحص الجنائي الهجين العميق — بعد إعادة الهيكلة
 
 ---
 
-## ملخص تنفيذي
+## الحالة بعد آخر تعديلات
 
-المشروع **منظم بشكل جيد جداً** مع معمارية واضحة وفصل مسؤوليات مناسب في معظم المناطق. تم فحص **~200+ ملف مصدري** عبر 10 مجلدات رئيسية. فيما يلي النتائج.
+تم التحقق من تقسيم `useAccountsPage` (593 سطر سابقاً) إلى 4 hooks فرعية + تحويل `useSupportStats` إلى RPC. فيما يلي نتائج الفحص العميق.
 
 ---
 
-## 1. هيكل المشروع — ✅ ممتاز
+## 1. مشكلة معمارية مكتشفة: Circular Import Risk
 
+`useAccountsActions.ts` يستورد `findAccountByFY` من `useAccountsPage.ts`:
 ```text
-src/
-├── components/    → 18 مجلد فرعي + 30+ مكون مشترك
-├── contexts/      → AuthContext + FiscalYearContext (2 فقط — مركّز)
-├── hooks/         → 40+ hook (بيانات + منطق أعمال)
-├── lib/           → أدوات أساسية (queryClient, logger, lazyWithRetry)
-├── utils/         → حسابات + PDF + تنسيق + تصدير
-├── types/         → database.ts (نوع واحد مركزي)
-├── pages/         → dashboard/ + beneficiary/ + صفحات عامة
-├── constants/     → (فارغ أو محدود)
-├── integrations/  → supabase client + types (auto-generated)
-└── test/          → اختبارات تكامل
+useAccountsPage.ts → imports useAccountsActions
+useAccountsActions.ts → imports findAccountByFY from useAccountsPage
 ```
 
-**الإيجابيات:**
-- فصل واضح بين Pages / Components / Hooks / Utils
-- كل domain له مجلد مكونات خاص (accounts/, contracts/, properties/...)
-- Context محدود بـ 2 فقط (Auth + FiscalYear) — لا يوجد context soup
+**هذا تبعية دائرية (circular dependency).** حالياً يعمل لأن Vite يتعامل معها عبر hoisting، لكنه هش ويمكن أن يكسر في بيئات أخرى.
+
+**التوصية:** نقل `findAccountByFY` إلى ملف مستقل `src/hooks/findAccountByFY.ts` أو `src/utils/findAccountByFY.ts`.
 
 ---
 
-## 2. المعمارية والأنماط — ✅ جيدة مع ملاحظات
+## 2. استخدام `any` في hooks الجديدة
 
-### ✅ أنماط ممتازة مُطبّقة
-| النمط | التطبيق |
-|-------|---------|
-| CRUD Factory | `useCrudFactory.ts` — 172 سطر يولّد useQuery + useMutation لأي جدول |
-| Composition hooks | `useFinancialSummary` = `useRawFinancialData` + `useComputedFinancials` |
-| Lazy loading | جميع الصفحات عبر `lazyWithRetry` مع retry logic |
-| Error Boundaries | متعددة المستويات (App root + SecurityGuard + PWA + AI) |
-| Deferred rendering | `DeferredRender` يؤخر AI Assistant حتى idle |
-| Fiscal Year filtering | مركزي عبر `FiscalYearContext` + `__none__` / `__skip__` guards |
+بعد التقسيم، الـ sub-hooks تستخدم `any[]` في 5 مواضع:
 
-### ⚠️ ملاحظة 1: `useAccountsPage` — 593 سطر (God Hook)
-
-هذا هو أكبر hook في المشروع ويحتوي على:
-- جلب بيانات من **10 مصادر** (accounts, contracts, income, expenses, beneficiaries, tenantPayments, units, properties, settings, fiscalYears)
-- حسابات مالية معقدة (VAT, allocations, collection data)
-- حالة UI (editing, dialogs, delete confirmation)
-- عمليات CRUD (save, close year, delete, export PDF)
-- **37 قيمة مُرجعة** في الـ return object
-
-**التوصية:** تقسيمه إلى 3-4 hooks فرعية:
-1. `useAccountsData` — جلب البيانات فقط
-2. `useAccountsCalculations` — الحسابات المالية (VAT, allocations, totals)
-3. `useAccountsEditing` — حالة التحرير والحوارات
-4. `useAccountsActions` — العمليات (save, close year, export)
-
-> ملاحظة: هذا القرار موثّق بالفعل في ذاكرة المشروع (`financial-logic-refactor`) لكن لم يُنفّذ بعد.
-
-### ⚠️ ملاحظة 2: منطق أعمال في مكونات
-
-بعض مكونات `accounts/` تحتوي على حسابات بسيطة inline (مثل `AccountsSummaryCards`) — هذا مقبول لأن الحسابات الثقيلة في `useAccountsPage` و `accountsCalculations.ts`.
-
----
-
-## 3. فصل المسؤوليات (Separation of Concerns) — ✅ جيد
-
-| الطبقة | المسؤولية | الحالة |
-|--------|-----------|--------|
-| Pages | تجميع مكونات + routing | ✅ نظيفة — لا منطق أعمال |
-| Components | عرض UI | ✅ معظمها presentational |
-| Hooks | جلب بيانات + منطق أعمال | ✅ مع استثناء `useAccountsPage` |
-| Utils | حسابات صرفة (pure functions) | ✅ ممتازة — `accountsCalculations.ts` منفصل |
-| Contexts | حالة عالمية (auth, fiscal year) | ✅ مركّز — 2 فقط |
-| Edge Functions | منطق الباك إند | ✅ كل وظيفة في مجلد مستقل |
-
-**⚠️ ملاحظة:** `useSupportTickets.ts` يحتوي على `useSupportStats` الذي يُطلق **9 استعلامات متوازية** لإحصائيات لوحة الدعم. هذا مرشح للتحويل إلى RPC واحد في قاعدة البيانات.
-
----
-
-## 4. تعقيد الكود — ✅ مقبول عموماً
-
-| الملف | الأسطر | التقييم |
-|-------|--------|---------|
-| `useAccountsPage.ts` | 593 | ⚠️ يحتاج تقسيم |
-| `useCrudFactory.ts` | 172 | ✅ مجرّد ومُعاد الاستخدام |
-| `AuthContext.tsx` | 231 | ✅ مناسب — retry logic + security alerts |
-| `FiscalYearContext.tsx` | 114 | ✅ بسيط ومركّز |
-| `useFinancialSummary.ts` | 35 | ✅ ممتاز — composition pattern |
-| `useComputedFinancials.ts` | ~80 | ✅ محسوب بـ useMemo |
-| `App.tsx` | 204 | ✅ منظم — lazy loading + error boundaries |
-| `queryClient.ts` | 43 | ✅ مركزي ومضبوط |
-
----
-
-## 5. أمان الكود — ✅ ممتاز
-
-| البند | الحالة |
+| الملف | الموضع |
 |-------|--------|
-| RLS على جميع الجداول | ✅ 37/37 |
-| SECURITY DEFINER على `has_role` | ✅ |
-| Views آمنة (PII masking) | ✅ `beneficiaries_safe`, `contracts_safe` |
-| Edge Functions auth | ✅ `getUser()` في كل وظيفة حساسة |
-| Rate limiting | ✅ `check_rate_limit()` في `guard-signup`, `lookup-national-id` |
-| RBAC في الواجهة | ✅ `ProtectedRoute` مع `allowedRoles` |
-| لا hardcoded secrets | ✅ |
-| `signUp` عبر Edge Function | ✅ `guard-signup` (ليس مباشراً) |
+| `useAccountsActions.ts` | `accounts: any[]`, `contracts: any[]`, `beneficiaries: any[]` |
+| `useAccountsEditing.ts` | `contracts: any[]`, `getExpectedPayments: (contract: any) => number` |
+
+**التوصية:** استبدال `any` بالأنواع الفعلية من `Tables<'contracts'>`, `Tables<'accounts'>`, `Tables<'beneficiaries'>`.
 
 ---
 
-## 6. قابلية الصيانة — ✅ جيدة
+## 3. مشكلة Zero-Values في `useAccountsActions`
 
-| البند | الحالة |
-|-------|--------|
-| TypeScript strict | ✅ `noUnusedLocals`, `noUnusedParameters` |
-| اختبارات | ✅ 156 ملف اختبار |
-| تعليقات بالعربي | ✅ واضحة ومفيدة |
-| Bug fix tracking | ✅ تعليقات مثل `// N-06 fix:`, `// H-02 fix:` |
-| Error handling | ✅ try/catch + toast + logger في كل hook |
-| Logging | ✅ `logger.ts` مركزي |
+عند إنشاء `useAccountsActions` في `useAccountsPage.ts`، يتم تمرير **أصفار ثابتة** لجميع القيم المالية (سطر 38-52):
+```typescript
+totalIncome: 0, totalExpenses: 0, adminShare: 0, ...
+```
+
+هذه القيم تُستخدم في `buildAccountData()` و `handleExportPdf()`. معناه أن **حفظ الحسابات وتصدير PDF يستخدمان أصفار بدل القيم الحقيقية**.
+
+**هذا bug فعلي.** القيم المحسوبة في `calc` لا تُعاد ربطها بـ `actions`.
+
+**التوصية:** إما:
+- (أ) تمرير calc values عبر ref/callback pattern
+- (ب) نقل `buildAccountData` خارج `useAccountsActions` وجعل `useAccountsPage` يمرر القيم المحسوبة مباشرة
 
 ---
 
-## 7. التوصيات المرتبة بالأولوية
+## 4. تقييم التقسيم الجديد
 
-| # | التوصية | الأولوية | الجهد |
+| الملف | الأسطر | المسؤولية | التقييم |
+|-------|--------|-----------|---------|
+| `useAccountsPage.ts` | 138 | Composition layer | ✅ نظيف |
+| `useAccountsData.ts` | 74 | Data fetching | ✅ ممتاز |
+| `useAccountsCalculations.ts` | 158 | Financial math | ✅ جيد — useMemo مطبّق |
+| `useAccountsEditing.ts` | 146 | UI state | ✅ نظيف |
+| `useAccountsActions.ts` | 255 | CRUD + settings | ⚠️ يحتوي على settings state + CRUD + PDF — يمكن تقسيمه أكثر |
+
+---
+
+## 5. فحص باقي الـ Hooks
+
+| Hook | الأسطر | التقييم | ملاحظة |
+|------|--------|---------|--------|
+| `useBeneficiaryDashboardData` | 72 | ✅ ممتاز | RPC واحد يستبدل 6 hooks |
+| `useComputedFinancials` | 182 | ✅ جيد | useMemo شامل، تعليقات إصلاح واضحة |
+| `useRawFinancialData` | 27 | ✅ ممتاز | بسيط ومركّز |
+| `useFinancialSummary` | 35 | ✅ ممتاز | Composition pattern نظيف |
+| `useCrudFactory` | 172 | ✅ ممتاز | Generic factory مُعاد الاستخدام |
+| `useMyShare` | 42 | ✅ ممتاز | safeNumber مطبّق |
+| `useSupportTickets` | 246 | ✅ محسّن | RPC `get_support_stats` بدل 9 queries |
+| `FiscalYearContext` | 114 | ✅ ممتاز | fallback آمن + localStorage |
+| `AuthContext` | 231 | ✅ جيد | roleRef + retry logic |
+
+---
+
+## 6. Edge Functions — فحص الأمان
+
+| الوظيفة | Auth Check | Rate Limit | Input Validation |
+|---------|-----------|------------|-----------------|
+| `guard-signup` | ✅ | ✅ | ✅ |
+| `lookup-national-id` | ✅ | ✅ | ✅ |
+| `ai-assistant` | ✅ getUser | ❌ | ⚠️ يعتمد على AI model validation |
+| `admin-manage-users` | ✅ admin check | ❌ | ✅ |
+| `zatca-api` | ✅ | ❌ | ✅ |
+| `generate-invoice-pdf` | ✅ | ❌ | ✅ |
+| `webauthn` | ✅ | ❌ | ✅ |
+| `auth-email-hook` | ✅ webhook signature | N/A | ✅ |
+| `check-contract-expiry` | ✅ cron/service | N/A | N/A |
+
+**ملاحظة:** `ai-assistant` و `admin-manage-users` بدون rate limiting — مرشحة للإضافة.
+
+---
+
+## 7. نظافة الكود
+
+| البند | العدد | التقييم |
+|-------|-------|---------|
+| `eslint-disable` في src/ | 9 ملفات | ⚠️ معظمها `@typescript-eslint/no-explicit-any` |
+| `any` في hooks | 5 مواضع | ⚠️ قابلة للاستبدال بأنواع محددة |
+| Circular imports | 1 (findAccountByFY) | ⚠️ يحتاج إصلاح |
+| Dead code | 0 مكتشف | ✅ |
+| Console.log | 0 في production | ✅ (logger مستخدم) |
+
+---
+
+## 8. ملخص التوصيات المرتبة بالأولوية
+
+| # | التوصية | الأولوية | الأثر |
 |---|---------|----------|-------|
-| 1 | **تقسيم `useAccountsPage`** (593 سطر) إلى 3-4 hooks فرعية | عالية | متوسط |
-| 2 | **تحويل `useSupportStats`** من 9 استعلامات إلى RPC واحد | متوسطة | منخفض |
-| 3 | **إضافة `distributions` للـ Realtime** | متوسطة | منخفض |
-| 4 | **حذف القيد المكرر** `unique_contract_number` | منخفضة | منخفض |
-| 5 | **جعل `fiscal_year_id` NOT NULL** في الجداول المالية الأربعة | منخفضة | منخفض |
-| 6 | **إضافة اختبارات Edge Functions** للوظائف الـ 10 المتبقية | منخفضة | متوسط |
+| 1 | **إصلاح bug الأصفار في buildAccountData/handleExportPdf** — القيم المالية تُمرر كأصفار بدل القيم المحسوبة | **حرجة** | حفظ الحسابات وتصدير PDF معطّل |
+| 2 | **كسر الـ circular import** — نقل `findAccountByFY` لملف مستقل | عالية | منع أخطاء bundler |
+| 3 | **استبدال `any[]` بأنواع محددة** في useAccountsActions و useAccountsEditing | متوسطة | type safety |
+| 4 | **إضافة rate limiting** لـ `ai-assistant` و `admin-manage-users` | متوسطة | أمان |
+| 5 | **جعل `fiscal_year_id` NOT NULL** في الجداول المالية (income, expenses, distributions, accounts) | منخفضة | سلامة بيانات |
 
 ---
 
 ## الخلاصة
 
-المشروع في حالة **ممتازة معمارياً** لمشروع بهذا الحجم (37 جدول، 200+ ملف، 12 Edge Function):
-- **فصل مسؤوليات واضح** بين الطبقات
-- **أنماط متقدمة** (CRUD Factory, Composition Hooks, Deferred Rendering)
-- **أمان شامل** (RLS 100%, Edge Function auth, RBAC)
-- **اختبارات شاملة** (156 ملف، 400+ test)
-
-المشكلة الوحيدة الجوهرية هي **`useAccountsPage`** (593 سطر) الذي يحتاج تقسيم — وهو قرار معماري موثّق بالفعل ينتظر التنفيذ.
+المشروع في حالة **جيدة جداً** بعد إعادة الهيكلة مع **bug حرج واحد**: القيم المالية المُمررة كأصفار في `useAccountsActions` بعد التقسيم. هذا يحتاج إصلاح فوري لأنه يؤثر على حفظ الحسابات وتصدير PDF. باقي الملاحظات تحسينات نوعية.
 
