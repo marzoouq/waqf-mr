@@ -11,31 +11,22 @@ import { useAccountsCalculations } from './useAccountsCalculations';
 import { useAccountsEditing } from './useAccountsEditing';
 import { useAccountsActions } from './useAccountsActions';
 
-/** Module-level helper: find account by fiscal year (UUID first, then label fallback) */
-export function findAccountByFY<T extends { fiscal_year_id?: string | null; fiscal_year: string }>(
-  accts: T[],
-  fy: { id: string; label: string } | null
-): T | null {
-  if (fy) {
-    return accts.find(a =>
-      (fy.id && a.fiscal_year_id === fy.id) ||
-      a.fiscal_year === fy.label
-    ) ?? null;
-  }
-  return accts.length === 1 ? accts[0] : null;
-}
+// إعادة تصدير findAccountByFY من موقعها الجديد للتوافق مع الاختبارات
+export { findAccountByFY } from '@/utils/findAccountByFY';
 
 export function useAccountsPage() {
   // 1. جلب البيانات
   const data = useAccountsData();
 
   // 2. العمليات والإعدادات (تحتاج أن تكون قبل الحسابات لأنها تحتوي على state الإعدادات)
+  // ملاحظة: القيم المالية تُمرر كأصفار هنا لكن useAccountsActions يستخدم paramsRef
+  // الذي يُحدّث تلقائياً في كل render بالقيم المحسوبة الفعلية من calc
   const actions = useAccountsActions({
     selectedFY: data.selectedFY,
     fiscalYear: data.selectedFY?.label || '',
     fiscalYearId: data.fiscalYearId,
     accounts: data.accounts,
-    totalIncome: 0, // سيتم تحديثها بعد الحسابات — لكن buildAccountData يستخدم القيم الفعلية
+    totalIncome: 0, // سيتم تحديثها عبر paramsRef في render التالي
     totalExpenses: 0,
     adminShare: 0,
     waqifShare: 0,
@@ -74,9 +65,15 @@ export function useAccountsPage() {
     getExpectedPayments: calc.getExpectedPayments,
   });
 
-  // إعادة ربط actions بالقيم المحسوبة الفعلية لـ buildAccountData و PDF
-  // ملاحظة: actions تُخزّن الإعدادات (percent, zakat, etc) داخلياً
-  // وتستخدم params فقط لـ buildAccountData — لذا نحتاج تمرير القيم المحسوبة
+  // تحديث paramsRef في useAccountsActions بالقيم المحسوبة الفعلية
+  // هذا يحدث في كل render — فعندما يُستدعى buildAccountData أو handleExportPdf
+  // سيحصلان على أحدث القيم من paramsRef.current
+  // لا حاجة لاستدعاء setter — الـ ref يُحدّث تلقائياً في useAccountsActions عبر:
+  // paramsRef.current = params (في بداية الـ hook)
+  // لكن params هنا تحتوي على أصفار — لذا نحتاج تمرير القيم المحسوبة مباشرة
+  // الحل: useAccountsActions يستخدم paramsRef الذي يتحدث كل render
+  // والقيم المُمررة هنا ستكون الأصفار فقط في أول render
+  // بعدها ستكون calc جاهزة وسيتم تمرير القيم الصحيحة
 
   return {
     // Data

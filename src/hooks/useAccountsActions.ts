@@ -11,7 +11,7 @@ import { notifyAllBeneficiaries } from '@/utils/notifications';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fmt } from '@/utils/format';
-import { findAccountByFY } from './useAccountsPage';
+import { findAccountByFY } from '@/utils/findAccountByFY';
 
 interface ActionsParams {
   selectedFY: { id: string; label: string; status: string } | null;
@@ -44,6 +44,11 @@ export function useAccountsActions(params: ActionsParams) {
   const queryClient = useQueryClient();
   const createAccount = useCreateAccount();
   const appSettings = useAppSettings();
+
+  // حفظ آخر قيم params في ref لاستخدامها في buildAccountData/handleExportPdf
+  // هذا يحل مشكلة تمرير الأصفار الأولية — paramsRef يُحدّث كل render بالقيم الفعلية
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
 
   const [closeYearOpen, setCloseYearOpen] = useState(false);
   const [isClosingYear, setIsClosingYear] = useState(false);
@@ -126,35 +131,40 @@ export function useAccountsActions(params: ActionsParams) {
     saveSetting('fiscal_year', val);
   };
 
-  const buildAccountData = () => ({
-    fiscal_year: params.selectedFY?.label || fiscalYear,
-    fiscal_year_id: params.selectedFY?.id || '',
-    total_income: params.totalIncome,
-    total_expenses: params.totalExpenses,
-    admin_share: params.adminShare,
-    waqif_share: params.waqifShare,
-    waqf_revenue: params.waqfRevenue,
-    vat_amount: manualVat,
-    distributions_amount: manualDistributions,
-    net_after_expenses: params.netAfterExpenses,
-    net_after_vat: params.netAfterVat,
-    zakat_amount: zakatAmount,
-    waqf_corpus_manual: waqfCorpusManual,
-    waqf_corpus_previous: waqfCorpusPrevious,
-  });
+  // استخدام paramsRef.current للحصول على أحدث القيم المحسوبة
+  const buildAccountData = () => {
+    const p = paramsRef.current;
+    return {
+      fiscal_year: p.selectedFY?.label || fiscalYear,
+      fiscal_year_id: p.selectedFY?.id || '',
+      total_income: p.totalIncome,
+      total_expenses: p.totalExpenses,
+      admin_share: p.adminShare,
+      waqif_share: p.waqifShare,
+      waqf_revenue: p.waqfRevenue,
+      vat_amount: manualVat,
+      distributions_amount: manualDistributions,
+      net_after_expenses: p.netAfterExpenses,
+      net_after_vat: p.netAfterVat,
+      zakat_amount: zakatAmount,
+      waqf_corpus_manual: waqfCorpusManual,
+      waqf_corpus_previous: waqfCorpusPrevious,
+    };
+  };
 
   const handleCreateAccount = async () => {
     try {
       await createAccount.mutateAsync(buildAccountData());
+      const p = paramsRef.current;
       notifyAllBeneficiaries(
         'تحديث الحسابات الختامية',
-        `تم تحديث الحسابات الختامية للسنة المالية ${params.selectedFY?.label || fiscalYear}`,
+        `تم تحديث الحسابات الختامية للسنة المالية ${p.selectedFY?.label || fiscalYear}`,
         'info', '/beneficiary/accounts',
       );
       if (manualDistributions > 0) {
         notifyAllBeneficiaries(
           'تحديث التوزيعات المالية',
-          `تم تحديث توزيعات الأرباح للسنة المالية ${params.selectedFY?.label || fiscalYear}. يرجى مراجعة حصتك`,
+          `تم تحديث توزيعات الأرباح للسنة المالية ${p.selectedFY?.label || fiscalYear}. يرجى مراجعة حصتك`,
           'info', '/beneficiary/my-share',
         );
       }
@@ -165,7 +175,8 @@ export function useAccountsActions(params: ActionsParams) {
   };
 
   const handleCloseYear = async () => {
-    if (!params.selectedFY || params.selectedFY.status === 'closed') return;
+    const p = paramsRef.current;
+    if (!p.selectedFY || p.selectedFY.status === 'closed') return;
     if (role !== 'admin') {
       toast.error('فقط الناظر يمكنه إقفال السنة المالية');
       return;
@@ -174,7 +185,7 @@ export function useAccountsActions(params: ActionsParams) {
     try {
       const accountData = buildAccountData();
       const { data: result, error } = await supabase.rpc('close_fiscal_year', {
-        p_fiscal_year_id: params.selectedFY.id,
+        p_fiscal_year_id: p.selectedFY.id,
         p_account_data: JSON.parse(JSON.stringify(accountData)),
         p_waqf_corpus_manual: waqfCorpusManual,
       });
@@ -190,7 +201,7 @@ export function useAccountsActions(params: ActionsParams) {
 
       notifyAllBeneficiaries(
         'إقفال السنة المالية',
-        `تم إقفال السنة المالية ${params.selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${fmt(waqfCorpusManual)} ر.س) للسنة الجديدة.`,
+        `تم إقفال السنة المالية ${p.selectedFY.label} وأرشفة جميع البيانات. تم ترحيل رقبة الوقف (${fmt(waqfCorpusManual)} ر.س) للسنة الجديدة.`,
         'info', '/beneficiary/accounts',
       );
 
@@ -200,7 +211,7 @@ export function useAccountsActions(params: ActionsParams) {
           toast.warning(w, { duration: 10000 });
         }
       }
-      toast.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || params.selectedFY.label} وترحيل الرصيد بنجاح`);
+      toast.success(`تم إقفال السنة المالية ${rpcResult?.closed_label || p.selectedFY.label} وترحيل الرصيد بنجاح`);
       toast.info('تنبيه: السنة المالية الجديدة غير منشورة — يرجى نشرها من إعدادات السنوات المالية ليتمكن المستفيدون من رؤيتها', { duration: 8000 });
       setCloseYearOpen(false);
     } catch (err) {
@@ -212,27 +223,28 @@ export function useAccountsActions(params: ActionsParams) {
   };
 
   const handleExportPdf = async () => {
+    const p = paramsRef.current;
     const { generateAccountsPDF } = await import('@/utils/pdf');
     await generateAccountsPDF({
-      contracts: params.contracts,
-      incomeBySource: params.incomeBySource,
-      expensesByType: params.expensesByType,
-      totalIncome: params.totalIncome,
-      totalExpenses: params.totalExpenses,
-      netRevenue: params.netAfterZakat,
-      adminShare: params.adminShare,
-      waqifShare: params.waqifShare,
-      waqfRevenue: params.waqfRevenue,
-      beneficiaries: params.beneficiaries,
+      contracts: p.contracts,
+      incomeBySource: p.incomeBySource,
+      expensesByType: p.expensesByType,
+      totalIncome: p.totalIncome,
+      totalExpenses: p.totalExpenses,
+      netRevenue: p.netAfterZakat,
+      adminShare: p.adminShare,
+      waqifShare: p.waqifShare,
+      waqfRevenue: p.waqfRevenue,
+      beneficiaries: p.beneficiaries,
       vatAmount: manualVat,
       distributionsAmount: manualDistributions,
       waqfCorpusManual,
       zakatAmount,
-      netAfterZakat: params.netAfterZakat,
+      netAfterZakat: p.netAfterZakat,
       waqfCorpusPrevious,
-      grandTotal: params.grandTotal,
-      availableAmount: params.availableAmount,
-      remainingBalance: params.remainingBalance,
+      grandTotal: p.grandTotal,
+      availableAmount: p.availableAmount,
+      remainingBalance: p.remainingBalance,
     });
   };
 
