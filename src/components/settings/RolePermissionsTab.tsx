@@ -6,26 +6,9 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { DEFAULT_ROLE_PERMS, type RolePerms } from '@/constants/rolePermissions';
+import { ROLE_SECTION_DEFS } from '@/constants/sections';
 
-// All sections with labels and which roles can potentially have them
-const SECTIONS: { key: string; label: string; roles: string[] }[] = [
-  { key: 'properties', label: 'العقارات', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'contracts', label: 'العقود', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'income', label: 'الدخل', roles: ['accountant'] },
-  { key: 'expenses', label: 'المصروفات', roles: ['accountant'] },
-  { key: 'beneficiaries', label: 'المستفيدين', roles: ['accountant'] },
-  { key: 'reports', label: 'التقارير', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'accounts', label: 'الحسابات', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'invoices', label: 'الفواتير', roles: ['accountant', 'beneficiary'] },
-  { key: 'bylaws', label: 'اللائحة التنظيمية', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'disclosure', label: 'الإفصاح السنوي', roles: ['beneficiary'] },
-  { key: 'share', label: 'حصتي من الريع', roles: ['beneficiary'] },
-  { key: 'messages', label: 'المراسلات', roles: ['accountant', 'beneficiary'] },
-  { key: 'audit_log', label: 'سجل المراجعة', roles: ['accountant'] },
-  { key: 'notifications', label: 'سجل الإشعارات', roles: ['beneficiary', 'waqif'] },
-  { key: 'annual_report', label: 'التقرير السنوي', roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'support', label: 'الدعم الفني', roles: ['accountant', 'beneficiary'] },
-];
+const SECTIONS = ROLE_SECTION_DEFS;
 
 const ROLES = [
   { key: 'accountant', label: 'المحاسب' },
