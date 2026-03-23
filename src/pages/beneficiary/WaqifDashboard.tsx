@@ -4,12 +4,11 @@ import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
-import { useAuth } from '@/contexts/AuthContext';
 import { useContractAllocations } from '@/hooks/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
