@@ -342,11 +342,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         open={!!previewInvoice}
         onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}
         invoice={previewInvoice}
-        onDownloadPdf={(template) => {
-          // إيجاد الفاتورة الأصلية من بيانات المعاينة لتحميل PDF مع تحويل اسم القالب
-          const origInv = invoices?.find(i => i.invoice_number === previewInvoice?.invoiceNumber);
-          if (origInv) handleDownloadPdf(origInv, template === 'professional' ? 'tax_professional' : 'compact');
-        }}
       />
 
 
