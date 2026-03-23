@@ -19,7 +19,7 @@ const DisclosurePage = () => {
     waqfCorpusPrevious, grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, adminPct, waqifPct, beneficiariesShare,
     incomeBySource, expensesByTypeExcludingVat,
-    currentBeneficiary, myShare, gregorianFiscalYear,
+    currentBeneficiary, myShare, totalReceived, pendingAmount, gregorianFiscalYear,
     contracts,
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
