@@ -101,9 +101,7 @@ export const generateDistributionsPDF = async (data: {
     },
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`distributions-report-${data.fiscalYearLabel}.pdf`);
+  finalizePdf(doc, fontFamily, `distributions-report-${data.fiscalYearLabel}.pdf`, waqfInfo);
 };
 
 export const generateAccountsPDF = async (data: {
