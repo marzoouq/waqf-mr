@@ -1,111 +1,68 @@
+# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
+## الإصلاحات المنجزة
 
-# تصنيف hooks في مجلدات فرعية
+### ✅ تصحيح منطق الإيرادات التعاقدية
+- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
+- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
 
-## التحدي
+### ✅ توحيد فلترة العقود
+- `isSpecificYear` → جميع العقود (active + expired)
+- `all` → فقط `active`
+- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
 
-80+ ملف hook في مجلد مسطح واحد، مستورد في **118 ملف** عبر المشروع. إعادة التنظيم تتطلب تحديث جميع مسارات الاستيراد.
+### ✅ جدول الاستحقاقات الشهري
+- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
+- أشهر ديناميكية حسب حدود السنة المالية
+- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
 
-## التصنيف المقترح
+### ✅ استخراج `usePropertyFinancials` hook
+- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
 
-```text
-src/hooks/
-├── index.ts                    ← barrel re-export (يحافظ على التوافق)
-├── data/
-│   ├── useProperties.ts
-│   ├── useContracts.ts
-│   ├── useUnits.ts
-│   ├── useIncome.ts
-│   ├── useExpenses.ts
-│   ├── useInvoices.ts
-│   ├── usePaymentInvoices.ts
-│   ├── useBeneficiaries.ts
-│   ├── useMessaging.ts
-│   ├── useSupportTickets.ts
-│   ├── useAuditLog.ts
-│   ├── useAccessLog.ts
-│   ├── useBylaws.ts
-│   ├── useAnnualReport.ts
-│   ├── useNotifications.ts
-│   ├── useNotificationPreferences.ts
-│   ├── usePushNotifications.ts
-│   ├── useRealtimeAlerts.ts
-│   ├── useSecurityAlerts.ts
-│   ├── useTenantPayments.ts
-│   ├── useWaqfInfo.ts (إن وُجد)
-│   ├── usePdfWaqfInfo.ts
-│   ├── useAccountCategories.ts
-│   └── useCrudFactory.ts
-├── financial/
-│   ├── useAccounts.ts
-│   ├── useAccountsPage.ts
-│   ├── useAccountsActions.ts
-│   ├── useAccountsCalculations.ts
-│   ├── useAccountsData.ts
-│   ├── useAccountsEditing.ts
-│   ├── useFinancialSummary.ts
-│   ├── useRawFinancialData.ts
-│   ├── useComputedFinancials.ts
-│   ├── usePropertyFinancials.ts
-│   ├── useContractAllocations.ts
-│   ├── useFiscalYears.ts
-│   ├── useDistribute.ts
-│   ├── useMyShare.ts
-│   ├── useMySharePage.ts
-│   ├── useAdvanceRequests.ts
-│   ├── useTotalBeneficiaryPercentage.ts
-│   ├── useYoYComparison.ts
-│   └── usePrefetchAccounts.ts
-├── ui/
-│   ├── use-mobile.tsx
-│   ├── use-toast.ts
-│   ├── useIdleTimeout.ts
-│   ├── usePagePerformance.ts
-│   ├── useDashboardRealtime.ts
-│   ├── useBfcacheSafeChannel.ts
-│   └── useUnreadMessages.ts
-├── auth/
-│   ├── useAuthContext.ts
-│   ├── useWebAuthn.ts
-│   └── useUserManagement.ts
-├── page/
-│   └── useBeneficiaryDashboardData.ts
-│   └── useAppSettings.ts
-```
+### ✅ إنشاء `dashboardComputations.ts`
+- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
+- مستخدم في AdminDashboard و WaqifDashboard
 
-## الاستراتيجية: Barrel Re-exports
+### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
 
-بدلاً من تحديث 118+ ملف يدوياً (خطر كبير)، ننشئ **ملف barrel export** في `src/hooks/index.ts` يعيد تصدير كل شيء من المجلدات الفرعية. ثم ننشئ ملفات **proxy** في المواقع القديمة:
+### ✅ إصلاح PDF الوحدات
+- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
 
-```typescript
-// src/hooks/useProperties.ts (يبقى كملف proxy)
-export * from './data/useProperties';
-```
+### ✅ توثيق BUSINESS_RULES.md
+- 16 قسم يغطي جميع القواعد المالية والتقنية
 
-هذا يضمن:
-1. **لا تعطّل** — جميع الاستيرادات القديمة تعمل فوراً
-2. **تنظيم فعلي** — الكود الحقيقي في المجلدات الفرعية
-3. **تدريجي** — يمكن تحديث الاستيرادات لاحقاً ملف بملف
+### ✅ مركزة `isSpecificYear` في FiscalYearContext
+- إزالة الحساب المكرر من 7+ صفحات
+- القيمة متاحة مباشرة من `useFiscalYear()`
 
-## خطوات التنفيذ
+### ✅ إنشاء `useDashboardRealtime` hook موحد
+- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
+- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
 
-| الخطوة | الوصف | الملفات |
-|--------|-------|---------|
-| 1 | إنشاء 5 مجلدات فرعية | `data/`, `financial/`, `ui/`, `auth/`, `page/` |
-| 2 | نقل كل hook لمجلده (الملف الأصلي يصبح proxy re-export) | ~45 hook (بدون ملفات الاختبار) |
-| 3 | ملفات الاختبار تبقى بجانب الـ proxy (أو تُنقل مع الأصل) | ~35 ملف اختبار |
-| 4 | تحديث الاستيرادات الداخلية بين hooks (مثل `useAccountsActions` يستورد من `useAccounts`) | ~10 ملفات |
+### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
+- إضافة فحص `__none__` للتوافق مع الحساب المركزي
 
-## ملاحظات
+---
 
-- **`use-mobile.tsx`** و **`use-toast.ts`** يبقيان بأسمائهم الحالية (kebab-case) لأنهما مستخدمان في مكونات UI أساسية (`sidebar.tsx`, `toaster.tsx`, `AuthContext.tsx`)
-- ملفات الاختبار تُنقل مع ملفاتها الأصلية للمجلدات الفرعية
-- الملفات الـ proxy تكون سطر واحد فقط: `export * from './subfolder/fileName'`
+## القواعد السارية
 
-## عدد الملفات
+مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
+- §9: الإيرادات = الدخل الفعلي المحصّل فقط
+- §10: السنة المالية هي المرجع وليس الميلادية
+- §11: أمثلة حالات حافة (5 سيناريوهات)
+- §12: فلترة موحدة بـ `isSpecificYear`
+- §16: قواعد البطاقات لمنع التكرار
 
-- **~45 ملف hook** تُنقل فعلياً
-- **~35 ملف اختبار** تُنقل معها
-- **~45 ملف proxy** تُنشأ في المواقع القديمة
-- **0 ملفات خارجية تُعدّل** (بفضل الـ proxy)
+---
 
+## التحسينات المعمارية المعلقة (أولوية متوسطة)
+
+| # | التوصية | الملفات |
+|---|---------|---------|
+| ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
+| ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
+| 3 | استخراج `propertyPerformance` من `ReportsPage` | 1 صفحة → hook مشترك |
+| ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
+| 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
+| 6 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
+| 7 | توحيد PDF core (header/footer/fonts) | 17 ملف |
