@@ -18,7 +18,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/hooks/useAccessLog', () => ({
+vi.mock('@/hooks/data/useAccessLog', () => ({
   logAccessEvent: vi.fn(),
 }));
 

@@ -10,7 +10,7 @@ const mockInvoices = [
   { id: 'i2', invoice_number: 'INV-002', invoice_type: 'maintenance', amount: 1500, date: '2024-07-15', status: 'pending', file_path: null, file_name: null, description: 'صيانة', property: null, contract_id: null, property_id: null, expense_id: null, fiscal_year_id: 'fy1' },
 ];
 
-vi.mock('@/hooks/useInvoices', () => ({
+vi.mock('@/hooks/data/useInvoices', () => ({
   useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
   useInvoicesByFiscalYear: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
   useCreateInvoice: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
@@ -22,16 +22,16 @@ vi.mock('@/hooks/useInvoices', () => ({
   INVOICE_STATUS_LABELS: { paid: 'مدفوعة', pending: 'معلقة', cancelled: 'ملغاة' } as Record<string, string>,
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContracts: vi.fn(() => ({ data: [] })),
   useContractsByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -46,7 +46,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({})),
 }));
 

@@ -10,14 +10,14 @@ const mockProperties = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: mockProperties, isLoading: false })),
   useCreateProperty: vi.fn(() => mockMutate),
   useUpdateProperty: vi.fn(() => mockMutate),
   useDeleteProperty: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useUnits: vi.fn(() => ({ data: [] })),
   useCreateUnit: vi.fn(() => mockMutate),
   useUpdateUnit: vi.fn(() => mockMutate),
@@ -28,7 +28,7 @@ vi.mock('@/hooks/useUnits', () => ({
   ] })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContracts: vi.fn(() => ({ data: [] })),
   useContractsByFiscalYear: vi.fn(() => ({ data: [
     { id: 'c1', contract_number: 'C-001', property_id: 'p1', unit_id: 'u1', tenant_name: 'أحمد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 24000, status: 'active', payment_type: 'annual', payment_count: 1, notes: '', created_at: '', updated_at: '' },
@@ -38,12 +38,12 @@ vi.mock('@/hooks/useContracts', () => ({
   useDeleteContract: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/useExpenses', () => ({
+vi.mock('@/hooks/data/useExpenses', () => ({
   useExpenses: vi.fn(() => ({ data: [] })),
   useExpensesByFiscalYear: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     accounts: [], totalIncome: 0, totalExpenses: 0, availableAmount: 0,
     income: [], expenses: [], expensesByTypeExcludingVat: {},
@@ -51,12 +51,12 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useTenantPayments', () => ({
+vi.mock('@/hooks/data/useTenantPayments', () => ({
   useTenantPayments: vi.fn(() => ({ data: [] })),
   useUpsertTenantPayment: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', adminName: 'ناظر' })),
 }));
 

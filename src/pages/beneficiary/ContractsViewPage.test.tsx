@@ -17,7 +17,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -37,7 +37,7 @@ const mockContracts = [
   },
 ];
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: mockContracts, isLoading: false, isError: false, refetch: vi.fn(),
   })),
@@ -66,7 +66,7 @@ vi.mock('@/hooks/data/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import ContractsViewPage from './ContractsViewPage';

@@ -15,19 +15,19 @@ const mockInvoices = [
   { id: 'i2', invoice_number: null, invoice_type: 'utilities', amount: 500, date: '2024-06-10', status: 'pending', file_path: null, file_name: null, description: '', property: null, contract_id: null, property_id: null, expense_id: null, fiscal_year_id: 'fy1' },
 ];
 
-vi.mock('@/hooks/useInvoices', () => ({
+vi.mock('@/hooks/data/useInvoices', () => ({
   useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
   useInvoicesByFiscalYear: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
   INVOICE_TYPE_LABELS: { rent: 'إيجار', maintenance: 'صيانة', utilities: 'مرافق' } as Record<string, string>,
   INVOICE_STATUS_LABELS: { paid: 'مدفوعة', pending: 'معلقة', cancelled: 'ملغاة' } as Record<string, string>,
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/invoices/InvoiceViewer', () => ({ default: () => null }));
 vi.mock('@/contexts/FiscalYearContext', () => ({
   useFiscalYear: vi.fn(() => ({

@@ -26,14 +26,14 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/hooks/useDistribute', () => ({
+vi.mock('@/hooks/financial/useDistribute', () => ({
   useDistributeShares: () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: () => ({ waqfName: 'وقف تجريبي', deedNumber: '123', logoUrl: '' }),
 }));
 

@@ -10,7 +10,7 @@ const mockContracts = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContracts: vi.fn(() => ({ data: mockContracts, isLoading: false })),
   useContractsByFiscalYear: vi.fn(() => ({ data: mockContracts, isLoading: false })),
   useCreateContract: vi.fn(() => mockMutate),
@@ -18,22 +18,22 @@ vi.mock('@/hooks/useContracts', () => ({
   useDeleteContract: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: [
     { id: 'p1', property_number: 'W-001', location: 'حي النزهة', property_type: 'مبنى', area: 500 },
   ] })),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useUnits: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useTenantPayments', () => ({
+vi.mock('@/hooks/data/useTenantPayments', () => ({
   useTenantPayments: vi.fn(() => ({ data: [], isLoading: false })),
   useUpsertTenantPayment: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({ waqfName: 'وقف تجريبي', adminName: 'ناظر' })),
 }));
 

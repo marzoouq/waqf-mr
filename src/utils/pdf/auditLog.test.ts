@@ -19,7 +19,7 @@ vi.mock('./core', () => ({
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
 }));
-vi.mock('@/hooks/useAuditLog', () => ({
+vi.mock('@/hooks/data/useAuditLog', () => ({
   getTableNameAr: vi.fn((t: string) => t === 'contracts' ? 'العقود' : t),
   getOperationNameAr: vi.fn((o: string) => o === 'INSERT' ? 'إضافة' : o),
 }));

@@ -8,7 +8,7 @@ vi.mock('@/components/DashboardLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
-vi.mock('@/hooks/useSupportTickets', () => ({
+vi.mock('@/hooks/data/useSupportTickets', () => ({
   useSupportTickets: () => ({ data: { tickets: [] }, isLoading: false }),
   useTicketReplies: () => ({ data: [], isLoading: false }),
   useCreateTicket: () => ({ mutateAsync: vi.fn(), isPending: false }),

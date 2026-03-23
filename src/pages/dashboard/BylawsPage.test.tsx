@@ -14,11 +14,11 @@ vi.mock('@/utils/pdf', () => ({
   generateBylawsPDF: vi.fn(),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({ waqfName: 'وقف الاختبار' })),
 }));
 
-vi.mock('@/hooks/useBylaws', () => ({
+vi.mock('@/hooks/data/useBylaws', () => ({
   useBylawsList: vi.fn(),
   useCreateBylaw: vi.fn(),
   useUpdateBylaw: vi.fn(),

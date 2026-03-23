@@ -7,7 +7,7 @@ const mockFiscalYears = [
   { id: 'fy2', label: '1445-1446', start_date: '2023-10-25', end_date: '2024-10-25', status: 'closed' as const, created_at: '' },
 ];
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useFiscalYears: vi.fn(() => ({ data: mockFiscalYears, isLoading: false })),
   useActiveFiscalYear: vi.fn(),
 }));

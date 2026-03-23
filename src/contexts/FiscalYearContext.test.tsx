@@ -9,7 +9,7 @@ const mockFiscalYears = [
   { id: 'b0000000-0000-0000-0000-000000000002', label: '1445-1446', start_date: '2023-10-01', end_date: '2024-10-01', status: 'closed', published: true, created_at: '' },
 ];
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: () => ({
     data: mockFiscalYears[0],
     fiscalYears: mockFiscalYears,

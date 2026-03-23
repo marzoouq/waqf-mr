@@ -11,7 +11,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock('@/hooks/useUnreadMessages', () => ({
+vi.mock('@/hooks/ui/useUnreadMessages', () => ({
   useUnreadMessages: () => 0,
 }));
 

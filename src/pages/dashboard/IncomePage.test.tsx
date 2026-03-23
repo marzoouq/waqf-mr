@@ -8,7 +8,7 @@ const mockIncome = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/useIncome', () => ({
+vi.mock('@/hooks/data/useIncome', () => ({
   useIncome: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useIncomeByFiscalYear: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useCreateIncome: vi.fn(() => mockMutate),
@@ -16,15 +16,15 @@ vi.mock('@/hooks/useIncome', () => ({
   useDeleteIncome: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: [{ id: 'p1', property_number: 'W-001', location: 'حي النزهة' }] })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -39,7 +39,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/utils/pdf', () => ({ generateIncomePDF: vi.fn() }));
 

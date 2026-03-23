@@ -32,7 +32,7 @@ vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useDeleteBeneficiary: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: () => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' }),
 }));
 

@@ -13,7 +13,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1' }, role: 'admin', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/useAccountsPage', () => ({
+vi.mock('@/hooks/financial/useAccountsPage', () => ({
   useAccountsPage: vi.fn(() => ({
     accounts: [],
     contracts: [
@@ -121,7 +121,7 @@ vi.mock('@/components/FiscalYearSelector', () => ({
   default: () => <div data-testid="fiscal-year-selector">FY Selector</div>,
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: () => ({ waqfName: 'وقف تجريبي', nazirName: 'ناظر' }),
 }));
 
