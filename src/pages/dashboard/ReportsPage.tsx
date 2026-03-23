@@ -15,7 +15,7 @@ import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calc
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
-import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
+
 import ExportMenu from '@/components/ExportMenu';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
