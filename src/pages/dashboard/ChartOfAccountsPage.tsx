@@ -24,6 +24,7 @@ import {
 } from '@/hooks/data/useAccountCategories';
 import type { AccountCategory } from '@/types/database';
 import { TreeBranch } from '@/components/chart-of-accounts/CategoryTreeView';
+import type { CategoryTreeNode } from '@/hooks/data/useAccountCategories';
 
 type CategoryType = 'income' | 'expense' | 'tax' | 'distribution';
 
