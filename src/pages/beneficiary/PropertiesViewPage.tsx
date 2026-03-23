@@ -319,7 +319,7 @@ const PropertiesViewPage = () => {
                         <span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">الشهري:</span>
+                        <span className="text-muted-foreground">الاستحقاق الشهري:</span>
                         <span className="font-medium">{fmtInt(monthlyRent)} ريال</span>
                       </div>
                       <div className="flex justify-between">
