@@ -20,7 +20,7 @@ import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceRep
 import ExportMenu from '@/components/ExportMenu';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
 import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTable';
