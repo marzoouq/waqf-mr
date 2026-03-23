@@ -134,7 +134,7 @@ describe('ReportsPage', () => {
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
     expect(screen.getByText(/مقارنة أداء/)).toBeInTheDocument();
     expect(screen.getByText('الأداء الشهري')).toBeInTheDocument();
-    expect(screen.getByText('مقارنة سنوية')).toBeInTheDocument();
+    expect(screen.getByText('التدفق النقدي')).toBeInTheDocument();
   });
 
   it('shows disclosure PDF button', () => {
