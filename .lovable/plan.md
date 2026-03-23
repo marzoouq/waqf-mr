@@ -1,104 +1,38 @@
 
 
-# فحص جنائي — أرقام الإفصاح السنوي (2024-2025)
+# نتيجة الفحص — التوزيعات والسُلف و `isLocked`
 
 ---
 
-## 1. تتبع التسلسل الحسابي (Mathematical Trace)
-
-### المعادلة المُفترضة:
-```text
-grandTotal = totalIncome + waqfCorpusPrevious
-netAfterExpenses = grandTotal - totalExpenses
-netAfterVat = netAfterExpenses - vatAmount
-netAfterZakat = netAfterVat - zakatAmount
-shareBase = totalIncome - totalExpenses - zakatAmount
-adminShare = shareBase × adminPct%
-waqifShare = shareBase × waqifPct%
-waqfRevenue = netAfterZakat - adminShare - waqifShare
-availableAmount = waqfRevenue - waqfCorpusManual
-remainingBalance = availableAmount - distributionsAmount
-```
+## الخلاصة: لا حاجة لتطبيق `isLocked` — الوضع الحالي سليم
 
 ---
 
-## 2. خطأ حرج مؤكد — ضريبة القيمة المضافة محسوبة مرتين في العرض
+## التفاصيل
 
-### الإثبات:
+### صفحة الحسابات الختامية (`AccountsPage.tsx`)
 
-في `AnnualDisclosureTable.tsx` (جدول الإفصاح في صفحة التقارير):
+| المكوّن | استخدام `isClosed` | هل يحتاج `isLocked`؟ |
+|---------|-------------------|---------------------|
+| `AccountsSummaryCards` | تنبيه "أرقام تقديرية" فقط — لا أزرار تعطيل | **لا** — التنبيه يجب أن يظهر للجميع |
+| `AccountsDistributionTable` | تنبيه "أرقام تقديرية" فقط — الجدول للعرض فقط | **لا** — لا يوجد أزرار تعديل/حذف |
+| `AccountsSettingsBar` | لا يستخدم `isClosed` إطلاقاً — الحقول مفتوحة دائماً | **لا** — الحماية تتم عبر مشغل قاعدة البيانات |
+| `AccountsDialogs` | لا يستخدم `isClosed` — الحوارات تفتح حسب الحاجة | **لا** |
+| زر "إنشاء حساب ختامي" | غير مقيد بـ `isClosed` | **لا** — مطلوب دائماً |
+| زر "إقفال السنة" | مقيد بـ `role === 'admin' && status === 'active'` | **لا** — منطق صحيح ومنفصل |
 
-| السطر | ما يُعرض | المصدر |
-|-------|---------|--------|
-| 101-106 | بنود المصروفات (بدون VAT) | `expensesByTypeExcludingVat` |
-| **107-111** | **(+) ضريبة القيمة المضافة كبند مصروف** | `vatAmount` |
-| **113-116** | **إجمالي المصروفات** | `totalExpenses` ← **يشمل مصروفات VAT أصلاً** |
-| 117-120 | الصافي بعد المصاريف | `netAfterExpenses = grandTotal - totalExpenses` |
-| **121-124** | **(-) ضريبة القيمة المضافة مرة أخرى** | `vatAmount` |
-| 125-128 | الصافي بعد الضريبة | `netAfterVat` |
+### مكونات السُلف
 
-**المشكلة:**
-- `totalExpenses` يشمل مصروفات VAT (لأنه `sum(ALL expenses)`)
-- ثم VAT تُعرض كبند منفصل في قسم المصروفات ← هذا صحيح بصرياً
-- لكن `netAfterExpenses = grandTotal - totalExpenses` يكون قد خصم VAT بالفعل
-- ثم السطر 121-124 يخصم VAT **مرة ثانية** ← خطأ حسابي في العرض
-
-### لكن... القيم الفعلية قد تكون صحيحة!
-
-للسنة المقفلة، `useComputedFinancials` يقرأ القيم **المخزنة** من الحساب الختامي:
-```typescript
-netAfterExpenses: safeNumber(currentAccount.net_after_expenses)
-netAfterVat: storedNetAfterVat
-```
-
-فإذا كانت القيم المخزنة صحيحة (تم حسابها عند الإقفال)، فالأرقام **دقيقة داخلياً** لكن **العرض في الجدول يُربك المستخدم** لأن التسلسل البصري يوحي بخصم مزدوج.
+السُلف تُدار من صفحة المستفيد (`MySharePage.tsx`) عبر `AdvanceRequestDialog`. هذا المكون يستخدم `isFiscalYearActive` (وليس `isClosed`) ويتحكم بالطلبات بناءً على حالة السنة المالية وحدود السُلف — **لا يحتاج `isLocked`**.
 
 ---
 
-## 3. تناقض عرضي في صفحة المستفيد
+## السبب
 
-في `DisclosureFinancialStatement.tsx`:
+منطق `isLocked` مطلوب فقط في الصفحات التي تحتوي **أزرار إضافة/تعديل/حذف** تُعطَّل بـ `disabled={isClosed}`. صفحة الحسابات والتوزيعات لا تحتوي على هذا النمط — هي إما:
+1. **عرض فقط** (جداول الملخص والتوزيع)
+2. **مفتوحة دائماً** (حقول الإعدادات — الحماية في قاعدة البيانات)
+3. **منطق مختلف** (إقفال السنة يعتمد على `status === 'active'`)
 
-| ما يُعرض | المصدر |
-|---------|--------|
-| بنود المصروفات الفردية | `expensesByTypeExcludingVat` (بدون VAT) |
-| **إجمالي المصروفات** | `totalExpenses` (**يشمل** VAT) |
-
-**المشكلة:** مجموع البنود المعروضة ≠ الإجمالي المعروض. الفرق = قيمة مصروفات VAT المخفية.
-
----
-
-## 4. خلاصة الفحص
-
-| # | المشكلة | الخطورة | النوع |
-|---|---------|---------|-------|
-| 1 | VAT تظهر في قسم المصروفات **و** تُخصم مرة أخرى تحت "الصافي بعد المصاريف" في جدول الإفصاح (الناظر) | **عالية** | تناقض عرضي / إرباك محاسبي |
-| 2 | بنود المصروفات (بدون VAT) لا تجمع إلى `totalExpenses` (يشمل VAT) في صفحة المستفيد | **متوسطة** | تناقض عرضي |
-| 3 | القيم الحسابية الداخلية (المخزنة في الحساب الختامي) — **صحيحة** | ✅ | سليم |
-
----
-
-## 5. خطة الإصلاح
-
-### الإصلاح 1 — جدول الإفصاح (الناظر): `AnnualDisclosureTable.tsx`
-
-**المشكلة:** VAT تظهر كبند مصروف (سطر 107-111) ثم تُخصم مرة أخرى (سطر 121-124).
-
-**الحل:** إزالة بند VAT من قسم المصروفات (أسطر 107-112) لأن `totalExpenses` يشملها بالفعل. إبقاء الخصم المنفصل (سطر 121-124) كما هو — فهو يوضح التسلسل المحاسبي: `المصروفات التشغيلية → VAT → الزكاة`.
-
-**أو بديلاً:** تغيير `totalExpenses` ليعرض المصروفات بدون VAT (ليطابق البنود المعروضة)، مع تثبيت `netAfterExpenses` = `grandTotal - totalExpensesExcludingVat`.
-
-### الإصلاح 2 — صفحة المستفيد: `DisclosureFinancialStatement.tsx`
-
-**نفس النمط:** البنود المعروضة تستثني VAT لكن الإجمالي يشملها.
-
-**الحل:** عرض `totalExpenses - vatAmount` كإجمالي مصروفات تشغيلية، ثم VAT كبند منفصل تحتها.
-
-### التنفيذ
-
-**ملفان فقط:**
-1. `src/components/reports/AnnualDisclosureTable.tsx` — تعديل عرض المصروفات والإجمالي
-2. `src/components/disclosure/DisclosureFinancialStatement.tsx` — تعديل عرض المصروفات والإجمالي
-
-**لا تغييرات على المنطق الحسابي أو قاعدة البيانات.** الإصلاح في طبقة العرض فقط.
+**لا تغييرات مطلوبة.**
 
