@@ -118,27 +118,10 @@ const AdminDashboard = () => {
   const activeContractsCount = relevantContracts.length;
   const contractualRevenue = relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  const collectionSummary = useMemo(() => {
-    const relevantContractIds = new Set(
-      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
-    );
-    const nowDate = new Date();
-    const dueInvoices = paymentInvoices.filter(
-      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
-    );
-    const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
-    const totalCollected = dueInvoices.reduce((sum, inv) => {
-      if (inv.status === 'paid') return sum + safeNumber(inv.amount);
-      if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
-      return sum;
-    }, 0);
-    const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
-    const partialCount = dueInvoices.filter(inv => inv.status === 'partially_paid').length;
-    const unpaidCount = dueInvoices.length - paidCount - partialCount;
-    const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
-
-    return { paidCount, partialCount, unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
-  }, [contracts, paymentInvoices]);
+  const collectionSummary = useMemo(
+    () => computeCollectionSummary(contracts, paymentInvoices),
+    [contracts, paymentInvoices]
+  );
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
