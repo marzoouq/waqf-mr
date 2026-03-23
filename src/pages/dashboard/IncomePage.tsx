@@ -42,6 +42,7 @@ const IncomePage = () => {
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
