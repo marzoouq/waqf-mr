@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 beforeAll(() => {
   (globalThis as Record<string, unknown>).ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
@@ -12,7 +13,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 }));
 
 vi.mock('@/hooks/ui/useUnreadMessages', () => ({
-  useUnreadMessages: () => 0,
+  useUnreadMessages: () => ({ data: 0 }),
 }));
 
 vi.mock('react-router-dom', () => ({
@@ -23,12 +24,16 @@ vi.mock('react-router-dom', () => ({
 
 import BottomNav from './BottomNav';
 
+const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const renderWithProviders = (ui: React.ReactElement) =>
+  render(React.createElement(QueryClientProvider, { client: qc }, ui));
+
 describe('BottomNav', () => {
   const onOpenSidebar = vi.fn();
 
   it('يعرض روابط الناظر عندما يكون الدور admin', () => {
     mockUseAuth.mockReturnValue({ role: 'admin' });
-    render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     expect(screen.getByText('الرئيسية')).toBeInTheDocument();
     expect(screen.getByText('العقارات')).toBeInTheDocument();
     expect(screen.getByText('العقود')).toBeInTheDocument();
