@@ -61,7 +61,7 @@
 |---|---------|---------|
 | ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
 | ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
-| 3 | استخراج `propertyPerformance` من `ReportsPage` | مؤجل — المنطق خاص بالصفحة ويستخدم `useMemo` |
+| ~~3~~ | ~~استخراج `propertyPerformance` من `ReportsPage`~~ | ✅ تم — hook مشترك `usePropertyPerformance` |
 | ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
 | 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
 | ~~6~~ | ~~استخراج `LogoManager` من `SettingsPage`~~ | ✅ تم — مكون مستقل |

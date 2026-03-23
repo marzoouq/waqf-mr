@@ -1,7 +1,6 @@
 import { fmt } from '@/utils/format';
 import { lazy, Suspense } from 'react';
 import { usePropertyPerformance } from '@/hooks/financial/usePropertyPerformance';
-import type { PropertyPerformanceItem } from '@/hooks/financial/usePropertyPerformance';
 import CashFlowReport from '@/components/reports/CashFlowReport';
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
