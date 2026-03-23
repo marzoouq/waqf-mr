@@ -1,167 +1,75 @@
 
 
-## الفحص العميق الحقيقي — ما الذي يمنع النشر فعلاً؟
-
-### النتيجة المباشرة
-المشكلة الأساسية **ليست خطأ كود فرونت-إند** ولا TypeScript.  
-المانع الحالي للنشر هو **تعطل اتصال قاعدة البيانات أثناء مرحلة تطبيق الترحيلات**:
-
-```text
-failed to diff and apply migrations
-failed to sync extensions
-pq: Circuit breaker open: Unable to establish connection to upstream database
-```
-
-هذا يعني أن عملية النشر توقفت **قبل** أن تُطبَّق الترحيلات الجديدة أصلاً.
+# تقرير الفحص الجنائي — السبب الجذري الحقيقي
 
 ---
 
-## ما الذي تحققته فعلياً؟
+## 1. النتيجة المباشرة
 
-### 1) حالة المانع الحالي
-- راجعت رسائل الفشل: كلها تشير إلى `DiffAndApplyMigrationsActivity`
-- الفشل يحدث عند:
-  - مقارنة/تطبيق migrations
-  - مزامنة extensions
-  - قبل الوصول إلى مرحلة نشر التكاملات بشكل سليم
-- هذا نمط **بنية تحتية / اتصال بقاعدة البيانات** وليس خطأ برمجي داخل الواجهة
+### المشكلة 1: `beneficiaries_safe` — مشكلة حقيقية في الصلاحيات
 
-### 2) حالة الأمان الحالية
-راجعت نتائج الفحص الأمني الحالية والـ linter:
-- **Security scan** يحتوي نتائج موثقة/متجاهلة
-- لكن **Supabase linter** ما زال يرى **مشكلتين فعليتين**:
-  - `Security Definer View`
-  - `Security Definer View`
+**السبب الجذري:** Supabase يضبط `pg_default_acl` لمنح ALL permissions تلقائياً لـ `authenticated` على كل كائن جديد ينشئه `postgres`. عندما تنفذ الترحيلات:
 
-### 3) سبب الالتباس
-راجعت الترحيلات، ووجدت **انجرافاً حقيقياً** في تعريفات العروض الآمنة:
-- `beneficiaries_safe` و `contracts_safe` تم تبديلهما عدة مرات بين:
-  - `security_invoker=true`
-  - `security_invoker=false`
-  - وأحياناً بدون `security_invoker` صراحة
-- توجد migrations لاحقة تعيدهما إلى حالة تشبه `SECURITY DEFINER`
-- لذلك:
-  - بعض تقارير الأمان التي وُصفت سابقاً بأنها “outdated” ليست مضمونة 100%
-  - توجد **فجوة اتساق migration drift** يجب حسمها بترحيل نهائي موحّد
+```text
+1. DROP VIEW → يُحذف العرض
+2. CREATE VIEW → يُنشأ + تُطبق default privileges = ALL لـ authenticated
+3. REVOKE ALL FROM PUBLIC → يُزيل من PUBLIC فقط
+4. REVOKE ALL FROM anon → يُزيل من anon ✅
+5. GRANT SELECT TO authenticated → SELECT كان موجوداً أصلاً + INSERT/UPDATE/DELETE لا تزال!
+```
 
-### 4) حالة user_roles
-- وجدت migration حقيقية موجودة بالفعل:
-  `20260323054042_c0a6beb4-c048-4f17-a63c-50935787bd9e.sql`
-- هذه تضيف سياسة تقييدية:
-  `"Only admins can modify roles"`
-- إذن ثغرة `user_roles` **محلولة من ناحية SQL**
-- لكن النشر عالق لأن migration pipeline نفسها لم تُطبّق بنجاح بسبب انقطاع الاتصال
+**الخطأ:** الترحيل لم يتضمن `REVOKE ALL FROM authenticated` قبل `GRANT SELECT`.
+
+**الدليل المباشر من قاعدة البيانات:**
+
+| الصلاحية | anon | authenticated |
+|----------|------|--------------|
+| SELECT | ❌ | ✅ |
+| INSERT | ❌ | ✅ ← خطأ |
+| DELETE | ❌ | ✅ ← خطأ |
+
+نفس المشكلة تطال `contracts_safe`.
+
+**ملاحظة:** الخطر العملي منخفض لأن INSERT/DELETE على VIEW بدون قواعد (rules) يفشل. لكن الصلاحيات الزائدة يجب إزالتها.
+
+### المشكلة 2: `user_roles` — إيجابي كاذب مؤكد
+
+**الدليل:** استعلمت `pg_policy` مباشرة وأكدت وجود:
+- `"Only admins can modify roles"` — `polpermissive: false` (RESTRICTIVE) — مُطبقة فعلاً ✅
+
+الماسح لا يتعرف على السياسة التقييدية الموجودة.
 
 ---
 
-## التشخيص الجنائي النهائي
+## 2. الإصلاح المطلوب
 
-### السبب الجذري الحالي
-يوجد **سببان منفصلان**:
+### ترحيل واحد بسيط
 
-#### السبب 1 — المانع الفوري للنشر
-عطل اتصال قاعدة البيانات:
-```text
-Circuit breaker open
+```sql
+-- إصلاح صلاحيات beneficiaries_safe
+REVOKE ALL ON public.beneficiaries_safe FROM authenticated;
+GRANT SELECT ON public.beneficiaries_safe TO authenticated;
+
+-- إصلاح صلاحيات contracts_safe
+REVOKE ALL ON public.contracts_safe FROM authenticated;
+GRANT SELECT ON public.contracts_safe TO authenticated;
 ```
-وهذا يمنع engine من:
-- قراءة الامتدادات
-- مقارنة الترحيلات
-- تطبيق أي migration
-- إكمال publish
 
-#### السبب 2 — مشكلة كامنة في هيكل الترحيلات
-ملفات migrations تحتوي **تاريخاً متضارباً** لتعريف:
-- `beneficiaries_safe`
-- `contracts_safe`
+### تجاهل نتيجة `user_roles` في الماسح
 
-وهذا يفسر لماذا:
-- الماسح الأمني واللِنتر ما زالا يريان مشاكل
-- توجد روايات مختلفة عن “الحالة النهائية”
-- لا يمكن الاعتماد على الاستنتاجات السابقة دون توحيد نهائي واحد
+توثيق أن السياسة التقييدية مُطبقة فعلاً وتجاهل التحذير.
 
 ---
 
-## الخطة المنهجية للإصلاح
+## 3. التفاصيل التقنية
 
-### المرحلة 1 — فك تعليق النشر
-1. تنفيذ **إعادة بناء/نشر تحفيزية** بسيطة فقط لإجبار pipeline على إعادة المحاولة
-2. إذا استمر `Circuit breaker open` بعد إعادة المحاولة:
-   - نعتبره **عطل بنية تحتية مؤقت**
-   - لا نغير منطق التطبيق
-   - ننتظر حتى تستعيد قاعدة البيانات الاتصال ثم نعيد المحاولة
-
-### المرحلة 2 — تنظيف الانجراف الأمني في migrations
-بعد عودة الاتصال، أنفذ migration موحّد نهائي يقوم بـ:
-1. إعادة إنشاء `beneficiaries_safe` بصيغة نهائية واحدة فقط
-2. إعادة إنشاء `contracts_safe` بصيغة نهائية واحدة فقط
-3. جعل القرار النهائي **متسقاً مع سياسة الأمان المعتمدة**
-4. إعادة ضبط grants بشكل صريح:
-   - `REVOKE ALL FROM PUBLIC, anon`
-   - `GRANT SELECT TO authenticated`
-5. حذف/تحييد أي تضارب لاحق في السلوك عبر migration نهائي حاسم بدل الاعتماد على التاريخ القديم
-
-### المرحلة 3 — حسم اختيار النموذج الأمني للعروض
-سأثبت أحد النموذجين بشكل نهائي بعد التنفيذ:
-
-#### الخيار المفضل أمنياً
-استخدام:
-- `security_invoker=true`
-- مع سياسات RLS كافية على الجداول الأساسية
-
-هذا يرضي اللِنتر ويمنع bypass
-
-#### إذا كانت المتطلبات الوظيفية تمنع ذلك
-سأحتاج إلى:
-- توثيق أن العرض intentionally masking-only
-- تحديث findings الأمنية accordingly
-- لكن هذا لا يزيل خطأ اللِنتر طالما بقي `security_definer`
-
-### المرحلة 4 — التحقق النهائي بعد الإصلاح
-بعد استعادة الاتصال وتطبيق migration التوحيد:
-1. إعادة تشغيل linter
-2. إعادة تشغيل security scan
-3. التأكد أن:
-   - لا يوجد `Security Definer View`
-   - لا يوجد تحذير فعلي على `user_roles`
-   - النشر يمر بنجاح
-
----
-
-## ما الذي سأفعله عند التنفيذ؟
-
-### تنفيذ مباشر منخفض المخاطر
-1. تحفيز إعادة النشر لتجاوز عطل الاتصال المؤقت
-2. بمجرد نجاح اتصال قاعدة البيانات:
-   - إضافة migration نهائي موحّد للعروض الآمنة
-   - تثبيت `user_roles` كما هو دون تكرار
-3. إعادة فحص الأمان واللِنتر
-4. تأكيد أن pipeline أصبح قابلاً للنشر
-
----
-
-## تفاصيل تقنية مهمة
+**لماذا حدث هذا؟** Supabase يُعيّن default privileges على مستوى الـ role:
 
 ```text
-الوضع الحالي:
-- Publish blocked by DB connectivity
-- Security state has migration drift
-- user_roles restrictive policy exists but may be unapplied due to blocked migration pipeline
+defaclobjtype: r (relation/table/view)
+defaclrole: postgres
+anon=arwdDxtm, authenticated=arwdDxtm, service_role=arwdDxtm
 ```
 
-```text
-المخاطر الحالية:
-- ليست من الواجهة
-- ليست من TypeScript
-- ليست من dependencies الآن
-- هي: infra outage + migration inconsistency
-```
-
-```text
-الأولوية:
-1) استعادة قدرة pipeline على قراءة DB
-2) توحيد safe views
-3) إعادة فحص الأمان
-4) النشر النهائي
-```
+أي كائن يُنشئه `postgres` (وهو من ينفذ الترحيلات) يحصل تلقائياً على ALL grants لجميع الأدوار. لذلك **يجب دائماً** عمل `REVOKE ALL FROM authenticated` بشكل صريح قبل `GRANT SELECT`.
 
