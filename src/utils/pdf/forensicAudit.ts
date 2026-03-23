@@ -228,9 +228,5 @@ export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo
   doc.setFontSize(5);
   doc.text('APPROVED', stampX, stampY + 5, { align: 'center' });
 
-  // Add headers and footers to all pages
-  addHeaderToAllPages(doc, font, waqfInfo);
-  addFooter(doc, font, waqfInfo);
-
-  doc.save(`تقرير-الفحص-الجنائي-${data.auditDate}.pdf`);
+  finalizePdf(doc, font, `تقرير-الفحص-الجنائي-${data.auditDate}.pdf`, waqfInfo);
 };
