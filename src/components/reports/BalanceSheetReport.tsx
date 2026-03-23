@@ -39,11 +39,13 @@ const BalanceSheetReport = ({
   // الالتزامات = ضريبة + زكاة + مصروفات
   const totalLiabilities = totalExpenses + vatAmount + zakatAmount;
 
-  // حقوق الملكية = حصة الناظر + حصة الواقف + ريع الوقف + رقبة الوقف
-  const totalEquity = adminShare + waqifShare + waqfRevenue + waqfCorpusManual;
+  // حقوق الملكية = حصة الناظر + حصة الواقف + ريع الوقف
+  // ملاحظة: waqfCorpusManual مقتطع من داخل waqfRevenue وليس بنداً مستقلاً
+  // التوزيعات أيضاً مقتطعة من ريع الوقف (availableAmount = waqfRevenue - waqfCorpusManual)
+  const totalEquity = adminShare + waqifShare + waqfRevenue;
 
-  // التحقق: الأصول = الالتزامات + حقوق الملكية + التوزيعات + الرصيد المتبقي
-  const balanceCheck = totalAssets - totalLiabilities - totalEquity - distributionsAmount;
+  // التحقق: الأصول = الالتزامات + حقوق الملكية
+  const balanceCheck = totalAssets - totalLiabilities - totalEquity;
   const isBalanced = Math.abs(balanceCheck) < 1;
 
   const fmt = (n: number) => fmtNum(n);
