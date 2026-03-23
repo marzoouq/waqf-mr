@@ -9,10 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/** أعمدة المصروفات مع ربط العقار */
+const EXPENSE_SELECT = 'id, amount, date, description, expense_type, fiscal_year_id, property_id, created_at, property:properties(id, property_number, location)';
+
 const expensesCrud = createCrudFactory<'expenses', Expense>({
   table: 'expenses',
   queryKey: 'expenses',
-  select: '*, property:properties(*)',
+  select: EXPENSE_SELECT,
   orderBy: 'date',
   label: 'المصروف',
 });
