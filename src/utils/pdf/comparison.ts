@@ -140,7 +140,5 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     });
   }
 
-  addHeaderToAllPages(doc, f, waqfInfo);
-  addFooter(doc, f, waqfInfo);
-  doc.save(`year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`);
+  finalizePdf(doc, f, `year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`, waqfInfo);
 };
