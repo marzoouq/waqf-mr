@@ -24,7 +24,7 @@ const MySharePage = () => {
     myShare, totalReceived, pendingAmount, paidAdvancesTotal, carryforwardBalance,
     filteredDistributions, myAdvances, myCarryforwards,
     advancesEnabled, advanceSettings, fiscalYearId, selectedFY,
-    isPdfLoading,
+    // isPdfLoading متاح في hook لكن لا يُستخدم مباشرة هنا
     handleDownloadPDF, handleDownloadDistributionsPDF, handleDownloadComprehensivePDF, handlePrintReport,
     navigate,
   } = useMySharePage();
