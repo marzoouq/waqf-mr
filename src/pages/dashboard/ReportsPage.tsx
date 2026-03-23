@@ -32,7 +32,7 @@ const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsI
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
