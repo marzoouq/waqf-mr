@@ -8,9 +8,9 @@ interface Contract {
   id?: string | null;
   property_id?: string | null;
   unit_id?: string | null;
-  status?: string;
+  status?: string | null;
   rent_amount?: number | null;
-  payment_type?: string;
+  payment_type?: string | null;
   payment_amount?: number | null;
 }
 
