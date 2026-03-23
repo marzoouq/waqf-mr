@@ -3,6 +3,7 @@
  * تعرض نفس المؤشرات المالية والتشغيلية الموجودة لدى الناظر مع فلترة حسب السنة المالية
  */
 import { useProperties } from '@/hooks/useProperties';
+import { computePropertyFinancials } from '@/hooks/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
@@ -41,8 +42,7 @@ const PropertiesViewPage = () => {
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
 
-  const getUnitsForProperty = (propertyId: string) =>
-    units?.filter(u => u.property_id === propertyId) ?? [];
+  // getUnitsForProperty moved into computePropertyFinancials
 
   const totalUnits = units?.length ?? 0;
 
@@ -225,49 +225,19 @@ const PropertiesViewPage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties.map((property) => {
-              const propertyUnits = getUnitsForProperty(property.id);
+              const pf = computePropertyFinancials({
+                propertyId: property.id,
+                contracts,
+                expenses,
+                units: units ?? [],
+                isSpecificYear,
+              });
+              const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
+              const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
               const total = propertyUnits.length;
-
-              // حساب الإشغال من العقود المفلترة بالسنة المالية
               const propertyContracts = contracts.filter(c => c.property_id === property.id);
               const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
-              const hasWholePropertyContract = propertyContracts.some(c => !c.unit_id);
-
-              // الأولوية للوحدات: إذا كان للعقار وحدات، نحسب من عقود الوحدات فقط
-              const isWholePropertyRented = total === 0 && hasWholePropertyContract;
-              const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
-              const rented = (total > 0 && hasWholePropertyContract && unitBasedRented === 0)
-                ? total
-                : (isWholePropertyRented ? total : unitBasedRented);
-              const vacant = total - rented;
-              const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
-              const occupancy = total > 0
-                ? Math.round((rented / total) * 100)
-                : isWholePropertyRented ? 100 : 0;
-
-              // الإيرادات التعاقدية (جميع العقود المرتبطة)
-              const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
-              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
-
-              // الدخل النشط — عند عرض سنة محددة نشمل جميع العقود (قد تكون منتهية)
-              const activeContracts = isSpecificYear
-                ? allPropertyContracts
-                : allPropertyContracts.filter(c => c.status === 'active');
-              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
-
-              // الشهري = الإيجار السنوي / 12 دائماً (rent_amount قيمة سنوية)
-              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
-                const rent = safeNumber(c.rent_amount);
-                if (c.payment_type === 'monthly') return sum + (safeNumber(c.payment_amount) || rent / 12);
-                return sum + rent / 12;
-              }, 0);
-
-              const propExpenses = expenses.filter(e => e.property_id === property.id);
-              const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
-              const netIncome = contractualRevenue - totalExpenses;
-
-              const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
-              const progressColor = occupancy >= 80 ? '[&>div]:bg-success' : occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+              const isWholePropertyRented = total === 0 && propertyContracts.some(c => !c.unit_id);
 
               const isExpanded = expandedId === property.id;
 
@@ -310,7 +280,7 @@ const PropertiesViewPage = () => {
                             </Tooltip>
                           </TooltipProvider>
                         </>
-                      ) : activeContracts.length > 0 ? (
+                      ) : contracts.some(c => c.property_id === property.id) ? (
                         <>
                           <div className="flex items-center gap-2 text-sm">
                             <Home className="w-3.5 h-3.5 text-success" />

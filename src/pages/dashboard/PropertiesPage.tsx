@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { computePropertyFinancials } from '@/hooks/usePropertyFinancials';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
@@ -286,44 +287,14 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-              const propertyUnits = allUnits.filter(u => u.property_id === property.id);
-              const propContracts = contracts.filter(c => c.property_id === property.id);
-              const rentedUnitIdsForProp = new Set(propContracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-              const hasWholePropertyContract = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
-              const totalUnits = propertyUnits.length;
-              const isWholePropertyRented = totalUnits === 0 && hasWholePropertyContract;
-              const unitBasedRented = propertyUnits.filter(u => rentedUnitIdsForProp.has(u.id)).length;
-              const rented = (totalUnits > 0 && hasWholePropertyContract && unitBasedRented === 0)
-                ? totalUnits
-                : (isWholePropertyRented ? totalUnits : unitBasedRented);
-              const vacant = totalUnits - rented;
-              const maintenance = propertyUnits.filter(u => u.status === 'صيانة' && !rentedUnitIdsForProp.has(u.id) && !isWholePropertyRented).length;
-              const statusMismatch = propertyUnits.filter(u =>
-                (u.status === 'مؤجرة' && !rentedUnitIdsForProp.has(u.id) && !hasWholePropertyContract) ||
-                (u.status === 'شاغرة' && rentedUnitIdsForProp.has(u.id))
-              ).length;
-              const occupancy = totalUnits > 0
-                ? Math.round((rented / totalUnits) * 100)
-                : isWholePropertyRented ? 100 : 0;
-
-              const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
-              const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-              const activeContracts = isSpecificYear
-                ? allPropertyContracts
-                : allPropertyContracts.filter(c => c.status === 'active');
-              const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
-                const rent = Number(c.rent_amount);
-                if (c.payment_type === 'monthly') return sum + (Number(c.payment_amount) || rent / 12);
-                return sum + rent / 12;
-              }, 0);
-
-              const propExpenses = expenses.filter(e => e.property_id === property.id);
-              const totalExpenses = propExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-              const netIncome = contractualRevenue - totalExpenses;
-
-              const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
-              const progressColor = occupancy >= 80 ? '[&>div]:bg-success' : occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
+              const pf = computePropertyFinancials({
+                propertyId: property.id,
+                contracts,
+                expenses,
+                units: allUnits,
+                isSpecificYear,
+              });
+              const { totalUnits, rented, vacant, maintenance, statusMismatch, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
 
               return (
               <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
@@ -383,7 +354,7 @@ const PropertiesPage = () => {
                           </Tooltip>
                         </TooltipProvider>
                       </>
-                    ) : activeContracts.length > 0 ? (
+                    ) : contracts.some(c => c.property_id === property.id && (isSpecificYear || c.status === 'active')) ? (
                       <>
                         <div className="flex items-center gap-2 text-sm">
                           <Home className="w-3.5 h-3.5 text-success" />
