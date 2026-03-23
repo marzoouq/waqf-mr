@@ -23,6 +23,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/useFiscalYears';
+import { useContractAllocations } from '@/hooks/useContractAllocations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
 
