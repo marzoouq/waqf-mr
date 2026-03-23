@@ -257,8 +257,8 @@ const InvoicesPage = () => {
                           <TableCell>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => h.setPreviewInvoice(h.buildPreviewData(item))} aria-label="معاينة"><Eye className="w-4 h-4 text-primary" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.handleEdit(item)} disabled={h.isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={h.isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => h.handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

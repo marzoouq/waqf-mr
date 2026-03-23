@@ -378,8 +378,8 @@ const IncomePage = () => {
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
