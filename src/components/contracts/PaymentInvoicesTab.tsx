@@ -60,7 +60,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
+  
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
   const [payAmount, setPayAmount] = useState('');
