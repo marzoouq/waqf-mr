@@ -1,39 +1,40 @@
 
 
-# إصلاح صفحة عقارات الناظر — فلترة العقود النشطة
+# خطة إلغاء الدفع التلقائي وتوحيد التحصيل عبر الفواتير
 
-## المشكلة
-سطر 311 في `PropertiesPage.tsx` يفلتر العقود بـ `status === 'active'` فقط، مما يجعل "الدخل النشط" يظهر 0 في السنوات المالية المقفلة (حيث العقود حالتها `expired`).
+## الهدف
+منع التناقض بين حالة الفواتير وسجلات الدخل بإزالة المسارات اليدوية للتحصيل وتوحيدها عبر نظام الفواتير فقط.
 
-**ملاحظة مهمة:** حساب الشهري (`rent / 12`) في صفحة الناظر **صحيح** لأن `rent_amount` في النظام هو القيمة السنوية دائماً — وهذا موثّق في قواعد العمل. صفحة المستفيد هي التي تحتاج تصحيح لاحقاً لتتطابق مع هذا المنطق.
+---
 
-## التعديل
+## التغييرات
 
-### ملف: `src/pages/dashboard/PropertiesPage.tsx` — سطر 311
+### 1. `src/components/properties/PropertyUnitsDialog.tsx`
 
-```typescript
-// من
-const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
+**إزالة أزرار +/- في عرض الجوال (سطور 535-559):**
+- حذف زر الإنقاص وزر الزيادة
+- إبقاء عرض النسبة `paid/12` والشريط التقدمي كقراءة فقط
+- إضافة نص توجيهي "يتم التحصيل عبر الفواتير" بدلاً من الأزرار
 
-// إلى
-const activeContracts = isSpecificYear
-  ? allPropertyContracts
-  : allPropertyContracts.filter(c => c.status === 'active');
-```
+**إزالة أزرار +/- في عرض سطح المكتب (سطور 682-710):**
+- نفس التغيير: حذف الأزرار، إبقاء العرض والشريط التقدمي للقراءة فقط
 
-### ملف: `src/pages/beneficiary/PropertiesViewPage.tsx` — تصحيح حساب الشهري
+**تنظيف الاستيرادات:**
+- إزالة `useUpsertTenantPayment` من الاستيرادات (سطر 14)
+- إزالة `MinusIcon` من lucide (سطر 17)
+- إزالة متغير `upsertPayment` (سطر 64)
 
-حساب الشهري في صفحة المستفيد يستخدم `rent/4` للربع سنوي و`rent/6` للنصف سنوي — وهذا **خطأ** لأن `rent_amount` قيمة سنوية دائماً، فالشهري = `rent/12` بغض النظر عن نوع الدفع. يجب توحيده مع صفحة الناظر:
+### 2. `src/hooks/useAccountsEditing.ts`
 
-```typescript
-// من (خطأ)
-if (c.payment_type === 'quarterly') return sum + rent / 4;
-if (c.payment_type === 'semi_annual') return sum + rent / 6;
+**إزالة `auto_income` من `handleSaveEdit` (سطور 86-91):**
+- حذف كتلة `auto_income` من استدعاء `upsertPayment.mutateAsync`
+- إبقاء تحديث `paid_months` و `notes` فقط (بدون تسجيل دخل تلقائي)
 
-// إلى (صحيح)
-return sum + rent / 12;  // rent_amount سنوي دائماً
-```
+### 3. لا تغيير على `useTenantPayments.ts`
+- يبقى كما هو للاستخدام الداخلي من RPC `pay_invoice_and_record_collection`
+
+---
 
 ## النتيجة
-تطابق كامل بين الصفحتين في جميع السنوات المالية.
+مسار واحد فقط للتحصيل: **تسديد الفاتورة** → تحديث حالتها + تسجيل الدخل + تحديث `paid_months` — كل شيء ذري. لا يمكن أن يظهر المستأجر "دافع" بدون فاتورة مسددة.
 
