@@ -38,21 +38,10 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 const WaqifDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
+  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
-  useEffect(() => {
-    const tables = ['income', 'expenses', 'payment_invoices'] as const;
-    const channel = supabase.channel('waqif-dashboard-realtime');
-    tables.forEach((table) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-        queryClient.invalidateQueries({ queryKey: [table] });
-      });
-    });
-    channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
+  useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
   const {
     totalIncome, totalExpenses, availableAmount,
     income, expenses,
