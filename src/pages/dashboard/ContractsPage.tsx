@@ -177,7 +177,7 @@ const ContractsPage = () => {
                     invoicePaidMap={invoicePaidMap} expiredIds={expiredIds} selectedForRenewal={selectedForRenewal}
                     onToggleSelection={toggleSelection} onEdit={handleEdit}
                     onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
-                    onRenew={handleRenew} isClosed={isClosed} open={expandedGroups.has(baseNumber)}
+                    onRenew={handleRenew} isClosed={isClosed && role !== 'admin'} open={expandedGroups.has(baseNumber)}
                     onOpenChange={(isOpen) => {
                       setExpandedGroups(prev => {
                         const next = new Set(prev);
