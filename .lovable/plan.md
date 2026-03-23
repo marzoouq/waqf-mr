@@ -1,118 +1,91 @@
+# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
+## الإصلاحات المنجزة
 
-# تقرير التدقيق المعماري الشامل — النسخة الثالثة
+### ✅ تصحيح منطق الإيرادات التعاقدية
+- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
+- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
 
----
+### ✅ توحيد فلترة العقود
+- `isSpecificYear` → جميع العقود (active + expired)
+- `all` → فقط `active`
+- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
 
-## 1. الحالة الحالية
+### ✅ جدول الاستحقاقات الشهري
+- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
+- أشهر ديناميكية حسب حدود السنة المالية
+- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
 
-```text
-الإصلاحات المنجزة: 10+
-الصفحات: 44 | Hooks: 80+ (مصنفة في 5 مجلدات)
-PDF core: موحد (core.ts = 354 سطر)
-```
+### ✅ استخراج `usePropertyFinancials` hook
+- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
 
----
+### ✅ إنشاء `dashboardComputations.ts`
+- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
+- مستخدم في AdminDashboard و WaqifDashboard
 
-## 2. ما تم إنجازه منذ آخر تدقيق ✅
+### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
 
-| الإصلاح | الحالة |
-|---------|--------|
-| تفكيك `UserManagementPage` (880→165) | ✅ |
-| تفكيك `MySharePage` (714→194) | ✅ |
-| تصنيف hooks في مجلدات فرعية (data/financial/ui/auth/page) | ✅ |
-| استخراج `LogoManager` من `SettingsPage` → مكون مستقل | ✅ |
-| استخراج `propertyPerformance` → `usePropertyPerformance` hook | ✅ |
-| توحيد PDF core (header/footer/fonts) في `core.ts` | ✅ |
-| مركزة `isSpecificYear` | ✅ |
-| توحيد Realtime (`useDashboardRealtime`) | ✅ |
-| الإيرادات التعاقدية `allocated_amount ?? 0` | ✅ |
+### ✅ إصلاح PDF الوحدات
+- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
 
----
+### ✅ توثيق BUSINESS_RULES.md
+- 16 قسم يغطي جميع القواعد المالية والتقنية
 
-## 3. المشاكل المتبقية
+### ✅ مركزة `isSpecificYear` في FiscalYearContext
+- إزالة الحساب المكرر من 7+ صفحات
+- القيمة متاحة مباشرة من `useFiscalYear()`
 
-### 3.1 صفحات عملاقة (3 ملفات > 500 سطر)
+### ✅ إنشاء `useDashboardRealtime` hook موحد
+- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
+- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
 
-| الصفحة | الأسطر | المشكلة |
-|--------|--------|---------|
-| `ContractsPage.tsx` | **650** | CRUD + فلترة + 4 تبويبات + bulk renew |
-| `ReportsPage.tsx` | **640** | 7+ تبويبات تقارير — لكن معظمها مكونات مستوردة |
-| `SettingsPage.tsx` | **561** | 5 مكونات tabs inline (`WaqfSettingsTab`, `SectionsTab`, `BeneficiaryTab`, `AppearanceTab`, `NotificationsTab`, `SecurityTab`) — ~400 سطر يمكن استخراجها |
-
-**ملاحظة:** `SettingsPage` الآن 561 سطر (انخفض من 721) بفضل استخراج `LogoManager`، لكن لا يزال يحتوي 6 مكونات inline (سطر 35-449) يجب أن تكون ملفات مستقلة في `src/components/settings/`.
-
-### 3.2 `SettingsPage` — 6 مكونات inline
-
-| المكون | الأسطر | يجب استخراجه إلى |
-|--------|--------|-----------------|
-| `WaqfSettingsTab` | 35-163 (~130 سطر) | `components/settings/WaqfSettingsTab.tsx` |
-| `SectionsTab` | 166-201 (~35 سطر) | `components/settings/SectionsTab.tsx` |
-| `BeneficiaryTab` | 204-239 (~35 سطر) | `components/settings/BeneficiaryTab.tsx` |
-| `AppearanceTab` | 242-276 (~35 سطر) | `components/settings/AppearanceTab.tsx` |
-| `NotificationsTab` | 279-394 (~115 سطر) | `components/settings/NotificationsTab.tsx` |
-| `SecurityTab` | 397-449 (~50 سطر) | `components/settings/SecurityTab.tsx` |
-
-بعد الاستخراج: `SettingsPage` سينخفض إلى **~120 سطر** (تعريف التبويبات + التوجيه فقط).
-
-### 3.3 `ContractsPage` — 650 سطر
-
-يحتوي: 14 state variable + bulk renew logic + فلترة + CRUD. يمكن استخراج:
-- `useContractsPage` hook (state + mutations + فلترة)
-- المكونات الفرعية (ContractAccordionGroup, StatsCards, etc.) موجودة أصلاً
-
-### 3.4 Proxy files — 54 ملف وسيط
-
-لا تزال موجودة. تعمل بشكل صحيح لكنها تضاعف عدد الملفات. يمكن إزالتها تدريجياً بتحديث الاستيرادات.
-
-### 3.5 ملفات اختبار في المستوى الأعلى
-
-~30 ملف `.test.ts` في `src/hooks/` يجب نقلها بجانب ملفاتها في المجلدات الفرعية.
-
-### 3.6 `paymentInvoice.ts` — 897 سطر
-
-أكبر ملف utility في المشروع. يحتوي 3 قوالب فواتير مختلفة. يمكن تقسيمه لملف لكل قالب.
+### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
+- إضافة فحص `__none__` للتوافق مع الحساب المركزي
 
 ---
 
-## 4. تقييم الجودة
+## التفكيكات المنجزة
 
-| الجانب | التقييم | ملاحظة |
-|--------|---------|--------|
-| **فصل المسؤوليات** | ⭐⭐⭐⭐☆ | `SettingsPage` inline tabs هي الاستثناء الوحيد |
-| **توحيد الأنماط** | ⭐⭐⭐⭐½ | جميع الأنماط موحدة |
-| **قابلية الصيانة** | ⭐⭐⭐⭐☆ | تحسن كبير — 3 ملفات فقط > 500 سطر |
-| **الأداء** | ⭐⭐⭐⭐☆ | lazy loading + DeferredRender + bfcache |
-| **الاختبارات** | ⭐⭐⭐⭐☆ | تغطية جيدة |
-| **التوثيق** | ⭐⭐⭐⭐½ | BUSINESS_RULES.md + plan.md شاملان |
+| # | الملف | قبل | بعد | التفاصيل |
+|---|-------|-----|-----|----------|
+| 1 | `UserManagementPage` | 880 سطر | 165 سطر | hook + 3 مكونات |
+| 2 | `MySharePage` | 714 سطر | 194 سطر | hook + مكونات فرعية |
+| 3 | `SettingsPage` | 561 سطر | ~120 سطر | 6 مكونات inline → ملفات مستقلة |
+| 4 | `ContractsPage` | 650 سطر | ~200 سطر | `useContractsPage` hook |
 
 ---
 
-## 5. التوصيات حسب الأولوية
+## التحسينات المعمارية المنجزة
 
-### أولوية عالية
-
-| # | التوصية | الأثر |
-|---|---------|-------|
-| 1 | استخراج 6 inline tabs من `SettingsPage` → مكونات مستقلة | 561→~120 سطر |
-| 2 | استخراج `useContractsPage` hook من `ContractsPage` | 650→~250 سطر |
-
-### أولوية متوسطة
-
-| # | التوصية |
-|---|---------|
-| 3 | تقسيم `paymentInvoice.ts` (897 سطر) لملف لكل قالب |
-| 4 | نقل ملفات الاختبار للمجلدات الفرعية |
-
-### أولوية منخفضة
-
-| # | التوصية |
-|---|---------|
-| 5 | تحديث الاستيرادات لإزالة proxy files تدريجياً |
+| # | التوصية | الحالة |
+|---|---------|--------|
+| ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
+| ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
+| ~~3~~ | ~~استخراج `propertyPerformance` من `ReportsPage`~~ | ✅ تم — hook مشترك `usePropertyPerformance` |
+| ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
+| ~~5~~ | ~~استخراج `LogoManager` من `SettingsPage`~~ | ✅ تم — مكون مستقل |
+| ~~6~~ | ~~توحيد PDF core (header/footer/fonts)~~ | ✅ تم — `core.ts` موحد |
+| ~~7~~ | ~~استخراج 6 inline tabs من `SettingsPage`~~ | ✅ تم — 561→~120 سطر |
+| ~~8~~ | ~~استخراج `useContractsPage` hook~~ | ✅ تم — 650→~200 سطر |
 
 ---
 
-## 6. الخلاصة
+## التحسينات المعلقة (أولوية متوسطة-منخفضة)
 
-المشروع في **حالة ممتازة** مقارنة بالتدقيق الأول. جميع التوصيات ذات الأولوية العالية السابقة تم تنفيذها. المشكلة الوحيدة ذات الأولوية العالية المتبقية: **`SettingsPage` يحتوي 6 مكونات inline** يجب استخراجها (عملية بسيطة — نقل كود موجود لملفات مستقلة). بقية التوصيات تنظيمية وليست وظيفية.
+| # | التوصية | الملفات |
+|---|---------|---------|
+| 1 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
+| 2 | تقسيم `paymentInvoice.ts` (897 سطر) لملف لكل قالب | 1 ملف → 3 |
+| 3 | نقل ملفات الاختبار للمجلدات الفرعية | ~30 ملف |
+| 4 | تحديث الاستيرادات لإزالة proxy files تدريجياً | ~54 ملف |
 
+---
+
+## القواعد السارية
+
+مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
+- §9: الإيرادات = الدخل الفعلي المحصّل فقط
+- §10: السنة المالية هي المرجع وليس الميلادية
+- §11: أمثلة حالات حافة (5 سيناريوهات)
+- §12: فلترة موحدة بـ `isSpecificYear`
+- §16: قواعد البطاقات لمنع التكرار
