@@ -1,146 +1,68 @@
+# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
+## الإصلاحات المنجزة
 
-# فحص شامل للكود — تقرير التدقيق المعماري (محدّث)
+### ✅ تصحيح منطق الإيرادات التعاقدية
+- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
+- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
 
----
+### ✅ توحيد فلترة العقود
+- `isSpecificYear` → جميع العقود (active + expired)
+- `all` → فقط `active`
+- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
 
-## 1. ملخص الحالة الحالية
+### ✅ جدول الاستحقاقات الشهري
+- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
+- أشهر ديناميكية حسب حدود السنة المالية
+- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
 
-```text
-src/
-├── pages/           44 ملف (20 ناظر + 15 مستفيد + 9 عامة)
-├── components/      ~18 مجلد + 65 ملف جذري
-├── hooks/           ~80 ملف (مسطحة بدون تصنيف)
-├── utils/           ~30 ملف + pdf/ (~17 ملف)
-├── contexts/        2 (Auth + FiscalYear)
-├── constants/       3 ملفات
-├── lib/             7 ملفات
-└── integrations/    supabase client + types
-```
+### ✅ استخراج `usePropertyFinancials` hook
+- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
 
----
+### ✅ إنشاء `dashboardComputations.ts`
+- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
+- مستخدم في AdminDashboard و WaqifDashboard
 
-## 2. ما تم إصلاحه منذ آخر تدقيق ✅
+### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
 
-| الإصلاح | الحالة |
-|---------|--------|
-| مركزة `isSpecificYear` في `FiscalYearContext` | ✅ مطبّق — سطر 67 |
-| توحيد Realtime في `useDashboardRealtime` | ✅ AdminDashboard + WaqifDashboard يستخدمانه |
-| `BeneficiaryDashboard` يستخدم `useBfcacheSafeChannel` مباشرة | ✅ (مبرر: فلتر `beneficiary_id` خاص) |
-| جميع `supabase.channel()` تمر عبر `useBfcacheSafeChannel` | ✅ لا استخدام مباشر |
-| الإيرادات التعاقدية = `allocated_amount ?? 0` | ✅ AdminDashboard + ContractsPage + WaqifDashboard |
-| فلترة موحدة بـ `isSpecificYear` | ✅ جميع الصفحات الرئيسية |
+### ✅ إصلاح PDF الوحدات
+- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
 
----
+### ✅ توثيق BUSINESS_RULES.md
+- 16 قسم يغطي جميع القواعد المالية والتقنية
 
-## 3. مشاكل متبقية
+### ✅ مركزة `isSpecificYear` في FiscalYearContext
+- إزالة الحساب المكرر من 7+ صفحات
+- القيمة متاحة مباشرة من `useFiscalYear()`
 
-### 3.1 `MonthlyAccrualTable` — `isSpecificYear` محلي بدلاً من Context
+### ✅ إنشاء `useDashboardRealtime` hook موحد
+- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
+- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
 
-**سطر 119:**
-```typescript
-const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
-```
-
-لا يفحص `__none__`. الحساب المركزي (سطر 67 من Context) يفحص:
-```typescript
-fiscalYearId !== 'all' && fiscalYearId !== '__none__' && !!fiscalYearId
-```
-
-**الخطورة:** منخفضة — `__none__` يحدث فقط أثناء التحميل.
-**التوصية:** استخدام `isSpecificYear` من props أو إضافة فحص `__none__`.
-
-### 3.2 صفحات عملاقة — لا تزال كما هي
-
-| الصفحة | الأسطر | الحالة |
-|--------|--------|--------|
-| `UserManagementPage.tsx` | **880** | ❌ لم يُفكك |
-| `SettingsPage.tsx` | **721** | ⚠️ tabs محملة كسول لكن الملف الأم ضخم |
-| `MySharePage.tsx` | **714** | ❌ لم يُفكك |
-| `ReportsPage.tsx` | **693** | ❌ لم يُفكك |
-| `ContractsPage.tsx` | **650** | ❌ لم يُفكك |
-| `InvoicesPage.tsx` | **536** | ❌ |
-| `DisclosurePage.tsx` | **540** | ❌ |
-
-### 3.3 `propertyPerformance` — منطق إشغال مكرر
-
-`ReportsPage.tsx` سطور 97-142: حساب إشغال + إيرادات لكل عقار (45 سطر).
-نفس المنطق موجود في `usePropertyFinancials` و `dashboardComputations.computeOccupancy`.
-**التوصية:** استخدام hook مشترك بدلاً من إعادة الحساب.
-
-### 3.4 hooks — 80 ملف بدون تصنيف
-
-جميع الـ hooks في مجلد مسطح واحد. التوصية السابقة بتصنيفها لم تُنفذ:
-```text
-hooks/
-├── data/       (useProperties, useContracts, useIncome, ...)
-├── financial/  (useFinancialSummary, useComputedFinancials, ...)
-├── ui/         (use-mobile, use-toast, useIdleTimeout, ...)
-└── auth/       (useAuthContext, useWebAuthn, ...)
-```
-
-### 3.5 تسمية غير متسقة — ملفان kebab-case
-
-- `use-mobile.tsx` (يجب: `useMobile.tsx`)
-- `use-toast.ts` (يجب: `useToast.ts`)
-
-بقية الـ 78 ملف `camelCase`.
-
-### 3.6 `DashboardLayout.tsx` — 404 سطر
-
-يحتوي swipe gestures + permission filtering + idle timeout + menu labels. يمكن استخراج `useSwipeGesture` و `useMenuPermissions`.
+### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
+- إضافة فحص `__none__` للتوافق مع الحساب المركزي
 
 ---
 
-## 4. تقييم الجودة المعمارية
+## القواعد السارية
 
-| الجانب | التقييم | ملاحظة |
-|--------|---------|--------|
-| **فصل المسؤوليات** | ⭐⭐⭐⭐☆ | طبقة hooks/utils قوية. `ReportsPage` يحتاج تنظيف |
-| **توحيد الأنماط** | ⭐⭐⭐⭐☆ | تحسن كبير: `isSpecificYear` مركزي، Realtime موحد |
-| **قابلية الصيانة** | ⭐⭐⭐☆☆ | 7 ملفات > 500 سطر تحتاج تفكيك |
-| **الأداء** | ⭐⭐⭐⭐☆ | lazy loading + DeferredRender + bfcache ممتاز |
-| **الاختبارات** | ⭐⭐⭐⭐☆ | ~40 ملف اختبار — تغطية جيدة |
-| **الأمان** | ⭐⭐⭐⭐☆ | RLS + ProtectedRoute + roles |
-| **التوثيق** | ⭐⭐⭐⭐☆ | BUSINESS_RULES.md شامل (16 قسم) |
+مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
+- §9: الإيرادات = الدخل الفعلي المحصّل فقط
+- §10: السنة المالية هي المرجع وليس الميلادية
+- §11: أمثلة حالات حافة (5 سيناريوهات)
+- §12: فلترة موحدة بـ `isSpecificYear`
+- §16: قواعد البطاقات لمنع التكرار
 
 ---
 
-## 5. التوصيات مرتبة حسب الأولوية
+## التحسينات المعمارية المعلقة (أولوية متوسطة)
 
-### أولوية عالية
-
-| # | التوصية | الأثر |
-|---|---------|-------|
-| 1 | تفكيك `UserManagementPage` (880 سطر) → hook + 3 مكونات | صيانة أسهل |
-| 2 | تفكيك `MySharePage` (714 سطر) → hook + مكونات | صيانة أسهل |
-| 3 | استخراج `propertyPerformance` من `ReportsPage` لـ hook مشترك | إزالة تكرار |
-
-### أولوية متوسطة
-
-| # | التوصية |
-|---|---------|
-| 4 | تصنيف hooks في مجلدات فرعية (~80 ملف) |
-| 5 | استخراج `LogoManager` من `SettingsPage` |
-| 6 | توحيد تسمية الملفات (2 ملف kebab → camelCase) |
-| 7 | إصلاح `isSpecificYear` في `MonthlyAccrualTable` ليفحص `__none__` |
-
-### أولوية منخفضة
-
-| # | التوصية |
-|---|---------|
-| 8 | توحيد PDF core (header/footer/fonts) عبر 17 ملف |
-| 9 | استخراج swipe/permissions من `DashboardLayout` |
-
----
-
-## 6. الخلاصة
-
-المشروع تحسن **بشكل ملموس** منذ التدقيق السابق:
-- **`isSpecificYear` مركزي** — أزال التكرار من 7+ صفحات
-- **Realtime موحد** — `useDashboardRealtime` يُستخدم في لوحتين رئيسيتين
-- **الإيرادات التعاقدية** — تعتمد على `allocated_amount ?? 0` بشكل متسق
-- **التوثيق** — `BUSINESS_RULES.md` يغطي 16 قسم
-
-المشكلة الرئيسية المتبقية: **7 صفحات عملاقة (500-880 سطر)** تحتاج تفكيك. هذا هو أكبر عائق للصيانة حالياً. بقية المشاكل تجميلية أو تنظيمية ولا تؤثر على الوظائف.
-
+| # | التوصية | الملفات |
+|---|---------|---------|
+| 1 | تفكيك `UserManagementPage` (880 سطر) | 1 صفحة → hook + مكونات |
+| 2 | تفكيك `MySharePage` (714 سطر) | 1 صفحة → hook + مكونات |
+| 3 | استخراج `propertyPerformance` من `ReportsPage` | 1 صفحة → hook مشترك |
+| 4 | تصنيف hooks في مجلدات فرعية | ~80 ملف |
+| 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
+| 6 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
+| 7 | توحيد PDF core (header/footer/fonts) | 17 ملف |
