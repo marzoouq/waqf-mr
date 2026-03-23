@@ -19,13 +19,11 @@ export const generateAnnualReportPDF = async (
   waqfInfo?: PdfWaqfInfo,
 ) => {
   try {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const fontLoaded = await loadArabicFont(doc);
-    const fontFamily = fontLoaded ? 'Amiri' : 'helvetica';
+    const { doc, fontFamily, startY: headerY } = await createPdfDocument(waqfInfo);
     const pageW = doc.internal.pageSize.width;
     const margin = 18;
 
-    let y = await addHeader(doc, fontFamily, waqfInfo);
+    let y = headerY;
 
     // عنوان التقرير
     doc.setFont(fontFamily, 'bold');
