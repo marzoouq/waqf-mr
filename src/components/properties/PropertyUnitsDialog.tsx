@@ -12,7 +12,6 @@ import { Progress } from '@/components/ui/progress';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/useContracts';
 import { useTenantPayments } from '@/hooks/useTenantPayments';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, Home, DoorOpen } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
