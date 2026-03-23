@@ -39,6 +39,8 @@ type SortDir = 'asc' | 'desc';
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const { role } = useAuth();
+  const isLocked = isClosed && role !== 'admin';
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
