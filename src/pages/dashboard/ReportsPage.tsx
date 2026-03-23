@@ -329,7 +329,6 @@ const ReportsPage = () => {
             { value: 'monthly', label: 'الأداء الشهري', icon: <CalendarRange className="w-4 h-4" /> },
             { value: 'cashflow', label: 'التدفق النقدي', icon: <Banknote className="w-4 h-4" /> },
             { value: 'balance', label: 'الميزانية العمومية', icon: <Scale className="w-4 h-4" /> },
-            { value: 'balance', label: 'الميزانية العمومية', icon: <Scale className="w-4 h-4" /> },
             { value: 'overdue', label: 'المتأخرون', icon: <FileText className="w-4 h-4" /> },
             { value: 'zakat', label: 'تقدير الزكاة', icon: <Calculator className="w-4 h-4" /> },
           ] satisfies TabItem[]}
