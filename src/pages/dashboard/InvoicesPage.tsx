@@ -217,8 +217,8 @@ const InvoicesPage = () => {
                       { label: 'العقار', value: item.property?.property_number || '-' },
                       { label: 'الملف', value: item.file_path ? (item.file_name || 'موجود') : 'لا يوجد' },
                     ]}
-                    onEdit={h.isClosed ? undefined : h.handleEdit}
-                    onDelete={h.isClosed ? undefined : (item) => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
+                    onEdit={isLocked ? undefined : h.handleEdit}
+                    onDelete={isLocked ? undefined : (item) => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
                     extraActions={(item) => item.file_path ? (
                       <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => h.setViewerFile({ path: item.file_path!, name: item.file_name })} aria-label="عرض الملف">
                         <Eye className="w-4 h-4" />
