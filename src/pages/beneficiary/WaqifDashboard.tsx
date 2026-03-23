@@ -1,4 +1,5 @@
 import { fmt } from '@/utils/format';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 /**
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
