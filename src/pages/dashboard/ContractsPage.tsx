@@ -27,6 +27,7 @@ import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { useContractsPage } from '@/hooks/page/useContractsPage';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
