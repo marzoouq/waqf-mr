@@ -61,7 +61,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
-  const upsertPayment = useUpsertTenantPayment();
+  
   const { fiscalYearId } = useFiscalYear();
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
