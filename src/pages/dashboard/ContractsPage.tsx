@@ -45,6 +45,7 @@ const ContractsPage = () => {
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
 
   const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
