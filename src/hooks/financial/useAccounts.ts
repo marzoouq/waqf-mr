@@ -31,7 +31,7 @@ export const useAccountByFiscalYear = (
 ) => {
   return useQuery({
     queryKey: ['accounts', 'fiscal_year', fiscalYearId ?? fiscalYearLabel ?? 'all'],
-    enabled: fiscalYearId !== '__none__',
+    enabled: fiscalYearId !== '__none__' && fiscalYearId !== '__skip__',
     staleTime: 60_000,
     retry: 2,
     queryFn: async () => {
