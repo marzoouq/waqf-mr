@@ -354,7 +354,7 @@ const PropertiesPage = () => {
                           </Tooltip>
                         </TooltipProvider>
                       </>
-                    ) : activeContracts.length > 0 ? (
+                    ) : contracts.some(c => c.property_id === property.id && (isSpecificYear || c.status === 'active')) ? (
                       <>
                         <div className="flex items-center gap-2 text-sm">
                           <Home className="w-3.5 h-3.5 text-success" />
