@@ -1,9 +1,7 @@
 /**
  * مولّد PDF للتقرير السنوي للإنجازات
  */
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo, reshapeArabic as rs } from './core';
+import { createPdfDocument, finalizePdf, type PdfWaqfInfo, reshapeArabic as rs } from './core';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
