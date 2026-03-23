@@ -192,7 +192,7 @@ const InvoicesPage = () => {
         </div>
 
         {h.viewMode === 'grid' ? (
-          <InvoiceGridView invoices={h.filteredInvoices} onEdit={h.handleEdit} readOnly={h.isClosed} />
+          <InvoiceGridView invoices={h.filteredInvoices} onEdit={h.handleEdit} readOnly={isLocked} />
         ) : (
           <Card className="shadow-sm">
             <CardContent className="p-0">
