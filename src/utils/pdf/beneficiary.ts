@@ -103,9 +103,7 @@ export const generateMySharePDF = async (data: {
     });
   }
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`);
+  finalizePdf(doc, fontFamily, `my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`, waqfInfo);
 };
 
 export const generateDisclosurePDF = async (data: {
