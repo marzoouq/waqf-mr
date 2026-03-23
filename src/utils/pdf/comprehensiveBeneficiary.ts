@@ -60,11 +60,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
   data: ComprehensiveBeneficiaryData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const f = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, f, waqfInfo);
+  const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   // ═══ Title ═══
   doc.setFont(f, 'bold');
