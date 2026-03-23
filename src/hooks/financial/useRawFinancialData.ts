@@ -16,7 +16,11 @@ export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: str
   const fyFilter = shouldSkip ? '__none__' : fiscalYearId;
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
-  const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(fiscalYearLabel, fiscalYearId);
+  // BUG-R3 fix: pass sanitized fyFilter to prevent '__skip__' reaching Supabase as UUID
+  const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(
+    shouldSkip ? undefined : fiscalYearLabel,
+    fyFilter,
+  );
   const { data: beneficiaries = [], isLoading: benLoading, isError: benError } = useBeneficiariesSafe();
   const { data: settings } = useAppSettings();
 
