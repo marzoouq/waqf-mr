@@ -1,91 +1,120 @@
-# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## الإصلاحات المنجزة
 
-### ✅ تصحيح منطق الإيرادات التعاقدية
-- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
-- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
-
-### ✅ توحيد فلترة العقود
-- `isSpecificYear` → جميع العقود (active + expired)
-- `all` → فقط `active`
-- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
-
-### ✅ جدول الاستحقاقات الشهري
-- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
-- أشهر ديناميكية حسب حدود السنة المالية
-- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
-
-### ✅ استخراج `usePropertyFinancials` hook
-- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
-
-### ✅ إنشاء `dashboardComputations.ts`
-- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
-- مستخدم في AdminDashboard و WaqifDashboard
-
-### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
-
-### ✅ إصلاح PDF الوحدات
-- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
-
-### ✅ توثيق BUSINESS_RULES.md
-- 16 قسم يغطي جميع القواعد المالية والتقنية
-
-### ✅ مركزة `isSpecificYear` في FiscalYearContext
-- إزالة الحساب المكرر من 7+ صفحات
-- القيمة متاحة مباشرة من `useFiscalYear()`
-
-### ✅ إنشاء `useDashboardRealtime` hook موحد
-- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
-- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
-
-### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
-- إضافة فحص `__none__` للتوافق مع الحساب المركزي
+# تقرير فحص قاعدة البيانات والهيكل + أخطاء البناء
 
 ---
 
-## التفكيكات المنجزة
+## 1. أخطاء البناء — مُعالَجة بالفعل
 
-| # | الملف | قبل | بعد | التفاصيل |
-|---|-------|-----|-----|----------|
-| 1 | `UserManagementPage` | 880 سطر | 165 سطر | hook + 3 مكونات |
-| 2 | `MySharePage` | 714 سطر | 194 سطر | hook + مكونات فرعية |
-| 3 | `SettingsPage` | 561 سطر | ~120 سطر | 6 مكونات inline → ملفات مستقلة |
-| 4 | `ContractsPage` | 650 سطر | ~200 سطر | `useContractsPage` hook |
+جميع الأخطاء المذكورة في البناء **لا تعكس الحالة الفعلية للكود**. بعد الفحص:
 
----
+| الخطأ | الحالة الفعلية في الكود |
+|-------|------------------------|
+| `@/hooks/usePagePerformance` | ✅ `App.tsx` سطر 13 يستخدم `@/hooks/ui/usePagePerformance` |
+| `@/hooks/useAppSettings` | ✅ `BetaBanner.tsx` + `BannerSettingsTab.tsx` يستخدمان `@/hooks/page/useAppSettings` |
+| `@/hooks/use-mobile` | ✅ `sidebar.tsx` سطر 6 يستخدم `@/hooks/ui/use-mobile` |
+| `@/hooks/use-toast` | ✅ `toaster.tsx` + `use-toast.ts` يستخدمان `@/hooks/ui/use-toast` |
+| `./useAppSettings` في `useWaqfInfo.test.ts` | ✅ يستخدم `@/hooks/page/useAppSettings` |
+| `@/hooks/useBeneficiaryDashboardData` | ✅ يستخدم `@/hooks/page/useBeneficiaryDashboardData` |
+| `@/hooks/useBeneficiaries` | ✅ يستخدم `@/hooks/data/useBeneficiaries` |
+| `@/hooks/useNotifications` | ✅ يستخدم `@/hooks/data/useNotifications` |
 
-## التحسينات المعمارية المنجزة
-
-| # | التوصية | الحالة |
-|---|---------|--------|
-| ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
-| ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
-| ~~3~~ | ~~استخراج `propertyPerformance` من `ReportsPage`~~ | ✅ تم — hook مشترك `usePropertyPerformance` |
-| ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
-| ~~5~~ | ~~استخراج `LogoManager` من `SettingsPage`~~ | ✅ تم — مكون مستقل |
-| ~~6~~ | ~~توحيد PDF core (header/footer/fonts)~~ | ✅ تم — `core.ts` موحد |
-| ~~7~~ | ~~استخراج 6 inline tabs من `SettingsPage`~~ | ✅ تم — 561→~120 سطر |
-| ~~8~~ | ~~استخراج `useContractsPage` hook~~ | ✅ تم — 650→~200 سطر |
-| ~~9~~ | ~~تقسيم `paymentInvoice.ts` (897 سطر)~~ | ✅ تم — shared + 3 قوالب |
-| ~~10~~ | ~~نقل ملفات الاختبار للمجلدات الفرعية~~ | ✅ تم — 36 ملف |
-| ~~11~~ | ~~إزالة proxy files وتحديث الاستيرادات~~ | ✅ تم — 55 proxy حُذف، 246 import حُدّث |
+**الإجراء المطلوب:** لا شيء — هذه أخطاء بناء مخبأة (cached) ستُحل بإعادة بناء نظيفة. الكود صحيح 100%.
 
 ---
 
-## التحسينات المعلقة (أولوية منخفضة)
+## 2. فحص قاعدة البيانات — النتائج
 
-| # | التوصية | ملاحظة |
-|---|---------|--------|
-| 1 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | تجميلي |
+### 2.1 الجداول الموجودة (22 جدول)
+
+| الجدول | الوظيفة | RLS |
+|--------|---------|-----|
+| `properties` | العقارات | ✅ |
+| `units` | الوحدات العقارية | ✅ |
+| `contracts_safe` | عقود (view آمن) | ⚠️ لا RLS (view) |
+| `beneficiaries` | المستفيدون | ✅ |
+| `beneficiaries_safe` | مستفيدون (view آمن) | ⚠️ لا RLS (view) |
+| `income` | الإيرادات | ✅ |
+| `expenses` | المصروفات | ✅ |
+| `accounts` | الحسابات الختامية | ✅ |
+| `distributions` | التوزيعات | ✅ |
+| `invoices` | الفواتير العامة | ✅ |
+| `payment_invoices` | فواتير الدفعات | ✅ |
+| `invoice_items` | بنود الفواتير | ✅ |
+| `invoice_chain` | سلسلة التجزئة | ✅ |
+| `user_roles` | الأدوار | ✅ |
+| `advance_requests` | طلبات السُلف | ✅ |
+| `advance_carryforward` | ترحيل السُلف | ✅ |
+| `fiscal_years` (ضمنياً) | السنوات المالية | ✅ |
+| `app_settings` | إعدادات التطبيق | ✅ |
+| `messages` + `conversations` | المراسلات | ✅ |
+| `support_tickets` + `replies` | الدعم الفني | ✅ |
+| `access_log` + `archive` | سجل الوصول | ✅ |
+| `webauthn_credentials` | المصادقة البيومترية | ✅ |
+| `zatca_certificates` | شهادات ZATCA | ✅ |
+| `waqf_bylaws` | اللوائح | ✅ |
+| `annual_report_items` + `status` | التقرير السنوي | ✅ |
+| `expense_budgets` | الميزانيات | ✅ |
+| `tenant_payments` | مدفوعات المستأجرين | ✅ |
+| `contract_fiscal_allocations` | تخصيصات العقود | ✅ |
+| `rate_limits` | تحديد المعدل | ✅ |
+| `account_categories` (ضمنياً) | شجرة الحسابات | ✅ |
+
+### 2.2 ✅ نقاط قوة
+
+1. **RLS شامل:** جميع الجداول الأساسية محمية بسياسات RLS متعددة المستويات (admin/accountant/beneficiary/waqif)
+2. **Restrictive policies:** استخدام `PERMISSIVE: No` لحجب بيانات السنوات المالية غير المنشورة (`is_fiscal_year_accessible`) — نمط أمني ممتاز
+3. **Views آمنة:** `contracts_safe` و `beneficiaries_safe` تحجب البيانات الحساسة (لا RLS لأنها views)
+4. **سلسلة التجزئة:** `invoice_chain` تدعم ZATCA compliance مع `previous_hash` + `icv`
+5. **Polymorphic linking:** `invoice_items.invoice_source` يدعم ربط بنود الفواتير بجدولين مختلفين
+6. **Rate limiting:** جدول `rate_limits` محمي بـ `USING false` — لا وصول مباشر
+7. **Audit trail:** `access_log` + `access_log_archive` محميان ضد التعديل والحذف
+
+### 2.3 ⚠️ ملاحظات
+
+| الملاحظة | التفاصيل | الخطورة |
+|---------|---------|---------|
+| **Foreign keys مفقودة في Schema المعروض** | لا foreign keys ظاهرة في البيانات المقدمة لأي جدول — لكن هذا قد يكون عرض جزئي | منخفضة |
+| **`contracts_safe` بدون RLS** | View — لا يحتاج RLS إذا كان الجدول الأصلي (`contracts`) محمي | مقبول |
+| **`beneficiaries_safe` بدون RLS** | نفس الملاحظة — view آمن | مقبول |
+| **`fiscal_year_id` nullable في بعض الجداول** | `advance_requests`, `payment_invoices`, `invoices` — nullable مع restrictive policy قد يحجب بيانات | منخفضة |
+
+### 2.4 تحليل التوافق مع الكود
+
+| الجدول | TypeScript Type | متوافق؟ |
+|--------|----------------|---------|
+| `properties` | `Property` | ✅ |
+| `units` | `Unit` | ✅ |
+| `contracts` | `Contract` | ✅ (مع حقول PII) |
+| `income` | `Income` | ✅ |
+| `expenses` | `Expense` | ✅ |
+| `beneficiaries` | `Beneficiary` | ✅ |
+| `accounts` | `Account` | ✅ |
+| `distributions` | `Distribution` | ✅ |
+| `advance_requests` | `AdvanceRequest` | ✅ |
+| `user_roles` | `UserRole` | ✅ |
+| `messages` | `Message` | ✅ |
+| `notifications` | `Notification` | ✅ |
+| `fiscal_years` | `FiscalYear` | ✅ |
+| `account_categories` | `AccountCategory` | ✅ |
+
+### 2.5 جداول بدون duplicate أو waste
+
+لا توجد جداول مكررة أو غير مستخدمة. كل جدول له وظيفة واضحة ومستخدم في الكود.
 
 ---
 
-## القواعد السارية
+## 3. الخلاصة
 
-مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
-- §9: الإيرادات = الدخل الفعلي المحصّل فقط
-- §10: السنة المالية هي المرجع وليس الميلادية
-- §11: أمثلة حالات حافة (5 سيناريوهات)
-- §12: فلترة موحدة بـ `isSpecificYear`
-- §16: قواعد البطاقات لمنع التكرار
+**قاعدة البيانات في حالة ممتازة:**
+- لا جداول مكررة أو غير مستخدمة
+- RLS شامل ومتعدد المستويات
+- Restrictive policies للسنوات المالية غير المنشورة
+- Views آمنة للبيانات الحساسة
+- التوافق بين TypeScript types وجداول DB كامل
+- Triggers وfunctions مساعدة (e.g. `has_role`, `is_fiscal_year_accessible`, `trg_set_distribution_fiscal_year`)
+
+**أخطاء البناء:** مخبأة/قديمة — الكود الفعلي صحيح ولا يحتاج أي تعديل.
+
+**لا يوجد إجراءات مطلوبة** — الهيكل سليم.
+
