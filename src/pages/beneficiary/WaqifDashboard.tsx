@@ -67,9 +67,11 @@ const WaqifDashboard = () => {
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
-  const activeContracts = contracts.filter(c => c.status === 'active');
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const activeContracts = relevantContracts;
   const expiredContracts = contracts.filter(c => c.status === 'expired');
-  const contractualRevenue = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+  const contractualRevenue = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
   /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
