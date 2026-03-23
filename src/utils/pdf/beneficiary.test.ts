@@ -41,7 +41,8 @@ describe('generateMySharePDF', () => {
       beneficiariesShare: 382500,
       distributions: [],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'my-share-أحمد-all.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('my-share-أحمد-all.pdf');
   });
 });
 
@@ -61,6 +62,7 @@ describe('generateDisclosurePDF', () => {
       incomeBySource: { 'إيجارات': 500000 },
       expensesByType: { 'صيانة': 50000 },
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'disclosure-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('disclosure-2024-2025.pdf');
   });
 });
