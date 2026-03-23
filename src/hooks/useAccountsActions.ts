@@ -43,10 +43,8 @@ export function useAccountsActions(params: ActionsParams) {
   const createAccount = useCreateAccount();
   const appSettings = useAppSettings();
 
-  // حفظ آخر قيم params في ref لاستخدامها في buildAccountData/handleExportPdf
-  // هذا يحل مشكلة تمرير الأصفار الأولية — paramsRef يُحدّث كل render بالقيم الفعلية
+  // paramsRef يُحدّث من useAccountsPage بقيم calc الفعلية (سطور 70-85)
   const paramsRef = useRef(params);
-  paramsRef.current = params;
 
   const [closeYearOpen, setCloseYearOpen] = useState(false);
   const [isClosingYear, setIsClosingYear] = useState(false);

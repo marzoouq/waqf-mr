@@ -259,6 +259,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Rate limiting: 30 طلب/دقيقة لكل مستخدم
+    const { data: isLimited } = await admin.rpc('check_rate_limit', {
+      p_key: `zatca-api:${user.id}`, p_limit: 30, p_window_seconds: 60
+    });
+    if (isLimited) {
+      return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const body = await req.json();
     const { action } = body;
 

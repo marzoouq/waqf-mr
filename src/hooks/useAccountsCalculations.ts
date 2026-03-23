@@ -45,13 +45,13 @@ export function useAccountsCalculations({
     return false;
   }, [residentialVatExempt, properties, allUnits]);
 
-  const commercialRent = contracts
+  const commercialRent = useMemo(() => contracts
     .filter(c => isCommercialContract(c))
     .reduce((sum, c) => {
       const allocation = allocationMap.get(c.id);
       return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
-    }, 0);
-  const calculatedVat = commercialRent * (vatPercentage / 100);
+    }, 0), [contracts, isCommercialContract, allocationMap]);
+  const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
 
   const financials = useMemo(() => calculateFinancials({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
@@ -63,10 +63,10 @@ export function useAccountsCalculations({
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
-  const totalAnnualRent = contracts.reduce((sum, c) => {
+  const totalAnnualRent = useMemo(() => contracts.reduce((sum, c) => {
     const allocation = allocationMap.get(c.id);
     return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
-  }, 0);
+  }, 0), [contracts, allocationMap]);
 
   const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {
     if (contract.payment_amount != null) return Number(contract.payment_amount);
@@ -88,7 +88,7 @@ export function useAccountsCalculations({
     return 1;
   }, [allocationMap]);
 
-  const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
+  const totalPaymentPerPeriod = useMemo(() => contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0), [contracts, getPaymentPerPeriod]);
 
   // بيانات التحصيل
   const collectionData = useMemo(() => contracts.map((contract, index) => {
