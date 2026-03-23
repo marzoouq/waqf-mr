@@ -76,6 +76,7 @@ describe('generateBeneficiaryStatementPDF', () => {
 });
 
 describe('generateAnnualDisclosurePDF', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('generates and saves disclosure PDF', async () => {
     await generateAnnualDisclosurePDF({
       fiscalYear: '2024-2025',

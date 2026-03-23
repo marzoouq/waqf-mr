@@ -47,6 +47,7 @@ describe('generateMySharePDF', () => {
 });
 
 describe('generateDisclosurePDF', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('saves disclosure PDF', async () => {
     await generateDisclosurePDF({
       fiscalYear: '2024-2025',
