@@ -113,9 +113,10 @@ const AdminDashboard = () => {
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
-  const activeContracts = contracts.filter(c => c.status === 'active');
-  const activeContractsCount = activeContracts.length;
-  const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const activeContractsCount = relevantContracts.length;
+  const contractualRevenue = relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
   const collectionSummary = useMemo(() => {
     const relevantContractIds = new Set(
