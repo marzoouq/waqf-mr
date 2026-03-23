@@ -3,7 +3,6 @@ import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
