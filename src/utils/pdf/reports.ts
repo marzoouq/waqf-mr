@@ -77,9 +77,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`waqf-report-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `waqf-report-${data.fiscalYear}.pdf`, waqfInfo);
 };
 
 export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, sharePercentage: number, shareAmount: number, fiscalYear: string, waqfInfo?: PdfWaqfInfo) => {
