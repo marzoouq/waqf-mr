@@ -47,7 +47,7 @@ const SEVERITY_COLORS: Record<string, [number, number, number]> = {
 };
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
-  const { doc, fontFamily: font, startY: headerY } = await createPdfDocument(waqfInfo, { orientation: 'portrait' as const, unit: 'mm' as const, format: 'a4' as const });
+  const { doc, fontFamily: font, startY: headerY } = await createPdfDocument(waqfInfo, 'portrait');
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
