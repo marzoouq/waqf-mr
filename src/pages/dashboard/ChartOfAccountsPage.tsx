@@ -68,8 +68,8 @@ const ChartOfAccountsPage = () => {
     if (!searchTerm.trim()) return tree;
 
     const term = searchTerm.toLowerCase();
-    function filterNodes(nodes: CategoryTreeNode[]): CategoryTreeNode[] {
-      return nodes.reduce<CategoryTreeNode[]>((acc, node) => {
+    function filterNodes(nodes: import('@/hooks/data/useAccountCategories').CategoryTreeNode[]): import('@/hooks/data/useAccountCategories').CategoryTreeNode[] {
+      return nodes.reduce<import('@/hooks/data/useAccountCategories').CategoryTreeNode[]>((acc, node) => {
         const matchesSelf = node.name.toLowerCase().includes(term) || node.code.includes(term);
         const filteredChildren = filterNodes(node.children);
         if (matchesSelf || filteredChildren.length > 0) {
