@@ -11,6 +11,7 @@ import { useCreateContract, useUpdateContract, useDeleteContract, useContractsBy
 import { useProperties } from '@/hooks/useProperties';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useContractAllocations } from '@/hooks/useContractAllocations';
 
 import { Contract } from '@/types/database';
 import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
