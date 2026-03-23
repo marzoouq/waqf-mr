@@ -117,7 +117,7 @@ export function computePropertyFinancials(params: {
 
   const propExpenses = expenses.filter(e => e.property_id === propertyId);
   const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
-  const netIncome = contractualRevenue - totalExpenses;
+  const netIncome = activeAnnualRent - totalExpenses;
 
   // --- الألوان ---
   const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
