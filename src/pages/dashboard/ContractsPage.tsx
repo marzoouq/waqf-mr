@@ -558,7 +558,7 @@ const ContractsPage = () => {
           </TabsContent>
 
           <TabsContent value="accruals">
-            <MonthlyAccrualTable contracts={contracts} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
+            <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
           </TabsContent>
 
           <TabsContent value="invoices">
