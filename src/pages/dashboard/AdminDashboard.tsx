@@ -6,6 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
@@ -113,31 +114,15 @@ const AdminDashboard = () => {
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
-  const activeContracts = contracts.filter(c => c.status === 'active');
-  const activeContractsCount = activeContracts.length;
-  const contractualRevenue = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const activeContractsCount = relevantContracts.length;
+  const contractualRevenue = relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-  const collectionSummary = useMemo(() => {
-    const relevantContractIds = new Set(
-      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
-    );
-    const nowDate = new Date();
-    const dueInvoices = paymentInvoices.filter(
-      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
-    );
-    const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
-    const totalCollected = dueInvoices.reduce((sum, inv) => {
-      if (inv.status === 'paid') return sum + safeNumber(inv.amount);
-      if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
-      return sum;
-    }, 0);
-    const paidCount = dueInvoices.filter(inv => inv.status === 'paid').length;
-    const partialCount = dueInvoices.filter(inv => inv.status === 'partially_paid').length;
-    const unpaidCount = dueInvoices.length - paidCount - partialCount;
-    const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
-
-    return { paidCount, partialCount, unpaidCount, total: dueInvoices.length, percentage, totalCollected, totalExpected };
-  }, [contracts, paymentInvoices]);
+  const collectionSummary = useMemo(
+    () => computeCollectionSummary(contracts, paymentInvoices),
+    [contracts, paymentInvoices]
+  );
 
   const isYearActive = fiscalYear?.status === 'active';
   const sharesNote = isYearActive ? ' *تقديري' : '';
@@ -183,26 +168,7 @@ const AdminDashboard = () => {
     ];
   }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, zakatAmount, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
 
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { income: number; expenses: number }> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].income += safeNumber(item.amount);
-      }
-    });
-    expenses.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].expenses += safeNumber(item.amount);
-      }
-    });
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
-  }, [income, expenses]);
+  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
   const expenseTypes = useMemo(() => {
     const types: Record<string, number> = {};
@@ -215,17 +181,7 @@ const AdminDashboard = () => {
 
   const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    const rentedUnitIds = new Set(
-      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
-    );
-    const wholePropertyRentedIds = new Set(
-      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
-    );
-    const rentedUnits = allUnits.filter(u =>
-      rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
-    ).length;
-    const totalUnitsCount = allUnits.length;
-    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : 0;
+    const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
@@ -244,7 +200,7 @@ const AdminDashboard = () => {
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, yoy]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, isSpecificYear, yoy]);
 
   return (
     <DashboardLayout>

@@ -11,11 +11,11 @@ import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
 import { useAllUnits } from '@/hooks/useUnits';
-import { CalendarRange, FileText, TrendingUp, GitCompareArrows, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
+import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
-import YearOverYearComparison from '@/components/reports/YearOverYearComparison';
+
 import ExportMenu from '@/components/ExportMenu';
 import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
@@ -32,7 +32,7 @@ const LazyReportsCharts = lazy(() => import('@/components/reports/ReportsChartsI
 
 const ReportsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, fiscalYears } = useFiscalYear();
+  const { fiscalYearId, fiscalYear } = useFiscalYear();
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId || 'all');
   const { data: allUnits = [] } = useAllUnits();
@@ -327,7 +327,6 @@ const ReportsPage = () => {
             { value: 'financial', label: 'التقارير المالية', icon: <FileText className="w-4 h-4" /> },
             { value: 'performance', label: 'مقارنة أداء العقارات', icon: <TrendingUp className="w-4 h-4" /> },
             { value: 'monthly', label: 'الأداء الشهري', icon: <CalendarRange className="w-4 h-4" /> },
-            { value: 'comparison', label: 'مقارنة سنوية', icon: <GitCompareArrows className="w-4 h-4" /> },
             { value: 'cashflow', label: 'التدفق النقدي', icon: <Banknote className="w-4 h-4" /> },
             { value: 'balance', label: 'الميزانية العمومية', icon: <Scale className="w-4 h-4" /> },
             { value: 'overdue', label: 'المتأخرون', icon: <FileText className="w-4 h-4" /> },
@@ -632,12 +631,7 @@ const ReportsPage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="comparison" className="space-y-6">
-            <YearOverYearComparison
-              fiscalYears={fiscalYears}
-              currentFiscalYearId={fiscalYearId}
-            />
-          </TabsContent>
+          {/* تبويب المقارنة السنوية تم نقله — يُستخدم من صفحة المقارنة التاريخية المستقلة */}
 
           <TabsContent value="cashflow" className="space-y-6">
             <CashFlowReport

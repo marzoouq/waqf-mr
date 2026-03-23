@@ -1,4 +1,5 @@
 import { fmt } from '@/utils/format';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 /**
  * لوحة تحكم مخصصة للواقف
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
@@ -66,46 +67,22 @@ const WaqifDashboard = () => {
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
-  const activeContracts = contracts.filter(c => c.status === 'active');
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const activeContracts = relevantContracts;
   const expiredContracts = contracts.filter(c => c.status === 'expired');
-  const contractualRevenue = activeContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+  const contractualRevenue = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
   /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
-    const relevantContractIds = new Set(
-      contracts.filter(c => c.status === 'active' || c.status === 'expired').map(c => c.id)
-    );
-    const nowDate = new Date();
-    const dueInvoices = paymentInvoices.filter(
-      inv => relevantContractIds.has(inv.contract_id) && new Date(inv.due_date) <= nowDate
-    );
-    const totalExpected = dueInvoices.reduce((sum, inv) => sum + safeNumber(inv.amount), 0);
-    const totalCollected = dueInvoices.reduce((sum, inv) => {
-      if (inv.status === 'paid') return sum + safeNumber(inv.amount);
-      if (inv.status === 'partially_paid') return sum + safeNumber(inv.paid_amount);
-      return sum;
-    }, 0);
-    const paidCount = dueInvoices.filter(inv => inv.status === 'paid' || inv.status === 'partially_paid').length;
-    const unpaidCount = dueInvoices.length - paidCount;
-    const percentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
-    return { onTime: paidCount, late: unpaidCount, total: dueInvoices.length, percentage };
+    const result = computeCollectionSummary(contracts, paymentInvoices);
+    return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
   }, [contracts, paymentInvoices]);
 
   /* ── KPIs ── */
   const kpis = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    // BUG-I fix: حساب الإشغال بناءً على العقود النشطة (موحّد مع PropertiesPage)
-    const rentedUnitIds = new Set(
-      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
-    );
-    const wholePropertyRentedIds = new Set(
-      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
-    );
-    const rentedUnits = allUnits.filter(u =>
-      rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
-    ).length;
-    const totalUnitsCount = allUnits.length;
-    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : (activeContracts.length > 0 ? 100 : 0);
+    const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
     return [
@@ -113,21 +90,10 @@ const WaqifDashboard = () => {
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : (expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive'), progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
     ];
-  }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, activeContracts.length]);
+  }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
 
   /* ── Monthly chart data ── */
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { income: number; expenses: number }> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += safeNumber(item.amount); }
-    });
-    expenses.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += safeNumber(item.amount); }
-    });
-    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
-  }, [income, expenses]);
+  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
   // formatArabicMonth moved to module level (PERF-01)
 
