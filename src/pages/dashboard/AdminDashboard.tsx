@@ -62,7 +62,7 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const queryClient = useQueryClient();
+  
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
   useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
