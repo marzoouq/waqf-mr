@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatus, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract, type TenantInfo } from './helpers';
+import { getPaymentStatus, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
 import type { UnitRow } from '@/hooks/useUnits';
