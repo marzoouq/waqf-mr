@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/lib/logger';
 
 interface FiscalYearContextType {
   fiscalYearId: string;
@@ -110,9 +111,7 @@ export const useFiscalYear = () => {
   if (!context) {
     // بدلاً من الانهيار الكامل، نسجل تحذير ونعيد قيمة آمنة
     // هذا يحدث عادةً عند تحميل chunk قديم بعد تحديث التطبيق
-    if (import.meta.env.DEV) {
-      console.warn('[FiscalYearContext] استُدعي useFiscalYear خارج FiscalYearProvider — إعادة قيمة احتياطية');
-    }
+    logger.warn('[FiscalYearContext] استُدعي useFiscalYear خارج FiscalYearProvider — إعادة قيمة احتياطية');
     return FALLBACK;
   }
   return context;
