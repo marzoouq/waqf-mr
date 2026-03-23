@@ -15,6 +15,8 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockResolvedValue({ doc: new (await import('jspdf')).default(), fontFamily: 'Amiri', startY: 40 }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,

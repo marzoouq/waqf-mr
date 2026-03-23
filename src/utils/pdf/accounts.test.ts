@@ -23,6 +23,8 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(),
   addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockResolvedValue({ doc: new (await import('jspdf')).default(), fontFamily: 'Amiri', startY: 40 }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [0, 128, 0],
   TABLE_HEAD_RED: [200, 0, 0],
   TABLE_HEAD_GOLD: [200, 170, 0],

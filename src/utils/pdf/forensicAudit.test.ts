@@ -9,6 +9,8 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockResolvedValue({ doc: new (await import('jspdf')).default(), fontFamily: 'Amiri', startY: 40 }),
+  finalizePdf: vi.fn(),
   addHeaderToAllPages: vi.fn(),
   baseTableStyles: vi.fn().mockReturnValue({}),
   headStyles: vi.fn().mockReturnValue({}),
