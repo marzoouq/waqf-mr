@@ -6,24 +6,24 @@ import { safeNumber } from '@/utils/safeNumber';
 
 interface Contract {
   id: string;
-  property_id: string;
+  property_id?: string | null;
   unit_id?: string | null;
-  status: string;
-  rent_amount: number;
-  payment_type: string;
+  status?: string;
+  rent_amount?: number | null;
+  payment_type?: string;
   payment_amount?: number | null;
 }
 
 interface Expense {
   id: string;
-  property_id: string | null;
-  amount: number;
+  property_id?: string | null;
+  amount?: number | null;
 }
 
 interface Unit {
   id: string;
-  property_id: string;
-  status: string;
+  property_id?: string | null;
+  status?: string;
 }
 
 export interface PropertyFinancials {
