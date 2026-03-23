@@ -1,6 +1,6 @@
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, createPdfDocument, finalizePdf, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
