@@ -44,7 +44,7 @@ const InvoicesPage = () => {
           icon={FileText}
           description="إدارة وإصدار الفواتير الضريبية — يمكنك إنشاء فاتورة من قالب أو رفع فاتورة موجودة"
           actions={<>
-            <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={h.isClosed}>
+            <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={isLocked}>
               <FileText className="w-4 h-4" />إنشاء من قالب
             </Button>
             {(() => {
