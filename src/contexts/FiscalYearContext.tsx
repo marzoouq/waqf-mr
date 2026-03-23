@@ -102,6 +102,7 @@ const FALLBACK: FiscalYearContextType = {
   isClosed: false,
   isLoading: true,
   noPublishedYears: false,
+  isSpecificYear: false,
 };
 
 export const useFiscalYear = () => {
