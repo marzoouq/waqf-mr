@@ -83,7 +83,7 @@ const InvoicesPage = () => {
             }} />
             <Dialog open={h.isOpen} onOpenChange={(open) => { h.setIsOpen(open); if (!open) h.resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2" disabled={h.isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
+                <Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>{h.editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle><DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription></DialogHeader>
