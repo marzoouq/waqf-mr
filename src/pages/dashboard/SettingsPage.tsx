@@ -15,7 +15,7 @@ import { Building2, LayoutGrid, Users, Palette, Bell, Save, ShieldCheck, Shield,
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
-import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const LandingPageTab = lazy(() => import('@/components/settings/LandingPageTab'));
 const DataExportTab = lazy(() => import('@/components/settings/DataExportTab'));
