@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit, UnitRow, UnitInsert } from '@/hooks/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/useContracts';
-import { useTenantPayments, useUpsertTenantPayment } from '@/hooks/useTenantPayments';
+import { useTenantPayments } from '@/hooks/useTenantPayments';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, Home, DoorOpen, Minus as MinusIcon } from 'lucide-react';
