@@ -75,7 +75,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   // قالب الفاتورة
-  const [invoiceTemplate, setInvoiceTemplate] = useState<InvoiceTemplate>('tax_professional');
+  
   const ITEMS_PER_PAGE = 15;
 
   useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
