@@ -88,7 +88,7 @@ export function useAccountsCalculations({
     return 1;
   }, [allocationMap]);
 
-  const totalPaymentPerPeriod = contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0);
+  const totalPaymentPerPeriod = useMemo(() => contracts.reduce((sum, c) => sum + getPaymentPerPeriod(c), 0), [contracts, getPaymentPerPeriod]);
 
   // بيانات التحصيل
   const collectionData = useMemo(() => contracts.map((contract, index) => {
