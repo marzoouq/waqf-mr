@@ -88,6 +88,8 @@ const DisclosurePage = () => {
             totalIncome={totalIncome}
             totalExpenses={totalExpenses}
             myShare={myShare}
+            totalReceived={totalReceived}
+            pendingAmount={pendingAmount}
             waqfCorpusPrevious={waqfCorpusPrevious}
           />
 
