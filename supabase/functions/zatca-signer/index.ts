@@ -531,6 +531,12 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id).in("role", ["admin", "accountant"]);
     if (!roles?.length) return json({ error: "Forbidden" }, 403, corsHeaders);
 
+    // Rate limiting: 20 طلب/دقيقة لكل مستخدم
+    const { data: isLimited } = await admin.rpc('check_rate_limit', {
+      p_key: `zatca-signer:${user.id}`, p_limit: 20, p_window_seconds: 60
+    });
+    if (isLimited) return json({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }, 429, corsHeaders);
+
     const { invoice_id, table } = await req.json();
     if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
       return json({ error: "Invalid parameters" }, 400, corsHeaders);

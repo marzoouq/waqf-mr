@@ -45,13 +45,13 @@ export function useAccountsCalculations({
     return false;
   }, [residentialVatExempt, properties, allUnits]);
 
-  const commercialRent = contracts
+  const commercialRent = useMemo(() => contracts
     .filter(c => isCommercialContract(c))
     .reduce((sum, c) => {
       const allocation = allocationMap.get(c.id);
       return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
-    }, 0);
-  const calculatedVat = commercialRent * (vatPercentage / 100);
+    }, 0), [contracts, isCommercialContract, allocationMap]);
+  const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
 
   const financials = useMemo(() => calculateFinancials({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,

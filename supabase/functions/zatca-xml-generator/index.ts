@@ -443,6 +443,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Rate limiting: 30 طلب/دقيقة لكل مستخدم
+    const { data: isLimited } = await admin.rpc('check_rate_limit', {
+      p_key: `zatca-xml:${user.id}`, p_limit: 30, p_window_seconds: 60
+    });
+    if (isLimited) {
+      return new Response(JSON.stringify({ error: "تم تجاوز الحد المسموح من الطلبات. حاول بعد دقيقة." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const { invoice_id, table } = await req.json();
     if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
       return new Response(JSON.stringify({ error: "Invalid parameters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
