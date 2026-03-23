@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
-const mockFinalizePdf = vi.fn();
 
 vi.mock('jspdf', () => {
   const JsPDFMock = function(this: Record<string, unknown>) {
@@ -25,7 +24,7 @@ vi.mock('./core', () => ({
   addHeaderToAllPages: vi.fn(),
   addFooter: vi.fn(),
   createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
-  finalizePdf: mockFinalizePdf,
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [0, 128, 0],
   TABLE_HEAD_RED: [200, 0, 0],
   TABLE_HEAD_GOLD: [200, 170, 0],
@@ -55,7 +54,7 @@ describe('generateDistributionsPDF', () => {
   it('generates PDF without error', async () => {
     const { generateDistributionsPDF } = await import('./accounts');
     await generateDistributionsPDF(baseData);
-    expect(mockFinalizePdf).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'distributions-report-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'distributions-report-2024-2025.pdf');
   });
 
   it('handles deficit > 0 correctly', async () => {
@@ -67,7 +66,7 @@ describe('generateDistributionsPDF', () => {
       ],
     };
     await generateDistributionsPDF(data);
-    expect(mockFinalizePdf).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
   });
 });
 
@@ -88,6 +87,6 @@ describe('generateAccountsPDF', () => {
       waqfRevenue: 382500,
       beneficiaries: [{ name: 'محمد', share_percentage: 100 }],
     });
-    expect(mockFinalizePdf).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'accounts-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'accounts-report.pdf');
   });
 });

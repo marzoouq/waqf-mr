@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
-const mockFinalizePdf = vi.fn();
 vi.mock('jspdf', () => ({
   default: function JsPDFMock() {
     return {
@@ -17,7 +16,7 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
   createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
-  finalizePdf: mockFinalizePdf,
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
@@ -38,7 +37,7 @@ describe('generateAuditLogPDF', () => {
         { id: '1', table_name: 'contracts', operation: 'INSERT', created_at: '2024-01-15T10:00:00Z', record_id: 'r1', user_id: 'u1', old_data: null, new_data: { tenant_name: 'أحمد' } },
       ],
     });
-    expect(mockFinalizePdf).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-سجل-المراجعة.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-سجل-المراجعة.pdf');
   });
 
   it('handles REOPEN operation with reason', async () => {
@@ -47,7 +46,7 @@ describe('generateAuditLogPDF', () => {
         { id: '2', table_name: 'fiscal_years', operation: 'REOPEN', created_at: '2024-06-01T10:00:00Z', record_id: 'fy1', user_id: 'u1', old_data: null, new_data: { reason: 'تصحيح خطأ' } },
       ],
     });
-    expect(mockFinalizePdf).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
   });
 
   it('handles UPDATE with changed fields', async () => {
@@ -56,6 +55,6 @@ describe('generateAuditLogPDF', () => {
         { id: '3', table_name: 'contracts', operation: 'UPDATE', created_at: '2024-03-01T10:00:00Z', record_id: 'c1', user_id: 'u1', old_data: { rent_amount: 100000 }, new_data: { rent_amount: 120000 } },
       ],
     });
-    expect(mockFinalizePdf).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
   });
 });

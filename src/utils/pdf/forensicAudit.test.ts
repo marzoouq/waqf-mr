@@ -10,7 +10,7 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),
   createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
-  finalizePdf: mockFinalizePdf,
+  finalizePdf: vi.fn(),
   addHeaderToAllPages: vi.fn(),
   baseTableStyles: vi.fn().mockReturnValue({}),
   headStyles: vi.fn().mockReturnValue({}),
@@ -21,7 +21,6 @@ vi.mock('./core', () => ({
 }));
 
 const mockSave = vi.fn();
-const mockFinalizePdf = vi.fn();
 const mockText = vi.fn();
 const mockSetFont = vi.fn();
 const mockSetFontSize = vi.fn();
@@ -85,7 +84,7 @@ describe('generateForensicAuditPDF', () => {
 
   it('should save file with correct name containing date', async () => {
     await generateForensicAuditPDF(sampleData);
-    expect(mockFinalizePdf).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-الفحص-الجنائي-2025-02-17.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-الفحص-الجنائي-2025-02-17.pdf');
   });
 
   it('should handle empty categories and findings', async () => {
