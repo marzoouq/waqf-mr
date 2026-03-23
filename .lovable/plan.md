@@ -1,78 +1,43 @@
+# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
+## الإصلاحات المنجزة
 
-# تصحيح منطق الإيرادات — القاعدة: فقط المدفوع فعلاً يُحسب
+### ✅ تصحيح منطق الإيرادات التعاقدية
+- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
+- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
 
-## فهم القاعدة التجارية
+### ✅ توحيد فلترة العقود
+- `isSpecificYear` → جميع العقود (active + expired)
+- `all` → فقط `active`
+- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
 
-القاعدة واضحة وبسيطة:
+### ✅ جدول الاستحقاقات الشهري
+- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
+- أشهر ديناميكية حسب حدود السنة المالية
+- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
 
-1. **الإيرادات = الدخل الفعلي المحصّل** — ما تم سداده فعلاً وتسجيله في جدول `income` هو ما يُحسب
-2. **العقد يُرحّل** إذا لم يُسدد بالكامل — الدفعات غير المسددة لا تُحتسب كإيراد
-3. **الدفعة المسددة تُحسب كاملة** في السنة المالية التي تم السداد فيها
-4. **`allocated_amount` = المتوقع** وليس الإيراد الفعلي — يجب التمييز بوضوح
+### ✅ استخراج `usePropertyFinancials` hook
+- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
 
-## التناقض الحالي
+### ✅ إنشاء `dashboardComputations.ts`
+- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
+- مستخدم في AdminDashboard و WaqifDashboard
 
-```text
-بطاقة "الإيرادات التعاقدية" في AdminDashboard (سطر 120):
-  contractualRevenue = contracts.reduce(sum + rent_amount)  ← خطأ: القيمة الكاملة
+### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
 
-بطاقة "الإيرادات التعاقدية" في ContractsPage (سطر 385):
-  totalRent = allocMap.get(c.id) ?? rent_amount  ← خطأ: fallback للقيمة الكاملة
+### ✅ إصلاح PDF الوحدات
+- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
 
-كلاهما لا يعتمد على الدخل الفعلي المحصّل (income)
-```
+### ✅ توثيق BUSINESS_RULES.md
+- 16 قسم يغطي جميع القواعد المالية والتقنية
 
-## الحل: بطاقتان منفصلتان بدلاً من خلط المفاهيم
+---
 
-| البطاقة | المصدر | المعنى |
-|---------|--------|--------|
-| **الإيرادات التعاقدية (المتوقع)** | `allocationMap.allocated_amount` | ما هو مستحق ضمن حدود السنة المالية — بدون fallback |
-| **إجمالي الدخل (المحصّل)** | `income` table (موجود أصلاً) | ما تم تحصيله فعلاً |
+## القواعد السارية
 
-## التغييرات المطلوبة
-
-### 1. `AdminDashboard.tsx` سطر 120
-```text
-الحالي:  contractualRevenue = relevantContracts.reduce(sum + rent_amount)
-الجديد:  contractualRevenue = relevantContracts.reduce(sum + (allocationMap.get(c.id)?.allocated_amount ?? 0))
-```
-- استخدام `allocationMap` من `useAccountsData` (موجود أصلاً)
-- `?? 0` وليس `?? rent_amount` — إذا لا يوجد تخصيص = 0
-
-### 2. `ContractsPage.tsx` سطر 385-386
-```text
-الحالي:  totalRent = allocMap.get(c.id) ?? safeNumber(c.rent_amount)
-الجديد:  totalRent = allocMap.get(c.id) ?? 0
-```
-- نفس المنطق: بدون fallback
-
-### 3. `WaqifDashboard.tsx`
-- نفس الإصلاح إذا كان يحسب `contractualRevenue` بنفس الطريقة
-
-## أمثلة التحقق
-
-```text
-مثال 1: عقد 300K دفعة واحدة، سُدد قبل الإقفال بيوم
-  → allocated_amount = 300K (استحقاق ضمن السنة) ✅
-  → income = 300K (دفعة مسجلة) ✅
-
-مثال 2: عقد شهري بدأ 10/9/2024، السنة تنتهي 25/10/2024
-  → allocated_payments = 1 (شهر واحد ضمن السنة)
-  → allocated_amount = rent/12
-  → income = مبلغ الدفعة المسددة فقط
-
-مثال 3: مستأجر لم يسدد 3 شهور من 2024
-  → allocated_amount = يشمل الـ 3 شهور (متوقع)
-  → income = 0 لتلك الأشهر (لم تُدفع)
-  → العقد يُرحّل مع فواتيره غير المسددة
-```
-
-## الملفات
-
-| الملف | التغيير |
-|-------|---------|
-| `src/pages/dashboard/AdminDashboard.tsx` | سطر 120: استخدام `allocationMap` بدون fallback |
-| `src/pages/dashboard/ContractsPage.tsx` | سطر 385-386: إزالة fallback `?? rent_amount` → `?? 0` |
-| `src/pages/beneficiary/WaqifDashboard.tsx` | نفس الإصلاح |
-
+مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
+- §9: الإيرادات = الدخل الفعلي المحصّل فقط
+- §10: السنة المالية هي المرجع وليس الميلادية
+- §11: أمثلة حالات حافة (5 سيناريوهات)
+- §12: فلترة موحدة بـ `isSpecificYear`
+- §16: قواعد البطاقات لمنع التكرار
