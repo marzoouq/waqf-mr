@@ -1,68 +1,95 @@
-# حالة المشروع — نظام إدارة وقف مرزوق بن علي الثبيتي
 
-## الإصلاحات المنجزة
 
-### ✅ تصحيح منطق الإيرادات التعاقدية
-- إزالة fallback `?? rent_amount` → `?? 0` في AdminDashboard, ContractsPage, WaqifDashboard
-- الإيرادات التعاقدية تعتمد على `allocated_amount` من `contract_fiscal_allocations`
-
-### ✅ توحيد فلترة العقود
-- `isSpecificYear` → جميع العقود (active + expired)
-- `all` → فقط `active`
-- مطبّق في: AdminDashboard, PropertiesPage, ContractsPage, WaqifDashboard
-
-### ✅ جدول الاستحقاقات الشهري
-- يعتمد على `payment_invoices` الفعلية بدلاً من `rent/12`
-- أشهر ديناميكية حسب حدود السنة المالية
-- تلوين حسب حالة الفاتورة (مسدد/معلق/متأخر)
-
-### ✅ استخراج `usePropertyFinancials` hook
-- منطق حسابي موحد بين PropertiesPage و PropertiesViewPage
-
-### ✅ إنشاء `dashboardComputations.ts`
-- `computeMonthlyData`, `computeCollectionSummary`, `computeOccupancy`
-- مستخدم في AdminDashboard و WaqifDashboard
-
-### ✅ إزالة تبويب "مقارنة سنوية" المكرر من التقارير
-
-### ✅ إصلاح PDF الوحدات
-- `rent_amount` يُعامل كسنوي (الشهري = rent/12)
-
-### ✅ توثيق BUSINESS_RULES.md
-- 16 قسم يغطي جميع القواعد المالية والتقنية
-
-### ✅ مركزة `isSpecificYear` في FiscalYearContext
-- إزالة الحساب المكرر من 7+ صفحات
-- القيمة متاحة مباشرة من `useFiscalYear()`
-
-### ✅ إنشاء `useDashboardRealtime` hook موحد
-- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
-- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
-
-### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
-- إضافة فحص `__none__` للتوافق مع الحساب المركزي
+# تقرير التدقيق المعماري الشامل — محدّث
 
 ---
 
-## القواعد السارية
+## 1. ملخص التحسينات المنجزة ✅
 
-مرجع كامل في `BUSINESS_RULES.md` — الأقسام 9-16 هي الأهم:
-- §9: الإيرادات = الدخل الفعلي المحصّل فقط
-- §10: السنة المالية هي المرجع وليس الميلادية
-- §11: أمثلة حالات حافة (5 سيناريوهات)
-- §12: فلترة موحدة بـ `isSpecificYear`
-- §16: قواعد البطاقات لمنع التكرار
+| الإصلاح | الأثر |
+|---------|-------|
+| تفكيك `UserManagementPage` | 880 → 165 سطر |
+| تفكيك `MySharePage` | 714 → 194 سطر |
+| تصنيف hooks في 5 مجلدات فرعية | 80+ ملف منظم مع proxy للتوافق |
+| مركزة `isSpecificYear` في `FiscalYearContext` | إزالة تكرار من 7+ صفحات |
+| توحيد Realtime في `useDashboardRealtime` | نمط موحد |
+| الإيرادات التعاقدية `allocated_amount ?? 0` | منطق مالي صحيح |
+| `dashboardComputations.ts` | حسابات مشتركة موحدة |
+| `BUSINESS_RULES.md` (16 قسم) | توثيق شامل |
 
 ---
 
-## التحسينات المعمارية المعلقة (أولوية متوسطة)
+## 2. المشاكل المتبقية
 
-| # | التوصية | الملفات |
-|---|---------|---------|
-| ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
-| ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
-| 3 | استخراج `propertyPerformance` من `ReportsPage` | 1 صفحة → hook مشترك |
-| ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
-| 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
-| 6 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
-| 7 | توحيد PDF core (header/footer/fonts) | 17 ملف |
+### 2.1 صفحات عملاقة (5 ملفات > 500 سطر)
+
+| الصفحة | الأسطر | المشكلة |
+|--------|--------|---------|
+| `SettingsPage.tsx` | **721** | `LogoManager` (90 سطر) مُعرّف داخل الملف — يجب استخراجه |
+| `ReportsPage.tsx` | **693** | `propertyPerformance` (45 سطر) مكرر مع `usePropertyFinancials` |
+| `ContractsPage.tsx` | **650** | CRUD + فلترة + 4 تبويبات في ملف واحد |
+| `DisclosurePage.tsx` | **542** | منطق مالي + عرض مختلط |
+| `InvoicesPage.tsx` | **536** | CRUD + فلترة + تصدير مختلط |
+
+### 2.2 `propertyPerformance` — منطق مكرر
+
+`ReportsPage.tsx` سطور 97-142: حساب إشغال + إيرادات لكل عقار (45 سطر). نفس المنطق موجود في `usePropertyFinancials` و `dashboardComputations.computeOccupancy`.
+
+### 2.3 `LogoManager` معرّف داخل `SettingsPage`
+
+مكون كامل (90 سطر) بـ state + API calls مُعرّف كـ `const` داخل الصفحة بدلاً من ملف مستقل.
+
+### 2.4 Proxy files — 54 ملف وسيط
+
+تصنيف hooks أنشأ 54 ملف proxy في `src/hooks/` (كل ملف سطر واحد `export * from './subfolder/...'`). هذا يعمل لكنه يُضاعف عدد الملفات. الاستيرادات الخارجية لا تزال تستخدم المسار القديم — يمكن تحديثها تدريجياً لإزالة الـ proxies.
+
+### 2.5 ملفات اختبار لم تُنقل
+
+ملفات الاختبار (~35 ملف `.test.ts`) بقيت في `src/hooks/` المسطح رغم أن الكود انتقل للمجلدات الفرعية. يجب أن تكون بجانب ملفاتها.
+
+---
+
+## 3. تقييم الجودة
+
+| الجانب | التقييم | ملاحظة |
+|--------|---------|--------|
+| **فصل المسؤوليات** | ⭐⭐⭐⭐☆ | تحسن كبير بتفكيك UserMgmt + MyShare |
+| **توحيد الأنماط** | ⭐⭐⭐⭐☆ | `isSpecificYear` مركزي، Realtime موحد |
+| **قابلية الصيانة** | ⭐⭐⭐½☆ | 5 ملفات > 500 سطر متبقية |
+| **الأداء** | ⭐⭐⭐⭐☆ | lazy loading + DeferredRender + bfcache |
+| **الاختبارات** | ⭐⭐⭐⭐☆ | ~35 ملف اختبار — تغطية جيدة |
+| **التوثيق** | ⭐⭐⭐⭐½ | BUSINESS_RULES.md + plan.md شاملان |
+
+---
+
+## 4. التوصيات حسب الأولوية
+
+### أولوية عالية
+
+| # | التوصية | الأثر |
+|---|---------|-------|
+| 1 | استخراج `propertyPerformance` من `ReportsPage` → hook مشترك | إزالة تكرار 45 سطر |
+| 2 | استخراج `LogoManager` من `SettingsPage` → مكون مستقل | تقليل 90 سطر |
+| 3 | تفكيك `ContractsPage` (650 سطر) → hook + مكونات | صيانة أسهل |
+
+### أولوية متوسطة
+
+| # | التوصية |
+|---|---------|
+| 4 | تفكيك `DisclosurePage` (542 سطر) |
+| 5 | تفكيك `InvoicesPage` (536 سطر) |
+| 6 | نقل ملفات الاختبار للمجلدات الفرعية |
+
+### أولوية منخفضة
+
+| # | التوصية |
+|---|---------|
+| 7 | توحيد PDF core (header/footer/fonts) عبر 17 ملف |
+| 8 | تحديث الاستيرادات الخارجية لإزالة proxy files تدريجياً |
+
+---
+
+## 5. الخلاصة
+
+المشروع في حالة **أفضل بكثير** من التدقيق الأول. التحسينات الجوهرية (تفكيك UserMgmt/MyShare، تصنيف hooks، مركزة `isSpecificYear`) رفعت جودة الكود بشكل ملموس. المشكلة الرئيسية المتبقية: **5 صفحات > 500 سطر** تحتاج تفكيك، أبرزها `SettingsPage` (LogoManager) و `ReportsPage` (propertyPerformance المكرر). لا توجد مشاكل معمارية حرجة — فقط تحسينات تنظيمية.
+
