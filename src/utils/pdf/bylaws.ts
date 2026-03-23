@@ -1,6 +1,5 @@
-import jsPDF from 'jspdf';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GOLD,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
