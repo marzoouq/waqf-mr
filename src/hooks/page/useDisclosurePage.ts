@@ -139,7 +139,7 @@ export const useDisclosurePage = () => {
     adminShare, waqifShare, adminPct, waqifPct, beneficiariesShare,
     incomeBySource, expensesByTypeExcludingVat,
     // مستفيد
-    currentBeneficiary, myShare, gregorianFiscalYear,
+    currentBeneficiary, myShare, totalReceived, pendingAmount, gregorianFiscalYear,
     // عقود
     contracts,
     // إجراءات

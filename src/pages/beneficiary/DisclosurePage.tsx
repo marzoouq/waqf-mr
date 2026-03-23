@@ -127,6 +127,8 @@ const DisclosurePage = () => {
             waqfCorpusManual={waqfCorpusManual}
             beneficiariesShare={beneficiariesShare}
             myShare={myShare}
+            totalReceived={totalReceived}
+            pendingAmount={pendingAmount}
             currentBeneficiaryName={currentBeneficiary?.name || ''}
             currentBeneficiaryPct={currentBeneficiary?.share_percentage ?? 0}
           />
