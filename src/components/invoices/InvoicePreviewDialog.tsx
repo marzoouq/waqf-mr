@@ -1,12 +1,15 @@
 /**
  * معاينة فاتورة ضريبية — متوافقة مع ZATCA Phase 2
  * يدعم التبديل بين القالب الاحترافي والمبسط
+ * تحميل PDF يأخذ لقطة من المعاينة مباشرة (WYSIWYG)
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Printer } from 'lucide-react';
+import { Download, Printer, Loader2 } from 'lucide-react';
 import { ProfessionalTemplate, SimplifiedTemplate, TemplateSelector, type InvoiceTemplateData } from './InvoiceTemplates';
+import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export type InvoicePreviewData = InvoiceTemplateData;
 
@@ -14,21 +17,67 @@ interface InvoicePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoice: InvoicePreviewData | null;
-  onDownloadPdf?: (template: 'professional' | 'simplified') => void;
 }
 
 const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
-  open, onOpenChange, invoice, onDownloadPdf,
+  open, onOpenChange, invoice,
 }) => {
-  // ربط القالب الافتراضي بنوع الفاتورة تلقائياً
   const [template, setTemplate] = useState<'professional' | 'simplified'>(
     invoice?.type === 'standard' ? 'professional' : 'simplified'
   );
+  const [downloading, setDownloading] = useState(false);
 
-  // تحديث القالب عند تغير الفاتورة المعروضة
   useEffect(() => {
     if (invoice) {
       setTemplate(invoice.type === 'standard' ? 'professional' : 'simplified');
+    }
+  }, [invoice]);
+
+  /** تحميل PDF عبر لقطة من المعاينة — تطابق 100% */
+  const handleDownloadPdf = useCallback(async () => {
+    const element = document.getElementById('invoice-preview-content');
+    if (!element || !invoice) return;
+
+    setDownloading(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      // إذا كان المحتوى أطول من صفحة واحدة، نضيف صفحات إضافية
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      if (pdfHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      } else {
+        let remainingHeight = pdfHeight;
+        let position = 0;
+        while (remainingHeight > 0) {
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+          remainingHeight -= pageHeight;
+          position -= pageHeight;
+          if (remainingHeight > 0) pdf.addPage();
+        }
+      }
+
+      const safeName = (invoice.invoiceNumber || 'invoice').replace(/[./\\]+/g, '_');
+      pdf.save(`فاتورة-${safeName}.pdf`);
+      toast.success('تم تحميل الفاتورة بنجاح');
+    } catch (err) {
+      logger.error('[InvoicePreviewDialog] PDF download error:', err);
+      toast.error('حدث خطأ أثناء تحميل الفاتورة');
+    } finally {
+      setDownloading(false);
     }
   }, [invoice]);
 
@@ -45,12 +94,16 @@ const InvoicePreviewDialog: React.FC<InvoicePreviewDialogProps> = ({
             <DialogDescription className="sr-only">معاينة الفاتورة الضريبية المتوافقة مع ZATCA</DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {onDownloadPdf && (
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onDownloadPdf(template)}>
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">تحميل PDF</span>
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+            >
+              {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">{downloading ? 'جاري التحميل...' : 'تحميل PDF'}</span>
+            </Button>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrint}>
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">طباعة</span>

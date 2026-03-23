@@ -504,31 +504,6 @@ const InvoicesPage = () => {
           open={!!previewInvoice}
           onOpenChange={(open) => !open && setPreviewInvoice(null)}
           invoice={previewInvoice}
-          onDownloadPdf={async (template) => {
-            const origInv = invoices.find(i =>
-              i.id === previewInvoice?.id ||
-              (i.invoice_number && i.invoice_number === previewInvoice?.invoiceNumber) ||
-              `INV-${i.id.slice(0, 6)}` === previewInvoice?.invoiceNumber
-            );
-            if (origInv) {
-              const contract = contracts.find(c => c.id === origInv.contract_id);
-              await generateInvoiceClientPDF({
-                invoice: origInv,
-                waqfInfo: pdfWaqfInfo,
-                template: template as 'professional' | 'simplified',
-                contract: contract ? {
-                  contract_number: contract.contract_number,
-                  tenant_name: contract.tenant_name,
-                  tenant_tax_number: contract.tenant_tax_number,
-                  tenant_street: contract.tenant_street,
-                  tenant_district: contract.tenant_district,
-                  tenant_city: contract.tenant_city,
-                  payment_count: contract.payment_count,
-                } : null,
-                propertyNumber: origInv.property?.property_number,
-              });
-            }
-          }}
         />
         <CreateInvoiceFromTemplate
           open={templateOpen}
