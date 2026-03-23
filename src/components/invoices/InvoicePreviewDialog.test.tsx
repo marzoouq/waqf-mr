@@ -38,11 +38,8 @@ const sampleInvoice: InvoicePreviewData = {
   buyerName: 'مستأجر تجريبي',
   buyerVatNumber: '',
   buyerAddress: '',
-  items: [{ name: 'إيجار', quantity: 1, unitPrice: 1000, vatRate: 15 }],
-  subtotal: 1000,
-  totalVat: 150,
-  totalWithVat: 1150,
-  qrCode: '',
+  items: [{ description: 'إيجار', quantity: 1, unitPrice: 1000, vatRate: 15 }],
+  status: 'pending',
   zatcaUuid: 'test-uuid',
   icv: 1,
 };
