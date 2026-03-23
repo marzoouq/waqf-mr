@@ -41,13 +41,28 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
 
 vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/hooks/data/usePaymentInvoices', () => ({
+  usePaymentInvoices: vi.fn(() => ({ data: [], isLoading: false })),
+}));
 vi.mock('@/utils/pdf', () => ({ generateIncomePDF: vi.fn() }));
 
 import IncomePage from './IncomePage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
+import { MemoryRouter } from 'react-router-dom';
+
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><IncomePage /></MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('IncomePage', () => {
   it('renders page title', () => {
-    render(<IncomePage />);
+    renderPage();
     expect(screen.getByText('إدارة الدخل')).toBeInTheDocument();
   });
 
