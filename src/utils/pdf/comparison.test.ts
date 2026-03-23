@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockSave = vi.fn();
+const mockFinalizePdf = vi.fn();
 vi.mock('jspdf', () => ({
   default: function JsPDFMock() {
     return {
@@ -16,7 +17,7 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
   createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
-  finalizePdf: vi.fn(),
+  finalizePdf: mockFinalizePdf,
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_RED: [180, 40, 40],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})), footStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
@@ -38,6 +39,6 @@ describe('generateYearComparisonPDF', () => {
       expensesByType2: [{ name: 'صيانة', value: 50000 }],
       monthlyData: [{ month: 'يناير', income1: 33000, expenses1: 3000, net1: 30000, income2: 42000, expenses2: 4000, net2: 38000 }],
     });
-    expect(mockSave).toHaveBeenCalledWith('year-comparison-2023-2024-vs-2024-2025.pdf');
+    expect(mockFinalizePdf).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'year-comparison-2023-2024-vs-2024-2025.pdf');
   });
 });

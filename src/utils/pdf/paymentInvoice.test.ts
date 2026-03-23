@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // --- hoisted mocks ---
 const mockSave = vi.fn();
+const mockFinalizePdf = vi.fn();
 const mockOutput = vi.fn(() => new Blob(['pdf-content'], { type: 'application/pdf' }));
 const mockSetFont = vi.fn();
 const mockSetFontSize = vi.fn();
@@ -38,7 +39,7 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addFooter: vi.fn(),
   createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
-  finalizePdf: vi.fn(),
+  finalizePdf: mockFinalizePdf,
   loadLogoBase64: vi.fn().mockResolvedValue(null),
   TABLE_HEAD_GREEN: [0, 128, 0],
   baseTableStyles: () => ({}),
@@ -91,7 +92,7 @@ describe('generatePaymentInvoicePDF', () => {
     const result = await generatePaymentInvoicePDF(makeInvoice());
     expect(result).not.toBeNull();
     expect(mockUpload).toHaveBeenCalled();
-    expect(mockSave).not.toHaveBeenCalled();
+    expect(mockFinalizePdf).not.toHaveBeenCalled();
   });
 
   it('generates PDF with classic template', async () => {
@@ -136,7 +137,7 @@ describe('generatePaymentInvoicePDF', () => {
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
     expect(result).toBeNull();
-    expect(mockSave).toHaveBeenCalled();
+    expect(mockFinalizePdf).toHaveBeenCalled();
   });
 
   it('generates QR even without vatNumber (uses empty string)', async () => {
