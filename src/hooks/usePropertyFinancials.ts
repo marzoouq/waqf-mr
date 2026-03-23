@@ -5,7 +5,7 @@
 import { safeNumber } from '@/utils/safeNumber';
 
 interface Contract {
-  id: string;
+  id?: string | null;
   property_id?: string | null;
   unit_id?: string | null;
   status?: string;
