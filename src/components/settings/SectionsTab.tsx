@@ -1,19 +1,15 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
+import { ADMIN_SECTION_KEYS, pickLabels, makeDefaults } from '@/constants/sections';
+
+const labels = pickLabels(ADMIN_SECTION_KEYS);
+const defaultSections = makeDefaults(ADMIN_SECTION_KEYS);
 
 const SectionsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();
 
-  const defaultSections = { properties: true, contracts: true, income: true, expenses: true, beneficiaries: true, reports: true, accounts: true, users: true, invoices: true, bylaws: true, messages: true, audit_log: true, annual_report: true, support: true, chart_of_accounts: true };
   const sections = getJsonSetting('sections_visibility', defaultSections);
-
-  const labels: Record<string, string> = {
-    properties: 'العقارات', contracts: 'العقود', income: 'الدخل', expenses: 'المصروفات',
-    beneficiaries: 'المستفيدين', reports: 'التقارير', accounts: 'الحسابات', users: 'إدارة المستخدمين',
-    invoices: 'الفواتير', bylaws: 'اللائحة التنظيمية', messages: 'المراسلات', audit_log: 'سجل المراجعة',
-    annual_report: 'التقرير السنوي', support: 'الدعم الفني', chart_of_accounts: 'الشجرة المحاسبية',
-  };
 
   const toggle = (key: string) => {
     updateJsonSetting('sections_visibility', { ...sections, [key]: !(sections as Record<string, boolean>)[key] });
