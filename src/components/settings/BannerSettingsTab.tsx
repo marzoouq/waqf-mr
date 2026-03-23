@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useAppSettings } from "@/hooks/useAppSettings";
+import { useAppSettings } from "@/hooks/page/useAppSettings";
 import { useState, useEffect, useMemo } from "react";
 import { FlaskConical } from "lucide-react";
 import { BANNER_COLORS, DEFAULT_BANNER_SETTINGS, type BannerSettings } from "@/constants";

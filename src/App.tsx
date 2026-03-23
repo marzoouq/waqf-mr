@@ -10,7 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { usePagePerformance } from "@/hooks/usePagePerformance";
+import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 /** مكوّن يتتبع أداء تحميل الصفحات */
