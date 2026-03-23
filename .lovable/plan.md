@@ -1,118 +1,204 @@
 
+# فحص جنائي صادق وشفاف — مشاكل دخول المستفيدين
 
-# فحص جنائي — مقارنة إفصاح المستفيد مع لوحة الناظر
+## النتيجة النهائية
 
----
-
-## 1. مصدر البيانات — نفس المحرك بالضبط
-
-| الجانب | صفحة الناظر (ReportsPage) | صفحة المستفيد (DisclosurePage) |
-|--------|--------------------------|-------------------------------|
-| **المحرك** | `useFinancialSummary(fiscalYearId)` | `useFinancialSummary(fiscalYearId)` |
-| **الحساب الختامي** | `useComputedFinancials` | `useComputedFinancials` |
-| **بنود المصروفات** | `expensesByTypeExcludingVat` | `expensesByTypeExcludingVat` |
-| **بنود الإيرادات** | `incomeBySource` | `incomeBySource` |
-
-**✅ كلا الصفحتين تستخدمان نفس المحرك (`useFinancialSummary`) ونفس المنطق الحسابي (`useComputedFinancials`). لا يوجد مسار بيانات منفصل.**
+**المشكلة الأساسية معروفة ومؤكدة 100%**:  
+ليست مشكلة كلمة مرور، وليست مشكلة ربط رقم الهوية، وليست مشكلة عدم وجود دور في البيانات.  
+**المشكلة هي سياسة صلاحيات على جدول الأدوار `user_roles` تمنع المستفيد من قراءة دوره بعد تسجيل الدخول.**
 
 ---
 
-## 2. مقارنة البنود المعروضة (ما يراه كل طرف)
+## الأدلة الجنائية
 
-| البند | الناظر (`AnnualDisclosureTable`) | المستفيد (`DisclosureFinancialStatement`) | تطابق؟ |
-|-------|----------------------------------|------------------------------------------|--------|
-| بنود الإيرادات | `incomeSourceData` (من `incomeBySource`) | `incomeBySource` | ✅ نفس المصدر |
-| إجمالي الإيرادات | `totalIncome` | `totalIncome` | ✅ |
-| رقبة الوقف المرحلة | `waqfCorpusPrevious` | `waqfCorpusPrevious` | ✅ |
-| الإجمالي الشامل | `grandTotal` | `grandTotal` | ✅ |
-| بنود المصروفات | `expenseTypeData` (من `expensesByTypeExcludingVat`) | `expensesByType` (= `expensesByTypeExcludingVat`) | ✅ نفس المصدر |
-| إجمالي المصروفات | `totalExpenses` | `totalExpenses` (مقسم: تشغيلية + ضريبة) | ✅ نفس الرقم |
-| الصافي بعد المصاريف | `netAfterExpenses` | `netAfterExpenses` | ✅ |
-| ضريبة القيمة المضافة | `vatAmount` | `vatAmount` | ✅ |
-| الصافي بعد الضريبة | `netAfterVat` | `netAfterVat` | ✅ |
-| الزكاة | `zakatAmount` | `zakatAmount` | ✅ |
-| الصافي بعد الزكاة | `netAfterZakat` | `netAfterZakat` | ✅ |
-| حصة الناظر | `adminShare` (`adminPct%`) | `adminShare` (`adminPct%`) | ✅ |
-| حصة الواقف | `waqifShare` (`waqifPct%`) | `waqifShare` (`waqifPct%`) | ✅ |
-| ريع الوقف | `waqfRevenue` | **غير معروض** | ⚠️ |
-| رقبة الوقف الحالي | `waqfCorpusManual` | `waqfCorpusManual` | ✅ |
-| المبلغ المتاح / القابل للتوزيع | `availableAmount` | `beneficiariesShare` (= `availableAmount`) | ✅ |
-| التوزيعات | `distributionsAmount` | **غير معروض** | ⚠️ |
-| الرصيد المتبقي | `remainingBalance` | **غير معروض** | ⚠️ |
-| حصتي | **غير موجود** (الناظر لا يرى حصة مستفيد محدد) | `myShare` | ✅ طبيعي |
+### 1) تسجيل الدخول نفسه ينجح
+من سجلات المصادقة:
+- يوجد **Login ناجح** للمستخدم `460f7a1c-5bbd-4221-b0af-9c7f91479af0`
+- الطلب `/token` رجع `200`
 
----
+هذا يعني:
+- البريد/كلمة المرور صحيحان
+- جلسة الدخول تُنشأ فعلاً
 
-## 3. الفروقات المكتشفة
+### 2) الدور موجود فعلاً في قاعدة البيانات
+فحص مباشر لجدول `user_roles` أظهر:
+- `460f7a1c-5bbd-4221-b0af-9c7f91479af0` → `beneficiary`
+- `1fbdd6b2-ac2e-4353-8aaf-1247f494e1ef` → `beneficiary`
 
-### ⚠️ فرق 1: "ريع الوقف" غير معروض للمستفيد
+إذن:
+- **الأدوار موجودة**
+- **ليست مشكلة بيانات ناقصة**
 
-**الناظر يرى:** `ريع الوقف (الإجمالي القابل للتوزيع)` = `waqfRevenue`
-**المستفيد يرى:** ينتقل مباشرة من حصة الواقف → رقبة الوقف → "الإجمالي القابل للتوزيع" = `availableAmount`
+### 3) المستفيد مرتبط فعلاً بسجل مستفيد
+فحص جدول `beneficiaries` أظهر أن الحسابين مرتبطان بسجلات مستفيدين عبر `user_id`.
 
-**هل هذا مشكلة؟** لا — **سلوك مقصود**. `availableAmount = waqfRevenue - waqfCorpusManual`. المستفيد يرى النتيجة النهائية بدلاً من الخطوة الوسيطة. التسلسل الحسابي سليم.
+إذن:
+- **ليست مشكلة ربط الحساب بالمستفيد**
+- **وليست مشكلة أرقام الهوية المضافة**
 
-### ⚠️ فرق 2: "التوزيعات" و"الرصيد المتبقي" غير معروضة للمستفيد
+### 4) الواجهة تفشل عند جلب الدور فقط
+من الشبكة:
+- الطلب إلى `user_roles?select=role&user_id=eq...` يرجع `[]`
+- يتكرر 3 مرات
+- ثم يسجل النظام `role_fetch status=failed`
 
-**الناظر يرى:** `التوزيعات` + `الرصيد المتبقي`
-**المستفيد لا يرى:** هذه بنود إدارية — **سلوك مقصود**.
-
-### ⚠️ فرق 3: حساب `myShare` — مسارات مختلفة
-
-| المسار | المصدر | المنطق |
-|--------|--------|--------|
-| **صفحة الإفصاح** | `useMyShare` hook | `availableAmount × (sharePct / totalBenPct)` — يستخدم `useTotalBeneficiaryPercentage` (RPC `SECURITY DEFINER`) |
-| **داشبورد المستفيد** | `get_beneficiary_dashboard` RPC | يحسب في PostgreSQL بنفس المعادلة |
-| **صفحة التقارير (الناظر)** | `distributionData` محلي | `beneficiariesShare × (sharePct / totalBenPct)` — يستخدم `reduce` على المستفيدين المرئيين |
-
-**خطر محتمل:** الناظر يحسب `totalBeneficiaryPercentage` بـ `reduce` على `beneficiaries` المُجلبة عبر RLS، بينما المستفيد يستخدم RPC `SECURITY DEFINER` يتجاوز RLS.
-
-**لكن:** الناظر لديه `has_role(admin)` → يرى **كل** المستفيدين → `reduce` يعطي نفس النتيجة. **لا تناقض فعلي.**
+ومن الكود:
+- `src/contexts/AuthContext.tsx` يجلب الدور من `user_roles`
+- إذا لم يجد دوراً بعد المحاولات، يضع `role = null`
+- `src/pages/Auth.tsx` يعرض الرسالة:
+  - "لم يتم التعرف على صلاحياتك"
+  - "تواصل مع الناظر أو حاول مرة أخرى"
 
 ---
 
-## 4. التحقق الحسابي — التسلسل المنطقي
+## السبب الجذري الدقيق
 
-### مسار الناظر:
-```text
-grandTotal = totalIncome + waqfCorpusPrevious
-netAfterExpenses = grandTotal - totalExpenses
-netAfterVat = netAfterExpenses - vatAmount
-netAfterZakat = netAfterVat - zakatAmount
-adminShare = shareBase × adminPct%
-waqifShare = shareBase × waqifPct%
-waqfRevenue = netAfterZakat - adminShare - waqifShare  ← يُعرض
-availableAmount = waqfRevenue - waqfCorpusManual        ← يُعرض
-remainingBalance = availableAmount - distributionsAmount ← يُعرض
+في سياسات `user_roles` الحالية يوجد:
+
+1. سياسة مسموحة:
+- `Users can view their own roles`
+- `FOR SELECT`
+- `USING (auth.uid() = user_id)`
+
+2. **وسياسة تقييدية خطيرة**:
+- `Only admins can modify roles`
+- `AS RESTRICTIVE`
+- `FOR ALL`
+- `USING has_role(auth.uid(), 'admin')`
+
+المشكلة أن `FOR ALL` تشمل **SELECT أيضاً**.  
+وبما أنها **RESTRICTIVE**، فالمستخدم يجب أن يمر:
+- سياسة القراءة لنفسه
+- **وأيضاً** شرط الأدمن
+
+المستفيد يمر الأولى ويفشل الثانية، فتكون النتيجة:
+- الاستعلام لا يرجع أي صف
+- الدور يظهر فارغاً
+- يفشل الدخول رغم أن الجلسة صحيحة
+
+---
+
+## ما الذي ليس سبباً للمشكلة؟
+
+### ليس رقم الهوية
+ميزة الدخول برقم الهوية موجودة في:
+- `src/components/auth/LoginForm.tsx`
+- `supabase/functions/lookup-national-id/index.ts`
+
+والربط موجود فعلاً في البيانات.  
+حتى لو كان هناك خلل بالهوية، **الخطأ الحالي يحدث بعد إنشاء الجلسة** عند قراءة الدور.
+
+### ليس "الحساب غير مرتبط"
+هذه حالة مختلفة تظهر داخل صفحات بوابة المستفيد بعد الدخول.
+أما الآن فالمستخدم **لا يتجاوز طبقة التحقق من الدور أصلاً**.
+
+### ليس خطأ في AuthContext منطقياً
+منطق الواجهة يعمل كما صُمم:
+- يسجل الدخول
+- يجلب الدور
+- ينتظر
+- عند الفشل يعرض الرسالة
+
+إذن **الخلل ليس في React نفسه بل في صلاحيات البيانات**.
+
+---
+
+## لماذا استمرت المشكلة حتى الآن؟
+
+لأن إصلاح قاعدة البيانات **لم يُطبق فعلياً** بسبب فشل النشر/الترحيل:
+
+- `driver: bad connection`
+- `failed to diff and apply migrations`
+
+هذا يعني أن التعديل المقترح على السياسات **لم يصل إلى البيئة العاملة**، لذلك استمرت نفس الأعراض.
+
+---
+
+## خطة الإصلاح الصحيحة
+
+## 1) إصلاح سياسة `user_roles`
+استبدال السياسة التقييدية الحالية بسياسات تقييدية للتعديل فقط:
+
+```sql
+DROP POLICY IF EXISTS "Only admins can modify roles" ON public.user_roles;
+
+CREATE POLICY "Only admins can insert roles"
+ON public.user_roles
+AS RESTRICTIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Only admins can update roles"
+ON public.user_roles
+AS RESTRICTIVE
+FOR UPDATE
+TO authenticated
+USING (has_role(auth.uid(), 'admin'))
+WITH CHECK (has_role(auth.uid(), 'admin'));
+
+CREATE POLICY "Only admins can delete roles"
+ON public.user_roles
+AS RESTRICTIVE
+FOR DELETE
+TO authenticated
+USING (has_role(auth.uid(), 'admin'));
 ```
 
-### مسار المستفيد:
-```text
-grandTotal = totalIncome + waqfCorpusPrevious           ← ✅ نفسه
-netAfterExpenses = grandTotal - totalExpenses            ← ✅ نفسه
-netAfterVat = netAfterExpenses - vatAmount               ← ✅ نفسه
-netAfterZakat = netAfterVat - zakatAmount                ← ✅ نفسه
-adminShare = (من الحساب الختامي)                          ← ✅ نفسه
-waqifShare = (من الحساب الختامي)                          ← ✅ نفسه
-                                                          ← waqfRevenue محذوف (خطوة وسيطة)
-beneficiariesShare = availableAmount                      ← ✅ نفسه
-myShare = availableAmount × (myPct / totalBenPct)        ← ✅ إضافي للمستفيد
-```
-
-**التسلسل متطابق رياضياً. الفرق فقط في عمق العرض.**
+### النتيجة المتوقعة
+- المستفيد يستطيع **قراءة دوره فقط**
+- فقط الناظر يستطيع **إضافة/تعديل/حذف الأدوار**
+- لا ينكسر الأمن
+- لا تنكسر شاشة الدخول
 
 ---
 
-## 5. الخلاصة النهائية
+## 2) عدم تغيير كود الواجهة الآن
+لا أوصي بتغيير منطق `AuthContext` كحل أساسي، لأن التشخيص واضح:
+- الكود يطلب الدور بشكل صحيح
+- قاعدة البيانات هي التي تمنعه
 
-| # | البند | النتيجة |
-|---|-------|---------|
-| 1 | مصدر البيانات | ✅ **نفس المحرك** — `useFinancialSummary` |
-| 2 | الأرقام المشتركة (12 بند) | ✅ **متطابقة 100%** |
-| 3 | بنود إضافية عند الناظر (3 بنود) | ✅ **مقصود** — بنود إدارية |
-| 4 | بنود إضافية عند المستفيد (حصتي) | ✅ **مقصود** — خاص بالمستفيد |
-| 5 | حساب `myShare` | ✅ **متسق** — نفس المعادلة |
-| 6 | عرض المصروفات | ✅ **محسّن** — المستفيد يرى تشغيلية + ضريبة منفصلتين |
+---
 
-**لا توجد تناقضات. لا تغييرات مطلوبة.**
+## 3) التحقق بعد الإصلاح
+بعد نجاح الترحيل يجب أن تكون سلسلة التحقق كالتالي:
 
+```text
+Login success
+→ GET user_roles returns [{ role: 'beneficiary' }]
+→ AuthContext sets role='beneficiary'
+→ redirect to /beneficiary
+→ تختفي رسالة "لم يتم التعرف على صلاحياتك"
+```
+
+### اختبارات التحقق
+1. تسجيل دخول مستفيد بالبريد وكلمة المرور  
+2. تسجيل دخول مستفيد برقم الهوية  
+3. التأكد من أن `user_roles` لم تعد ترجع `[]` للمستفيد  
+4. التأكد من بقاء تعديل الأدوار محصوراً على الناظر فقط  
+5. فحص الكونسول والشبكة للتأكد من اختفاء `role_fetch failed`
+
+---
+
+## 4) ملاحظة ثانوية غير حرجة
+يوجد تحذير في الكونسول:
+- `No active fiscal year found, falling back to first available`
+
+هذا **ليس سبب مشكلة الدخول**، لكنه يعني أنه لا توجد سنة مالية نشطة حالياً، والنظام يعود لأول سنة متاحة.
+
+---
+
+## الخلاصة التنفيذية
+
+### المشكلة الحقيقية
+**سياسة RLS تقييدية على `user_roles` تكسر قراءة الدور لغير الأدمن.**
+
+### الدليل
+- تسجيل الدخول ناجح
+- الدور موجود في البيانات
+- ربط المستفيد موجود
+- استعلام `user_roles` يرجع `[]`
+- السياسة الحالية تؤكد سبب الحجب
+
+### المطلوب تنفيذه
+**إعادة تطبيق ترحيل قاعدة البيانات بنجاح عند استقرار الاتصال، مع قصر السياسة التقييدية على INSERT/UPDATE/DELETE فقط دون SELECT.**
