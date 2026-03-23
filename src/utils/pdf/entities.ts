@@ -154,8 +154,8 @@ export const generateUnitsPDF = async (
   let totalAnnual = 0;
 
   const body = units.map((u, i) => {
-    const monthly = u.rent_amount || 0;
-    const annual = monthly * 12;
+    const annual = u.rent_amount || 0;
+    const monthly = annual / 12;
     if (u.rent_amount) {
       totalMonthly += monthly;
       totalAnnual += annual;

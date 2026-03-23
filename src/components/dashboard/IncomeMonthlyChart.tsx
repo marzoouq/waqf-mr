@@ -11,18 +11,19 @@ interface IncomeChartProps {
   income: Array<{ date: string; amount: number }>;
   contracts: Array<{ rent_amount: number; payment_type?: string; start_date: string; end_date: string; status: string }>;
   fiscalYear?: { start_date: string; end_date: string } | null;
+  isSpecificYear?: boolean;
 }
 
 /**
  * I-3 + I-8: رسم بياني للإيرادات الفعلية مقابل المتوقعة شهرياً
  * المتوقع = مجموع إيجارات العقود النشطة مقسّمة على عدد الأشهر
  */
-const IncomeMonthlyChart = ({ income, contracts, fiscalYear }: IncomeChartProps) => {
+const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear }: IncomeChartProps) => {
   const chartData: Array<{ month: string; actual: number; expected: number; gap: number }> = useMemo(() => {
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
 
-    // حساب الإيراد المتوقع الشهري من العقود النشطة
-    const activeContracts = contracts.filter(c => c.status === 'active');
+    // حساب الإيراد المتوقع الشهري من العقود — جميعها في السنة المحددة أو النشطة فقط
+    const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
     const monthlyExpected = activeContracts.reduce((sum, c) => {
       const rent = safeNumber(c.rent_amount);
       // تحويل الإيجار السنوي إلى شهري

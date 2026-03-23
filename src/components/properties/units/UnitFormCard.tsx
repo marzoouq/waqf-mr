@@ -28,7 +28,7 @@ interface UnitFormCardProps {
 
 const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending }: UnitFormCardProps) => {
   const computedPaymentAmount = form.rent_amount
-    ? parseFloat(form.rent_amount) / (form.payment_type === 'monthly' ? 12 : form.payment_type === 'multi' ? parseInt(form.payment_count || '1') : 1)
+    ? parseFloat(form.rent_amount) / (form.payment_type === 'monthly' ? 12 : form.payment_type === 'quarterly' ? 4 : form.payment_type === 'semi_annual' || form.payment_type === 'semi-annual' ? 2 : form.payment_type === 'multi' ? parseInt(form.payment_count || '1') : 1)
     : 0;
 
   return (
