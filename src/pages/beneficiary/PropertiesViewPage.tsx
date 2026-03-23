@@ -70,7 +70,7 @@ const PropertiesViewPage = () => {
     const currentAccount = accounts?.[0];
     let activeIncome: number;
     let totalExpensesAll: number;
-    const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
+    // isSpecificYear متوفر من السياق أعلاه
     if (isClosed && currentAccount) {
       activeIncome = safeNumber(currentAccount.total_income);
       totalExpensesAll = safeNumber(currentAccount.total_expenses);
