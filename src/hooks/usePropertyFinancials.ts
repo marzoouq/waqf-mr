@@ -15,7 +15,7 @@ interface Contract {
 }
 
 interface Expense {
-  id: string;
+  id?: string | null;
   property_id?: string | null;
   amount?: number | null;
 }
