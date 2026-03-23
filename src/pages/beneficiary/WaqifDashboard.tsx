@@ -60,7 +60,7 @@ const WaqifDashboard = () => {
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
-  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContracts = relevantContracts;
   const expiredContracts = contracts.filter(c => c.status === 'expired');

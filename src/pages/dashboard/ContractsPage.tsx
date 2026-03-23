@@ -42,9 +42,9 @@ import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
+  const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId, isSpecificYear } = useFiscalYear();
 
-  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();

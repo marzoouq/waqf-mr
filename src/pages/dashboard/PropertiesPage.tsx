@@ -36,8 +36,8 @@ import { fmt, fmtInt } from '@/utils/format';
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: properties = [], isLoading } = useProperties();
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const isSpecificYear = fiscalYearId !== 'all';
+  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+
   const isClosed = fiscalYear?.status === 'closed';
 
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);

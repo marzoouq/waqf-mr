@@ -92,7 +92,7 @@ const ReportsPage = () => {
   };
 
   // ─── Property Performance Data ──────────────────────────────────────
-  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const { isSpecificYear } = useFiscalYear();
   // M-11 fix: memoize property performance to avoid recomputation on every render
   const propertyPerformance = useMemo(() => properties.map((property) => {
     const propertyUnits = allUnits.filter(u => u.property_id === property.id);
