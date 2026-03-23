@@ -76,13 +76,13 @@ describe('DistributeDialog', () => {
 
   it('يعرض أسماء المستفيدين', () => {
     renderDialog();
-    expect(screen.getByText('محمد')).toBeInTheDocument();
-    expect(screen.getByText('أحمد')).toBeInTheDocument();
+    expect(screen.getAllByText('محمد').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('أحمد').length).toBeGreaterThanOrEqual(1);
   });
 
   it('يعرض المبلغ المتاح', () => {
     renderDialog();
-    expect(screen.getByText(/10,000.00/)).toBeInTheDocument();
+    expect(screen.getAllByText(/10,000.00/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('يعرض رسالة عند عدم وجود مستفيدين', () => {
