@@ -7,11 +7,18 @@ import { fmt } from '@/utils/format';
 
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
+interface PaymentInvoiceLike {
+  due_date: string;
+  amount: number;
+  status: string;
+}
+
 interface IncomeChartProps {
   income: Array<{ date: string; amount: number }>;
   contracts: Array<{ rent_amount: number; payment_type?: string; start_date: string; end_date: string; status: string }>;
   fiscalYear?: { start_date: string; end_date: string } | null;
   isSpecificYear?: boolean;
+  paymentInvoices?: PaymentInvoiceLike[];
 }
 
 /**
