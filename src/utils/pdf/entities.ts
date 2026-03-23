@@ -1,9 +1,8 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { maskBankAccount, maskNationalId } from '@/utils/maskData';
 import { safeNumber } from '@/utils/safeNumber';
 import {
-  PdfWaqfInfo, UnitPdfRow, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, UnitPdfRow, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -12,11 +11,7 @@ import {
 import { fmt, fmtInt } from '@/utils/format';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -38,22 +33,15 @@ export const generatePropertiesPDF = async (properties: Array<{ property_number:
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('properties-report.pdf');
+  finalizePdf(doc, fontFamily, 'properties-report.pdf', waqfInfo);
 };
 
 export const generateContractsPDF = async (contracts: Array<{ contract_number: string; tenant_name: string; start_date: string; end_date: string; rent_amount: number; status: string }>, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
   doc.text(rs('تقرير العقود'), 105, startY + 5, { align: 'center' });
-
 
   const statusLabel = (s: string) => {
     switch (s) {
@@ -88,17 +76,11 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('contracts-report.pdf');
+  finalizePdf(doc, fontFamily, 'contracts-report.pdf', waqfInfo);
 };
 
 export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: string; share_percentage: number; phone?: string | null; email?: string | null; bank_account?: string | null; national_id?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -125,9 +107,7 @@ export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: stri
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('beneficiaries-report.pdf');
+  finalizePdf(doc, fontFamily, 'beneficiaries-report.pdf', waqfInfo);
 };
 
 export const generateUnitsPDF = async (
@@ -136,11 +116,7 @@ export const generateUnitsPDF = async (
   units: UnitPdfRow[],
   waqfInfo?: PdfWaqfInfo
 ) => {
-  const doc = new jsPDF('landscape');
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(16);
@@ -185,7 +161,5 @@ export const generateUnitsPDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`units-report-${propertyNumber}.pdf`);
+  finalizePdf(doc, fontFamily, `units-report-${propertyNumber}.pdf`, waqfInfo);
 };
