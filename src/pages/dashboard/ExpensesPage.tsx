@@ -8,9 +8,10 @@ import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteE
 import { useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import { useProperties } from '@/hooks/data/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
-import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -38,6 +39,8 @@ type SortDir = 'asc' | 'desc';
 const ExpensesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const { role } = useAuth();
+  const isLocked = isClosed && role !== 'admin';
 
   const { data: expenses = [], isLoading } = useExpensesByFiscalYear(fiscalYearId);
   const { data: allInvoices = [] } = useInvoicesByFiscalYear(fiscalYearId);
@@ -182,16 +185,22 @@ const ExpensesPage = () => {
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
-              properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isClosed}
+              properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isLocked}
             />
           </>}
         />
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-              <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
-            </span>
+            {role === 'admin' ? (
+              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
+                <ShieldCheck className="w-3 h-3" /> سنة مقفلة — لديك صلاحية التعديل كناظر
+              </span>
+            ) : (
+              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
+                <Lock className="w-3 h-3" /> سنة مقفلة — لا يمكن التعديل
+              </span>
+            )}
           </div>
         )}
 
@@ -201,7 +210,7 @@ const ExpensesPage = () => {
         <ExpensesPieChart expenses={expenses} isLoading={isLoading} />
 
         {/* E-2: ميزانية تقديرية للمصروفات */}
-        <ExpenseBudgetBar expenses={expenses} fiscalYearId={fiscalYearId} isClosed={isClosed} />
+        <ExpenseBudgetBar expenses={expenses} fiscalYearId={fiscalYearId} isClosed={isLocked} />
 
         {/* بحث + فلاتر */}
         <div className="space-y-3">
@@ -247,8 +256,8 @@ const ExpensesPage = () => {
                             <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -314,8 +323,8 @@ const ExpensesPage = () => {
                           <TableCell className="text-muted-foreground">{item.description || '-'}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `مصروف ${item.expense_type}` })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

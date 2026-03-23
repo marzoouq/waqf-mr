@@ -15,8 +15,9 @@ import { useProperties } from '@/hooks/data/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle, ShieldCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
@@ -38,6 +39,8 @@ type SortDir = 'asc' | 'desc';
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const { role } = useAuth();
+  const isLocked = isClosed && role !== 'admin';
 
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
@@ -202,7 +205,7 @@ const IncomePage = () => {
               toast.success('تم تصدير الدخل بنجاح');
             }} />
             <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
+              <DialogTrigger asChild><Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">إضافة دخل</span></Button></DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader><DialogTitle>{editingIncome ? 'تعديل الدخل' : 'إضافة دخل جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل دخل</DialogDescription></DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -226,9 +229,15 @@ const IncomePage = () => {
 
         {isClosed && (
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-              <Lock className="w-3 h-3" /> سنة مقفلة - تعديل بصلاحية الناظر
-            </span>
+            {role === 'admin' ? (
+              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
+                <ShieldCheck className="w-3 h-3" /> سنة مقفلة — لديك صلاحية التعديل كناظر
+              </span>
+            ) : (
+              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
+                <Lock className="w-3 h-3" /> سنة مقفلة — لا يمكن التعديل
+              </span>
+            )}
           </div>
         )}
 
@@ -328,8 +337,8 @@ const IncomePage = () => {
                           <p className="text-xs text-muted-foreground mt-0.5">{item.date}</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -369,8 +378,8 @@ const IncomePage = () => {
                       <TableCell className="text-muted-foreground">{item.notes || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteTarget({ id: item.id, name: `دخل ${item.source}` })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -15,7 +15,7 @@ import TablePagination from '@/components/TablePagination';
 import MobileCardView from '@/components/MobileCardView';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
@@ -28,9 +28,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInvoicesPage } from '@/hooks/page/useInvoicesPage';
+import { useAuth } from '@/hooks/auth/useAuthContext';
+import { ShieldCheck, Lock } from 'lucide-react';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();
+  const { role } = useAuth();
+  const isLocked = h.isClosed && role !== 'admin';
 
   return (
     <DashboardLayout>
@@ -40,13 +44,13 @@ const InvoicesPage = () => {
           icon={FileText}
           description="إدارة وإصدار الفواتير الضريبية — يمكنك إنشاء فاتورة من قالب أو رفع فاتورة موجودة"
           actions={<>
-            <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={h.isClosed}>
+            <Button variant="outline" className="gap-2" onClick={() => h.setTemplateOpen(true)} disabled={isLocked}>
               <FileText className="w-4 h-4" />إنشاء من قالب
             </Button>
             {(() => {
               const withoutFiles = h.invoices.filter(inv => !inv.file_path);
               return withoutFiles.length > 0 ? (
-                <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || h.isClosed} onClick={() => h.generatePdf.mutate(withoutFiles.map(inv => inv.id))}>
+                <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={() => h.generatePdf.mutate(withoutFiles.map(inv => inv.id))}>
                   <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${withoutFiles.length})`}
                 </Button>
               ) : null;
@@ -79,7 +83,7 @@ const InvoicesPage = () => {
             }} />
             <Dialog open={h.isOpen} onOpenChange={(open) => { h.setIsOpen(open); if (!open) h.resetForm(); }}>
               <DialogTrigger asChild>
-                <Button className="gradient-primary gap-2" disabled={h.isClosed}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
+                <Button className="gradient-primary gap-2" disabled={isLocked}><Plus className="w-4 h-4" /><span className="hidden sm:inline">رفع فاتورة</span></Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>{h.editingInvoice ? 'تعديل الفاتورة' : 'رفع فاتورة جديدة'}</DialogTitle><DialogDescription className="sr-only">نموذج رفع أو تعديل فاتورة</DialogDescription></DialogHeader>
@@ -144,9 +148,15 @@ const InvoicesPage = () => {
 
         {h.isClosed && (
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-              <AlertTriangle className="w-4 h-4" />السنة المالية مقفلة — لا يمكن إضافة أو تعديل الفواتير
-            </span>
+            {role === 'admin' ? (
+              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
+                <ShieldCheck className="w-4 h-4" /> سنة مقفلة — لديك صلاحية التعديل كناظر
+              </span>
+            ) : (
+              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
+                <Lock className="w-4 h-4" /> سنة مقفلة — لا يمكن التعديل
+              </span>
+            )}
           </div>
         )}
 
@@ -182,7 +192,7 @@ const InvoicesPage = () => {
         </div>
 
         {h.viewMode === 'grid' ? (
-          <InvoiceGridView invoices={h.filteredInvoices} onEdit={h.handleEdit} readOnly={h.isClosed} />
+          <InvoiceGridView invoices={h.filteredInvoices} onEdit={h.handleEdit} readOnly={isLocked} />
         ) : (
           <Card className="shadow-sm">
             <CardContent className="p-0">
@@ -207,8 +217,8 @@ const InvoicesPage = () => {
                       { label: 'العقار', value: item.property?.property_number || '-' },
                       { label: 'الملف', value: item.file_path ? (item.file_name || 'موجود') : 'لا يوجد' },
                     ]}
-                    onEdit={h.isClosed ? undefined : h.handleEdit}
-                    onDelete={h.isClosed ? undefined : (item) => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
+                    onEdit={isLocked ? undefined : h.handleEdit}
+                    onDelete={isLocked ? undefined : (item) => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })}
                     extraActions={(item) => item.file_path ? (
                       <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => h.setViewerFile({ path: item.file_path!, name: item.file_name })} aria-label="عرض الملف">
                         <Eye className="w-4 h-4" />
@@ -247,8 +257,8 @@ const InvoicesPage = () => {
                           <TableCell>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => h.setPreviewInvoice(h.buildPreviewData(item))} aria-label="معاينة"><Eye className="w-4 h-4 text-primary" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.handleEdit(item)} disabled={h.isClosed} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={h.isClosed} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => h.handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>

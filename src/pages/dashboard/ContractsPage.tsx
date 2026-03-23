@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NativeSelect } from '@/components/ui/native-select';
-import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
+import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays, ShieldCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ContractAccordionGroup from '@/components/contracts/ContractAccordionGroup';
@@ -27,9 +27,11 @@ import MonthlyAccrualTable from '@/components/contracts/MonthlyAccrualTable';
 import { getPaymentTypeLabel } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { useContractsPage } from '@/hooks/page/useContractsPage';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const { role } = useAuth();
   const {
     contracts, properties, paymentInvoices, invoicePaidMap,
     fiscalYearId, fiscalYears, isClosed, setFiscalYearId,
@@ -141,9 +143,15 @@ const ContractsPage = () => {
             </div>
 
             {isClosed && (
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
-                <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة - تعديل بصلاحية الناظر</span>
-              </div>
+              role === 'admin' ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-success/30 bg-success/10 text-success text-sm">
+                  <ShieldCheck className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لديك صلاحية التعديل كناظر</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
+                  <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لا يمكن التعديل</span>
+                </div>
+              )
             )}
 
             {isLoading ? (
@@ -169,7 +177,7 @@ const ContractsPage = () => {
                     invoicePaidMap={invoicePaidMap} expiredIds={expiredIds} selectedForRenewal={selectedForRenewal}
                     onToggleSelection={toggleSelection} onEdit={handleEdit}
                     onDelete={(c) => setDeleteTarget({ id: c.id, name: `العقد ${c.contract_number}` })}
-                    onRenew={handleRenew} isClosed={isClosed} open={expandedGroups.has(baseNumber)}
+                    onRenew={handleRenew} isClosed={isClosed && role !== 'admin'} open={expandedGroups.has(baseNumber)}
                     onOpenChange={(isOpen) => {
                       setExpandedGroups(prev => {
                         const next = new Set(prev);
@@ -187,7 +195,7 @@ const ContractsPage = () => {
           <TabsContent value="accruals">
             <MonthlyAccrualTable contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYearId={fiscalYearId} fiscalYear={fiscalYears?.find(fy => fy.id === fiscalYearId) ?? null} />
           </TabsContent>
-          <TabsContent value="invoices"><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed} /></TabsContent>
+          <TabsContent value="invoices"><PaymentInvoicesTab fiscalYearId={fiscalYearId} isClosed={isClosed && role !== 'admin'} /></TabsContent>
           <TabsContent value="collection"><CollectionReport contracts={contracts} paymentInvoices={paymentInvoices} isLoading={isLoading} fiscalYears={fiscalYears} fiscalYearId={fiscalYearId} /></TabsContent>
         </Tabs>
 
