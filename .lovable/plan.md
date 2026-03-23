@@ -1,120 +1,133 @@
 
 
-# تقرير فحص قاعدة البيانات والهيكل + أخطاء البناء
+# تقرير فحص الأمان الشامل
 
 ---
 
-## 1. أخطاء البناء — مُعالَجة بالفعل
+## 1. الحالة العامة — ممتازة ✅
 
-جميع الأخطاء المذكورة في البناء **لا تعكس الحالة الفعلية للكود**. بعد الفحص:
-
-| الخطأ | الحالة الفعلية في الكود |
-|-------|------------------------|
-| `@/hooks/usePagePerformance` | ✅ `App.tsx` سطر 13 يستخدم `@/hooks/ui/usePagePerformance` |
-| `@/hooks/useAppSettings` | ✅ `BetaBanner.tsx` + `BannerSettingsTab.tsx` يستخدمان `@/hooks/page/useAppSettings` |
-| `@/hooks/use-mobile` | ✅ `sidebar.tsx` سطر 6 يستخدم `@/hooks/ui/use-mobile` |
-| `@/hooks/use-toast` | ✅ `toaster.tsx` + `use-toast.ts` يستخدمان `@/hooks/ui/use-toast` |
-| `./useAppSettings` في `useWaqfInfo.test.ts` | ✅ يستخدم `@/hooks/page/useAppSettings` |
-| `@/hooks/useBeneficiaryDashboardData` | ✅ يستخدم `@/hooks/page/useBeneficiaryDashboardData` |
-| `@/hooks/useBeneficiaries` | ✅ يستخدم `@/hooks/data/useBeneficiaries` |
-| `@/hooks/useNotifications` | ✅ يستخدم `@/hooks/data/useNotifications` |
-
-**الإجراء المطلوب:** لا شيء — هذه أخطاء بناء مخبأة (cached) ستُحل بإعادة بناء نظيفة. الكود صحيح 100%.
+المشروع يتبع معايير أمان عالية المستوى. جميع النتائج الحرجة السابقة تم إصلاحها. المتبقي: **2 تحذير** من الماسح الآلي + **خطأ بناء عابر**.
 
 ---
 
-## 2. فحص قاعدة البيانات — النتائج
+## 2. خطأ البناء الحالي — عابر (ليس كود)
 
-### 2.1 الجداول الموجودة (22 جدول)
+```text
+"driver: bad connection" — فشل اتصال مؤقت بقاعدة البيانات
+```
 
-| الجدول | الوظيفة | RLS |
-|--------|---------|-----|
-| `properties` | العقارات | ✅ |
-| `units` | الوحدات العقارية | ✅ |
-| `contracts_safe` | عقود (view آمن) | ⚠️ لا RLS (view) |
-| `beneficiaries` | المستفيدون | ✅ |
-| `beneficiaries_safe` | مستفيدون (view آمن) | ⚠️ لا RLS (view) |
-| `income` | الإيرادات | ✅ |
-| `expenses` | المصروفات | ✅ |
-| `accounts` | الحسابات الختامية | ✅ |
-| `distributions` | التوزيعات | ✅ |
-| `invoices` | الفواتير العامة | ✅ |
-| `payment_invoices` | فواتير الدفعات | ✅ |
-| `invoice_items` | بنود الفواتير | ✅ |
-| `invoice_chain` | سلسلة التجزئة | ✅ |
-| `user_roles` | الأدوار | ✅ |
-| `advance_requests` | طلبات السُلف | ✅ |
-| `advance_carryforward` | ترحيل السُلف | ✅ |
-| `fiscal_years` (ضمنياً) | السنوات المالية | ✅ |
-| `app_settings` | إعدادات التطبيق | ✅ |
-| `messages` + `conversations` | المراسلات | ✅ |
-| `support_tickets` + `replies` | الدعم الفني | ✅ |
-| `access_log` + `archive` | سجل الوصول | ✅ |
-| `webauthn_credentials` | المصادقة البيومترية | ✅ |
-| `zatca_certificates` | شهادات ZATCA | ✅ |
-| `waqf_bylaws` | اللوائح | ✅ |
-| `annual_report_items` + `status` | التقرير السنوي | ✅ |
-| `expense_budgets` | الميزانيات | ✅ |
-| `tenant_payments` | مدفوعات المستأجرين | ✅ |
-| `contract_fiscal_allocations` | تخصيصات العقود | ✅ |
-| `rate_limits` | تحديد المعدل | ✅ |
-| `account_categories` (ضمنياً) | شجرة الحسابات | ✅ |
-
-### 2.2 ✅ نقاط قوة
-
-1. **RLS شامل:** جميع الجداول الأساسية محمية بسياسات RLS متعددة المستويات (admin/accountant/beneficiary/waqif)
-2. **Restrictive policies:** استخدام `PERMISSIVE: No` لحجب بيانات السنوات المالية غير المنشورة (`is_fiscal_year_accessible`) — نمط أمني ممتاز
-3. **Views آمنة:** `contracts_safe` و `beneficiaries_safe` تحجب البيانات الحساسة (لا RLS لأنها views)
-4. **سلسلة التجزئة:** `invoice_chain` تدعم ZATCA compliance مع `previous_hash` + `icv`
-5. **Polymorphic linking:** `invoice_items.invoice_source` يدعم ربط بنود الفواتير بجدولين مختلفين
-6. **Rate limiting:** جدول `rate_limits` محمي بـ `USING false` — لا وصول مباشر
-7. **Audit trail:** `access_log` + `access_log_archive` محميان ضد التعديل والحذف
-
-### 2.3 ⚠️ ملاحظات
-
-| الملاحظة | التفاصيل | الخطورة |
-|---------|---------|---------|
-| **Foreign keys مفقودة في Schema المعروض** | لا foreign keys ظاهرة في البيانات المقدمة لأي جدول — لكن هذا قد يكون عرض جزئي | منخفضة |
-| **`contracts_safe` بدون RLS** | View — لا يحتاج RLS إذا كان الجدول الأصلي (`contracts`) محمي | مقبول |
-| **`beneficiaries_safe` بدون RLS** | نفس الملاحظة — view آمن | مقبول |
-| **`fiscal_year_id` nullable في بعض الجداول** | `advance_requests`, `payment_invoices`, `invoices` — nullable مع restrictive policy قد يحجب بيانات | منخفضة |
-
-### 2.4 تحليل التوافق مع الكود
-
-| الجدول | TypeScript Type | متوافق؟ |
-|--------|----------------|---------|
-| `properties` | `Property` | ✅ |
-| `units` | `Unit` | ✅ |
-| `contracts` | `Contract` | ✅ (مع حقول PII) |
-| `income` | `Income` | ✅ |
-| `expenses` | `Expense` | ✅ |
-| `beneficiaries` | `Beneficiary` | ✅ |
-| `accounts` | `Account` | ✅ |
-| `distributions` | `Distribution` | ✅ |
-| `advance_requests` | `AdvanceRequest` | ✅ |
-| `user_roles` | `UserRole` | ✅ |
-| `messages` | `Message` | ✅ |
-| `notifications` | `Notification` | ✅ |
-| `fiscal_years` | `FiscalYear` | ✅ |
-| `account_categories` | `AccountCategory` | ✅ |
-
-### 2.5 جداول بدون duplicate أو waste
-
-لا توجد جداول مكررة أو غير مستخدمة. كل جدول له وظيفة واضحة ومستخدم في الكود.
+هذا خطأ **بنية تحتية** وليس خطأ في الكود. الحل: إعادة المحاولة (retry) أو الانتظار. لا يحتاج تعديل كود.
 
 ---
 
-## 3. الخلاصة
+## 3. نتائج الماسح الأمني
 
-**قاعدة البيانات في حالة ممتازة:**
-- لا جداول مكررة أو غير مستخدمة
-- RLS شامل ومتعدد المستويات
-- Restrictive policies للسنوات المالية غير المنشورة
-- Views آمنة للبيانات الحساسة
-- التوافق بين TypeScript types وجداول DB كامل
-- Triggers وfunctions مساعدة (e.g. `has_role`, `is_fiscal_year_accessible`, `trg_set_distribution_fiscal_year`)
+### 3.1 ⚠️ `contracts_safe` — "No RLS" (إيجابي كاذب)
 
-**أخطاء البناء:** مخبأة/قديمة — الكود الفعلي صحيح ولا يحتاج أي تعديل.
+| البند | الحالة |
+|-------|--------|
+| الماسح يقول | "لا توجد سياسات RLS على العرض" |
+| الواقع | العرض يستخدم `security_definer` + `security_barrier=true` + تقنيع PII عبر `CASE WHEN` |
+| الجدول الأصلي (`contracts`) | محمي بـ RLS — admin/accountant فقط |
 
-**لا يوجد إجراءات مطلوبة** — الهيكل سليم.
+**الإجراء:** تحديث تجاهل النتيجة في الماسح الأمني مع توثيق السبب.
+
+### 3.2 ⚠️ `user_roles` — فجوة INSERT نظرية
+
+| البند | الحالة |
+|-------|--------|
+| التحذير | "لا يوجد DENY صريح على INSERT لغير الأدمن" |
+| الواقع | السياسة الوحيدة هي `ALL` للأدمن فقط + `SELECT` للمستخدم نفسه |
+| المخاطرة | **منخفضة جداً** — لا توجد سياسة INSERT permissive لغير الأدمن |
+
+**الإجراء (دفاع عميق):** إضافة سياسة RESTRICTIVE تحظر INSERT/UPDATE/DELETE لغير الأدمن.
+
+---
+
+## 4. تحليل الأمان التفصيلي
+
+### 4.1 المصادقة ✅
+
+| الفحص | النتيجة |
+|-------|---------|
+| `getUser()` في Edge Functions | ✅ مُطبق في جميع الوظائف |
+| `getSession()` مستقل | ❌ لا يوجد — يُستخدم فقط بعد `getUser()` للحصول على `access_token` |
+| تخزين أدوار في localStorage | ✅ لا يوجد — الأدوار تُفحص من الخادم فقط |
+| Rate limiting | ✅ جدول `rate_limits` + دالة ذرية |
+| WebAuthn | ✅ محمي بـ rate limit + `getUser()` |
+
+### 4.2 البيانات الحساسة (PII) ✅
+
+| الفحص | النتيجة |
+|-------|---------|
+| `select('*')` | ✅ لا يوجد — جميع الاستعلامات تحدد الأعمدة |
+| تشفير PII | ✅ `national_id` + `bank_account` مشفرة بـ AES-256 |
+| مفتاح التشفير | ✅ في Supabase Vault (ليس في app_settings) |
+| `console.log` لبيانات حساسة | ✅ لا يوجد تسريب (رسالة واحدة عامة فقط) |
+| `dangerouslySetInnerHTML` | ✅ مستخدم فقط لـ JSON-LD وأنماط chart — بدون مدخلات مستخدم |
+
+### 4.3 العروض الآمنة ✅
+
+| العرض | security_barrier | PII masking | الجدول الأصلي RLS |
+|-------|-----------------|-------------|-------------------|
+| `beneficiaries_safe` | ✅ | ✅ CASE WHEN | ✅ admin/accountant فقط |
+| `contracts_safe` | ✅ | ✅ CASE WHEN | ✅ admin/accountant فقط |
+
+### 4.4 RLS شامل ✅
+
+| الفئة | الحالة |
+|-------|--------|
+| جداول مالية (income, expenses, distributions) | ✅ RLS + restrictive fiscal year |
+| جداول فواتير (invoices, payment_invoices, invoice_items) | ✅ RLS + restrictive fiscal year |
+| سجل التدقيق (access_log, archive) | ✅ محمي ضد التعديل/الحذف |
+| rate_limits | ✅ `USING false` — لا وصول مباشر |
+| ZATCA certificates | ✅ admin فقط |
+
+### 4.5 Edge Functions ✅
+
+| الوظيفة | Auth | Rate Limit | ملاحظة |
+|---------|------|-----------|--------|
+| admin-manage-users | ✅ getUser + admin role | ✅ | — |
+| ai-assistant | ✅ getUser | ✅ cooldown | — |
+| guard-signup | ⚡ Public | ✅ | بوابة تسجيل |
+| webauthn | ✅ getUser | ✅ | — |
+| zatca-* | ✅ getUser | — | — |
+| lookup-national-id | ⚡ Public | ✅ 3/5min | مطلوب لاسترجاع كلمة المرور |
+| generate-invoice-pdf | ✅ getUser | — | — |
+
+### 4.6 التخزين (Storage) ✅
+
+| الفحص | النتيجة |
+|-------|---------|
+| حزمة invoices | ✅ admin/accountant فقط |
+| أنواع الملفات | ✅ PDF + صور فقط |
+| روابط تحميل | ✅ موقعة بـ 300 ثانية |
+| Path traversal | ✅ تعقيم في الواجهة + Edge Functions |
+
+---
+
+## 5. الإجراءات المطلوبة
+
+### أولوية عالية — لا يوجد ❌
+
+لا توجد ثغرات أمنية حرجة.
+
+### أولوية متوسطة (دفاع عميق)
+
+| # | الإجراء | التفاصيل |
+|---|---------|---------|
+| 1 | إضافة سياسة RESTRICTIVE على `user_roles` | تحظر INSERT/UPDATE/DELETE لغير الأدمن كطبقة حماية إضافية |
+| 2 | تحديث تجاهل `contracts_safe_no_rls` في الماسح | توثيق أن العرض محمي بـ security_definer + CASE WHEN |
+
+### أولوية منخفضة
+
+| # | الإجراء |
+|---|---------|
+| 3 | إزالة `tenant_id_number, tenant_tax_number, tenant_crn` من select في `useContractsSafeByFiscalYear` — هذه الأعمدة مقنّعة في العرض لكن لا داعي لطلبها |
+
+---
+
+## 6. الخلاصة
+
+**المشروع في حالة أمنية ممتازة.** جميع الثغرات الحرجة السابقة مُصلحة (PII encryption key في Vault، RLS شامل، rate limiting، تقنيع بيانات حساسة). التحذيران المتبقيان من الماسح (contracts_safe + user_roles) هما **إيجابي كاذب** و **تحسين دفاع عميق** على التوالي. خطأ البناء "bad connection" عابر ولا يتعلق بالكود.
 
