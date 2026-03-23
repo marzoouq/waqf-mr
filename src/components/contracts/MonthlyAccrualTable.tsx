@@ -15,6 +15,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 interface MonthlyAccrualTableProps {
   contracts: Contract[];
   isLoading?: boolean;
+  fiscalYearId?: string;
+  fiscalYear?: { start_date: string; end_date: string } | null;
 }
 
 const MONTH_LABELS = [
