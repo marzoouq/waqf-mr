@@ -72,7 +72,17 @@ const DisclosureFinancialStatement = (props: Props) => {
                 </div>
               ))}
               <div className="flex justify-between items-center py-2 font-bold bg-destructive/10 rounded px-2">
-                <span>إجمالي المصروفات</span>
+                <span>إجمالي المصروفات التشغيلية</span>
+                <span className="text-destructive">-{fmt(totalExpenses - vatAmount)} ر.س</span>
+              </div>
+              {vatAmount > 0 && (
+                <div className="flex justify-between items-center py-2 border-b border-dashed">
+                  <span>ضريبة القيمة المضافة</span>
+                  <span className="text-destructive font-medium">-{fmt(vatAmount)} ر.س</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2 font-bold bg-destructive/15 rounded px-2">
+                <span>إجمالي المصروفات والضريبة</span>
                 <span className="text-destructive">-{fmt(totalExpenses)} ر.س</span>
               </div>
             </div>
