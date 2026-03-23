@@ -318,7 +318,7 @@ export const useContractsPage = () => {
     return result;
   }, [groupedContracts, searchQuery, statusFilter, propertyFilter, paymentTypeFilter, overdueContractIds]);
 
-  const allExpanded = filteredGroups.length > 0 && expandedGroups.size >= filteredGroups.length;
+  const allExpanded = filteredGroups.length > 0 && filteredGroups.every(([base]) => expandedGroups.has(base));
   const toggleAllGroups = useCallback(() => {
     if (allExpanded) {
       setExpandedGroups(new Set());
