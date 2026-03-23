@@ -37,7 +37,7 @@ describe('generateBylawsPDF', () => {
     await generateBylawsPDF([
       { part_number: 1, part_title: 'أحكام عامة', chapter_title: null, content: 'نص اللائحة **مع تنسيق**' },
     ]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-bylaws.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-bylaws.pdf');
     expect(mockAddPage).toHaveBeenCalled();
   });
 

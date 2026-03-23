@@ -31,7 +31,7 @@ describe('generateIncomePDF', () => {
   it('saves income-report.pdf', async () => {
     await generateIncomePDF([{ source: 'إيجارات', amount: 50000, date: '2024-01-01' }], 50000);
     const { finalizePdf } = await import('./core');
-    expect(vi.mocked(finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringMatching(/^income-report/), expect.anything());
+    expect(vi.mocked(finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringMatching(/^income-report/));
   });
 });
 
@@ -41,6 +41,6 @@ describe('generateExpensesPDF', () => {
   it('saves expenses-report.pdf', async () => {
     await generateExpensesPDF([{ expense_type: 'صيانة', amount: 10000, date: '2024-02-01' }], 10000);
     const { finalizePdf } = await import('./core');
-    expect(vi.mocked(finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringMatching(/^expenses-report/), expect.anything());
+    expect(vi.mocked(finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringMatching(/^expenses-report/));
   });
 });

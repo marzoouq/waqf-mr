@@ -54,7 +54,7 @@ describe('generateDistributionsPDF', () => {
   it('generates PDF without error', async () => {
     const { generateDistributionsPDF } = await import('./accounts');
     await generateDistributionsPDF(baseData);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'distributions-report-2024-2025.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'distributions-report-2024-2025.pdf');
   });
 
   it('handles deficit > 0 correctly', async () => {
@@ -87,6 +87,6 @@ describe('generateAccountsPDF', () => {
       waqfRevenue: 382500,
       beneficiaries: [{ name: 'محمد', share_percentage: 100 }],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'accounts-report.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'accounts-report.pdf');
   });
 });

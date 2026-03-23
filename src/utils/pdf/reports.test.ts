@@ -61,14 +61,14 @@ describe('generateAnnualReportPDF', () => {
       incomeBySource: [{ source: 'إيجارات', amount: 500000 }],
       beneficiaries: [{ name: 'محمد', percentage: 60, amount: 229500 }],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-report-2024-2025.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-report-2024-2025.pdf');
   });
 });
 
 describe('generateBeneficiaryStatementPDF', () => {
   it('generates and saves PDF', async () => {
     await generateBeneficiaryStatementPDF('أحمد', 40, 153000, '2024-2025');
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'statement-أحمد-2024-2025.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'statement-أحمد-2024-2025.pdf');
   });
 });
 
@@ -89,6 +89,6 @@ describe('generateAnnualDisclosurePDF', () => {
       beneficiaries: [{ name: 'محمد', share_percentage: 100, amount: 300000 }],
       adminPct: 10, waqifPct: 5,
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'annual-disclosure-2024-2025.pdf', expect.anything());
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'annual-disclosure-2024-2025.pdf');
   });
 });
