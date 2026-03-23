@@ -54,14 +54,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     }
   }, [isUnauthorized, user, role, allowedRoles, location.pathname]);
 
-  // إصلاح #4: إظهار زر الخروج فقط بعد 5 ثوانٍ لتجنب الإرباك أثناء التحقق الأولي
+  // إصلاح #4: إظهار زر الخروج بعد 3 ثوانٍ + timeout نهائي 10 ثوانٍ للخروج التلقائي
   useEffect(() => {
     if (allowedRoles && !role && !loading && user) {
-      const timer = setTimeout(() => setShowSignOut(true), 3000);
-      return () => clearTimeout(timer);
+      const showTimer = setTimeout(() => setShowSignOut(true), 3000);
+      const autoLogoutTimer = setTimeout(async () => {
+        logger.warn('[ProtectedRoute] role=null timeout after 10s, auto sign-out');
+        await signOut();
+        navigate('/auth', { replace: true });
+      }, 10000);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(autoLogoutTimer);
+      };
     }
     setShowSignOut(false);
-  }, [allowedRoles, role, loading, user]);
+  }, [allowedRoles, role, loading, user, signOut, navigate]);
 
   if (loading) {
     return (

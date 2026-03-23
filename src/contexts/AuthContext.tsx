@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchRole = async () => {
       const startTime = Date.now();
       let attempts = 0;
-      logger.info('[Auth] fetchRole started for user:', user.id);
+      logger.info('[Auth] fetchRole started');
       
       // Safety timeout: 3 seconds max
       timeoutId = setTimeout(() => {
