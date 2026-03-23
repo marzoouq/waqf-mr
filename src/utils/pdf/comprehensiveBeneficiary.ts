@@ -275,7 +275,5 @@ export const generateComprehensiveBeneficiaryPDF = async (
     });
   }
 
-  addHeaderToAllPages(doc, f, waqfInfo);
-  addFooter(doc, f, waqfInfo);
-  doc.save(`تقرير-شامل-${data.beneficiaryName}-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, f, `تقرير-شامل-${data.beneficiaryName}-${data.fiscalYear}.pdf`, waqfInfo);
 };

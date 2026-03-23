@@ -89,8 +89,7 @@ export const generateAnnualReportPDF = async (
     writeSection('التحديات', data.challenges, [180, 120, 20]);
     writeSection('الخطط المستقبلية', data.futurePlans, [37, 99, 235]);
 
-    addFooter(doc, fontFamily, waqfInfo);
-    doc.save(`التقرير_السنوي_${data.fiscalYearLabel}.pdf`);
+    finalizePdf(doc, fontFamily, `التقرير_السنوي_${data.fiscalYearLabel}.pdf`, waqfInfo, { skipHeaders: true });
     toast.success('تم تصدير التقرير السنوي بنجاح');
   } catch (e) {
     logger.error('خطأ في تصدير التقرير السنوي:', e);
