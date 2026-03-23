@@ -9,8 +9,6 @@ import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components/bylaws/BylawDialogs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
