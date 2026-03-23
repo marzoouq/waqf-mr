@@ -11,7 +11,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
-import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown, ShieldCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
