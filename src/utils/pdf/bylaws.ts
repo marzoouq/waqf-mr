@@ -32,14 +32,10 @@ export const generateBylawsPDF = async (
   entries: BylawPdfEntry[],
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
   const contentW = pageW - margin * 2;
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
 
   // Title
   doc.setFont(fontFamily, 'bold');
