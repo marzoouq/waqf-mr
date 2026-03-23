@@ -25,17 +25,27 @@ interface IncomeChartProps {
  * I-3 + I-8: رسم بياني للإيرادات الفعلية مقابل المتوقعة شهرياً
  * المتوقع = مجموع إيجارات العقود النشطة مقسّمة على عدد الأشهر
  */
-const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear }: IncomeChartProps) => {
+const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, paymentInvoices }: IncomeChartProps) => {
   const chartData: Array<{ month: string; actual: number; expected: number; gap: number }> = useMemo(() => {
     const startDate = fiscalYear ? new Date(fiscalYear.start_date) : new Date(new Date().getFullYear(), 0, 1);
 
-    // حساب الإيراد المتوقع الشهري من العقود — جميعها في السنة المحددة أو النشطة فقط
-    const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
-    const monthlyExpected = activeContracts.reduce((sum, c) => {
-      const rent = safeNumber(c.rent_amount);
-      // تحويل الإيجار السنوي إلى شهري
-      return sum + (rent / 12);
-    }, 0);
+    // بناء خريطة المتوقع من الفواتير الفعلية (إن وجدت)
+    const invoiceExpectedByMonth = new Map<string, number>();
+    if (paymentInvoices && paymentInvoices.length > 0) {
+      paymentInvoices.forEach(inv => {
+        const d = new Date(inv.due_date);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        invoiceExpectedByMonth.set(key, (invoiceExpectedByMonth.get(key) ?? 0) + safeNumber(inv.amount));
+      });
+    }
+
+    // fallback: حساب المتوقع الخطي من العقود
+    const useInvoices = invoiceExpectedByMonth.size > 0;
+    let linearMonthlyExpected = 0;
+    if (!useInvoices) {
+      const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+      linearMonthlyExpected = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount) / 12, 0);
+    }
 
     const months: Array<{ month: string; actual: number; expected: number; gap: number }> = [];
     for (let i = 0; i < 12; i++) {
@@ -50,15 +60,19 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear }: I
         })
         .reduce((sum, item) => sum + safeNumber(item.amount), 0);
 
+      const expected = useInvoices
+        ? Math.round(invoiceExpectedByMonth.get(`${year}-${month}`) ?? 0)
+        : Math.round(linearMonthlyExpected);
+
       months.push({
         month: MONTH_NAMES[month],
         actual,
-        expected: Math.round(monthlyExpected),
-        gap: actual - Math.round(monthlyExpected),
+        expected,
+        gap: actual - expected,
       });
     }
     return months;
-  }, [income, contracts, fiscalYear]);
+  }, [income, contracts, fiscalYear, paymentInvoices, isSpecificYear]);
 
   const totalActual = chartData.reduce((s, m) => s + m.actual, 0);
   const totalExpected = chartData.reduce((s, m) => s + m.expected, 0);

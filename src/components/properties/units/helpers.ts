@@ -50,7 +50,30 @@ export const getTenantFromContracts = (unitId: string, contracts: Contract[]): T
   return null;
 };
 
-/** حساب حالة التحصيل (منتظم أو متأخر) */
+/** واجهة فاتورة دفعة مبسطة */
+interface PaymentInvoiceLike {
+  contract_id: string;
+  status: string;
+  due_date: string;
+}
+
+/**
+ * حساب حالة التحصيل من الفواتير الفعلية (المصدر الوحيد للحقيقة)
+ * بدلاً من الحساب الرياضي القديم
+ */
+export const getPaymentStatusFromInvoices = (
+  contractId: string,
+  invoices: PaymentInvoiceLike[]
+): { status: 'ontime' | 'late'; overdueCount: number } => {
+  const contractInvoices = invoices.filter(inv => inv.contract_id === contractId);
+  const overdueInvoices = contractInvoices.filter(inv => inv.status === 'overdue');
+  if (overdueInvoices.length > 0) {
+    return { status: 'late', overdueCount: overdueInvoices.length };
+  }
+  return { status: 'ontime', overdueCount: 0 };
+};
+
+/** حساب حالة التحصيل (منتظم أو متأخر) — fallback رياضي */
 export const getPaymentStatus = (
   tenant: TenantInfo,
   paidMonths: number
@@ -70,13 +93,11 @@ export const getPaymentStatus = (
   return { status: 'ontime', overdueCount: 0 };
 };
 
-/** حساب الإيجار الشهري من بيانات المستأجر */
 /** حساب الإيجار الشهري — دائماً rent_amount / 12 (rent_amount سنوي) */
 export const getMonthlyRent = (tenant: TenantInfo): number => {
   return safeNumber(tenant.rent_amount) / 12;
 };
 
-/** حساب الإيجار الشهري من عقد */
 /** حساب الإيجار الشهري من عقد — دائماً rent_amount / 12 */
 export const getMonthlyFromContract = (contract: Contract): number => {
   return safeNumber(contract.rent_amount) / 12;
