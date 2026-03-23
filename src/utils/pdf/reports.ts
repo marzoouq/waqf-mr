@@ -242,7 +242,5 @@ export const generateAnnualDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`annual-disclosure-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `annual-disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };
