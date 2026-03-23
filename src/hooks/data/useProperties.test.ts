@@ -7,6 +7,7 @@ vi.mock('./useCrudFactory', () => {
     createCrudFactory: vi.fn((config: any) => {
       expect(config.table).toBe('properties');
       expect(config.label).toBe('العقار');
+      expect(config.select).toContain('property_number');
       return { useList: mockHook, useCreate: mockMutation, useUpdate: mockMutation, useDelete: mockMutation };
     }),
   };

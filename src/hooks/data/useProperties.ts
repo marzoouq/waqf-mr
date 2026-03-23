@@ -9,6 +9,7 @@ import { Property } from '@/types/database';
 const propertiesCrud = createCrudFactory<'properties', Property>({
   table: 'properties',
   queryKey: 'properties',
+  select: 'id, property_number, property_type, location, area, vat_exempt, description, created_at, updated_at',
   label: 'العقار',
 });
 

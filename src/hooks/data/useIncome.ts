@@ -9,10 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/** أعمدة الإيرادات مع ربط العقار */
+const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
+
 const incomeCrud = createCrudFactory<'income', Income>({
   table: 'income',
   queryKey: 'income',
-  select: '*, property:properties(*)',
+  select: INCOME_SELECT,
   orderBy: 'date',
   label: 'الدخل',
 });
@@ -31,7 +34,7 @@ export const useIncomeByFiscalYear = (fiscalYearId: string | 'all') => {
     enabled: fiscalYearId !== '__none__',
     staleTime: 60_000,
     queryFn: async () => {
-      let query = supabase.from('income').select('*, property:properties(*)').order('date', { ascending: false });
+      let query = supabase.from('income').select(INCOME_SELECT).order('date', { ascending: false });
       if (fiscalYearId !== 'all') {
         query = query.eq('fiscal_year_id', fiscalYearId).limit(PER_FY_LIMIT);
       } else {
