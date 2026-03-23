@@ -308,7 +308,9 @@ const PropertiesPage = () => {
 
               const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
               const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
-              const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
+              const activeContracts = isSpecificYear
+                ? allPropertyContracts
+                : allPropertyContracts.filter(c => c.status === 'active');
               const activeAnnualRent = activeContracts.reduce((sum, c) => sum + Number(c.rent_amount), 0);
               const monthlyRent = allPropertyContracts.reduce((sum, c) => {
                 const rent = Number(c.rent_amount);
