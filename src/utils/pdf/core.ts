@@ -264,6 +264,65 @@ export const addFooter = (doc: jsPDF, fontFamily: string, waqfInfo?: PdfWaqfInfo
   }
 };
 
+// ═══ Factory Functions — توحيد إنشاء وإنهاء PDF ═══
+
+export interface PdfDocResult {
+  doc: jsPDF;
+  fontFamily: string;
+  startY: number;
+}
+
+/**
+ * إنشاء مستند PDF جاهز مع خطوط عربية وترويسة
+ * يستبدل النمط المكرر: new jsPDF → loadArabicFont → addHeader
+ */
+export const createPdfDocument = async (
+  waqfInfo?: PdfWaqfInfo,
+  options?: ConstructorParameters<typeof jsPDF>[0]
+): Promise<PdfDocResult> => {
+  const doc = new jsPDF(options);
+  const hasArabic = await loadArabicFont(doc);
+  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  return { doc, fontFamily, startY };
+};
+
+/**
+ * إنهاء وحفظ مستند PDF مع ترويسة الصفحات وتذييل
+ * يستبدل النمط المكرر: addHeaderToAllPages → addFooter → doc.save
+ */
+export const finalizePdf = (
+  doc: jsPDF,
+  fontFamily: string,
+  filename: string,
+  waqfInfo?: PdfWaqfInfo,
+  options?: { skipHeaders?: boolean }
+) => {
+  if (!options?.skipHeaders) {
+    addHeaderToAllPages(doc, fontFamily, waqfInfo);
+  }
+  addFooter(doc, fontFamily, waqfInfo);
+  doc.save(filename);
+};
+
+/**
+ * عنوان قسم — نمط موحد لجميع عناوين الأقسام داخل PDF
+ */
+export const addSectionTitle = (
+  doc: jsPDF,
+  fontFamily: string,
+  title: string,
+  y: number,
+  options?: { fontSize?: number; align?: 'center' | 'right' | 'left'; x?: number }
+) => {
+  const fontSize = options?.fontSize ?? 13;
+  const align = options?.align ?? 'center';
+  const x = options?.x ?? (align === 'right' ? 192 : 105);
+  doc.setFont(fontFamily, 'bold');
+  doc.setFontSize(fontSize);
+  doc.text(rs(title), x, y, { align });
+};
+
 // Shared table styles
 export const TABLE_HEAD_GREEN: [number, number, number] = [22, 101, 52];
 export const TABLE_HEAD_GOLD: [number, number, number] = [202, 138, 4];
