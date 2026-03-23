@@ -21,9 +21,9 @@ interface Expense {
 }
 
 interface Unit {
-  id: string;
+  id?: string | null;
   property_id?: string | null;
-  status?: string;
+  status?: string | null;
 }
 
 export interface PropertyFinancials {
