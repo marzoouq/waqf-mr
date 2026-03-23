@@ -230,7 +230,7 @@ const PropertiesViewPage = () => {
                 propertyId: property.id,
                 contracts,
                 expenses,
-                units: allUnits,
+                units: units ?? [],
                 isSpecificYear,
               });
               const { totalUnits, rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
