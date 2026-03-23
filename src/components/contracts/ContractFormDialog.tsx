@@ -116,7 +116,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
     ...propertyUnits.map(u => ({ value: u.id, label: `${u.unit_type} ${u.unit_number}` })),
   ];
 
-  const tenantIdTypeOptions = TENANT_ID_TYPES.map(t => ({ value: t.value, label: t.label }));
+  
 
   const paymentTypeOptions = [
     { value: 'annual', label: 'دفعة واحدة (سنوي)' },

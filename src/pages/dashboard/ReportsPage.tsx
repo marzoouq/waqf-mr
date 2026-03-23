@@ -25,7 +25,7 @@ import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
 import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
 import PropertyPerformanceTable from '@/components/reports/PropertyPerformanceTable';
 import type { TabItem } from '@/components/ui/responsive-tabs';
-import { Progress } from '@/components/ui/progress';
+
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Skeleton } from '@/components/ui/skeleton';
