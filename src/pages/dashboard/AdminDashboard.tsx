@@ -1,10 +1,10 @@
 import { fmtInt } from '@/utils/format';
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { lazy, Suspense, useMemo, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { lazy, Suspense, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { supabase } from '@/integrations/supabase/client';
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
 import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,20 +62,10 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const queryClient = useQueryClient();
+  
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
-  useEffect(() => {
-    const tables = ['income', 'expenses', 'accounts', 'payment_invoices'] as const;
-    const channel = supabase.channel('admin-dashboard-realtime');
-    tables.forEach((table) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-        queryClient.invalidateQueries({ queryKey: [table] });
-      });
-    });
-    channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
+  useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
@@ -117,7 +107,7 @@ const AdminDashboard = () => {
 
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
-  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  const { isSpecificYear } = useFiscalYear();
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContractsCount = relevantContracts.length;
   const contractualRevenue = useMemo(() => {

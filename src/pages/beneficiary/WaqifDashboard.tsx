@@ -5,11 +5,10 @@ import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '
  * تعرض ملخص شامل للوقف: العقارات، العقود، الأداء المالي، مؤشرات KPI
  */
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime';
 import { useContractAllocations } from '@/hooks/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,21 +37,10 @@ const LazyWaqifCharts = lazy(() => import('@/components/waqif/WaqifChartsInner')
 const WaqifDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears } = useFiscalYear();
+  const { fiscalYear, fiscalYearId, isLoading: fyLoading, noPublishedYears, isSpecificYear } = useFiscalYear();
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
-  useEffect(() => {
-    const tables = ['income', 'expenses', 'payment_invoices'] as const;
-    const channel = supabase.channel('waqif-dashboard-realtime');
-    tables.forEach((table) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-        queryClient.invalidateQueries({ queryKey: [table] });
-      });
-    });
-    channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
+  useDashboardRealtime('waqif-dashboard-realtime', ['income', 'expenses', 'payment_invoices']);
   const {
     totalIncome, totalExpenses, availableAmount,
     income, expenses,
@@ -71,7 +59,7 @@ const WaqifDashboard = () => {
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
 
-  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
+  
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContracts = relevantContracts;
   const expiredContracts = contracts.filter(c => c.status === 'expired');

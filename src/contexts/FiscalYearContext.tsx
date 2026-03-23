@@ -10,6 +10,8 @@ interface FiscalYearContextType {
   isClosed: boolean;
   isLoading: boolean;
   noPublishedYears: boolean;
+  /** هل تم اختيار سنة مالية محددة (وليس "الكل")؟ */
+  isSpecificYear: boolean;
 }
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
@@ -62,6 +64,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
     [fiscalYears, fiscalYearId, activeFY]
   );
   const isClosed = fiscalYear?.status === 'closed';
+  const isSpecificYear = fiscalYearId !== 'all' && fiscalYearId !== '__none__' && !!fiscalYearId;
 
   const handleSetFiscalYearId = (id: string) => {
     setSelectedId(id);
@@ -83,6 +86,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       isClosed,
       isLoading,
       noPublishedYears,
+      isSpecificYear,
     }}>
       {children}
     </FiscalYearContext.Provider>
@@ -98,6 +102,7 @@ const FALLBACK: FiscalYearContextType = {
   isClosed: false,
   isLoading: true,
   noPublishedYears: false,
+  isSpecificYear: false,
 };
 
 export const useFiscalYear = () => {

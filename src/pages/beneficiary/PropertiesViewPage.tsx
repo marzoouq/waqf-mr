@@ -30,8 +30,8 @@ import { fmt, fmtInt } from '@/utils/format';
 const PropertiesViewPage = () => {
   const { data: properties, isLoading: propsLoading, isError: propsError, refetch: refetchProps } = useProperties();
   const { data: units, isLoading: unitsLoading, isError: unitsError, refetch: refetchUnits } = useAllUnits();
-  const { fiscalYearId, fiscalYear } = useFiscalYear();
-  const isSpecificYear = fiscalYearId !== 'all';
+  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
+
   const isClosed = fiscalYear?.status === 'closed';
   const { data: contracts = [] } = useContractsSafeByFiscalYear(fiscalYearId);
   const { data: expenses = [] } = useExpensesByFiscalYear(fiscalYearId);
@@ -70,7 +70,7 @@ const PropertiesViewPage = () => {
     const currentAccount = accounts?.[0];
     let activeIncome: number;
     let totalExpensesAll: number;
-    const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
+    // isSpecificYear متوفر من السياق أعلاه
     if (isClosed && currentAccount) {
       activeIncome = safeNumber(currentAccount.total_income);
       totalExpensesAll = safeNumber(currentAccount.total_expenses);
