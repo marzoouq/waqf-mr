@@ -1,40 +1,39 @@
 
 
-# إصلاح المؤشرات المالية في صفحة عقارات المستفيد
+# إصلاح صفحة عقارات الناظر — فلترة العقود النشطة
 
 ## المشكلة
+سطر 311 في `PropertiesPage.tsx` يفلتر العقود بـ `status === 'active'` فقط، مما يجعل "الدخل النشط" يظهر 0 في السنوات المالية المقفلة (حيث العقود حالتها `expired`).
 
-صفحة المستفيد تُفلتر العقود بـ `status === 'active'` فقط عند حساب الدخل النشط والشهري والصافي. في السنة المالية المقفلة، العقود المرتبطة بها حالتها `expired` وليست `active`، فتظهر جميع القيم **0.00**.
+**ملاحظة مهمة:** حساب الشهري (`rent / 12`) في صفحة الناظر **صحيح** لأن `rent_amount` في النظام هو القيمة السنوية دائماً — وهذا موثّق في قواعد العمل. صفحة المستفيد هي التي تحتاج تصحيح لاحقاً لتتطابق مع هذا المنطق.
 
-صفحة الناظر لا تعاني من هذه المشكلة لأنها تستخدم `allPropertyContracts` للشهري و`contractualRevenue` للصافي.
+## التعديل
 
-## الإصلاح
-
-### ملف: `src/pages/beneficiary/PropertiesViewPage.tsx`
-
-**3 تغييرات في منطق الحساب لكل عقار (أسطر 252-268):**
-
-1. **الدخل النشط (سطر 253-254):** عند عرض سنة محددة (`isSpecificYear`)، استخدم جميع العقود بدلاً من فلترة `active` فقط — نفس منطق الملخص الإجمالي (سطر 77)
-2. **الشهري (سطر 257):** تغيير من `activeContracts` إلى `allPropertyContracts` — مطابقة لصفحة الناظر
-3. **الصافي (سطر 268):** تغيير من `activeAnnualRent` إلى `contractualRevenue` — مطابقة لصفحة الناظر
+### ملف: `src/pages/dashboard/PropertiesPage.tsx` — سطر 311
 
 ```typescript
-// قبل
+// من
 const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
-const activeAnnualRent = activeContracts.reduce(...);
-const monthlyRent = activeContracts.reduce(...);
-const netIncome = activeAnnualRent - totalExpenses;
 
-// بعد
+// إلى
 const activeContracts = isSpecificYear
   ? allPropertyContracts
   : allPropertyContracts.filter(c => c.status === 'active');
-const activeAnnualRent = activeContracts.reduce(...);
-const monthlyRent = allPropertyContracts.reduce(...); // جميع العقود كما في صفحة الناظر
-const netIncome = contractualRevenue - totalExpenses; // كما في صفحة الناظر
 ```
 
-## النتيجة المتوقعة
+### ملف: `src/pages/beneficiary/PropertiesViewPage.tsx` — تصحيح حساب الشهري
 
-ظهور القيم الصحيحة لكل عقار: الدخل النشط، الشهري، المصروفات، والصافي — بنفس الأرقام التي يراها الناظر.
+حساب الشهري في صفحة المستفيد يستخدم `rent/4` للربع سنوي و`rent/6` للنصف سنوي — وهذا **خطأ** لأن `rent_amount` قيمة سنوية دائماً، فالشهري = `rent/12` بغض النظر عن نوع الدفع. يجب توحيده مع صفحة الناظر:
+
+```typescript
+// من (خطأ)
+if (c.payment_type === 'quarterly') return sum + rent / 4;
+if (c.payment_type === 'semi_annual') return sum + rent / 6;
+
+// إلى (صحيح)
+return sum + rent / 12;  // rent_amount سنوي دائماً
+```
+
+## النتيجة
+تطابق كامل بين الصفحتين في جميع السنوات المالية.
 
