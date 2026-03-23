@@ -3,6 +3,7 @@
  * تعرض نفس المؤشرات المالية والتشغيلية الموجودة لدى الناظر مع فلترة حسب السنة المالية
  */
 import { useProperties } from '@/hooks/useProperties';
+import { computePropertyFinancials } from '@/hooks/usePropertyFinancials';
 import { useAllUnits } from '@/hooks/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
