@@ -1,71 +1,118 @@
 
 
-# فحص جنائي — التحقق من تنفيذ التوصيات في التقرير
+# فحص جنائي — مقارنة إفصاح المستفيد مع لوحة الناظر
 
 ---
 
-## 1. التحقق من البنود المذكورة في التقرير
+## 1. مصدر البيانات — نفس المحرك بالضبط
 
-### البند 1: بيانات المصروفات (13 سجل = 121,722.10)
-**الحالة:** ✅ مؤكد — الأرقام مطابقة للواقع. التقرير دقيق.
+| الجانب | صفحة الناظر (ReportsPage) | صفحة المستفيد (DisclosurePage) |
+|--------|--------------------------|-------------------------------|
+| **المحرك** | `useFinancialSummary(fiscalYearId)` | `useFinancialSummary(fiscalYearId)` |
+| **الحساب الختامي** | `useComputedFinancials` | `useComputedFinancials` |
+| **بنود المصروفات** | `expensesByTypeExcludingVat` | `expensesByTypeExcludingVat` |
+| **بنود الإيرادات** | `incomeBySource` | `incomeBySource` |
 
-### البند 2: التناسق بين الصفحات
-**الحالة:** ✅ مؤكد — `expensesByTypeExcludingVat` موجود في `useComputedFinancials.ts` (سطر 152-159) ويُستهلك في 4 صفحات مستفيد + إفصاح. المنطق سليم.
-
-### البند 3: الخطر الهيكلي المؤجل (خصم VAT مزدوج)
-**الحالة:** ✅ **تم معالجته** — التوصية الوقائية نُفذت بالكامل.
+**✅ كلا الصفحتين تستخدمان نفس المحرك (`useFinancialSummary`) ونفس المنطق الحسابي (`useComputedFinancials`). لا يوجد مسار بيانات منفصل.**
 
 ---
 
-## 2. التحقق من تنفيذ التوصية الوقائية
+## 2. مقارنة البنود المعروضة (ما يراه كل طرف)
 
-### ما طلبه التقرير:
-> إضافة تحقق في `ExpenseFormDialog` يمنع إدخال مصروف بنوع VAT
+| البند | الناظر (`AnnualDisclosureTable`) | المستفيد (`DisclosureFinancialStatement`) | تطابق؟ |
+|-------|----------------------------------|------------------------------------------|--------|
+| بنود الإيرادات | `incomeSourceData` (من `incomeBySource`) | `incomeBySource` | ✅ نفس المصدر |
+| إجمالي الإيرادات | `totalIncome` | `totalIncome` | ✅ |
+| رقبة الوقف المرحلة | `waqfCorpusPrevious` | `waqfCorpusPrevious` | ✅ |
+| الإجمالي الشامل | `grandTotal` | `grandTotal` | ✅ |
+| بنود المصروفات | `expenseTypeData` (من `expensesByTypeExcludingVat`) | `expensesByType` (= `expensesByTypeExcludingVat`) | ✅ نفس المصدر |
+| إجمالي المصروفات | `totalExpenses` | `totalExpenses` (مقسم: تشغيلية + ضريبة) | ✅ نفس الرقم |
+| الصافي بعد المصاريف | `netAfterExpenses` | `netAfterExpenses` | ✅ |
+| ضريبة القيمة المضافة | `vatAmount` | `vatAmount` | ✅ |
+| الصافي بعد الضريبة | `netAfterVat` | `netAfterVat` | ✅ |
+| الزكاة | `zakatAmount` | `zakatAmount` | ✅ |
+| الصافي بعد الزكاة | `netAfterZakat` | `netAfterZakat` | ✅ |
+| حصة الناظر | `adminShare` (`adminPct%`) | `adminShare` (`adminPct%`) | ✅ |
+| حصة الواقف | `waqifShare` (`waqifPct%`) | `waqifShare` (`waqifPct%`) | ✅ |
+| ريع الوقف | `waqfRevenue` | **غير معروض** | ⚠️ |
+| رقبة الوقف الحالي | `waqfCorpusManual` | `waqfCorpusManual` | ✅ |
+| المبلغ المتاح / القابل للتوزيع | `availableAmount` | `beneficiariesShare` (= `availableAmount`) | ✅ |
+| التوزيعات | `distributionsAmount` | **غير معروض** | ⚠️ |
+| الرصيد المتبقي | `remainingBalance` | **غير معروض** | ⚠️ |
+| حصتي | **غير موجود** (الناظر لا يرى حصة مستفيد محدد) | `myShare` | ✅ طبيعي |
 
-### ما تم تنفيذه فعلاً:
+---
 
-| الآلية | الملف | الحالة |
-|--------|-------|--------|
-| **Regex `VAT_BLOCKED`** | `ExpenseFormDialog.tsx` سطر 46 | ✅ مُطبق — `/ضريبة\s*القيمة\s*المضافة\|vat/i` |
-| **فلترة الأنواع** | `ExpenseFormDialog.tsx` سطر 47-49 | ✅ مُطبق — `.filter(type => !VAT_BLOCKED.test(type))` |
-| **تحذير للمطورين** | `constants/index.ts` سطر 7 | ✅ مُطبق — تعليق تحذيري |
-| **فلترة في المحرك** | `useComputedFinancials.ts` سطر 152-158 | ✅ مُطبق — `VAT_KEYWORDS` filter |
-| **اختبارات** | `useComputedFinancials.test.ts` | ✅ مُطبق — 2 test cases |
+## 3. الفروقات المكتشفة
 
-### خط الحماية المزدوج:
+### ⚠️ فرق 1: "ريع الوقف" غير معروض للمستفيد
+
+**الناظر يرى:** `ريع الوقف (الإجمالي القابل للتوزيع)` = `waqfRevenue`
+**المستفيد يرى:** ينتقل مباشرة من حصة الواقف → رقبة الوقف → "الإجمالي القابل للتوزيع" = `availableAmount`
+
+**هل هذا مشكلة؟** لا — **سلوك مقصود**. `availableAmount = waqfRevenue - waqfCorpusManual`. المستفيد يرى النتيجة النهائية بدلاً من الخطوة الوسيطة. التسلسل الحسابي سليم.
+
+### ⚠️ فرق 2: "التوزيعات" و"الرصيد المتبقي" غير معروضة للمستفيد
+
+**الناظر يرى:** `التوزيعات` + `الرصيد المتبقي`
+**المستفيد لا يرى:** هذه بنود إدارية — **سلوك مقصود**.
+
+### ⚠️ فرق 3: حساب `myShare` — مسارات مختلفة
+
+| المسار | المصدر | المنطق |
+|--------|--------|--------|
+| **صفحة الإفصاح** | `useMyShare` hook | `availableAmount × (sharePct / totalBenPct)` — يستخدم `useTotalBeneficiaryPercentage` (RPC `SECURITY DEFINER`) |
+| **داشبورد المستفيد** | `get_beneficiary_dashboard` RPC | يحسب في PostgreSQL بنفس المعادلة |
+| **صفحة التقارير (الناظر)** | `distributionData` محلي | `beneficiariesShare × (sharePct / totalBenPct)` — يستخدم `reduce` على المستفيدين المرئيين |
+
+**خطر محتمل:** الناظر يحسب `totalBeneficiaryPercentage` بـ `reduce` على `beneficiaries` المُجلبة عبر RLS، بينما المستفيد يستخدم RPC `SECURITY DEFINER` يتجاوز RLS.
+
+**لكن:** الناظر لديه `has_role(admin)` → يرى **كل** المستفيدين → `reduce` يعطي نفس النتيجة. **لا تناقض فعلي.**
+
+---
+
+## 4. التحقق الحسابي — التسلسل المنطقي
+
+### مسار الناظر:
 ```text
-الطبقة 1: UI — لا يعرض أنواع VAT في القائمة المنسدلة
-الطبقة 2: المحرك — يستبعد VAT من expensesByTypeExcludingVat حتى لو دخلت
-الطبقة 3: الثوابت — تعليق تحذيري يمنع المطور من إضافتها
+grandTotal = totalIncome + waqfCorpusPrevious
+netAfterExpenses = grandTotal - totalExpenses
+netAfterVat = netAfterExpenses - vatAmount
+netAfterZakat = netAfterVat - zakatAmount
+adminShare = shareBase × adminPct%
+waqifShare = shareBase × waqifPct%
+waqfRevenue = netAfterZakat - adminShare - waqifShare  ← يُعرض
+availableAmount = waqfRevenue - waqfCorpusManual        ← يُعرض
+remainingBalance = availableAmount - distributionsAmount ← يُعرض
 ```
+
+### مسار المستفيد:
+```text
+grandTotal = totalIncome + waqfCorpusPrevious           ← ✅ نفسه
+netAfterExpenses = grandTotal - totalExpenses            ← ✅ نفسه
+netAfterVat = netAfterExpenses - vatAmount               ← ✅ نفسه
+netAfterZakat = netAfterVat - zakatAmount                ← ✅ نفسه
+adminShare = (من الحساب الختامي)                          ← ✅ نفسه
+waqifShare = (من الحساب الختامي)                          ← ✅ نفسه
+                                                          ← waqfRevenue محذوف (خطوة وسيطة)
+beneficiariesShare = availableAmount                      ← ✅ نفسه
+myShare = availableAmount × (myPct / totalBenPct)        ← ✅ إضافي للمستفيد
+```
+
+**التسلسل متطابق رياضياً. الفرق فقط في عمق العرض.**
 
 ---
 
-## 3. ملاحظة دقيقة — ثغرة صغيرة متبقية
+## 5. الخلاصة النهائية
 
-### النوع "ضرائب" في `EXPENSE_TYPES`:
+| # | البند | النتيجة |
+|---|-------|---------|
+| 1 | مصدر البيانات | ✅ **نفس المحرك** — `useFinancialSummary` |
+| 2 | الأرقام المشتركة (12 بند) | ✅ **متطابقة 100%** |
+| 3 | بنود إضافية عند الناظر (3 بنود) | ✅ **مقصود** — بنود إدارية |
+| 4 | بنود إضافية عند المستفيد (حصتي) | ✅ **مقصود** — خاص بالمستفيد |
+| 5 | حساب `myShare` | ✅ **متسق** — نفس المعادلة |
+| 6 | عرض المصروفات | ✅ **محسّن** — المستفيد يرى تشغيلية + ضريبة منفصلتين |
 
-```typescript
-// constants/index.ts سطر 16
-'ضرائب',  // ← هذا النوع موجود ومسموح به
-```
-
-**`VAT_BLOCKED`** يبحث عن `ضريبة القيمة المضافة` و `vat` فقط. كلمة **"ضرائب"** لا تُطابق الـ regex ولا `VAT_KEYWORDS`.
-
-**هل هذا مشكلة؟** لا — "ضرائب" يشير لضرائب بلدية/عقارية وليس VAT. التفريق **صحيح ومقصود**.
-
-لكن `VAT_KEYWORDS` في `useComputedFinancials.ts` يجب التأكد أنها لا تستبعد "ضرائب" خطأً. الفلتر يبحث عن `includes()` — كلمة "ضرائب" لا تحتوي على أي من كلمات VAT (`ضريبة القيمة المضافة`, `vat`, `value added tax`). ✅ **آمن**.
-
----
-
-## 4. الخلاصة النهائية
-
-| البند | حالة التقرير | حالة التنفيذ |
-|-------|-------------|-------------|
-| الأرقام (121,722.10) | ✅ دقيق | — |
-| التناسق بين 4 صفحات | ✅ دقيق | — |
-| الخطر الهيكلي | ✅ مُحدد بشكل صحيح | ✅ **تم حله** |
-| التوصية الوقائية | ✅ واضحة | ✅ **تم تنفيذها بحماية ثلاثية** |
-
-**التقرير دقيق 100% وجميع التوصيات مُنفذة. لا تغييرات مطلوبة.**
+**لا توجد تناقضات. لا تغييرات مطلوبة.**
 
