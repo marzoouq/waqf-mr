@@ -28,6 +28,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useInvoicesPage } from '@/hooks/page/useInvoicesPage';
+import { useAuth } from '@/hooks/auth/useAuthContext';
+import { ShieldCheck, Lock } from 'lucide-react';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();
