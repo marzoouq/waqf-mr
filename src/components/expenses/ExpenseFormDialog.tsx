@@ -42,7 +42,11 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
   const amount = parseFloat(formData.amount) || 0;
   const vatAmount = amount * vatRate / 100;
 
-  const expenseTypeOptions = EXPENSE_TYPES.map(type => ({ value: type, label: type }));
+  /** حماية وقائية: استبعاد أي نوع يحتوي على كلمات VAT المحجوزة لمنع الخصم المزدوج */
+  const VAT_BLOCKED = /ضريبة\s*القيمة\s*المضافة|vat/i;
+  const expenseTypeOptions = EXPENSE_TYPES
+    .filter(type => !VAT_BLOCKED.test(type))
+    .map(type => ({ value: type, label: type }));
   const propertyOptions = properties.map(p => ({ value: p.id, label: `${p.property_number} - ${p.location}` }));
 
   return (
