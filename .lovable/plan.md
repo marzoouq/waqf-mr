@@ -1,66 +1,80 @@
 
 
-# فحص جنائي — المصروفات
+# فحص جنائي — صفحة الإعدادات العامة (17 تبويب)
 
 ---
 
-## 1. التحقق من البيانات الخام (قاعدة البيانات)
+## 1. خريطة التبويبات والحالة
 
-### سجلات المصروفات للسنة 2024-2025 (13 سجل):
-
-| النوع | عدد السجلات | المبلغ | ✓ |
-|-------|------------|--------|---|
-| صيانة | 4 | 67,868.67 | ✅ |
-| أخرى | 3 | 21,813.15 | ✅ |
-| كهرباء | 2 | 20,345.62 | ✅ |
-| منصة إيجار | 1 | 4,000.00 | ✅ |
-| عمالة | 1 | 3,756.37 | ✅ |
-| مياه | 1 | 2,961.55 | ✅ |
-| كتابة عقود | 1 | 976.74 | ✅ |
-| **المجموع** | **13** | **121,722.10** | ✅ |
-
-**المخزن في الحساب الختامي:** `total_expenses = 121,722.10` ← **مطابق** ✅
-
----
-
-## 2. فحص التناسق بين الصفحات
-
-| الصفحة | مصدر بنود المصروفات | مصدر الإجمالي | هل البنود تجمع للإجمالي؟ |
-|--------|---------------------|---------------|-------------------------|
-| **المصروفات** | `expenses` (الكل) | `sum(expenses)` = 121,722.10 | ✅ **نعم** |
-| **الحسابات الختامية** | `expensesByType` (الكل) | `computeTotals` = 121,722.10 | ✅ **نعم** |
-| **الإفصاح السنوي (الناظر)** | `expensesByTypeExcludingVat` | `totalExpenses` = 121,722.10 | ✅ **نعم*** |
-| **الإفصاح (المستفيد)** | `expensesByTypeExcludingVat` | عرض مزدوج: تشغيلية + ضريبة | ✅ **نعم** |
-
-*لا توجد سجلات مصروفات من نوع VAT في قاعدة البيانات، فـ `expensesByTypeExcludingVat` = `expensesByType` فعلياً.
+| # | التبويب | الملف | يحفظ إلى | يُستهلك في | الحالة |
+|---|---------|-------|----------|-----------|--------|
+| 1 | بيانات الوقف | `WaqfSettingsTab.tsx` | `app_settings` (upsert batch) | فواتير، PDF، headers | ✅ يعمل |
+| 2 | الواجهة الرئيسية | `LandingPageTab.tsx` | `app_settings` (JSON: `landing_page_content`) | Landing page | ✅ يعمل |
+| 3 | المظهر | `AppearanceTab.tsx` | `app_settings` (JSON: `appearance_settings`) | عنوان النظام + ThemeColorPicker | ✅ يعمل |
+| 4 | شريط التنبيه | `BannerSettingsTab.tsx` | `app_settings` (JSON: `beta_banner_settings`) | BetaBanner component | ✅ يعمل |
+| 5 | السنوات المالية | `FiscalYearManagementTab.tsx` | `fiscal_years` table | FiscalYearContext | ✅ يعمل |
+| 6 | السُلف | `AdvanceSettingsTab.tsx` | `app_settings` (JSON: `advance_settings`) | `useAdvanceRequests` | ✅ يعمل |
+| 7 | الضريبة (ZATCA) | `ZatcaSettingsTab.tsx` | `app_settings` (JSON: `zatca_settings`) + `zatca_certificates` | Edge functions | ✅ يعمل |
+| 8 | صلاحيات الأدوار | `RolePermissionsTab.tsx` | `app_settings` (JSON: `role_permissions`) | `DashboardLayout` sidebar filter | ✅ يعمل |
+| 9 | الأقسام | `SectionsTab.tsx` | `app_settings` (JSON: `sections_visibility`) | `DashboardLayout` sidebar filter | ✅ يعمل |
+| 10 | القائمة | `MenuCustomizationTab.tsx` | `app_settings` (JSON: `menu_labels`) | `DashboardLayout` sidebar labels | ✅ يعمل |
+| 11 | واجهة المستفيد | `BeneficiaryTab.tsx` | `app_settings` (JSON: `beneficiary_sections`) | `DashboardLayout` beneficiary filter | ✅ يعمل |
+| 12 | الإشعارات | `NotificationsTab.tsx` | `app_settings` (JSON: `notification_settings`) + localStorage (sound) | Notification system | ✅ يعمل |
+| 13 | إشعارات جماعية | `BulkNotificationsTab.tsx` | `notifications` table (insert) | Beneficiary notification feed | ✅ يعمل |
+| 14 | رسائل جماعية | `BulkMessagingTab.tsx` | `conversations` + `messages` tables | Messaging system | ✅ يعمل |
+| 15 | تصدير البيانات | `DataExportTab.tsx` | لا يحفظ — يصدّر CSV/XLSX | تنزيل مباشر | ✅ يعمل |
+| 16 | البصمة | `BiometricSettings.tsx` | `webauthn_credentials` table | WebAuthn login | ✅ يعمل |
+| 17 | الأمان | `SecurityTab.tsx` | `app_settings` (key: `idle_timeout_minutes`) | `DashboardLayout` idle timeout | ✅ يعمل |
 
 ---
 
-## 3. النتيجة: لا يوجد تناقض حسابي في البيانات الحالية
+## 2. التحقق من سلسلة التأثير (Settings → Consumption)
 
-### لكن يوجد **خطر هيكلي مؤجل**:
-
-**المشكلة:** الكود يفترض أن VAT **قد** تُسجل كمصروف (لذلك أنشأ `expensesByTypeExcludingVat`). لكن في البيانات الحالية، VAT مخزنة فقط في `accounts.vat_amount` (92,912.93) وليس كسجل مصروف. إذا أضاف المستخدم مستقبلاً مصروفاً بنوع "ضريبة القيمة المضافة"، سيحدث:
-
-1. `totalExpenses` سيزيد بمبلغ VAT
-2. `netAfterExpenses = grandTotal - totalExpenses` سيخصم VAT مرة
-3. `netAfterVat = netAfterExpenses - vatAmount` سيخصمها **مرة ثانية**
-4. **خصم مزدوج حقيقي** في الحسابات
-
-### ملاحظات إضافية:
-
-- **جميع المصروفات بتاريخ واحد** (2025-06-01) — هذا نمط إدخال جماعي وليس خطأ تقني
-- السنة 2025-2026 تحتوي على مصروف واحد بقيمة 200 ريال — طبيعي لسنة جديدة
+| الإعداد | يُحفظ في | يُقرأ في | هل السلسلة متصلة؟ |
+|---------|---------|---------|------------------|
+| `sections_visibility` | SectionsTab | DashboardLayout (سطر 171) | ✅ نعم — يفلتر القائمة الجانبية |
+| `beneficiary_sections` | BeneficiaryTab | DashboardLayout (سطر 174, 218-220) | ✅ نعم — يفلتر أقسام المستفيد |
+| `role_permissions` | RolePermissionsTab | DashboardLayout (سطر 168, 191-198, 208) | ✅ نعم — يفلتر حسب الدور |
+| `menu_labels` | MenuCustomizationTab | DashboardLayout (سطر 166, 186, 202) | ✅ نعم — يغيّر أسماء القائمة |
+| `idle_timeout_minutes` | SecurityTab | DashboardLayout (سطر 234-236) | ✅ نعم — يتحكم بمدة الخمول |
+| `advance_settings` | AdvanceSettingsTab | `useAdvanceRequests` hook | ✅ نعم |
+| `notification_settings` | NotificationsTab | notification hooks | ✅ نعم |
+| `beta_banner_settings` | BannerSettingsTab | BetaBanner component | ✅ نعم |
+| `appearance_settings` | AppearanceTab | system name display | ✅ نعم |
+| `landing_page_content` | LandingPageTab | Landing page | ✅ نعم |
 
 ---
 
-## 4. توصية وقائية
+## 3. نتائج الفحص الجنائي
 
-### منع الخصم المزدوج مستقبلاً
+### ✅ لا توجد أخطاء حرجة — جميع التبويبات الـ 17 تعمل وظيفياً
 
-إضافة تحقق في نموذج إضافة المصروف (`ExpenseFormDialog`) يمنع إدخال مصروف بنوع يحتوي على كلمات VAT المحجوزة (`ضريبة القيمة المضافة`, `vat`). مع رسالة توجيهية: "الضريبة تُدار من صفحة الحسابات الختامية".
+كل تبويب:
+- يقرأ من `app_settings` عبر `useAppSettings` hook
+- يحفظ عبر `upsert` أو `updateJsonSetting`
+- يُستهلك في المكان الصحيح (القائمة الجانبية، المكونات، Edge Functions)
 
-**ملف واحد:** `src/components/expenses/ExpenseFormDialog.tsx`
+### ملاحظات تحسينية (غير حرجة):
 
-**لا تغييرات مطلوبة على المنطق الحسابي — البيانات الحالية سليمة 100%.**
+**1. تكرار تعريف الأقسام الافتراضية (3 مصادر مختلفة)**
+
+| الملف | الأقسام المعرّفة |
+|-------|-----------------|
+| `SectionsTab.tsx` | 15 قسم (admin) |
+| `BeneficiaryTab.tsx` | 12 قسم (beneficiary) |
+| `RolePermissionsTab.tsx` | 16 قسم (role matrix) |
+
+القوائم مستقلة ولا توجد `constants` مشتركة. إضافة قسم جديد تتطلب تعديل 3 ملفات + `DashboardLayout`. **خطر نسيان مكان** عند إضافة قسم مستقبلاً.
+
+**2. `WaqfSettingsTab` لا يحفظ `vat_registration_number`**
+
+حقل `vat_registration_number` مُعرّف في `useWaqfInfo` (سطر 10) ويُستخدم في فواتير ZATCA، لكن **لا يظهر في نموذج بيانات الوقف** (`waqfFields` لا يحتويه). يُدار حالياً من إعدادات ZATCA فقط — وهذا **سلوك مقصود** لكنه قد يُربك الناظر الذي يبحث عنه في "بيانات الوقف".
+
+---
+
+## 4. الخلاصة
+
+**جميع الوظائف تعمل ومطبقة بشكل صحيح.** لا توجد تبويبات معطلة أو إعدادات بدون تأثير.
+
+**لا تغييرات مطلوبة** — النظام سليم وظيفياً.
 
