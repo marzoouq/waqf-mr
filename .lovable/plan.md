@@ -31,6 +31,14 @@
 ### ✅ توثيق BUSINESS_RULES.md
 - 16 قسم يغطي جميع القواعد المالية والتقنية
 
+### ✅ مركزة `isSpecificYear` في FiscalYearContext
+- إزالة الحساب المكرر من 7+ صفحات
+- القيمة متاحة مباشرة من `useFiscalYear()`
+
+### ✅ إنشاء `useDashboardRealtime` hook موحد
+- يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
+- يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
+
 ---
 
 ## القواعد السارية
@@ -41,3 +49,15 @@
 - §11: أمثلة حالات حافة (5 سيناريوهات)
 - §12: فلترة موحدة بـ `isSpecificYear`
 - §16: قواعد البطاقات لمنع التكرار
+
+---
+
+## التحسينات المعمارية المعلقة (أولوية متوسطة)
+
+| # | التوصية | الملفات |
+|---|---------|---------|
+| 1 | تفكيك `UserManagementPage` (880 سطر) | 1 صفحة → hook + مكونات |
+| 2 | تصنيف hooks في مجلدات فرعية | ~80 ملف |
+| 3 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
+| 4 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
+| 5 | توحيد PDF core (header/footer/fonts) | 17 ملف |
