@@ -533,32 +533,10 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2 pt-1">
-                                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid <= 0 || upsertPayment.isPending}
-                                    onClick={() => upsertPayment.mutate({ contract_id: tenant.contract_id, paid_months: paid - 1 })} aria-label="إنقاص دفعة">
-                                    <MinusIcon className="w-3 h-3" />
-                                  </Button>
                                   <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
-                                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={paid >= 12 || upsertPayment.isPending} aria-label="إضافة دفعة"
-                                    onClick={() => {
-                                      const rent = safeNumber(tenant.rent_amount);
-                                      const monthlyAmount = tenant.payment_type === 'monthly' ? (safeNumber(tenant.payment_amount) || rent / 12)
-                                        : tenant.payment_type === 'multi' ? (safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1))
-                                        : rent / 12;
-                                      upsertPayment.mutate({
-                                        contract_id: tenant.contract_id,
-                                        paid_months: paid + 1,
-                                        auto_income: {
-                                          payment_amount: monthlyAmount,
-                                          property_id: property.id,
-                                          fiscal_year_id: fiscalYearId === 'all' ? null : fiscalYearId,
-                                          tenant_name: tenant.name,
-                                        },
-                                      });
-                                    }}>
-                                    <Plus className="w-3 h-3" />
-                                  </Button>
                                   <Progress value={progressPercent} className={`flex-1 h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                                 </div>
+                                <p className="text-[10px] text-muted-foreground">يتم التحصيل عبر الفواتير</p>
                                 {/* حالة التحصيل */}
                                 {tenant.status === 'active' && (() => {
                                   const ps = getPaymentStatus(tenant, paid);
