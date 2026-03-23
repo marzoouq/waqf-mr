@@ -167,26 +167,7 @@ const AdminDashboard = () => {
     ];
   }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, zakatAmount, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
 
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { income: number; expenses: number }> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].income += safeNumber(item.amount);
-      }
-    });
-    expenses.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) {
-        if (!months[month]) months[month] = { income: 0, expenses: 0 };
-        months[month].expenses += safeNumber(item.amount);
-      }
-    });
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
-  }, [income, expenses]);
+  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
   const expenseTypes = useMemo(() => {
     const types: Record<string, number> = {};
