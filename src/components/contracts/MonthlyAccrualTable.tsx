@@ -83,17 +83,20 @@ const MobileAccrualCard = ({ contract, months, total }: { contract: Contract; mo
   );
 };
 
-const MonthlyAccrualTable = ({ contracts, isLoading }: MonthlyAccrualTableProps) => {
+const MonthlyAccrualTable = ({ contracts, isLoading, fiscalYearId, fiscalYear }: MonthlyAccrualTableProps) => {
+  const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
+
   const activeContracts = useMemo(
-    () => contracts.filter(c => c.status === 'active'),
-    [contracts]
+    () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),
+    [contracts, isSpecificYear]
   );
 
   const referenceYear = useMemo(() => {
+    if (fiscalYear?.start_date) return new Date(fiscalYear.start_date).getFullYear();
     if (activeContracts.length === 0) return new Date().getFullYear();
     const dates = activeContracts.map(c => new Date(c.start_date).getFullYear());
     return Math.max(...dates);
-  }, [activeContracts]);
+  }, [activeContracts, fiscalYear]);
 
   const accrualData = useMemo(() => {
     return activeContracts.map(contract => {

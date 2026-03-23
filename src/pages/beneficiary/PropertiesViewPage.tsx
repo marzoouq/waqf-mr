@@ -70,11 +70,16 @@ const PropertiesViewPage = () => {
     const currentAccount = accounts?.[0];
     let activeIncome: number;
     let totalExpensesAll: number;
+    const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
     if (isClosed && currentAccount) {
       activeIncome = safeNumber(currentAccount.total_income);
       totalExpensesAll = safeNumber(currentAccount.total_expenses);
     } else {
-      activeIncome = (contracts ?? []).filter(c => c.status === 'active').reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+      // في السنة المحددة: جميع العقود (بما فيها المنتهية)، وإلا النشطة فقط
+      const relevantContracts = isSpecificYear
+        ? (contracts ?? [])
+        : (contracts ?? []).filter(c => c.status === 'active');
+      activeIncome = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
       const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
       totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
     }
