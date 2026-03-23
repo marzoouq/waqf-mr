@@ -8,6 +8,7 @@ import { useExpensesByFiscalYear, useCreateExpense, useUpdateExpense, useDeleteE
 import { useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import { useProperties } from '@/hooks/data/useProperties';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { Expense } from '@/types/database';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Trash2, TrendingDown, Edit, Search, Paperclip, ChevronDown, ChevronUp, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
