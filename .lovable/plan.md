@@ -59,10 +59,10 @@
 
 | # | التوصية | الملفات |
 |---|---------|---------|
-| 1 | تفكيك `UserManagementPage` (880 سطر) | 1 صفحة → hook + مكونات |
-| 2 | تفكيك `MySharePage` (714 سطر) | 1 صفحة → hook + مكونات |
+| ~~1~~ | ~~تفكيك `UserManagementPage`~~ | ✅ تم — 880→165 سطر |
+| ~~2~~ | ~~تفكيك `MySharePage`~~ | ✅ تم — 714→194 سطر |
 | 3 | استخراج `propertyPerformance` من `ReportsPage` | 1 صفحة → hook مشترك |
-| 4 | تصنيف hooks في مجلدات فرعية | ~80 ملف |
+| ~~4~~ | ~~تصنيف hooks في مجلدات فرعية~~ | ✅ تم — data/financial/ui/auth/page |
 | 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
 | 6 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
 | 7 | توحيد PDF core (header/footer/fonts) | 17 ملف |
