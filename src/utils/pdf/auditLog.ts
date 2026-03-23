@@ -71,11 +71,7 @@ const getSummary = (log: AuditLogEntry): string => {
 
 export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   const { logs, waqfInfo, tableFilter, opFilter } = options;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   // Title
   doc.setFont(fontFamily, 'bold');

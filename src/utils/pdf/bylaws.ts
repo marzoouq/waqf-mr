@@ -111,7 +111,5 @@ export const generateBylawsPDF = async (
     }
   }
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('waqf-bylaws.pdf');
+  finalizePdf(doc, fontFamily, 'waqf-bylaws.pdf', waqfInfo);
 };
