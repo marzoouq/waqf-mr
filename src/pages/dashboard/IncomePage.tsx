@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/useIncome';
 import { useProperties } from '@/hooks/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Income } from '@/types/database';
 import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle } from 'lucide-react';
@@ -41,6 +42,7 @@ const IncomePage = () => {
   const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
   const createIncome = useCreateIncome();
   const updateIncome = useUpdateIncome();
   const deleteIncome = useDeleteIncome();
@@ -266,7 +268,7 @@ const IncomePage = () => {
 
         {/* I-3 + I-8: رسم بياني الدخل الشهري */}
         {!isLoading && income.length > 0 && (
-          <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} />
+          <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} paymentInvoices={paymentInvoices} />
         )}
 
         {/* I-4: تنبيه الإيراد الناقص */}

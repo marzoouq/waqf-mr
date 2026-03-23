@@ -11,6 +11,7 @@ import { useCreateContract, useUpdateContract, useDeleteContract, useContractsBy
 import { useProperties } from '@/hooks/useProperties';
 import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useContractAllocations } from '@/hooks/useContractAllocations';
 
 import { Contract } from '@/types/database';
 import { FileText, Search, Lock, Info, RefreshCw, CheckSquare, Square, CheckCircle, BarChart3, Receipt, Plus, ChevronsUpDown, Filter, CalendarDays } from 'lucide-react';
@@ -43,6 +44,7 @@ const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
 
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
   const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
@@ -366,11 +368,27 @@ const ContractsPage = () => {
 
   const expiredIds = useMemo(() => new Set(expiredContracts.map(c => c.id)), [expiredContracts]);
 
+  const { data: contractAllocations = [] } = useContractAllocations(isSpecificYear ? fiscalYearId : undefined);
+
   const stats = useMemo(() => {
     const active = contracts.filter(c => c.status === 'active');
     const expired = contracts.filter(c => c.status === 'expired');
-    const totalRent = contracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
-    const activeRent = active.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+
+    // استخدام allocated_amount عند وجود سنة مالية محددة (المبلغ المخصص فعلياً)
+    let totalRent: number;
+    let activeRent: number;
+    if (isSpecificYear && contractAllocations.length > 0) {
+      const allocMap = new Map<string, number>();
+      contractAllocations.forEach(a => {
+        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
+      });
+      totalRent = contracts.reduce((sum, c) => sum + (allocMap.get(c.id) ?? safeNumber(c.rent_amount)), 0);
+      activeRent = active.reduce((sum, c) => sum + (allocMap.get(c.id) ?? safeNumber(c.rent_amount)), 0);
+    } else {
+      totalRent = contracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+      activeRent = active.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+    }
+
     const now = new Date().getTime();
     const soon = active.filter(c => {
       const days = (new Date(c.end_date).getTime() - now) / (1000 * 3600 * 24);
@@ -378,7 +396,7 @@ const ContractsPage = () => {
     });
     const activePercent = contracts.length > 0 ? Math.round((active.length / contracts.length) * 100) : 0;
     return { total: contracts.length, active: active.length, activePercent, expired: expired.length, totalRent, activeRent, expiringSoon: soon.length };
-  }, [contracts]);
+  }, [contracts, contractAllocations, isSpecificYear]);
 
   return (
     <DashboardLayout>
