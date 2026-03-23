@@ -1,73 +1,125 @@
 
 
-# تقرير كشف الأكواد الميتة والمكررة
+# تقرير فحص الأمان الشامل — مارس 2026
 
 ---
 
-## الحالة: ✅ نظيفة — لا أكواد ميتة أو مكررة
+## ملخص تنفيذي
 
-تم فحص جميع المكونات (68+ component)، الـ hooks (42 hook)، والـ utils بالكامل.
-
----
-
-## 1. المكونات المُستخدمة — ✅ الكل نشط
-
-| المكون | مُستورد في |
-|--------|-----------|
-| `DiagnosticOverlay` | `DashboardLayout.tsx` |
-| `SwUpdateBanner` | `App.tsx` |
-| `PwaUpdateNotifier` | `App.tsx` |
-| `LegalPageFooter` | `PrivacyPolicy.tsx` + `TermsOfUse.tsx` |
-| `ThemeColorPicker` | `SettingsPage.tsx` + `BeneficiarySettingsPage.tsx` |
-| `BetaBanner` | `DashboardLayout.tsx` |
-| `PrintHeader` / `PrintFooter` | `DashboardLayout.tsx` |
-| جميع مكونات `dashboard/*` (13 ملف) | `AdminDashboard.tsx` + `IncomePage.tsx` |
-
-**لا توجد مكونات يتيمة (orphaned).**
+تم إجراء فحص أمني شامل باستخدام أدوات الماسح الأمني + فحص يدوي للكود. المشروع في حالة أمنية **ممتازة** مع **ملاحظة واحدة قابلة للتحسين**.
 
 ---
 
-## 2. الـ Hooks — ✅ الكل نشط
+## 1. مصادقة Edge Functions — ✅ ممتازة
 
-| Hook | مُستخدم في |
-|------|-----------|
-| `useBfcacheSafeChannel` | 4 hooks (Notifications, Messaging, RealtimeAlerts, BeneficiaryDashboard) |
-| `useSecurityAlerts` | `AuthContext.tsx` |
-| `useNotificationPreferences` | `SettingsPage.tsx` + `BeneficiarySettingsPage.tsx` |
-| جميع الـ 42 hooks | مُستخدمة في صفحات أو hooks أخرى |
+جميع الوظائف الـ 8 التي تتطلب مصادقة تستخدم `getUser()` (التحقق من الخادم):
 
-**لا توجد hooks يتيمة.**
+| الوظيفة | Auth | Rate Limit | Role Check |
+|---------|------|------------|------------|
+| `admin-manage-users` | ✅ getUser | ✅ | ✅ admin |
+| `ai-assistant` | ✅ getUser | ✅ 30/min | ✅ |
+| `webauthn` | ✅ getUser | ✅ 10/min | ✅ |
+| `zatca-api` | ✅ getUser | ✅ 30/min | ✅ admin |
+| `zatca-signer` | ✅ getUser | ✅ 20/min | ✅ admin |
+| `zatca-xml-generator` | ✅ getUser | ✅ 30/min | ✅ admin |
+| `generate-invoice-pdf` | ✅ getUser | ✅ 10/min | ✅ |
+| `check-contract-expiry` | ✅ getUser | N/A (cron) | ✅ |
 
----
-
-## 3. Commented-out Code — ✅ لا يوجد
-
-البحث عن أنماط `// import`, `// const`, `// function`, `// export` أرجع **0 نتائج** في كود المشروع (النتائج الوحيدة من `client.ts` المُولّد تلقائياً وملف اختبار).
-
----
-
-## 4. مكونات مكررة — ✅ لا يوجد
-
-| النمط | التقييم |
-|-------|---------|
-| `CollectionSummaryCard` vs `CollectionSummaryChart` | **ليسا مكررين** — Card يحتوي Chart داخلياً (lazy loaded) |
-| `SwUpdateBanner` vs `PwaUpdateNotifier` | **ليسا مكررين** — الأول للـ SW update، الثاني للـ changelog |
-| `PrintHeader` vs `PrintFooter` | **مكملان** — header/footer للطباعة |
-| `DashboardLayout` vs `dashboard-layout/` | **مكملان** — المجلد يحتوي `constants.ts` فقط |
+**لا يوجد استخدام لـ `getSession()`.** ✅
 
 ---
 
-## 5. فرص إعادة الاستخدام — ✅ مُستغلّة بالفعل
+## 2. العروض الآمنة (Safe Views) — ✅ محمية بالتصميم
 
-| النمط | الحالة |
+| العرض | security_invoker | security_barrier | PII Masking |
+|-------|-----------------|-----------------|-------------|
+| `beneficiaries_safe` | `false` (DEFINER) | `true` | ✅ CASE WHEN |
+| `contracts_safe` | `false` (DEFINER) | `true` | ✅ CASE WHEN |
+
+**ملاحظة الماسح الأمني:** يُبلّغ عن "لا توجد سياسات RLS" على هذه العروض. هذا **إيجابي كاذب** — العروض مصممة كـ Security Definer عمداً لتمكين أدوار المستفيد والواقف من الوصول عبر تقنيع PII. الحماية تتم عبر `CASE WHEN has_role()` داخل العرض نفسه.
+
+**الإجراء:** تحديث حالة هذه النتائج في الماسح الأمني لتصنيفها كـ "مقصودة بالتصميم" (ignore).
+
+---
+
+## 3. سياسة user_roles — ⚠️ تحسين مطلوب
+
+| السياسة | الأدوار الحالية | الأدوار المطلوبة |
+|---------|----------------|-----------------|
+| `Users can view their own roles` | `{public}` | `{authenticated}` |
+| `Admins can manage all roles` | `{authenticated}` ✅ | — |
+
+**المشكلة:** سياسة `Users can view their own roles` تستهدف `public` (جميع المستخدمين بما فيهم غير المصادق عليهم). عملياً `auth.uid() = NULL` للمجهولين فلا يحدث تسريب، لكنه **تناقض تصريحي** يجب تنظيفه.
+
+**الإجراء:** تغيير السياسة لتستهدف `{authenticated}` فقط — سطر SQL واحد.
+
+---
+
+## 4. تشفير البيانات الحساسة — ✅ محصّن
+
+| البند | الحالة |
 |-------|--------|
-| `RequirePublishedYears` wrapper | ✅ مُعاد استخدامه عبر صفحات المستفيد |
-| `PageHeaderCard` | ✅ مُعاد استخدامه في جميع الصفحات |
-| `MobileCardView` | ✅ مُعاد استخدامه في صفحات الجداول |
-| `ExportMenu` | ✅ مُعاد استخدامه في صفحات التصدير |
-| `useCrudFactory` | ✅ مُعاد استخدامه لجميع عمليات CRUD |
-| `useBfcacheSafeChannel` | ✅ مُعاد استخدامه في 4 hooks |
-| `useNotificationPreferences` | ✅ مُعاد استخدامه في إعدادات الناظر والمستفيد |
+| مفتاح PII في Supabase Vault | ✅ (ليس في app_settings) |
+| `encrypt_pii` / `decrypt_pii` محظورة على authenticated | ✅ (service_role فقط) |
+| `get_pii_key` محظورة على authenticated | ✅ |
+| شهادات ZATCA مقيدة بـ admin | ✅ |
+| تخزين الفواتير بـ MIME types محددة | ✅ (PDF + صور فقط) |
+| روابط التحميل موقعة (300 ثانية) | ✅ |
+
+---
+
+## 5. حماية البيانات المالية — ✅ شاملة
+
+| الآلية | التغطية |
+|--------|---------|
+| RLS على جميع الجداول | 37/37 ✅ |
+| سياسات RESTRICTIVE للسنوات غير المنشورة | 10 جداول ✅ |
+| Trigger منع تعديل السنوات المقفلة | 5 جداول ✅ |
+| Audit logging | 10 جداول أساسية ✅ |
+| سجلات الوصول immutable | access_log + archive ✅ |
+| Rate limits محمية بـ `USING(false)` | ✅ |
+
+---
+
+## 6. صلاحيات الدور المجهول (anon) — ✅ محصّنة
+
+| البند | الحالة |
+|-------|--------|
+| `REVOKE ALL` من anon على جميع الجداول | ✅ |
+| استثناء: `app_settings` (registration_enabled فقط) | ✅ |
+| استثناء: `has_role` + `get_public_stats` | ✅ |
+| Event Trigger لسحب صلاحيات الدوال الجديدة تلقائياً | ✅ |
+
+---
+
+## 7. حماية الرسائل — ✅ محصّنة
+
+| البند | الحالة |
+|-------|--------|
+| UPDATE يسمح بتغيير `is_read` فقط | ✅ WITH CHECK |
+| `content` و `sender_id` محميان ضد التعديل | ✅ |
+| DELETE للأدمن فقط | ✅ |
+
+---
+
+## 8. ملخص نتائج الماسح الأمني
+
+| النتيجة | المستوى | الحالة |
+|---------|---------|--------|
+| Security Definer Views (×2) | error | ✅ إيجابي كاذب — مقصود بالتصميم |
+| Extension in Public | warn | ✅ إيجابي كاذب — pgcrypto في extensions |
+| beneficiaries_safe no RLS | error | ✅ إيجابي كاذب — DEFINER + CASE WHEN |
+| contracts_safe no RLS | error | ✅ إيجابي كاذب — DEFINER + CASE WHEN |
+| user_roles policy on public | warn | ⚠️ **يحتاج تنظيف** |
+
+---
+
+## 9. الإجراءات المطلوبة
+
+| # | الإجراء | الأولوية | الجهد |
+|---|---------|----------|-------|
+| 1 | تغيير سياسة `Users can view their own roles` لتستهدف `{authenticated}` بدلاً من `{public}` | منخفضة | سطر SQL واحد |
+| 2 | تحديث نتائج الماسح الأمني لتصنيف الإيجابيات الكاذبة كـ "ignored" | تنظيفي | أداة الماسح فقط |
 
 ---
 
@@ -75,15 +127,15 @@
 
 ```text
 ╔══════════════════════════════════════════════╗
-║  كشف الأكواد الميتة: ✅ نظيف تماماً        ║
+║  تقييم الأمان العام: ✅ ممتاز               ║
 ╠══════════════════════════════════════════════╣
-║  مكونات يتيمة: 0                            ║
-║  Hooks غير مستخدمة: 0                       ║
-║  كود معلّق (commented-out): 0               ║
-║  مكونات مكررة: 0                            ║
-║  فرص إعادة استخدام مهدرة: 0                 ║
+║  Edge Functions Auth: getUser() شامل        ║
+║  RLS Coverage: 37/37 (100%)                 ║
+║  PII Encryption: Vault + SECURITY DEFINER   ║
+║  Anon Hardening: REVOKE ALL + Event Trigger ║
+║  Rate Limiting: جميع الوظائف الحساسة        ║
+║  مشاكل حرجة: 0                              ║
+║  تحسينات تنظيفية: 1 (user_roles policy)     ║
 ╚══════════════════════════════════════════════╝
 ```
-
-**لا يوجد أي إجراء مطلوب.** المشروع خالٍ من الأكواد الميتة والمكررة، وأنماط إعادة الاستخدام مُطبّقة بشكل ممتاز.
 
