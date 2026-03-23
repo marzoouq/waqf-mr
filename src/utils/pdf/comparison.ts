@@ -26,11 +26,7 @@ export interface YearComparisonPdfData {
 }
 
 export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const f = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, f, waqfInfo);
+  const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(f, 'bold');
   doc.setFontSize(16);
