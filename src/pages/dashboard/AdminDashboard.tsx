@@ -66,17 +66,7 @@ const AdminDashboard = () => {
   const queryClient = useQueryClient();
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
-  useEffect(() => {
-    const tables = ['income', 'expenses', 'accounts', 'payment_invoices'] as const;
-    const channel = supabase.channel('admin-dashboard-realtime');
-    tables.forEach((table) => {
-      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
-        queryClient.invalidateQueries({ queryKey: [table] });
-      });
-    });
-    channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
+  useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
   const { data: allFiscalYears = [], isLoading: fyListLoading } = useFiscalYears();
   const { data: advanceRequests = [] } = useAdvanceRequests(fiscalYearId !== 'all' ? fiscalYearId : undefined);
 
