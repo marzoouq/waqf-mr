@@ -249,12 +249,14 @@ const PropertiesViewPage = () => {
               const allPropertyContracts = contracts.filter(c => c.property_id === property.id);
               const contractualRevenue = allPropertyContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-              // الدخل النشط (العقود النشطة فقط)
-              const activeContracts = allPropertyContracts.filter(c => c.status === 'active');
+              // الدخل النشط — عند عرض سنة محددة نشمل جميع العقود (قد تكون منتهية)
+              const activeContracts = isSpecificYear
+                ? allPropertyContracts
+                : allPropertyContracts.filter(c => c.status === 'active');
               const activeAnnualRent = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
 
-              // الشهري محسوب حسب نوع الدفع
-              const monthlyRent = activeContracts.reduce((sum, c) => {
+              // الشهري محسوب حسب نوع الدفع — جميع العقود (مطابق لصفحة الناظر)
+              const monthlyRent = allPropertyContracts.reduce((sum, c) => {
                 const rent = safeNumber(c.rent_amount);
                 if (c.payment_type === 'monthly') return sum + (safeNumber(c.payment_amount) || rent / 12);
                 if (c.payment_type === 'quarterly') return sum + rent / 4;
@@ -265,7 +267,7 @@ const PropertiesViewPage = () => {
 
               const propExpenses = expenses.filter(e => e.property_id === property.id);
               const totalExpenses = propExpenses.reduce((sum, e) => sum + safeNumber(e.amount), 0);
-              const netIncome = activeAnnualRent - totalExpenses;
+              const netIncome = contractualRevenue - totalExpenses;
 
               const occupancyColor = occupancy >= 80 ? 'text-success' : occupancy >= 50 ? 'text-warning' : 'text-destructive';
               const progressColor = occupancy >= 80 ? '[&>div]:bg-success' : occupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
