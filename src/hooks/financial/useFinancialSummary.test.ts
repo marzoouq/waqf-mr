@@ -10,9 +10,9 @@ const mockAccounts = vi.fn(() => ({ data: [] }));
 const mockBeneficiaries = vi.fn(() => ({ data: [] }));
 const mockSettings = vi.fn(() => ({ data: null }));
 
-vi.mock('@/hooks/useIncome', () => ({ useIncome: () => mockIncome() }));
-vi.mock('@/hooks/useExpenses', () => ({ useExpenses: () => mockExpenses() }));
-vi.mock('@/hooks/useAccounts', () => ({ useAccounts: () => mockAccounts() }));
+vi.mock('@/hooks/data/useIncome', () => ({ useIncome: () => mockIncome() }));
+vi.mock('@/hooks/data/useExpenses', () => ({ useExpenses: () => mockExpenses() }));
+vi.mock('@/hooks/financial/useAccounts', () => ({ useAccounts: () => mockAccounts() }));
 vi.mock('@/hooks/data/useBeneficiaries', () => ({ useBeneficiaries: () => mockBeneficiaries() }));
 vi.mock('@/hooks/page/useAppSettings', () => ({ useAppSettings: () => mockSettings() }));
 

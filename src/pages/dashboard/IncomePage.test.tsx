@@ -8,7 +8,7 @@ const mockIncome = [
 
 const mockMutate = { mutateAsync: vi.fn(), isPending: false };
 
-vi.mock('@/hooks/useIncome', () => ({
+vi.mock('@/hooks/data/useIncome', () => ({
   useIncome: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useIncomeByFiscalYear: vi.fn(() => ({ data: mockIncome, isLoading: false })),
   useCreateIncome: vi.fn(() => mockMutate),
@@ -16,15 +16,15 @@ vi.mock('@/hooks/useIncome', () => ({
   useDeleteIncome: vi.fn(() => mockMutate),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({ data: [{ id: 'p1', property_number: 'W-001', location: 'حي النزهة' }] })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -39,32 +39,47 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
+vi.mock('@/hooks/data/usePaymentInvoices', () => ({
+  usePaymentInvoices: vi.fn(() => ({ data: [], isLoading: false })),
+}));
 vi.mock('@/utils/pdf', () => ({ generateIncomePDF: vi.fn() }));
 
 import IncomePage from './IncomePage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import { MemoryRouter } from 'react-router-dom';
+
+const renderPage = () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter><IncomePage /></MemoryRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('IncomePage', () => {
   it('renders page title', () => {
-    render(<IncomePage />);
+    renderPage();
     expect(screen.getByText('إدارة الدخل')).toBeInTheDocument();
   });
 
   it('shows total income', () => {
-    render(<IncomePage />);
+    renderPage();
     const totalEl = screen.getByText('إجمالي الدخل').closest('div')?.parentElement;
     expect(totalEl?.textContent).toMatch(/29[,٬]?000|٢٩[,٬]?٠٠٠/);
   });
 
   it('renders income table rows', () => {
-    render(<IncomePage />);
+    renderPage();
     expect(screen.getAllByText('إيجار شقة 101').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('تبرع').length).toBeGreaterThanOrEqual(1);
   });
 
   it('filters income by search', () => {
-    render(<IncomePage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText('بحث في سجلات الدخل...'), { target: { value: 'تبرع' } });
     expect(screen.getAllByText('تبرع').length).toBeGreaterThanOrEqual(1);
     const table = screen.getByRole('table');
@@ -72,13 +87,13 @@ describe('IncomePage', () => {
   });
 
   it('shows empty state for no search results', () => {
-    render(<IncomePage />);
+    renderPage();
     fireEvent.change(screen.getByPlaceholderText('بحث في سجلات الدخل...'), { target: { value: 'غير موجود' } });
     expect(screen.getByText('لا توجد نتائج للبحث')).toBeInTheDocument();
   });
 
   it('shows add income button', () => {
-    render(<IncomePage />);
+    renderPage();
     expect(screen.getByText('إضافة دخل')).toBeInTheDocument();
   });
 });

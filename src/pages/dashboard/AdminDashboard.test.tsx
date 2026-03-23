@@ -23,7 +23,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'admin@waqf.app' }, role: 'admin', signOut: vi.fn() })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({
     data: { id: 'fy-1', label: '1446-1447هـ' },
     fiscalYears: [{ id: 'fy-1', label: '1446-1447هـ' }],
@@ -35,7 +35,7 @@ vi.mock('@/hooks/useFiscalYears', () => ({
   })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => undefined),
 }));
 
@@ -43,12 +43,12 @@ vi.mock('@/components/reports/YearOverYearComparison', () => ({
   default: () => <div data-testid="year-comparison">YearOverYearComparison</div>,
 }));
 
-vi.mock('@/hooks/useYoYComparison', () => ({
+vi.mock('@/hooks/financial/useYoYComparison', () => ({
   useYoYComparison: vi.fn(() => ({ hasPrevYear: false, prevTotalIncome: 0, prevTotalExpenses: 0, prevNetAfterExpenses: 0 })),
   calcChangePercent: vi.fn(() => null),
 }));
 
-vi.mock('@/hooks/useAdvanceRequests', () => ({
+vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useAdvanceRequests: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
@@ -64,7 +64,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({
     data: [
       { id: 'p1', property_number: '101', property_type: 'عمارة', location: 'الرياض', area: 500 },
@@ -74,7 +74,7 @@ vi.mock('@/hooks/useProperties', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 30000, status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', fiscal_year_id: 'fy-1', created_at: '2024-01-01' },
@@ -84,7 +84,7 @@ vi.mock('@/hooks/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useAllUnits: vi.fn(() => ({
     data: [
       { id: 'u1', unit_number: '1', status: 'مؤجرة', property_id: 'p1' },
@@ -94,21 +94,21 @@ vi.mock('@/hooks/useUnits', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useTenantPayments', () => ({
+vi.mock('@/hooks/data/useTenantPayments', () => ({
   useTenantPayments: vi.fn(() => ({
     data: [],
     isLoading: false,
   })),
 }));
 
-vi.mock('@/hooks/usePaymentInvoices', () => ({
+vi.mock('@/hooks/data/usePaymentInvoices', () => ({
   usePaymentInvoices: vi.fn(() => ({
     data: [],
     isLoading: false,
   })),
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     income: [{ id: 'i1', amount: 30000, date: '2024-03-15', source: 'إيجار' }],
     expenses: [{ id: 'e1', amount: 5000, date: '2024-03-20', expense_type: 'صيانة' }],

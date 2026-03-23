@@ -21,6 +21,8 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_GOLD: [161, 128, 48],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
@@ -35,7 +37,7 @@ describe('generateBylawsPDF', () => {
     await generateBylawsPDF([
       { part_number: 1, part_title: 'أحكام عامة', chapter_title: null, content: 'نص اللائحة **مع تنسيق**' },
     ]);
-    expect(mockSave).toHaveBeenCalledWith('waqf-bylaws.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-bylaws.pdf');
     expect(mockAddPage).toHaveBeenCalled();
   });
 
@@ -44,6 +46,6 @@ describe('generateBylawsPDF', () => {
       { part_number: 0, part_title: 'المقدمة', chapter_title: 'مقدمة', content: '# عنوان\n**جريء** *مائل*' },
     ]);
     // لن يحتوي النص الناتج على رموز markdown
-    expect(mockSave).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
   });
 });

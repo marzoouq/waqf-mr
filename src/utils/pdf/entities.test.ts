@@ -16,6 +16,8 @@ vi.mock('./core', () => ({
   loadArabicFont: vi.fn().mockResolvedValue(false),
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(), addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52], TABLE_HEAD_GOLD: [161, 128, 48],
   baseTableStyles: vi.fn(() => ({})), headStyles: vi.fn(() => ({})), footStyles: vi.fn(() => ({})),
   reshapeArabic: (t: string) => t, reshapeRow: (r: unknown[]) => r,
@@ -29,17 +31,17 @@ describe('entities PDF', () => {
 
   it('generatePropertiesPDF saves correctly', async () => {
     await generatePropertiesPDF([{ property_number: 'P-1', property_type: 'تجاري', location: 'الرياض', area: 500 }]);
-    expect(mockSave).toHaveBeenCalledWith('properties-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'properties-report.pdf');
   });
 
   it('generateContractsPDF saves correctly', async () => {
     await generateContractsPDF([{ contract_number: 'W-001', tenant_name: 'أحمد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 120000, status: 'active' }]);
-    expect(mockSave).toHaveBeenCalledWith('contracts-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'contracts-report.pdf');
   });
 
   it('generateBeneficiariesPDF saves correctly', async () => {
     await generateBeneficiariesPDF([{ name: 'محمد', share_percentage: 60, phone: '0501234567', email: 'a@b.com', bank_account: 'SA1234567890', national_id: '1234567890' }]);
-    expect(mockSave).toHaveBeenCalledWith('beneficiaries-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'beneficiaries-report.pdf');
   });
 
   it('generateUnitsPDF saves correctly', async () => {

@@ -31,6 +31,8 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(),
   addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [22, 101, 52],
   TABLE_HEAD_GOLD: [161, 128, 48],
   TABLE_HEAD_RED: [180, 40, 40],
@@ -59,14 +61,14 @@ describe('generateAnnualReportPDF', () => {
       incomeBySource: [{ source: 'إيجارات', amount: 500000 }],
       beneficiaries: [{ name: 'محمد', percentage: 60, amount: 229500 }],
     });
-    expect(mockSave).toHaveBeenCalledWith('waqf-report-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'waqf-report-2024-2025.pdf');
   });
 });
 
 describe('generateBeneficiaryStatementPDF', () => {
   it('generates and saves PDF', async () => {
     await generateBeneficiaryStatementPDF('أحمد', 40, 153000, '2024-2025');
-    expect(mockSave).toHaveBeenCalledWith('statement-أحمد-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'statement-أحمد-2024-2025.pdf');
   });
 });
 
@@ -87,6 +89,6 @@ describe('generateAnnualDisclosurePDF', () => {
       beneficiaries: [{ name: 'محمد', share_percentage: 100, amount: 300000 }],
       adminPct: 10, waqifPct: 5,
     });
-    expect(mockSave).toHaveBeenCalledWith('annual-disclosure-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'annual-disclosure-2024-2025.pdf');
   });
 });

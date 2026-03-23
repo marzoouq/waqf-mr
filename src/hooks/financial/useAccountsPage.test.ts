@@ -19,22 +19,22 @@ const mockFiscalYears = [
   { id: 'fy1', label: '2024-2025', status: 'active', start_date: '2024-01-01', end_date: '2025-01-01', published: true },
 ];
 
-vi.mock('@/hooks/useAccounts', () => ({
+vi.mock('@/hooks/financial/useAccounts', () => ({
   useAccounts: () => ({ data: [], isLoading: false }),
   useCreateAccount: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useUpdateAccount: () => ({ mutateAsync: vi.fn() }),
   useDeleteAccount: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock('@/hooks/useIncome', () => ({
+vi.mock('@/hooks/data/useIncome', () => ({
   useIncomeByFiscalYear: () => ({ data: [{ amount: 500000, source: 'إيجارات', date: '2024-01-01' }] }),
 }));
 
-vi.mock('@/hooks/useExpenses', () => ({
+vi.mock('@/hooks/data/useExpenses', () => ({
   useExpensesByFiscalYear: () => ({ data: [{ amount: 50000, expense_type: 'صيانة', date: '2024-01-15' }] }),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: () => ({ data: mockContracts }),
   useUpdateContract: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useDeleteContract: () => ({ mutateAsync: vi.fn() }),
@@ -44,16 +44,16 @@ vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiaries: () => ({ data: [{ id: 'b1', name: 'محمد', share_percentage: 60 }, { id: 'b2', name: 'علي', share_percentage: 40 }] }),
 }));
 
-vi.mock('@/hooks/useTenantPayments', () => ({
+vi.mock('@/hooks/data/useTenantPayments', () => ({
   useTenantPayments: () => ({ data: [{ contract_id: 'c1', paid_months: 0, notes: '' }] }),
   useUpsertTenantPayment: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useAllUnits: () => ({ data: [{ id: 'u1', unit_type: 'محل', property_id: 'p1' }] }),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: () => ({ data: [{ id: 'p1', property_type: 'تجاري' }] }),
 }));
 

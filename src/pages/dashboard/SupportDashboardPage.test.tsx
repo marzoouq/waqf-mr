@@ -12,7 +12,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'u1' }, role: 'admin', loading: false }),
 }));
 
-vi.mock('@/hooks/useSupportTickets', () => ({
+vi.mock('@/hooks/data/useSupportTickets', () => ({
   useSupportTickets: () => ({ data: { tickets: [] }, isLoading: false }),
   useTicketReplies: () => ({ data: [], isLoading: false }),
   useCreateTicket: () => ({ mutateAsync: vi.fn(), isPending: false }),

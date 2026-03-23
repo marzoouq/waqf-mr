@@ -17,12 +17,12 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({
     data: [
       { id: 'p1', property_number: 'عقار-01', property_type: 'مبنى', location: 'الرياض', area: 500, created_at: '', updated_at: '', description: null },
@@ -31,7 +31,7 @@ vi.mock('@/hooks/useProperties', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useAllUnits: vi.fn(() => ({
     data: [
       { id: 'u1', property_id: 'p1', unit_number: '101', unit_type: 'شقة', status: 'مؤجرة', area: 120, floor: '1', notes: null, created_at: '', updated_at: '' },
@@ -41,7 +41,7 @@ vi.mock('@/hooks/useUnits', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsSafeByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'c1', contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 60000, payment_type: 'monthly', payment_count: 12, payment_amount: 5000, start_date: '2024-01-01', end_date: '2024-12-31', status: 'active', property_id: 'p1', unit_id: 'u1', fiscal_year_id: 'fy1', notes: null, created_at: '', updated_at: '' },
@@ -49,7 +49,7 @@ vi.mock('@/hooks/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useExpenses', () => ({
+vi.mock('@/hooks/data/useExpenses', () => ({
   useExpensesByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'e1', expense_type: 'صيانة', amount: 5000, date: '2024-06-01', property_id: 'p1', fiscal_year_id: 'fy1', description: null, created_at: '' },
@@ -77,7 +77,7 @@ vi.mock('@/hooks/data/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
 import PropertiesViewPage from './PropertiesViewPage';

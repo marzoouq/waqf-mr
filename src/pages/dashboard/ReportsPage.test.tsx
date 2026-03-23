@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('@/components/DashboardLayout', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: vi.fn(() => ({
     data: [
       { id: 'p1', property_number: 'عقار-1', property_type: 'سكني', location: 'الرياض', area: 500 },
@@ -14,7 +14,7 @@ vi.mock('@/hooks/useProperties', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'c1', property_id: 'p1', rent_amount: 50000, status: 'active', contract_number: '001', tenant_name: 'أ', start_date: '', end_date: '', payment_type: 'سنوي', payment_count: 1 },
@@ -23,11 +23,11 @@ vi.mock('@/hooks/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useAllUnits: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({
     data: { id: 'fy1', label: '1446-1447', status: 'active' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
@@ -45,7 +45,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     income: [], expenses: [],
     beneficiaries: [{ id: 'b1', name: 'محمد', share_percentage: 50 }, { id: 'b2', name: 'أحمد', share_percentage: 50 }],
@@ -64,7 +64,7 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/utils/pdf', () => ({
   generateAnnualReportPDF: vi.fn(),
   generateAnnualDisclosurePDF: vi.fn(),
@@ -134,7 +134,7 @@ describe('ReportsPage', () => {
     expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
     expect(screen.getByText(/مقارنة أداء/)).toBeInTheDocument();
     expect(screen.getByText('الأداء الشهري')).toBeInTheDocument();
-    expect(screen.getByText('مقارنة سنوية')).toBeInTheDocument();
+    expect(screen.getByText('التدفق النقدي')).toBeInTheDocument();
   });
 
   it('shows disclosure PDF button', () => {

@@ -23,6 +23,8 @@ vi.mock('./core', () => ({
   addHeader: vi.fn().mockResolvedValue(30),
   addHeaderToAllPages: vi.fn(),
   addFooter: vi.fn(),
+  createPdfDocument: vi.fn().mockImplementation(async () => {  const { default: JsPDF } = await import('jspdf'); return { doc: new JsPDF(), fontFamily: 'Amiri', startY: 40 }; }),
+  finalizePdf: vi.fn(),
   TABLE_HEAD_GREEN: [0, 128, 0],
   TABLE_HEAD_RED: [200, 0, 0],
   TABLE_HEAD_GOLD: [200, 170, 0],
@@ -52,7 +54,7 @@ describe('generateDistributionsPDF', () => {
   it('generates PDF without error', async () => {
     const { generateDistributionsPDF } = await import('./accounts');
     await generateDistributionsPDF(baseData);
-    expect(mockSave).toHaveBeenCalledWith('distributions-report-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'distributions-report-2024-2025.pdf');
   });
 
   it('handles deficit > 0 correctly', async () => {
@@ -64,7 +66,7 @@ describe('generateDistributionsPDF', () => {
       ],
     };
     await generateDistributionsPDF(data);
-    expect(mockSave).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
   });
 });
 
@@ -85,6 +87,6 @@ describe('generateAccountsPDF', () => {
       waqfRevenue: 382500,
       beneficiaries: [{ name: 'محمد', share_percentage: 100 }],
     });
-    expect(mockSave).toHaveBeenCalledWith('accounts-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'accounts-report.pdf');
   });
 });

@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/hooks/useAdvanceRequests', () => ({
+vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useMyCarryforwards: () => ({ data: [], isLoading: false }),
   useMyAdvanceRequests: () => ({ data: [], isLoading: false }),
   useCarryforwardBalance: () => ({ data: 0 }),

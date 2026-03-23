@@ -8,13 +8,13 @@ const mockAccounts = { data: undefined as unknown[] | undefined, isLoading: fals
 const mockBeneficiaries = { data: undefined as unknown[] | undefined, isLoading: false, isError: false };
 const mockSettings = { data: undefined as Record<string, string> | undefined };
 
-vi.mock('@/hooks/useIncome', () => ({
+vi.mock('@/hooks/data/useIncome', () => ({
   useIncomeByFiscalYear: () => mockIncome,
 }));
-vi.mock('@/hooks/useExpenses', () => ({
+vi.mock('@/hooks/data/useExpenses', () => ({
   useExpensesByFiscalYear: () => mockExpenses,
 }));
-vi.mock('@/hooks/useAccounts', () => ({
+vi.mock('@/hooks/financial/useAccounts', () => ({
   useAccounts: () => mockAccounts,
   useAccountByFiscalYear: () => mockAccounts,
 }));

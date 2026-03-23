@@ -12,7 +12,7 @@ const mockLogs = [
   { id: 'log3', table_name: 'accounts', operation: 'DELETE', created_at: '2024-01-10T08:00:00Z', record_id: 'r3', user_id: 'u1', old_data: { total_income: 50000 }, new_data: null },
 ];
 
-vi.mock('@/hooks/useAuditLog', () => ({
+vi.mock('@/hooks/data/useAuditLog', () => ({
   useAuditLog: vi.fn(() => ({ data: { logs: mockLogs, totalCount: mockLogs.length }, isLoading: false })),
   getTableNameAr: (t: string) => {
     const map: Record<string, string> = { income: 'الدخل', expenses: 'المصروفات', accounts: 'الحسابات' };

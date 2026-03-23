@@ -45,7 +45,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: () => ({
     totalIncome: 100000, totalExpenses: 20000, availableAmount: 80000,
     income: [], expenses: [], expensesByTypeExcludingVat: {},
@@ -53,11 +53,11 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useProperties', () => ({
+vi.mock('@/hooks/data/useProperties', () => ({
   useProperties: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: () => ({ data: [], isLoading: false }),
   useContractsSafeByFiscalYear: () => ({ data: [], isLoading: false }),
 }));
@@ -66,11 +66,11 @@ vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/useUnits', () => ({
+vi.mock('@/hooks/data/useUnits', () => ({
   useAllUnits: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/usePaymentInvoices', () => ({
+vi.mock('@/hooks/data/usePaymentInvoices', () => ({
   usePaymentInvoices: () => ({ data: [], isLoading: false }),
 }));
 

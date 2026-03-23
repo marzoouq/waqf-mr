@@ -56,7 +56,7 @@ vi.mock('@/hooks/data/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
-vi.mock('@/hooks/usePushNotifications', () => ({
+vi.mock('@/hooks/data/usePushNotifications', () => ({
   usePushNotifications: vi.fn(() => ({
     isSupported: true,
     permission: 'default' as NotificationPermission,

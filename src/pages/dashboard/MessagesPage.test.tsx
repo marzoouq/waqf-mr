@@ -9,7 +9,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'admin-1' }, role: 'admin' })),
 }));
 
-vi.mock('@/hooks/useMessaging', () => ({
+vi.mock('@/hooks/data/useMessaging', () => ({
   useConversations: vi.fn(() => ({
     data: [
       { id: 'c1', subject: 'استفسار مالي', type: 'chat', status: 'open', created_by: 'admin-1', participant_id: 'user-1', updated_at: '2024-06-01T10:00:00Z', created_at: '2024-06-01T10:00:00Z' },

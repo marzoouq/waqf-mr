@@ -33,7 +33,7 @@ vi.mock('@/hooks/data/useNotifications', () => ({
   ], isLoading: false })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -48,15 +48,15 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({ availableAmount: 100000, isLoading: false, isError: false })),
 }));
 
-vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 
-vi.mock('@/hooks/useBfcacheSafeChannel', () => ({
+vi.mock('@/hooks/ui/useBfcacheSafeChannel', () => ({
   useBfcacheSafeChannel: vi.fn(() => null),
 }));
 

@@ -7,7 +7,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({ data: { id: 'fy1', label: '1446-1447', status: 'active' }, fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }] })),
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
@@ -22,7 +22,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 }],
     currentAccount: null,
@@ -38,7 +38,7 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useMyShare', () => ({
+vi.mock('@/hooks/financial/useMyShare', () => ({
   useMyShare: vi.fn(() => ({
     currentBeneficiary: { id: 'b1', user_id: 'user-1', name: 'محمد أحمد', share_percentage: 10 },
     myShare: 100000,
@@ -47,23 +47,23 @@ vi.mock('@/hooks/useMyShare', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useAdvanceRequests', () => ({
+vi.mock('@/hooks/financial/useAdvanceRequests', () => ({
   useMyAdvanceRequests: vi.fn(() => ({ data: [] })),
   usePaidAdvancesTotal: vi.fn(() => ({ data: 0 })),
   useCarryforwardBalance: vi.fn(() => ({ data: 0 })),
   useMyCarryforwards: vi.fn(() => ({ data: [] })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({ data: [] })),
   useContractsSafeByFiscalYear: vi.fn(() => ({ data: [], isLoading: false })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({ usePdfWaqfInfo: vi.fn(() => ({})) }));
 vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false })),
 }));
-vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 10, isLoading: false })),
 }));
 

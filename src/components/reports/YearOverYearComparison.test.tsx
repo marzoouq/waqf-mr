@@ -21,7 +21,7 @@ vi.mock('recharts', () => ({
 }));
 
 // Mock useFinancialSummary
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: () => ({
     income: [],
     expenses: [],

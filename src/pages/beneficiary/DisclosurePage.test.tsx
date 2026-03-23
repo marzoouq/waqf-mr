@@ -9,11 +9,11 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1' }, role: 'beneficiary' })),
 }));
 
-vi.mock('@/hooks/usePdfWaqfInfo', () => ({
+vi.mock('@/hooks/data/usePdfWaqfInfo', () => ({
   usePdfWaqfInfo: vi.fn(() => ({})),
 }));
 
-vi.mock('@/hooks/useFiscalYears', () => ({
+vi.mock('@/hooks/financial/useFiscalYears', () => ({
   useActiveFiscalYear: vi.fn(() => ({
     data: { id: 'fy1', label: '1446-1447', status: 'active' },
     fiscalYears: [{ id: 'fy1', label: '1446-1447', status: 'active' }],
@@ -31,7 +31,7 @@ vi.mock('@/contexts/FiscalYearContext', () => ({
   FiscalYearProvider: ({ children }: any) => children,
 }));
 
-vi.mock('@/hooks/useFinancialSummary', () => ({
+vi.mock('@/hooks/financial/useFinancialSummary', () => ({
   useFinancialSummary: vi.fn(() => ({
     beneficiaries: [{ id: 'b1', user_id: 'user-1', name: 'أحمد علي', share_percentage: 15 }],
     totalIncome: 200000,
@@ -60,7 +60,7 @@ vi.mock('@/hooks/useFinancialSummary', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useContracts', () => ({
+vi.mock('@/hooks/data/useContracts', () => ({
   useContractsByFiscalYear: vi.fn(() => ({
     data: [
       { id: 'c1', contract_number: 'W-001', tenant_name: 'محمد', rent_amount: 50000, status: 'active' },
@@ -75,7 +75,7 @@ vi.mock('@/hooks/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useTotalBeneficiaryPercentage', () => ({
+vi.mock('@/hooks/financial/useTotalBeneficiaryPercentage', () => ({
   useTotalBeneficiaryPercentage: vi.fn(() => ({ data: 15, isLoading: false })),
 }));
 vi.mock('@/components/ExportMenu', () => ({ default: (_props: any) => <button data-testid="export-menu">تصدير</button> }));
