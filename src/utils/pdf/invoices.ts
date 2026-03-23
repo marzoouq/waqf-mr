@@ -114,7 +114,5 @@ export const generateOverdueInvoicesPDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('overdue-invoices-report.pdf');
+  finalizePdf(doc, fontFamily, 'overdue-invoices-report.pdf', waqfInfo);
 };
