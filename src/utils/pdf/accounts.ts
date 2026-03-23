@@ -261,7 +261,5 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('accounts-report.pdf');
+  finalizePdf(doc, fontFamily, 'accounts-report.pdf', waqfInfo);
 };
