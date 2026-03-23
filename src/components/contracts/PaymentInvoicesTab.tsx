@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { safeNumber } from '@/utils/safeNumber';
+/**
+ * تبويب فواتير الدفعات — عرض وإدارة فواتير العقود
+ */
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -17,243 +18,35 @@ import {
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
   ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, Eye,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  PaymentInvoice,
-  usePaymentInvoices,
-  useGenerateAllInvoices,
-  useMarkInvoicePaid,
-  useMarkInvoiceUnpaid,
-} from '@/hooks/data/usePaymentInvoices';
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
-import type { InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
-import { safeNumber as sn } from '@/utils/safeNumber';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { fmt } from '@/utils/format';
+import { usePaymentInvoicesTab, type FilterStatus, type SortKey } from '@/hooks/page/usePaymentInvoicesTab';
 
 interface PaymentInvoicesTabProps {
   fiscalYearId: string;
   isClosed: boolean;
 }
 
-type FilterStatus = 'all' | 'pending' | 'paid' | 'overdue' | 'partially_paid';
-type SortKey = 'due_date' | 'amount' | 'status' | 'payment_number';
-type SortDir = 'asc' | 'desc';
-
-const statusOrder: Record<string, number> = { overdue: 0, pending: 1, partially_paid: 2, paid: 3 };
-
 export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentInvoicesTabProps) {
-  const { data: invoices = [], isLoading } = usePaymentInvoices(fiscalYearId);
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
-  const generateAll = useGenerateAllInvoices();
-  const markPaid = useMarkInvoicePaid();
-  const markUnpaid = useMarkInvoiceUnpaid();
-  const waqfInfo = usePdfWaqfInfo();
-
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
-  const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
-  const [payAmount, setPayAmount] = useState('');
-  // معاينة القالب الجديد
-  const [previewInvoice, setPreviewInvoice] = useState<InvoicePreviewData | null>(null);
-  // ترتيب بالأعمدة
-  const [sortKey, setSortKey] = useState<SortKey>('due_date');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
-  // تسديد جماعي
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkPaying, setBulkPaying] = useState(false);
-  // فلتر نطاق التاريخ
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  // قالب الفاتورة
-  
-  const ITEMS_PER_PAGE = 15;
-
-  useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
-
-  const summary = useMemo(() => {
-    const total = invoices.length;
-    const paid = invoices.filter(i => i.status === 'paid').length;
-    const overdue = invoices.filter(i => i.status === 'overdue').length;
-    const pending = invoices.filter(i => i.status === 'pending').length;
-    const partiallyPaid = invoices.filter(i => i.status === 'partially_paid').length;
-    const totalAmount = invoices.reduce((s, i) => s + safeNumber(i.amount), 0);
-    const paidAmount = invoices
-      .filter(i => i.status === 'paid' || i.status === 'partially_paid')
-      .reduce((s, i) => s + safeNumber(i.paid_amount ?? (i.status === 'paid' ? i.amount : 0)), 0);
-    const overdueAmount = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + safeNumber(i.amount), 0);
-    const collectionRate = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
-    return { total, paid, overdue, pending, partiallyPaid, totalAmount, paidAmount, overdueAmount, collectionRate };
-  }, [invoices]);
-
-  const filtered = useMemo(() => {
-    let result = invoices;
-    if (filter === 'paid') result = result.filter(i => i.status === 'paid');
-    else if (filter === 'overdue') result = result.filter(i => i.status === 'overdue');
-    else if (filter === 'pending') result = result.filter(i => i.status === 'pending');
-    else if (filter === 'partially_paid') result = result.filter(i => i.status === 'partially_paid');
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(i =>
-        i.invoice_number.toLowerCase().includes(q) ||
-        i.contract?.tenant_name?.toLowerCase().includes(q) ||
-        i.contract?.contract_number?.toLowerCase().includes(q)
-      );
-    }
-
-    // فلتر نطاق التاريخ
-    if (dateFrom) result = result.filter(i => i.due_date >= dateFrom);
-    if (dateTo) result = result.filter(i => i.due_date <= dateTo);
-
-    return result;
-  }, [invoices, filter, search, dateFrom, dateTo]);
-
-  // ترتيب
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
-    arr.sort((a, b) => {
-      let cmp = 0;
-      switch (sortKey) {
-        case 'due_date': cmp = a.due_date.localeCompare(b.due_date); break;
-        case 'amount': cmp = safeNumber(a.amount) - safeNumber(b.amount); break;
-        case 'status': cmp = (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9); break;
-        case 'payment_number': cmp = a.payment_number - b.payment_number; break;
-      }
-      return sortDir === 'desc' ? -cmp : cmp;
-    });
-    return arr;
-  }, [filtered, sortKey, sortDir]);
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sorted.slice(start, start + ITEMS_PER_PAGE);
-  }, [sorted, currentPage]);
-
-  // تجميع الفواتير المُرقّمة حسب العقد (للجدول + الموبايل)
-  const groupedPaginated = useMemo(() => {
-    const grouped = new Map<string, PaymentInvoice[]>();
-    for (const inv of paginated) {
-      const key = inv.contract_id;
-      if (!grouped.has(key)) grouped.set(key, []);
-      grouped.get(key)!.push(inv);
-    }
-    return grouped;
-  }, [paginated]);
-
-  const toggleSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    else { setSortKey(key); setSortDir('asc'); }
-  };
+  const {
+    isLoading, invoices, summary, sorted, groupedPaginated, ITEMS_PER_PAGE,
+    search, setSearch, filter, setFilter, dateFrom, setDateFrom, dateTo, setDateTo,
+    sortKey, sortDir, toggleSort,
+    currentPage, setCurrentPage,
+    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay,
+    payingInvoiceId, payDialog, setPayDialog, payAmount, setPayAmount, openPayDialog, handlePay,
+    previewInvoice, setPreviewInvoice, handlePreviewTemplate,
+    generateAll, markUnpaid, waqfInfo,
+  } = usePaymentInvoicesTab(fiscalYearId);
 
   const SortIcon = ({ field }: { field: SortKey }) => {
     if (sortKey !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
-  };
-
-  // تسديد جماعي
-  const unpaidFiltered = useMemo(() => sorted.filter(i => i.status !== 'paid'), [sorted]);
-  const toggleSelect = (id: string) => setSelectedIds(prev => {
-    const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
-  const toggleSelectAll = () => {
-    if (selectedIds.size === unpaidFiltered.length) setSelectedIds(new Set());
-    else setSelectedIds(new Set(unpaidFiltered.map(i => i.id)));
-  };
-
-  const handleBulkPay = useCallback(async () => {
-    if (selectedIds.size === 0) return;
-    setBulkPaying(true);
-    const ids = [...selectedIds];
-    let done = 0;
-    for (const id of ids) {
-      try {
-        await markPaid.mutateAsync({ invoiceId: id });
-        done++;
-      } catch { /* يتابع */ }
-    }
-    setBulkPaying(false);
-    setSelectedIds(new Set());
-    toast.success(`تم تسديد ${done} فاتورة من ${ids.length}`);
-  }, [selectedIds, markPaid]);
-
-  const openPayDialog = (inv: PaymentInvoice) => {
-    setPayDialog({ inv });
-    setPayAmount(String(safeNumber(inv.amount)));
-  };
-
-  const handlePay = () => {
-    if (!payDialog) return;
-    const amount = parseFloat(payAmount);
-    if (!(amount > 0)) { toast.error('يرجى إدخال مبلغ صحيح'); return; }
-    const inv = payDialog.inv;
-    setPayingInvoiceId(inv.id);
-    setPayDialog(null);
-    markPaid.mutate(
-      { invoiceId: inv.id, paidAmount: amount },
-      { onSettled: () => setPayingInvoiceId(null) },
-    );
-  };
-
-
-
-
-  /** بناء بيانات المعاينة من فاتورة دفعة */
-  const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
-    const fullContract = contracts.find(c => c.id === inv.contract_id);
-    const hasBuyerTax = !!fullContract?.tenant_tax_number;
-    const hasVat = sn(inv.vat_rate) > 0;
-    const amountExVat = sn(inv.vat_amount) > 0
-      ? sn(inv.amount) - sn(inv.vat_amount)
-      : (sn(inv.vat_rate) > 0 ? sn(inv.amount) / (1 + sn(inv.vat_rate) / 100) : sn(inv.amount));
-
-    return {
-      invoiceNumber: inv.invoice_number,
-      date: inv.due_date,
-      type: (hasVat && hasBuyerTax) ? 'standard' : 'simplified',
-      sellerName: waqfInfo.waqfName || 'وقف مرزوق بن علي الثبيتي',
-      sellerAddress: waqfInfo.address,
-      sellerVatNumber: waqfInfo.vatNumber,
-      sellerCR: waqfInfo.commercialReg,
-      sellerLogo: waqfInfo.logoUrl,
-      buyerName: fullContract?.tenant_name || inv.contract?.tenant_name || '-',
-      buyerVatNumber: fullContract?.tenant_tax_number || undefined,
-      buyerCR: fullContract?.tenant_crn || undefined,
-      buyerIdType: fullContract?.tenant_id_type || undefined,
-      buyerIdNumber: fullContract?.tenant_id_number || undefined,
-      buyerStreet: fullContract?.tenant_street || undefined,
-      buyerDistrict: fullContract?.tenant_district || undefined,
-      buyerCity: fullContract?.tenant_city || undefined,
-      buyerPostalCode: fullContract?.tenant_postal_code || undefined,
-      buyerBuilding: fullContract?.tenant_building || undefined,
-      items: [{
-        description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
-        quantity: 1,
-        unitPrice: amountExVat,
-        vatRate: sn(inv.vat_rate),
-      }],
-      notes: inv.notes || undefined,
-      status: inv.status,
-      bankName: waqfInfo.bankName,
-      bankIBAN: waqfInfo.bankIBAN,
-      zatcaUuid: inv.zatca_uuid || undefined,
-      zatcaStatus: inv.zatca_status || undefined,
-    };
-  };
-
-  const handlePreviewTemplate = (inv: PaymentInvoice) => {
-    setPreviewInvoice(buildPaymentPreviewData(inv));
   };
 
   const getStatusBadge = (status: string) => {
@@ -272,26 +65,21 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     <div className="space-y-5">
       <InvoiceStepsGuide />
 
-      {/* تنبيه بيانات ناقصة للفاتورة الضريبية */}
       {(!waqfInfo.vatNumber || !waqfInfo.commercialReg || !waqfInfo.address) && (
         <Alert className="border-warning/50 bg-warning/10">
           <AlertTriangle className="w-4 h-4 text-warning" />
           <AlertDescription className="text-sm">
             لضمان امتثال الفاتورة الضريبية، يرجى إكمال بيانات المنشأة (الرقم الضريبي، السجل التجاري، العنوان) في{' '}
-            <Link to="/dashboard/settings" className="underline font-medium text-primary hover:text-primary/80">
-              الإعدادات
-            </Link>
+            <Link to="/dashboard/settings" className="underline font-medium text-primary hover:text-primary/80">الإعدادات</Link>
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Dialog معاينة الفاتورة — نظام القوالب الجديد */}
       <InvoicePreviewDialog
         open={!!previewInvoice}
         onOpenChange={(open) => { if (!open) setPreviewInvoice(null); }}
         invoice={previewInvoice}
       />
-
 
       {/* Dialog الدفع الجزئي */}
       <Dialog open={!!payDialog} onOpenChange={(open) => { if (!open) setPayDialog(null); }}>
@@ -319,53 +107,25 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
       {/* بطاقات الملخص */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Receipt className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">إجمالي الفواتير</p>
-              <p className="text-lg font-bold">{summary.total}</p>
-              <p className="text-xs text-muted-foreground">{fmt(summary.totalAmount)} ر.س</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">مسددة</p>
-              <p className="text-lg font-bold text-success">{summary.paid}</p>
-              <p className="text-xs text-muted-foreground">{fmt(summary.paidAmount)} ر.س</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">متأخرة</p>
-              <p className="text-lg font-bold text-destructive">{summary.overdue}</p>
-              <p className="text-xs text-muted-foreground">{fmt(summary.overdueAmount)} ر.س</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <FileWarning className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">نسبة التحصيل</p>
-              <p className="text-lg font-bold">{summary.collectionRate.toFixed(0)}%</p>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { icon: Receipt, color: 'primary', label: 'إجمالي الفواتير', value: summary.total, sub: `${fmt(summary.totalAmount)} ر.س` },
+          { icon: TrendingUp, color: 'success', label: 'مسددة', value: summary.paid, sub: `${fmt(summary.paidAmount)} ر.س` },
+          { icon: TrendingDown, color: 'destructive', label: 'متأخرة', value: summary.overdue, sub: `${fmt(summary.overdueAmount)} ر.س` },
+          { icon: FileWarning, color: 'warning', label: 'نسبة التحصيل', value: `${summary.collectionRate.toFixed(0)}%`, sub: undefined },
+        ].map(({ icon: Icon, color, label, value, sub }) => (
+          <Card key={label} className="shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg bg-${color}/10 flex items-center justify-center`}>
+                <Icon className={`w-5 h-5 text-${color}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className={`text-lg font-bold ${color !== 'primary' && color !== 'warning' ? `text-${color}` : ''}`}>{value}</p>
+                {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* شريط التحصيل */}
@@ -407,7 +167,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           </SelectContent>
         </Select>
 
-        {/* فلتر نطاق التاريخ */}
         <div className="flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
           <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36 text-xs" placeholder="من" />
@@ -417,8 +176,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
               <X className="w-3.5 h-3.5" />
             </Button>
-        )}
-
+          )}
         </div>
 
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
@@ -429,8 +187,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
         )}
         {summary.overdue > 0 && (
           <Button
-            variant="outline"
-            size="sm"
+            variant="outline" size="sm"
             className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10"
             onClick={() => generateOverdueInvoicesPDF(invoices, waqfInfo)}
           >
@@ -450,7 +207,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             {bulkPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             تسديد المختارة
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+          <Button size="sm" variant="ghost" onClick={() => {}}>
             <X className="w-3.5 h-3.5" />
           </Button>
         </div>
@@ -463,14 +220,12 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             <div className="py-12 text-center">
               <Receipt className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
               <p className="text-muted-foreground">
-                {invoices.length === 0
-                  ? 'لا توجد فواتير. اضغط "توليد فواتير جميع العقود" لإنشائها.'
-                  : 'لا توجد فواتير مطابقة للبحث'}
+                {invoices.length === 0 ? 'لا توجد فواتير. اضغط "توليد فواتير جميع العقود" لإنشائها.' : 'لا توجد فواتير مطابقة للبحث'}
               </p>
             </div>
           ) : (
             <>
-              {/* Mobile Cards — مجمّعة حسب العقد */}
+              {/* Mobile Cards */}
               <div className="space-y-4 md:hidden px-3 py-2">
                 {[...groupedPaginated.entries()].map(([contractId, invs]) => {
                   const first = invs[0];
@@ -484,17 +239,13 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <Card key={inv.id} className={`shadow-sm border-r-4 ${
                           inv.status === 'paid' ? 'border-r-success/60' :
                           inv.status === 'overdue' ? 'border-r-destructive/60' :
-                          inv.status === 'partially_paid' ? 'border-r-warning/60' :
-                          'border-r-muted-foreground/30'
+                          inv.status === 'partially_paid' ? 'border-r-warning/60' : 'border-r-muted-foreground/30'
                         }`}>
                           <CardContent className="p-3 space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 {!isClosed && inv.status !== 'paid' && (
-                                  <Checkbox
-                                    checked={selectedIds.has(inv.id)}
-                                    onCheckedChange={() => toggleSelect(inv.id)}
-                                  />
+                                  <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />
                                 )}
                                 <span className="font-mono text-xs font-medium">{inv.invoice_number}</span>
                               </div>
@@ -503,18 +254,12 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div><span className="text-muted-foreground text-xs">تاريخ الاستحقاق</span><p className="font-medium">{inv.due_date}</p></div>
                               <div><span className="text-muted-foreground text-xs">المبلغ</span><p className="font-medium">{fmt(Number(inv.amount))} ر.س</p></div>
-                              {Number(inv.vat_amount) > 0 && (
-                                <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{fmt(Number(inv.vat_amount))} ر.س</p></div>
-                              )}
+                              {Number(inv.vat_amount) > 0 && <div><span className="text-muted-foreground text-xs">الضريبة</span><p className="font-medium">{fmt(Number(inv.vat_amount))} ر.س</p></div>}
                               {inv.paid_date && <div><span className="text-muted-foreground text-xs">تاريخ السداد</span><p className="font-medium text-success">{inv.paid_date}</p></div>}
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
-                                <Eye className="w-3.5 h-3.5" />معاينة
-                              </Button>
-                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
-                                <Download className="w-3.5 h-3.5" />PDF
-                              </Button>
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Eye className="w-3.5 h-3.5" />معاينة</Button>
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}><Download className="w-3.5 h-3.5" />PDF</Button>
                               {!isClosed && inv.status !== 'paid' && (
                                 <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
                                   {payingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}تسديد
@@ -534,17 +279,14 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                 })}
               </div>
 
-              {/* Desktop Table — مجمّع حسب العقد */}
+              {/* Desktop Table */}
               <div className="overflow-x-auto hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
                       {!isClosed && (
                         <TableHead className="w-10 text-center">
-                          <Checkbox
-                            checked={unpaidFiltered.length > 0 && selectedIds.size === unpaidFiltered.length}
-                            onCheckedChange={toggleSelectAll}
-                          />
+                          <Checkbox checked={unpaidFiltered.length > 0 && selectedIds.size === unpaidFiltered.length} onCheckedChange={toggleSelectAll} />
                         </TableHead>
                       )}
                       <TableHead className="text-right">رقم الفاتورة</TableHead>
@@ -584,12 +326,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                             <TableRow key={inv.id} className={inv.status === 'overdue' ? 'bg-destructive/5' : ''}>
                               {!isClosed && (
                                 <TableCell className="text-center">
-                                  {inv.status !== 'paid' && (
-                                    <Checkbox
-                                      checked={selectedIds.has(inv.id)}
-                                      onCheckedChange={() => toggleSelect(inv.id)}
-                                    />
-                                  )}
+                                  {inv.status !== 'paid' && <Checkbox checked={selectedIds.has(inv.id)} onCheckedChange={() => toggleSelect(inv.id)} />}
                                 </TableCell>
                               )}
                               <TableCell className="font-medium font-mono text-xs">{inv.invoice_number}</TableCell>
@@ -605,12 +342,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <TableCell className="text-center">{getStatusBadge(inv.status)}</TableCell>
                               <TableCell className="text-center">
                                 <div className="flex items-center justify-center gap-1">
-                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة">
-                                    <Eye className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="تحميل PDF">
-                                    <Download className="w-3.5 h-3.5" />
-                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة"><Eye className="w-3.5 h-3.5" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="تحميل PDF"><Download className="w-3.5 h-3.5" /></Button>
                                   {!isClosed && (
                                     inv.status !== 'paid' ? (
                                       <Button size="sm" variant="ghost" className="gap-1 text-success h-8" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
@@ -634,12 +367,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
               </div>
             </>
           )}
-          <TablePagination
-            currentPage={currentPage}
-            totalItems={sorted.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
+          <TablePagination currentPage={currentPage} totalItems={sorted.length} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
         </CardContent>
       </Card>
     </div>
