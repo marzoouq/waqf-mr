@@ -382,8 +382,8 @@ const ContractsPage = () => {
       contractAllocations.forEach(a => {
         allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
       });
-      totalRent = contracts.reduce((sum, c) => sum + (allocMap.get(c.id) ?? safeNumber(c.rent_amount)), 0);
-      activeRent = active.reduce((sum, c) => sum + (allocMap.get(c.id) ?? safeNumber(c.rent_amount)), 0);
+      totalRent = contracts.reduce((sum, c) => sum + (allocMap.get(c.id) ?? 0), 0);
+      activeRent = active.reduce((sum, c) => sum + (allocMap.get(c.id) ?? 0), 0);
     } else {
       totalRent = contracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
       activeRent = active.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);

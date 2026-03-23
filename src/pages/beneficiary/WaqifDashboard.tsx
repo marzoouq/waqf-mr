@@ -10,6 +10,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContractAllocations } from '@/hooks/useContractAllocations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -63,6 +64,9 @@ const WaqifDashboard = () => {
   const { data: allBeneficiaries = [], isLoading: benLoading } = useBeneficiariesSafe();
   const { data: allUnits = [] } = useAllUnits();
   const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId || 'all');
+  const { data: contractAllocations = [] } = useContractAllocations(
+    (fiscalYearId !== 'all' && !!fiscalYearId) ? fiscalYearId : undefined
+  );
 
   const isLoading = fyLoading || finLoading || propLoading || contLoading || benLoading;
   const displayName = user?.email?.split('@')[0] || 'الواقف';
@@ -71,7 +75,16 @@ const WaqifDashboard = () => {
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContracts = relevantContracts;
   const expiredContracts = contracts.filter(c => c.status === 'expired');
-  const contractualRevenue = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+  const contractualRevenue = useMemo(() => {
+    if (isSpecificYear && contractAllocations.length > 0) {
+      const allocMap = new Map<string, number>();
+      contractAllocations.forEach(a => {
+        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
+      });
+      return relevantContracts.reduce((s, c) => s + (allocMap.get(c.id ?? '') ?? 0), 0);
+    }
+    return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+  }, [relevantContracts, contractAllocations, isSpecificYear]);
 
   /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
