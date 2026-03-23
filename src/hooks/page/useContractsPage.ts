@@ -224,6 +224,15 @@ export const useContractsPage = () => {
           notes: `تجديد جماعي للعقد ${contract.contract_number}`,
           payment_type: contract.payment_type || 'annual', payment_count: paymentCount, payment_amount: paymentAmount,
           fiscal_year_id: activeFY?.id || null,
+          tenant_id_type: contract.tenant_id_type || 'NAT',
+          tenant_id_number: contract.tenant_id_number || null,
+          tenant_tax_number: contract.tenant_tax_number || null,
+          tenant_crn: contract.tenant_crn || null,
+          tenant_street: contract.tenant_street || null,
+          tenant_building: contract.tenant_building || null,
+          tenant_district: contract.tenant_district || null,
+          tenant_city: contract.tenant_city || null,
+          tenant_postal_code: contract.tenant_postal_code || null,
         };
         await createContract.mutateAsync(newContract as unknown as Parameters<typeof createContract.mutateAsync>[0]);
         created++;
