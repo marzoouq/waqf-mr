@@ -47,13 +47,11 @@ const SEVERITY_COLORS: Record<string, [number, number, number]> = {
 };
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const fontLoaded = await loadArabicFont(doc);
-  const font = fontLoaded ? 'Amiri' : 'helvetica';
+  const { doc, fontFamily: font, startY: headerY } = await createPdfDocument(waqfInfo, { orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
 
-  let y = await addHeader(doc, font, waqfInfo);
+  let y = headerY;
 
   // ─── Title ───
   doc.setFont(font, 'bold');
