@@ -19,7 +19,7 @@ const DisclosurePage = () => {
     waqfCorpusPrevious, grandTotal, netAfterExpenses, netAfterVat, netAfterZakat,
     adminShare, waqifShare, adminPct, waqifPct, beneficiariesShare,
     incomeBySource, expensesByTypeExcludingVat,
-    currentBeneficiary, myShare, gregorianFiscalYear,
+    currentBeneficiary, myShare, totalReceived, pendingAmount, gregorianFiscalYear,
     contracts,
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
@@ -88,6 +88,8 @@ const DisclosurePage = () => {
             totalIncome={totalIncome}
             totalExpenses={totalExpenses}
             myShare={myShare}
+            totalReceived={totalReceived}
+            pendingAmount={pendingAmount}
             waqfCorpusPrevious={waqfCorpusPrevious}
           />
 
@@ -125,6 +127,8 @@ const DisclosurePage = () => {
             waqfCorpusManual={waqfCorpusManual}
             beneficiariesShare={beneficiariesShare}
             myShare={myShare}
+            totalReceived={totalReceived}
+            pendingAmount={pendingAmount}
             currentBeneficiaryName={currentBeneficiary?.name || ''}
             currentBeneficiaryPct={currentBeneficiary?.share_percentage ?? 0}
           />
