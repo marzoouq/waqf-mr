@@ -380,7 +380,7 @@ const PropertiesPage = () => {
                   <div className="border-t pt-3 space-y-1 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(contractualRevenue)} ريال</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">الدخل النشط:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
                     <div className="flex justify-between border-t pt-1 mt-1">
                       <span className="text-muted-foreground">الصافي:</span>
