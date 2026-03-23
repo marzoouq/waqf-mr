@@ -32,7 +32,7 @@ const DisclosureFinancialStatement = (props: Props) => {
     incomeBySource, expensesByType, totalIncome, totalExpenses,
     waqfCorpusPrevious, grandTotal, netAfterExpenses, vatAmount, netAfterVat,
     zakatAmount, netAfterZakat, adminShare, waqifShare, adminPct, waqifPct,
-    waqfCorpusManual, beneficiariesShare, myShare,
+    waqfCorpusManual, beneficiariesShare, myShare, totalReceived, pendingAmount,
     currentBeneficiaryName, currentBeneficiaryPct,
   } = props;
 
