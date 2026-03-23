@@ -180,17 +180,7 @@ const AdminDashboard = () => {
 
   const kpis: KpiItem[] = useMemo(() => {
     const collectionRate = collectionSummary.percentage;
-    const rentedUnitIds = new Set(
-      contracts.filter(c => c.status === 'active' && c.unit_id).map(c => c.unit_id)
-    );
-    const wholePropertyRentedIds = new Set(
-      contracts.filter(c => c.status === 'active' && !c.unit_id).map(c => c.property_id)
-    );
-    const rentedUnits = allUnits.filter(u =>
-      rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
-    ).length;
-    const totalUnitsCount = allUnits.length;
-    const occupancyRate = totalUnitsCount > 0 ? Math.round((rentedUnits / totalUnitsCount) * 100) : 0;
+    const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
     const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
@@ -209,7 +199,7 @@ const AdminDashboard = () => {
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
     ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, yoy]);
+  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, isSpecificYear, yoy]);
 
   return (
     <DashboardLayout>
