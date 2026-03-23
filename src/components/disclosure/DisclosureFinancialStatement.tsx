@@ -21,6 +21,8 @@ interface Props {
   waqfCorpusManual: number;
   beneficiariesShare: number;
   myShare: number;
+  totalReceived: number;
+  pendingAmount: number;
   currentBeneficiaryName: string;
   currentBeneficiaryPct: number;
 }
