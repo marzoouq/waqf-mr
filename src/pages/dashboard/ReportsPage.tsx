@@ -327,7 +327,7 @@ const ReportsPage = () => {
             { value: 'financial', label: 'التقارير المالية', icon: <FileText className="w-4 h-4" /> },
             { value: 'performance', label: 'مقارنة أداء العقارات', icon: <TrendingUp className="w-4 h-4" /> },
             { value: 'monthly', label: 'الأداء الشهري', icon: <CalendarRange className="w-4 h-4" /> },
-            { value: 'comparison', label: 'مقارنة سنوية', icon: <GitCompareArrows className="w-4 h-4" /> },
+            { value: 'cashflow', label: 'التدفق النقدي', icon: <Banknote className="w-4 h-4" /> },
             { value: 'cashflow', label: 'التدفق النقدي', icon: <Banknote className="w-4 h-4" /> },
             { value: 'balance', label: 'الميزانية العمومية', icon: <Scale className="w-4 h-4" /> },
             { value: 'overdue', label: 'المتأخرون', icon: <FileText className="w-4 h-4" /> },
