@@ -148,9 +148,15 @@ const InvoicesPage = () => {
 
         {h.isClosed && (
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
-              <AlertTriangle className="w-4 h-4" />السنة المالية مقفلة — لا يمكن إضافة أو تعديل الفواتير
-            </span>
+            {role === 'admin' ? (
+              <span className="text-sm text-success font-medium flex items-center gap-1 bg-success/10 px-3 py-1 rounded-md border border-success/30">
+                <ShieldCheck className="w-4 h-4" /> سنة مقفلة — لديك صلاحية التعديل كناظر
+              </span>
+            ) : (
+              <span className="text-sm text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-3 py-1 rounded-md border border-warning/30">
+                <Lock className="w-4 h-4" /> سنة مقفلة — لا يمكن التعديل
+              </span>
+            )}
           </div>
         )}
 
