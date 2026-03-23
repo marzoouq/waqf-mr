@@ -22,6 +22,7 @@ import type { ForensicAuditData } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableFooter } from '@/components/ui/table';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
+import AnnualDisclosureTable from '@/components/reports/AnnualDisclosureTable';
 import type { TabItem } from '@/components/ui/responsive-tabs';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
