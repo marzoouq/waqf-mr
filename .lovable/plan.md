@@ -1,103 +1,99 @@
 
 
-# تقرير فحص الأداء — تحليل عنق الزجاجة
+# تقرير فحص قاعدة البيانات التفصيلي — مارس 2026 (محدّث)
 
 ---
 
-## ملخص تنفيذي
+## الحالة: ✅ ممتازة — لا مشاكل متبقية
 
-المشروع في حالة أداء **ممتازة** بشكل عام. لا توجد مشاكل حرجة. فيما يلي تحليل تفصيلي لكل محور:
-
----
-
-## 1. استدعاءات قاعدة البيانات — ✅ محسّنة
-
-| البند | الحالة | ملاحظة |
-|-------|--------|--------|
-| `staleTime` مُعيّن لجميع الاستعلامات | ✅ | 60s للبيانات العادية، 5min للثوابت، 30s للإحصائيات |
-| `refetchOnWindowFocus` | ✅ `false` عالمياً | لا استعلامات زائدة عند التبديل |
-| `refetchInterval` | ✅ 2 مواضع فقط | `useUnreadMessages` (60s) + `ZatcaSettingsTab` (30s) — مبرران |
-| Duplicate queries | ✅ لا يوجد | React Query يُوحّد الاستعلامات بنفس المفتاح |
-| N+1 queries | ✅ لا يوجد | joins مستخدمة (`property:properties(*)`) |
-
-**ملاحظة واحدة:** صفحة `ZatcaManagementPage` تُطلق **5 استعلامات متوازية** (settings, certificates, invoices, payment_invoices, chain). هذا مقبول لأنها متوازية وليست متسلسلة، لكن يمكن دمج `invoices` + `payment_invoices` في RPC واحد لتقليل الطلبات من 5 إلى 4.
+بعد فحص 233 ملف ترحيل والمخطط الحالي، جميع التوصيات السابقة **مُنفّذة ومؤكدة**.
 
 ---
 
-## 2. إعادة الرسم (Re-renders) — ✅ محسّنة
+## 1. ملخص الهيكل
 
-| البند | الحالة |
+| البند | القيمة |
 |-------|--------|
-| `useMemo` في الحسابات المالية | ✅ شامل (6 حسابات ملفوفة) |
-| Contexts | ✅ 2 فقط (Auth + FiscalYear) — لا context soup |
-| `useCallback` | ✅ مستخدم في event handlers |
-| Memoized components | ✅ `React.memo` مستخدم حيث يلزم |
+| الجداول | 37 |
+| Views | 2 (beneficiaries_safe, contracts_safe) |
+| FK Constraints | 29+ |
+| Triggers | ~30 |
+| Functions | ~40 |
+| ملفات الترحيل | 233 |
+| RLS Coverage | 100% (37/37) |
 
 ---
 
-## 3. حجم الحزم (Bundle Size) — ✅ محسّن
+## 2. الإصلاحات المُنفّذة (مؤكدة)
 
-| البند | الحالة |
-|-------|--------|
-| Lazy loading | ✅ **جميع** الصفحات (38 صفحة) عبر `lazyWithRetry` |
-| Manual chunks | ✅ 16+ chunk (react, router, radix, supabase, icons, pdf, charts, etc.) |
-| `chunkSizeWarningLimit` | 500KB |
-| Tree shaking | ✅ Vite default |
-
-أكبر الحزم (من قياس سابق):
-- `lucide-react`: 190KB — **أكبر حزمة أيقونات**. يمكن تقليلها باستيراد الأيقونات فردياً لكن التأثير العملي ضئيل مع manual chunk
-- `react-dom`: 166KB — ثابت، لا يمكن تقليله
-- `recharts/d3`: مجمّع في chunk مستقل — لا يُحمّل إلا عند الحاجة
+| الإصلاح | الترحيل | الحالة |
+|---------|---------|--------|
+| ON DELETE SET NULL → RESTRICT (income, expenses, distributions, accounts) | `20260323001534` | ✅ |
+| Polymorphic validation triggers (invoice_chain, invoice_items) | `20260323001534` | ✅ |
+| search_path للدوال الجديدة | `20260323001542` | ✅ |
+| distributions Realtime | `20260220024415` + `20260322223049` | ✅ |
+| حذف unique_contract_number المكرر | `20260322223049` + `20260322232513` | ✅ |
+| fiscal_year_id NOT NULL | جميع الجداول المالية | ✅ |
 
 ---
 
-## 4. الأصول الكبيرة (Large Assets) — ✅ نظيف
+## 3. سلامة العلاقات — ✅
 
-| البند | الحالة |
-|-------|--------|
-| الصور | PWA icons فقط (192x192 + 512x512) |
-| الخطوط | CacheFirst مع TTL سنة |
-| الأصول الثابتة | NetworkFirst مع timeout 5s |
+```text
+auth.users
+  ├── user_roles (user_id)
+  ├── beneficiaries (user_id)
+  ├── notifications (user_id — no FK, correct)
+  └── webauthn_credentials (user_id — no FK, correct)
+
+fiscal_years
+  ├── accounts (RESTRICT) ✅
+  ├── income (RESTRICT) ✅
+  ├── expenses (RESTRICT) ✅
+  ├── distributions (RESTRICT) ✅
+  ├── contracts (SET NULL — nullable, correct) ✅
+  └── payment_invoices (SET NULL — nullable, correct) ✅
+
+properties → units → contracts → payment_invoices
+                                → tenant_payments
+                                → income
+```
 
 ---
 
-## 5. PWA & Caching — ✅ مدروسة
+## 4. حماية البيانات — ✅
 
-| البند | الحالة |
-|-------|--------|
-| Supabase REST | `NetworkOnly` — بيانات مالية حساسة |
-| Supabase Auth | `NetworkOnly` |
-| Edge Functions | `NetworkOnly` |
-| الخطوط | `CacheFirst` (سنة) |
-| الصور | `CacheFirst` (أسبوع) |
-| JS/CSS | `NetworkFirst` (أسبوع) |
+| الآلية | التغطية |
+|--------|---------|
+| RLS | 37/37 جدول |
+| Restrictive fiscal year policy | 10 جداول |
+| Fiscal year modification triggers | 5 جداول |
+| Audit logging triggers | 10 جداول |
+| PII masking views | 2 views (SECURITY DEFINER + BARRIER) |
+| Immutable logs | access_log + access_log_archive |
+| Rate limits | RLS USING(false) |
 
 ---
 
-## 6. التوصيات (اختيارية — تحسينات طفيفة)
+## 5. فحص التوافق مع الاستعلامات — ✅
 
-| # | التوصية | الأولوية | الأثر المتوقع |
-|---|---------|----------|---------------|
-| 1 | دمج استعلامي `invoices` + `payment_invoices` في `ZatcaManagementPage` إلى RPC واحد | منخفضة | توفير طلب شبكة واحد |
-| 2 | إضافة `staleTime` للاستعلامات في `ZatcaManagementPage` (settings, certificates, chain) — حالياً تستخدم القيمة الافتراضية 5min | منخفضة جداً | بالفعل مقبولة مع default |
-| 3 | تحويل `useUnreadMessages` من polling (60s) إلى Realtime subscription | منخفضة | تحديث فوري بدل انتظار 60 ثانية — لكن الحالي مقبول |
+| النمط | التوافق |
+|-------|---------|
+| Supabase JS joins (`property:properties(*)`) | ✅ FK موجود |
+| Polymorphic queries (invoice_chain, invoice_items) | ✅ Validation triggers |
+| Fiscal year filtering | ✅ `is_fiscal_year_accessible` restrictive |
+| Contract allocation | ✅ `contract_fiscal_allocations` table |
+| Beneficiary self-service | ✅ `beneficiaries.user_id = auth.uid()` |
+
+---
+
+## 6. جداول مكررة أو غير مستخدمة — ✅ لا يوجد
+
+تم التحقق: كل الـ 37 جدول مستخدم في الكود الحالي. لا توجد جداول يتيمة.
 
 ---
 
 ## الخلاصة
 
-```text
-╔══════════════════════════════════════════════╗
-║  تقييم الأداء العام: ✅ ممتاز               ║
-╠══════════════════════════════════════════════╣
-║  Database calls: محسّنة — staleTime شامل    ║
-║  Re-renders: محسّنة — useMemo + 2 contexts  ║
-║  Bundle: محسّن — 38 lazy page + 16 chunks   ║
-║  Assets: نظيفة — لا أصول كبيرة             ║
-║  PWA caching: مدروسة — NetworkOnly للحساس   ║
-║  مشاكل حرجة: 0                              ║
-╚══════════════════════════════════════════════╝
-```
-
-**لا توجد عنق زجاجة (bottleneck) في المشروع.** التوصيات الثلاث المتبقية اختيارية وتأثيرها طفيف.
+**لا توجد مشاكل في قاعدة البيانات.** الهيكل نظيف، العلاقات سليمة، القيود متسقة، وسلامة البيانات محمية بطبقات متعددة (RLS + triggers + views). لا يوجد أي إجراء مطلوب.
 
