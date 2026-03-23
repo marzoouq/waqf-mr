@@ -1,68 +1,74 @@
 
 
-# تقرير أداء التطبيق — Web Vitals & CPU Profile
+# تنفيذ التوصيات الثلاث المتبقية
 
 ---
 
-## نتائج القياس
+## التوصية 1: إضافة Rate Limiting لوظائف ZATCA الثلاث
 
-### Core Web Vitals
-
-| المقياس | القيمة | التقييم | المعيار |
-|---------|--------|---------|---------|
-| **FP (First Paint)** | 444ms | ✅ ممتاز | < 1000ms |
-| **FCP (First Contentful Paint)** | 444ms | ✅ ممتاز | < 1800ms |
-| **TTFB (Time to First Byte)** | 376ms | ✅ ممتاز | < 800ms |
-| **DOM Interactive** | 425ms | ✅ ممتاز | < 1000ms |
-
-### Memory & DOM
-
-| المقياس | القيمة | التقييم |
-|---------|--------|---------|
-| **JS Heap Used** | 13.9MB (runtime) / 18.9MB (page) | ✅ ممتاز — أقل من 50MB |
-| **DOM Nodes** | 240 | ✅ ممتاز — أقل بكثير من 1500 |
-| **Event Listeners** | 215 | ✅ مقبول |
-| **Layout Duration** | 21.6ms | ✅ ممتاز |
-| **Style Recalc Duration** | 11.7ms | ✅ ممتاز |
-| **Script Duration** | 254.8ms | ✅ جيد |
-| **Total Task Duration** | 749.5ms | ✅ جيد |
-
-### CPU Profile (33.6 ثانية تنقل بين 3 صفحات)
-
-| الدالة | الوقت الذاتي | النسبة |
-|--------|-------------|--------|
-| `send` (network) | 81ms | 0.2% |
-| `createElement` (React) | ~172ms total | 0.5% |
-| `serializeElementNode` (session replay) | 48ms | 0.1% |
-| `jsx` (React runtime) | 33ms | 0.1% |
-
-**لا توجد أي دالة تتجاوز 0.5% من وقت CPU.** هذا يعني أن التطبيق **خالٍ تماماً من عنق الزجاجة (bottleneck).**
-
-### أكبر الموارد
-
-| المورد | الحجم | الوقت |
-|--------|-------|-------|
-| `lucide-react` | 190KB | 312ms |
-| `react-dom` | 166KB | 285ms |
-| `react-router-dom` | 97KB | 293ms |
-| `supabase-js` | 85KB | 209ms |
-
----
-
-## التقييم النهائي
-
-```text
-╔══════════════════════════════════════════╗
-║  تقييم الأداء العام: ✅ ممتاز           ║
-╠══════════════════════════════════════════╣
-║  FCP: 444ms          (ممتاز < 1800ms)  ║
-║  TTFB: 376ms         (ممتاز < 800ms)   ║
-║  DOM Nodes: 240      (ممتاز < 1500)    ║
-║  JS Heap: 14-19MB    (ممتاز < 50MB)    ║
-║  CPU Bottleneck: لا يوجد               ║
-║  Long Tasks: 0                          ║
-╚══════════════════════════════════════════╝
+### zatca-api/index.ts (سطر ~255، بعد فحص admin role)
+إضافة فحص rate limit باستخدام `check_rate_limit` RPC:
+```
+const { data: isLimited } = await admin.rpc('check_rate_limit', {
+  p_key: `zatca-api:${user.id}`, p_limit: 30, p_window_seconds: 60
+});
+if (isLimited) return 429 "تم تجاوز الحد المسموح"
 ```
 
-**لا توجد أي مشكلة أداء.** التطبيق سريع، خفيف على الذاكرة، ولا يحتوي على مهام طويلة (Long Tasks) أو دوال بطيئة. أحجام الحزم منطقية ومتوقعة لمشروع بهذا الحجم.
+### zatca-signer/index.ts (سطر ~532، بعد فحص roles)
+```
+const { data: isLimited } = await admin.rpc('check_rate_limit', {
+  p_key: `zatca-signer:${user.id}`, p_limit: 20, p_window_seconds: 60
+});
+if (isLimited) return 429
+```
+
+### zatca-xml-generator/index.ts (سطر ~444، بعد فحص roles)
+```
+const { data: isLimited } = await admin.rpc('check_rate_limit', {
+  p_key: `zatca-xml:${user.id}`, p_limit: 30, p_window_seconds: 60
+});
+if (isLimited) return 429
+```
+
+---
+
+## التوصية 2: تنظيف سطر paramsRef الزائد
+
+### useAccountsActions.ts (سطر 49)
+حذف السطر `paramsRef.current = params;` لأنه يُستبدل فوراً في `useAccountsPage.ts` سطور 70-85.
+
+---
+
+## التوصية 3: لف commercialRent و calculatedVat بـ useMemo
+
+### useAccountsCalculations.ts (سطور 48-54)
+تحويل:
+```typescript
+const commercialRent = contracts.filter(...).reduce(...);
+const calculatedVat = commercialRent * (vatPercentage / 100);
+```
+إلى:
+```typescript
+const commercialRent = useMemo(() => contracts.filter(...).reduce(...), [contracts, isCommercialContract, allocationMap]);
+const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
+```
+
+وكذلك `totalAnnualRent` (سطر 66-69) و `totalPaymentPerPeriod` (سطر 91):
+```typescript
+const totalAnnualRent = useMemo(() => contracts.reduce(...), [contracts, allocationMap]);
+const totalPaymentPerPeriod = useMemo(() => contracts.reduce(...), [contracts, getPaymentPerPeriod]);
+```
+
+---
+
+## ملخص الملفات المتأثرة
+
+| الملف | التغيير |
+|-------|---------|
+| `supabase/functions/zatca-api/index.ts` | إضافة 5 أسطر rate limiting |
+| `supabase/functions/zatca-signer/index.ts` | إضافة 5 أسطر rate limiting |
+| `supabase/functions/zatca-xml-generator/index.ts` | إضافة 5 أسطر rate limiting |
+| `src/hooks/useAccountsActions.ts` | حذف سطر 49 |
+| `src/hooks/useAccountsCalculations.ts` | لف 4 حسابات بـ useMemo |
 
