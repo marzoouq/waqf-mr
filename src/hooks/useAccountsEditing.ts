@@ -27,12 +27,10 @@ interface ContractEditData {
 interface EditingParams {
   contracts: Contract[];
   collectionData: Array<{ tenantName: string; paymentPerPeriod: number; paidMonths: number; status: string }>;
-  tenantPayments: Array<{ contract_id: string; paid_months: number }>;
-  fiscalYearId: string | null | undefined;
   getExpectedPayments: (contract: Contract) => number;
 }
 
-export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
+export function useAccountsEditing({ contracts, collectionData, getExpectedPayments }: EditingParams) {
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
   const deleteAccount = useDeleteAccount();
@@ -83,12 +81,6 @@ export function useAccountsEditing({ contracts, collectionData, tenantPayments, 
         contract_id: contract.id,
         paid_months: editData.paidMonths,
         notes: editData.status === 'مكتمل' ? '' : `متأخر ${expectedPmts - editData.paidMonths} دفعات`,
-        auto_income: editData.paidMonths > (tenantPayments.find(p => p.contract_id === contract.id)?.paid_months ?? 0) ? {
-          payment_amount: editData.monthlyRent,
-          property_id: contract.property_id,
-          fiscal_year_id: fiscalYearId === 'all' ? null : (fiscalYearId ?? null),
-          tenant_name: editData.tenantName,
-        } : undefined,
       });
 
       setEditingIndex(null);

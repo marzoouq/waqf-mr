@@ -60,8 +60,6 @@ export function useAccountsPage() {
   const editing = useAccountsEditing({
     contracts: data.contracts,
     collectionData: calc.collectionData,
-    tenantPayments: data.tenantPayments,
-    fiscalYearId: data.fiscalYearId,
     getExpectedPayments: calc.getExpectedPayments,
   });
 
