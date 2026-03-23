@@ -9,10 +9,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/** أعمدة الإيرادات مع ربط العقار */
+const INCOME_SELECT = 'id, amount, date, source, notes, fiscal_year_id, property_id, contract_id, created_at, property:properties(id, property_number, location)';
+
 const incomeCrud = createCrudFactory<'income', Income>({
   table: 'income',
   queryKey: 'income',
-  select: '*, property:properties(*)',
+  select: INCOME_SELECT,
   orderBy: 'date',
   label: 'الدخل',
 });
