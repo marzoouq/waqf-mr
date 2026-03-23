@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
+/**
+ * تبويب إعدادات ZATCA — الفاتورة الإلكترونية
+ */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -11,339 +10,23 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const ZATCA_KEYS = [
-  'vat_registration_number',
-  'commercial_registration_number',
-  'business_address_street',
-  'business_address_city',
-  'business_address_postal_code',
-  'business_address_district',
-  'business_address_building',
-  'default_vat_rate',
-  'zatca_device_serial',
-  'zatca_enabled',
-  'zatca_phase',
-  'zatca_platform',
-  'zatca_branch_name',
-  'zatca_activity_code',
-  'zatca_otp_1',
-  'zatca_otp_2',
-  'waqf_bank_name',
-  'waqf_bank_account',
-  'waqf_bank_iban',
-] as const;
+import { useZatcaSettings } from '@/hooks/page/useZatcaSettings';
+import ZatcaOperationsLog from './ZatcaOperationsLog';
 
 const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
 
-// ترجمة أنواع العمليات
-const OPERATION_TYPE_LABELS: Record<string, string> = {
-  'onboard': 'تهيئة وربط',
-  'compliance-check': 'فحص امتثال',
-  'production': 'شهادة إنتاج',
-  'report': 'تبليغ فاتورة',
-  'clearance': 'اعتماد فاتورة',
-  'test-connection': 'اختبار اتصال',
-};
-
-// ─── مكون سجل العمليات ───
-const ZatcaOperationsLog = () => {
-  const [detailItem, setDetailItem] = useState<Record<string, unknown> | null>(null);
-
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['zatca-operation-log'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('zatca_operation_log')
-        .select('id, operation_type, invoice_id, status, error_message, request_summary, response_summary, user_id, created_at')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data as Array<{
-        id: string;
-        operation_type: string;
-        status: string;
-        request_summary: Record<string, unknown>;
-        response_summary: Record<string, unknown>;
-        error_message: string | null;
-        invoice_id: string | null;
-        user_id: string | null;
-        created_at: string;
-      }>;
-    },
-    refetchInterval: 30000,
-  });
-
-  if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ تحميل السجل...</div>;
-
-  if (logs.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center py-8 text-muted-foreground">
-            <History className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>لا توجد عمليات مسجلة بعد</p>
-            <p className="text-sm mt-1">ستظهر هنا جميع عمليات التهيئة والربط مع ZATCA</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <History className="w-5 h-5" />
-            سجل العمليات ({logs.length})
-          </CardTitle>
-          <CardDescription>آخر 50 عملية مع بوابة فاتورة</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Mobile cards */}
-          <div className="space-y-3 md:hidden">
-            {logs.map((log) => (
-              <div key={log.id} className="p-3 rounded-lg border bg-card space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm">
-                    {OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type}
-                  </span>
-                  <Badge variant={log.status === 'success' ? 'default' : 'destructive'} className="text-xs">
-                    {log.status === 'success' ? '✅ نجح' : '❌ فشل'}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{new Date(log.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2"
-                    onClick={() => setDetailItem({
-                      نوع_العملية: OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type,
-                      الحالة: log.status === 'success' ? 'نجح' : 'فشل',
-                      التاريخ: new Date(log.created_at).toLocaleString('ar-SA'),
-                      ملخص_الطلب: log.request_summary,
-                      ملخص_الرد: log.response_summary,
-                      رسالة_الخطأ: log.error_message || 'لا يوجد',
-                      معرف_الفاتورة: log.invoice_id || 'لا يوجد',
-                    })}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </div>
-                {log.error_message && (
-                  <p className="text-xs text-destructive line-clamp-2">{log.error_message}</p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop table */}
-          <div className="overflow-auto hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">النوع</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">التاريخ</TableHead>
-                  <TableHead className="text-right">رسالة الخطأ</TableHead>
-                  <TableHead className="text-right w-16">تفاصيل</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-medium">
-                      {OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={log.status === 'success' ? 'default' : 'destructive'} className="text-xs">
-                        {log.status === 'success' ? '✅ نجح' : '❌ فشل'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {new Date(log.created_at).toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })}
-                    </TableCell>
-                    <TableCell className="text-sm text-destructive max-w-[200px] truncate">
-                      {log.error_message || '—'}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDetailItem({
-                          نوع_العملية: OPERATION_TYPE_LABELS[log.operation_type] || log.operation_type,
-                          الحالة: log.status === 'success' ? 'نجح' : 'فشل',
-                          التاريخ: new Date(log.created_at).toLocaleString('ar-SA'),
-                          ملخص_الطلب: log.request_summary,
-                          ملخص_الرد: log.response_summary,
-                          رسالة_الخطأ: log.error_message || 'لا يوجد',
-                          معرف_الفاتورة: log.invoice_id || 'لا يوجد',
-                        })}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* حوار التفاصيل */}
-      <Dialog open={!!detailItem} onOpenChange={(open) => !open && setDetailItem(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>تفاصيل العملية</DialogTitle>
-          </DialogHeader>
-          <pre className="text-xs bg-muted p-3 rounded-lg overflow-auto whitespace-pre-wrap font-mono" dir="ltr">
-            {JSON.stringify(detailItem, null, 2)}
-          </pre>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};
-
 const ZatcaSettingsTab = () => {
-  const { data: settings, isLoading } = useAppSettings();
-  const queryClient = useQueryClient();
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [onboardLoading, setOnboardLoading] = useState(false);
-  const [connectionTest, setConnectionTest] = useState<{
-    loading: boolean;
-    result: null | { connected: boolean; url?: string; error?: string; tested_at?: string; status_code?: number };
-  }>({ loading: false, result: null });
-
-  const { data: certificates = [] } = useQuery({
-    queryKey: ['zatca-certificates'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('zatca_certificates').select('id, certificate_type, is_active, request_id, created_at').order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const activeCert = certificates.find(c => c.is_active);
-  const isEnabled = formData.zatca_enabled === 'true';
-  const selectedPhase = formData.zatca_phase || 'phase2';
-  const selectedPlatform = formData.zatca_platform || 'production';
-
-  useEffect(() => {
-    if (settings) {
-      const initial: Record<string, string> = {};
-      for (const key of ZATCA_KEYS) {
-        initial[key] = settings[key] || '';
-      }
-      setFormData(initial);
-    }
-  }, [settings]);
-
-  const handleSave = async () => {
-    const vatNum = formData.vat_registration_number?.trim();
-    if (vatNum && vatNum.length > 0) {
-      if (!/^\d{15}$/.test(vatNum)) {
-        toast.error('الرقم الضريبي يجب أن يكون 15 رقماً');
-        return;
-      }
-      if (!vatNum.startsWith('3') || !vatNum.endsWith('3')) {
-        toast.error('الرقم الضريبي يجب أن يبدأ وينتهي بالرقم 3');
-        return;
-      }
-    }
-
-    const serial = formData.zatca_device_serial?.trim();
-    if (serial && serial.length > 0 && !DEVICE_SERIAL_REGEX.test(serial)) {
-      toast.error('صيغة معرّف الجهاز غير صحيحة. الصيغة المطلوبة: 1-XXX|2-YYY|3-ZZZ');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const now = new Date().toISOString();
-      const rows = ZATCA_KEYS.map((key) => ({
-        key,
-        value: (formData[key] || '').trim(),
-        updated_at: now,
-      }));
-      const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['app-settings-all'] });
-      
-      toast.success('تم حفظ إعدادات الضريبة بنجاح');
-    } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSetupAndOnboard = async () => {
-    const requiredFields: { key: string; label: string }[] = [
-      { key: 'vat_registration_number', label: 'الرقم الضريبي' },
-      { key: 'zatca_device_serial', label: 'معرّف الجهاز' },
-    ];
-    const missing = requiredFields.filter(f => !formData[f.key]?.trim());
-    if (missing.length > 0) {
-      toast.error(`يجب تعيين: ${missing.map(f => f.label).join('، ')}`);
-      return;
-    }
-    const otp1 = formData.zatca_otp_1?.trim();
-    if (!otp1) {
-      toast.error('رمز التفعيل OTP الأول مطلوب لبدء التهيئة');
-      return;
-    }
-
-    setOnboardLoading(true);
-    try {
-      await handleSave();
-      const { error } = await supabase.functions.invoke('zatca-api', { body: { action: 'onboard' } });
-      if (error) throw error;
-      toast.success('تم التسجيل بنجاح في بوابة فاتورة');
-      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'فشل التسجيل');
-    } finally {
-      setOnboardLoading(false);
-    }
-  };
-
-  const handleTestConnection = async () => {
-    setConnectionTest({ loading: true, result: null });
-    try {
-      const { data, error } = await supabase.functions.invoke('zatca-api', {
-        body: { action: 'test-connection' },
-      });
-      if (error) throw error;
-      setConnectionTest({ loading: false, result: data });
-      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
-      if (data?.connected) {
-        toast.success('✅ الاتصال ببوابة فاتورة ناجح');
-      } else {
-        toast.error('❌ تعذّر الاتصال ببوابة فاتورة');
-      }
-    } catch (e) {
-      setConnectionTest({
-        loading: false,
-        result: { connected: false, error: e instanceof Error ? e.message : 'خطأ غير معروف' },
-      });
-      toast.error('فشل اختبار الاتصال');
-    }
-  };
+  const {
+    isLoading, formData, setFormData, saving, onboardLoading,
+    connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
+    handleSave, handleSetupAndOnboard, handleTestConnection,
+  } = useZatcaSettings();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -393,30 +76,21 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex gap-4">
-                  <label
-                    className={cn(
-                      'flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border transition-colors',
-                      selectedPhase === 'phase1' ? 'border-primary bg-primary/5' : 'border-border'
-                    )}
-                  >
-                    <input type="radio" name="zatca_phase" value="phase1" checked={selectedPhase === 'phase1'} onChange={() => setFormData(p => ({ ...p, zatca_phase: 'phase1' }))} className="accent-primary" />
-                    <div>
-                      <p className="font-medium text-sm">المرحلة الأولى</p>
-                      <p className="text-xs text-muted-foreground">مرحلة الإصدار والحفظ</p>
-                    </div>
-                  </label>
-                  <label
-                    className={cn(
-                      'flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border transition-colors',
-                      selectedPhase === 'phase2' ? 'border-primary bg-primary/5' : 'border-border'
-                    )}
-                  >
-                    <input type="radio" name="zatca_phase" value="phase2" checked={selectedPhase === 'phase2'} onChange={() => setFormData(p => ({ ...p, zatca_phase: 'phase2' }))} className="accent-primary" />
-                    <div>
-                      <p className="font-medium text-sm">المرحلة الثانية</p>
-                      <p className="text-xs text-muted-foreground">مرحلة الربط والتكامل</p>
-                    </div>
-                  </label>
+                  {(['phase1', 'phase2'] as const).map((phase) => (
+                    <label
+                      key={phase}
+                      className={cn(
+                        'flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border transition-colors',
+                        selectedPhase === phase ? 'border-primary bg-primary/5' : 'border-border'
+                      )}
+                    >
+                      <input type="radio" name="zatca_phase" value={phase} checked={selectedPhase === phase} onChange={() => setFormData(p => ({ ...p, zatca_phase: phase }))} className="accent-primary" />
+                      <div>
+                        <p className="font-medium text-sm">{phase === 'phase1' ? 'المرحلة الأولى' : 'المرحلة الثانية'}</p>
+                        <p className="text-xs text-muted-foreground">{phase === 'phase1' ? 'مرحلة الإصدار والحفظ' : 'مرحلة الربط والتكامل'}</p>
+                      </div>
+                    </label>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -428,28 +102,23 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div
-                    onClick={() => setFormData(p => ({ ...p, zatca_platform: 'production' }))}
-                    className={cn(
-                      'cursor-pointer rounded-xl border-2 p-5 text-center transition-all hover:shadow-sm',
-                      selectedPlatform === 'production' ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    )}
-                  >
-                    {selectedPlatform === 'production' && <CheckCircle className="w-5 h-5 text-primary mx-auto mb-2" />}
-                    <p className="font-bold text-primary">منصة فاتورة</p>
-                    <p className="text-xs text-muted-foreground mt-1">التهيئة لإصدار الفواتير الإلكترونية وإرسالها بشكل فعلي إلى الهيئة.</p>
-                  </div>
-                  <div
-                    onClick={() => setFormData(p => ({ ...p, zatca_platform: 'sandbox' }))}
-                    className={cn(
-                      'cursor-pointer rounded-xl border-2 p-5 text-center transition-all hover:shadow-sm',
-                      selectedPlatform === 'sandbox' ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                    )}
-                  >
-                    {selectedPlatform === 'sandbox' && <CheckCircle className="w-5 h-5 text-primary mx-auto mb-2" />}
-                    <p className="font-bold text-primary">منصة محاكاة فاتورة</p>
-                    <p className="text-xs text-muted-foreground mt-1">التهيئة لتجربة الفواتير الإلكترونية وإرسالها بشكل تجريبي إلى منصة محاكاة فاتورة.</p>
-                  </div>
+                  {([
+                    { value: 'production', title: 'منصة فاتورة', desc: 'التهيئة لإصدار الفواتير الإلكترونية وإرسالها بشكل فعلي إلى الهيئة.' },
+                    { value: 'sandbox', title: 'منصة محاكاة فاتورة', desc: 'التهيئة لتجربة الفواتير الإلكترونية وإرسالها بشكل تجريبي إلى منصة محاكاة فاتورة.' },
+                  ] as const).map(({ value, title, desc }) => (
+                    <div
+                      key={value}
+                      onClick={() => setFormData(p => ({ ...p, zatca_platform: value }))}
+                      className={cn(
+                        'cursor-pointer rounded-xl border-2 p-5 text-center transition-all hover:shadow-sm',
+                        selectedPlatform === value ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                      )}
+                    >
+                      {selectedPlatform === value && <CheckCircle className="w-5 h-5 text-primary mx-auto mb-2" />}
+                      <p className="font-bold text-primary">{title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -533,26 +202,18 @@ const ZatcaSettingsTab = () => {
                 <CardDescription>العنوان المطلوب في الفواتير الضريبية</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>الشارع</Label>
-                  <Input value={formData.business_address_street || ''} onChange={(e) => setFormData((p) => ({ ...p, business_address_street: e.target.value }))} placeholder="اسم الشارع" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>الحي</Label>
-                  <Input value={formData.business_address_district || ''} onChange={(e) => setFormData((p) => ({ ...p, business_address_district: e.target.value }))} placeholder="اسم الحي" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>المدينة</Label>
-                  <Input value={formData.business_address_city || ''} onChange={(e) => setFormData((p) => ({ ...p, business_address_city: e.target.value }))} placeholder="المدينة" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>الرمز البريدي</Label>
-                  <Input value={formData.business_address_postal_code || ''} onChange={(e) => setFormData((p) => ({ ...p, business_address_postal_code: e.target.value }))} placeholder="الرمز البريدي" dir="ltr" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>رقم المبنى</Label>
-                  <Input value={formData.business_address_building || ''} onChange={(e) => setFormData((p) => ({ ...p, business_address_building: e.target.value }))} placeholder="رقم المبنى" dir="ltr" />
-                </div>
+                {[
+                  { key: 'business_address_street', label: 'الشارع', placeholder: 'اسم الشارع' },
+                  { key: 'business_address_district', label: 'الحي', placeholder: 'اسم الحي' },
+                  { key: 'business_address_city', label: 'المدينة', placeholder: 'المدينة' },
+                  { key: 'business_address_postal_code', label: 'الرمز البريدي', placeholder: 'الرمز البريدي', dir: 'ltr' as const },
+                  { key: 'business_address_building', label: 'رقم المبنى', placeholder: 'رقم المبنى', dir: 'ltr' as const },
+                ].map(({ key, label, placeholder, dir }) => (
+                  <div key={key} className="space-y-1.5">
+                    <Label>{label}</Label>
+                    <Input value={formData[key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [key]: e.target.value }))} placeholder={placeholder} dir={dir} />
+                  </div>
+                ))}
               </CardContent>
             </Card>
 
