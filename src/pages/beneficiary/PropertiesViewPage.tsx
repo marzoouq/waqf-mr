@@ -235,6 +235,9 @@ const PropertiesViewPage = () => {
               const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
               const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
               const total = propertyUnits.length;
+              const propertyContracts = contracts.filter(c => c.property_id === property.id);
+              const rentedUnitIdsForProp = new Set(propertyContracts.filter(c => c.unit_id).map(c => c.unit_id));
+              const isWholePropertyRented = total === 0 && propertyContracts.some(c => !c.unit_id);
 
               const isExpanded = expandedId === property.id;
 
