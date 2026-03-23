@@ -4,7 +4,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadLogoBase64,
+  PdfWaqfInfo,
   TABLE_HEAD_GREEN,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,

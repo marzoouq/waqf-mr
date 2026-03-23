@@ -4,7 +4,7 @@
 import jsPDF from 'jspdf';
 import { PdfWaqfInfo, loadLogoBase64, reshapeArabic as rs } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
-import { fmt } from '@/utils/format';
+
 import {
   type PaymentInvoicePdfData, statusLabel,
   renderLineItemsTable, renderAllowanceChargeTable,
