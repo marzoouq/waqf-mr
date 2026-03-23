@@ -631,12 +631,7 @@ const ReportsPage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="comparison" className="space-y-6">
-            <YearOverYearComparison
-              fiscalYears={fiscalYears}
-              currentFiscalYearId={fiscalYearId}
-            />
-          </TabsContent>
+          {/* تبويب المقارنة السنوية تم نقله — يُستخدم من صفحة المقارنة التاريخية المستقلة */}
 
           <TabsContent value="cashflow" className="space-y-6">
             <CashFlowReport

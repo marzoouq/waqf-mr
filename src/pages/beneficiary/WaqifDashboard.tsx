@@ -93,18 +93,7 @@ const WaqifDashboard = () => {
   }, [collectionSummary.percentage, totalIncome, totalExpenses, allUnits, contracts, isSpecificYear]);
 
   /* ── Monthly chart data ── */
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { income: number; expenses: number }> = {};
-    income.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].income += safeNumber(item.amount); }
-    });
-    expenses.forEach(item => {
-      const month = item.date?.substring(0, 7);
-      if (month) { if (!months[month]) months[month] = { income: 0, expenses: 0 }; months[month].expenses += safeNumber(item.amount); }
-    });
-    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, data]) => ({ month, income: data.income, expenses: data.expenses }));
-  }, [income, expenses]);
+  const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
   // formatArabicMonth moved to module level (PERF-01)
 

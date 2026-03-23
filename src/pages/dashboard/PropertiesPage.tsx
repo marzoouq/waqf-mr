@@ -99,7 +99,7 @@ const PropertiesPage = () => {
       activeIncome = Number(currentAccount.total_income) || 0;
       totalExpensesCalc = Number(currentAccount.total_expenses) || 0;
     } else {
-      activeIncome = contracts.filter(c => c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+      activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
       // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
       totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
     }
