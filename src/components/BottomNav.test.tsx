@@ -43,14 +43,14 @@ describe('BottomNav', () => {
 
   it('يعرض روابط المستفيد عندما يكون الدور beneficiary', () => {
     mockUseAuth.mockReturnValue({ role: 'beneficiary' });
-    render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     expect(screen.getByText('حصتي')).toBeInTheDocument();
     expect(screen.getByText('الإفصاح')).toBeInTheDocument();
   });
 
   it('يعرض روابط المحاسب عندما يكون الدور accountant', () => {
     mockUseAuth.mockReturnValue({ role: 'accountant' });
-    render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     expect(screen.getByText('الدخل')).toBeInTheDocument();
     expect(screen.getByText('المصروفات')).toBeInTheDocument();
     expect(screen.getByText('الفواتير')).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('BottomNav', () => {
 
   it('يعرض روابط الواقف عندما يكون الدور waqif', () => {
     mockUseAuth.mockReturnValue({ role: 'waqif' });
-    render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     expect(screen.getByText('العقارات')).toBeInTheDocument();
     expect(screen.getByText('العقود')).toBeInTheDocument();
     expect(screen.getByText('الحسابات')).toBeInTheDocument();
@@ -66,14 +66,14 @@ describe('BottomNav', () => {
 
   it('يستدعي onOpenSidebar عند الضغط على "المزيد"', () => {
     mockUseAuth.mockReturnValue({ role: 'admin' });
-    render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     fireEvent.click(screen.getByText('المزيد'));
     expect(onOpenSidebar).toHaveBeenCalledTimes(1);
   });
 
   it('يعرض 5 عناصر (4 روابط + زر المزيد)', () => {
     mockUseAuth.mockReturnValue({ role: 'admin' });
-    const { container } = render(<BottomNav onOpenSidebar={onOpenSidebar} />);
+    const { container } = renderWithProviders(<BottomNav onOpenSidebar={onOpenSidebar} />);
     const navItems = container.querySelectorAll('a, button');
     expect(navItems.length).toBe(5);
   });
