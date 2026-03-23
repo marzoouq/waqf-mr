@@ -39,6 +39,9 @@
 - يستخدم `useBfcacheSafeChannel` للتوافق مع bfcache
 - يستبدل الأنماط المكررة في AdminDashboard و WaqifDashboard
 
+### ✅ إصلاح `isSpecificYear` في MonthlyAccrualTable
+- إضافة فحص `__none__` للتوافق مع الحساب المركزي
+
 ---
 
 ## القواعد السارية
@@ -57,7 +60,9 @@
 | # | التوصية | الملفات |
 |---|---------|---------|
 | 1 | تفكيك `UserManagementPage` (880 سطر) | 1 صفحة → hook + مكونات |
-| 2 | تصنيف hooks في مجلدات فرعية | ~80 ملف |
-| 3 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
-| 4 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
-| 5 | توحيد PDF core (header/footer/fonts) | 17 ملف |
+| 2 | تفكيك `MySharePage` (714 سطر) | 1 صفحة → hook + مكونات |
+| 3 | استخراج `propertyPerformance` من `ReportsPage` | 1 صفحة → hook مشترك |
+| 4 | تصنيف hooks في مجلدات فرعية | ~80 ملف |
+| 5 | توحيد نمط `WaqifDashboard` مع `BeneficiaryDashboard` | 1 لوحة |
+| 6 | استخراج `LogoManager` من `SettingsPage` | 1 ملف |
+| 7 | توحيد PDF core (header/footer/fonts) | 17 ملف |
