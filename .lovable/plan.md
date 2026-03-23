@@ -1,74 +1,104 @@
 
 
-# إعطاء الناظر صلاحية التعديل الكاملة على السنوات المقفلة
+# فحص جنائي — أرقام الإفصاح السنوي (2024-2025)
 
 ---
 
-## المشكلة
+## 1. تتبع التسلسل الحسابي (Mathematical Trace)
 
-الناظر (admin) لا يستطيع تعديل البيانات في السنوات المقفلة رغم أن مشغل قاعدة البيانات (`prevent_closed_fiscal_year_modification`) يسمح له بذلك. السبب: **الواجهة الأمامية تحجب أزرار التعديل/الإضافة/الحذف بناءً على `isClosed` فقط دون التحقق من الدور**.
-
----
-
-## التشخيص
-
-| الطبقة | الحالة |
-|--------|--------|
-| **قاعدة البيانات** | ✅ المشغل يستثني الناظر — `NOT has_role(auth.uid(), 'admin')` |
-| **الواجهة الأمامية** | ❌ تستخدم `disabled={isClosed}` و `!isClosed &&` بدون فحص الدور |
-
-### الملفات المتأثرة (6 ملفات)
-
-| الملف | عدد المواقع المحجوبة |
-|-------|---------------------|
-| `IncomePage.tsx` | 7 (أزرار إضافة + تعديل + حذف) |
-| `ExpensesPage.tsx` | 5 (نموذج + أزرار تعديل + حذف) |
-| `InvoicesPage.tsx` | 6 (إنشاء قالب + رفع + توليد PDF + تعديل + حذف) |
-| `ContractAccordionGroup.tsx` | 2 (تسديد + إلغاء تسديد فواتير الدفعات) |
-| `PaymentInvoicesTab.tsx` | 8 (توليد + تسديد جماعي + فردي + checkbox) |
-| `ExpenseBudgetBar.tsx` | 1 (تعديل الميزانية) |
-
----
-
-## خطة الإصلاح
-
-### النهج: متغير `isLocked` يحل محل `isClosed` في شروط التعطيل
-
-```typescript
-const { role } = useAuth();
-const isLocked = isClosed && role !== 'admin';
+### المعادلة المُفترضة:
+```text
+grandTotal = totalIncome + waqfCorpusPrevious
+netAfterExpenses = grandTotal - totalExpenses
+netAfterVat = netAfterExpenses - vatAmount
+netAfterZakat = netAfterVat - zakatAmount
+shareBase = totalIncome - totalExpenses - zakatAmount
+adminShare = shareBase × adminPct%
+waqifShare = shareBase × waqifPct%
+waqfRevenue = netAfterZakat - adminShare - waqifShare
+availableAmount = waqfRevenue - waqfCorpusManual
+remainingBalance = availableAmount - distributionsAmount
 ```
 
-ثم استبدال كل `disabled={isClosed}` بـ `disabled={isLocked}` وكل `!isClosed &&` بـ `!isLocked &&`.
+---
 
-### التنفيذ بالتفصيل
+## 2. خطأ حرج مؤكد — ضريبة القيمة المضافة محسوبة مرتين في العرض
 
-**1. `IncomePage.tsx`** — إضافة `useAuth` + تعريف `isLocked` + استبدال 7 مواقع
+### الإثبات:
 
-**2. `ExpensesPage.tsx`** — نفس النمط + استبدال 5 مواقع + تمرير `isLocked` بدل `isClosed` لـ `ExpenseFormDialog`
+في `AnnualDisclosureTable.tsx` (جدول الإفصاح في صفحة التقارير):
 
-**3. `InvoicesPage.tsx`** — هنا `isClosed` يأتي من `useInvoicesPage` hook، لذلك:
-- إضافة `useAuth` في الصفحة
-- تعريف `isLocked = h.isClosed && role !== 'admin'`
-- استبدال 6 مواقع
+| السطر | ما يُعرض | المصدر |
+|-------|---------|--------|
+| 101-106 | بنود المصروفات (بدون VAT) | `expensesByTypeExcludingVat` |
+| **107-111** | **(+) ضريبة القيمة المضافة كبند مصروف** | `vatAmount` |
+| **113-116** | **إجمالي المصروفات** | `totalExpenses` ← **يشمل مصروفات VAT أصلاً** |
+| 117-120 | الصافي بعد المصاريف | `netAfterExpenses = grandTotal - totalExpenses` |
+| **121-124** | **(-) ضريبة القيمة المضافة مرة أخرى** | `vatAmount` |
+| 125-128 | الصافي بعد الضريبة | `netAfterVat` |
 
-**4. `ContractAccordionGroup.tsx`** — تغيير prop `isClosed` إلى تمرير `isLocked` من الأب (`ContractsPage.tsx`) + استبدال موقعين
+**المشكلة:**
+- `totalExpenses` يشمل مصروفات VAT (لأنه `sum(ALL expenses)`)
+- ثم VAT تُعرض كبند منفصل في قسم المصروفات ← هذا صحيح بصرياً
+- لكن `netAfterExpenses = grandTotal - totalExpenses` يكون قد خصم VAT بالفعل
+- ثم السطر 121-124 يخصم VAT **مرة ثانية** ← خطأ حسابي في العرض
 
-**5. `PaymentInvoicesTab.tsx`** — نفس النمط — تغيير prop `isClosed` + استبدال 8 مواقع
+### لكن... القيم الفعلية قد تكون صحيحة!
 
-**6. `ExpenseBudgetBar.tsx`** — تغيير prop `isClosed` + استبدال موقع واحد
+للسنة المقفلة، `useComputedFinancials` يقرأ القيم **المخزنة** من الحساب الختامي:
+```typescript
+netAfterExpenses: safeNumber(currentAccount.net_after_expenses)
+netAfterVat: storedNetAfterVat
+```
 
-**7. `ContractsPage.tsx`** (الأب) — إضافة `useAuth` + تعريف `isLocked` + تمريره للمكونات الفرعية
-
-### رسالة السنة المقفلة
-
-تغيير نص التنبيه ليعكس حالة الناظر:
-- **للناظر:** "سنة مقفلة — لديك صلاحية التعديل"  (بلون أخضر)
-- **لغيره:** "سنة مقفلة — لا يمكن التعديل" (بلون تحذيري كما هو)
+فإذا كانت القيم المخزنة صحيحة (تم حسابها عند الإقفال)، فالأرقام **دقيقة داخلياً** لكن **العرض في الجدول يُربك المستخدم** لأن التسلسل البصري يوحي بخصم مزدوج.
 
 ---
 
-## لا تغييرات مطلوبة على قاعدة البيانات
+## 3. تناقض عرضي في صفحة المستفيد
 
-المشغل يعمل بشكل صحيح. الإصلاح بالكامل في الواجهة الأمامية.
+في `DisclosureFinancialStatement.tsx`:
+
+| ما يُعرض | المصدر |
+|---------|--------|
+| بنود المصروفات الفردية | `expensesByTypeExcludingVat` (بدون VAT) |
+| **إجمالي المصروفات** | `totalExpenses` (**يشمل** VAT) |
+
+**المشكلة:** مجموع البنود المعروضة ≠ الإجمالي المعروض. الفرق = قيمة مصروفات VAT المخفية.
+
+---
+
+## 4. خلاصة الفحص
+
+| # | المشكلة | الخطورة | النوع |
+|---|---------|---------|-------|
+| 1 | VAT تظهر في قسم المصروفات **و** تُخصم مرة أخرى تحت "الصافي بعد المصاريف" في جدول الإفصاح (الناظر) | **عالية** | تناقض عرضي / إرباك محاسبي |
+| 2 | بنود المصروفات (بدون VAT) لا تجمع إلى `totalExpenses` (يشمل VAT) في صفحة المستفيد | **متوسطة** | تناقض عرضي |
+| 3 | القيم الحسابية الداخلية (المخزنة في الحساب الختامي) — **صحيحة** | ✅ | سليم |
+
+---
+
+## 5. خطة الإصلاح
+
+### الإصلاح 1 — جدول الإفصاح (الناظر): `AnnualDisclosureTable.tsx`
+
+**المشكلة:** VAT تظهر كبند مصروف (سطر 107-111) ثم تُخصم مرة أخرى (سطر 121-124).
+
+**الحل:** إزالة بند VAT من قسم المصروفات (أسطر 107-112) لأن `totalExpenses` يشملها بالفعل. إبقاء الخصم المنفصل (سطر 121-124) كما هو — فهو يوضح التسلسل المحاسبي: `المصروفات التشغيلية → VAT → الزكاة`.
+
+**أو بديلاً:** تغيير `totalExpenses` ليعرض المصروفات بدون VAT (ليطابق البنود المعروضة)، مع تثبيت `netAfterExpenses` = `grandTotal - totalExpensesExcludingVat`.
+
+### الإصلاح 2 — صفحة المستفيد: `DisclosureFinancialStatement.tsx`
+
+**نفس النمط:** البنود المعروضة تستثني VAT لكن الإجمالي يشملها.
+
+**الحل:** عرض `totalExpenses - vatAmount` كإجمالي مصروفات تشغيلية، ثم VAT كبند منفصل تحتها.
+
+### التنفيذ
+
+**ملفان فقط:**
+1. `src/components/reports/AnnualDisclosureTable.tsx` — تعديل عرض المصروفات والإجمالي
+2. `src/components/disclosure/DisclosureFinancialStatement.tsx` — تعديل عرض المصروفات والإجمالي
+
+**لا تغييرات على المنطق الحسابي أو قاعدة البيانات.** الإصلاح في طبقة العرض فقط.
 
