@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -20,11 +19,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   property_number: string;
   status: string;
 }>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -62,9 +57,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('invoices-report.pdf');
+  finalizePdf(doc, fontFamily, 'invoices-report.pdf', waqfInfo);
 };
 
 /**
@@ -80,11 +73,7 @@ export const generateOverdueInvoicesPDF = async (
     return;
   }
 
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -125,7 +114,5 @@ export const generateOverdueInvoicesPDF = async (
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('overdue-invoices-report.pdf');
+  finalizePdf(doc, fontFamily, 'overdue-invoices-report.pdf', waqfInfo);
 };

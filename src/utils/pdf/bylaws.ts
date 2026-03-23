@@ -1,6 +1,5 @@
-import jsPDF from 'jspdf';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GOLD,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
@@ -33,14 +32,10 @@ export const generateBylawsPDF = async (
   entries: BylawPdfEntry[],
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
   const pageW = doc.internal.pageSize.width;
   const margin = 18;
   const contentW = pageW - margin * 2;
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
 
   // Title
   doc.setFont(fontFamily, 'bold');
@@ -116,7 +111,5 @@ export const generateBylawsPDF = async (
     }
   }
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('waqf-bylaws.pdf');
+  finalizePdf(doc, fontFamily, 'waqf-bylaws.pdf', waqfInfo);
 };

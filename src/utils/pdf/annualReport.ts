@@ -1,9 +1,7 @@
 /**
  * مولّد PDF للتقرير السنوي للإنجازات
  */
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { loadArabicFont, addHeader, addFooter, type PdfWaqfInfo, reshapeArabic as rs } from './core';
+import { createPdfDocument, finalizePdf, type PdfWaqfInfo, reshapeArabic as rs } from './core';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 
@@ -21,13 +19,11 @@ export const generateAnnualReportPDF = async (
   waqfInfo?: PdfWaqfInfo,
 ) => {
   try {
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const fontLoaded = await loadArabicFont(doc);
-    const fontFamily = fontLoaded ? 'Amiri' : 'helvetica';
+    const { doc, fontFamily, startY: headerY } = await createPdfDocument(waqfInfo);
     const pageW = doc.internal.pageSize.width;
     const margin = 18;
 
-    let y = await addHeader(doc, fontFamily, waqfInfo);
+    let y = headerY;
 
     // عنوان التقرير
     doc.setFont(fontFamily, 'bold');
@@ -93,8 +89,7 @@ export const generateAnnualReportPDF = async (
     writeSection('التحديات', data.challenges, [180, 120, 20]);
     writeSection('الخطط المستقبلية', data.futurePlans, [37, 99, 235]);
 
-    addFooter(doc, fontFamily, waqfInfo);
-    doc.save(`التقرير_السنوي_${data.fiscalYearLabel}.pdf`);
+    finalizePdf(doc, fontFamily, `التقرير_السنوي_${data.fiscalYearLabel}.pdf`, waqfInfo, { skipHeaders: true });
     toast.success('تم تصدير التقرير السنوي بنجاح');
   } catch (e) {
     logger.error('خطأ في تصدير التقرير السنوي:', e);

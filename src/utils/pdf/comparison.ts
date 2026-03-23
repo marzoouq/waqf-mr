@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -27,11 +26,7 @@ export interface YearComparisonPdfData {
 }
 
 export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const f = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, f, waqfInfo);
+  const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(f, 'bold');
   doc.setFontSize(16);
@@ -145,7 +140,5 @@ export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waq
     });
   }
 
-  addHeaderToAllPages(doc, f, waqfInfo);
-  addFooter(doc, f, waqfInfo);
-  doc.save(`year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`);
+  finalizePdf(doc, f, `year-comparison-${data.year1Label}-vs-${data.year2Label}.pdf`, waqfInfo);
 };

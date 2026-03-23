@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable, { type CellHookData } from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -24,11 +23,7 @@ export const generateDistributionsPDF = async (data: {
     deficit: number;
   }>;
 }, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -106,9 +101,7 @@ export const generateDistributionsPDF = async (data: {
     },
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`distributions-report-${data.fiscalYearLabel}.pdf`);
+  finalizePdf(doc, fontFamily, `distributions-report-${data.fiscalYearLabel}.pdf`, waqfInfo);
 };
 
 export const generateAccountsPDF = async (data: {
@@ -134,11 +127,7 @@ export const generateAccountsPDF = async (data: {
   availableAmount?: number;
   remainingBalance?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -272,7 +261,5 @@ export const generateAccountsPDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('accounts-report.pdf');
+  finalizePdf(doc, fontFamily, 'accounts-report.pdf', waqfInfo);
 };

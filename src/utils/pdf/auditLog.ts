@@ -1,10 +1,7 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  loadArabicFont,
-  addHeader,
-  addHeaderToAllPages,
-  addFooter,
+  createPdfDocument,
+  finalizePdf,
   baseTableStyles,
   headStyles,
   TABLE_HEAD_GREEN,
@@ -71,11 +68,7 @@ const getSummary = (log: AuditLogEntry): string => {
 
 export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   const { logs, waqfInfo, tableFilter, opFilter } = options;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   // Title
   doc.setFont(fontFamily, 'bold');
@@ -138,8 +131,5 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
     },
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-
-  doc.save('تقرير-سجل-المراجعة.pdf');
+  finalizePdf(doc, fontFamily, 'تقرير-سجل-المراجعة.pdf', waqfInfo);
 };

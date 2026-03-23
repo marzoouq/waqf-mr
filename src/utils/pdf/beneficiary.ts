@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
@@ -38,11 +37,7 @@ export const generateMySharePDF = async (data: {
   carryforwardDeducted?: number;
   fiscalYear?: string;
 }, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -108,9 +103,7 @@ export const generateMySharePDF = async (data: {
     });
   }
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`);
+  finalizePdf(doc, fontFamily, `my-share-${data.beneficiaryName}-${data.fiscalYear || 'all'}.pdf`, waqfInfo);
 };
 
 export const generateDisclosurePDF = async (data: {
@@ -129,11 +122,7 @@ export const generateDisclosurePDF = async (data: {
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
 }, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -189,7 +178,5 @@ export const generateDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`disclosure-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };

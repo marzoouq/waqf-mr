@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -30,11 +29,7 @@ interface ReportData {
 }
 
 export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -82,17 +77,11 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`waqf-report-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `waqf-report-${data.fiscalYear}.pdf`, waqfInfo);
 };
 
 export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, sharePercentage: number, shareAmount: number, fiscalYear: string, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -115,8 +104,7 @@ export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, s
     ...baseTableStyles(fontFamily),
   });
 
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`statement-${beneficiaryName}-${fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `statement-${beneficiaryName}-${fiscalYear}.pdf`, waqfInfo, { skipHeaders: true });
 };
 
 export const generateAnnualDisclosurePDF = async (data: {
@@ -143,11 +131,7 @@ export const generateAnnualDisclosurePDF = async (data: {
   adminPct: number;
   waqifPct: number;
 }, waqfInfo?: PdfWaqfInfo) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
   doc.setFontSize(18);
@@ -258,7 +242,5 @@ export const generateAnnualDisclosurePDF = async (data: {
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`annual-disclosure-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `annual-disclosure-${data.fiscalYear}.pdf`, waqfInfo);
 };

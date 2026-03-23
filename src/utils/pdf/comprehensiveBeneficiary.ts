@@ -1,7 +1,6 @@
-import jsPDF from 'jspdf';
 import autoTable, { type CellHookData } from 'jspdf-autotable';
 import {
-  PdfWaqfInfo, loadArabicFont, addHeader, addHeaderToAllPages, addFooter,
+  PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
   baseTableStyles, headStyles, footStyles,
   reshapeArabic as rs, reshapeRow,
@@ -61,11 +60,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
   data: ComprehensiveBeneficiaryData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
-  const doc = new jsPDF();
-  const hasArabic = await loadArabicFont(doc);
-  const f = hasArabic ? 'Amiri' : 'helvetica';
-
-  const startY = await addHeader(doc, f, waqfInfo);
+  const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   // ═══ Title ═══
   doc.setFont(f, 'bold');
@@ -280,7 +275,5 @@ export const generateComprehensiveBeneficiaryPDF = async (
     });
   }
 
-  addHeaderToAllPages(doc, f, waqfInfo);
-  addFooter(doc, f, waqfInfo);
-  doc.save(`تقرير-شامل-${data.beneficiaryName}-${data.fiscalYear}.pdf`);
+  finalizePdf(doc, f, `تقرير-شامل-${data.beneficiaryName}-${data.fiscalYear}.pdf`, waqfInfo);
 };
