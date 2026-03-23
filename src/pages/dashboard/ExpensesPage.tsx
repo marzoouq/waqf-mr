@@ -210,7 +210,7 @@ const ExpensesPage = () => {
         <ExpensesPieChart expenses={expenses} isLoading={isLoading} />
 
         {/* E-2: ميزانية تقديرية للمصروفات */}
-        <ExpenseBudgetBar expenses={expenses} fiscalYearId={fiscalYearId} isClosed={isClosed} />
+        <ExpenseBudgetBar expenses={expenses} fiscalYearId={fiscalYearId} isClosed={isLocked} />
 
         {/* بحث + فلاتر */}
         <div className="space-y-3">
