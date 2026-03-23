@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/auth/useAuthContext';
 
 const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const { role } = useAuth();
   const {
     contracts, properties, paymentInvoices, invoicePaidMap,
     fiscalYearId, fiscalYears, isClosed, setFiscalYearId,
