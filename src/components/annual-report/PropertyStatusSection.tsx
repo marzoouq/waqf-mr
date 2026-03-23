@@ -5,7 +5,7 @@
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import ReportItemCard from './ReportItemCard';
-import type { AnnualReportItem } from '@/hooks/useAnnualReport';
+import type { AnnualReportItem } from '@/hooks/data/useAnnualReport';
 
 interface Property {
   id: string;

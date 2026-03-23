@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications } from '@/hooks/data/useNotifications';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Wallet, FileText, BarChart3, PieChart, BookOpen, Bell, ArrowLeft, Sun, Moon, Calendar, Clock, TrendingUp, AlertCircle, RefreshCw, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import NoPublishedYearsNotice from '@/components/NoPublishedYearsNotice';
 import AdvanceRequestDialog from '@/components/beneficiaries/AdvanceRequestDialog';
-import { useBeneficiaryDashboardData } from '@/hooks/useBeneficiaryDashboardData';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 import { fmt } from '@/utils/format';
 

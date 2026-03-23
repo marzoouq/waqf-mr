@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import ThemeColorPicker from '@/components/ThemeColorPicker';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 const AppearanceTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

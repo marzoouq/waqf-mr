@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/useBylaws';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/useBylaws';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, 
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import {

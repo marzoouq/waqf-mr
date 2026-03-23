@@ -19,7 +19,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useAddTicketReply, useRateTicket, type SupportTicket,
-} from '@/hooks/useSupportTickets';
+} from '@/hooks/data/useSupportTickets';
 
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {

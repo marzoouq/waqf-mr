@@ -3,7 +3,7 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useIncomeComparison } from '@/hooks/useAnnualReport';
+import { useIncomeComparison } from '@/hooks/data/useAnnualReport';
 import { Loader2, TrendingUp } from 'lucide-react';
 
 const formatAmount = (v: number) =>

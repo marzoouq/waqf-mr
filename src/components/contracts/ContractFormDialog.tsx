@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useUnits } from '@/hooks/useUnits';
+import { useUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { getContractSpanInfo } from '@/utils/contractAllocation';
 import { Contract } from '@/types/database';

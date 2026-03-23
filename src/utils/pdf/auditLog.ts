@@ -8,7 +8,7 @@ import {
   type PdfWaqfInfo,
   reshapeArabic as rs, reshapeRow,
 } from './core';
-import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/useAuditLog';
+import { getTableNameAr, getOperationNameAr, type AuditLogEntry } from '@/hooks/data/useAuditLog';
 
 
 export interface AuditLogPdfOptions {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useCreateAdvanceRequest } from '@/hooks/useAdvanceRequests';
+import { useCreateAdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Save, Globe } from 'lucide-react';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useState, useEffect } from 'react';
 
 export interface LandingPageContent {

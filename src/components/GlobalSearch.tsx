@@ -16,7 +16,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { cn } from '@/lib/utils';
 import { fmt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/ui/use-mobile';
 
 interface SearchResult {
   id: string;

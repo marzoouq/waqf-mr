@@ -6,7 +6,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Home, Building2, FileText, Wallet, Menu, ClipboardList, Receipt, TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';
 
 interface BottomNavProps {
   onOpenSidebar: () => void;

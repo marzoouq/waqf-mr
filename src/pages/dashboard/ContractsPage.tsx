@@ -12,7 +12,7 @@ import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generateContractsPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';

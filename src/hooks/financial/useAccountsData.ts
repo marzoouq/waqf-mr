@@ -2,15 +2,15 @@
  * جلب البيانات الخام لصفحة الحسابات — لا حسابات، لا حالة UI
  */
 import { useMemo } from 'react';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useIncomeByFiscalYear } from '@/hooks/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
-import { useBeneficiaries } from '@/hooks/useBeneficiaries';
-import { useTenantPayments } from '@/hooks/useTenantPayments';
-import { useAllUnits } from '@/hooks/useUnits';
-import { useProperties } from '@/hooks/useProperties';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAccounts } from '@/hooks/financial/useAccounts';
+import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { useBeneficiaries } from '@/hooks/data/useBeneficiaries';
+import { useTenantPayments } from '@/hooks/data/useTenantPayments';
+import { useAllUnits } from '@/hooks/data/useUnits';
+import { useProperties } from '@/hooks/data/useProperties';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 

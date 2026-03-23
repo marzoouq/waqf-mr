@@ -3,9 +3,9 @@
  */
 import { useState } from 'react';
 import type { Contract } from '@/types/database';
-import { useUpdateContract, useDeleteContract } from '@/hooks/useContracts';
-import { useDeleteAccount } from '@/hooks/useAccounts';
-import { useUpsertTenantPayment } from '@/hooks/useTenantPayments';
+import { useUpdateContract, useDeleteContract } from '@/hooks/data/useContracts';
+import { useDeleteAccount } from '@/hooks/financial/useAccounts';
+import { useUpsertTenantPayment } from '@/hooks/data/useTenantPayments';
 import { toast } from 'sonner';
 
 interface CollectionEditData {

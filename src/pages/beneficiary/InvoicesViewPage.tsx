@@ -3,7 +3,7 @@ import { safeNumber } from '@/utils/safeNumber';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/useInvoices';
+import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, useInvoicesByFiscalYear } from '@/hooks/data/useInvoices';
 import InvoiceViewer from '@/components/invoices/InvoiceViewer';
 import { FileText, Search, Eye, LayoutGrid, List, AlertCircle, RefreshCw } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateInvoicesViewPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { fmt } from '@/utils/format';
 

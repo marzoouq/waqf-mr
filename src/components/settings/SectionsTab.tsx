@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 const SectionsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useComputedFinancials } from '@/hooks/useComputedFinancials';
+import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 import type { Income, Expense } from '@/types/database';
 import type { Tables } from '@/integrations/supabase/types';
 

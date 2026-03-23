@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { UNIT_TYPES, FLOORS, UNIT_STATUSES, PAYMENT_TYPES } from './constants';
 import { fmt } from '@/utils/format';
-import type { UnitInsert } from '@/hooks/useUnits';
+import type { UnitInsert } from '@/hooks/data/useUnits';
 
 export interface UnitFormData extends UnitInsert {
   tenant_name?: string;

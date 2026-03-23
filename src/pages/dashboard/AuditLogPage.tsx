@@ -12,13 +12,13 @@ import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarD
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/useAuditLog';
+import { useAuditLog, getTableNameAr, getOperationNameAr } from '@/hooks/data/useAuditLog';
 import TablePagination from '@/components/TablePagination';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import AccessLogTab from '@/components/audit/AccessLogTab';
 import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { generateAuditLogPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 

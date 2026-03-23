@@ -10,10 +10,10 @@ import {
 import { ArrowUpDown, TrendingUp, TrendingDown, Minus, FileDown } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { Badge } from '@/components/ui/badge';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
-import { FiscalYear } from '@/hooks/useFiscalYears';
+import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
+import { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { fmt } from '@/utils/format';
 
 interface YearOverYearComparisonProps {

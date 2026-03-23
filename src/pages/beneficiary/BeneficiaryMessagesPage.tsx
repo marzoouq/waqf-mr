@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/useMessaging';
+import { useConversations, useMessages, useSendMessage, useCreateConversation, Conversation } from '@/hooks/data/useMessaging';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

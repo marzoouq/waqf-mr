@@ -3,8 +3,8 @@
  * يُرجع بيانات السنة السابقة لمقارنتها مع الحالية.
  */
 import { useMemo } from 'react';
-import { useFiscalYears } from '@/hooks/useFiscalYears';
-import { useRawFinancialData } from '@/hooks/useRawFinancialData';
+import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
+import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
 import { computeTotals } from '@/utils/accountsCalculations';
 
 interface YoYResult {

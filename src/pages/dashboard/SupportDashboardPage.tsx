@@ -22,7 +22,7 @@ import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useUpdateTicketStatus, useAddTicketReply, useClientErrors,
   useSupportStats, useSupportAnalytics, type SupportTicket,
-} from '@/hooks/useSupportTickets';
+} from '@/hooks/data/useSupportTickets';
 import { toast } from 'sonner';
 
 import SupportStatsCards from '@/components/support/SupportStatsCards';

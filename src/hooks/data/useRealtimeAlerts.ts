@@ -7,7 +7,7 @@ import { useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
 const CONTRACT_STATUS_LABELS: Record<string, string> = {
   active: 'نشط',

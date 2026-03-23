@@ -6,9 +6,9 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Volume2, Play } from 'lucide-react';
-import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
-import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { TONE_OPTIONS, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/useNotifications';
+import { useNotificationPreferences } from '@/hooks/data/useNotificationPreferences';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 const NotificationsTab = () => {
   const { getJsonSetting, updateJsonSetting, isLoading } = useAppSettings();

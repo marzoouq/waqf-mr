@@ -8,13 +8,13 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import { BarChart3 } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
-import { useMyShare } from '@/hooks/useMyShare';
+import { useMyShare } from '@/hooks/financial/useMyShare';
 
 import { Skeleton } from '@/components/ui/skeleton';
 

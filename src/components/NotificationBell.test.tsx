@@ -36,7 +36,7 @@ vi.mock('@/hooks/useNotifications', () => ({
   previewTone: vi.fn(),
 }));
 
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications } from '@/hooks/data/useNotifications';
 const mockedUseNotifications = vi.mocked(useNotifications);
 
 describe('NotificationBell', () => {

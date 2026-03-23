@@ -3,7 +3,7 @@ import { startRegistration, startAuthentication, browserSupportsWebAuthn } from 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { logAccessEvent } from '@/hooks/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
 
 const BIOMETRIC_ENABLED_KEY = 'waqf_biometric_enabled';
 

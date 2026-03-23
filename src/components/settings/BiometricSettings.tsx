@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Fingerprint, Smartphone, Trash2, Plus, Loader2, ShieldCheck, Info, Globe } from 'lucide-react';
-import { useWebAuthn } from '@/hooks/useWebAuthn';
+import { useWebAuthn } from '@/hooks/auth/useWebAuthn';
 
 const SUPPORTED_BROWSERS = [
   { name: 'Chrome / Edge', version: '67+' },

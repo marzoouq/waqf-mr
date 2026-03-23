@@ -6,21 +6,21 @@ import { useQueryClient } from '@tanstack/react-query';
 import ExportMenu from '@/components/ExportMenu';
 import DashboardLayout from '@/components/DashboardLayout';
 import { generateDisclosurePDF, generateComprehensiveBeneficiaryPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { safeNumber } from '@/utils/safeNumber';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
-import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { useMyShare } from '@/hooks/useMyShare';
+import { useMyShare } from '@/hooks/financial/useMyShare';
 import PageHeaderCard from '@/components/PageHeaderCard';
 
 /** تنسيق تاريخ ميلادي بصيغة يوم/شهر/سنة */

@@ -19,12 +19,12 @@ import {
   useAnnualReportItems, useCreateReportItem, useUpdateReportItem,
   useDeleteReportItem, useReportStatus, useToggleReportPublish,
   type AnnualReportItem, type SectionType,
-} from '@/hooks/useAnnualReport';
-import { useProperties } from '@/hooks/useProperties';
-import { useIncomeByFiscalYear } from '@/hooks/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+} from '@/hooks/data/useAnnualReport';
+import { useProperties } from '@/hooks/data/useProperties';
+import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';

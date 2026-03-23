@@ -6,10 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/useAdvanceRequests';
+import { useAdvanceRequests, useUpdateAdvanceStatus, type AdvanceRequest } from '@/hooks/financial/useAdvanceRequests';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Loader2, CheckCircle, XCircle, Banknote, Clock, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { safeNumber } from '@/utils/safeNumber';
 
 const PAGE_SIZE = 20;

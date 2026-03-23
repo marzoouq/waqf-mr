@@ -15,8 +15,8 @@ import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
 
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
-import type { FiscalYear } from '@/hooks/useFiscalYears';
-import type { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
+import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { getPaymentCount } from '@/utils/contractHelpers';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';

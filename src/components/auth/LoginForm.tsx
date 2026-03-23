@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Mail, IdCard, KeyRound, AlertTriangle, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { logAccessEvent } from '@/hooks/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { normalizeArabicDigits } from '@/utils/normalizeDigits';
 import BiometricLoginButton from './BiometricLoginButton';

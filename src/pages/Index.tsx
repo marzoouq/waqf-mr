@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAppSettings, useWaqfInfo } from '@/hooks/useAppSettings';
+import { useAppSettings, useWaqfInfo } from '@/hooks/page/useAppSettings';
 import type { LandingPageContent } from '@/components/settings/LandingPageTab';
 
 const defaultLanding: LandingPageContent = {

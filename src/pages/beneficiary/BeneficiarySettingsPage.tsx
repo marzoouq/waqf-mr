@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
+import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
 import { supabase } from '@/integrations/supabase/client';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -20,8 +20,8 @@ import BiometricSettings from '@/components/settings/BiometricSettings';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/useNotifications';
-import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { TONE_OPTIONS, NOTIF_PREFS_KEY, VOLUME_OPTIONS, previewTone, type ToneId, type VolumeLevel } from '@/hooks/data/useNotifications';
+import { useNotificationPreferences } from '@/hooks/data/useNotificationPreferences';
 
 const passwordSchema = z.object({
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),

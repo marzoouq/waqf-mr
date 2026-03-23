@@ -2,13 +2,13 @@
  * صفحة عرض العقارات للمستفيد (قراءة فقط)
  * تعرض نفس المؤشرات المالية والتشغيلية الموجودة لدى الناظر مع فلترة حسب السنة المالية
  */
-import { useProperties } from '@/hooks/useProperties';
-import { computePropertyFinancials } from '@/hooks/usePropertyFinancials';
-import { useAllUnits } from '@/hooks/useUnits';
-import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
+import { useProperties } from '@/hooks/data/useProperties';
+import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { useAllUnits } from '@/hooks/data/useUnits';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
+import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import DashboardLayout from '@/components/DashboardLayout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import ExportMenu from '@/components/ExportMenu';
@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useState } from 'react';
 import { generatePropertiesPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { fmt, fmtInt } from '@/utils/format';

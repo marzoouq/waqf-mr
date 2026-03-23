@@ -8,7 +8,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Edit, Trash2, CheckCircle, XCircle, Key, AlertTriangle } from 'lucide-react';
-import type { ManagedUser } from '@/hooks/useUserManagement';
+import type { ManagedUser } from '@/hooks/auth/useUserManagement';
 
 const getRoleBadge = (role: string | null) => {
   switch (role) {

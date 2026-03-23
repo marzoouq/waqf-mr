@@ -26,7 +26,7 @@ import {
   useUpdateAccountCategory,
   useDeleteAccountCategory,
   type CategoryTreeNode,
-} from '@/hooks/useAccountCategories';
+} from '@/hooks/data/useAccountCategories';
 import type { AccountCategory } from '@/types/database';
 
 // ─── ثوابت الألوان والأنواع ───
