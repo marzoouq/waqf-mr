@@ -1,49 +1,42 @@
 
 
-# إصلاح تناقضات صفحة العقارات
+# تحقق جنائي من الخطة — النتائج
 
 ---
 
-## التناقضات المكتشفة
+## 1. حالة الخطة: **قديمة — تم تنفيذ الإصلاحات بالفعل**
 
-### 1. خطأ stale closure في `useMemo` — **أولوية عالية**
+الخطة في `.lovable/plan.md` تصف إصلاحين، وكلاهما **مُطبّق فعلاً في الكود**:
 
-في `PropertiesPage.tsx` سطر 109، مصفوفة الاعتمادات (deps) للملخص:
+| البند في الخطة | الحالة الفعلية |
+|---------------|---------------|
+| إضافة `isSpecificYear` لـ deps في `PropertiesPage.tsx` سطر 109 | ✅ **مُنفذ** — السطر 109 يتضمنها فعلاً |
+| تغيير `netIncome` في `usePropertyFinancials.ts` إلى `activeAnnualRent - totalExpenses` | ✅ **مُنفذ** — السطر 120 يستخدم `activeAnnualRent` فعلاً |
+
+---
+
+## 2. مشكلة متبقية مكتشفة — لم تُذكر في الخطة
+
+### خطأ stale closure في `PropertiesViewPage.tsx` (صفحة المستفيد) — أولوية عالية
+
+**الملف:** `src/pages/beneficiary/PropertiesViewPage.tsx` سطر 91
+
+مصفوفة الاعتمادات:
 ```
-[properties, allUnits, contracts, expenses, isClosed, accounts]
+[properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, fiscalYearId]
 ```
-لكن المتغير `isSpecificYear` مُستخدم داخل الحساب (أسطر 72, 73, 102) **وغير مُدرج في المصفوفة**. هذا يعني أن تغيير السنة المالية قد لا يُحدّث الملخص بشكل صحيح.
 
-**الإصلاح:** إضافة `isSpecificYear` إلى مصفوفة الاعتمادات.
-
-### 2. تناقض حساب صافي الدخل — **أولوية عالية**
-
-| المكان | صيغة الصافي |
-|--------|------------|
-| **الملخص العلوي** (سطر 106) | `activeIncome - totalExpensesCalc` |
-| **بطاقة كل عقار** (`computePropertyFinancials` سطر 120) | `contractualRevenue - totalExpenses` |
-
-الملخص يستخدم **الدخل النشط** (العقود الفعّالة فقط)، بينما البطاقة تستخدم **الإيرادات التعاقدية** (جميع العقود بما فيها المنتهية). هذا يعني أن مجموع صافي البطاقات لا يساوي الصافي في الملخص.
-
-**الإصلاح:** توحيد الصيغة في `computePropertyFinancials` لتستخدم `activeAnnualRent - totalExpenses` بدلاً من `contractualRevenue - totalExpenses`.
-
-### 3. الملخص يتجاهل المصروفات بدون عقار — **ملاحظة**
-
-سطر 104: `expenses.filter(e => e.property_id)` يستبعد المصروفات العامة (بدون عقار). هذا سلوك **مقصود** لصفحة العقارات لكن يجب التأكد من وضوحه.
+المتغير `isSpecificYear` مُستخدم في أسطر 50, 53, 73, 79 لكنه **غير مُدرج في المصفوفة**. هذا نفس الخطأ الذي أُصلح في صفحة الناظر لكنه **لم يُصلح في صفحة المستفيد**.
 
 ---
 
-## خطة التنفيذ
+## 3. التوصية
 
-### الملف 1: `src/pages/dashboard/PropertiesPage.tsx`
-- إضافة `isSpecificYear` لمصفوفة اعتمادات `useMemo` في سطر 109
+### الإجراء المطلوب
+1. **تحديث الخطة** لتعكس أن الإصلاحين الأصليين مُنفذان
+2. **إصلاح** `PropertiesViewPage.tsx` سطر 91 — إضافة `isSpecificYear` لمصفوفة الاعتمادات
 
-### الملف 2: `src/hooks/financial/usePropertyFinancials.ts`
-- تغيير سطر 120 من `contractualRevenue - totalExpenses` إلى `activeAnnualRent - totalExpenses`
-
----
-
-## تفاصيل تقنية
-
-التغييران بسيطان ومنخفضا المخاطر. لا يتطلبان ترحيل قاعدة بيانات. التأثير: توحيد الأرقام المعروضة في الملخص والبطاقات.
+### التنفيذ
+**ملف واحد فقط:** `src/pages/beneficiary/PropertiesViewPage.tsx`
+- تغيير سطر 91 بإضافة `isSpecificYear` في نهاية مصفوفة deps
 
