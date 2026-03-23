@@ -1,10 +1,7 @@
-import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
-  loadArabicFont,
-  addHeader,
-  addHeaderToAllPages,
-  addFooter,
+  createPdfDocument,
+  finalizePdf,
   baseTableStyles,
   headStyles,
   TABLE_HEAD_GREEN,
