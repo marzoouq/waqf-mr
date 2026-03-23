@@ -13,6 +13,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { getContractSpanInfo } from '@/utils/contractAllocation';
 import { Contract } from '@/types/database';
 import { TENANT_ID_TYPES } from '@/constants';
+import ContractTenantIdSection from './ContractTenantIdSection';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Building2, CheckSquare, Info } from 'lucide-react';
