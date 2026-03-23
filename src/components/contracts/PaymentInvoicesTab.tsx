@@ -15,7 +15,7 @@ import {
 import {
   Search, Receipt, CheckCircle2, Clock, AlertTriangle,
   Zap, TrendingUp, TrendingDown, FileWarning, Check, X, Download, Loader2, FileDown,
-  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, FileText, Eye,
+  ArrowUpDown, ArrowUp, ArrowDown, CalendarDays, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -25,8 +25,7 @@ import {
   useMarkInvoicePaid,
   useMarkInvoiceUnpaid,
 } from '@/hooks/usePaymentInvoices';
-import { generatePaymentInvoicePDF, generateOverdueInvoicesPDF } from '@/utils/pdf';
-import type { InvoiceTemplate } from '@/utils/pdf';
+import { generateOverdueInvoicesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
@@ -60,7 +59,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
+  
   const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
   const [payDialog, setPayDialog] = useState<{ inv: PaymentInvoice } | null>(null);
   const [payAmount, setPayAmount] = useState('');
@@ -76,7 +75,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   // قالب الفاتورة
-  const [invoiceTemplate, setInvoiceTemplate] = useState<InvoiceTemplate>('tax_professional');
+  
   const ITEMS_PER_PAGE = 15;
 
   useEffect(() => { setCurrentPage(1); }, [filter, search, dateFrom, dateTo]);
@@ -207,59 +206,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     );
   };
 
-  const handleDownloadPdf = async (inv: PaymentInvoice, templateOverride?: 'classic' | 'tax_professional' | 'compact') => {
-    setLoadingInvoiceId(inv.id);
-    try {
-      // جلب بيانات العقد الكاملة (الرقم الضريبي + العنوان) لتضمينها في PDF
-      const fullContract = contracts.find(c => c.id === inv.contract_id);
-      const tenantAddress = [
-        fullContract?.tenant_street,
-        fullContract?.tenant_district,
-        fullContract?.tenant_city,
-      ].filter(Boolean).join('، ') || undefined;
 
-      const blobUrl = await generatePaymentInvoicePDF({
-        id: inv.id,
-        invoiceNumber: inv.invoice_number,
-        contractNumber: inv.contract?.contract_number || '-',
-        tenantName: inv.contract?.tenant_name || '-',
-        propertyNumber: inv.contract?.property?.property_number || '-',
-        paymentNumber: inv.payment_number,
-        totalPayments: inv.contract?.payment_count || 1,
-        amount: Number(inv.amount),
-        dueDate: inv.due_date,
-        status: inv.status,
-        paidDate: inv.paid_date,
-        paidAmount: inv.paid_amount,
-        notes: inv.notes,
-        vatRate: inv.vat_rate ?? 0,
-        vatAmount: inv.vat_amount ?? 0,
-        tenantVatNumber: fullContract?.tenant_tax_number || undefined,
-        tenantAddress,
-      }, waqfInfo, templateOverride ?? invoiceTemplate);
 
-      if (blobUrl) {
-        try {
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = `فاتورة-${inv.invoice_number}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          toast.success('تم تصدير الفاتورة بنجاح');
-        } finally {
-          // تحرير Blob URL دائماً لمنع تسريب الذاكرة
-          URL.revokeObjectURL(blobUrl);
-        }
-      } else {
-        toast.info('تم حفظ الفاتورة محلياً');
-      }
-    } catch {
-      toast.error('حدث خطأ أثناء تصدير الفاتورة');
-    } finally {
-      setLoadingInvoiceId(null);
-    }
-  };
 
   /** بناء بيانات المعاينة من فاتورة دفعة */
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
@@ -471,18 +419,6 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             </Button>
         )}
 
-        {/* اختيار قالب الفاتورة */}
-        <Select value={invoiceTemplate} onValueChange={v => setInvoiceTemplate(v as InvoiceTemplate)}>
-          <SelectTrigger className="w-48">
-            <FileText className="w-4 h-4 ml-1 shrink-0" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="tax_professional">ضريبي احترافي</SelectItem>
-            <SelectItem value="classic">كلاسيكي</SelectItem>
-            <SelectItem value="compact">مختصر</SelectItem>
-          </SelectContent>
-        </Select>
         </div>
 
         {!isClosed && fiscalYearId && fiscalYearId !== 'all' && (
@@ -576,8 +512,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
                                 <Eye className="w-3.5 h-3.5" />معاينة
                               </Button>
-                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
-                                {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
+                                <Download className="w-3.5 h-3.5" />PDF
                               </Button>
                               {!isClosed && inv.status !== 'paid' && (
                                 <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
@@ -672,8 +608,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="معاينة الفاتورة">
                                     <Eye className="w-3.5 h-3.5" />
                                   </Button>
-                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleDownloadPdf(inv)} title="تحميل PDF" disabled={loadingInvoiceId === inv.id}>
-                                    {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handlePreviewTemplate(inv)} title="تحميل PDF">
+                                    <Download className="w-3.5 h-3.5" />
                                   </Button>
                                   {!isClosed && (
                                     inv.status !== 'paid' ? (
