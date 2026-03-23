@@ -67,6 +67,7 @@ describe('generateAnnualReportPDF', () => {
 });
 
 describe('generateBeneficiaryStatementPDF', () => {
+  beforeEach(() => vi.clearAllMocks());
   it('generates and saves PDF', async () => {
     await generateBeneficiaryStatementPDF('أحمد', 40, 153000, '2024-2025');
     expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
