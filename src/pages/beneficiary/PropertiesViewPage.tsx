@@ -233,7 +233,9 @@ const PropertiesViewPage = () => {
                 units: units ?? [],
                 isSpecificYear,
               });
-              const { totalUnits, rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
+              const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
+              const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
+              const total = propertyUnits.length;
 
               const isExpanded = expandedId === property.id;
 
