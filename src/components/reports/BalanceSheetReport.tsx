@@ -122,7 +122,7 @@ const BalanceSheetReport = ({
 
         {/* حقوق الملكية */}
         <div>
-          <h3 className="font-bold text-sm text-accent-foreground mb-2 border-b-2 border-accent pb-1">حقوق الملكية والتوزيعات</h3>
+          <h3 className="font-bold text-sm text-accent-foreground mb-2 border-b-2 border-accent pb-1">حقوق الملكية</h3>
           <Table>
             <TableBody>
               {adminShare > 0 && (
@@ -138,26 +138,33 @@ const BalanceSheetReport = ({
                 </TableRow>
               )}
               <TableRow>
-                <TableCell className="text-muted-foreground">ريع الوقف (للمستفيدين)</TableCell>
+                <TableCell className="text-muted-foreground font-semibold">ريع الوقف (للمستفيدين)</TableCell>
                 <TableCell className="text-start font-medium text-primary">{fmt(waqfRevenue)} ر.س</TableCell>
               </TableRow>
+              {/* تفصيل ريع الوقف — بنود فرعية */}
               {waqfCorpusManual > 0 && (
-                <TableRow>
-                  <TableCell className="text-muted-foreground">رقبة الوقف اليدوية</TableCell>
-                  <TableCell className="text-start font-medium">{fmt(waqfCorpusManual)} ر.س</TableCell>
+                <TableRow className="bg-muted/30">
+                  <TableCell className="text-muted-foreground pr-8 text-xs">↳ رقبة الوقف اليدوية (مُرحّلة)</TableCell>
+                  <TableCell className="text-start text-xs text-muted-foreground">{fmt(waqfCorpusManual)} ر.س</TableCell>
                 </TableRow>
               )}
               {distributionsAmount > 0 && (
-                <TableRow>
-                  <TableCell className="text-muted-foreground">التوزيعات المُنفّذة</TableCell>
-                  <TableCell className="text-start font-medium text-success">{fmt(distributionsAmount)} ر.س</TableCell>
+                <TableRow className="bg-muted/30">
+                  <TableCell className="text-muted-foreground pr-8 text-xs">↳ التوزيعات المُنفّذة</TableCell>
+                  <TableCell className="text-start text-xs text-success">{fmt(distributionsAmount)} ر.س</TableCell>
+                </TableRow>
+              )}
+              {availableAmount > 0 && (
+                <TableRow className="bg-muted/30">
+                  <TableCell className="text-muted-foreground pr-8 text-xs">↳ الرصيد المتبقي</TableCell>
+                  <TableCell className="text-start text-xs">{fmt(availableAmount - distributionsAmount)} ر.س</TableCell>
                 </TableRow>
               )}
             </TableBody>
             <TableFooter>
               <TableRow className="bg-accent/10">
                 <TableCell className="font-bold">إجمالي حقوق الملكية</TableCell>
-                <TableCell className="text-start font-bold">{fmt(totalEquity + distributionsAmount)} ر.س</TableCell>
+                <TableCell className="text-start font-bold">{fmt(totalEquity)} ر.س</TableCell>
               </TableRow>
             </TableFooter>
           </Table>
