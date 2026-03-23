@@ -86,6 +86,7 @@ export function FiscalYearProvider({ children }: { children: React.ReactNode }) 
       isClosed,
       isLoading,
       noPublishedYears,
+      isSpecificYear,
     }}>
       {children}
     </FiscalYearContext.Provider>
