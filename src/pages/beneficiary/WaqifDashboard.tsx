@@ -81,7 +81,7 @@ const WaqifDashboard = () => {
       contractAllocations.forEach(a => {
         allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
       });
-      return relevantContracts.reduce((s, c) => s + (allocMap.get(c.id) ?? 0), 0);
+      return relevantContracts.reduce((s, c) => s + (allocMap.get(c.id ?? '') ?? 0), 0);
     }
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
