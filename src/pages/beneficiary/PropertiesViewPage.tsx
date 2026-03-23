@@ -42,8 +42,7 @@ const PropertiesViewPage = () => {
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
 
-  const getUnitsForProperty = (propertyId: string) =>
-    units?.filter(u => u.property_id === propertyId) ?? [];
+  // getUnitsForProperty moved into computePropertyFinancials
 
   const totalUnits = units?.length ?? 0;
 
