@@ -63,10 +63,10 @@ export function useAccountsCalculations({
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
-  const totalAnnualRent = contracts.reduce((sum, c) => {
+  const totalAnnualRent = useMemo(() => contracts.reduce((sum, c) => {
     const allocation = allocationMap.get(c.id);
     return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
-  }, 0);
+  }, 0), [contracts, allocationMap]);
 
   const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {
     if (contract.payment_amount != null) return Number(contract.payment_amount);
