@@ -185,7 +185,7 @@ const ExpensesPage = () => {
             <ExpenseFormDialog
               isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} setFormData={setFormData}
               isEditing={!!editingExpense} isPending={createExpense.isPending || updateExpense.isPending}
-              properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isClosed}
+              properties={properties} onSubmit={handleSubmit} onReset={resetForm} disabled={isLocked}
             />
           </>}
         />
