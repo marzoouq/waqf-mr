@@ -104,8 +104,7 @@ export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, s
     ...baseTableStyles(fontFamily),
   });
 
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save(`statement-${beneficiaryName}-${fiscalYear}.pdf`);
+  finalizePdf(doc, fontFamily, `statement-${beneficiaryName}-${fiscalYear}.pdf`, waqfInfo, { skipHeaders: true });
 };
 
 export const generateAnnualDisclosurePDF = async (data: {
