@@ -120,7 +120,16 @@ const AdminDashboard = () => {
   const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
   const activeContractsCount = relevantContracts.length;
-  const contractualRevenue = relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  const contractualRevenue = useMemo(() => {
+    if (isSpecificYear && contractAllocations.length > 0) {
+      const allocMap = new Map<string, number>();
+      contractAllocations.forEach(a => {
+        allocMap.set(a.contract_id, (allocMap.get(a.contract_id) ?? 0) + safeNumber(a.allocated_amount));
+      });
+      return relevantContracts.reduce((sum, c) => sum + (allocMap.get(c.id) ?? 0), 0);
+    }
+    return relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
+  }, [relevantContracts, contractAllocations, isSpecificYear]);
 
   const collectionSummary = useMemo(
     () => computeCollectionSummary(contracts, paymentInvoices),
