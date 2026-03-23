@@ -45,7 +45,7 @@ describe('generateComprehensiveBeneficiaryPDF', () => {
       contracts: [{ contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 120000, status: 'active' }],
       distributions: [{ date: '2024-06-01', fiscalYear: '2024-2025', amount: 150000, status: 'paid' }],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-شامل-محمد-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-شامل-محمد-2024-2025.pdf', expect.anything());
   });
 
   it('handles empty contracts and distributions', async () => {
@@ -62,6 +62,6 @@ describe('generateComprehensiveBeneficiaryPDF', () => {
       incomeBySource: {}, expensesByType: {},
       contracts: [], distributions: [],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-شامل-علي-2024-2025.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-شامل-علي-2024-2025.pdf', expect.anything());
   });
 });

@@ -84,7 +84,7 @@ describe('generateForensicAuditPDF', () => {
 
   it('should save file with correct name containing date', async () => {
     await generateForensicAuditPDF(sampleData);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-الفحص-الجنائي-2025-02-17.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-الفحص-الجنائي-2025-02-17.pdf', expect.anything());
   });
 
   it('should handle empty categories and findings', async () => {

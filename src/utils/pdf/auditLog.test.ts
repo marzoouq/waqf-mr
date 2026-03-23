@@ -37,7 +37,7 @@ describe('generateAuditLogPDF', () => {
         { id: '1', table_name: 'contracts', operation: 'INSERT', created_at: '2024-01-15T10:00:00Z', record_id: 'r1', user_id: 'u1', old_data: null, new_data: { tenant_name: 'أحمد' } },
       ],
     });
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-سجل-المراجعة.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'تقرير-سجل-المراجعة.pdf', expect.anything());
   });
 
   it('handles REOPEN operation with reason', async () => {
