@@ -48,7 +48,6 @@ describe('entities PDF', () => {
     await generateUnitsPDF('P-1', 'الرياض', [
       { unit_number: 'U-1', unit_type: 'محل', status: 'مؤجرة', tenant_name: 'خالد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 5000, paid_months: 6, payment_type: 'monthly', payment_count: 12 },
     ]);
-    expect(mockSave).toHaveBeenCalledTimes(1);
-    expect(mockSave.mock.calls[0][0]).toMatch(/^units-report/);
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.stringMatching(/^units-report/), expect.anything());
   });
 });
