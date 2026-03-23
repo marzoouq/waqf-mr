@@ -10,6 +10,8 @@ interface FiscalYearContextType {
   isClosed: boolean;
   isLoading: boolean;
   noPublishedYears: boolean;
+  /** هل تم اختيار سنة مالية محددة (وليس "الكل")؟ */
+  isSpecificYear: boolean;
 }
 
 const FiscalYearContext = createContext<FiscalYearContextType | undefined>(undefined);
