@@ -93,63 +93,9 @@ const ReportsPage = () => {
 
   // ─── Property Performance Data ──────────────────────────────────────
   const { isSpecificYear } = useFiscalYear();
-  // M-11 fix: memoize property performance to avoid recomputation on every render
-  const propertyPerformance = useMemo(() => properties.map((property) => {
-    const propertyUnits = allUnits.filter(u => u.property_id === property.id);
-    const totalUnitsCount = propertyUnits.length;
-
-    const propContracts = contracts.filter(c => c.property_id === property.id);
-    const rentedUnitIds = new Set(
-      propContracts
-        .filter(c => (isSpecificYear || c.status === 'active') && c.unit_id)
-        .map(c => c.unit_id)
-    );
-    const hasWholePropertyContract = propContracts.some(
-      c => (isSpecificYear || c.status === 'active') && !c.unit_id
-    );
-
-    const isWholePropertyRented = totalUnitsCount === 0 && hasWholePropertyContract;
-    const unitBasedRented = propertyUnits.filter(u => rentedUnitIds.has(u.id)).length;
-    const rented = (totalUnitsCount > 0 && hasWholePropertyContract && unitBasedRented === 0)
-      ? totalUnitsCount
-      : (isWholePropertyRented ? totalUnitsCount : unitBasedRented);
-
-    let occupancy: number;
-    if (totalUnitsCount > 0) {
-      occupancy = Math.round((rented / totalUnitsCount) * 100);
-    } else if (isWholePropertyRented) {
-      occupancy = 100;
-    } else {
-      occupancy = 0;
-    }
-
-    // N9 fix: only include active contracts in annualRent
-    const annualRent = propContracts.filter(c => isSpecificYear || c.status === 'active').reduce((sum, c) => sum + Number(c.rent_amount), 0);
-    const propExp = expenses.filter(e => e.property_id === property.id);
-    const totalPropExpenses = propExp.reduce((sum, e) => sum + Number(e.amount), 0);
-    const netIncome = annualRent - totalPropExpenses;
-
-    return {
-      id: property.id,
-      name: property.property_number,
-      type: property.property_type,
-      totalUnits: totalUnitsCount,
-      occupancy,
-      annualRent,
-      totalExpenses: totalPropExpenses,
-      netIncome,
-    };
-  }).sort((a, b) => b.netIncome - a.netIncome), [properties, allUnits, contracts, expenses, isSpecificYear]);
-
-  const perfTotals = useMemo(() => propertyPerformance.reduce(
-    (acc, p) => ({
-      totalUnits: acc.totalUnits + p.totalUnits,
-      annualRent: acc.annualRent + p.annualRent,
-      totalExpenses: acc.totalExpenses + p.totalExpenses,
-      netIncome: acc.netIncome + p.netIncome,
-    }),
-    { totalUnits: 0, annualRent: 0, totalExpenses: 0, netIncome: 0 }
-  ), [propertyPerformance]);
+  const { propertyPerformance, perfTotals } = usePropertyPerformance(
+    properties, contracts, expenses, allUnits, isSpecificYear
+  );
 
   // G4: إضافة فحص حالة السنة — الحصص = 0 في السنوات النشطة فلا يُقارن
   const isYearClosed = fiscalYear?.status === 'closed';
