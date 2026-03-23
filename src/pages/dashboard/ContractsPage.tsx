@@ -44,7 +44,7 @@ const ContractsPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { fiscalYearId, fiscalYears, isClosed, setFiscalYearId } = useFiscalYear();
 
-  const { data: contracts = [], isLoading } = useContractsByFiscalYear(fiscalYearId);
+  const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
   const { data: properties = [] } = useProperties();
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
