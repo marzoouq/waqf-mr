@@ -576,8 +576,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                               <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
                                 <Eye className="w-3.5 h-3.5" />معاينة
                               </Button>
-                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handleDownloadPdf(inv)} disabled={loadingInvoiceId === inv.id}>
-                                {loadingInvoiceId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}PDF
+                              <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => handlePreviewTemplate(inv)}>
+                                <Download className="w-3.5 h-3.5" />PDF
                               </Button>
                               {!isClosed && inv.status !== 'paid' && (
                                 <Button size="sm" variant="outline" className="gap-1 flex-1 text-success" onClick={() => openPayDialog(inv)} disabled={payingInvoiceId === inv.id}>
