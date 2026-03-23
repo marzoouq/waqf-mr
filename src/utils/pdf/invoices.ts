@@ -57,9 +57,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
     ...baseTableStyles(fontFamily),
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-  doc.save('invoices-report.pdf');
+  finalizePdf(doc, fontFamily, 'invoices-report.pdf', waqfInfo);
 };
 
 /**
