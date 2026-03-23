@@ -71,11 +71,9 @@ export const getPaymentStatus = (
 };
 
 /** حساب الإيجار الشهري من بيانات المستأجر */
+/** حساب الإيجار الشهري — دائماً rent_amount / 12 (rent_amount سنوي) */
 export const getMonthlyRent = (tenant: TenantInfo): number => {
-  const rent = safeNumber(tenant.rent_amount);
-  if (tenant.payment_type === 'monthly') return safeNumber(tenant.payment_amount) || rent / 12;
-  if (tenant.payment_type === 'multi') return safeNumber(tenant.payment_amount) || rent / (tenant.payment_count || 1);
-  return rent / 12;
+  return safeNumber(tenant.rent_amount) / 12;
 };
 
 /** حساب الإيجار الشهري من عقد */
