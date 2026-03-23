@@ -32,7 +32,7 @@ interface EditingParams {
   getExpectedPayments: (contract: Contract) => number;
 }
 
-export function useAccountsEditing({ contracts, collectionData, tenantPayments, fiscalYearId, getExpectedPayments }: EditingParams) {
+export function useAccountsEditing({ contracts, collectionData, getExpectedPayments }: EditingParams) {
   const updateContract = useUpdateContract();
   const deleteContract = useDeleteContract();
   const deleteAccount = useDeleteAccount();

@@ -61,7 +61,6 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
   
-  const { fiscalYearId } = useFiscalYear();
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
   const deleteUnit = useDeleteUnit();
