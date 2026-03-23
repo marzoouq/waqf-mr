@@ -116,7 +116,7 @@ const MobileAccrualCard = ({ contract, cells, total, grid }: { contract: Contrac
 };
 
 const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fiscalYearId, fiscalYear }: MonthlyAccrualTableProps) => {
-  const isSpecificYear = fiscalYearId && fiscalYearId !== 'all';
+  const isSpecificYear = fiscalYearId && fiscalYearId !== 'all' && fiscalYearId !== '__none__';
 
   const activeContracts = useMemo(
     () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),
