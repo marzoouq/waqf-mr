@@ -27,7 +27,7 @@ const stableJsonSettings: Record<string, any> = {
   notification_settings: { contract_expiry: true, contract_expiry_days: 30, payment_delays: true, email_notifications: false },
 };
 
-vi.mock('@/hooks/useAppSettings', () => ({
+vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({
     data: mockSettings,
     isLoading: false,

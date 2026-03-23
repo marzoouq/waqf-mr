@@ -26,7 +26,7 @@ vi.mock('@/hooks/useBylaws', () => ({
   useReorderBylaws: vi.fn(),
 }));
 
-vi.mock('@/hooks/useAppSettings', () => ({
+vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(),
 }));
 

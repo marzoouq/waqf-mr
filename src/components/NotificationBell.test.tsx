@@ -10,7 +10,7 @@ const baseMock = {
   deleteRead: { mutate: vi.fn() },
 };
 
-vi.mock('@/hooks/useNotifications', () => ({
+vi.mock('@/hooks/data/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     data: [],
     filteredData: [],
