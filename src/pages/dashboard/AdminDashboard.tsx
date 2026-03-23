@@ -83,6 +83,7 @@ const AdminDashboard = () => {
   const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
   const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
   const { data: paymentInvoices = [], isLoading: paymentsLoading } = usePaymentInvoices(fiscalYearId || 'all');
+  const { data: contractAllocations = [] } = useContractAllocations(isSpecificYear ? fiscalYearId : undefined);
 
   const { data: orphanedContracts = [] } = useQuery({
     queryKey: ['contracts', 'orphaned'],
