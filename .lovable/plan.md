@@ -15,8 +15,8 @@
 
 | # | التوصية | الأولوية | الحالة |
 |---|---------|----------|--------|
-| 1 | استخراج `usePropertyFinancials` hook مشترك | متوسطة | ⏳ |
-| 2 | تفكيك `PropertyUnitsDialog` إلى مكونات فرعية | منخفضة | ⏳ |
-| 3 | إضافة اختبارات لـ `CloseYearChecklist` و `DistributeDialog` | متوسطة | ⏳ |
-| 4 | إضافة اختبار لتدفق PDF الجديد (`html2canvas`) | منخفضة | ⏳ |
-| 5 | توثيق قواعد العمل المالية (rent_amount سنوي دائماً) | منخفضة | ⏳ |
+| 1 | استخراج `usePropertyFinancials` hook مشترك | متوسطة | ✅ تم |
+| 2 | تفكيك `PropertyUnitsDialog` إلى مكونات فرعية | منخفضة | ✅ تم |
+| 3 | إضافة اختبارات لـ `CloseYearChecklist` و `DistributeDialog` | متوسطة | ✅ تم |
+| 4 | إضافة اختبار لتدفق PDF الجديد (`html2canvas`) | منخفضة | ✅ تم |
+| 5 | توثيق قواعد العمل المالية (rent_amount سنوي دائماً) | منخفضة | ✅ تم |
