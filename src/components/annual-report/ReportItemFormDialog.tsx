@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { AnnualReportItem, SectionType } from '@/hooks/useAnnualReport';
+import type { AnnualReportItem, SectionType } from '@/hooks/data/useAnnualReport';
 
 interface Property {
   id: string;

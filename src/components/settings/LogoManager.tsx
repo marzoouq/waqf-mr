@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Trash2, ImageIcon } from 'lucide-react';
-import { useWaqfInfo } from '@/hooks/useAppSettings';
+import { useWaqfInfo } from '@/hooks/page/useAppSettings';
 
 const LogoManager = () => {
   const { data: waqfInfo, isLoading } = useWaqfInfo();

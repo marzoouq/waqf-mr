@@ -46,7 +46,7 @@ vi.mock('@/hooks/useContracts', () => ({
   })),
 }));
 
-vi.mock('@/hooks/useNotifications', () => ({
+vi.mock('@/hooks/data/useNotifications', () => ({
   useNotifications: vi.fn(() => ({ data: [], unreadCount: 0 })),
   TONE_OPTIONS: [
     { id: 'chime', label: 'رنين كلاسيكي' },

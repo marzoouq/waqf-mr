@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { UnitRow } from '@/hooks/useUnits';
+import type { UnitRow } from '@/hooks/data/useUnits';
 
 interface DeleteUnitDialogProps {
   unit: UnitRow | null;

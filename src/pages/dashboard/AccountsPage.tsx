@@ -6,11 +6,11 @@ import { Plus, Lock, Wallet } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import { useAccountsPage } from '@/hooks/useAccountsPage';
+import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
-import { useAdvanceRequests } from '@/hooks/useAdvanceRequests';
-import { useTotalBeneficiaryPercentage } from '@/hooks/useTotalBeneficiaryPercentage';
+import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
+import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
 
 import AccountsSettingsBar from '@/components/accounts/AccountsSettingsBar';
 import AccountsSummaryCards from '@/components/accounts/AccountsSummaryCards';

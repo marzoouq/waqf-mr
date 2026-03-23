@@ -23,12 +23,12 @@ vi.mock('@/hooks/useBylaws', () => ({
   useBylaws: vi.fn(),
 }));
 
-vi.mock('@/hooks/useAppSettings', () => ({
+vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(),
 }));
 
-import { useBylaws } from '@/hooks/useBylaws';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useBylaws } from '@/hooks/data/useBylaws';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import BylawsViewPage from './BylawsViewPage';
 
 const mockedUseBylaws = vi.mocked(useBylaws);

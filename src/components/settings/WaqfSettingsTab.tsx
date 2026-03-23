@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 import LogoManager from '@/components/settings/LogoManager';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 const waqfFields = [
   { key: 'waqf_name', label: 'اسم الوقف' },

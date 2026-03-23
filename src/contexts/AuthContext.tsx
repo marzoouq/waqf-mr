@@ -8,19 +8,19 @@
  */
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { logAccessEvent } from '@/hooks/useAccessLog';
-import { checkNewDeviceLogin } from '@/hooks/useSecurityAlerts';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { checkNewDeviceLogin } from '@/hooks/data/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
 import { queryClient } from '@/lib/queryClient';
-import { clearToasts, toast } from '@/hooks/use-toast';
-import { AuthContext } from '@/hooks/useAuthContext';
+import { clearToasts, toast } from '@/hooks/ui/use-toast';
+import { AuthContext } from '@/hooks/auth/useAuthContext';
 
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
-export { useAuth } from '@/hooks/useAuthContext';
+export { useAuth } from '@/hooks/auth/useAuthContext';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

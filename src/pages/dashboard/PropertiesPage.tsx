@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { computePropertyFinancials } from '@/hooks/usePropertyFinancials';
+import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
@@ -10,20 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/useProperties';
+import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/useProperties';
 import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
-import { useAllUnits } from '@/hooks/useUnits';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useAllUnits } from '@/hooks/data/useUnits';
+import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
+import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/useFinancialSummary';
+import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

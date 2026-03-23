@@ -4,7 +4,7 @@
  */
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBfcacheSafeChannel } from '@/hooks/useBfcacheSafeChannel';
+import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
 /**
  * يشترك في تغييرات Realtime على الجداول المحددة ويبطل الكاش تلقائياً

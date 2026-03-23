@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/safeNumber';
-import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/useContracts';
-import { useProperties } from '@/hooks/useProperties';
-import { usePaymentInvoices } from '@/hooks/usePaymentInvoices';
+import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { useProperties } from '@/hooks/data/useProperties';
+import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useContractAllocations } from '@/hooks/useContractAllocations';
+import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
 import { Contract } from '@/types/database';
 import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
 import { supabase } from '@/integrations/supabase/client';

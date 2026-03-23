@@ -40,7 +40,7 @@ vi.mock('@/hooks/useContracts', () => ({
   useDeleteContract: () => ({ mutateAsync: vi.fn() }),
 }));
 
-vi.mock('@/hooks/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiaries: () => ({ data: [{ id: 'b1', name: 'محمد', share_percentage: 60 }, { id: 'b2', name: 'علي', share_percentage: 40 }] }),
 }));
 
@@ -57,7 +57,7 @@ vi.mock('@/hooks/useProperties', () => ({
   useProperties: () => ({ data: [{ id: 'p1', property_type: 'تجاري' }] }),
 }));
 
-vi.mock('@/hooks/useAppSettings', () => ({
+vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: () => ({
     data: { admin_share_percentage: '10', waqif_share_percentage: '5', vat_percentage: '15', residential_vat_exempt: 'true' },
     updateSetting: { mutateAsync: vi.fn() },

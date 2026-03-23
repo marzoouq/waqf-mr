@@ -4,15 +4,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useUnits, UnitRow } from '@/hooks/useUnits';
-import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/useUnits';
-import { useCreateContract, useUpdateContract } from '@/hooks/useContracts';
-import { useTenantPayments } from '@/hooks/useTenantPayments';
+import { useUnits, UnitRow } from '@/hooks/data/useUnits';
+import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
+import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
+import { useTenantPayments } from '@/hooks/data/useTenantPayments';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateUnitsPDF, UnitPdfRow } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 
 import UnitFormCard, { type UnitFormData } from './units/UnitFormCard';

@@ -2,8 +2,8 @@
  * عمليات صفحة الحسابات — حفظ، إقفال سنة، تصدير PDF
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useCreateAccount } from '@/hooks/useAccounts';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useCreateAccount } from '@/hooks/financial/useAccounts';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';

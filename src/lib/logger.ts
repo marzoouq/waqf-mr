@@ -3,7 +3,7 @@
  * في production: يُسكت كل شيء ما عدا الأخطاء الحرجة التي تُسجَّل في access_log
  * في development: يطبع كالمعتاد
  */
-import { logAccessEvent } from '@/hooks/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
 
 const isDev = import.meta.env.DEV;
 

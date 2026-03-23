@@ -11,7 +11,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
 import BetaBanner from '@/components/BetaBanner';
@@ -23,10 +23,10 @@ import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
 import DiagnosticOverlay from '@/components/DiagnosticOverlay';
-import { useIdleTimeout } from '@/hooks/useIdleTimeout';
+import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
-import { logAccessEvent } from '@/hooks/useAccessLog';
-import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,

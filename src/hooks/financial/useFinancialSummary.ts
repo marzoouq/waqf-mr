@@ -2,11 +2,11 @@
  * Unified financial summary hook — composes useRawFinancialData + useComputedFinancials.
  * This remains the single entry-point used across all pages for backward compatibility.
  */
-import { useRawFinancialData } from '@/hooks/useRawFinancialData';
-import { useComputedFinancials } from '@/hooks/useComputedFinancials';
+import { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
+import { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 
-export { useRawFinancialData } from '@/hooks/useRawFinancialData';
-export { useComputedFinancials } from '@/hooks/useComputedFinancials';
+export { useRawFinancialData } from '@/hooks/financial/useRawFinancialData';
+export { useComputedFinancials } from '@/hooks/financial/useComputedFinancials';
 
 export const useFinancialSummary = (fiscalYearId?: string, fiscalYearLabel?: string, opts?: { forceClosedMode?: boolean; fiscalYearStatus?: string }) => {
   const { income, expenses, accounts, beneficiaries, settings, isLoading, isError } =

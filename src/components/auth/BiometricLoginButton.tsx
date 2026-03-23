@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Fingerprint, Loader2 } from 'lucide-react';
-import { isBiometricEnabled } from '@/hooks/useWebAuthn';
+import { isBiometricEnabled } from '@/hooks/auth/useWebAuthn';
 import { supabase } from '@/integrations/supabase/client';
 import { browserSupportsWebAuthn, startAuthentication } from '@simplewebauthn/browser';
 

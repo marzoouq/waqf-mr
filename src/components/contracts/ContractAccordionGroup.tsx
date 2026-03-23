@@ -4,7 +4,7 @@
  */
 import { useMemo } from 'react';
 import { Contract } from '@/types/database';
-import { PaymentInvoice } from '@/hooks/usePaymentInvoices';
+import { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

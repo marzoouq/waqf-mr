@@ -7,7 +7,7 @@ import {
   previewTone,
   type ToneId,
   type VolumeLevel,
-} from '@/hooks/useNotifications';
+} from '@/hooks/data/useNotifications';
 
 const NOTIF_SOUND_KEY = 'waqf_notification_sound';
 

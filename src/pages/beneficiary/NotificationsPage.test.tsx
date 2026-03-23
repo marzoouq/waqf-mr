@@ -9,7 +9,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'u1', email: 'ben@waqf.com' }, role: 'beneficiary', signOut: vi.fn() }))
 }));
 
-vi.mock('@/hooks/useAppSettings', () => ({
+vi.mock('@/hooks/page/useAppSettings', () => ({
   useAppSettings: vi.fn(() => ({ getJsonSetting: vi.fn((_k: string, d: any) => d), isLoading: false }))
 }));
 
@@ -18,7 +18,7 @@ const mockMarkAllAsRead = { mutate: vi.fn() };
 const mockDeleteRead = { mutate: vi.fn() };
 const mockDeleteOne = { mutate: vi.fn() };
 
-vi.mock('@/hooks/useNotifications', () => ({
+vi.mock('@/hooks/data/useNotifications', () => ({
   useNotifications: vi.fn(() => ({
     data: [
       { id: 'n1', title: 'تم حفظ الحسابات', message: 'تم حفظ الحسابات الختامية', type: 'payment', is_read: false, created_at: new Date().toISOString(), link: null },
@@ -123,7 +123,7 @@ describe('NotificationsPage', () => {
   });
 
   it('shows empty state when no notifications', async () => {
-    const { useNotifications } = await import('@/hooks/useNotifications');
+    const { useNotifications } = await import('@/hooks/data/useNotifications');
     (useNotifications as any).mockReturnValueOnce({
       data: [],
       filteredData: [],

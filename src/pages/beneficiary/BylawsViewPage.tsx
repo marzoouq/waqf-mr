@@ -1,8 +1,8 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useBylaws } from '@/hooks/useBylaws';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useBylaws } from '@/hooks/data/useBylaws';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -12,7 +12,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Button } from '@/components/ui/button';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 

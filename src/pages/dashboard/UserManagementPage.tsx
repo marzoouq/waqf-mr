@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Users, Lock, Unlock, AlertTriangle, Search } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import { useUserManagement } from '@/hooks/useUserManagement';
+import { useUserManagement } from '@/hooks/auth/useUserManagement';
 import UsersTable from '@/components/user-management/UsersTable';
 import CreateUserForm from '@/components/user-management/CreateUserForm';
 import { UserEditDialog, UserPasswordDialog, UserDeleteDialog } from '@/components/user-management/UserDialogs';

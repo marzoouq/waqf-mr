@@ -7,7 +7,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
 import { getPaymentStatus, getMonthlyRent, type TenantInfo } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
-import type { UnitRow } from '@/hooks/useUnits';
+import type { UnitRow } from '@/hooks/data/useUnits';
 
 interface MobileUnitCardProps {
   unit: UnitRow;

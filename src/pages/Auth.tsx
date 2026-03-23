@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Building2, LogIn, UserPlus, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { logAccessEvent } from '@/hooks/useAccessLog';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm';

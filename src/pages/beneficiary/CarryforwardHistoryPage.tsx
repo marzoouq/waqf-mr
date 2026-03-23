@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/useAdvanceRequests';
+import { useMyCarryforwards, useMyAdvanceRequests, useCarryforwardBalance } from '@/hooks/financial/useAdvanceRequests';
 import { DashboardSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
 import { ArrowDownUp, TrendingDown, CheckCircle, Clock, AlertTriangle, Wallet, RefreshCw, ArrowRight } from 'lucide-react';

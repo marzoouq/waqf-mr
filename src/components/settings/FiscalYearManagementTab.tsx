@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Calendar, Plus, Lock, Unlock, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
-import { useFiscalYears, type FiscalYear } from '@/hooks/useFiscalYears';
+import { useFiscalYears, type FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';

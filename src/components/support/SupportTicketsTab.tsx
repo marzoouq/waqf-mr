@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MessageSquare, Search, Filter, Download, Eye, Loader2, Clock, ArrowUpCircle, CheckCircle, XCircle, Star } from 'lucide-react';
-import type { SupportTicket } from '@/hooks/useSupportTickets';
+import type { SupportTicket } from '@/hooks/data/useSupportTickets';
 
 const PRIORITY_MAP: Record<string, { label: string; color: string }> = {
   low: { label: 'منخفض', color: 'bg-muted text-muted-foreground' },

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mail, Shield, Link2, Eye, EyeOff, AlertTriangle } from 'lucide-react';
-import type { ManagedUser } from '@/hooks/useUserManagement';
+import type { ManagedUser } from '@/hooks/auth/useUserManagement';
 
 // ======================== تعديل المستخدم ========================
 interface EditDialogProps {

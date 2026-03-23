@@ -2,7 +2,7 @@
  * صفحة عرض العقود للمستفيد (قراءة فقط)
  */
 import { EXPIRING_SOON_DAYS } from '@/constants';
-import { useContractsSafeByFiscalYear } from '@/hooks/useContracts';
+import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useMemo, useCallback } from 'react';
 import { generateContractsPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
 

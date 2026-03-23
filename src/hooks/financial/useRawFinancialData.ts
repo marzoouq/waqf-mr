@@ -1,8 +1,8 @@
-import { useIncomeByFiscalYear } from '@/hooks/useIncome';
-import { useExpensesByFiscalYear } from '@/hooks/useExpenses';
-import { useAccountByFiscalYear } from '@/hooks/useAccounts';
-import { useBeneficiariesSafe } from '@/hooks/useBeneficiaries';
-import { useAppSettings } from '@/hooks/useAppSettings';
+import { useIncomeByFiscalYear } from '@/hooks/data/useIncome';
+import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
+import { useAccountByFiscalYear } from '@/hooks/financial/useAccounts';
+import { useBeneficiariesSafe } from '@/hooks/data/useBeneficiaries';
+import { useAppSettings } from '@/hooks/page/useAppSettings';
 
 /**
  * Fetches all raw financial data (income, expenses, accounts, beneficiaries, settings).

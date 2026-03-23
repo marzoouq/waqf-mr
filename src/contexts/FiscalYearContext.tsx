@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useActiveFiscalYear, FiscalYear } from '@/hooks/useFiscalYears';
+import { useActiveFiscalYear, FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface FiscalYearContextType {

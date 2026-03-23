@@ -62,7 +62,7 @@ vi.mock('@/hooks/useContracts', () => ({
   useContractsSafeByFiscalYear: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiariesSafe: () => ({ data: [], isLoading: false }),
 }));
 

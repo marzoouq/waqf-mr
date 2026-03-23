@@ -6,7 +6,7 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({ user: { id: 'user-1', email: 'ahmed@test.com' }, role: 'beneficiary' })),
 }));
 
-vi.mock('@/hooks/useBeneficiaries', () => ({
+vi.mock('@/hooks/data/useBeneficiaries', () => ({
   useBeneficiariesSafe: vi.fn(() => ({
     data: [
       { id: 'b1', user_id: 'user-1', name: 'أحمد محمد', share_percentage: 10, phone: '0551234567', email: 'ahmed@test.com', national_id: '1234567890', bank_account: null, notes: null },
@@ -30,7 +30,7 @@ vi.mock('@/hooks/useFiscalYears', () => ({
   useFiscalYears: vi.fn(() => ({ data: [{ id: 'fy1', label: '1446-1447', status: 'active' }], isLoading: false })),
 }));
 
-vi.mock('@/hooks/useNotifications', () => ({
+vi.mock('@/hooks/data/useNotifications', () => ({
   useNotifications: vi.fn(() => ({ data: [], unreadCount: 0 })),
   TONE_OPTIONS: [{ id: 'default', label: 'افتراضي', file: '/sounds/default.mp3' }],
   NOTIFICATION_TONE_KEY: 'waqf_notification_tone',
@@ -99,7 +99,7 @@ describe('BeneficiarySettingsPage', () => {
   });
 
   it('يعرض حالة الخطأ', async () => {
-    const { useBeneficiariesSafe } = await import('@/hooks/useBeneficiaries');
+    const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
     (useBeneficiariesSafe as any).mockReturnValueOnce({
       data: [], isLoading: false, isError: true,
     });
@@ -108,7 +108,7 @@ describe('BeneficiarySettingsPage', () => {
   });
 
   it('يعرض حالة التحميل', async () => {
-    const { useBeneficiariesSafe } = await import('@/hooks/useBeneficiaries');
+    const { useBeneficiariesSafe } = await import('@/hooks/data/useBeneficiaries');
     (useBeneficiariesSafe as any).mockReturnValueOnce({
       data: [], isLoading: true, isError: false,
     });

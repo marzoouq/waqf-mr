@@ -10,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2, AlertTriangle, XCircle, Info, Download } from 'lucide-react';
 import { runAllDiagnostics, type CheckResult, type CheckStatus } from '@/utils/diagnostics/checks';
 import { sanitizeDiagnosticOutput } from '@/utils/diagnostics/sanitize';
-import { logAccessEvent } from '@/hooks/useAccessLog';
-import { useAuth } from '@/hooks/useAuthContext';
+import { logAccessEvent } from '@/hooks/data/useAccessLog';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { logger } from '@/lib/logger';
 
 interface Props {

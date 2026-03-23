@@ -24,9 +24,9 @@ import {
   useGenerateAllInvoices,
   useMarkInvoicePaid,
   useMarkInvoiceUnpaid,
-} from '@/hooks/usePaymentInvoices';
+} from '@/hooks/data/usePaymentInvoices';
 import { generateOverdueInvoicesPDF } from '@/utils/pdf';
-import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
+import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import TablePagination from '@/components/TablePagination';
 import InvoiceStepsGuide from '@/components/invoices/InvoiceStepsGuide';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -34,7 +34,7 @@ import { Link } from 'react-router-dom';
 import InvoicePreviewDialog from '@/components/invoices/InvoicePreviewDialog';
 import type { InvoicePreviewData } from '@/components/invoices/InvoicePreviewDialog';
 import { safeNumber as sn } from '@/utils/safeNumber';
-import { useContractsByFiscalYear } from '@/hooks/useContracts';
+import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { fmt } from '@/utils/format';
 
 interface PaymentInvoicesTabProps {
