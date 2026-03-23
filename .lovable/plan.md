@@ -1,99 +1,89 @@
 
 
-# تقرير فحص قاعدة البيانات التفصيلي — مارس 2026 (محدّث)
+# تقرير كشف الأكواد الميتة والمكررة
 
 ---
 
-## الحالة: ✅ ممتازة — لا مشاكل متبقية
+## الحالة: ✅ نظيفة — لا أكواد ميتة أو مكررة
 
-بعد فحص 233 ملف ترحيل والمخطط الحالي، جميع التوصيات السابقة **مُنفّذة ومؤكدة**.
-
----
-
-## 1. ملخص الهيكل
-
-| البند | القيمة |
-|-------|--------|
-| الجداول | 37 |
-| Views | 2 (beneficiaries_safe, contracts_safe) |
-| FK Constraints | 29+ |
-| Triggers | ~30 |
-| Functions | ~40 |
-| ملفات الترحيل | 233 |
-| RLS Coverage | 100% (37/37) |
+تم فحص جميع المكونات (68+ component)، الـ hooks (42 hook)، والـ utils بالكامل.
 
 ---
 
-## 2. الإصلاحات المُنفّذة (مؤكدة)
+## 1. المكونات المُستخدمة — ✅ الكل نشط
 
-| الإصلاح | الترحيل | الحالة |
-|---------|---------|--------|
-| ON DELETE SET NULL → RESTRICT (income, expenses, distributions, accounts) | `20260323001534` | ✅ |
-| Polymorphic validation triggers (invoice_chain, invoice_items) | `20260323001534` | ✅ |
-| search_path للدوال الجديدة | `20260323001542` | ✅ |
-| distributions Realtime | `20260220024415` + `20260322223049` | ✅ |
-| حذف unique_contract_number المكرر | `20260322223049` + `20260322232513` | ✅ |
-| fiscal_year_id NOT NULL | جميع الجداول المالية | ✅ |
+| المكون | مُستورد في |
+|--------|-----------|
+| `DiagnosticOverlay` | `DashboardLayout.tsx` |
+| `SwUpdateBanner` | `App.tsx` |
+| `PwaUpdateNotifier` | `App.tsx` |
+| `LegalPageFooter` | `PrivacyPolicy.tsx` + `TermsOfUse.tsx` |
+| `ThemeColorPicker` | `SettingsPage.tsx` + `BeneficiarySettingsPage.tsx` |
+| `BetaBanner` | `DashboardLayout.tsx` |
+| `PrintHeader` / `PrintFooter` | `DashboardLayout.tsx` |
+| جميع مكونات `dashboard/*` (13 ملف) | `AdminDashboard.tsx` + `IncomePage.tsx` |
 
----
-
-## 3. سلامة العلاقات — ✅
-
-```text
-auth.users
-  ├── user_roles (user_id)
-  ├── beneficiaries (user_id)
-  ├── notifications (user_id — no FK, correct)
-  └── webauthn_credentials (user_id — no FK, correct)
-
-fiscal_years
-  ├── accounts (RESTRICT) ✅
-  ├── income (RESTRICT) ✅
-  ├── expenses (RESTRICT) ✅
-  ├── distributions (RESTRICT) ✅
-  ├── contracts (SET NULL — nullable, correct) ✅
-  └── payment_invoices (SET NULL — nullable, correct) ✅
-
-properties → units → contracts → payment_invoices
-                                → tenant_payments
-                                → income
-```
+**لا توجد مكونات يتيمة (orphaned).**
 
 ---
 
-## 4. حماية البيانات — ✅
+## 2. الـ Hooks — ✅ الكل نشط
 
-| الآلية | التغطية |
-|--------|---------|
-| RLS | 37/37 جدول |
-| Restrictive fiscal year policy | 10 جداول |
-| Fiscal year modification triggers | 5 جداول |
-| Audit logging triggers | 10 جداول |
-| PII masking views | 2 views (SECURITY DEFINER + BARRIER) |
-| Immutable logs | access_log + access_log_archive |
-| Rate limits | RLS USING(false) |
+| Hook | مُستخدم في |
+|------|-----------|
+| `useBfcacheSafeChannel` | 4 hooks (Notifications, Messaging, RealtimeAlerts, BeneficiaryDashboard) |
+| `useSecurityAlerts` | `AuthContext.tsx` |
+| `useNotificationPreferences` | `SettingsPage.tsx` + `BeneficiarySettingsPage.tsx` |
+| جميع الـ 42 hooks | مُستخدمة في صفحات أو hooks أخرى |
+
+**لا توجد hooks يتيمة.**
 
 ---
 
-## 5. فحص التوافق مع الاستعلامات — ✅
+## 3. Commented-out Code — ✅ لا يوجد
 
-| النمط | التوافق |
+البحث عن أنماط `// import`, `// const`, `// function`, `// export` أرجع **0 نتائج** في كود المشروع (النتائج الوحيدة من `client.ts` المُولّد تلقائياً وملف اختبار).
+
+---
+
+## 4. مكونات مكررة — ✅ لا يوجد
+
+| النمط | التقييم |
 |-------|---------|
-| Supabase JS joins (`property:properties(*)`) | ✅ FK موجود |
-| Polymorphic queries (invoice_chain, invoice_items) | ✅ Validation triggers |
-| Fiscal year filtering | ✅ `is_fiscal_year_accessible` restrictive |
-| Contract allocation | ✅ `contract_fiscal_allocations` table |
-| Beneficiary self-service | ✅ `beneficiaries.user_id = auth.uid()` |
+| `CollectionSummaryCard` vs `CollectionSummaryChart` | **ليسا مكررين** — Card يحتوي Chart داخلياً (lazy loaded) |
+| `SwUpdateBanner` vs `PwaUpdateNotifier` | **ليسا مكررين** — الأول للـ SW update، الثاني للـ changelog |
+| `PrintHeader` vs `PrintFooter` | **مكملان** — header/footer للطباعة |
+| `DashboardLayout` vs `dashboard-layout/` | **مكملان** — المجلد يحتوي `constants.ts` فقط |
 
 ---
 
-## 6. جداول مكررة أو غير مستخدمة — ✅ لا يوجد
+## 5. فرص إعادة الاستخدام — ✅ مُستغلّة بالفعل
 
-تم التحقق: كل الـ 37 جدول مستخدم في الكود الحالي. لا توجد جداول يتيمة.
+| النمط | الحالة |
+|-------|--------|
+| `RequirePublishedYears` wrapper | ✅ مُعاد استخدامه عبر صفحات المستفيد |
+| `PageHeaderCard` | ✅ مُعاد استخدامه في جميع الصفحات |
+| `MobileCardView` | ✅ مُعاد استخدامه في صفحات الجداول |
+| `ExportMenu` | ✅ مُعاد استخدامه في صفحات التصدير |
+| `useCrudFactory` | ✅ مُعاد استخدامه لجميع عمليات CRUD |
+| `useBfcacheSafeChannel` | ✅ مُعاد استخدامه في 4 hooks |
+| `useNotificationPreferences` | ✅ مُعاد استخدامه في إعدادات الناظر والمستفيد |
 
 ---
 
 ## الخلاصة
 
-**لا توجد مشاكل في قاعدة البيانات.** الهيكل نظيف، العلاقات سليمة، القيود متسقة، وسلامة البيانات محمية بطبقات متعددة (RLS + triggers + views). لا يوجد أي إجراء مطلوب.
+```text
+╔══════════════════════════════════════════════╗
+║  كشف الأكواد الميتة: ✅ نظيف تماماً        ║
+╠══════════════════════════════════════════════╣
+║  مكونات يتيمة: 0                            ║
+║  Hooks غير مستخدمة: 0                       ║
+║  كود معلّق (commented-out): 0               ║
+║  مكونات مكررة: 0                            ║
+║  فرص إعادة استخدام مهدرة: 0                 ║
+╚══════════════════════════════════════════════╝
+```
+
+**لا يوجد أي إجراء مطلوب.** المشروع خالٍ من الأكواد الميتة والمكررة، وأنماط إعادة الاستخدام مُطبّقة بشكل ممتاز.
 
