@@ -104,12 +104,6 @@ const AnnualDisclosureTable = ({
                   <td className="py-2 px-4 font-medium text-destructive">-{fmt(item.value)}</td>
                 </tr>
               ))}
-              {vatAmount > 0 && (
-                <tr className="border-b">
-                  <td className="py-2 px-4 pr-8 text-muted-foreground">  ضريبة القيمة المضافة</td>
-                  <td className="py-2 px-4 font-medium text-destructive">-{fmt(vatAmount)}</td>
-                </tr>
-              )}
               <tr className="border-b-2 border-destructive bg-destructive/10">
                 <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
                 <td className="py-3 px-4 font-bold text-destructive">-{fmt(totalExpenses)}</td>
