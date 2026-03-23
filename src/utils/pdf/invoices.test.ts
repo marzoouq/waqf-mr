@@ -35,6 +35,7 @@ describe('generateInvoicesViewPDF', () => {
     await generateInvoicesViewPDF([
       { invoice_type: 'إيجار', invoice_number: 'INV-001', amount: 10000, date: '2024-01-01', property_number: 'P-1', status: 'paid' },
     ]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'invoices-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('invoices-report.pdf');
   });
 });

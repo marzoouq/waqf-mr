@@ -31,24 +31,27 @@ describe('entities PDF', () => {
 
   it('generatePropertiesPDF saves correctly', async () => {
     await generatePropertiesPDF([{ property_number: 'P-1', property_type: 'تجاري', location: 'الرياض', area: 500 }]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'properties-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('properties-report.pdf');
   });
 
   it('generateContractsPDF saves correctly', async () => {
     await generateContractsPDF([{ contract_number: 'W-001', tenant_name: 'أحمد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 120000, status: 'active' }]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'contracts-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('contracts-report.pdf');
   });
 
   it('generateBeneficiariesPDF saves correctly', async () => {
     await generateBeneficiariesPDF([{ name: 'محمد', share_percentage: 60, phone: '0501234567', email: 'a@b.com', bank_account: 'SA1234567890', national_id: '1234567890' }]);
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'beneficiaries-report.pdf');
+    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import('./core')).finalizePdf).mock.calls[0]?.[2]).toBe('beneficiaries-report.pdf');
   });
 
   it('generateUnitsPDF saves correctly', async () => {
     await generateUnitsPDF('P-1', 'الرياض', [
       { unit_number: 'U-1', unit_type: 'محل', status: 'مؤجرة', tenant_name: 'خالد', start_date: '2024-01-01', end_date: '2025-01-01', rent_amount: 5000, paid_months: 6, payment_type: 'monthly', payment_count: 12 },
     ]);
-    expect(mockSave).toHaveBeenCalledTimes(1);
-    expect(mockSave.mock.calls[0][0]).toMatch(/^units-report/);
+    expect(vi.mocked((await import("./core")).finalizePdf)).toHaveBeenCalled();
+    expect(vi.mocked((await import("./core")).finalizePdf).mock.calls[0]?.[2]).toMatch(/^units-report/);
   });
 });

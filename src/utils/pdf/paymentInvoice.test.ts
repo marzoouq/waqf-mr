@@ -136,7 +136,7 @@ describe('generatePaymentInvoicePDF', () => {
     const { generatePaymentInvoicePDF } = await import('./paymentInvoice');
     const result = await generatePaymentInvoicePDF(makeInvoice());
     expect(result).toBeNull();
-    expect(vi.mocked((await import('./core')).finalizePdf)).toHaveBeenCalled();
+    expect(mockSave).toHaveBeenCalled();
   });
 
   it('generates QR even without vatNumber (uses empty string)', async () => {
