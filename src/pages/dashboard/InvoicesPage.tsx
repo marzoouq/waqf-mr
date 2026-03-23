@@ -20,7 +20,7 @@ import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, Fi
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
-import { generateInvoicesViewPDF, generateInvoiceClientPDF } from '@/utils/pdf';
+import { generateInvoicesViewPDF } from '@/utils/pdf';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { usePdfWaqfInfo } from '@/hooks/usePdfWaqfInfo';
 import InvoiceGridView from '@/components/invoices/InvoiceGridView';
