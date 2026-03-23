@@ -50,7 +50,7 @@ const InvoicesPage = () => {
             {(() => {
               const withoutFiles = h.invoices.filter(inv => !inv.file_path);
               return withoutFiles.length > 0 ? (
-                <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || h.isClosed} onClick={() => h.generatePdf.mutate(withoutFiles.map(inv => inv.id))}>
+                <Button variant="outline" className="gap-2" disabled={h.generatePdf.isPending || isLocked} onClick={() => h.generatePdf.mutate(withoutFiles.map(inv => inv.id))}>
                   <FileDown className="w-4 h-4" />{h.generatePdf.isPending ? 'جاري التوليد...' : `توليد PDF (${withoutFiles.length})`}
                 </Button>
               ) : null;
