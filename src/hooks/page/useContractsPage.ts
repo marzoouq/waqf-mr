@@ -61,13 +61,30 @@ export const useContractsPage = () => {
     const num = contract.contract_number;
     const match = num.match(/-R(\d+)$/);
     const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+    // حساب تواريخ مقترحة بناءً على مدة العقد الأصلي
+    const oldStart = new Date(contract.start_date);
+    const oldEnd = new Date(contract.end_date);
+    const durationMs = oldEnd.getTime() - oldStart.getTime();
+    const newStart = new Date(oldEnd);
+    const newEnd = new Date(newStart.getTime() + durationMs);
     setFormInitialData({
       contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || '',
-      tenant_name: contract.tenant_name, start_date: '', end_date: '', rent_amount: contract.rent_amount.toString(),
+      tenant_name: contract.tenant_name,
+      start_date: newStart.toISOString().split('T')[0],
+      end_date: newEnd.toISOString().split('T')[0],
+      rent_amount: contract.rent_amount.toString(),
       status: 'active', notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
       rental_mode: 'single', selected_unit_ids: [], pricing_mode: 'total', rent_per_unit: {}, vat_applicable: false,
-      tenant_id_type: 'NAT', tenant_id_number: '', tenant_tax_number: '', tenant_crn: '', tenant_street: '', tenant_building: '', tenant_district: '', tenant_city: '', tenant_postal_code: '',
+      tenant_id_type: contract.tenant_id_type || 'NAT',
+      tenant_id_number: contract.tenant_id_number || '',
+      tenant_tax_number: contract.tenant_tax_number || '',
+      tenant_crn: contract.tenant_crn || '',
+      tenant_street: contract.tenant_street || '',
+      tenant_building: contract.tenant_building || '',
+      tenant_district: contract.tenant_district || '',
+      tenant_city: contract.tenant_city || '',
+      tenant_postal_code: contract.tenant_postal_code || '',
     });
     setEditingContract(null);
     setIsOpen(true);
