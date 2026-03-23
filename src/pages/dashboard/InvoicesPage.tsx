@@ -33,6 +33,8 @@ import { ShieldCheck, Lock } from 'lucide-react';
 
 const InvoicesPage = () => {
   const h = useInvoicesPage();
+  const { role } = useAuth();
+  const isLocked = h.isClosed && role !== 'admin';
 
   return (
     <DashboardLayout>
