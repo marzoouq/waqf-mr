@@ -131,8 +131,5 @@ export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
     },
   });
 
-  addHeaderToAllPages(doc, fontFamily, waqfInfo);
-  addFooter(doc, fontFamily, waqfInfo);
-
-  doc.save('تقرير-سجل-المراجعة.pdf');
+  finalizePdf(doc, fontFamily, 'تقرير-سجل-المراجعة.pdf', waqfInfo);
 };
