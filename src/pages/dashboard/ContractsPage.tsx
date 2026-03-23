@@ -143,9 +143,15 @@ const ContractsPage = () => {
             </div>
 
             {isClosed && (
-              <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
-                <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة - تعديل بصلاحية الناظر</span>
-              </div>
+              role === 'admin' ? (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-success/30 bg-success/10 text-success text-sm">
+                  <ShieldCheck className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لديك صلاحية التعديل كناظر</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 rounded-lg border border-warning/30 bg-warning/10 text-warning text-sm">
+                  <Lock className="w-4 h-4 shrink-0" /><span>سنة مقفلة — لا يمكن التعديل</span>
+                </div>
+              )
             )}
 
             {isLoading ? (
