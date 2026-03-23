@@ -48,7 +48,7 @@ vi.mock('@/utils/pdf', () => ({ generateIncomePDF: vi.fn() }));
 
 import IncomePage from './IncomePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
+
 import { MemoryRouter } from 'react-router-dom';
 
 const renderPage = () => {
