@@ -1,207 +1,116 @@
 
 
-# الفحص الجنائي النهائي — لوحة الناظر بجميع أقسامها
+# فحص جنائي: قاعدة "السنة من تاريخ العقد" وترحيل الدفعات
 
 ---
 
-## خريطة أقسام لوحة الناظر (20 صفحة)
+## فهم القاعدة التجارية
 
+المستخدم يوضح قاعدتين أساسيتين:
+
+1. **سنة العقد تُحسب من تاريخ بداية العقد** — عقد يبدأ 1 يناير 2025 سنته يناير-ديسمبر 2025، بغض النظر عن حدود السنة المالية (أكتوبر-أكتوبر مثلاً)
+2. **عند إقفال السنة المالية**: يُقفل على آخر دفعة فعلية تم سدادها، والباقي يُرحّل للسنة التالية
+
+---
+
+## تحليل الوضع الحالي
+
+### ✅ ما يعمل بشكل صحيح
+
+| المكون | المنطق | الحالة |
+|--------|--------|--------|
+| `generate_contract_invoices` (SQL) | يحسب `due_date` من `start_date + interval` | ✅ صحيح — يعتمد على تاريخ العقد |
+| `allocateContractToFiscalYears` (TS) | يولّد due dates من contract start_date ويوزعها على السنوات المالية | ✅ صحيح |
+| `CollectionReport` | يستخدم `allocateContractToFiscalYears` لمعرفة الدفعات المخصصة لكل سنة | ✅ صحيح |
+| `MonthlyAccrualTable` (الجديد) | يعرض الفواتير الفعلية بشهر استحقاقها | ✅ صحيح |
+| `pay_invoice_and_record_collection` RPC | يسجل الدخل + يحدث paid_months ذرياً | ✅ صحيح |
+
+### ⚠️ مشاكل مكتشفة
+
+#### تناقض #1: `getPaymentStatus` في `helpers.ts` — لا يعرف السنة المالية
+
+**سطر 54-70:**
 ```text
-القائمة الجانبية (allAdminLinks):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-الرئيسية ────────── AdminDashboard (467 سطر)
-العقارات ────────── PropertiesPage (424 سطر)
-العقود ──────────── ContractsPage (632 سطر) [4 تبويبات]
-الدخل ──────────── IncomePage
-المصروفات ────────── ExpensesPage
-المستفيدين ────────── BeneficiariesPage
-التقارير ────────── ReportsPage (699 سطر) [8 تبويبات]  ← أكبر ملف
-الحسابات ────────── AccountsPage
-إدارة المستخدمين ── UserManagementPage
-الإعدادات ────────── SettingsPage
-المراسلات ────────── MessagesPage
-الفواتير ────────── InvoicesPage
-سجل المراجعة ────── AuditLogPage
-اللائحة ────────── BylawsPage
-إدارة ZATCA ────── ZatcaManagementPage
-الدعم الفني ────── SupportDashboardPage
-التقرير السنوي ──── AnnualReportPage (321 سطر)      ← مكرر جزئياً
-الشجرة المحاسبية ── ChartOfAccountsPage
-المقارنة التاريخية ── HistoricalComparisonPage (297 سطر) ← مكرر
-تشخيص النظام ────── SystemDiagnosticsPage
-واجهة المستفيد ──── رابط خارجي
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const totalMonths = (today - start) بالأشهر
+if (annual) expectedPayments = floor(totalMonths / 12)
+overdue = expectedPayments - paidMonths
 ```
 
----
+**المشكلة:** يحسب الدفعات المتوقعة من `today` بشكل مطلق — لا يراعي حدود السنة المالية ولا ما تم ترحيله. عقد سنوي بدأ يناير 2024 وتم إقفال سنة 2024 بدفعة واحدة مسددة → في 2025 يحسب `expectedPayments = 1` (floor(12/12)) لكن `paidMonths` قد يكون 0 في السنة الجديدة إذا لم تُرحّل القيمة.
 
-## التناقض #1 (حرج): الإشغال في الرئيسية يفلتر `active` فقط
+**الخطورة:** متوسطة — يؤثر على مؤشر "متأخر/منتظم" في صفحة الوحدات.
 
-**الملف:** `AdminDashboard.tsx` سطور 218-222
+#### تناقض #2: `ContractStatsCards` — بطاقة "الإيرادات التعاقدية" تجمع كل العقود
 
-```typescript
-contracts.filter(c => c.status === 'active' && c.unit_id)
-contracts.filter(c => c.status === 'active' && !c.unit_id)
-```
-
-في سنة مقفلة → جميع العقود `expired` → KPI الإشغال = **0%**
-
-**المقارنة:** `PropertiesPage.tsx` سطر 173 يستخدم `(isSpecificYear || c.status === 'active')` في حساب الإشغال الفردي لكل عقار — لكن البطاقات العلوية (سطر 72) تفلتر `active` فقط. **تناقض داخلي في نفس الصفحة.**
-
----
-
-## التناقض #2 (حرج): الإيرادات التعاقدية في الرئيسية = `active` فقط
-
-**الملف:** `AdminDashboard.tsx` سطر 116-118
-
-```typescript
-const activeContracts = contracts.filter(c => c.status === 'active');
-const contractualRevenue = activeContracts.reduce(...)
-```
-
-في سنة مقفلة → بطاقة "الإيرادات التعاقدية" = **0 ر.س** رغم وجود عقود تاريخية.
-
----
-
-## التناقض #3 (متوسط): `PropertiesPage` بطاقات الملخص — `active` فقط للإشغال العام
-
-**الملف:** `PropertiesPage.tsx` سطور 72-73
-
-البطاقات العلوية (`PropertySummaryCards`) تفلتر `active` فقط، بينما بطاقات العقارات الفردية (سطر 173) تستخدم `isSpecificYear`. **نتيجة:** البطاقة العلوية تقول "إشغال 0%" لكن كل عقار يظهر إشغاله الصحيح.
-
----
-
-## التناقض #4 (متوسط): `PropertiesPage` الدخل النشط — `active` فقط حتى في سنة محددة
-
-**الملف:** `PropertiesPage.tsx` سطر 102
-
-```typescript
-activeIncome = contracts.filter(c => c.status === 'active').reduce(...)
-```
-
-في سنة مقفلة محددة بحساب ختامي، يستخدم الحساب الختامي ✅. لكن في سنة **مفتوحة محددة** لا يوجد حساب ختامي — فيفلتر `active` فقط ويتجاهل عقوداً `expired` تنتمي لهذه السنة.
-
----
-
-## التناقض #5 (متوسط): تكرار وظيفي بين 3 صفحات
-
+**سطر 372:**
 ```text
-صفحة التقارير (ReportsPage) تحتوي:
-├─ تبويب "مقارنة سنوية" ← نسخة من YearOverYearComparison
-│   ↕ مكرر تماماً مع:
-├─ صفحة "المقارنة التاريخية" (HistoricalComparisonPage)
-│   → تعرض نفس YearOverYearComparison + جدول مقارنة + رسم
-│
-├─ تبويب "التقارير المالية" ← إفصاح سنوي + توزيع حصص + رسوم
-│   ↕ يتداخل جزئياً مع:
-└─ صفحة "التقرير السنوي" (AnnualReportPage)
-    → CRUD لعناصر التقرير + ملخص تلقائي + مقارنة دخل + نشر
+const totalRent = contracts.reduce(sum + rent_amount)
 ```
 
-**التشتت للمستخدم:**
-- "التقارير" في القائمة → 8 تبويبات ضخمة (699 سطر)
-- "المقارنة التاريخية" في القائمة → صفحة مستقلة لنفس الوظيفة
-- "التقرير السنوي" في القائمة → صفحة مختلفة لكن بها عناصر مكررة
+**المشكلة:** تجمع `rent_amount` الكامل لكل عقد حتى لو جزء منه فقط يقع ضمن السنة المالية المحددة. عقد سنوي 120,000 ر.س يمتد من يناير 2025 إلى ديسمبر 2025 في سنة مالية أكتوبر 2024 - أكتوبر 2025 → يجب أن تُعرض القيمة المخصصة فقط (9 أشهر = 90,000)، لكنها تعرض 120,000 كاملة.
 
-المستخدم يبحث عن "المقارنة بين السنوات" ولا يعرف: هل يذهب للتقارير أم للمقارنة التاريخية؟
+**الخطورة:** متوسطة — يعطي صورة مالية مضخمة.
 
----
+#### تناقض #3: `IncomeMonthlyChart` — المتوقع الشهري = `rent/12` خطي
 
-## التناقض #6 (متوسط): الفواتير مقسمة على مكانين
+**المشكلة:** لا يعكس تواريخ الاستحقاق الفعلية. عقد سنوي بدفعة واحدة يظهر كـ 10,000/شهر بدلاً من 120,000 في شهر الاستحقاق. هذا يتناقض مع جدول الاستحقاقات الذي أصبح يعتمد على الفواتير الفعلية.
 
-```text
-/dashboard/invoices → فواتير عامة (مشتريات/مصروفات)
-/dashboard/contracts → تبويب "فواتير الدفعات" → فواتير الإيجار
-```
+**الخطورة:** منخفضة — مفاهيمي، يعتمد على ما إذا كان الرسم يمثل "التوزيع الخطي" أم "الاستحقاق الفعلي".
 
-المستخدم يبحث عن "فاتورة إيجار" في صفحة الفواتير → لا يجدها. يجب الذهاب للعقود → تبويب الفواتير.
+#### تناقض #4: الإقفال لا يرحّل الفواتير غير المسددة صراحةً
 
----
+**المنطق الحالي:** عند إقفال السنة المالية (`close_fiscal_year` RPC)، يتم أخذ لقطة مالية (snapshot) لكن **لا يتم ترحيل الفواتير غير المسددة** للسنة التالية. الفواتير تبقى مربوطة بسنتها المالية الأصلية (عبر `fiscal_year_id`).
 
-## التناقض #7 (منخفض): `collectionSummary` في الرئيسية يفلتر `active || expired`
+**هل هذا مشكلة؟** الفواتير مربوطة بالعقد وبالسنة المالية عبر `due_date`. عند عرض السنة الجديدة، الفواتير التي `due_date` يقع فيها ستظهر تلقائياً. لكن فاتورة `overdue` من السنة السابقة تبقى في السنة القديمة — لا تظهر في الجديدة.
 
-**الملف:** `AdminDashboard.tsx` سطر 122
-
-```typescript
-contracts.filter(c => c.status === 'active' || c.status === 'expired')
-```
-
-هذا **صحيح** — يشمل العقود المنتهية. لكنه يتناقض مع الإشغال (سطر 218) الذي يفلتر `active` فقط. **تناقض داخلي:** التحصيل يحسب فواتير عقود منتهية لكن الإشغال يتجاهلها.
-
----
-
-## التناقض #8 (منخفض): `monthlyData` مكرر حرفياً
-
-**الملفات:**
-- `AdminDashboard.tsx` سطور 186-205
-- `WaqifDashboard.tsx` سطور 119-130 (مكرر)
-
-نفس الحلقة: `income.forEach` + `expenses.forEach` → مصفوفة شهرية. مكرر بالحرف.
-
----
-
-## ملخص البطاقات المكررة عبر صفحات الناظر
-
-| البطاقة | الرئيسية | العقارات | التقارير (بطاقات) | التقارير (أداء) |
-|---------|:--------:|:--------:|:-----------------:|:---------------:|
-| إجمالي العقارات | ✅ | ✅ | ✅ | — |
-| الإيرادات التعاقدية | ✅ | ✅ | — | ✅ (annualRent) |
-| إجمالي الدخل | ✅ | ✅ | ✅ | — |
-| إجمالي المصروفات | ✅ | ✅ | ✅ | ✅ |
-| صافي الريع | ✅ | ✅ | ✅ | ✅ |
-| نسبة الإشغال | ✅ KPI | ✅ شريط | — | ✅ عمود |
+**القاعدة التجارية:** "يُقفل على آخر دفعة مسددة ويُرحّل الباقي" — يعني الفواتير غير المسددة يجب أن تنتقل للسنة التالية عند الإقفال.
 
 ---
 
 ## خطة الإصلاح
 
-### المرحلة 1: إصلاح تناقضات الفلترة (التناقضات 1-4, 7)
+### الإصلاح 1: `getPaymentStatus` — استخدام الفواتير كمصدر حقيقة
 
-**القاعدة الموحدة** لجميع الملفات:
-```text
-const relevantContracts = isSpecificYear
-  ? contracts  // كل العقود المرتبطة بالسنة (بما فيها expired)
-  : contracts.filter(c => c.status === 'active');
-```
+بدلاً من حساب `expectedPayments` رياضياً، يجب أن يعتمد على عدد الفواتير غير المسددة (`overdue` status) من `payment_invoices`.
 
-| الملف | السطور | التغيير |
-|-------|--------|---------|
-| `AdminDashboard.tsx` | 116 | `activeContracts` → استخدام `isSpecificYear` |
-| `AdminDashboard.tsx` | 218-222 | KPI الإشغال → `isSpecificYear` |
-| `PropertiesPage.tsx` | 72-73 | البطاقات العلوية → `isSpecificYear` |
-| `PropertiesPage.tsx` | 102 | `activeIncome` → `isSpecificYear` |
+| الملف | التغيير |
+|-------|---------|
+| `src/components/properties/units/helpers.ts` | إضافة دالة جديدة `getPaymentStatusFromInvoices(contractId, invoices)` تحسب من الفواتير مباشرة |
+| `src/components/properties/PropertyUnitsDialog.tsx` | تمرير `paymentInvoices` واستخدام الدالة الجديدة |
 
-**إضافة `isSpecificYear` في `AdminDashboard`:**
-```typescript
-const isSpecificYear = fiscalYearId !== 'all' && !!fiscalYearId;
-```
+### الإصلاح 2: `ContractStatsCards` — استخدام `allocated_amount` من `contract_fiscal_allocations`
 
-### المرحلة 2: توحيد المنطق المكرر
+| الملف | التغيير |
+|-------|---------|
+| `src/pages/dashboard/ContractsPage.tsx` | حساب `totalRent` و `activeRent` من `allocated_amount` عند وجود سنة مالية محددة |
 
-| الملف الجديد | الدوال | يستبدل |
-|-------------|--------|--------|
-| `src/utils/dashboardComputations.ts` | `computeMonthlyData(income, expenses)` | AdminDashboard سطور 186-205, WaqifDashboard سطور 119-130 |
-| (نفس الملف) | `computeCollectionSummary(contracts, invoices)` | AdminDashboard سطور 120-140, WaqifDashboard سطور 74-92 |
-| (نفس الملف) | `computeOccupancy(contracts, units, isSpecificYear)` | AdminDashboard سطور 218-228, PropertiesPage سطور 72-87 |
+### الإصلاح 3: `IncomeMonthlyChart` — استخدام الفواتير الفعلية
 
-### المرحلة 3: لا دمج صفحات — توحيد كود فقط
+| الملف | التغيير |
+|-------|---------|
+| `src/components/dashboard/IncomeMonthlyChart.tsx` | المتوقع الشهري يُحسب من `paymentInvoices` (مبلغ الفاتورة في شهر استحقاقها) بدلاً من `rent/12` |
+| `src/pages/dashboard/AdminDashboard.tsx` | تمرير `paymentInvoices` للرسم البياني |
 
-الصفحات الثلاث (التقارير، المقارنة التاريخية، التقرير السنوي) تبقى منفصلة لأن:
-- **التقارير** = عرض تحليلي شامل (8 تبويبات)
-- **المقارنة التاريخية** = أداة مقارنة تفاعلية (اختيار 2-4 سنوات)
-- **التقرير السنوي** = CRUD + نشر (وظيفة مختلفة)
+### الإصلاح 4: ترحيل الفواتير عند الإقفال (يحتاج migration)
 
-لكن نزيل **تبويب "مقارنة سنوية"** من صفحة التقارير لأنه مكرر تماماً مع صفحة المقارنة التاريخية.
+عند إقفال السنة المالية، الفواتير غير المسددة (`pending`/`overdue`) يجب أن يتم تحديث `fiscal_year_id` لها ليشير للسنة التالية.
+
+| الملف | التغيير |
+|-------|---------|
+| Migration SQL | تعديل `close_fiscal_year` RPC ليُرحّل فواتير `pending`/`overdue` للسنة التالية |
+
+**ملاحظة مهمة:** هذا التغيير يحتاج حذراً — الفواتير المربوطة بـ ZATCA (موقّعة/مرسلة) لا يجب تعديل `fiscal_year_id` لها. فقط الفواتير التي `zatca_status = 'not_submitted'`.
 
 ---
 
-## إجمالي الملفات المطلوب تعديلها: 5
+## ملخص الملفات
 
 ```text
-1. AdminDashboard.tsx           — إصلاح فلترة (إشغال + إيرادات) + استخدام دوال مشتركة
-2. PropertiesPage.tsx           — إصلاح فلترة (بطاقات + دخل)
-3. ReportsPage.tsx              — إزالة تبويب "مقارنة سنوية" المكرر (7→6 تبويبات)
-4. src/utils/dashboardComputations.ts — إنشاء (3 دوال مشتركة)
-5. WaqifDashboard.tsx           — استخدام الدوال المشتركة (تطبيق على لوحة الواقف)
+1. src/components/properties/units/helpers.ts       — إضافة getPaymentStatusFromInvoices
+2. src/components/properties/PropertyUnitsDialog.tsx — استخدام الدالة الجديدة
+3. src/pages/dashboard/ContractsPage.tsx             — حساب totalRent من allocated_amount
+4. src/components/dashboard/IncomeMonthlyChart.tsx   — المتوقع من الفواتير
+5. src/pages/dashboard/AdminDashboard.tsx            — تمرير paymentInvoices
+6. Migration SQL                                     — ترحيل فواتير عند الإقفال
 ```
 
