@@ -1,3 +1,4 @@
+import { jsPDF } from 'jspdf';
 import autoTable, { type CellHookData } from 'jspdf-autotable';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
