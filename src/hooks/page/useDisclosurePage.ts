@@ -61,7 +61,7 @@ export const useDisclosurePage = () => {
       if (!currentBeneficiary?.id) return [];
       const { data, error } = await supabase
         .from('distributions')
-        .select('*, account:accounts(*)')
+        .select('*, account:accounts(id, fiscal_year, fiscal_year_id)')
         .eq('beneficiary_id', currentBeneficiary.id)
         .order('date', { ascending: false })
         .limit(200);

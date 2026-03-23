@@ -5,12 +5,10 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components/bylaws/BylawDialogs';
 import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExportMenu from '@/components/ExportMenu';
@@ -404,164 +402,40 @@ const BylawsPage = () => {
       </div>
 
       {/* Add Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>إضافة بند جديد</DialogTitle>
-            <DialogDescription>أضف بنداً جديداً إلى اللائحة التنظيمية. يدعم المحتوى تنسيق Markdown.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4" dir="rtl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="bylaw-part-number" className="text-sm font-medium">رقم الجزء</label>
-                <Input
-                  id="bylaw-part-number"
-                  name="bylaw-part-number"
-                  type="number"
-                  min={0}
-                  value={newBylaw.part_number}
-                  onChange={(e) => setNewBylaw((p) => ({ ...p, part_number: parseInt(e.target.value) || 0 }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="bylaw-part-title" className="text-sm font-medium">عنوان الجزء *</label>
-                <Input
-                  id="bylaw-part-title"
-                  name="bylaw-part-title"
-                  value={newBylaw.part_title}
-                  onChange={(e) => setNewBylaw((p) => ({ ...p, part_title: e.target.value }))}
-                  placeholder="مثال: أحكام عامة"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="bylaw-chapter-title" className="text-sm font-medium">عنوان الفصل (اختياري)</label>
-              <Input
-                id="bylaw-chapter-title"
-                name="bylaw-chapter-title"
-                value={newBylaw.chapter_title}
-                onChange={(e) => setNewBylaw((p) => ({ ...p, chapter_title: e.target.value }))}
-                placeholder="مثال: الفصل الأول - التعريفات"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="bylaw-content" className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
-              <Textarea
-                id="bylaw-content"
-                name="bylaw-content"
-                value={newBylaw.content}
-                onChange={(e) => setNewBylaw((p) => ({ ...p, content: e.target.value }))}
-                className="min-h-[200px] font-mono text-sm"
-                placeholder="اكتب محتوى البند هنا..."
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>إلغاء</Button>
-            <Button onClick={handleAdd} disabled={createBylaw.isPending || !newBylaw.part_title.trim()}>
-              {createBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              إضافة البند
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BylawAddDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        newBylaw={newBylaw}
+        setNewBylaw={setNewBylaw}
+        onAdd={handleAdd}
+        isPending={createBylaw.isPending}
+      />
 
       {/* Edit Dialog */}
-      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>
-              تعديل: {editItem?.chapter_title || editItem?.part_title}
-            </DialogTitle>
-            <DialogDescription>
-              يمكنك تعديل المحتوى باستخدام تنسيق Markdown. سيتم تسجيل التعديل في سجل المراجعة.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 overflow-y-auto max-h-[50vh]" dir="rtl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="edit-bylaw-part-number" className="text-sm font-medium">رقم الجزء</label>
-                <Input
-                  id="edit-bylaw-part-number"
-                  name="edit-bylaw-part-number"
-                  type="number"
-                  min={0}
-                  value={editPartNumber}
-                  onChange={(e) => setEditPartNumber(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-bylaw-part-title" className="text-sm font-medium">عنوان الجزء *</label>
-                <Input
-                  id="edit-bylaw-part-title"
-                  name="edit-bylaw-part-title"
-                  value={editPartTitle}
-                  onChange={(e) => setEditPartTitle(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="edit-bylaw-chapter-number" className="text-sm font-medium">رقم الفصل (اختياري)</label>
-                <Input
-                  id="edit-bylaw-chapter-number"
-                  name="edit-bylaw-chapter-number"
-                  type="number"
-                  min={0}
-                  value={editChapterNumber ?? ''}
-                  onChange={(e) => setEditChapterNumber(e.target.value ? parseInt(e.target.value) : null)}
-                  placeholder="—"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-bylaw-chapter-title" className="text-sm font-medium">عنوان الفصل (اختياري)</label>
-                <Input
-                  id="edit-bylaw-chapter-title"
-                  name="edit-bylaw-chapter-title"
-                  value={editChapterTitle}
-                  onChange={(e) => setEditChapterTitle(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="edit-bylaw-content" className="text-sm font-medium">المحتوى (يدعم Markdown)</label>
-              <Textarea
-                id="edit-bylaw-content"
-                name="edit-bylaw-content"
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-[250px] font-mono text-sm"
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEditItem(null)}>إلغاء</Button>
-            <Button onClick={handleSave} disabled={updateBylaw.isPending}>
-              {updateBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              حفظ التعديلات
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <BylawEditDialog
+        editItem={editItem}
+        onClose={() => setEditItem(null)}
+        editContent={editContent}
+        setEditContent={setEditContent}
+        editPartNumber={editPartNumber}
+        setEditPartNumber={setEditPartNumber}
+        editPartTitle={editPartTitle}
+        setEditPartTitle={setEditPartTitle}
+        editChapterTitle={editChapterTitle}
+        setEditChapterTitle={setEditChapterTitle}
+        editChapterNumber={editChapterNumber}
+        setEditChapterNumber={setEditChapterNumber}
+        onSave={handleSave}
+        isPending={updateBylaw.isPending}
+      />
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteItem} onOpenChange={(open) => !open && setDeleteItem(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>حذف البند</AlertDialogTitle>
-            <AlertDialogDescription>
-              هل أنت متأكد من حذف بند "{deleteItem?.chapter_title || deleteItem?.part_title}"؟ لا يمكن التراجع عن هذا الإجراء.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteBylaw.isPending && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-              حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <BylawDeleteDialog
+        deleteItem={deleteItem}
+        onClose={() => setDeleteItem(null)}
+        onDelete={handleDelete}
+        isPending={deleteBylaw.isPending}
+      />
     </DashboardLayout>
   );
 };
