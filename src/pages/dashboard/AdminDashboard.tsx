@@ -6,6 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { safeNumber } from '@/utils/safeNumber';
+import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/useProperties';
