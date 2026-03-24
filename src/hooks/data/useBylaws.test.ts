@@ -31,7 +31,7 @@ vi.mock('@tanstack/react-query', () => ({
   useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function | undefined>) => ({
     mutate: async (...args: unknown[]) => {
       try {
-        const result = await mutationFn(...args);
+        const result = await mutationFn!(...args);
         onSuccess?.(result);
       } catch (e) {
         onError?.(e);
