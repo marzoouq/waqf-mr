@@ -72,8 +72,8 @@ export const useContractsPage = () => {
     setFormInitialData({
       contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || '',
       tenant_name: contract.tenant_name,
-      start_date: newStart.toISOString().split('T')[0],
-      end_date: newEnd.toISOString().split('T')[0],
+      start_date: newStart.toISOString().split('T')[0]!,
+      end_date: newEnd.toISOString().split('T')[0]!,
       rent_amount: contract.rent_amount.toString(),
       status: 'active', notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
