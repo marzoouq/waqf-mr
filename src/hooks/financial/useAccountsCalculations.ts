@@ -23,6 +23,7 @@ interface CalcParams {
 export function useAccountsCalculations({
   data, adminPercent, waqifPercent, zakatAmount,
   waqfCorpusManual, waqfCorpusPrevious, manualVat, manualDistributions,
+  isClosed = false,
 }: CalcParams) {
   const { income, expenses, contracts, properties, allUnits, allocationMap, paymentMap, appSettings } = data;
 
