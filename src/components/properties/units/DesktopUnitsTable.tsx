@@ -27,7 +27,7 @@ interface DesktopUnitsTableProps {
   onDelete: (unit: UnitRow) => void;
 }
 
-const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, onEdit, onDelete }: DesktopUnitsTableProps) => {
+const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, paymentInvoices = [], onEdit, onDelete }: DesktopUnitsTableProps) => {
   const getPaymentInfo = (contractId: string) => {
     const payment = tenantPayments.find(p => p.contract_id === contractId);
     return payment ? payment.paid_months : 0;
