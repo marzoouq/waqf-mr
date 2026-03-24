@@ -64,6 +64,7 @@ const PropertiesPage = () => {
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  const allocationMap = useContractAllocationMap(contracts);
   const summaryLoading = isLoading || contractsLoading || unitsLoading || expensesLoading;
 
   const summary = useMemo(() => {
