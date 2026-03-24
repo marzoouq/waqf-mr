@@ -180,8 +180,17 @@ const AuditLogPage = () => {
     }
     setExporting(true);
     try {
+      // جلب كل السجلات بدون pagination للتصدير الكامل
+      let exportQuery = supabase
+        .from('audit_log')
+        .select('id, table_name, operation, record_id, old_data, new_data, user_id, created_at')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+      if (tableFilter !== 'all') exportQuery = exportQuery.eq('table_name', tableFilter);
+      if (opFilter !== 'all') exportQuery = exportQuery.eq('operation', opFilter);
+      const { data: allLogs } = await exportQuery;
       await generateAuditLogPDF({
-        logs: filtered,
+        logs: allLogs || filtered,
         waqfInfo,
         tableFilter,
         opFilter,
