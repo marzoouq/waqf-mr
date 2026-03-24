@@ -187,6 +187,6 @@ describe('Auth pattern uses getUser() not getSession()', () => {
 
     expect(mockGetUser).toHaveBeenCalledTimes(1);
     // getSession should not exist in the mock — we don't use it
-    expect((supabase.auth as Record<string, unknown>).getSession).toBeUndefined();
+    expect((supabase.auth as unknown as Record<string, unknown>).getSession).toBeUndefined();
   });
 });
