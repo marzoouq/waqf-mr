@@ -291,7 +291,7 @@ export const useContractsPage = () => {
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0;
     for (const [, group] of groupedContracts) {
-      const latestStatus = group[0].status;
+      const latestStatus = group[0]!.status;
       if (latestStatus === 'active') active++;
       else expired++;
     }
