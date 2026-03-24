@@ -153,8 +153,8 @@ export const renderInvoiceMeta = (
     [rs(`الدفعة: ${invoice.paymentNumber} من ${invoice.totalPayments}`)],
   ];
 
-  for (const [text] of leftItems) {
-    doc.text(text, margin, y, { align: 'left' });
+  for (const item of leftItems) {
+    doc.text(item[0] ?? '', margin, y, { align: 'left' });
     y += compact ? 4 : 5;
   }
 

@@ -182,8 +182,8 @@ describe("NativeSelect داخل Dialog – اختبارات تكامل", () => {
     const selects = screen.getAllByRole("combobox");
     expect(selects).toHaveLength(2);
 
-    fireEvent.change(selects[0], { target: { value: "صيانة" } });
-    fireEvent.change(selects[1], { target: { value: "p2" } });
+    fireEvent.change(selects[0]!, { target: { value: "صيانة" } });
+    fireEvent.change(selects[1]!, { target: { value: "p2" } });
 
     expect(screen.getByTestId("type-value")).toHaveTextContent("صيانة");
     expect(screen.getByTestId("property-value")).toHaveTextContent("p2");
@@ -195,9 +195,9 @@ describe("NativeSelect داخل Dialog – اختبارات تكامل", () => {
 
     const selects = screen.getAllByRole("combobox");
     // alternate between the two selects
-    fireEvent.change(selects[0], { target: { value: "كهرباء" } });
-    fireEvent.change(selects[1], { target: { value: "p1" } });
-    fireEvent.change(selects[0], { target: { value: "مياه" } });
+    fireEvent.change(selects[0]!, { target: { value: "كهرباء" } });
+    fireEvent.change(selects[1]!, { target: { value: "p1" } });
+    fireEvent.change(selects[0]!, { target: { value: "مياه" } });
 
     expect(screen.getByTestId("type-value")).toHaveTextContent("مياه");
     expect(screen.getByTestId("property-value")).toHaveTextContent("p1");

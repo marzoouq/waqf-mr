@@ -46,7 +46,7 @@ export function buildCsv(
 ): string {
   if (!data.length) return '';
 
-  const headers = columnOrder ?? Object.keys(data[0]);
+  const headers = columnOrder ?? Object.keys(data[0] ?? {});
 
   const headerRow = headers
     .map(h => `"${normalizeCsvDirection(h).replace(/"/g, '""')}"`)

@@ -24,7 +24,7 @@ export const maskEmail = (email: string | null): string => {
   if (!email) return '';
   const parts = email.split('@');
   if (parts.length !== 2) return '****';
-  const name = parts[0];
-  if (name.length <= 2) return '**@' + parts[1];
-  return name[0] + '***@' + parts[1];
+  const name = parts[0] ?? '';
+  if (name.length <= 2) return '**@' + (parts[1] ?? '');
+  return name[0] + '***@' + (parts[1] ?? '');
 };

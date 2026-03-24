@@ -38,7 +38,7 @@ describe('printDistributionReport', () => {
     expect(window.open).toHaveBeenCalledWith('', '_blank');
     expect(mockWrite).toHaveBeenCalled();
     expect(mockClose).toHaveBeenCalled();
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     expect(html).toContain('محمد');
     expect(html).toContain('علي');
     expect(html).toContain('2024-2025');
@@ -58,14 +58,14 @@ describe('printDistributionReport', () => {
       ],
     };
     printDistributionReport(params);
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     expect(html).toContain('deficit-row');
     expect(html).toContain('0.00');
   });
 
   it('includes waqfName and deedNumber when provided', () => {
     printDistributionReport({ ...baseParams, waqfName: 'وقف الثبيتي', deedNumber: 'ص-123' });
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     expect(html).toContain('وقف الثبيتي');
     expect(html).toContain('ص-123');
   });

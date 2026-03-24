@@ -63,7 +63,7 @@ describe('AccountsCollectionTable', () => {
   it('calls onStartEdit when edit button clicked', async () => {
     const onStartEdit = vi.fn();
     render(<AccountsCollectionTable {...defaultProps} onStartEdit={onStartEdit} />);
-    const editBtn = screen.getAllByRole('button')[0];
+    const editBtn = screen.getAllByRole('button')[0]!;
     await userEvent.click(editBtn);
     expect(onStartEdit).toHaveBeenCalledWith(0);
   });

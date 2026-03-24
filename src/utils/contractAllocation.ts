@@ -118,6 +118,7 @@ export function allocateContractToFiscalYears(
 function findFiscalYearForDate(date: Date, sortedFYs: FiscalYear[]): FiscalYear | null {
   for (let i = 0; i < sortedFYs.length; i++) {
     const fy = sortedFYs[i];
+    if (!fy) continue;
     const fyStart = new Date(fy.start_date);
     const fyEnd = new Date(fy.end_date);
     // بداية شاملة، نهاية حصرية — إلا لآخر سنة مالية (شاملة)
@@ -154,7 +155,7 @@ function daysBetween(a: Date, b: Date): number {
 }
 
 function toISODate(d: Date): string {
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split('T')[0] ?? '';
 }
 
 /**

@@ -71,9 +71,9 @@ describe('UserManagementPage – callAdminApi uses auto-auth', () => {
       body: { action: 'list_users' },
     });
 
-    expect(invokeArgs[0].functionName).toBe('admin-manage-users');
+    expect(invokeArgs[0]!.functionName).toBe('admin-manage-users');
     // يجب ألا يحتوي على header يدوي — supabase.functions.invoke يُرسل الـ token تلقائياً
-    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    const headers = invokeArgs[0]!.options.headers as Record<string, string> | undefined;
     expect(headers?.Authorization).toBeUndefined();
   });
 
@@ -106,8 +106,8 @@ describe('BeneficiariesPage – edge function call uses auto-auth', () => {
       body: { action: 'list_users' },
     });
 
-    expect(invokeArgs[0].functionName).toBe('admin-manage-users');
-    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(invokeArgs[0]!.functionName).toBe('admin-manage-users');
+    const headers = invokeArgs[0]!.options.headers as Record<string, string> | undefined;
     expect(headers?.Authorization).toBeUndefined();
   });
 });
@@ -130,8 +130,8 @@ describe('useInvoices – generate-invoice-pdf uses auto-auth', () => {
       body: { invoice_ids: ['inv-1', 'inv-2'] },
     });
 
-    expect(invokeArgs[0].functionName).toBe('generate-invoice-pdf');
-    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(invokeArgs[0]!.functionName).toBe('generate-invoice-pdf');
+    const headers = invokeArgs[0]!.options.headers as Record<string, string> | undefined;
     expect(headers?.Authorization).toBeUndefined();
   });
 });
@@ -153,8 +153,8 @@ describe('Public edge functions should not require auth headers', () => {
       body: { email: 'test@example.com', password: '123456' },
     });
 
-    expect(invokeArgs[0].functionName).toBe('guard-signup');
-    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(invokeArgs[0]!.functionName).toBe('guard-signup');
+    const headers = invokeArgs[0]!.options.headers as Record<string, string> | undefined;
     expect(headers?.Authorization).toBeUndefined();
   });
 
@@ -165,8 +165,8 @@ describe('Public edge functions should not require auth headers', () => {
       body: { national_id: '1234567890' },
     });
 
-    expect(invokeArgs[0].functionName).toBe('lookup-national-id');
-    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(invokeArgs[0]!.functionName).toBe('lookup-national-id');
+    const headers = invokeArgs[0]!.options.headers as Record<string, string> | undefined;
     expect(headers?.Authorization).toBeUndefined();
   });
 });

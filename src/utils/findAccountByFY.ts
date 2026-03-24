@@ -12,5 +12,5 @@ export function findAccountByFY<T extends { fiscal_year_id?: string | null; fisc
       a.fiscal_year === fy.label
     ) ?? null;
   }
-  return accts.length === 1 ? accts[0] : null;
+  return accts.length === 1 ? (accts[0] ?? null) : null;
 }

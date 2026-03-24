@@ -143,7 +143,7 @@ describe('useAccountsPage', () => {
   it('computes collectionData correctly', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
     expect(result.current.collectionData.length).toBe(1);
-    const item = result.current.collectionData[0];
+    const item = result.current.collectionData[0]!;
     expect(item.tenantName).toBe('أحمد');
     expect(item.paidMonths).toBe(0);
     expect(item.status).toBe('متأخر');
@@ -156,13 +156,13 @@ describe('useAccountsPage', () => {
 
   it('getPaymentPerPeriod respects payment_amount when set', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    const pp = result.current.getPaymentPerPeriod(mockContracts[0]);
+    const pp = result.current.getPaymentPerPeriod(mockContracts[0]!);
     expect(pp).toBe(120000);
   });
 
   it('getExpectedPayments uses allocationMap when available', () => {
     const { result } = renderHook(() => useAccountsPage(), { wrapper: createWrapper() });
-    const ep = result.current.getExpectedPayments(mockContracts[0]);
+    const ep = result.current.getExpectedPayments(mockContracts[0]!);
     expect(ep).toBe(1);
   });
 

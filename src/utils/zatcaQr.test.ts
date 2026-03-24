@@ -6,10 +6,10 @@ import { generateZatcaQrTLV } from './zatcaQr';
  * Returns [length, bytesConsumed].
  */
 function parseBerLength(bytes: Uint8Array, offset: number): [number, number] {
-  const first = bytes[offset];
+  const first = bytes[offset]!;
   if (first < 128) return [first, 1];
-  if (first === 0x81) return [bytes[offset + 1], 2];
-  if (first === 0x82) return [((bytes[offset + 1]) << 8) | bytes[offset + 2], 3];
+  if (first === 0x81) return [bytes[offset + 1]!, 2];
+  if (first === 0x82) return [((bytes[offset + 1]!) << 8) | bytes[offset + 2]!, 3];
   throw new Error(`Unsupported BER length byte: 0x${first.toString(16)}`);
 }
 
@@ -21,7 +21,7 @@ function parseTLV(base64: string): Array<{ tag: number; value: string }> {
   const entries: Array<{ tag: number; value: string }> = [];
   let offset = 0;
   while (offset < bytes.length) {
-    const tag = bytes[offset];
+    const tag = bytes[offset]!;
     const [len, lenSize] = parseBerLength(bytes, offset + 1);
     const valueStart = offset + 1 + lenSize;
     const value = new TextDecoder().decode(bytes.slice(valueStart, valueStart + len));
@@ -54,14 +54,14 @@ describe('generateZatcaQrTLV', () => {
 
   it('encodes seller name correctly (tag 1)', () => {
     const entries = parseTLV(generateZatcaQrTLV(sampleData));
-    expect(entries[0].value).toBe('وقف الخير');
+    expect(entries[0]!.value).toBe('وقف الخير');
   });
 
   it('formats amounts with 2 decimal places', () => {
     const data = { ...sampleData, totalWithVat: 100, vatAmount: 15 };
     const entries = parseTLV(generateZatcaQrTLV(data));
-    expect(entries[3].value).toBe('100.00');
-    expect(entries[4].value).toBe('15.00');
+    expect(entries[3]!.value).toBe('100.00');
+    expect(entries[4]!.value).toBe('15.00');
   });
 
   it('handles seller name > 127 bytes (GAP-10)', () => {
@@ -74,8 +74,8 @@ describe('generateZatcaQrTLV', () => {
 
     // Must parse back correctly
     const entries = parseTLV(result);
-    expect(entries[0].tag).toBe(1);
-    expect(entries[0].value).toBe(longName);
+    expect(entries[0]!.tag).toBe(1);
+    expect(entries[0]!.value).toBe(longName);
     expect(entries.length).toBe(5);
   });
 
@@ -84,14 +84,14 @@ describe('generateZatcaQrTLV', () => {
     const val128 = 'a'.repeat(128);
     const data = { ...sampleData, sellerName: val128 };
     const entries = parseTLV(generateZatcaQrTLV(data));
-    expect(entries[0].value).toBe(val128);
+    expect(entries[0]!.value).toBe(val128);
   });
 
   it('handles value > 255 bytes', () => {
     const val300 = 'b'.repeat(300);
     const data = { ...sampleData, sellerName: val300 };
     const entries = parseTLV(generateZatcaQrTLV(data));
-    expect(entries[0].value).toBe(val300);
+    expect(entries[0]!.value).toBe(val300);
     expect(entries.length).toBe(5);
   });
 });
