@@ -66,7 +66,10 @@ const PropertiesViewPage = () => {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
-    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+    const contractualRevenue = (contracts ?? []).reduce((s, c) => {
+      const alloc = allocationMap.get(c.id!);
+      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+    }, 0);
 
     // في السنة المغلقة: استخدم بيانات الحساب الختامي
     const currentAccount = accounts?.[0];
