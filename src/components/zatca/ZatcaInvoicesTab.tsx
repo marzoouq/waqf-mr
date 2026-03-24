@@ -48,7 +48,7 @@ interface ZatcaInvoicesTabProps {
   itemsPerPage: number;
   isComplianceCert: boolean;
   isProductionCert: boolean;
-  pendingAction: { id: string; type: string } | null;
+  pendingIds: Set<string>;
   onGenerateXml: (invoiceId: string, table: string) => void;
   onSignInvoice: (invoiceId: string, table: string) => void;
   onSubmitToZatca: (invoiceId: string, table: string, action: 'report' | 'clearance') => void;
