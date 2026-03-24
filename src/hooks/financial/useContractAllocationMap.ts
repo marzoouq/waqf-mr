@@ -29,8 +29,8 @@ export function useContractAllocationMap(contracts: ContractLike[]) {
           start_date: c.start_date,
           end_date: c.end_date,
           rent_amount: Number(c.rent_amount),
-          payment_type: c.payment_type,
-          payment_count: c.payment_count,
+          payment_type: c.payment_type || 'annual',
+          payment_count: c.payment_count || 1,
           payment_amount: c.payment_amount != null ? Number(c.payment_amount) : undefined,
         },
         fiscalYears
