@@ -61,8 +61,10 @@ export function computePropertyFinancials(params: {
   expenses: Expense[];
   units: Unit[];
   isSpecificYear: boolean;
+  /** خريطة التخصيص — إن وُجدت تُستخدم بدلاً من rent_amount الكامل */
+  allocationMap?: Map<string, { allocated_amount: number }>;
 }): PropertyFinancials {
-  const { propertyId, contracts, expenses, units, isSpecificYear } = params;
+  const { propertyId, contracts, expenses, units, isSpecificYear, allocationMap } = params;
 
   const propertyUnits = units.filter(u => u.property_id === propertyId);
   const allPropertyContracts = contracts.filter(c => c.property_id === propertyId);
