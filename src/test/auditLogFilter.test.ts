@@ -32,6 +32,8 @@ describe('AuditLog – خريطة أسماء العمليات', () => {
     ['INSERT', 'إضافة'],
     ['UPDATE', 'تعديل'],
     ['DELETE', 'حذف'],
+    ['REOPEN', 'إعادة فتح'],
+    ['CLOSE', 'إقفال'],
   ] as const)('getOperationNameAr("%s") يرجع "%s"', (op, expected) => {
     expect(getOperationNameAr(op)).toBe(expected);
   });
