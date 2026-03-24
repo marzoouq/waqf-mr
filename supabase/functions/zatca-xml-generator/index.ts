@@ -474,9 +474,11 @@ Deno.serve(async (req) => {
     (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
 
     // Get previous invoice hash for PIH
+    // تصفية سجلات PENDING لتجنب كسر سلسلة PIH
     const { data: lastChain } = await admin
       .from("invoice_chain")
       .select("invoice_hash")
+      .neq("invoice_hash", "PENDING")
       .order("icv", { ascending: false })
       .limit(1)
       .single();

@@ -126,7 +126,6 @@ export function useWebAuthn() {
       // 3. إرسال النتيجة للتحقق — تمرير challenge_id لمنع race condition
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
         body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName(), challenge_id: options.challenge_id },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       if (verErr || !result?.verified) {

@@ -730,10 +730,11 @@ Deno.serve(async (req) => {
       // ════════════════════════════════════════════════════════════
       // Step 7: Update chain with real hash + Save signed XML
       // ════════════════════════════════════════════════════════════
-      await admin.from("invoice_chain")
+      const { error: hashUpdateError } = await admin.from("invoice_chain")
         .update({ invoice_hash: invoiceDigest })
         .eq("invoice_id", invoice_id)
         .eq("icv", icv);
+      if (hashUpdateError) throw new Error(`فشل تحديث الهاش في السلسلة: ${hashUpdateError.message}`);
 
       const updateData: Record<string, unknown> = {
         invoice_hash: invoiceDigest,
