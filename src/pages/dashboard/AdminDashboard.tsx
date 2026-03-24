@@ -365,12 +365,14 @@ const AdminDashboard = () => {
           </Suspense>
         </ErrorBoundary>
 
-        {/* الرسوم البيانية */}
-        <ErrorBoundary>
-          <Suspense fallback={<ChartSkeleton />}>
-            <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-          </Suspense>
-        </ErrorBoundary>
+        {/* الرسوم البيانية — تُخفى عند الطباعة */}
+        <div className="print:hidden">
+          <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
 
         {/* مقارنة بين السنوات */}
         {allFiscalYears.length >= 2 ? (
