@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
@@ -63,6 +64,7 @@ const PropertiesPage = () => {
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  const allocationMap = useContractAllocationMap(contracts);
   const summaryLoading = isLoading || contractsLoading || unitsLoading || expensesLoading;
 
   const summary = useMemo(() => {
@@ -89,7 +91,10 @@ const PropertiesPage = () => {
 
     const occupancyBase = totalRented + totalVacant;
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
-    const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+    const contractualRevenue = contracts.reduce((s, c) => {
+      const alloc = allocationMap.get(c.id);
+      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
+    }, 0);
 
     // في السنة المغلقة: استخدم بيانات الحساب الختامي بدلاً من العقود النشطة
     const currentAccount = accounts?.[0];
@@ -106,7 +111,7 @@ const PropertiesPage = () => {
     const netIncome = activeIncome - totalExpensesCalc;
 
     return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear]);
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
 
   const resetForm = () => {
     setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
@@ -287,12 +292,13 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-              const pf = computePropertyFinancials({
+               const pf = computePropertyFinancials({
                 propertyId: property.id,
                 contracts,
                 expenses,
                 units: allUnits,
                 isSpecificYear,
+                allocationMap,
               });
               const { totalUnits, rented, vacant, maintenance, statusMismatch, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
 

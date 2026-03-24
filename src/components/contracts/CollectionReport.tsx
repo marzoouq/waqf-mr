@@ -46,6 +46,11 @@ interface CollectionRow {
   status: 'complete' | 'partial' | 'overdue' | 'not_started';
 }
 
+/**
+ * @deprecated هذه الدالة تحسب من today - start_date وهو محظور بالقاعدة #15.
+ * تُستخدم فقط كـ fallback عند عرض "جميع السنوات" حيث لا يوجد تخصيص.
+ * يُفضل الاعتماد على الفواتير الفعلية و allocateContractToFiscalYears.
+ */
 function getExpectedPaymentsFallback(contract: Contract): number {
   const start = new Date(contract.start_date);
   const end = new Date(contract.end_date);

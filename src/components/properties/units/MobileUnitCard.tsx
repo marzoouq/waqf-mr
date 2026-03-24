@@ -5,19 +5,26 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatus, getMonthlyRent, type TenantInfo } from './helpers';
+import { getPaymentStatusFromInvoices, getMonthlyRent, type TenantInfo } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import type { UnitRow } from '@/hooks/data/useUnits';
+
+interface PaymentInvoiceLike {
+  contract_id: string;
+  status: string;
+  due_date: string;
+}
 
 interface MobileUnitCardProps {
   unit: UnitRow;
   tenant: TenantInfo | null;
   paidMonths: number;
+  paymentInvoices?: PaymentInvoiceLike[];
   onEdit: (unit: UnitRow) => void;
   onDelete: (unit: UnitRow) => void;
 }
 
-const MobileUnitCard = ({ unit, tenant, paidMonths, onEdit, onDelete }: MobileUnitCardProps) => {
+const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit, onDelete }: MobileUnitCardProps) => {
   const isComplete = paidMonths >= 12;
   const progressPercent = (paidMonths / 12) * 100;
 
@@ -67,7 +74,7 @@ const MobileUnitCard = ({ unit, tenant, paidMonths, onEdit, onDelete }: MobileUn
             </div>
             <p className="text-[10px] text-muted-foreground">يتم التحصيل عبر الفواتير</p>
             {tenant.status === 'active' && (() => {
-              const ps = getPaymentStatus(tenant, paidMonths);
+              const ps = getPaymentStatusFromInvoices(tenant.contract_id, paymentInvoices);
               return ps.status === 'ontime'
                 ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20 w-fit">منتظم</Badge>
                 : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20 w-fit">متأخر ({ps.overdueCount} دفعة)</Badge>;

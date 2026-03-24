@@ -8,6 +8,8 @@ import { useUnits, UnitRow } from '@/hooks/data/useUnits';
 import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
 import { useTenantPayments } from '@/hooks/data/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
@@ -33,6 +35,8 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
   const pdfWaqfInfo = usePdfWaqfInfo();
   const { data: units = [], isLoading } = useUnits(property.id);
   const { data: tenantPayments = [] } = useTenantPayments();
+  const { fiscalYearId } = useFiscalYear();
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
 
   const createUnit = useCreateUnit();
   const updateUnit = useUpdateUnit();
@@ -300,6 +304,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                           unit={unit}
                           tenant={tenant}
                           paidMonths={paid}
+                          paymentInvoices={paymentInvoices}
                           onEdit={handleEditUnit}
                           onDelete={setDeleteUnitTarget}
                         />
@@ -316,6 +321,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                     contracts={contracts}
                     wholePropertyContracts={wholePropertyContracts}
                     tenantPayments={tenantPayments}
+                    paymentInvoices={paymentInvoices}
                     onEdit={handleEditUnit}
                     onDelete={setDeleteUnitTarget}
                   />

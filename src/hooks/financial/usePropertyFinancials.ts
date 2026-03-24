@@ -61,8 +61,10 @@ export function computePropertyFinancials(params: {
   expenses: Expense[];
   units: Unit[];
   isSpecificYear: boolean;
+  /** خريطة التخصيص — إن وُجدت تُستخدم بدلاً من rent_amount الكامل */
+  allocationMap?: Map<string, { allocated_amount: number }>;
 }): PropertyFinancials {
-  const { propertyId, contracts, expenses, units, isSpecificYear } = params;
+  const { propertyId, contracts, expenses, units, isSpecificYear, allocationMap } = params;
 
   const propertyUnits = units.filter(u => u.property_id === propertyId);
   const allPropertyContracts = contracts.filter(c => c.property_id === propertyId);
@@ -101,13 +103,25 @@ export function computePropertyFinancials(params: {
 
   // --- المالية ---
   const contractualRevenue = allPropertyContracts.reduce(
-    (sum, c) => sum + safeNumber(c.rent_amount), 0
+    (sum, c) => {
+      if (allocationMap && c.id) {
+        const alloc = allocationMap.get(c.id);
+        return sum + (alloc ? alloc.allocated_amount : 0);
+      }
+      return sum + safeNumber(c.rent_amount);
+    }, 0
   );
   const activeContracts = isSpecificYear
     ? allPropertyContracts
     : allPropertyContracts.filter(c => c.status === 'active');
   const activeAnnualRent = activeContracts.reduce(
-    (sum, c) => sum + safeNumber(c.rent_amount), 0
+    (sum, c) => {
+      if (allocationMap && c.id) {
+        const alloc = allocationMap.get(c.id);
+        return sum + (alloc ? alloc.allocated_amount : 0);
+      }
+      return sum + safeNumber(c.rent_amount);
+    }, 0
   );
   const monthlyRent = allPropertyContracts.reduce((sum, c) => {
     const rent = safeNumber(c.rent_amount);

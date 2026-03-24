@@ -40,11 +40,15 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
     }
 
     // fallback: حساب المتوقع الخطي من العقود
+    // ⚠️ هذا التقريب غير دقيق للعقود السنوية التي تُدفع دفعة واحدة — يُفضل دائماً توفر الفواتير
     const useInvoices = invoiceExpectedByMonth.size > 0;
     let linearMonthlyExpected = 0;
     if (!useInvoices) {
       const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
       linearMonthlyExpected = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount) / 12, 0);
+      if (activeContracts.length > 0) {
+        console.warn('[IncomeMonthlyChart] استخدام fallback خطي (rent/12) — لا توجد فواتير دفعات. النتائج تقريبية.');
+      }
     }
 
     const months: Array<{ month: string; actual: number; expected: number; gap: number }> = [];

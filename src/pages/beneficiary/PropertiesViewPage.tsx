@@ -4,6 +4,7 @@
  */
 import { useProperties } from '@/hooks/data/useProperties';
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
@@ -38,6 +39,7 @@ const PropertiesViewPage = () => {
   const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const allocationMap = useContractAllocationMap(contracts);
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
@@ -64,7 +66,10 @@ const PropertiesViewPage = () => {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
-    const contractualRevenue = (contracts ?? []).reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+    const contractualRevenue = (contracts ?? []).reduce((s, c) => {
+      const alloc = allocationMap.get(c.id!);
+      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+    }, 0);
 
     // في السنة المغلقة: استخدم بيانات الحساب الختامي
     const currentAccount = accounts?.[0];
@@ -88,7 +93,7 @@ const PropertiesViewPage = () => {
     const occColor = overallOccupancy >= 80 ? 'text-success' : overallOccupancy >= 50 ? 'text-warning' : 'text-destructive';
     const occBarColor = overallOccupancy >= 80 ? '[&>div]:bg-success' : overallOccupancy >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive';
     return { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor };
-  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, fiscalYearId, isSpecificYear]);
+  }, [properties, totalUnits, occupiedUnits, propertiesWithoutUnitsNoContract, contracts, expenses, isClosed, accounts, fiscalYearId, isSpecificYear, allocationMap]);
 
   const { totalProperties, totalVacant, contractualRevenue, activeIncome, totalExpensesAll, netIncome, overallOccupancy, occColor, occBarColor } = summaryData;
 
@@ -236,6 +241,7 @@ const PropertiesViewPage = () => {
                 expenses,
                 units: units ?? [],
                 isSpecificYear,
+                allocationMap,
               });
               const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
               const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);

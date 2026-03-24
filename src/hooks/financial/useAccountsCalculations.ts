@@ -16,11 +16,14 @@ interface CalcParams {
   waqfCorpusPrevious: number;
   manualVat: number;
   manualDistributions: number;
+  /** هل السنة المالية مغلقة — يُمرر من المكوّن المستدعي */
+  isClosed?: boolean;
 }
 
 export function useAccountsCalculations({
   data, adminPercent, waqifPercent, zakatAmount,
   waqfCorpusManual, waqfCorpusPrevious, manualVat, manualDistributions,
+  isClosed = false,
 }: CalcParams) {
   const { income, expenses, contracts, properties, allUnits, allocationMap, paymentMap, appSettings } = data;
 
@@ -49,7 +52,7 @@ export function useAccountsCalculations({
     .filter(c => isCommercialContract(c))
     .reduce((sum, c) => {
       const allocation = allocationMap.get(c.id);
-      return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+      return sum + (allocation ? allocation.allocated_amount : 0);
     }, 0), [contracts, isCommercialContract, allocationMap]);
   const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
 
@@ -57,15 +60,15 @@ export function useAccountsCalculations({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent,
     waqfCorpusManual, manualDistributions,
-    isClosed: true,
-  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
+    isClosed,
+  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions, isClosed]);
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
 
   const totalAnnualRent = useMemo(() => contracts.reduce((sum, c) => {
     const allocation = allocationMap.get(c.id);
-    return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+    return sum + (allocation ? allocation.allocated_amount : 0);
   }, 0), [contracts, allocationMap]);
 
   const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {

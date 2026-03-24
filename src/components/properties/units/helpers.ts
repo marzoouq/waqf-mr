@@ -73,7 +73,10 @@ export const getPaymentStatusFromInvoices = (
   return { status: 'ontime', overdueCount: 0 };
 };
 
-/** حساب حالة التحصيل (منتظم أو متأخر) — fallback رياضي */
+/**
+ * حساب حالة التحصيل (منتظم أو متأخر) — fallback رياضي
+ * @deprecated استخدم getPaymentStatusFromInvoices بدلاً منها — هذه الدالة تُجاهل السنوات المالية والترحيل (القاعدة #15)
+ */
 export const getPaymentStatus = (
   tenant: TenantInfo,
   paidMonths: number

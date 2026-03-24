@@ -5,22 +5,29 @@ import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatus, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
+import { getPaymentStatusFromInvoices, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
+
+interface PaymentInvoiceLike {
+  contract_id: string;
+  status: string;
+  due_date: string;
+}
 
 interface DesktopUnitsTableProps {
   units: UnitRow[];
   contracts: Contract[];
   wholePropertyContracts: Contract[];
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
+  paymentInvoices?: PaymentInvoiceLike[];
   onEdit: (unit: UnitRow) => void;
   onDelete: (unit: UnitRow) => void;
 }
 
-const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, onEdit, onDelete }: DesktopUnitsTableProps) => {
+const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPayments, paymentInvoices = [], onEdit, onDelete }: DesktopUnitsTableProps) => {
   const getPaymentInfo = (contractId: string) => {
     const payment = tenantPayments.find(p => p.contract_id === contractId);
     return payment ? payment.paid_months : 0;
@@ -107,7 +114,7 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
                   {!tenant || tenant.status !== 'active' ? (
                     <span className="text-muted-foreground">-</span>
                   ) : (() => {
-                    const ps = getPaymentStatus(tenant, paid);
+                    const ps = getPaymentStatusFromInvoices(tenant.contract_id, paymentInvoices);
                     return ps.status === 'ontime'
                       ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20">منتظم</Badge>
                       : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">متأخر ({ps.overdueCount} دفعة)</Badge>;
