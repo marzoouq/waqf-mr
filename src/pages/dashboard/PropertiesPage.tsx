@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
