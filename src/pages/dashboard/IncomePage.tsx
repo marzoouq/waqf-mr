@@ -78,7 +78,11 @@ const IncomePage = () => {
       source: formData.source, amount, date: formData.date,
       property_id: formData.property_id || undefined, notes: formData.notes || undefined,
     };
-    if (!editingIncome && fiscalYear?.id) {
+    if (!editingIncome) {
+      if (!fiscalYear?.id) {
+        toast.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
+        return;
+      }
       incomeData.fiscal_year_id = fiscalYear.id;
     }
     try {

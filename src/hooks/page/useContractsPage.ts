@@ -104,6 +104,11 @@ export const useContractsPage = () => {
   }, []);
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
+    // تحقق: تاريخ الانتهاء بعد تاريخ البداية
+    if (formData.end_date <= formData.start_date) {
+      toast.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
+      return;
+    }
     const paymentCount = formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'quarterly' ? 4 : formData.payment_type === 'semi_annual' ? 2 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
 
     if (isEditing && editingContract) {

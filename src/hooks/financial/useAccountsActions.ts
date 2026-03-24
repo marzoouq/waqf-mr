@@ -218,30 +218,40 @@ export function useAccountsActions(params: ActionsParams) {
     }
   };
 
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
   const handleExportPdf = async () => {
-    const p = paramsRef.current;
-    const { generateAccountsPDF } = await import('@/utils/pdf');
-    await generateAccountsPDF({
-      contracts: p.contracts,
-      incomeBySource: p.incomeBySource,
-      expensesByType: p.expensesByType,
-      totalIncome: p.totalIncome,
-      totalExpenses: p.totalExpenses,
-      netRevenue: p.netAfterZakat,
-      adminShare: p.adminShare,
-      waqifShare: p.waqifShare,
-      waqfRevenue: p.waqfRevenue,
-      beneficiaries: p.beneficiaries,
-      vatAmount: manualVat,
-      distributionsAmount: manualDistributions,
-      waqfCorpusManual,
-      zakatAmount,
-      netAfterZakat: p.netAfterZakat,
-      waqfCorpusPrevious,
-      grandTotal: p.grandTotal,
-      availableAmount: p.availableAmount,
-      remainingBalance: p.remainingBalance,
-    });
+    setIsExportingPdf(true);
+    try {
+      const p = paramsRef.current;
+      const { generateAccountsPDF } = await import('@/utils/pdf');
+      await generateAccountsPDF({
+        contracts: p.contracts,
+        incomeBySource: p.incomeBySource,
+        expensesByType: p.expensesByType,
+        totalIncome: p.totalIncome,
+        totalExpenses: p.totalExpenses,
+        netRevenue: p.netAfterZakat,
+        adminShare: p.adminShare,
+        waqifShare: p.waqifShare,
+        waqfRevenue: p.waqfRevenue,
+        beneficiaries: p.beneficiaries,
+        vatAmount: manualVat,
+        distributionsAmount: manualDistributions,
+        waqfCorpusManual,
+        zakatAmount,
+        netAfterZakat: p.netAfterZakat,
+        waqfCorpusPrevious,
+        grandTotal: p.grandTotal,
+        availableAmount: p.availableAmount,
+        remainingBalance: p.remainingBalance,
+      });
+      toast.success('تم تصدير التقرير بنجاح');
+    } catch (err) {
+      toast.error('حدث خطأ أثناء تصدير التقرير');
+    } finally {
+      setIsExportingPdf(false);
+    }
   };
 
   const currentAccount = findAccountByFY(params.accounts, params.selectedFY);

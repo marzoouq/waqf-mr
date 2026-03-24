@@ -66,7 +66,11 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" maxLength={100} />
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
-          <div className="space-y-2"><Label>نسبة الحصة (%) *</Label><Input type="number" step="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" /></div>
+          <div className="space-y-2">
+            <Label>نسبة الحصة (%) *</Label>
+            <Input type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
+            {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
+          </div>
           <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
           <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">
