@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
           private_key: "PLACEHOLDER_KEY_DEV",
           zatca_secret: "PLACEHOLDER_SECRET_DEV",
           request_id: `DEV-${Date.now()}`,
-          is_active: true,
+          is_active: false,
         });
         await logZatcaOperation(admin, {
           operation_type: "onboard",

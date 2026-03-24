@@ -20,6 +20,6 @@ export const DEFAULT_ROLE_PERMS: RolePerms = {
     properties: true, contracts: true, disclosure: false,
     reports: true, accounts: true, bylaws: true,
     share: false, notifications: true, annual_report: true,
-    support: false,
+    support: true,
   },
 };

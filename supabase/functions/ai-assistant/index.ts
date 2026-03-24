@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
     // ─── جلب البيانات مع cache لتقليل استعلامات DB المتكررة ───
     const cacheKey = `${userData.user.id}:${userRole}`;
-    let dataContext = dataCache.get(cacheKey);
+    let dataContext = forceRefresh ? null : dataCache.get(cacheKey);
     if (!dataContext) {
       dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
       dataCache.set(cacheKey, dataContext);
