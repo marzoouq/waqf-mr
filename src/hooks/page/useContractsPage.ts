@@ -62,7 +62,7 @@ export const useContractsPage = () => {
   const handleRenew = useCallback((contract: Contract) => {
     const num = contract.contract_number;
     const match = num.match(/-R(\d+)$/);
-    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
     // حساب تواريخ مقترحة بناءً على مدة العقد الأصلي
     const oldStart = new Date(contract.start_date);
     const oldEnd = new Date(contract.end_date);
