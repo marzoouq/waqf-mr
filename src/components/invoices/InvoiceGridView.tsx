@@ -58,7 +58,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
     <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4">
       {paginated.map((inv) => {
-        const config = statusConfig[inv.status] || statusConfig.pending;
+        const config = statusConfig[inv.status] ?? statusConfig.pending!;
         return (
           <Card
             key={inv.id}

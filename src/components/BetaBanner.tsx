@@ -19,7 +19,7 @@ const BetaBanner = () => {
 
   const settings = getJsonSetting<BannerSettings>("beta_banner_settings", DEFAULT_BANNER_SETTINGS);
 
-  const colors = BANNER_COLORS_SPLIT[settings.color] || BANNER_COLORS_SPLIT.amber;
+  const colors = BANNER_COLORS_SPLIT[settings.color] ?? BANNER_COLORS_SPLIT.amber!;
   const isBottom = settings.position === "bottom";
   const isHidden = isLoading || dismissed || !settings.enabled;
 

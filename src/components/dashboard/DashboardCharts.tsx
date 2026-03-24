@@ -14,7 +14,7 @@ const ARABIC_MONTHS: Record<string, string> = {
 
 const formatArabicMonth = (month: unknown) => {
   const parts = String(month ?? '').split('-');
-  return ARABIC_MONTHS[parts[1]] || String(month);
+  return (parts[1] ? ARABIC_MONTHS[parts[1]] : undefined) || String(month);
 };
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };

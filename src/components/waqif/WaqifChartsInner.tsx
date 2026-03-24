@@ -13,7 +13,7 @@ const ARABIC_MONTHS: Record<string, string> = {
 };
 const formatArabicMonth = (month: unknown) => {
   const parts = String(month ?? '').split('-');
-  return ARABIC_MONTHS[parts[1]] || String(month);
+  return (parts[1] ? ARABIC_MONTHS[parts[1]] : undefined) || String(month);
 };
 
 interface MonthlyItem { month: string; income: number; expenses: number }

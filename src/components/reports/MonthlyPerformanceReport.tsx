@@ -239,7 +239,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               </TableHeader>
               <TableBody>
                 {monthlyData.map((m, idx) => {
-                  const prevNet = idx > 0 ? monthlyData[idx - 1].net : null;
+                  const prevNet = idx > 0 ? monthlyData[idx - 1]!.net : null;
                   return (
                     <TableRow key={`${m.year}-${m.month}`}>
                       <TableCell className="font-medium">{m.label}</TableCell>

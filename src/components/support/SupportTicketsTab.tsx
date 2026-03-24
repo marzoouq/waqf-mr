@@ -186,8 +186,8 @@ export default function SupportTicketsTab({
                 </TableHeader>
                 <TableBody>
                   {filteredTickets.map(ticket => {
-                    const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
-                    const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
+                    const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
+                    const p = PRIORITY_MAP[ticket.priority] ?? PRIORITY_MAP.medium!;
                     const Icon = s.icon;
                     return (
                       <TableRow key={ticket.id}>

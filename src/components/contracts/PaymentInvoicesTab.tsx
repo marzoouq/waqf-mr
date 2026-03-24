@@ -316,9 +316,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <>{/* صف عنوان المجموعة */}
                           <TableRow key={`header-${contractId}`} className="bg-muted/30 hover:bg-muted/40">
                             <TableCell colSpan={isClosed ? 10 : 11} className="py-2 px-4">
-                              <span className="text-xs font-bold text-foreground">{first.contract?.contract_number || '-'}</span>
-                              <span className="text-xs text-muted-foreground mr-2">— {first.contract?.tenant_name}</span>
-                              <span className="text-xs text-muted-foreground mr-2">• {first.contract?.property?.property_number || ''}</span>
+                              <span className="text-xs font-bold text-foreground">{first?.contract?.contract_number || '-'}</span>
+                              <span className="text-xs text-muted-foreground mr-2">— {first?.contract?.tenant_name}</span>
+                              <span className="text-xs text-muted-foreground mr-2">• {first?.contract?.property?.property_number || ''}</span>
                               <Badge variant="outline" className="text-[11px] px-1.5 py-0 mr-2">{invs.length} فاتورة</Badge>
                             </TableCell>
                           </TableRow>

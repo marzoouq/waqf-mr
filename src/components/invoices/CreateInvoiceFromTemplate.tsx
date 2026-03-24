@@ -409,7 +409,7 @@ export default function CreateInvoiceFromTemplate({
             {(() => {
               const templateData = {
                 invoiceNumber: invoiceNumber || '(تلقائي)',
-                date: invoiceDate,
+                date: invoiceDate ?? new Date().toISOString().split('T')[0]!,
                 type: (isStandard ? 'standard' : 'simplified') as 'standard' | 'simplified',
                 sellerName: sellerInfo.name,
                 sellerAddress: sellerInfo.address,

@@ -64,7 +64,7 @@ const AdvanceRequestsTab = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const s = statusMap[status] || statusMap.pending;
+    const s = statusMap[status] ?? statusMap.pending!;
     const Icon = s.icon;
     return <Badge className={`${s.color} hover:${s.color}`}><Icon className="w-3 h-3 ml-1" />{s.label}</Badge>;
   };

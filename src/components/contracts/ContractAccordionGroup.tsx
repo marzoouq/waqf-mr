@@ -76,7 +76,7 @@ const ContractAccordionGroup = ({
   onOpenChange,
 }: ContractAccordionGroupProps) => {
   // أحدث عقد = العقد الرئيسي المعروض
-  const latest = contracts[0];
+  const latest = contracts[0]!;
   const hasMultiple = contracts.length > 1;
   const latestStatus = statusConfig[latest.status] || { label: latest.status, className: 'bg-muted' };
 

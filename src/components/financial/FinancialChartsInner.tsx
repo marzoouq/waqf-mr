@@ -17,7 +17,7 @@ const formatArabicMonth = (month: unknown) => {
   };
   const s = String(month ?? '');
   const parts = s.split('-');
-  return arabicMonths[parts[1]] || s;
+  return (parts[1] ? arabicMonths[parts[1]] : undefined) || s;
 };
 
 const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };

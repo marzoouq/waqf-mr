@@ -315,7 +315,7 @@ export const applyTheme = (theme: ThemeTemplate) => {
 };
 
 export const resetTheme = () => {
-  const allKeys = Object.keys(themes[0].light) as Array<keyof ThemeVars>;
+  const allKeys = Object.keys(themes[0]!.light) as Array<keyof ThemeVars>;
   allKeys.forEach((key) => document.documentElement.style.removeProperty(`--${key}`));
 };
 
