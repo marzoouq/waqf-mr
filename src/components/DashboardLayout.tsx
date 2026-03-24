@@ -140,7 +140,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isEdgeSwiping.current) return;
-    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0].clientX));
+    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0]!.clientX));
     edgeDragRef.current = delta;
     applyTransform(SIDEBAR_W - delta, SIDEBAR_W);
   }, [applyTransform]);
