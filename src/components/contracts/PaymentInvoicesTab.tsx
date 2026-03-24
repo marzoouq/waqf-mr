@@ -38,7 +38,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
     search, setSearch, filter, setFilter, dateFrom, setDateFrom, dateTo, setDateTo,
     sortKey, sortDir, toggleSort,
     currentPage, setCurrentPage,
-    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay,
+    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay, clearSelection,
     payingInvoiceId, payDialog, setPayDialog, payAmount, setPayAmount, openPayDialog, handlePay,
     previewInvoice, setPreviewInvoice, handlePreviewTemplate,
     generateAll, markUnpaid, waqfInfo,

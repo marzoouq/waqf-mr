@@ -13,6 +13,7 @@ import { useProperties } from '@/hooks/data/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
+import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
