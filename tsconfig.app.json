@@ -13,6 +13,7 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
