@@ -32,6 +32,27 @@ const ContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
   
+  // جلب أسماء العقارات لعرضها بدل property_id
+  const propertyIds = useMemo(() => {
+    if (!contracts) return [];
+    return [...new Set(contracts.map(c => c.property_id).filter(Boolean))] as string[];
+  }, [contracts]);
+
+  const { data: propertiesMap = {} } = useQuery({
+    queryKey: ['properties_names', propertyIds],
+    enabled: propertyIds.length > 0,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('properties')
+        .select('id, property_number, location')
+        .in('id', propertyIds);
+      const map: Record<string, string> = {};
+      (data ?? []).forEach(p => { map[p.id] = p.property_number || p.location; });
+      return map;
+    },
+  });
+  
   const pdfWaqfInfo = usePdfWaqfInfo();
 
   const now = useMemo(() => new Date(), []);
