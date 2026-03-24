@@ -93,7 +93,7 @@ function ZatcaManagementPage() {
   const { data: paymentInvoices = [] } = useQuery({
     queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
     queryFn: async () => {
-      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(200);
+      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
       if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
