@@ -7,7 +7,7 @@ export const usePushNotifications = () => {
   const [isSupported] = useState(() => 'Notification' in window);
 
   useEffect(() => {
-    if (!isSupported) return;
+    if (!isSupported) return undefined;
     setPermission(Notification.permission);
 
     if ('permissions' in navigator) {
@@ -19,6 +19,7 @@ export const usePushNotifications = () => {
       }).catch(() => { /* unsupported browser */ });
       return () => { status?.removeEventListener('change', onChange); };
     }
+    return undefined;
   }, [isSupported]);
 
   const requestPermission = useCallback(async () => {
