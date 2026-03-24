@@ -410,13 +410,15 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* مراقبة أداء الصفحات — للناظر فقط */}
+        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
         {role === 'admin' && (
-          <ErrorBoundary>
-            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-              <PagePerformanceCard />
-            </Suspense>
-          </ErrorBoundary>
+          <div className="print:hidden">
+            <ErrorBoundary>
+              <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+                <PagePerformanceCard />
+              </Suspense>
+            </ErrorBoundary>
+          </div>
         )}
 
         {/* آخر العقود */}

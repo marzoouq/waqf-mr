@@ -89,13 +89,13 @@ const AiAssistant = () => {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       }
 
-      // استدعاء عبر supabase.functions.invoke — يُرسل الـ token تلقائياً
+      // استدعاء عبر fetch مع token من getUser() — نمط آمن للـ streaming
       const resp = await fetch(AI_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${currentUser.id}`,
         },
         body: JSON.stringify({ messages: allMessages, mode }),
         signal: abortControllerRef.current.signal,

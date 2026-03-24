@@ -26,7 +26,8 @@ export const useDashboardRealtime = (
           'postgres_changes',
           { event: '*', schema: 'public', table },
           () => {
-            queryClient.invalidateQueries({ queryKey: [table] });
+            // إبطال كاش الجدول المتغير فقط بدلاً من جميع الجداول
+            queryClient.invalidateQueries({ queryKey: [table], exact: false });
           },
         );
       });

@@ -44,7 +44,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
           <TrendingDown className="h-4 w-4" />
           <AlertTitle>معدل التحصيل منخفض</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>معدل التحصيل الحالي {collectionRate}% — يُنصح بمراجعة الفواتير المتأخرة واتخاذ إجراء.</span>
+            <span>معدل التحصيل الحالي {collectionRate ?? 0}% — يُنصح بمراجعة الفواتير المتأخرة واتخاذ إجراء.</span>
             <Link to="/dashboard/contracts">
               <Button variant="outline" size="sm" className="shrink-0">مراجعة العقود</Button>
             </Link>

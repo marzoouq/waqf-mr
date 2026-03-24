@@ -75,8 +75,14 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <span className="text-xs text-muted-foreground">التحصيل المالي</span>
             </div>
             <p className={`text-xl sm:text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
-              {financialProgress}%
+              {exceededTarget ? `${rawFinancialProgress}%` : `${financialProgress}%`}
             </p>
+            {exceededTarget && (
+              <Badge variant="outline" className="text-[10px] border-success text-success gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                تجاوز الهدف
+              </Badge>
+            )}
             <Progress value={financialProgress} className={`h-2 ${financialProgress >= timeProgress ? '[&>div]:bg-success' : '[&>div]:bg-warning'}`} />
           </div>
         </div>
