@@ -48,7 +48,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         ...item,
         name: MONTH_NAMES[item.month]!,
         net: item.income - item.expenses,
-        label: `${MONTH_NAMES[item.month]} ${item.year}`,
+        label: `${MONTH_NAMES[item.month]!} ${item.year}`,
       }));
   }, [income, expenses]);
 
