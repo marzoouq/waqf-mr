@@ -83,19 +83,28 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
-      // التحقق من المستخدم
+      // التحقق من المستخدم — getUser() يتصل بالخادم (آمن)
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError || !currentUser) {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       }
 
-      // استدعاء عبر supabase.functions.invoke — يُرسل الـ token تلقائياً
+      // استخراج الـ token من التخزين المحلي (الذي يديره supabase-js)
+      // هذا آمن لأننا تحققنا من المستخدم عبر getUser() أعلاه
+      const storageKey = `sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`;
+      const stored = localStorage.getItem(storageKey);
+      const accessToken = stored ? JSON.parse(stored)?.access_token : null;
+      if (!accessToken) {
+        throw new Error('تعذر استخراج رمز المصادقة — أعد تسجيل الدخول');
+      }
+
+      // استدعاء عبر fetch للـ streaming — الـ token مُستخرج بأمان
       const resp = await fetch(AI_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ messages: allMessages, mode }),
         signal: abortControllerRef.current.signal,

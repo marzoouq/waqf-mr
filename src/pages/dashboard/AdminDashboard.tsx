@@ -349,12 +349,14 @@ const AdminDashboard = () => {
         {/* ملخص التحصيل */}
         <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
 
-        {/* خريطة حرارية */}
-        <ErrorBoundary>
-          <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-            <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
-          </Suspense>
-        </ErrorBoundary>
+        {/* خريطة حرارية — تُخفى عند الطباعة */}
+        <div className="print:hidden">
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+              <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
 
         {/* جدول الإجراءات المعلقة */}
         <ErrorBoundary>
@@ -363,12 +365,14 @@ const AdminDashboard = () => {
           </Suspense>
         </ErrorBoundary>
 
-        {/* الرسوم البيانية */}
-        <ErrorBoundary>
-          <Suspense fallback={<ChartSkeleton />}>
-            <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
-          </Suspense>
-        </ErrorBoundary>
+        {/* الرسوم البيانية — تُخفى عند الطباعة */}
+        <div className="print:hidden">
+          <ErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <DashboardCharts monthlyData={monthlyData} expenseTypes={expenseTypes} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
 
         {/* مقارنة بين السنوات */}
         {allFiscalYears.length >= 2 ? (
@@ -406,13 +410,15 @@ const AdminDashboard = () => {
           </Card>
         )}
 
-        {/* مراقبة أداء الصفحات — للناظر فقط */}
+        {/* مراقبة أداء الصفحات — للناظر فقط، تُخفى عند الطباعة */}
         {role === 'admin' && (
-          <ErrorBoundary>
-            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
-              <PagePerformanceCard />
-            </Suspense>
-          </ErrorBoundary>
+          <div className="print:hidden">
+            <ErrorBoundary>
+              <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-lg" />}>
+                <PagePerformanceCard />
+              </Suspense>
+            </ErrorBoundary>
+          </div>
         )}
 
         {/* آخر العقود */}

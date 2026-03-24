@@ -3,7 +3,8 @@
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, Clock, TrendingUp } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, TrendingUp, CheckCircle2 } from 'lucide-react';
 import type { FiscalYear } from '@/types/database';
 
 interface FiscalYearWidgetProps {
@@ -29,9 +30,11 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
   const timeProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
 
   // نسبة الإنجاز المالي = الدخل الفعلي / الإيرادات التعاقدية
-  const financialProgress = contractualRevenue > 0
-    ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100))
+  const rawFinancialProgress = contractualRevenue > 0
+    ? Math.round((totalIncome / contractualRevenue) * 100)
     : 0;
+  const exceededTarget = rawFinancialProgress > 100;
+  const financialProgress = Math.min(100, rawFinancialProgress);
 
   return (
     <Card className="shadow-sm">
@@ -72,8 +75,14 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
               <span className="text-xs text-muted-foreground">التحصيل المالي</span>
             </div>
             <p className={`text-xl sm:text-2xl font-bold ${financialProgress >= timeProgress ? 'text-success' : 'text-warning'}`}>
-              {financialProgress}%
+              {exceededTarget ? `${rawFinancialProgress}%` : `${financialProgress}%`}
             </p>
+            {exceededTarget && (
+              <Badge variant="outline" className="text-[10px] border-success text-success gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                تجاوز الهدف
+              </Badge>
+            )}
             <Progress value={financialProgress} className={`h-2 ${financialProgress >= timeProgress ? '[&>div]:bg-success' : '[&>div]:bg-warning'}`} />
           </div>
         </div>
