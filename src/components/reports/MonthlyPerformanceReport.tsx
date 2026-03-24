@@ -199,7 +199,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
           {/* Mobile cards */}
           <div className="space-y-2 md:hidden">
             {monthlyData.map((m, idx) => {
-              const prevNet = idx > 0 ? monthlyData[idx - 1].net : null;
+              const prevNet = idx > 0 ? monthlyData[idx - 1]!.net : null;
               const TrendIcon = prevNet === null ? Minus : m.net > prevNet ? TrendingUp : m.net < prevNet ? TrendingDown : Minus;
               const trendColor = prevNet === null ? 'text-muted-foreground' : m.net > prevNet ? 'text-success' : m.net < prevNet ? 'text-destructive' : 'text-muted-foreground';
               return (
