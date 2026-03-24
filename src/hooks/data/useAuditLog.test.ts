@@ -99,7 +99,7 @@ describe('useAuditLog', () => {
     await waitFor(() => {
       // يجب أن يُنظَّف إلى 'test' فقط
       if (mockOr.mock.calls.length > 0) {
-        const orArg = mockOr.mock.calls[0][0];
+        const orArg = mockOr.mock.calls[0]![0];
         expect(orArg).not.toContain('%');
         expect(orArg).not.toContain('_');
         expect(orArg).not.toContain('\\');

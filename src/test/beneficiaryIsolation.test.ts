@@ -67,14 +67,14 @@ describe('Beneficiary Data Isolation (RLS Simulation)', () => {
       currentUserId = 'user-a';
       const visible = rlsFilter(allBeneficiaries);
       expect(visible).toHaveLength(1);
-      expect(visible[0].id).toBe('ben-a');
+      expect(visible[0]!.id).toBe('ben-a');
     });
 
     it('beneficiary B can only see their own record', () => {
       currentUserId = 'user-b';
       const visible = rlsFilter(allBeneficiaries);
       expect(visible).toHaveLength(1);
-      expect(visible[0].id).toBe('ben-b');
+      expect(visible[0]!.id).toBe('ben-b');
     });
 
     it('beneficiary A cannot see beneficiary B data', () => {
@@ -99,7 +99,7 @@ describe('Beneficiary Data Isolation (RLS Simulation)', () => {
       currentUserId = 'user-a';
       const visible = rlsFilterByBeneficiary(allDistributions, allBeneficiaries);
       expect(visible).toHaveLength(1);
-      expect(visible[0].beneficiary_id).toBe('ben-a');
+      expect(visible[0]!.beneficiary_id).toBe('ben-a');
     });
 
     it('beneficiary B cannot see beneficiary A distributions', () => {
@@ -118,7 +118,7 @@ describe('Beneficiary Data Isolation (RLS Simulation)', () => {
       currentUserId = 'user-a';
       const visible = rlsFilterByBeneficiary(allAdvances, allBeneficiaries);
       expect(visible).toHaveLength(1);
-      expect(visible[0].beneficiary_id).toBe('ben-a');
+      expect(visible[0]!.beneficiary_id).toBe('ben-a');
     });
 
     it('beneficiary A cannot see beneficiary B advance requests', () => {
@@ -137,7 +137,7 @@ describe('Beneficiary Data Isolation (RLS Simulation)', () => {
       currentUserId = 'user-a';
       const visible = rlsFilterByBeneficiary(allCarryforwards, allBeneficiaries);
       expect(visible).toHaveLength(1);
-      expect(visible[0].beneficiary_id).toBe('ben-a');
+      expect(visible[0]!.beneficiary_id).toBe('ben-a');
     });
 
     it('cross-beneficiary access is blocked', () => {

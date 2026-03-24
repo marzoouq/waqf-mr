@@ -51,7 +51,7 @@ describe('useDistributeShares', () => {
       total_distributed: 100,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    const callArgs = mockRpc.mock.calls[0][1];
+    const callArgs = mockRpc.mock.calls[0]![1];
     expect(callArgs.p_distributions[0].beneficiary_user_id).toBeNull();
   });
 });

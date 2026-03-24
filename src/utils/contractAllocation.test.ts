@@ -38,9 +38,9 @@ describe('allocateContractToFiscalYears', () => {
       [fy2024]
     );
     expect(allocations).toHaveLength(1);
-    expect(allocations[0].fiscal_year_id).toBe('fy-2024');
-    expect(allocations[0].allocated_payments).toBe(1);
-    expect(allocations[0].allocated_amount).toBe(50000);
+    expect(allocations[0]!.fiscal_year_id).toBe('fy-2024');
+    expect(allocations[0]!.allocated_payments).toBe(1);
+    expect(allocations[0]!.allocated_amount).toBe(50000);
   });
 
   it('يوزع عقد يمتد على سنتين ماليتين', () => {

@@ -33,14 +33,14 @@ describe('printShareReport', () => {
 
   it('renders beneficiary name and fiscal year', () => {
     printShareReport(baseParams);
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     expect(html).toContain('أحمد');
     expect(html).toContain('2024-2025');
   });
 
   it('calculates net correctly (share - advances - carryforward)', () => {
     printShareReport(baseParams);
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     // net = 100000 - 10000 - 5000 = 85000
     expect(html).toContain('85,000');
   });
@@ -48,7 +48,7 @@ describe('printShareReport', () => {
   it('shows deficit when advances exceed share', () => {
     const params = { ...baseParams, paidAdvancesTotal: 120000, carryforwardBalance: 0 };
     printShareReport(params);
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     // deficit = |100000 - 120000| = 20000
     expect(html).toContain('فرق مرحّل');
     expect(html).toContain('20,000');
@@ -68,7 +68,7 @@ describe('printShareReport', () => {
       ],
     };
     printShareReport(params);
-    const html = mockWrite.mock.calls[0][0] as string;
+    const html = mockWrite.mock.calls[0]![0] as string;
     expect(html).toContain('سجل التوزيعات');
     expect(html).toContain('مستلم');
   });

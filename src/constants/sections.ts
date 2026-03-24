@@ -41,27 +41,27 @@ export const BENEFICIARY_SECTION_KEYS = [
 
 /** تعريف الأقسام مع الأدوار المؤهلة لمصفوفة الصلاحيات */
 export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[] = [
-  { key: 'properties', label: SECTION_LABELS.properties, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'contracts', label: SECTION_LABELS.contracts, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'income', label: SECTION_LABELS.income, roles: ['accountant'] },
-  { key: 'expenses', label: SECTION_LABELS.expenses, roles: ['accountant'] },
-  { key: 'beneficiaries', label: SECTION_LABELS.beneficiaries, roles: ['accountant'] },
-  { key: 'reports', label: SECTION_LABELS.reports, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'accounts', label: SECTION_LABELS.accounts, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'invoices', label: SECTION_LABELS.invoices, roles: ['accountant', 'beneficiary'] },
-  { key: 'bylaws', label: SECTION_LABELS.bylaws, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'disclosure', label: SECTION_LABELS.disclosure, roles: ['beneficiary'] },
-  { key: 'share', label: SECTION_LABELS.share, roles: ['beneficiary'] },
-  { key: 'messages', label: SECTION_LABELS.messages, roles: ['accountant', 'beneficiary'] },
-  { key: 'audit_log', label: SECTION_LABELS.audit_log, roles: ['accountant'] },
-  { key: 'notifications', label: SECTION_LABELS.notifications, roles: ['beneficiary', 'waqif'] },
-  { key: 'annual_report', label: SECTION_LABELS.annual_report, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'support', label: SECTION_LABELS.support, roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'properties', label: SECTION_LABELS['properties'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'contracts', label: SECTION_LABELS['contracts'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'income', label: SECTION_LABELS['income'] ?? '', roles: ['accountant'] },
+  { key: 'expenses', label: SECTION_LABELS['expenses'] ?? '', roles: ['accountant'] },
+  { key: 'beneficiaries', label: SECTION_LABELS['beneficiaries'] ?? '', roles: ['accountant'] },
+  { key: 'reports', label: SECTION_LABELS['reports'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'accounts', label: SECTION_LABELS['accounts'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'invoices', label: SECTION_LABELS['invoices'] ?? '', roles: ['accountant', 'beneficiary'] },
+  { key: 'bylaws', label: SECTION_LABELS['bylaws'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'disclosure', label: SECTION_LABELS['disclosure'] ?? '', roles: ['beneficiary'] },
+  { key: 'share', label: SECTION_LABELS['share'] ?? '', roles: ['beneficiary'] },
+  { key: 'messages', label: SECTION_LABELS['messages'] ?? '', roles: ['accountant', 'beneficiary'] },
+  { key: 'audit_log', label: SECTION_LABELS['audit_log'] ?? '', roles: ['accountant'] },
+  { key: 'notifications', label: SECTION_LABELS['notifications'] ?? '', roles: ['beneficiary', 'waqif'] },
+  { key: 'annual_report', label: SECTION_LABELS['annual_report'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
+  { key: 'support', label: SECTION_LABELS['support'] ?? '', roles: ['accountant', 'beneficiary', 'waqif'] },
 ];
 
 /** إنشاء قاموس labels مفلتر حسب مفاتيح محددة */
 export const pickLabels = (keys: readonly string[]): Record<string, string> =>
-  Object.fromEntries(keys.map(k => [k, SECTION_LABELS[k]]));
+  Object.fromEntries(keys.map(k => [k, SECTION_LABELS[k] ?? k]));
 
 /** إنشاء defaults (كلها true) من مفاتيح */
 export const makeDefaults = (keys: readonly string[]): Record<string, boolean> =>

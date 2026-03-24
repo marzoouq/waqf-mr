@@ -117,7 +117,7 @@ export const renderTaxProfessional = async (
     doc.setFont(fontFamily, 'bold');
     doc.text(`${label}:`, margin + 45, y, { align: 'right' });
     doc.setFont(fontFamily, 'normal');
-    doc.text(val, margin, y, { align: 'left' });
+    doc.text(val ?? '', margin, y, { align: 'left' });
     y += 5;
   }
 

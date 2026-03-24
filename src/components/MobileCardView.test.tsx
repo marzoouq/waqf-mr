@@ -44,7 +44,7 @@ describe('MobileCardView', () => {
     const onEdit = vi.fn();
     render(<MobileCardView {...defaultProps} onEdit={onEdit} />);
     const editButtons = screen.getAllByRole('button');
-    await userEvent.click(editButtons[0]);
+    await userEvent.click(editButtons[0]!);
     expect(onEdit).toHaveBeenCalledWith(items[0]);
   });
 
@@ -52,7 +52,7 @@ describe('MobileCardView', () => {
     const onDelete = vi.fn();
     render(<MobileCardView {...defaultProps} onDelete={onDelete} />);
     const deleteButtons = screen.getAllByRole('button');
-    await userEvent.click(deleteButtons[0]);
+    await userEvent.click(deleteButtons[0]!);
     expect(onDelete).toHaveBeenCalledWith(items[0]);
   });
 
@@ -69,11 +69,11 @@ describe('MobileCardView', () => {
   it('renders multiple fields per item', () => {
     render(
       <MobileCardView
-        items={[items[0]]}
-        getKey={(i) => i.id}
-        getTitle={(i) => i.name}
+        items={[items[0]!]}
+        getKey={(i) => i!.id}
+        getTitle={(i) => i!.name}
         getFields={(i) => [
-          { label: 'المبلغ', value: `${i.amount} ريال` },
+          { label: 'المبلغ', value: `${i!.amount} ريال` },
           { label: 'الحالة', value: 'نشط' },
         ]}
       />
@@ -88,9 +88,9 @@ describe('MobileCardView', () => {
     const onDelete = vi.fn();
     render(
       <MobileCardView
-        items={[items[0]]}
-        getKey={(i) => i.id}
-        getTitle={(i) => i.name}
+        items={[items[0]!]}
+        getKey={(i) => i!.id}
+        getTitle={(i) => i!.name}
         getFields={() => []}
         onEdit={onEdit}
         onDelete={onDelete}
@@ -102,9 +102,9 @@ describe('MobileCardView', () => {
   it('hides buttons when no callbacks provided', () => {
     render(
       <MobileCardView
-        items={[items[0]]}
-        getKey={(i) => i.id}
-        getTitle={(i) => i.name}
+        items={[items[0]!]}
+        getKey={(i) => i!.id}
+        getTitle={(i) => i!.name}
         getFields={() => []}
       />
     );

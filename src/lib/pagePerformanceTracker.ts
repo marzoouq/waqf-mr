@@ -91,7 +91,7 @@ export function getPagePerfSummaries(): PagePerfSummary[] {
 
   for (const e of entries) {
     if (!grouped[e.path]) grouped[e.path] = [];
-    grouped[e.path].push(e);
+    grouped[e.path]!.push(e);
   }
 
   return Object.entries(grouped)
@@ -104,7 +104,7 @@ export function getPagePerfSummaries(): PagePerfSummary[] {
         maxMs: Math.max(...durations),
         minMs: Math.min(...durations),
         count: items.length,
-        lastMs: items[items.length - 1].durationMs,
+        lastMs: items[items.length - 1]!.durationMs,
       };
     })
     .sort((a, b) => b.avgMs - a.avgMs); // الأبطأ أولاً

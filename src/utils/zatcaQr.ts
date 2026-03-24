@@ -88,7 +88,7 @@ export function generateZatcaQrTLV(data: ZatcaQrData): string {
   // Convert to Base64
   let binary = '';
   for (let i = 0; i < result.length; i++) {
-    binary += String.fromCharCode(result[i]);
+    binary += String.fromCharCode(result[i] ?? 0);
   }
   return btoa(binary);
 }
