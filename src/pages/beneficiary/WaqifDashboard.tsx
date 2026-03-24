@@ -61,7 +61,7 @@ const WaqifDashboard = () => {
 
   
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
-  const activeContracts = relevantContracts;
+  const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
