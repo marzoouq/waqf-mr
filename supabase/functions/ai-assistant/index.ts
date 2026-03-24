@@ -7,7 +7,7 @@ class SimpleCache {
   private readonly ttl: number;
   private readonly maxSize: number;
 
-  constructor(ttlMs = 300_000, maxSize = 50) {
+  constructor(ttlMs = 60_000, maxSize = 50) {
     this.ttl = ttlMs;
     this.maxSize = maxSize;
   }
