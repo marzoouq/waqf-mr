@@ -60,8 +60,8 @@ export function useAccountsCalculations({
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent,
     waqfCorpusManual, manualDistributions,
-    isClosed: true,
-  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions]);
+    isClosed,
+  }), [totalIncome, totalExpenses, waqfCorpusPrevious, manualVat, zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions, isClosed]);
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
