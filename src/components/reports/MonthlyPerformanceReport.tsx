@@ -70,7 +70,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
 
   const worstMonth = useMemo(() => {
     if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((worst, m) => m.net < worst.net ? m : worst, monthlyData[0]);
+    return monthlyData.reduce((worst, m) => m.net < worst.net ? m : worst, monthlyData[0]!);
   }, [monthlyData]);
 
   const avgMonthlyIncome = monthlyData.length > 0 ? totals.income / monthlyData.length : 0;
