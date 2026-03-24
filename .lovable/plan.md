@@ -1,82 +1,84 @@
 
 
-# خطة إصلاح المشاكل المتبقية — الجولة الثالثة
+# خطة إصلاح المشاكل والثغرات المكتشفة — الجولة الرابعة
 
 ---
 
 ## تحليل التقرير
 
-بعد الفحص، بعض المشاكل المذكورة **مُصلَحة فعلاً** (مثل #13 — `activeIncome` يستخدم `allocationMap` في كلا الصفحتين). المشاكل الحقيقية المتبقية:
+بعد فحص الكود، تم التحقق من جميع المشاكل المذكورة. إليك التصنيف:
 
 ---
 
-## الإصلاحات المطلوبة (7 مشاكل)
+## الإصلاحات المطلوبة (6 مشاكل قابلة للتنفيذ)
 
-### 🔴 1. `isClosed = true` كقيمة افتراضية في `accountsCalculations.ts` (سطر 69)
+### 🔴 1. شهادة ZATCA وهمية بـ `is_active: true`
 
-الهوك يُمرر `isClosed = false` صحيحاً، لكن الدالة الأساسية `calculateFinancials` تستخدم `true` كافتراضي — أي استدعاء مباشر (اختبارات/كود مستقبلي) سيحصل على نتائج خاطئة.
+**الملف:** `supabase/functions/zatca-api/index.ts` سطر 333-340
 
-**الإصلاح:** تغيير القيمة الافتراضية إلى `isClosed = false` في `accountsCalculations.ts`.
+**المشكلة:** عند غياب `ZATCA_API_URL`، يُحفظ سجل شهادة وهمي بـ `is_active: true` — قد يُستخدم خطأً في الإنتاج.
 
-### 🔴 2. `computeOccupancy` — 100% إشغال خاطئ عند `totalUnits = 0`
+**الإصلاح:** تغيير `is_active: false` وإضافة حقل `environment: 'development'` للتمييز، مع إضافة فحص في مسار التوقيع يرفض الشهادات الوهمية.
 
-عندما `isSpecificYear = true`، فإن `hasAnyRelevant` يكون `true` لأي عقد (حتى المنتهي/الملغي) → يعرض 100%.
+---
 
-**الإصلاح:** تغيير الشرط ليحسب فقط العقود ذات `unit_id` أو العقود الكاملة:
-```typescript
-const hasAnyRelevant = rentedUnitIds.size > 0 || wholePropertyRentedIds.size > 0;
-```
+### 🟠 2. إضافة cron لـ `cleanup_expired_challenges`
 
-### 🔴 3. `collectionData.status` — `0 >= 0` = "مكتمل" في `useAccountsCalculations.ts` (سطر 128)
+**المشكلة:** الدالة تُستدعى يدوياً فقط من `webauthn/index.ts`. التحديات المنتهية تتراكم إذا لم يُستخدم WebAuthn لفترة.
 
-عقد بدون تخصيص (`expectedPayments = 0`) يظهر "مكتمل" خطأً.
+**الإصلاح:** إضافة `cron.schedule` يومي لتنظيف التحديات المنتهية (عبر INSERT في `cron.schedule` — ليس migration).
 
-**الإصلاح:**
-```typescript
-status: expectedPayments === 0 ? 'لا يوجد استحقاق' : (arrears <= 0 ? 'مكتمل' : 'متأخر'),
-```
+---
 
-### 🟡 4. `getPaymentPerPeriod` لا تستخدم `allocationMap`
+### 🟠 3. حماية `check-contract-expiry` بـ cron secret
 
-`totalCollected = paymentPerPeriod × paidMonths` يستخدم `rent_amount` الكامل بينما `expectedPayments` يأتي من التخصيص → تناقض.
+**الملف:** `supabase/functions/check-contract-expiry/index.ts`
 
-**الإصلاح:** استخدام `allocated_amount / allocated_payments` عند وجود تخصيص:
-```typescript
-const getPaymentPerPeriod = useCallback((contract) => {
-  const allocation = allocationMap.get(contract.id);
-  if (allocation && allocation.allocated_payments > 0) {
-    return allocation.allocated_amount / allocation.allocated_payments;
-  }
-  if (contract.payment_amount != null) return Number(contract.payment_amount);
-  return Number(contract.rent_amount) / (contract.payment_count || 1);
-}, [allocationMap]);
-```
+**المشكلة المزعومة:** الدالة مكشوفة بلا JWT.
 
-### 🟡 5. `monthlyRent` في `usePropertyFinancials.ts` — لا يستخدم `allocationMap`
+**الحالة الفعلية:** ✅ **الدالة محمية فعلاً** — تتحقق من `service_role` عبر `timingSafeEqual` (سطر 34) ثم تتحقق من `getUser()` + `has_role(admin)` للاستدعاء اليدوي. لا يمكن لمستخدم مجهول تشغيلها. **لا حاجة لإصلاح.**
 
-يقسم `rent_amount / 12` دائماً بدلاً من استخدام القيمة المُخصصة.
+---
 
-**الإصلاح:**
-```typescript
-const monthlyRent = allPropertyContracts.reduce((sum, c) => {
-  if (allocationMap && c.id) {
-    const alloc = allocationMap.get(c.id);
-    if (alloc) return sum + alloc.allocated_amount / 12;
-  }
-  const rent = safeNumber(c.rent_amount);
-  return sum + rent / 12;
-}, 0);
-```
+### 🟡 4. عمود "العقار" يعرض `-` في `ContractsViewPage`
 
-### 🟡 6. تناقض حساب الإشغال بين `PropertiesPage` و `computeOccupancy`
+**الملف:** `src/pages/beneficiary/ContractsViewPage.tsx` سطر 232
 
-`PropertiesPage` يحسب إشغال العقارات بدون وحدات (property-level) بشكل صحيح، لكن `computeOccupancy` لا تدعم ذلك.
+**المشكلة:** العمود "العقار" (سطر 218) يعرض `-` دائماً لأن `contracts_safe` لا يحتوي على `property_name`.
 
-**الإصلاح:** لا تغيير — `PropertiesPage` يستخدم منطقه الخاص المناسب لسياقه (يعرض عقارات مع وبدون وحدات)، و`computeOccupancy` تُستخدم في لوحة التحكم حيث الوحدات هي الأساس. إضافة تعليق توثيقي يوضح الفرق.
+**الإصلاح:** استخدام `property_id` لجلب اسم العقار من جدول `properties` عبر join أو query منفصل، أو إضافة `property_name` للـ view عبر JOIN.
 
-### 🟡 7. `.env` في المستودع
+---
 
-هذا ملف مُدار تلقائياً من Lovable Cloud ولا يمكن حذفه أو تعديله. المفاتيح الموجودة فيه هي مفاتيح عامة (anon key) وليست سرية — هذا السلوك الطبيعي لمشاريع Lovable.
+### 🟡 5. تحسين Cache المساعد الذكي
+
+**الملف:** `supabase/functions/ai-assistant/index.ts`
+
+**المشكلة:** الكاش يتجاهل تغييرات البيانات لمدة 5 دقائق.
+
+**الإصلاح:** تقليل TTL إلى 60 ثانية (كافٍ لتقليل الحمل مع تحديث أسرع)، وإضافة إمكانية إبطال الكاش عبر query parameter `?refresh=true`.
+
+---
+
+### 🟡 6. إضافة `support` لدور `waqif` في `sections.ts`
+
+**الملف:** `src/constants/sections.ts` سطر 58
+
+**المشكلة:** الواقف لا يملك وصولاً للدعم الفني بينما المستفيد يملكه — غير منطقي.
+
+**الإصلاح:** إضافة `'waqif'` لمصفوفة `roles` في قسم `support`.
+
+---
+
+## لن يُعدَّل الآن
+
+| البند | السبب |
+|-------|-------|
+| مفتاح التشفير في Git (#1) | المفتاح موجود في تاريخ Git — تدوير المفتاح يتطلب: (1) إنشاء مفتاح جديد في Vault، (2) فك تشفير جميع البيانات بالمفتاح القديم وإعادة تشفيرها بالجديد عبر migration خاصة. هذا تغيير عالي الخطورة يحتاج تنسيقاً مع صاحب المشروع |
+| هجرة مكررة (#4) | الهجرات المكررة تُنفَّذ مرة واحدة فقط (Supabase يتتبعها بالاسم). لا ضرر فعلي |
+| قراءة OTP واحد (#7) | `zatca_otp_1` هو التصميم الحالي — OTP يُستخدم مرة واحدة عند الربط فقط |
+| `check-contract-expiry` (#5) | **محمية فعلاً** بـ `service_role` check |
+| غياب اختبارات (#10-11) | مهمة منفصلة لاحقاً |
 
 ---
 
@@ -84,18 +86,10 @@ const monthlyRent = allPropertyContracts.reduce((sum, c) => {
 
 | الملف | التغيير |
 |-------|---------|
-| `src/utils/accountsCalculations.ts` | `isClosed = false` |
-| `src/utils/dashboardComputations.ts` | إصلاح `hasAnyRelevant` |
-| `src/hooks/financial/useAccountsCalculations.ts` | إصلاح status + `getPaymentPerPeriod` |
-| `src/hooks/financial/usePropertyFinancials.ts` | `monthlyRent` بالتخصيص |
-
----
-
-## لن يُعدَّل
-
-| البند | السبب |
-|-------|-------|
-| `.env` | مُدار من Lovable Cloud، المفاتيح عامة |
-| تناقض الإشغال | منطقان مختلفان لسياقين مختلفين — يُوثَّق فقط |
-| `activeIncome` في الصفحتين | **مُصلَح فعلاً** — يستخدم `allocationMap` |
+| `supabase/functions/zatca-api/index.ts` | `is_active: false` + فحص في مسار التوقيع |
+| `supabase/functions/ai-assistant/index.ts` | TTL → 60s + دعم `?refresh=true` |
+| `src/pages/beneficiary/ContractsViewPage.tsx` | عرض اسم العقار بدل `-` |
+| `src/constants/sections.ts` | إضافة `waqif` لـ `support` |
+| `src/constants/rolePermissions.ts` | إضافة `support: true` لـ `waqif` |
+| DB (insert tool) | جدولة cron لـ `cleanup_expired_challenges` |
 
