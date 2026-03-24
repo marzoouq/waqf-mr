@@ -181,7 +181,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant="secondary" onClick={() => onComplianceCheck(inv.id, inv.source)} disabled={rowBusy}>
-                                  {rowBusy && pendingAction?.type === 'compliance' ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">فحص</span>
                                 </Button>
                               </TooltipTrigger>
