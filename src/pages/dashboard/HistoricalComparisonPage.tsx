@@ -89,7 +89,7 @@ function HistoricalComparisonPage() {
         const d = yearData[i];
         if (m.key === 'income') row[fy.label] = d?.totalIncome ?? 0;
         else if (m.key === 'expenses') row[fy.label] = d?.totalExpenses ?? 0;
-        else row[fy.label] = (d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0);
+        else row[fy.label] = d?.waqfRevenue ?? ((d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0));
       });
       return row;
     });
