@@ -40,6 +40,8 @@ export const useAuditLog = (filters?: {
   tableName?: string;
   operation?: string;
   searchQuery?: string;
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   pageSize?: number;
 }) => {
@@ -47,7 +49,7 @@ export const useAuditLog = (filters?: {
   const pageSize = filters?.pageSize ?? 50;
 
   return useQuery({
-    queryKey: ['audit_log', filters?.tableName, filters?.operation, filters?.searchQuery, page, pageSize],
+    queryKey: ['audit_log', filters?.tableName, filters?.operation, filters?.searchQuery, filters?.dateFrom, filters?.dateTo, page, pageSize],
     queryFn: async () => {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
