@@ -100,6 +100,8 @@ Deno.serve(async (req) => {
     }
     const userRole = roleData.role;
 
+    const url = new URL(req.url);
+    const forceRefresh = url.searchParams.get("refresh") === "true";
     const { messages, mode } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
