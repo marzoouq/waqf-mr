@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2, FileText } from 'lucide-react';
@@ -15,22 +15,26 @@ interface InvoiceViewerProps {
 const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, filePath, fileName }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // ref لتتبع آخر blobUrl وتجنب مشكلة stale closure في cleanup
+  const blobUrlRef = useRef<string | null>(null);
 
   const isImage = fileName && /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileName);
   const isPdf = fileName && /\.pdf$/i.test(fileName);
 
   useEffect(() => {
     if (!open || !filePath) {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
         setBlobUrl(null);
       }
       return;
     }
 
-    // Revoke previous blob URL before creating a new one
-    if (blobUrl) {
-      URL.revokeObjectURL(blobUrl);
+    // تحرير blob URL السابق قبل إنشاء واحد جديد
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
       setBlobUrl(null);
     }
 
@@ -38,8 +42,12 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
     setLoading(true);
     getInvoiceSignedUrl(filePath)
       .then((url) => {
-        if (!abortController.signal.aborted) setBlobUrl(url);
-        else URL.revokeObjectURL(url);
+        if (!abortController.signal.aborted) {
+          blobUrlRef.current = url;
+          setBlobUrl(url);
+        } else {
+          URL.revokeObjectURL(url);
+        }
       })
       .catch(() => {
         if (!abortController.signal.aborted) toast.error('فشل في تحميل الملف');
@@ -50,12 +58,12 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ open, onOpenChange, fileP
 
     return () => {
       abortController.abort();
-      // تنظيف blob URL عند إلغاء التحميل لمنع تسرب الذاكرة
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
+      // تنظيف blob URL عند إلغاء التحميل — يقرأ من ref وليس من closure
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, filePath]);
 
   const handleDownload = () => {

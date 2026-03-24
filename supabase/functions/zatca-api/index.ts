@@ -294,7 +294,7 @@ Deno.serve(async (req) => {
           method: "GET",
           headers: { "Accept": "application/json", "Accept-Version": "V2" },
         });
-        const reachable = testRes.status > 0;
+        const reachable = testRes.status >= 200 && testRes.status < 500;
         await testRes.text();
         await logZatcaOperation(admin, {
           operation_type: "test-connection",

@@ -99,17 +99,10 @@ export function useWebAuthn() {
         toast.error('يرجى تسجيل الدخول أولاً');
         return false;
       }
-      // جلب الجلسة للحصول على access_token فقط (بعد التحقق من صلاحية المستخدم)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('انتهت صلاحية الجلسة. يرجى إعادة تسجيل الدخول');
-        return false;
-      }
-
+      // supabase.functions.invoke يُرسل الـ token تلقائياً — لا حاجة لـ getSession أو header يدوي
       // 1. طلب خيارات التسجيل من الخادم
       const { data: options, error: optErr } = await supabase.functions.invoke('webauthn', {
         body: { action: 'register-options' },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       if (optErr || !options) {
@@ -133,7 +126,6 @@ export function useWebAuthn() {
       // 3. إرسال النتيجة للتحقق — تمرير challenge_id لمنع race condition
       const { data: result, error: verErr } = await supabase.functions.invoke('webauthn', {
         body: { action: 'register-verify', credential, deviceName: deviceName || getDeviceName(), challenge_id: options.challenge_id },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       if (verErr || !result?.verified) {

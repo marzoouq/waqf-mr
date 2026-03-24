@@ -244,17 +244,14 @@ export const useGenerateInvoicePdf = () => {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) throw new Error('يجب تسجيل الدخول أولاً');
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) throw new Error('جلسة غير صالحة — يرجى تسجيل الدخول مجدداً');
-
       const body: Record<string, unknown> = { invoice_ids: opts.invoice_ids };
       if (opts.template) body.template = opts.template;
       if (opts.forceRegenerate) body.force_regenerate = true;
       if (opts.table) body.table = opts.table;
 
+      // supabase.functions.invoke يُرسل الـ token تلقائياً — لا حاجة لـ header يدوي
       const { data, error } = await supabase.functions.invoke('generate-invoice-pdf', {
         body,
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (error) throw error;
       return data as { results: { id: string; invoice_number: string | null; success: boolean; error?: string }[] };

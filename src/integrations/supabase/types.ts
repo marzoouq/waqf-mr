@@ -1873,6 +1873,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_challenges: { Args: never; Returns: undefined }
+      cleanup_pending_invoice_chain: { Args: never; Returns: undefined }
       close_fiscal_year: {
         Args: {
           p_account_data: Json

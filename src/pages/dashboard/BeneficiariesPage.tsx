@@ -45,10 +45,9 @@ const BeneficiariesPage = () => {
       // التحقق من صلاحية المستخدم أولاً
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("يجب تسجيل الدخول أولاً");
-      const { data: { session } } = await supabase.auth.getSession();
+      // supabase.functions.invoke يُرسل الـ token تلقائياً — لا حاجة لـ header يدوي
       const { data, error } = await supabase.functions.invoke('admin-manage-users', {
         body: { action: 'list_users' },
-        headers: { Authorization: `Bearer ${session?.access_token}` },
       });
       if (error) throw error;
       return (data?.users || [])
