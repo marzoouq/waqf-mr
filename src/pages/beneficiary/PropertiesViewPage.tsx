@@ -241,6 +241,7 @@ const PropertiesViewPage = () => {
                 expenses,
                 units: units ?? [],
                 isSpecificYear,
+                allocationMap,
               });
               const { rented, vacant, maintenance, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
               const propertyUnits = (units ?? []).filter(u => u.property_id === property.id);
