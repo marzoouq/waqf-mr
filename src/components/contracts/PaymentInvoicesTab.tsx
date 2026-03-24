@@ -232,8 +232,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                   return (
                     <div key={contractId} className="space-y-2">
                       <div className="flex items-center gap-2 px-1">
-                        <span className="text-sm font-bold">{first.contract?.contract_number || '-'}</span>
-                        <span className="text-xs text-muted-foreground">— {first.contract?.tenant_name}</span>
+                       <span className="text-sm font-bold">{first?.contract?.contract_number || '-'}</span>
+                        <span className="text-xs text-muted-foreground">— {first?.contract?.tenant_name}</span>
                       </div>
                       {invs.map(inv => (
                         <Card key={inv.id} className={`shadow-sm border-r-4 ${
