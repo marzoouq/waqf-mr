@@ -197,7 +197,7 @@ export default function ZatcaInvoicesTab({
                                   const action = inv.invoice_type === 'standard' ? 'clearance' : 'report';
                                   onSubmitToZatca(inv.id, inv.source, action);
                                 }} disabled={rowBusy || !canSubmit}>
-                                  {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">إرسال</span>
                                 </Button>
                               </TooltipTrigger>
