@@ -200,6 +200,8 @@ const AuditLogPage = () => {
         .limit(1000);
       if (tableFilter !== 'all') exportQuery = exportQuery.eq('table_name', tableFilter);
       if (opFilter !== 'all') exportQuery = exportQuery.eq('operation', opFilter);
+      if (dateFrom) exportQuery = exportQuery.gte('created_at', dateFrom);
+      if (dateTo) exportQuery = exportQuery.lte('created_at', dateTo + 'T23:59:59');
       const { data: allLogs } = await exportQuery;
       await generateAuditLogPDF({
         logs: (allLogs as unknown as typeof filtered) || filtered,
