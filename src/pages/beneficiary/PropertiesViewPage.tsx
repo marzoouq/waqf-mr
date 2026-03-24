@@ -4,6 +4,7 @@
  */
 import { useProperties } from '@/hooks/data/useProperties';
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
+import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useContractsSafeByFiscalYear } from '@/hooks/data/useContracts';
 import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
