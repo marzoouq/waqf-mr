@@ -122,7 +122,7 @@ const BeneficiarySupportPage = () => {
                     </TableHeader>
                     <TableBody>
                       {tickets.map(ticket => {
-                        const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                        const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
                         const Icon = s.icon;
                         return (
                           <TableRow key={ticket.id}>
