@@ -103,13 +103,25 @@ export function computePropertyFinancials(params: {
 
   // --- المالية ---
   const contractualRevenue = allPropertyContracts.reduce(
-    (sum, c) => sum + safeNumber(c.rent_amount), 0
+    (sum, c) => {
+      if (allocationMap && c.id) {
+        const alloc = allocationMap.get(c.id);
+        return sum + (alloc ? alloc.allocated_amount : 0);
+      }
+      return sum + safeNumber(c.rent_amount);
+    }, 0
   );
   const activeContracts = isSpecificYear
     ? allPropertyContracts
     : allPropertyContracts.filter(c => c.status === 'active');
   const activeAnnualRent = activeContracts.reduce(
-    (sum, c) => sum + safeNumber(c.rent_amount), 0
+    (sum, c) => {
+      if (allocationMap && c.id) {
+        const alloc = allocationMap.get(c.id);
+        return sum + (alloc ? alloc.allocated_amount : 0);
+      }
+      return sum + safeNumber(c.rent_amount);
+    }, 0
   );
   const monthlyRent = allPropertyContracts.reduce((sum, c) => {
     const rent = safeNumber(c.rent_amount);
