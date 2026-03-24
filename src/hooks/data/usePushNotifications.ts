@@ -19,6 +19,7 @@ export const usePushNotifications = () => {
       }).catch(() => { /* unsupported browser */ });
       return () => { status?.removeEventListener('change', onChange); };
     }
+    return undefined;
   }, [isSupported]);
 
   const requestPermission = useCallback(async () => {
