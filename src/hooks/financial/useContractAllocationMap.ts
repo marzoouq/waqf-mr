@@ -23,12 +23,13 @@ export function useContractAllocationMap(contracts: ContractLike[]) {
     const map = new Map<string, { allocated_payments: number; allocated_amount: number }>();
     if (!fiscalYearId || fiscalYearId === 'all' || fiscalYears.length === 0) return map;
     for (const c of contracts) {
+      if (!c.id || !c.start_date || !c.end_date) continue;
       const allocs = allocateContractToFiscalYears(
         {
           id: c.id,
           start_date: c.start_date,
           end_date: c.end_date,
-          rent_amount: Number(c.rent_amount),
+          rent_amount: Number(c.rent_amount ?? 0),
           payment_type: c.payment_type || 'annual',
           payment_count: c.payment_count || 1,
           payment_amount: c.payment_amount != null ? Number(c.payment_amount) : undefined,
