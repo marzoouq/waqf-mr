@@ -35,9 +35,10 @@ const ArchiveLogTab = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+
   // Server-side pagination with count (FIX B-02)
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ['access_log_archive', eventFilter, currentPage],
+    queryKey: ['access_log_archive', eventFilter, searchQuery, currentPage],
     queryFn: async () => {
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase

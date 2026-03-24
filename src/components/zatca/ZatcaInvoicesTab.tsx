@@ -48,7 +48,7 @@ interface ZatcaInvoicesTabProps {
   itemsPerPage: number;
   isComplianceCert: boolean;
   isProductionCert: boolean;
-  pendingAction: { id: string; type: string } | null;
+  pendingIds: Set<string>;
   onGenerateXml: (invoiceId: string, table: string) => void;
   onSignInvoice: (invoiceId: string, table: string) => void;
   onSubmitToZatca: (invoiceId: string, table: string, action: 'report' | 'clearance') => void;
@@ -58,9 +58,9 @@ interface ZatcaInvoicesTabProps {
 export default function ZatcaInvoicesTab({
   allInvoices, paginatedInvoices, invoicesLoading, statusFilter, setStatusFilter,
   invoicePage, setInvoicePage, itemsPerPage, isComplianceCert, isProductionCert,
-  pendingAction, onGenerateXml, onSignInvoice, onSubmitToZatca, onComplianceCheck,
+  pendingIds, onGenerateXml, onSignInvoice, onSubmitToZatca, onComplianceCheck,
 }: ZatcaInvoicesTabProps) {
-  const isRowPending = (id: string) => pendingAction?.id === id;
+  const isRowPending = (id: string) => pendingIds.has(id);
 
   return (
     <div className="space-y-4">
@@ -155,7 +155,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant={hasXml ? 'ghost' : 'outline'} onClick={() => onGenerateXml(inv.id, inv.source)} disabled={rowBusy || hasSig}>
-                                  {rowBusy && pendingAction?.type === 'xml' ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">XML</span>
                                 </Button>
                               </TooltipTrigger>
@@ -168,7 +168,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant={hasSig ? 'ghost' : 'outline'} onClick={() => onSignInvoice(inv.id, inv.source)} disabled={rowBusy || !canSign}>
-                                  {rowBusy && pendingAction?.type === 'sign' ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">توقيع</span>
                                 </Button>
                               </TooltipTrigger>
@@ -181,7 +181,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant="secondary" onClick={() => onComplianceCheck(inv.id, inv.source)} disabled={rowBusy}>
-                                  {rowBusy && pendingAction?.type === 'compliance' ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <ClipboardCheck className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">فحص</span>
                                 </Button>
                               </TooltipTrigger>
@@ -197,7 +197,7 @@ export default function ZatcaInvoicesTab({
                                   const action = inv.invoice_type === 'standard' ? 'clearance' : 'report';
                                   onSubmitToZatca(inv.id, inv.source, action);
                                 }} disabled={rowBusy || !canSubmit}>
-                                  {rowBusy && pendingAction?.type === 'submit' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">إرسال</span>
                                 </Button>
                               </TooltipTrigger>

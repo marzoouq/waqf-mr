@@ -41,7 +41,7 @@ function ZatcaManagementPage() {
   const { fiscalYearId } = useFiscalYear();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);
@@ -81,7 +81,7 @@ function ZatcaManagementPage() {
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     queryKey: ['zatca-invoices', statusFilter, fiscalYearId],
     queryFn: async () => {
-      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(200);
+      let q = supabase.from('invoices').select('id, invoice_number, invoice_type, amount, vat_amount, vat_rate, date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, fiscal_year_id').order('date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
       if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
@@ -93,7 +93,7 @@ function ZatcaManagementPage() {
   const { data: paymentInvoices = [] } = useQuery({
     queryKey: ['zatca-payment-invoices', statusFilter, fiscalYearId],
     queryFn: async () => {
-      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(200);
+      let q = supabase.from('payment_invoices').select('id, invoice_number, amount, vat_amount, vat_rate, due_date, zatca_status, zatca_uuid, zatca_xml, invoice_hash, icv, invoice_type, fiscal_year_id').order('due_date', { ascending: false }).limit(1000);
       if (statusFilter !== 'all') q = q.eq('zatca_status', statusFilter);
       if (fiscalYearId && fiscalYearId !== 'all') q = q.eq('fiscal_year_id', fiscalYearId);
       const { data, error } = await q;
@@ -124,45 +124,48 @@ function ZatcaManagementPage() {
     queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
   };
 
+  const addPending = (id: string) => setPendingIds(prev => new Set(prev).add(id));
+  const removePending = (id: string) => setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+
   const generateXml = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'xml' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم توليد XML بنجاح'); invalidateInvoices(); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const signInvoice = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'sign' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const submitToZatca = useMutation({
     mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
-      setPendingAction({ id: invoiceId, type: 'submit' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action, invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const complianceCheck = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'compliance' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
@@ -175,7 +178,7 @@ function ZatcaManagementPage() {
       invalidateInvoices();
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const handleOnboard = async () => {
@@ -220,6 +223,13 @@ function ZatcaManagementPage() {
         <PageHeaderCard title="إدارة ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
         <InvoiceStepsGuide />
 
+        {!activeCert && !certsLoading && (
+          <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 text-sm">
+            <p className="font-medium">⚠️ لا توجد شهادة ZATCA نشطة</p>
+            <p className="text-muted-foreground mt-1">يرجى التسجيل للحصول على شهادة امتثال من تبويب "الشهادات" أولاً.</p>
+          </div>
+        )}
+
         <ZatcaSummaryCards
           submitted={submitted}
           pending={pending}
@@ -246,7 +256,7 @@ function ZatcaManagementPage() {
               itemsPerPage={INVOICES_PER_PAGE}
               isComplianceCert={isComplianceCert}
               isProductionCert={isProductionCert}
-              pendingAction={pendingAction}
+              pendingIds={pendingIds}
               onGenerateXml={(id, table) => generateXml.mutate({ invoiceId: id, table })}
               onSignInvoice={(id, table) => signInvoice.mutate({ invoiceId: id, table })}
               onSubmitToZatca={(id, table, action) => submitToZatca.mutate({ invoiceId: id, table, action })}

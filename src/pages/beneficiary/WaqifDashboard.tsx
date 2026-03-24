@@ -61,7 +61,7 @@ const WaqifDashboard = () => {
 
   
   const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
-  const activeContracts = relevantContracts;
+  const activeContracts = contracts.filter(c => c.status === 'active');
   const expiredContracts = contracts.filter(c => c.status === 'expired');
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
@@ -76,7 +76,7 @@ const WaqifDashboard = () => {
 
   /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
-    const result = computeCollectionSummary(contracts, paymentInvoices);
+    const result = computeCollectionSummary(activeContracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
   }, [contracts, paymentInvoices]);
 
@@ -87,7 +87,7 @@ const WaqifDashboard = () => {
     const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
 
     return [
-      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
+      { label: 'نسبة التحصيل', value: collectionSummary.total === 0 ? '—' : collectionRate, suffix: collectionSummary.total === 0 ? '' : '%', color: collectionSummary.total === 0 ? 'text-muted-foreground' : (collectionRate >= 80 ? 'text-success' : collectionRate >= 50 ? 'text-warning' : 'text-destructive'), progressColor: collectionSummary.total === 0 ? '[&>div]:bg-muted' : (collectionRate >= 80 ? '[&>div]:bg-success' : collectionRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occupancyRate >= 80 ? 'text-success' : occupancyRate >= 50 ? 'text-warning' : 'text-destructive', progressColor: occupancyRate >= 80 ? '[&>div]:bg-success' : occupancyRate >= 50 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : (expenseRatio <= 20 ? 'text-success' : expenseRatio <= 40 ? 'text-warning' : 'text-destructive'), progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : (expenseRatio <= 20 ? '[&>div]:bg-success' : expenseRatio <= 40 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive') },
     ];
@@ -112,12 +112,16 @@ const WaqifDashboard = () => {
     return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-  const GreetingIcon = hour < 12 ? Sun : Moon;
-  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  const { greeting, GreetingIcon, hijriDate, gregorianDate, timeStr } = useMemo(() => {
+    const h = now.getHours();
+    return {
+      greeting: h < 12 ? 'صباح الخير' : 'مساء الخير',
+      GreetingIcon: h < 12 ? Sun : Moon,
+      hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+      timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+    };
+  }, [now]);
 
   const quickLinks = [
     { title: 'العقارات', icon: Building2, path: '/beneficiary/properties', color: 'bg-primary/10 text-primary' },
@@ -210,8 +214,8 @@ const WaqifDashboard = () => {
               {kpis.map((kpi, idx) => (
                 <div key={idx} className="text-center space-y-1 sm:space-y-2 p-3 sm:p-4 rounded-lg bg-muted/30">
                   <p className="text-xs sm:text-sm text-muted-foreground">{kpi.label}</p>
-                  <p className={`text-xl sm:text-3xl font-bold tabular-nums ${kpi.color}`}>{fmt(kpi.value)}{kpi.suffix}</p>
-                  {kpi.progressColor && <Progress value={Math.min(kpi.value, 100)} className={`h-2 ${kpi.progressColor}`} />}
+                  <p className={`text-xl sm:text-3xl font-bold tabular-nums ${kpi.color}`}>{typeof kpi.value === 'number' ? fmt(kpi.value) : kpi.value}{kpi.suffix}</p>
+                  {kpi.progressColor && <Progress value={Math.min(typeof kpi.value === 'number' ? kpi.value : 0, 100)} className={`h-2 ${kpi.progressColor}`} />}
                 </div>
               ))}
             </div>
