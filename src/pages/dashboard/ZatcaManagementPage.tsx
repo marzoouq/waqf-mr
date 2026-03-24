@@ -223,6 +223,13 @@ function ZatcaManagementPage() {
         <PageHeaderCard title="إدارة ZATCA" icon={ShieldCheck} description="إدارة الشهادات والفواتير الضريبية وسلسلة التوقيع" />
         <InvoiceStepsGuide />
 
+        {!activeCert && !certsLoading && (
+          <div className="rounded-lg border border-warning/50 bg-warning/10 p-4 text-sm">
+            <p className="font-medium">⚠️ لا توجد شهادة ZATCA نشطة</p>
+            <p className="text-muted-foreground mt-1">يرجى التسجيل للحصول على شهادة امتثال من تبويب "الشهادات" أولاً.</p>
+          </div>
+        )}
+
         <ZatcaSummaryCards
           submitted={submitted}
           pending={pending}
