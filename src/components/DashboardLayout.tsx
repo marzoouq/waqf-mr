@@ -130,7 +130,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const isEdgeSwiping = useRef(false);
 
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
-    const x = e.touches[0].clientX;
+    const x = e.touches[0]!.clientX;
     if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
       edgeStartX.current = x;
       isEdgeSwiping.current = true;
