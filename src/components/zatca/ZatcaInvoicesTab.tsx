@@ -58,9 +58,9 @@ interface ZatcaInvoicesTabProps {
 export default function ZatcaInvoicesTab({
   allInvoices, paginatedInvoices, invoicesLoading, statusFilter, setStatusFilter,
   invoicePage, setInvoicePage, itemsPerPage, isComplianceCert, isProductionCert,
-  pendingAction, onGenerateXml, onSignInvoice, onSubmitToZatca, onComplianceCheck,
+  pendingIds, onGenerateXml, onSignInvoice, onSubmitToZatca, onComplianceCheck,
 }: ZatcaInvoicesTabProps) {
-  const isRowPending = (id: string) => pendingAction?.id === id;
+  const isRowPending = (id: string) => pendingIds.has(id);
 
   return (
     <div className="space-y-4">

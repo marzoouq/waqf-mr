@@ -249,7 +249,7 @@ function ZatcaManagementPage() {
               itemsPerPage={INVOICES_PER_PAGE}
               isComplianceCert={isComplianceCert}
               isProductionCert={isProductionCert}
-              pendingAction={pendingIds.size > 0 ? { id: [...pendingIds][0], type: 'action' } : null}
+              pendingIds={pendingIds}
               onGenerateXml={(id, table) => generateXml.mutate({ invoiceId: id, table })}
               onSignInvoice={(id, table) => signInvoice.mutate({ invoiceId: id, table })}
               onSubmitToZatca={(id, table, action) => submitToZatca.mutate({ invoiceId: id, table, action })}
