@@ -1,6 +1,6 @@
 /**
  * Unit tests verifying that every protected edge-function invocation
- * explicitly passes the Authorization header with the user's access token.
+ * uses supabase.functions.invoke() which sends the token automatically.
  *
  * Public/pre-auth calls (guard-signup, lookup-national-id) are excluded
  * because they run before the user is authenticated.
@@ -13,21 +13,21 @@ import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 
 let invokeArgs: { functionName: string; options: Record<string, unknown> }[] = [];
 
-const mockSession = {
-  access_token: 'test-token-abc123',
-  user: { id: 'user-1' },
-};
+const mockUser = { id: 'user-1', email: 'test@example.com' };
+
+const mockGetUser: Mock = vi.fn(async () => ({
+  data: { user: mockUser },
+  error: null,
+}));
 
 const mockInvoke = vi.fn(async (fnName: string, opts: Record<string, unknown>) => {
   invokeArgs.push({ functionName: fnName, options: opts });
   return { data: { users: [] }, error: null };
 });
 
-const mockGetSession: Mock = vi.fn(async () => ({ data: { session: mockSession }, error: null }));
-
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    auth: { getSession: (...a: unknown[]) => mockGetSession(...a) },
+    auth: { getUser: (...a: unknown[]) => mockGetUser(...a) },
     functions: { invoke: (...a: unknown[]) => (mockInvoke as Function)(...a) },
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
@@ -49,102 +49,90 @@ vi.mock('@/integrations/supabase/client', () => ({
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
 // ---------------------------------------------------------------------------
-// Helpers
+// 1. UserManagementPage – callAdminApi (no manual header)
 // ---------------------------------------------------------------------------
 
-function assertAuthHeader(callIndex = 0) {
-  expect(invokeArgs.length).toBeGreaterThan(callIndex);
-  const { options } = invokeArgs[callIndex];
-  const headers = options.headers as Record<string, string> | undefined;
-  expect(headers).toBeDefined();
-  expect(headers!.Authorization).toBe(`Bearer ${mockSession.access_token}`);
-}
-
-// ---------------------------------------------------------------------------
-// 1. UserManagementPage – callAdminApi
-// ---------------------------------------------------------------------------
-
-describe('UserManagementPage – callAdminApi passes auth token', () => {
+describe('UserManagementPage – callAdminApi uses auto-auth', () => {
   beforeEach(() => {
     invokeArgs = [];
     mockInvoke.mockClear();
-    mockGetSession.mockClear();
+    mockGetUser.mockClear();
   });
 
-  it('includes Authorization header with session token', async () => {
-    // Import the module fresh to get callAdminApi via its page logic.
-    // Since callAdminApi is a module-scoped function, we replicate its logic:
+  it('invokes edge function without manual Authorization header', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) throw new Error('no session');
+    // التحقق من المستخدم أولاً (كما يفعل callAdminApi)
+    const { data: { user }, error } = await supabase.auth.getUser();
+    expect(error).toBeNull();
+    expect(user).toBeTruthy();
 
     await supabase.functions.invoke('admin-manage-users', {
       body: { action: 'list_users' },
-      headers: { Authorization: `Bearer ${session.access_token}` },
     });
 
-    assertAuthHeader(0);
     expect(invokeArgs[0].functionName).toBe('admin-manage-users');
+    // يجب ألا يحتوي على header يدوي — supabase.functions.invoke يُرسل الـ token تلقائياً
+    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(headers?.Authorization).toBeUndefined();
   });
 
-  it('throws when session is missing', async () => {
-    mockGetSession.mockResolvedValueOnce({ data: { session: null }, error: null });
+  it('throws when user is not authenticated', async () => {
+    mockGetUser.mockResolvedValueOnce({ data: { user: null }, error: { message: 'not authenticated' } });
 
     const { supabase } = await import('@/integrations/supabase/client');
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-    expect(session).toBeNull();
-    // The real callAdminApi throws "يجب تسجيل الدخول أولاً" in this case
+    expect(user).toBeNull();
+    expect(error).toBeTruthy();
   });
 });
 
 // ---------------------------------------------------------------------------
-// 2. BeneficiariesPage – admin-manage-users call
+// 2. BeneficiariesPage – admin-manage-users call (no manual header)
 // ---------------------------------------------------------------------------
 
-describe('BeneficiariesPage – edge function call passes auth token', () => {
+describe('BeneficiariesPage – edge function call uses auto-auth', () => {
   beforeEach(() => {
     invokeArgs = [];
     mockInvoke.mockClear();
-    mockGetSession.mockClear();
+    mockGetUser.mockClear();
   });
 
-  it('passes Authorization header when listing users for beneficiary linking', async () => {
+  it('invokes without manual Authorization header', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
 
-    const { data: { session } } = await supabase.auth.getSession();
     await supabase.functions.invoke('admin-manage-users', {
       body: { action: 'list_users' },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
     });
 
-    assertAuthHeader(0);
+    expect(invokeArgs[0].functionName).toBe('admin-manage-users');
+    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(headers?.Authorization).toBeUndefined();
   });
 });
 
 // ---------------------------------------------------------------------------
-// 3. useInvoices – generate-invoice-pdf
+// 3. useInvoices – generate-invoice-pdf (no manual header)
 // ---------------------------------------------------------------------------
 
-describe('useInvoices – generate-invoice-pdf passes auth token', () => {
+describe('useInvoices – generate-invoice-pdf uses auto-auth', () => {
   beforeEach(() => {
     invokeArgs = [];
     mockInvoke.mockClear();
-    mockGetSession.mockClear();
+    mockGetUser.mockClear();
   });
 
-  it('passes Authorization header when generating invoice PDFs', async () => {
+  it('invokes without manual Authorization header', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
 
-    const { data: { session } } = await supabase.auth.getSession();
     await supabase.functions.invoke('generate-invoice-pdf', {
       body: { invoice_ids: ['inv-1', 'inv-2'] },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
     });
 
-    assertAuthHeader(0);
     expect(invokeArgs[0].functionName).toBe('generate-invoice-pdf');
+    const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
+    expect(headers?.Authorization).toBeUndefined();
   });
 });
 
@@ -167,7 +155,6 @@ describe('Public edge functions should not require auth headers', () => {
 
     expect(invokeArgs[0].functionName).toBe('guard-signup');
     const headers = invokeArgs[0].options.headers as Record<string, string> | undefined;
-    // Should NOT have Authorization
     expect(headers?.Authorization).toBeUndefined();
   });
 
@@ -185,32 +172,21 @@ describe('Public edge functions should not require auth headers', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. Token value correctness
+// 5. Verify getUser is used instead of getSession
 // ---------------------------------------------------------------------------
 
-describe('Token value matches session access_token exactly', () => {
+describe('Auth pattern uses getUser() not getSession()', () => {
   beforeEach(() => {
-    invokeArgs = [];
-    mockInvoke.mockClear();
-    mockGetSession.mockClear();
+    mockGetUser.mockClear();
   });
 
-  it('does not hardcode or alter the token value', async () => {
-    const customToken = 'custom-token-xyz-789';
-    mockGetSession.mockResolvedValueOnce({
-      data: { session: { access_token: customToken, user: { id: 'u2' } } },
-      error: null,
-    });
-
+  it('getUser is called for server-side verification', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    const { data: { session } } = await supabase.auth.getSession();
 
-    await supabase.functions.invoke('admin-manage-users', {
-      body: { action: 'list_users' },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
+    await supabase.auth.getUser();
 
-    const headers = invokeArgs[0].options.headers as Record<string, string>;
-    expect(headers.Authorization).toBe(`Bearer ${customToken}`);
+    expect(mockGetUser).toHaveBeenCalledTimes(1);
+    // getSession should not exist in the mock — we don't use it
+    expect((supabase.auth as Record<string, unknown>).getSession).toBeUndefined();
   });
 });
