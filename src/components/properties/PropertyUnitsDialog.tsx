@@ -8,6 +8,8 @@ import { useUnits, UnitRow } from '@/hooks/data/useUnits';
 import { useCreateUnit, useUpdateUnit, useDeleteUnit } from '@/hooks/data/useUnits';
 import { useCreateContract, useUpdateContract } from '@/hooks/data/useContracts';
 import { useTenantPayments } from '@/hooks/data/useTenantPayments';
+import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Property, Contract } from '@/types/database';
 import { Plus, Building2, Home, DoorOpen } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
