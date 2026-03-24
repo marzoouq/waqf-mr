@@ -1,69 +1,82 @@
 
 
-# خطة إصلاح المشاكل المتبقية (4 مشاكل)
+# خطة إصلاح المشاكل المتبقية — الجولة الثالثة
 
 ---
 
-## المشاكل المكتشفة
+## تحليل التقرير
 
-| # | المشكلة | الشدة |
-|---|---------|-------|
-| 1 | `activeIncome` في `PropertiesPage.tsx` لا يستخدم `allocationMap` | 🔴 |
-| 2 | `activeIncome` في `PropertiesViewPage.tsx` لا يستخدم `allocationMap` | 🔴 |
-| 3 | `CollectionReport` — `0 >= 0` يعطي "مكتمل" خطأً | 🔴 |
-| 4 | توثيق fallback "جميع السنوات" في `contractualRevenue` | 🟡 |
+بعد الفحص، بعض المشاكل المذكورة **مُصلَحة فعلاً** (مثل #13 — `activeIncome` يستخدم `allocationMap` في كلا الصفحتين). المشاكل الحقيقية المتبقية:
 
 ---
 
-## الإصلاحات
+## الإصلاحات المطلوبة (7 مشاكل)
 
-### 1. `PropertiesPage.tsx` سطر 107 — `activeIncome` بالتخصيص
+### 🔴 1. `isClosed = true` كقيمة افتراضية في `accountsCalculations.ts` (سطر 69)
 
+الهوك يُمرر `isClosed = false` صحيحاً، لكن الدالة الأساسية `calculateFinancials` تستخدم `true` كافتراضي — أي استدعاء مباشر (اختبارات/كود مستقبلي) سيحصل على نتائج خاطئة.
+
+**الإصلاح:** تغيير القيمة الافتراضية إلى `isClosed = false` في `accountsCalculations.ts`.
+
+### 🔴 2. `computeOccupancy` — 100% إشغال خاطئ عند `totalUnits = 0`
+
+عندما `isSpecificYear = true`، فإن `hasAnyRelevant` يكون `true` لأي عقد (حتى المنتهي/الملغي) → يعرض 100%.
+
+**الإصلاح:** تغيير الشرط ليحسب فقط العقود ذات `unit_id` أو العقود الكاملة:
 ```typescript
-// قبل
-activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active')
-  .reduce((s, c) => s + Number(c.rent_amount), 0);
+const hasAnyRelevant = rentedUnitIds.size > 0 || wholePropertyRentedIds.size > 0;
+```
 
-// بعد — نفس منطق contractualRevenue
-const relevantContracts = contracts.filter(c => isSpecificYear || c.status === 'active');
-activeIncome = relevantContracts.reduce((s, c) => {
-  const alloc = allocationMap.get(c.id);
-  return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
+### 🔴 3. `collectionData.status` — `0 >= 0` = "مكتمل" في `useAccountsCalculations.ts` (سطر 128)
+
+عقد بدون تخصيص (`expectedPayments = 0`) يظهر "مكتمل" خطأً.
+
+**الإصلاح:**
+```typescript
+status: expectedPayments === 0 ? 'لا يوجد استحقاق' : (arrears <= 0 ? 'مكتمل' : 'متأخر'),
+```
+
+### 🟡 4. `getPaymentPerPeriod` لا تستخدم `allocationMap`
+
+`totalCollected = paymentPerPeriod × paidMonths` يستخدم `rent_amount` الكامل بينما `expectedPayments` يأتي من التخصيص → تناقض.
+
+**الإصلاح:** استخدام `allocated_amount / allocated_payments` عند وجود تخصيص:
+```typescript
+const getPaymentPerPeriod = useCallback((contract) => {
+  const allocation = allocationMap.get(contract.id);
+  if (allocation && allocation.allocated_payments > 0) {
+    return allocation.allocated_amount / allocation.allocated_payments;
+  }
+  if (contract.payment_amount != null) return Number(contract.payment_amount);
+  return Number(contract.rent_amount) / (contract.payment_count || 1);
+}, [allocationMap]);
+```
+
+### 🟡 5. `monthlyRent` في `usePropertyFinancials.ts` — لا يستخدم `allocationMap`
+
+يقسم `rent_amount / 12` دائماً بدلاً من استخدام القيمة المُخصصة.
+
+**الإصلاح:**
+```typescript
+const monthlyRent = allPropertyContracts.reduce((sum, c) => {
+  if (allocationMap && c.id) {
+    const alloc = allocationMap.get(c.id);
+    if (alloc) return sum + alloc.allocated_amount / 12;
+  }
+  const rent = safeNumber(c.rent_amount);
+  return sum + rent / 12;
 }, 0);
 ```
 
-### 2. `PropertiesViewPage.tsx` سطر 87 — نفس الإصلاح
+### 🟡 6. تناقض حساب الإشغال بين `PropertiesPage` و `computeOccupancy`
 
-```typescript
-// قبل
-activeIncome = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+`PropertiesPage` يحسب إشغال العقارات بدون وحدات (property-level) بشكل صحيح، لكن `computeOccupancy` لا تدعم ذلك.
 
-// بعد
-activeIncome = relevantContracts.reduce((s, c) => {
-  const alloc = allocationMap.get(c.id!);
-  return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
-}, 0);
-```
+**الإصلاح:** لا تغيير — `PropertiesPage` يستخدم منطقه الخاص المناسب لسياقه (يعرض عقارات مع وبدون وحدات)، و`computeOccupancy` تُستخدم في لوحة التحكم حيث الوحدات هي الأساس. إضافة تعليق توثيقي يوضح الفرق.
 
-### 3. `CollectionReport.tsx` سطر 152 — إصلاح `0 >= 0`
+### 🟡 7. `.env` في المستودع
 
-عندما لا يوجد تخصيص للعقد في هذه السنة (`allocatedPayments === 0`)، لا ينبغي اعتباره "مكتمل". الحل: تصفية العقود التي ليس لها تخصيص أصلاً، أو إضافة شرط:
-
-```typescript
-// قبل
-if (paid >= allocatedPayments) status = 'complete';
-
-// بعد — عقد بدون تخصيص في هذه السنة لا يُعتبر مكتملاً
-if (allocatedPayments > 0 && paid >= allocatedPayments) status = 'complete';
-else if (allocatedPayments === 0 && paid === 0) status = 'not_started';
-```
-
-### 4. توثيق fallback "جميع السنوات"
-
-إضافة تعليق توضيحي في كلا الملفين على سطر `allocationMap.size === 0`:
-```typescript
-// allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
-```
+هذا ملف مُدار تلقائياً من Lovable Cloud ولا يمكن حذفه أو تعديله. المفاتيح الموجودة فيه هي مفاتيح عامة (anon key) وليست سرية — هذا السلوك الطبيعي لمشاريع Lovable.
 
 ---
 
@@ -71,9 +84,18 @@ else if (allocatedPayments === 0 && paid === 0) status = 'not_started';
 
 | الملف | التغيير |
 |-------|---------|
-| `src/pages/dashboard/PropertiesPage.tsx` | `activeIncome` بالتخصيص + تعليق |
-| `src/pages/beneficiary/PropertiesViewPage.tsx` | `activeIncome` بالتخصيص + تعليق |
-| `src/components/contracts/CollectionReport.tsx` | إصلاح شرط `0 >= 0` |
+| `src/utils/accountsCalculations.ts` | `isClosed = false` |
+| `src/utils/dashboardComputations.ts` | إصلاح `hasAnyRelevant` |
+| `src/hooks/financial/useAccountsCalculations.ts` | إصلاح status + `getPaymentPerPeriod` |
+| `src/hooks/financial/usePropertyFinancials.ts` | `monthlyRent` بالتخصيص |
 
-**ملاحظة:** `useContractAllocationMap.ts` موجود فعلاً (ظاهر في الـ diff الأخير) — عدم ظهوره في البحث قد يكون بسبب تأخر الفهرسة.
+---
+
+## لن يُعدَّل
+
+| البند | السبب |
+|-------|-------|
+| `.env` | مُدار من Lovable Cloud، المفاتيح عامة |
+| تناقض الإشغال | منطقان مختلفان لسياقين مختلفين — يُوثَّق فقط |
+| `activeIncome` في الصفحتين | **مُصلَح فعلاً** — يستخدم `allocationMap` |
 
