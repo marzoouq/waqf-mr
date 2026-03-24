@@ -46,7 +46,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       .sort((a, b) => a.year - b.year || a.month - b.month)
       .map(item => ({
         ...item,
-        name: MONTH_NAMES[item.month],
+        name: MONTH_NAMES[item.month]!,
         net: item.income - item.expenses,
         label: `${MONTH_NAMES[item.month]} ${item.year}`,
       }));
