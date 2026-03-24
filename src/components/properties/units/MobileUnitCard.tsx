@@ -24,7 +24,7 @@ interface MobileUnitCardProps {
   onDelete: (unit: UnitRow) => void;
 }
 
-const MobileUnitCard = ({ unit, tenant, paidMonths, onEdit, onDelete }: MobileUnitCardProps) => {
+const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit, onDelete }: MobileUnitCardProps) => {
   const isComplete = paidMonths >= 12;
   const progressPercent = (paidMonths / 12) * 100;
 
