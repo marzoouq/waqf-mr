@@ -124,45 +124,48 @@ function ZatcaManagementPage() {
     queryClient.invalidateQueries({ queryKey: ['zatca-payment-invoices'] });
   };
 
+  const addPending = (id: string) => setPendingIds(prev => new Set(prev).add(id));
+  const removePending = (id: string) => setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+
   const generateXml = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'xml' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-xml-generator', { body: { invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم توليد XML بنجاح'); invalidateInvoices(); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const signInvoice = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'sign' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-signer', { body: { invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم التوقيع بنجاح'); invalidateInvoices(); queryClient.invalidateQueries({ queryKey: ['invoice-chain'] }); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const submitToZatca = useMutation({
     mutationFn: async ({ invoiceId, table, action }: { invoiceId: string; table: string; action: 'report' | 'clearance' }) => {
-      setPendingAction({ id: invoiceId, type: 'submit' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action, invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
     onSuccess: () => { toast.success('تم الإرسال لـ ZATCA'); invalidateInvoices(); },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const complianceCheck = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
-      setPendingAction({ id: invoiceId, type: 'compliance' });
+      addPending(invoiceId);
       const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
@@ -175,7 +178,7 @@ function ZatcaManagementPage() {
       invalidateInvoices();
     },
     onError: (e: Error) => toast.error(getSafeErrorMessage(e)),
-    onSettled: () => setPendingAction(null),
+    onSettled: (_d, _e, vars) => removePending(vars.invoiceId),
   });
 
   const handleOnboard = async () => {
