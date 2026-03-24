@@ -16,6 +16,8 @@ interface CalcParams {
   waqfCorpusPrevious: number;
   manualVat: number;
   manualDistributions: number;
+  /** هل السنة المالية مغلقة — يُمرر من المكوّن المستدعي */
+  isClosed?: boolean;
 }
 
 export function useAccountsCalculations({
