@@ -128,7 +128,8 @@ export function computeOccupancy(
     u => rentedUnitIds.has(u.id) || wholePropertyRentedIds.has(u.property_id)
   ).length;
   const totalUnits = allUnits.length;
-  const hasAnyRelevant = contracts.some(c => isSpecificYear || c.status === 'active');
+  // hasAnyRelevant: يعتمد على وجود وحدات مؤجرة فعلاً (ليس مجرد وجود عقود)
+  const hasAnyRelevant = rentedUnitIds.size > 0 || wholePropertyRentedIds.size > 0;
   const occupancyRate = totalUnits > 0
     ? Math.round((rentedUnits / totalUnits) * 100)
     : (hasAnyRelevant ? 100 : 0);

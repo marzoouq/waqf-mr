@@ -130,7 +130,7 @@ export function useAccountsCalculations({
       index: index + 1,
       tenantName: contract.tenant_name,
       paymentPerPeriod, expectedPayments, paidMonths, totalCollected, arrears,
-      status: arrears <= 0 ? 'مكتمل' : 'متأخر',
+      status: expectedPayments === 0 ? 'لا يوجد استحقاق' : (arrears <= 0 ? 'مكتمل' : 'متأخر'),
       notes: paymentInfo?.notes || '',
       spansMultipleYears, totalContractPayments,
       allocatedToThisYear: expectedPayments, allocatedToOtherYears, allocationNote,

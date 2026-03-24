@@ -124,6 +124,11 @@ export function computePropertyFinancials(params: {
     }, 0
   );
   const monthlyRent = allPropertyContracts.reduce((sum, c) => {
+    // استخدام التخصيص لحساب الاستحقاق الشهري بدقة للعقود الممتدة عبر سنوات
+    if (allocationMap && c.id) {
+      const alloc = allocationMap.get(c.id);
+      if (alloc) return sum + alloc.allocated_amount / 12;
+    }
     const rent = safeNumber(c.rent_amount);
     if (c.payment_type === 'monthly') return sum + (safeNumber(c.payment_amount) || rent / 12);
     return sum + rent / 12;
