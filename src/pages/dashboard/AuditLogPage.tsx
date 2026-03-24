@@ -190,7 +190,7 @@ const AuditLogPage = () => {
       if (opFilter !== 'all') exportQuery = exportQuery.eq('operation', opFilter);
       const { data: allLogs } = await exportQuery;
       await generateAuditLogPDF({
-        logs: allLogs || filtered,
+        logs: (allLogs as unknown as typeof filtered) || filtered,
         waqfInfo,
         tableFilter,
         opFilter,

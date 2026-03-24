@@ -35,9 +35,6 @@ const ArchiveLogTab = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // إعادة تصفير الصفحة عند تغيير الفلتر (AU-03)
-  const handleEventFilterChange = (v: string) => { setEventFilter(v); setCurrentPage(1); };
-  const handleSearchChange = (v: string) => { setSearchQuery(v); setCurrentPage(1); };
 
   // Server-side pagination with count (FIX B-02)
   const { data: rawData, isLoading } = useQuery({
