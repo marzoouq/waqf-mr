@@ -66,6 +66,7 @@ const PropertiesViewPage = () => {
   const summaryData = useMemo(() => {
     const totalProperties = properties?.length ?? 0;
     const totalVacant = totalUnits - occupiedUnits + propertiesWithoutUnitsNoContract;
+    // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
     const contractualRevenue = (contracts ?? []).reduce((s, c) => {
       const alloc = allocationMap.get(c.id!);
       return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
@@ -84,7 +85,11 @@ const PropertiesViewPage = () => {
       const relevantContracts = isSpecificYear
         ? (contracts ?? [])
         : (contracts ?? []).filter(c => c.status === 'active');
-      activeIncome = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
+      // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
+      activeIncome = relevantContracts.reduce((s, c) => {
+        const alloc = allocationMap.get(c.id!);
+        return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+      }, 0);
       const propExpensesAll = (expenses ?? []).filter(e => e.property_id);
       totalExpensesAll = propExpensesAll.reduce((s, e) => s + safeNumber(e.amount), 0);
     }
