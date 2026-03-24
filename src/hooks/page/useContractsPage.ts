@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { safeNumber } from '@/utils/safeNumber';
 import { useCreateContract, useUpdateContract, useDeleteContract, useContractsByFiscalYear } from '@/hooks/data/useContracts';
@@ -44,6 +44,8 @@ export const useContractsPage = () => {
   const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
+  // تصفير التحديد عند تغيير السنة المالية
+  useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
@@ -104,6 +106,11 @@ export const useContractsPage = () => {
   }, []);
 
   const handleFormSubmit = async (formData: ContractFormData, isEditing: boolean) => {
+    // تحقق: تاريخ الانتهاء بعد تاريخ البداية
+    if (formData.end_date <= formData.start_date) {
+      toast.error('تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية');
+      return;
+    }
     const paymentCount = formData.payment_type === 'monthly' ? 12 : formData.payment_type === 'quarterly' ? 4 : formData.payment_type === 'semi_annual' ? 2 : (formData.payment_type === 'annual' ? 1 : parseInt(formData.payment_count) || 1);
 
     if (isEditing && editingContract) {
@@ -199,6 +206,7 @@ export const useContractsPage = () => {
   const deselectAll = useCallback(() => setSelectedForRenewal(new Set()), []);
 
   const handleBulkRenew = async () => {
+    if (bulkRenewing) return; // حماية من النقر المزدوج
     setBulkRenewing(true);
     try {
       const { data: activeFY } = await supabase.from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();

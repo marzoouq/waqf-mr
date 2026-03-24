@@ -15,15 +15,19 @@ interface DeleteUnitDialogProps {
   unit: UnitRow | null;
   onClose: () => void;
   onConfirm: () => void;
+  relatedContractsCount?: number;
 }
 
-const DeleteUnitDialog = ({ unit, onClose, onConfirm }: DeleteUnitDialogProps) => (
+const DeleteUnitDialog = ({ unit, onClose, onConfirm, relatedContractsCount = 0 }: DeleteUnitDialogProps) => (
   <AlertDialog open={!!unit} onOpenChange={(open) => !open && onClose()}>
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>حذف الوحدة</AlertDialogTitle>
         <AlertDialogDescription>
-          هل أنت متأكد من حذف الوحدة "{unit?.unit_number}"؟ العقود المرتبطة بها ستبقى ولكن بدون ربط بوحدة.
+          هل أنت متأكد من حذف الوحدة "{unit?.unit_number}"؟
+          {relatedContractsCount > 0
+            ? ` هذه الوحدة مرتبطة بـ ${relatedContractsCount} عقد — سيتم إلغاء ربطها بالوحدة.`
+            : ' لا توجد عقود مرتبطة بهذه الوحدة.'}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter className="flex-row-reverse gap-2">

@@ -119,31 +119,11 @@ const GlobalSearch = () => {
       const searchResults: SearchResult[] = [];
       const pattern = `%${term}%`;
 
-      // Search properties
-      const { data: props } = await supabase
-        .from('properties')
-        .select('id, property_number, property_type, location')
-        .or(`property_number.ilike.${pattern},location.ilike.${pattern},property_type.ilike.${pattern}`)
-        .limit(5)
-        .abortSignal(controller.signal);
-
-      if (props) {
-        for (const p of props) {
-          searchResults.push({
-            id: p.id,
-            title: `${p.property_number} - ${p.property_type}`,
-            subtitle: p.location,
-            type: 'property',
-            path: `${basePath}/properties`,
-          });
-        }
-      }
-
-      // Search contracts — use contracts_safe for non-admin roles to respect RLS
+      // تنفيذ جميع الاستعلامات بالتوازي لتقليل وقت الاستجابة
       const contractSelectFields = 'id, contract_number, tenant_name, status, fiscal_year_id';
       const contractFilter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
 
-      const fetchContracts = async () => {
+      const buildContractQuery = () => {
         if (isAdmin) {
           let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
           if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
@@ -155,63 +135,37 @@ const GlobalSearch = () => {
         }
       };
 
-      const { data: contracts } = await fetchContracts();
+      const buildExpensesQuery = () => {
+        let q = supabase.from('expenses').select('id, expense_type, description, amount, fiscal_year_id').or(`expense_type.ilike.${pattern},description.ilike.${pattern}`).limit(5);
+        if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+        return q.abortSignal(controller.signal);
+      };
 
-      if (contracts) {
-        for (const c of contracts) {
-          searchResults.push({
-            id: c.id!,
-            title: `عقد ${c.contract_number}`,
-            subtitle: c.tenant_name || `حالة: ${c.status}`,
-            type: 'contract',
-            path: `${basePath}/contracts`,
-          });
+      const [propsRes, contractsRes, bensRes, expsRes] = await Promise.all([
+        supabase.from('properties').select('id, property_number, property_type, location').or(`property_number.ilike.${pattern},location.ilike.${pattern},property_type.ilike.${pattern}`).limit(5).abortSignal(controller.signal),
+        buildContractQuery(),
+        isAdmin ? supabase.from('beneficiaries').select('id, name, share_percentage').ilike('name', pattern).limit(5).abortSignal(controller.signal) : Promise.resolve({ data: null as null }),
+        isAdmin ? buildExpensesQuery() : Promise.resolve({ data: null as null }),
+      ]);
+
+      if (propsRes.data) {
+        for (const p of propsRes.data) {
+          searchResults.push({ id: p.id, title: `${p.property_number} - ${p.property_type}`, subtitle: p.location, type: 'property', path: `${basePath}/properties` });
         }
       }
-
-      // Search beneficiaries & expenses (admin/accountant only)
-      if (isAdmin) {
-        const { data: bens } = await supabase
-          .from('beneficiaries')
-          .select('id, name, share_percentage')
-          .ilike('name', pattern)
-          .limit(5)
-          .abortSignal(controller.signal);
-
-        if (bens) {
-          for (const b of bens) {
-            searchResults.push({
-              id: b.id,
-              title: b.name,
-              subtitle: `${b.share_percentage}%`,
-              type: 'beneficiary',
-              path: `${basePath}/beneficiaries`,
-            });
-          }
+      if (contractsRes.data) {
+        for (const c of contractsRes.data) {
+          searchResults.push({ id: c.id!, title: `عقد ${c.contract_number}`, subtitle: c.tenant_name || `حالة: ${c.status}`, type: 'contract', path: `${basePath}/contracts` });
         }
-
-        let expensesQuery = supabase
-          .from('expenses')
-          .select('id, expense_type, description, amount, fiscal_year_id')
-          .or(`expense_type.ilike.${pattern},description.ilike.${pattern}`)
-          .limit(5);
-
-        if (fiscalYearId && fiscalYearId !== '__none__') {
-          expensesQuery = expensesQuery.eq('fiscal_year_id', fiscalYearId);
+      }
+      if (bensRes.data) {
+        for (const b of bensRes.data) {
+          searchResults.push({ id: b.id, title: b.name, subtitle: `${b.share_percentage}%`, type: 'beneficiary', path: `${basePath}/beneficiaries` });
         }
-
-        const { data: exps } = await expensesQuery.abortSignal(controller.signal);
-
-        if (exps) {
-          for (const e of exps) {
-            searchResults.push({
-              id: e.id,
-              title: e.expense_type,
-              subtitle: `${fmt(safeNumber(e.amount))} ر.س${e.description ? ` — ${e.description}` : ''}`,
-              type: 'expense',
-              path: `${basePath}/expenses`,
-            });
-          }
+      }
+      if (expsRes.data) {
+        for (const e of expsRes.data) {
+          searchResults.push({ id: e.id, title: e.expense_type, subtitle: `${fmt(safeNumber(e.amount))} ر.س${e.description ? ` — ${e.description}` : ''}`, type: 'expense', path: `${basePath}/expenses` });
         }
       }
 

@@ -41,6 +41,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'الاسم مطلوب';
+    const pct = parseFloat(formData.share_percentage);
+    if (!Number.isFinite(pct) || pct <= 0) newErrors.share_percentage = 'النسبة يجب أن تكون أكبر من صفر';
     if (formData.national_id && !validateNationalId(formData.national_id)) newErrors.national_id = 'رقم الهوية يجب أن يكون 10 أرقام';
     if (formData.bank_account && !validateIBAN(formData.bank_account)) newErrors.bank_account = 'صيغة IBAN غير صحيحة (SA + 22 رقم)';
     setErrors(newErrors);
@@ -64,7 +66,11 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" maxLength={100} />
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
-          <div className="space-y-2"><Label>نسبة الحصة (%) *</Label><Input type="number" step="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" /></div>
+          <div className="space-y-2">
+            <Label>نسبة الحصة (%) *</Label>
+            <Input type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
+            {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
+          </div>
           <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
           <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">

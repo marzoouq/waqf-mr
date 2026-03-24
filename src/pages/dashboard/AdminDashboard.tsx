@@ -127,6 +127,7 @@ const AdminDashboard = () => {
   );
 
   const isYearActive = fiscalYear?.status === 'active';
+  /** ملاحظة: الحصص تُحسب فقط عند إقفال السنة المالية */
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
   const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
@@ -145,12 +146,12 @@ const AdminDashboard = () => {
     const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
     const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
 
-    // KPI جديد: التدفق النقدي الصافي
-    const netCashFlow = safeNumber(netAfterExpenses) - safeNumber(adminShare) - safeNumber(waqifShare) - safeNumber(zakatAmount);
+    // KPI: التدفق النقدي الصافي — مباشرة من الحسابات الموحدة
+    const netCashFlow = safeNumber(waqfRevenue);
 
-    // KPI جديد: نسبة التوزيع الفعلي
-    const distributable = isYearActive ? safeNumber(netAfterZakat) : safeNumber(availableAmount);
-    const distributionRatio = distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0;
+    // KPI: نسبة التوزيع الفعلي — لا معنى لها في السنة النشطة
+    const distributable = isYearActive ? 0 : safeNumber(availableAmount);
+    const distributionRatio = isYearActive ? 0 : (distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0);
 
     return [
       { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
@@ -165,8 +166,8 @@ const AdminDashboard = () => {
       { title: isYearActive ? 'ريع الوقف' : 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
       { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => (b.share_percentage ?? 0) > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       // بطاقتان جديدتان
-      { title: `التدفق النقدي الصافي${sharesNote}`, value: `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
-      { title: 'نسبة التوزيع الفعلي', value: `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
+      { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
+      { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
   }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, zakatAmount, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
 
@@ -196,8 +197,11 @@ const AdminDashboard = () => {
       ? Math.round((yoy.prevTotalExpenses / yoy.prevTotalIncome) * 100) : null;
     const expenseRatioChange = prevExpenseRatio !== null ? calcChangePercent(expenseRatio, prevExpenseRatio) : null;
 
+    // عند عدم وجود فواتير مستحقة، لا نعرض 0% بل "—"
+    const hasInvoicesDue = collectionSummary.total > 0;
+
     return [
-      { label: 'نسبة التحصيل', value: collectionRate, suffix: '%', color: colColor.text, progressColor: colColor.bar },
+      { label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
       { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
       { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
       { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
