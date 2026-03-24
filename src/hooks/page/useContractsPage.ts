@@ -143,11 +143,11 @@ export const useContractsPage = () => {
       const units = formData.selected_unit_ids;
       let created = 0;
       for (let i = 0; i < units.length; i++) {
-        const unitId = units[i];
+        const unitId = units[i]!;
         const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
         let rentAmount: number;
         if (formData.pricing_mode === 'per_unit') {
-          rentAmount = parseFloat(formData.rent_per_unit[unitId]) || 0;
+          rentAmount = parseFloat(formData.rent_per_unit[unitId] ?? '0') || 0;
         } else {
           rentAmount = parseFloat(formData.rent_amount) / units.length;
         }
