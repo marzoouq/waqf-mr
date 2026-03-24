@@ -19,6 +19,8 @@ import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
 import { fmt } from '@/utils/format';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },
@@ -29,6 +31,27 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
 const ContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
+  
+  // جلب أسماء العقارات لعرضها بدل property_id
+  const propertyIds = useMemo(() => {
+    if (!contracts) return [];
+    return [...new Set(contracts.map(c => c.property_id).filter(Boolean))] as string[];
+  }, [contracts]);
+
+  const { data: propertiesMap = {} } = useQuery({
+    queryKey: ['properties_names', propertyIds],
+    enabled: propertyIds.length > 0,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('properties')
+        .select('id, property_number, location')
+        .in('id', propertyIds);
+      const map: Record<string, string> = {};
+      (data ?? []).forEach(p => { map[p.id] = p.property_number || p.location; });
+      return map;
+    },
+  });
   
   const pdfWaqfInfo = usePdfWaqfInfo();
 
@@ -229,7 +252,7 @@ const ContractsViewPage = () => {
                         <TableRow key={contract.id}>
                           <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
                           <TableCell>{contract.tenant_name ?? ''}</TableCell>
-                          <TableCell>-</TableCell>
+                          <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
                           <TableCell>{formatCurrency(contract.rent_amount ?? 0)}</TableCell>
                           <TableCell>{formatDate(contract.start_date ?? '')}</TableCell>
                           <TableCell>{formatDate(contract.end_date ?? '')}</TableCell>

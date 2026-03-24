@@ -56,7 +56,7 @@ export const ROLE_SECTION_DEFS: { key: string; label: string; roles: string[] }[
   { key: 'audit_log', label: SECTION_LABELS.audit_log, roles: ['accountant'] },
   { key: 'notifications', label: SECTION_LABELS.notifications, roles: ['beneficiary', 'waqif'] },
   { key: 'annual_report', label: SECTION_LABELS.annual_report, roles: ['accountant', 'beneficiary', 'waqif'] },
-  { key: 'support', label: SECTION_LABELS.support, roles: ['accountant', 'beneficiary'] },
+  { key: 'support', label: SECTION_LABELS.support, roles: ['accountant', 'beneficiary', 'waqif'] },
 ];
 
 /** إنشاء قاموس labels مفلتر حسب مفاتيح محددة */

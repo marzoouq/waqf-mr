@@ -7,7 +7,7 @@ class SimpleCache {
   private readonly ttl: number;
   private readonly maxSize: number;
 
-  constructor(ttlMs = 300_000, maxSize = 50) {
+  constructor(ttlMs = 60_000, maxSize = 50) {
     this.ttl = ttlMs;
     this.maxSize = maxSize;
   }
@@ -100,6 +100,8 @@ Deno.serve(async (req) => {
     }
     const userRole = roleData.role;
 
+    const url = new URL(req.url);
+    const forceRefresh = url.searchParams.get("refresh") === "true";
     const { messages, mode } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -119,7 +121,7 @@ Deno.serve(async (req) => {
 
     // ─── جلب البيانات مع cache لتقليل استعلامات DB المتكررة ───
     const cacheKey = `${userData.user.id}:${userRole}`;
-    let dataContext = dataCache.get(cacheKey);
+    let dataContext = forceRefresh ? null : dataCache.get(cacheKey);
     if (!dataContext) {
       dataContext = await fetchWaqfData(userClient, userRole, userData.user.id);
       dataCache.set(cacheKey, dataContext);
