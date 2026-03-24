@@ -260,7 +260,7 @@ export function useAccountsActions(params: ActionsParams) {
   return {
     // الإعدادات
     adminPercent, waqifPercent, zakatAmount, waqfCorpusManual, waqfCorpusPrevious,
-    manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount,
+    manualVat, manualDistributions, fiscalYear, usingFallbackPct, currentAccount, isExportingPdf,
     // Ref للقيم المالية — يُحدّث من useAccountsPage بقيم calc المحسوبة
     paramsRef,
     // Setters

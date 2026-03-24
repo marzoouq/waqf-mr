@@ -120,14 +120,19 @@ const GlobalSearch = () => {
       const pattern = `%${term}%`;
 
       // تنفيذ جميع الاستعلامات بالتوازي لتقليل وقت الاستجابة
-      const contractTable = isAdmin ? 'contracts' : 'contracts_safe';
       const contractSelectFields = 'id, contract_number, tenant_name, status, fiscal_year_id';
       const contractFilter = `contract_number.ilike.${pattern},tenant_name.ilike.${pattern}`;
 
       const buildContractQuery = () => {
-        let q = supabase.from(contractTable).select(contractSelectFields).or(contractFilter).limit(5);
-        if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
-        return q.abortSignal(controller.signal);
+        if (isAdmin) {
+          let q = supabase.from('contracts').select(contractSelectFields).or(contractFilter).limit(5);
+          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          return q.abortSignal(controller.signal);
+        } else {
+          let q = supabase.from('contracts_safe').select(contractSelectFields).or(contractFilter).limit(5);
+          if (fiscalYearId && fiscalYearId !== '__none__') q = q.eq('fiscal_year_id', fiscalYearId);
+          return q.abortSignal(controller.signal);
+        }
       };
 
       const buildExpensesQuery = () => {
@@ -139,8 +144,8 @@ const GlobalSearch = () => {
       const [propsRes, contractsRes, bensRes, expsRes] = await Promise.all([
         supabase.from('properties').select('id, property_number, property_type, location').or(`property_number.ilike.${pattern},location.ilike.${pattern},property_type.ilike.${pattern}`).limit(5).abortSignal(controller.signal),
         buildContractQuery(),
-        isAdmin ? supabase.from('beneficiaries').select('id, name, share_percentage').ilike('name', pattern).limit(5).abortSignal(controller.signal) : Promise.resolve({ data: null }),
-        isAdmin ? buildExpensesQuery() : Promise.resolve({ data: null }),
+        isAdmin ? supabase.from('beneficiaries').select('id, name, share_percentage').ilike('name', pattern).limit(5).abortSignal(controller.signal) : Promise.resolve({ data: null as null }),
+        isAdmin ? buildExpensesQuery() : Promise.resolve({ data: null as null }),
       ]);
 
       if (propsRes.data) {
