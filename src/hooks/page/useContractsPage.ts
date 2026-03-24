@@ -199,6 +199,7 @@ export const useContractsPage = () => {
   const deselectAll = useCallback(() => setSelectedForRenewal(new Set()), []);
 
   const handleBulkRenew = async () => {
+    if (bulkRenewing) return; // حماية من النقر المزدوج
     setBulkRenewing(true);
     try {
       const { data: activeFY } = await supabase.from('fiscal_years').select('id').eq('status', 'active').limit(1).maybeSingle();
