@@ -91,6 +91,7 @@ const PropertiesPage = () => {
 
     const occupancyBase = totalRented + totalVacant;
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
+    // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
     const contractualRevenue = contracts.reduce((s, c) => {
       const alloc = allocationMap.get(c.id);
       return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
