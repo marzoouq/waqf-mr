@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown } from 'lucide-react';
+import { ShieldCheck, ChevronDown, ChevronUp, Search, Activity, Clock, CalendarDays, ShieldAlert, Archive, FileDown, X } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

@@ -67,11 +67,17 @@ export const useAuditLog = (filters?: {
         query = query.eq('operation', filters.operation);
       }
       if (filters?.searchQuery) {
-        // Sanitize: escape PostgREST special chars to prevent query manipulation
+        // تنظيف: إزالة الأحرف الخاصة لمنع التلاعب بالاستعلام
         const safe = filters.searchQuery.replace(/[%_\\(),.*]/g, '');
         if (safe.length > 0) {
           query = query.or(`table_name.ilike.%${safe}%,operation.ilike.%${safe}%`);
         }
+      }
+      if (filters?.dateFrom) {
+        query = query.gte('created_at', filters.dateFrom);
+      }
+      if (filters?.dateTo) {
+        query = query.lte('created_at', filters.dateTo + 'T23:59:59');
       }
 
       const { data, error, count } = await query;
