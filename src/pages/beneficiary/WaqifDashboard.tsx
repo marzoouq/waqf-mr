@@ -76,7 +76,7 @@ const WaqifDashboard = () => {
 
   /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
   const collectionSummary = useMemo(() => {
-    const result = computeCollectionSummary(contracts, paymentInvoices);
+    const result = computeCollectionSummary(activeContracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
   }, [contracts, paymentInvoices]);
 
