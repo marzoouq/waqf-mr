@@ -155,7 +155,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant={hasXml ? 'ghost' : 'outline'} onClick={() => onGenerateXml(inv.id, inv.source)} disabled={rowBusy || hasSig}>
-                                  {rowBusy && pendingAction?.type === 'xml' ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">XML</span>
                                 </Button>
                               </TooltipTrigger>
