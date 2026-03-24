@@ -131,6 +131,8 @@ const AuditLogPage = () => {
   const [tableFilter, setTableFilter] = useState<string>('all');
   const [opFilter, setOpFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState('operations');
@@ -138,10 +140,20 @@ const AuditLogPage = () => {
   
   const waqfInfo = usePdfWaqfInfo();
 
+  const hasDateFilter = dateFrom !== '' || dateTo !== '';
+
+  const clearDateFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setCurrentPage(1);
+  };
+
   const { data: auditData, isLoading } = useAuditLog({
     tableName: tableFilter !== 'all' ? tableFilter : undefined,
     operation: opFilter !== 'all' ? opFilter : undefined,
     searchQuery: searchQuery || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
   });
