@@ -52,7 +52,7 @@ export function useAccountsCalculations({
     .filter(c => isCommercialContract(c))
     .reduce((sum, c) => {
       const allocation = allocationMap.get(c.id);
-      return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+      return sum + (allocation ? allocation.allocated_amount : 0);
     }, 0), [contracts, isCommercialContract, allocationMap]);
   const calculatedVat = useMemo(() => commercialRent * (vatPercentage / 100), [commercialRent, vatPercentage]);
 
