@@ -127,6 +127,7 @@ const AdminDashboard = () => {
   );
 
   const isYearActive = fiscalYear?.status === 'active';
+  /** ملاحظة: الحصص تُحسب فقط عند إقفال السنة المالية */
   const sharesNote = isYearActive ? ' *تقديري' : '';
 
   const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
