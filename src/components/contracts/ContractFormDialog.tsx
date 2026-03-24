@@ -65,7 +65,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
         return;
       }
       if (formData.pricing_mode === 'per_unit') {
-        const allFilled = formData.selected_unit_ids.every(id => parseFloat(formData.rent_per_unit[id]) > 0);
+        const allFilled = formData.selected_unit_ids.every(id => parseFloat(formData.rent_per_unit[id] ?? '0') > 0);
         if (!allFilled) {
           toast.error('يرجى تحديد قيمة الإيجار لكل وحدة');
           return;
