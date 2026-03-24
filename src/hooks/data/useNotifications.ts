@@ -220,11 +220,16 @@ export const useNotifications = () => {
   const deleteRead = useMutation({
     mutationFn: async () => {
       if (!user) return;
-      const { error } = await supabase
+      let query = supabase
         .from('notifications')
         .delete()
         .eq('user_id', user.id)
         .eq('is_read', true);
+      // استثناء الأنواع المعطَّلة من الحذف (NT-01)
+      if (disabledTypes.size > 0) {
+        query = query.not('type', 'in', `(${[...disabledTypes].join(',')})`);
+      }
+      const { error } = await query;
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
