@@ -66,7 +66,7 @@ export const calculateFinancials = (params: FinancialParams): FinancialResult =>
   const {
     totalIncome, totalExpenses, waqfCorpusPrevious, manualVat,
     zakatAmount, adminPercent, waqifPercent, waqfCorpusManual, manualDistributions,
-    isClosed = true,
+    isClosed = false,
   } = params;
 
   const grandTotal = totalIncome + waqfCorpusPrevious;
