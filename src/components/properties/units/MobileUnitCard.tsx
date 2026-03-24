@@ -5,14 +5,21 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatus, getMonthlyRent, type TenantInfo } from './helpers';
+import { getPaymentStatusFromInvoices, getMonthlyRent, type TenantInfo } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import type { UnitRow } from '@/hooks/data/useUnits';
+
+interface PaymentInvoiceLike {
+  contract_id: string;
+  status: string;
+  due_date: string;
+}
 
 interface MobileUnitCardProps {
   unit: UnitRow;
   tenant: TenantInfo | null;
   paidMonths: number;
+  paymentInvoices?: PaymentInvoiceLike[];
   onEdit: (unit: UnitRow) => void;
   onDelete: (unit: UnitRow) => void;
 }
