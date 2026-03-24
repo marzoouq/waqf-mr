@@ -266,8 +266,8 @@ function HistoricalComparisonPage() {
                                 {values.length >= 2 && (
                                   <TableCell className="text-center">
                                     <ChangeIndicator
-                                      current={values[values.length - 1]}
-                                      previous={values[values.length - 2]}
+                                      current={values[values.length - 1] ?? 0}
+                                      previous={values[values.length - 2] ?? 0}
                                     />
                                   </TableCell>
                                 )}

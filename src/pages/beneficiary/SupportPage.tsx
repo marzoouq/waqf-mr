@@ -194,7 +194,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
     onClose();
   };
 
-  const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+  const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
   const canRate = (ticket.status === 'resolved' || ticket.status === 'closed') && !ticket.rating;
 
   return (

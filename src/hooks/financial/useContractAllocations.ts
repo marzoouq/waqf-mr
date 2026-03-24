@@ -39,7 +39,7 @@ export const useUpsertContractAllocations = () => {
   return useMutation({
     mutationFn: async (allocations: FiscalAllocation[]) => {
       if (allocations.length === 0) return;
-      const contractId = allocations[0].contract_id;
+      const contractId = allocations[0]!.contract_id;
       const rows = allocations.map(a => ({
         fiscal_year_id: a.fiscal_year_id,
         period_start: a.period_start,

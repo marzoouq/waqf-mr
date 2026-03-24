@@ -50,6 +50,7 @@ export function useAccountsEditing({ contracts, collectionData, getExpectedPayme
   const handleStartEdit = (index: number) => {
     const item = collectionData[index];
     const contract = contracts[index];
+    if (!item || !contract) return;
     setEditingIndex(index);
     setEditData({
       contractId: contract.id,

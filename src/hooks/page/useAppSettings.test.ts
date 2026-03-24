@@ -29,9 +29,9 @@ vi.mock('@tanstack/react-query', () => ({
     }
     return { data: storedData, isLoading: false };
   },
-  useMutation: ({ mutationFn, onSuccess }: Record<string, Function>) => ({
+  useMutation: ({ mutationFn, onSuccess }: Record<string, Function | undefined>) => ({
     mutateAsync: async (...args: unknown[]) => {
-      await mutationFn(...args);
+      await mutationFn!(...args);
       onSuccess?.();
     },
   }),

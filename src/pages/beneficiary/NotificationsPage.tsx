@@ -284,7 +284,7 @@ const NotificationsPage = () => {
                 <Card className="overflow-hidden">
                   <div className="divide-y divide-border">
                     {items.map((n) => {
-                      const config = typeConfig[n.type] || typeConfig.info;
+                      const config = typeConfig[n.type] ?? typeConfig.info!;
                       const Icon = config.icon;
                       return (
                         <div

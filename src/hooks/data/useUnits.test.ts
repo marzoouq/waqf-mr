@@ -36,7 +36,7 @@ vi.mock('@tanstack/react-query', () => ({
         throw e;
       }
     },
-    mutate: (...args: unknown[]) => mutationFn(...args).then(onSuccess).catch(onError),
+    mutate: (...args: unknown[]) => mutationFn!(...args).then(onSuccess).catch(onError),
   }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
