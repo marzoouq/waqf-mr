@@ -7,7 +7,7 @@ export const usePushNotifications = () => {
   const [isSupported] = useState(() => 'Notification' in window);
 
   useEffect(() => {
-    if (!isSupported) return;
+    if (!isSupported) return undefined;
     setPermission(Notification.permission);
 
     if ('permissions' in navigator) {

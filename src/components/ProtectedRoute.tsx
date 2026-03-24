@@ -69,6 +69,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
       };
     }
     setShowSignOut(false);
+    return undefined;
   }, [allowedRoles, role, loading, user, signOut, navigate]);
 
   if (loading) {
