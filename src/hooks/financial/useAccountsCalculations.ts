@@ -68,7 +68,7 @@ export function useAccountsCalculations({
 
   const totalAnnualRent = useMemo(() => contracts.reduce((sum, c) => {
     const allocation = allocationMap.get(c.id);
-    return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
+    return sum + (allocation ? allocation.allocated_amount : 0);
   }, 0), [contracts, allocationMap]);
 
   const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {
