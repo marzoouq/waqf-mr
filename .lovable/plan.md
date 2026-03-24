@@ -1,79 +1,69 @@
 
 
-# خطة إصلاح المشاكل المالية والمنطقية المكتشفة
+# خطة إصلاح المشاكل المتبقية (4 مشاكل)
 
 ---
 
-## ملخص: 8 إصلاحات مرتبة بالأولوية
+## المشاكل المكتشفة
+
+| # | المشكلة | الشدة |
+|---|---------|-------|
+| 1 | `activeIncome` في `PropertiesPage.tsx` لا يستخدم `allocationMap` | 🔴 |
+| 2 | `activeIncome` في `PropertiesViewPage.tsx` لا يستخدم `allocationMap` | 🔴 |
+| 3 | `CollectionReport` — `0 >= 0` يعطي "مكتمل" خطأً | 🔴 |
+| 4 | توثيق fallback "جميع السنوات" في `contractualRevenue` | 🟡 |
 
 ---
 
-## 🔴 إصلاحات عالية الأولوية
+## الإصلاحات
 
-### 1. إزالة fallback إلى `rent_amount` في `useAccountsCalculations.ts`
-
-**المشكلة:** السطور 52 و 68 تستخدم `Number(c.rent_amount)` عند غياب التخصيص، بينما القاعدة #10 تنص على أن غياب التخصيص = 0.
-
-**الإصلاح:** تغيير الـ fallback من `Number(c.rent_amount)` إلى `0` في كلا الموضعين (`commercialRent` و `totalAnnualRent`).
+### 1. `PropertiesPage.tsx` سطر 107 — `activeIncome` بالتخصيص
 
 ```typescript
 // قبل
-return sum + (allocation ? allocation.allocated_amount : Number(c.rent_amount));
-// بعد
-return sum + (allocation ? allocation.allocated_amount : 0);
+activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active')
+  .reduce((s, c) => s + Number(c.rent_amount), 0);
+
+// بعد — نفس منطق contractualRevenue
+const relevantContracts = contracts.filter(c => isSpecificYear || c.status === 'active');
+activeIncome = relevantContracts.reduce((s, c) => {
+  const alloc = allocationMap.get(c.id);
+  return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
+}, 0);
 ```
 
-### 2. إضافة دعم `allocationMap` لـ `computePropertyFinancials`
+### 2. `PropertiesViewPage.tsx` سطر 87 — نفس الإصلاح
 
-**المشكلة:** `contractualRevenue` و `activeAnnualRent` في `usePropertyFinancials.ts` يجمعان `rent_amount` الكامل بدون اعتبار التخصيص للسنة المالية.
+```typescript
+// قبل
+activeIncome = relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
 
-**الإصلاح:** إضافة `allocationMap` كمعامل اختياري لـ `computePropertyFinancials`، واستخدامه في حساب `contractualRevenue` و `activeAnnualRent` عند توفره.
+// بعد
+activeIncome = relevantContracts.reduce((s, c) => {
+  const alloc = allocationMap.get(c.id!);
+  return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? safeNumber(c.rent_amount) : 0));
+}, 0);
+```
 
-### 3. إصلاح `contractualRevenue` في `PropertiesPage.tsx` و `PropertiesViewPage.tsx`
+### 3. `CollectionReport.tsx` سطر 152 — إصلاح `0 >= 0`
 
-**المشكلة:** كلا الصفحتين تحسبان `contractualRevenue` بجمع `rent_amount` الكامل بدون تخصيص.
+عندما لا يوجد تخصيص للعقد في هذه السنة (`allocatedPayments === 0`)، لا ينبغي اعتباره "مكتمل". الحل: تصفية العقود التي ليس لها تخصيص أصلاً، أو إضافة شرط:
 
-**الإصلاح:** استخدام `allocationMap` (إن وُجد) لحساب القيمة الصحيحة، مع fallback إلى `rent_amount` فقط عند عرض "جميع السنوات".
+```typescript
+// قبل
+if (paid >= allocatedPayments) status = 'complete';
 
----
+// بعد — عقد بدون تخصيص في هذه السنة لا يُعتبر مكتملاً
+if (allocatedPayments > 0 && paid >= allocatedPayments) status = 'complete';
+else if (allocatedPayments === 0 && paid === 0) status = 'not_started';
+```
 
-## 🟡 إصلاحات متوسطة الأولوية
+### 4. توثيق fallback "جميع السنوات"
 
-### 4. تعليم `getPaymentStatus` بـ `@deprecated` وتحويل الاستدعاءات
-
-**المشكلة:** الدالة القديمة `getPaymentStatus` لا تزال مُستدعاة في `MobileUnitCard.tsx` و `DesktopUnitsTable.tsx`، بينما `getPaymentStatusFromInvoices` (الصحيحة) غير مُستخدمة في أي مكان.
-
-**الإصلاح:**
-- تعليم `getPaymentStatus` بـ `@deprecated`
-- تحويل `MobileUnitCard` و `DesktopUnitsTable` لاستخدام `getPaymentStatusFromInvoices` مع تمرير الفواتير
-
-### 5. إصلاح `isClosed: true` المُثبّت في `useAccountsCalculations.ts`
-
-**المشكلة:** السطر 60 يُثبّت `isClosed: true` دائماً، مما يحسب الحصص والتوزيعات حتى للسنوات النشطة.
-
-**الإصلاح:** تمرير `isClosed` كمعامل من المكوّن المستدعي بدلاً من تثبيته.
-
-### 6. تحسين fallback الرسم البياني في `IncomeMonthlyChart.tsx`
-
-**المشكلة:** عند غياب `paymentInvoices`، يُقسم `rent_amount / 12` وهذا غير صحيح للعقود السنوية التي تُدفع دفعة واحدة.
-
-**الإصلاح:** إضافة تحذير في الكونسول عند استخدام الـ fallback الخطي، مع ملاحظة أن هذا الـ fallback نادر الحدوث (الفواتير متوفرة دائماً في الإنتاج). يمكن تحسينه بتوزيع المبلغ على شهر الاستحقاق بدلاً من توزيعه بالتساوي.
-
-### 7. إزالة fallback رياضي في `CollectionReport.tsx`
-
-**المشكلة:** `getExpectedPaymentsFallback` يحسب من `today - start_date` (محظور بالقاعدة #15).
-
-**الإصلاح:** الدالة تُستخدم فقط عند `fiscalYearId === 'all'` (السطر 141). تعليمها بـ `@deprecated` وإضافة تعليق يوضح أنها fallback فقط لعرض "جميع السنوات" حيث لا يوجد تخصيص.
-
----
-
-## 📋 ملاحظات لن تُعدّل الآن
-
-| # | الملاحظة | السبب |
-|---|---------|-------|
-| `.env` في الـ repo | هذا ملف مُدار تلقائياً من Lovable Cloud — لا يمكن حذفه |
-| غياب اختبارات | يُعالج كمهمة منفصلة لاحقاً |
-| VAT على المتوقع بدل المحصّل | قرار محاسبي يحتاج مراجعة مع صاحب المشروع أولاً |
+إضافة تعليق توضيحي في كلا الملفين على سطر `allocationMap.size === 0`:
+```typescript
+// allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
+```
 
 ---
 
@@ -81,13 +71,9 @@ return sum + (allocation ? allocation.allocated_amount : 0);
 
 | الملف | التغيير |
 |-------|---------|
-| `src/hooks/financial/useAccountsCalculations.ts` | fallback → 0، `isClosed` كمعامل |
-| `src/hooks/financial/usePropertyFinancials.ts` | إضافة `allocationMap` |
-| `src/pages/dashboard/PropertiesPage.tsx` | استخدام التخصيص |
-| `src/pages/beneficiary/PropertiesViewPage.tsx` | استخدام التخصيص |
-| `src/components/properties/units/helpers.ts` | `@deprecated` على الدالة القديمة |
-| `src/components/properties/units/MobileUnitCard.tsx` | تحويل لـ `getPaymentStatusFromInvoices` |
-| `src/components/properties/units/DesktopUnitsTable.tsx` | تحويل لـ `getPaymentStatusFromInvoices` |
-| `src/components/dashboard/IncomeMonthlyChart.tsx` | تحسين fallback |
-| `src/components/contracts/CollectionReport.tsx` | تعليم fallback بـ `@deprecated` |
+| `src/pages/dashboard/PropertiesPage.tsx` | `activeIncome` بالتخصيص + تعليق |
+| `src/pages/beneficiary/PropertiesViewPage.tsx` | `activeIncome` بالتخصيص + تعليق |
+| `src/components/contracts/CollectionReport.tsx` | إصلاح شرط `0 >= 0` |
+
+**ملاحظة:** `useContractAllocationMap.ts` موجود فعلاً (ظاهر في الـ diff الأخير) — عدم ظهوره في البحث قد يكون بسبب تأخر الفهرسة.
 
