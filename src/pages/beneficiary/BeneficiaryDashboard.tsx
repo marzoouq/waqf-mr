@@ -248,7 +248,7 @@ const BeneficiaryDashboard = () => {
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">آخر توزيع مستلم</p>
                   {(() => {
-                    const lastPaid = distributions.find(d => d.status === 'paid');
+                    const lastPaid = [...distributions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).find(d => d.status === 'paid');
                     return lastPaid ? (
                       <>
                         <p className="text-lg sm:text-xl font-bold truncate">

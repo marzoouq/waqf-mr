@@ -41,7 +41,7 @@ function ZatcaManagementPage() {
   const { fiscalYearId } = useFiscalYear();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [pendingAction, setPendingAction] = useState<{ id: string; type: string } | null>(null);
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [productionLoading, setProductionLoading] = useState(false);
   const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);

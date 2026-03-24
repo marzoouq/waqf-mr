@@ -112,12 +112,17 @@ const WaqifDashboard = () => {
     return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
-  const hour = now.getHours();
-  const greeting = hour < 12 ? 'صباح الخير' : 'مساء الخير';
-  const GreetingIcon = hour < 12 ? Sun : Moon;
-  const hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const gregorianDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+  const { hour, greeting, GreetingIcon: GreetingIconComp, hijriDate, gregorianDate, timeStr } = useMemo(() => {
+    const h = now.getHours();
+    return {
+      hour: h,
+      greeting: h < 12 ? 'صباح الخير' : 'مساء الخير',
+      GreetingIcon: h < 12 ? Sun : Moon,
+      hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+      gregorianDate: now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+      timeStr: now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+    };
+  }, [now]);
 
   const quickLinks = [
     { title: 'العقارات', icon: Building2, path: '/beneficiary/properties', color: 'bg-primary/10 text-primary' },

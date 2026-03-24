@@ -153,7 +153,7 @@ export const useMySharePage = () => {
       const advances = paidAdvancesTotal;
       const afterAdvances = Math.max(0, myShare - advances);
       const actualCarryforward = Math.min(carryforwardBalance, afterAdvances);
-      const rawNet = myShare - advances - carryforwardBalance;
+      const rawNet = myShare - advances - actualCarryforward;
       const net = Math.max(0, rawNet);
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
       await generateDistributionsPDF({
