@@ -100,7 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    sidebarTouchStartX.current = e.touches[0].clientX;
+    sidebarTouchStartX.current = e.touches[0]!.clientX;
     isDragging.current = true;
     dragOffsetRef.current = 0;
   }, []);
