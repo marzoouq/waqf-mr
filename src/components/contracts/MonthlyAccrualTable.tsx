@@ -48,7 +48,7 @@ const buildFiscalMonthGrid = (fiscalYear?: { start_date: string; end_date: strin
   return Array.from({ length: 12 }, (_, i) => {
     const m = (startMonth + i) % 12;
     const y = startYear + Math.floor((startMonth + i) / 12);
-    return { label: MONTH_NAMES[m], month: m, year: y };
+    return { label: MONTH_NAMES[m]!, month: m, year: y };
   });
 };
 
