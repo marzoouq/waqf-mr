@@ -7,12 +7,12 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 
 interface ContractLike {
-  id: string;
-  start_date: string;
-  end_date: string;
-  rent_amount: number;
-  payment_type?: string;
-  payment_count?: number;
+  id: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  rent_amount: number | null;
+  payment_type?: string | null;
+  payment_count?: number | null;
   payment_amount?: number | null;
 }
 
