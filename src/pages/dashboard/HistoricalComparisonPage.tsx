@@ -230,7 +230,7 @@ function HistoricalComparisonPage() {
                               {values.length >= 2 && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <span>التغير:</span>
-                                  <ChangeIndicator current={values[values.length - 1]} previous={values[values.length - 2]} />
+                                  <ChangeIndicator current={values[values.length - 1] ?? 0} previous={values[values.length - 2] ?? 0} />
                                 </div>
                               )}
                             </CardContent>
