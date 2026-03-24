@@ -89,7 +89,7 @@ const CloseYearDialog = ({
         <AlertDialogCancel disabled={isClosing}>إلغاء</AlertDialogCancel>
         <AlertDialogAction
           onClick={onConfirm}
-          disabled={isClosing}
+          disabled={isClosing || checklist.some(i => !i.passed && i.severity === 'error')}
           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
         >
           {isClosing ? 'جاري الإقفال...' : 'تأكيد الإقفال'}

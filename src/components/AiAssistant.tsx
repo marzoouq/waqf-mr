@@ -83,23 +83,19 @@ const AiAssistant = () => {
     let assistantContent = '';
 
     try {
-      // التحقق من المستخدم واستخراج token من الجلسة النشطة
+      // التحقق من المستخدم
       const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
       if (userError || !currentUser) {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
       }
-      // استخدام الجلسة المُحدَّثة من onAuthStateChange — آمنة لأن getUser() أثبت صلاحيتها
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) {
-        throw new Error('انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً');
-      }
 
+      // استدعاء عبر supabase.functions.invoke — يُرسل الـ token تلقائياً
       const resp = await fetch(AI_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify({ messages: allMessages, mode }),
         signal: abortControllerRef.current.signal,

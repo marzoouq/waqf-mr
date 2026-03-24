@@ -72,7 +72,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
           <Clock className="h-4 w-4" />
           <AlertTitle>عقود تنتهي قريباً</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>{expiringContracts.length} عقد ينتهي خلال {EXPIRING_SOON_DAYS} يوماً القادمة ({expiringContracts.map(c => c.contract_number).join('، ')})</span>
+            <span>{expiringContracts.length} عقد ينتهي خلال {EXPIRING_SOON_DAYS} يوماً القادمة ({expiringContracts.slice(0, 3).map(c => c.contract_number).join('، ')}{expiringContracts.length > 3 ? ` و ${expiringContracts.length - 3} آخرين` : ''})</span>
             <Link to="/dashboard/contracts">
               <Button variant="outline" size="sm" className="shrink-0">إدارة العقود</Button>
             </Link>
@@ -86,7 +86,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>عقود بدون سنة مالية</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>يوجد {orphanedContracts.length} عقد غير مربوط بسنة مالية ({orphanedContracts.map(c => c.contract_number).join('، ')}). لن تظهر في التقارير المالية.</span>
+            <span>يوجد {orphanedContracts.length} عقد غير مربوط بسنة مالية ({orphanedContracts.slice(0, 3).map(c => c.contract_number).join('، ')}{orphanedContracts.length > 3 ? ` و ${orphanedContracts.length - 3} آخرين` : ''}). لن تظهر في التقارير المالية.</span>
             <Link to="/dashboard/contracts">
               <Button variant="outline" size="sm" className="gap-1 shrink-0">
                 <LinkIcon className="w-3 h-3" />

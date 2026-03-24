@@ -78,13 +78,13 @@ const AdminDashboard = () => {
 
   const { data: orphanedContracts = [] } = useQuery({
     queryKey: ['contracts', 'orphaned'],
-    staleTime: 300_000,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contracts')
         .select('id, contract_number')
         .is('fiscal_year_id', null)
-        .limit(50);
+        .limit(500);
       if (error) throw error;
       return data;
     },

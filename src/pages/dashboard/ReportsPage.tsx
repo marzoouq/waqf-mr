@@ -13,6 +13,7 @@ import { useProperties } from '@/hooks/data/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calculator } from 'lucide-react';
+import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
 import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
@@ -219,8 +220,13 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
             </Button>
             <Button onClick={async () => {
-              const { generateForensicAuditPDF } = await import('@/utils/pdf');
-              await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
+              try {
+                const { generateForensicAuditPDF } = await import('@/utils/pdf');
+                await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
+                toast.success('تم تصدير الفحص الجنائي بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير الفحص الجنائي');
+              }
             }} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
               <span className="hidden sm:inline">الفحص الجنائي PDF</span>

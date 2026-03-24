@@ -131,8 +131,15 @@ const AnnualReportPage = () => {
     await generateAnnualReportPDF(pdfData, waqfInfo);
   };
 
-  // طباعة
-  const handlePrint = () => window.print();
+  // طباعة — استخدام PDF بدلاً من window.print() لضمان تضمين كل المحتوى
+  const handlePrint = async () => {
+    try {
+      await handleExportPdf();
+    } catch {
+      // fallback إلى الطباعة المباشرة
+      window.print();
+    }
+  };
 
   // نشر/إلغاء نشر
   const handleTogglePublish = () => {

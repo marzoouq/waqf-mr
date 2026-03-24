@@ -186,7 +186,13 @@ function HistoricalComparisonPage() {
                 })}
               </div>
             )}
-            {selectedYears.length < 2 && !fyLoading && (
+            {selectedYears.length < 2 && !fyLoading && fiscalYears.length < 2 && (
+              <div className="text-center py-6 space-y-2">
+                <GitCompareArrows className="w-10 h-10 mx-auto text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">لا توجد سنوات مالية كافية للمقارنة. يجب وجود سنتين مالية على الأقل.</p>
+              </div>
+            )}
+            {selectedYears.length < 2 && !fyLoading && fiscalYears.length >= 2 && (
               <p className="text-sm text-muted-foreground mt-3">اختر سنتين على الأقل لبدء المقارنة</p>
             )}
           </CardContent>
