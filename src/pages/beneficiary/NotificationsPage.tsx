@@ -96,7 +96,7 @@ const NotificationsPage = () => {
     }
     
     if (!groups[key]) groups[key] = [];
-    groups[key].push(n);
+    groups[key]!.push(n);
     return groups;
   }, {} as Record<string, typeof notifications>), [filtered]);
 
