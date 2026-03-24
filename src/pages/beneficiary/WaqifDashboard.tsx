@@ -112,10 +112,9 @@ const WaqifDashboard = () => {
     return () => { stop(); document.removeEventListener('visibilitychange', onVisibility); };
   }, []);
 
-  const { hour, greeting, GreetingIcon: GreetingIconComp, hijriDate, gregorianDate, timeStr } = useMemo(() => {
+  const { greeting, GreetingIcon, hijriDate, gregorianDate, timeStr } = useMemo(() => {
     const h = now.getHours();
     return {
-      hour: h,
       greeting: h < 12 ? 'صباح الخير' : 'مساء الخير',
       GreetingIcon: h < 12 ? Sun : Moon,
       hijriDate: now.toLocaleDateString('ar-SA-u-ca-islamic', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
