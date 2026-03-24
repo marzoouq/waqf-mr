@@ -209,6 +209,9 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     setPreviewInvoice(buildPaymentPreviewData(inv));
   };
 
+  // دالة مساعدة لإلغاء التحديد
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   return {
     isLoading, invoices, summary, sorted, groupedPaginated, ITEMS_PER_PAGE,
     // فلترة وبحث
@@ -218,7 +221,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
     // تصفح
     currentPage, setCurrentPage,
     // تحديد جماعي
-    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay,
+    selectedIds, unpaidFiltered, toggleSelect, toggleSelectAll, bulkPaying, handleBulkPay, clearSelection,
     // تسديد
     payingInvoiceId, payDialog, setPayDialog, payAmount, setPayAmount, openPayDialog, handlePay,
     // معاينة

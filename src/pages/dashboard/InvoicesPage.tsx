@@ -56,7 +56,7 @@ const InvoicesPage = () => {
               ) : null;
             })()}
             <ExportMenu onExportPdf={async () => {
-              if (!h.fiscalYearId) {
+              if (!h.fiscalYearId || h.fiscalYearId === 'all') {
                 toast.warning('⚠️ أنت تصدّر فواتير جميع السنوات المالية. لتصدير سنة محددة، اخترها من منتقي السنة المالية.');
               }
               try {

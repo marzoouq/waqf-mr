@@ -207,7 +207,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             {bulkPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
             تسديد المختارة
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => {}}>
+          <Button size="sm" variant="ghost" onClick={clearSelection}>
             <X className="w-3.5 h-3.5" />
           </Button>
         </div>

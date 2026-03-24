@@ -219,8 +219,13 @@ const ReportsPage = () => {
               <span className="hidden sm:inline">الإفصاح السنوي PDF</span>
             </Button>
             <Button onClick={async () => {
-              const { generateForensicAuditPDF } = await import('@/utils/pdf');
-              await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
+              try {
+                const { generateForensicAuditPDF } = await import('@/utils/pdf');
+                await generateForensicAuditPDF(forensicAuditData, pdfWaqfInfo);
+                toast.success('تم تصدير الفحص الجنائي بنجاح');
+              } catch {
+                toast.error('حدث خطأ أثناء تصدير الفحص الجنائي');
+              }
             }} variant="outline" className="gap-2">
               <ShieldCheck className="w-4 h-4" />
               <span className="hidden sm:inline">الفحص الجنائي PDF</span>
