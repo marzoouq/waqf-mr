@@ -166,10 +166,10 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
   const buildPaymentPreviewData = (inv: PaymentInvoice): InvoicePreviewData => {
     const fullContract = contracts.find(c => c.id === inv.contract_id);
     const hasBuyerTax = !!fullContract?.tenant_tax_number;
-    const hasVat = sn(inv.vat_rate) > 0;
-    const amountExVat = sn(inv.vat_amount) > 0
-      ? sn(inv.amount) - sn(inv.vat_amount)
-      : (sn(inv.vat_rate) > 0 ? sn(inv.amount) / (1 + sn(inv.vat_rate) / 100) : sn(inv.amount));
+    const hasVat = safeNumber(inv.vat_rate) > 0;
+    const amountExVat = safeNumber(inv.vat_amount) > 0
+      ? safeNumber(inv.amount) - safeNumber(inv.vat_amount)
+      : (safeNumber(inv.vat_rate) > 0 ? safeNumber(inv.amount) / (1 + safeNumber(inv.vat_rate) / 100) : safeNumber(inv.amount));
 
     return {
       invoiceNumber: inv.invoice_number,
@@ -194,7 +194,7 @@ export const usePaymentInvoicesTab = (fiscalYearId: string) => {
         description: `إيجار — دفعة ${inv.payment_number}${inv.contract?.contract_number ? ` / عقد ${inv.contract.contract_number}` : ''}`,
         quantity: 1,
         unitPrice: amountExVat,
-        vatRate: sn(inv.vat_rate),
+        vatRate: safeNumber(inv.vat_rate),
       }],
       notes: inv.notes || undefined,
       status: inv.status,
