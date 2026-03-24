@@ -220,7 +220,7 @@ const NotificationsPage = () => {
                   const cat = NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter);
                   return cat?.types.includes(t);
                 })).map((t) => {
-                  const config = typeConfig[t] || typeConfig.info;
+                  const config = typeConfig[t] ?? typeConfig.info!;
                   return (
                     <SelectItem key={t} value={t}>
                       <span className="flex items-center gap-2">
