@@ -71,7 +71,7 @@ const BeneficiarySupportPage = () => {
                 {/* Mobile Cards */}
                 <div className="space-y-3 md:hidden">
                   {tickets.map(ticket => {
-                    const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                    const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
                     const Icon = s.icon;
                     return (
                       <Card key={ticket.id} className="shadow-sm">
