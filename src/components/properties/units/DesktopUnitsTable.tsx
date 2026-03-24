@@ -5,17 +5,24 @@ import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { statusColor } from './constants';
-import { getPaymentStatus, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
+import { getPaymentStatusFromInvoices, getMonthlyRent, getTenantFromContracts, getMonthlyFromContract } from './helpers';
 import { fmt, fmtInt } from '@/utils/format';
 import { safeNumber } from '@/utils/safeNumber';
 import type { UnitRow } from '@/hooks/data/useUnits';
 import type { Contract } from '@/types/database';
+
+interface PaymentInvoiceLike {
+  contract_id: string;
+  status: string;
+  due_date: string;
+}
 
 interface DesktopUnitsTableProps {
   units: UnitRow[];
   contracts: Contract[];
   wholePropertyContracts: Contract[];
   tenantPayments: Array<{ contract_id: string; paid_months: number }>;
+  paymentInvoices?: PaymentInvoiceLike[];
   onEdit: (unit: UnitRow) => void;
   onDelete: (unit: UnitRow) => void;
 }
