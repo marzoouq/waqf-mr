@@ -149,7 +149,8 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
       const collectedAmount = paid * perPayment;
 
       let status: CollectionRow['status'];
-      if (paid >= allocatedPayments) status = 'complete';
+      // عقد بدون تخصيص في هذه السنة (allocatedPayments === 0) لا يُعتبر مكتملاً
+      if (allocatedPayments > 0 && paid >= allocatedPayments) status = 'complete';
       else if (overdue > 0) status = 'overdue';
       else if (paid > 0) status = 'partial';
       else status = 'not_started';

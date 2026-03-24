@@ -104,7 +104,11 @@ const PropertiesPage = () => {
       activeIncome = Number(currentAccount.total_income) || 0;
       totalExpensesCalc = Number(currentAccount.total_expenses) || 0;
     } else {
-      activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active').reduce((s, c) => s + Number(c.rent_amount), 0);
+      // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
+      activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active').reduce((s, c) => {
+        const alloc = allocationMap.get(c.id);
+        return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
+      }, 0);
       // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
       totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
     }
