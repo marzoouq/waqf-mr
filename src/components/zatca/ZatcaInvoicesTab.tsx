@@ -168,7 +168,7 @@ export default function ZatcaInvoicesTab({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button size="sm" variant={hasSig ? 'ghost' : 'outline'} onClick={() => onSignInvoice(inv.id, inv.source)} disabled={rowBusy || !canSign}>
-                                  {rowBusy && pendingAction?.type === 'sign' ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
+                                  {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">توقيع</span>
                                 </Button>
                               </TooltipTrigger>
