@@ -111,7 +111,7 @@ const PropertiesPage = () => {
     const netIncome = activeIncome - totalExpensesCalc;
 
     return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear]);
+  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
 
   const resetForm = () => {
     setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
