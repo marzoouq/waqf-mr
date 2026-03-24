@@ -269,8 +269,8 @@ export const useContractsPage = () => {
       group.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
     }
     return [...map.entries()].sort((a, b) => {
-      const latestA = new Date(a[1][0].start_date).getTime();
-      const latestB = new Date(b[1][0].start_date).getTime();
+      const latestA = new Date(a[1][0]!.start_date).getTime();
+      const latestB = new Date(b[1][0]!.start_date).getTime();
       return latestB - latestA;
     });
   }, [contracts]);
