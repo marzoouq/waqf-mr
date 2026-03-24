@@ -39,6 +39,7 @@ const PropertiesViewPage = () => {
   const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const pdfWaqfInfo = usePdfWaqfInfo();
+  const allocationMap = useContractAllocationMap(contracts);
 
   const isLoading = propsLoading || unitsLoading;
   const isError = propsError || unitsError;
