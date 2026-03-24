@@ -72,10 +72,15 @@ export function useAccountsCalculations({
   }, 0), [contracts, allocationMap]);
 
   const getPaymentPerPeriod = useCallback((contract: typeof contracts[0]) => {
+    // استخدام التخصيص عند توفره لضمان اتساق الدفعة مع expectedPayments
+    const allocation = allocationMap.get(contract.id);
+    if (allocation && allocation.allocated_payments > 0) {
+      return allocation.allocated_amount / allocation.allocated_payments;
+    }
     if (contract.payment_amount != null) return Number(contract.payment_amount);
     const count = contract.payment_count || 1;
     return Number(contract.rent_amount) / count;
-  }, []);
+  }, [allocationMap]);
 
   const getExpectedPayments = useCallback((contract: typeof contracts[0]) => {
     const allocation = allocationMap.get(contract.id);
