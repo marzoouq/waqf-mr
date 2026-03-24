@@ -11,8 +11,8 @@ interface ContractLike {
   start_date: string;
   end_date: string;
   rent_amount: number;
-  payment_type: string;
-  payment_count: number;
+  payment_type?: string;
+  payment_count?: number;
   payment_amount?: number | null;
 }
 
