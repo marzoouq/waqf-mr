@@ -252,7 +252,7 @@ const ContractsViewPage = () => {
                         <TableRow key={contract.id}>
                           <TableCell className="font-medium">{contract.contract_number ?? ''}</TableCell>
                           <TableCell>{contract.tenant_name ?? ''}</TableCell>
-                          <TableCell>-</TableCell>
+                          <TableCell>{(contract.property_id && propertiesMap[contract.property_id]) || '-'}</TableCell>
                           <TableCell>{formatCurrency(contract.rent_amount ?? 0)}</TableCell>
                           <TableCell>{formatDate(contract.start_date ?? '')}</TableCell>
                           <TableCell>{formatDate(contract.end_date ?? '')}</TableCell>
