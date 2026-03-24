@@ -114,7 +114,7 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
                   {!tenant || tenant.status !== 'active' ? (
                     <span className="text-muted-foreground">-</span>
                   ) : (() => {
-                    const ps = getPaymentStatus(tenant, paid);
+                    const ps = getPaymentStatusFromInvoices(tenant.contract_id, paymentInvoices);
                     return ps.status === 'ontime'
                       ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20">منتظم</Badge>
                       : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20">متأخر ({ps.overdueCount} دفعة)</Badge>;

@@ -74,7 +74,7 @@ const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit
             </div>
             <p className="text-[10px] text-muted-foreground">يتم التحصيل عبر الفواتير</p>
             {tenant.status === 'active' && (() => {
-              const ps = getPaymentStatus(tenant, paidMonths);
+              const ps = getPaymentStatusFromInvoices(tenant.contract_id, paymentInvoices);
               return ps.status === 'ontime'
                 ? <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20 w-fit">منتظم</Badge>
                 : <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20 w-fit">متأخر ({ps.overdueCount} دفعة)</Badge>;
