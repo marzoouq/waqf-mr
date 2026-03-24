@@ -65,7 +65,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
 
   const bestMonth = useMemo(() => {
     if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((best, m) => m.net > best.net ? m : best, monthlyData[0]);
+    return monthlyData.reduce((best, m) => m.net > best.net ? m : best, monthlyData[0]!);
   }, [monthlyData]);
 
   const worstMonth = useMemo(() => {
