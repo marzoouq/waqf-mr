@@ -321,6 +321,7 @@ const PropertyUnitsDialog = ({ property, contracts, onClose }: PropertyUnitsDial
                     contracts={contracts}
                     wholePropertyContracts={wholePropertyContracts}
                     tenantPayments={tenantPayments}
+                    paymentInvoices={paymentInvoices}
                     onEdit={handleEditUnit}
                     onDelete={setDeleteUnitTarget}
                   />
