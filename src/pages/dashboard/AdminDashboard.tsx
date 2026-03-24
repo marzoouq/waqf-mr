@@ -349,12 +349,14 @@ const AdminDashboard = () => {
         {/* ملخص التحصيل */}
         <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
 
-        {/* خريطة حرارية */}
-        <ErrorBoundary>
-          <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
-            <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
-          </Suspense>
-        </ErrorBoundary>
+        {/* خريطة حرارية — تُخفى عند الطباعة */}
+        <div className="print:hidden">
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-[160px] w-full rounded-lg" />}>
+              <CollectionHeatmap paymentInvoices={paymentInvoices} fiscalYearStart={fiscalYear?.start_date} fiscalYearEnd={fiscalYear?.end_date} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
 
         {/* جدول الإجراءات المعلقة */}
         <ErrorBoundary>
