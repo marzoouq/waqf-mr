@@ -116,11 +116,11 @@ function HistoricalComparisonPage() {
     if (selectedYears.length < 2) return;
     try {
       const { generateYearComparisonPDF } = await import('@/utils/pdf/comparison');
-      const d0 = yearData[0];
-      const d1 = yearData[1];
+      const d0 = yearData[0]!;
+      const d1 = yearData[1]!;
       await generateYearComparisonPDF({
-        year1Label: selectedYears[0].label,
-        year2Label: selectedYears[1].label,
+        year1Label: selectedYears[0]!.label,
+        year2Label: selectedYears[1]!.label,
         year1: { income: d0.totalIncome, expenses: d0.totalExpenses, net: d0.waqfRevenue ?? (d0.totalIncome - d0.totalExpenses) },
         year2: { income: d1.totalIncome, expenses: d1.totalExpenses, net: d1.waqfRevenue ?? (d1.totalIncome - d1.totalExpenses) },
         incomeChange: d0.totalIncome ? ((d1.totalIncome - d0.totalIncome) / d0.totalIncome) * 100 : 0,
