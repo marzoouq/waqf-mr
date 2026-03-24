@@ -292,12 +292,13 @@ const PropertiesPage = () => {
           <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((property) => {
-              const pf = computePropertyFinancials({
+               const pf = computePropertyFinancials({
                 propertyId: property.id,
                 contracts,
                 expenses,
                 units: allUnits,
                 isSpecificYear,
+                allocationMap,
               });
               const { totalUnits, rented, vacant, maintenance, statusMismatch, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
 
