@@ -1,91 +1,64 @@
 
 
-# خطة الإصلاح — الجولة السادسة (التقرير الجنائي الشامل)
+# خطة الإصلاح — الجولة السابعة (بنود جديدة من التقرير الجنائي الثاني)
+
+## ملخص التحقق
+
+بعد فحص كل بند في التقرير مقابل الكود الفعلي الحالي:
+
+### بنود مُصلحة فعلاً (لا تحتاج تدخل)
+
+| البند | الحالة | السبب |
+|-------|--------|-------|
+| PaymentInvoicesTab clearSelection | ✅ مُصلح | `onClick={clearSelection}` موجود |
+| CloseYearDialog disabled | ✅ مُصلح | `disabled={isClosing \|\| checklist.some(...)}` |
+| InvoicesPage `=== 'all'` | ✅ مُصلح | الشرط يتضمن `h.fiscalYearId === 'all'` |
+| DashboardAlerts truncation | ✅ مُصلح | `.slice(0, 3)` + "X آخرين" |
+| ReportsPage try/catch | ✅ مُصلح | try/catch + toast موجود |
+| AnnualReportPage handlePrint | ✅ مُصلح | يستخدم `handleExportPdf()` مع fallback |
+| orphanedContracts limit | ✅ مُصلح | `limit(500)` + `staleTime: 60_000` |
+| HistoricalComparisonPage empty state | ✅ مُصلح | حالة فارغة واضحة مع أيقونة ونص |
+| PendingActionsTable zatcaOverflow | ✅ يعمل | يعرض "+ X فاتورة أخرى" في mobile وdesktop |
+| AuditLogPage pagination | ✅ يعمل | server-side pagination مع `pageSize` |
+| `netCashFlow` خاطئ | ❌ خطأ في التقرير | `netAfterExpenses - zakat - admin - waqif = waqfRevenue` — صحيح رياضياً |
+| `beneficiaryPercentage` لا يُمرَّر | ❌ خطأ في التقرير | مُمرَّر فعلاً |
+| `getSession()` في diagnostics | ❌ خطأ في التقرير | يستخدم `getUser()` |
+
+### بنود جديدة قابلة للتنفيذ (5 إصلاحات)
 
 ---
 
-## تحليل التقرير مقابل الكود الفعلي
+## الإصلاحات المطلوبة
 
-بعد فحص كل بند، إليك التصنيف الحقيقي:
+### 1. AiAssistant — لا يزال يستخدم `getSession()` (SEC-03 متبقي)
 
-### بنود التقرير الخاطئة أو المُصلحة فعلاً
+**الملف:** `src/components/AiAssistant.tsx` سطر 98
+**المشكلة:** الكود يستخدم `(await supabase.auth.getSession()).data.session?.access_token` رغم أن التعليق يقول "invoke". هذا آخر استخدام لـ `getSession()` في المشروع.
+**الإصلاح:** استبدال `fetch` المباشر بـ `supabase.functions.invoke()` الذي يُرسل الـ token تلقائياً. بما أن المساعد يحتاج streaming، يمكن استخراج الـ token من `getUser()` بدلاً من `getSession()`.
 
-| البند | الحكم | السبب |
-|-------|-------|-------|
-| **البند 6** — `netCashFlow` خاطئ | **تقرير خاطئ** | المعادلة: `netAfterExpenses - adminShare - waqifShare - zakat` = `netAfterZakat - adminShare - waqifShare` = `waqfRevenue` تماماً. من `accountsCalculations.ts` سطر 94: `waqfRevenue = netAfterZakat - adminShare - waqifShare`. لا يوجد خصم مضاعف |
-| **البند 1-ب** — `beneficiaryPercentage` لا يُمرَّر | **تقرير خاطئ** | `AccountsPage.tsx` سطر 245 يُمرر `beneficiaryPercentage={totalBenPct}` بوضوح |
-| **البند 2 (diagnostics)** — `getSession()` محظور | **تقرير خاطئ** | `checks.ts` لا يحتوي `getSession()` إطلاقاً — تم البحث ولم يُوجد |
-| **SEC-01/02/03/04, HI-01..07, MED-01..10** | **مُصلحة في الجولات 4-5** | تم التحقق سابقاً |
+### 2. AdminDashboard — زر الطباعة `window.print()`
 
----
+**الملف:** `src/pages/dashboard/AdminDashboard.tsx` سطر 225
+**المشكلة:** `window.print()` يطبع الصفحة كاملة بما فيها عناصر غير مطلوبة (CollectionHeatmap, pagePerformanceCard). الـ charts تختفي بدون بديل مفيد.
+**الإصلاح:** إضافة CSS classes `print:hidden` للعناصر غير المطلوبة في الطباعة (CollectionHeatmap, pagePerformanceCard, ErrorBoundary/Charts section)، وإضافة `print:block` لعناصر ملخص بسيطة بدلاً من الرسوم البيانية.
 
-## البنود القابلة للتنفيذ (10 إصلاحات حقيقية)
+### 3. DashboardAlerts — `collectionRate` قد يكون `undefined` بصرياً
 
-### 🔴 فوري
+**الملف:** `src/components/dashboard/DashboardAlerts.tsx`
+**المشكلة:** إذا وصلت `collectionRate` بقيمة غير رقمية، يُعرض `undefined%`. حماية بسيطة مفقودة.
+**الإصلاح:** تغليف العرض بـ `safeNumber(collectionRate)` أو التأكد من أن النص يستخدم `collectionRate ?? 0`.
 
-**1. PaymentInvoicesTab — زر إلغاء التحديد لا يعمل**
-- الملف: `src/components/contracts/PaymentInvoicesTab.tsx` سطر 210
-- `onClick={() => {}}` ← فارغ تماماً
-- الإصلاح: يُستدعى `setSelectedIds` من الـ hook — لكن `setSelectedIds` غير مُصدَّر مباشرة. الحل: تصدير دالة `clearSelection` من `usePaymentInvoicesTab` واستدعاؤها
+### 4. AdminDashboard — `useDashboardRealtime` يُبطل كاش غير مرتبط
 
-**2. CloseYearDialog — الـ checklist لا يمنع الإقفال**
-- الملف: `src/components/accounts/CloseYearDialog.tsx` سطر 92
-- `disabled={isClosing}` فقط — لا يتحقق من `hasErrors`
-- الإصلاح: حساب `hasErrors` من الـ `checklist` وإضافته لـ `disabled`
+**الملف:** `src/hooks/ui/useDashboardRealtime.ts`
+**المشكلة:** أي تغيير في `income` يُبطل كاش `payment_invoices` والعكس. الـ `invalidateQueries` تُطلق على كل جدول مستقل.
+**الإصلاح:** تغيير المنطق ليُبطل فقط الـ queryKey المرتبط بالجدول الذي تغيّر (الجدول الذي أطلق الـ event).
 
-**3. InvoicesPage — تحذير "جميع السنوات" لا يظهر**
-- الملف: `src/pages/dashboard/InvoicesPage.tsx` سطر 59
-- `if (!h.fiscalYearId)` — القيمة `'all'` هي truthy فلا يتحقق الشرط
-- الإصلاح: `if (!h.fiscalYearId || h.fiscalYearId === 'all')`
+### 5. FiscalYearWidget — `Math.min(100,...)` يخفي تجاوز الهدف
 
-**4. AiAssistant — آخر `getSession()` متبقي**
-- الملف: `src/components/AiAssistant.tsx` سطر 92
-- لا يزال يستخدم `getSession()` رغم إصلاح الملفات الأربعة الأخرى في الجولة 5
-- الإصلاح: استخدام `supabase.functions.invoke()` أو استخراج token من `getUser()` response
-
-### 🟠 هذا الأسبوع
-
-**5. DashboardAlerts — قائمة عقود طويلة تكسر Layout**
-- الملف: `src/components/dashboard/DashboardAlerts.tsx` سطر 75
-- `.join('، ')` بدون truncation
-- الإصلاح: عرض أول 3 عقود + `و X آخرين`
-
-**6. ReportsPage — Forensic Audit PDF بدون error handling**
-- الملف: `src/pages/dashboard/ReportsPage.tsx` سطر 221-224
-- لا يوجد `try/catch` ولا loading state
-- الإصلاح: إضافة `try/catch` مع `toast.error` و loading state على الزر
-
-**7. AnnualReportPage — `window.print()` يطبع tab واحد**
-- الملف: `src/pages/dashboard/AnnualReportPage.tsx` سطر 135
-- الإصلاح: استبدال بـ `generateAnnualReportPDF()` الموجودة فعلاً
-
-**8. orphanedContracts — `limit(50)` + `staleTime` طويل**
-- الملف: `src/pages/dashboard/AdminDashboard.tsx` سطر 87
-- الإصلاح: رفع إلى `limit(500)` وتقليل `staleTime` إلى 60 ثانية
-
-**9. HistoricalComparisonPage — بدون empty state**
-- إضافة حالة فارغة واضحة عند عدم وجود سنوات مقفلة
-
-**10. PendingActionsTable — `zatcaOverflow` قد لا يُعرض**
-- التحقق من عرض عدد الفواتير المتبقية بوضوح
-
----
-
-## لن يُعدَّل
-
-| البند | السبب |
-|-------|-------|
-| `netCashFlow` (بند 6) | **المعادلة صحيحة** — تساوي `waqfRevenue` تماماً |
-| `beneficiaryPercentage` (بند 1-ب) | **مُمرَّر فعلاً** في سطر 245 |
-| `getSession` في diagnostics (بند 2) | **غير موجود** في الكود |
-| `collectionRate undefined` (بند 2) | `collectionSummary.percentage` يُرجع `0` وليس `undefined` — حماية موجودة |
-| `FiscalYearWidget` (بند 4) | `Math.min(100,...)` سلوك مقصود — تجاوز 100% لا يحتاج تحذير في widget مختصر |
-| `ErrorBoundary` بدون retry (بند 5) | تحسين UX غير حرج |
-| `Date.now()` في expiringContracts (بند 7) | العقود المنتهية قريباً تعتمد على التاريخ الحالي بطبيعتها — ليست مرتبطة بالسنة المالية |
-| Realtime debounce (بند 9) | تحسين أداء — `invalidateQueries` لا يُعيد الرسم فوراً بل يُبطل الكاش فقط |
-| ZATCA check في CloseYearDialog (بند 1-ج) | تحسين مستقبلي — الإقفال لا يمنع إرسال ZATCA لاحقاً |
-| AuditLog pagination (بند 10) | الاستعلام يعتمد على RLS + Supabase default limit 1000 — كافٍ حالياً |
-| Diagnostics فحوصات إضافية (بند 2) | مهمة منفصلة كبيرة |
+**الملف:** `src/components/dashboard/FiscalYearWidget.tsx`
+**المشكلة بسيطة:** عند تجاوز الدخل للإيرادات التعاقدية، النسبة تُقطع عند 100% بدون إشارة. الناظر لا يعرف أنه تجاوز الهدف.
+**الإصلاح:** إضافة badge صغير "تجاوز الهدف ✓" عند تجاوز 100%.
 
 ---
 
@@ -93,14 +66,21 @@
 
 | الملف | التغيير |
 |-------|---------|
-| `src/hooks/page/usePaymentInvoicesTab.ts` | تصدير `clearSelection` |
-| `src/components/contracts/PaymentInvoicesTab.tsx` | ربط `clearSelection` بزر X |
-| `src/components/accounts/CloseYearDialog.tsx` | `disabled={isClosing \|\| hasErrors}` |
-| `src/pages/dashboard/InvoicesPage.tsx` | إضافة `=== 'all'` للشرط |
-| `src/components/AiAssistant.tsx` | إزالة `getSession()` |
-| `src/components/dashboard/DashboardAlerts.tsx` | truncate قائمة العقود |
-| `src/pages/dashboard/ReportsPage.tsx` | try/catch + loading للـ PDF |
-| `src/pages/dashboard/AnnualReportPage.tsx` | استبدال `window.print()` |
-| `src/pages/dashboard/AdminDashboard.tsx` | رفع limit + تقليل staleTime |
-| `src/pages/dashboard/HistoricalComparisonPage.tsx` | إضافة empty state |
+| `src/components/AiAssistant.tsx` | استبدال `getSession()` بنمط آمن للـ streaming |
+| `src/pages/dashboard/AdminDashboard.tsx` | إضافة `print:hidden` للعناصر غير المطلوبة |
+| `src/components/dashboard/DashboardAlerts.tsx` | حماية `collectionRate` من `undefined` |
+| `src/hooks/ui/useDashboardRealtime.ts` | إبطال الكاش المرتبط بالجدول المتغير فقط |
+| `src/components/dashboard/FiscalYearWidget.tsx` | إشارة تجاوز الهدف |
+
+---
+
+## قرارات عدم التنفيذ
+
+| البند | السبب |
+|-------|-------|
+| `Date.now()` في expiringContracts | العقود المنتهية قريباً تعتمد طبيعياً على اليوم الحالي — ليست مرتبطة بالسنة المالية |
+| ErrorBoundary بدون retry | تحسين UX غير حرج — يتطلب تغيير معماري في ErrorBoundary |
+| Diagnostics فحوصات إضافية (8 فحوصات) | مهمة كبيرة منفصلة تحتاج تخطيط مستقل |
+| ZATCA check في CloseYearDialog | تحسين مستقبلي — الإقفال لا يمنع إرسال ZATCA لاحقاً |
+| BeneficiariesPage distribute check | يتطلب تغيير في منطق العمل — الناظر يملك صلاحية مطلقة بتصميم مقصود |
 
