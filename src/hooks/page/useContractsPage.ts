@@ -44,6 +44,8 @@ export const useContractsPage = () => {
   const [bulkRenewOpen, setBulkRenewOpen] = useState(false);
   const [bulkRenewing, setBulkRenewing] = useState(false);
   const [selectedForRenewal, setSelectedForRenewal] = useState<Set<string>>(new Set());
+  // تصفير التحديد عند تغيير السنة المالية
+  useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
