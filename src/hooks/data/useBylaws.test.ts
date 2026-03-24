@@ -28,10 +28,10 @@ vi.mock('@tanstack/react-query', () => ({
     capturedQueryFn = queryFn;
     return { data: [], isLoading: false };
   },
-  useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function>) => ({
+  useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function | undefined>) => ({
     mutate: async (...args: unknown[]) => {
       try {
-        const result = await mutationFn(...args);
+        const result = await mutationFn!(...args);
         onSuccess?.(result);
       } catch (e) {
         onError?.(e);
@@ -40,7 +40,7 @@ vi.mock('@tanstack/react-query', () => ({
     },
     mutateAsync: async (...args: unknown[]) => {
       try {
-        const result = await mutationFn(...args);
+        const result = await mutationFn!(...args);
         onSuccess?.(result);
         return result;
       } catch (e) {

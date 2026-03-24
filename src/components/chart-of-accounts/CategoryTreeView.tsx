@@ -36,7 +36,7 @@ export function CategoryRow({
   onToggle: (id: string, active: boolean) => void;
   hasChildren: boolean;
 }) {
-  const cfg = TYPE_CONFIG[node.category_type] || TYPE_CONFIG.expense;
+  const cfg = TYPE_CONFIG[node.category_type] ?? TYPE_CONFIG.expense!;
   const Icon = cfg.icon;
 
   return (

@@ -66,7 +66,8 @@ const PwaUpdateNotifier = () => {
           if (controller.signal.aborted) return;
           const lastSeen = localStorage.getItem(LAST_SEEN_KEY) || '0.0.0';
           const filtered = changelog.filter(e => compareSemver(e.version, lastSeen) > 0);
-          const entries = filtered.length > 0 ? filtered : [changelog[0]];
+          const fallback = changelog[0];
+          const entries = filtered.length > 0 ? filtered : fallback ? [fallback] : [];
           setNewEntries(entries);
 
           toast.success("تم تحديث التطبيق بنجاح ✨", {

@@ -62,7 +62,7 @@ export const useContractsPage = () => {
   const handleRenew = useCallback((contract: Contract) => {
     const num = contract.contract_number;
     const match = num.match(/-R(\d+)$/);
-    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+    const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
     // حساب تواريخ مقترحة بناءً على مدة العقد الأصلي
     const oldStart = new Date(contract.start_date);
     const oldEnd = new Date(contract.end_date);
@@ -72,8 +72,8 @@ export const useContractsPage = () => {
     setFormInitialData({
       contract_number: newNumber, property_id: contract.property_id, unit_id: contract.unit_id || '',
       tenant_name: contract.tenant_name,
-      start_date: newStart.toISOString().split('T')[0],
-      end_date: newEnd.toISOString().split('T')[0],
+      start_date: newStart.toISOString().split('T')[0]!,
+      end_date: newEnd.toISOString().split('T')[0]!,
       rent_amount: contract.rent_amount.toString(),
       status: 'active', notes: `تجديد للعقد ${contract.contract_number}`,
       payment_type: contract.payment_type || 'annual', payment_count: (contract.payment_count || 1).toString(),
@@ -143,11 +143,11 @@ export const useContractsPage = () => {
       const units = formData.selected_unit_ids;
       let created = 0;
       for (let i = 0; i < units.length; i++) {
-        const unitId = units[i];
+        const unitId = units[i]!;
         const contractNumber = `${formData.contract_number}-${suffixLetters[i] || (i + 1)}`;
         let rentAmount: number;
         if (formData.pricing_mode === 'per_unit') {
-          rentAmount = parseFloat(formData.rent_per_unit[unitId]) || 0;
+          rentAmount = parseFloat(formData.rent_per_unit[unitId] ?? '0') || 0;
         } else {
           rentAmount = parseFloat(formData.rent_amount) / units.length;
         }
@@ -222,7 +222,7 @@ export const useContractsPage = () => {
         const endDate = newEnd.toISOString().split('T')[0];
         const num = contract.contract_number;
         const match = num.match(/-R(\d+)$/);
-        const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]) + 1}`) : `${num}-R1`;
+        const newNumber = match ? num.replace(/-R(\d+)$/, `-R${parseInt(match[1]!) + 1}`) : `${num}-R1`;
         const paymentCount = contract.payment_type === 'monthly' ? 12 : contract.payment_type === 'quarterly' ? 4 : contract.payment_type === 'semi_annual' ? 2 : (contract.payment_type === 'annual' ? 1 : (contract.payment_count || 1));
         const paymentAmount = safeNumber(contract.rent_amount) / paymentCount;
         const newContract: Record<string, unknown> = {
@@ -269,8 +269,8 @@ export const useContractsPage = () => {
       group.sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
     }
     return [...map.entries()].sort((a, b) => {
-      const latestA = new Date(a[1][0].start_date).getTime();
-      const latestB = new Date(b[1][0].start_date).getTime();
+      const latestA = new Date(a[1][0]!.start_date).getTime();
+      const latestB = new Date(b[1][0]!.start_date).getTime();
       return latestB - latestA;
     });
   }, [contracts]);
@@ -291,7 +291,7 @@ export const useContractsPage = () => {
   const statusCounts = useMemo(() => {
     let active = 0, expired = 0;
     for (const [, group] of groupedContracts) {
-      const latestStatus = group[0].status;
+      const latestStatus = group[0]!.status;
       if (latestStatus === 'active') active++;
       else expired++;
     }
@@ -306,7 +306,7 @@ export const useContractsPage = () => {
       result = result.filter(([, group]) => group.some(c => overdueContractIds.has(c.id)));
     } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
-        const latestStatus = group[0].status;
+        const latestStatus = group[0]!.status;
         return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
       });
     }

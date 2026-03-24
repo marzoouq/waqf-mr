@@ -48,7 +48,7 @@ const buildFiscalMonthGrid = (fiscalYear?: { start_date: string; end_date: strin
   return Array.from({ length: 12 }, (_, i) => {
     const m = (startMonth + i) % 12;
     const y = startYear + Math.floor((startMonth + i) / 12);
-    return { label: MONTH_NAMES[m], month: m, year: y };
+    return { label: MONTH_NAMES[m]!, month: m, year: y };
   });
 };
 
@@ -100,10 +100,10 @@ const MobileAccrualCard = ({ contract, cells, total, grid }: { contract: Contrac
           <div className="px-3 pb-3 border-t pt-2">
             <div className="grid grid-cols-3 gap-1.5">
               {grid.map((cell, i) => (
-                <div key={i} className={`text-center rounded p-1.5 ${cells[i].amount > 0 ? getCellClasses(cells[i].status).replace('font-medium', '') : 'bg-muted/30'}`}>
+                <div key={i} className={`text-center rounded p-1.5 ${cells[i]!.amount > 0 ? getCellClasses(cells[i]!.status).replace('font-medium', '') : 'bg-muted/30'}`}>
                   <p className="text-xs text-muted-foreground">{cell.label}</p>
-                  <p className={`text-xs tabular-nums font-medium ${cells[i].amount > 0 ? getCellClasses(cells[i].status) : 'text-muted-foreground/40'}`}>
-                    {cells[i].amount > 0 ? fmtNum(cells[i].amount) : '—'}
+                  <p className={`text-xs tabular-nums font-medium ${cells[i]!.amount > 0 ? getCellClasses(cells[i]!.status) : 'text-muted-foreground/40'}`}>
+                    {cells[i]!.amount > 0 ? fmtNum(cells[i]!.amount) : '—'}
                   </p>
                 </div>
               ))}

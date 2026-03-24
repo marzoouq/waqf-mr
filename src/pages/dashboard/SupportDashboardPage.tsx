@@ -250,8 +250,8 @@ function TicketDetailDialog({ ticket, onClose, isAdmin }: { ticket: SupportTicke
     updateStatus.mutate({ id: ticket.id, status: newStatus, resolution_notes: newStatus === 'resolved' ? resolutionNotes : undefined });
   };
 
-  const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
-  const p = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.medium;
+  const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
+  const p = PRIORITY_MAP[ticket.priority] ?? PRIORITY_MAP.medium!;
   const ageMs = Date.now() - new Date(ticket.created_at).getTime();
   const ageHours = ageMs / (1000 * 60 * 60);
   const ageLabel = ageHours < 1 ? `${Math.round(ageHours * 60)} دقيقة` : ageHours < 24 ? `${Math.round(ageHours)} ساعة` : `${Math.round(ageHours / 24)} يوم`;

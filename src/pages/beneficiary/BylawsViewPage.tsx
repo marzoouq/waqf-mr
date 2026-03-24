@@ -140,7 +140,7 @@ const BylawsViewPage = () => {
 
         {/* Bylaws Content */}
         {partNumbers.map((partNum) => {
-          const items = groupedByPart[partNum];
+          const items = groupedByPart[partNum] ?? [];
           const partTitle = partNum === 0 ? 'المقدمة' : items[0]?.part_title || `الجزء ${partNum}`;
 
           return (

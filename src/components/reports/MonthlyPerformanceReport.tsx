@@ -46,9 +46,9 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       .sort((a, b) => a.year - b.year || a.month - b.month)
       .map(item => ({
         ...item,
-        name: MONTH_NAMES[item.month],
+        name: MONTH_NAMES[item.month]!,
         net: item.income - item.expenses,
-        label: `${MONTH_NAMES[item.month]} ${item.year}`,
+        label: `${MONTH_NAMES[item.month]!} ${item.year}`,
       }));
   }, [income, expenses]);
 
@@ -65,12 +65,12 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
 
   const bestMonth = useMemo(() => {
     if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((best, m) => m.net > best.net ? m : best, monthlyData[0]);
+    return monthlyData.reduce((best, m) => m.net > best.net ? m : best, monthlyData[0]!);
   }, [monthlyData]);
 
   const worstMonth = useMemo(() => {
     if (monthlyData.length === 0) return null;
-    return monthlyData.reduce((worst, m) => m.net < worst.net ? m : worst, monthlyData[0]);
+    return monthlyData.reduce((worst, m) => m.net < worst.net ? m : worst, monthlyData[0]!);
   }, [monthlyData]);
 
   const avgMonthlyIncome = monthlyData.length > 0 ? totals.income / monthlyData.length : 0;
@@ -199,7 +199,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
           {/* Mobile cards */}
           <div className="space-y-2 md:hidden">
             {monthlyData.map((m, idx) => {
-              const prevNet = idx > 0 ? monthlyData[idx - 1].net : null;
+              const prevNet = idx > 0 ? monthlyData[idx - 1]!.net : null;
               const TrendIcon = prevNet === null ? Minus : m.net > prevNet ? TrendingUp : m.net < prevNet ? TrendingDown : Minus;
               const trendColor = prevNet === null ? 'text-muted-foreground' : m.net > prevNet ? 'text-success' : m.net < prevNet ? 'text-destructive' : 'text-muted-foreground';
               return (
@@ -239,7 +239,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
               </TableHeader>
               <TableBody>
                 {monthlyData.map((m, idx) => {
-                  const prevNet = idx > 0 ? monthlyData[idx - 1].net : null;
+                  const prevNet = idx > 0 ? monthlyData[idx - 1]!.net : null;
                   return (
                     <TableRow key={`${m.year}-${m.month}`}>
                       <TableCell className="font-medium">{m.label}</TableCell>

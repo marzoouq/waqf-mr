@@ -69,7 +69,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
         : Math.round(linearMonthlyExpected);
 
       months.push({
-        month: MONTH_NAMES[month],
+        month: MONTH_NAMES[month]!,
         actual,
         expected,
         gap: actual - expected,

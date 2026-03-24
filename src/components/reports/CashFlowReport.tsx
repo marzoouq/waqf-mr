@@ -54,7 +54,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
       cumulative += net;
 
       months.push({
-        month: MONTH_NAMES[month],
+        month: MONTH_NAMES[month]!,
         monthNum: month,
         income: monthIncome,
         expenses: monthExpenses,

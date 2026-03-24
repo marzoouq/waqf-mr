@@ -106,7 +106,7 @@ export default function ZatcaInvoicesTab({
               ) : allInvoices.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">لا توجد فواتير</TableCell></TableRow>
               ) : paginatedInvoices.map(inv => {
-                const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] || ZATCA_STATUS_MAP.not_submitted;
+                const status = ZATCA_STATUS_MAP[inv.zatca_status || 'not_submitted'] ?? ZATCA_STATUS_MAP.not_submitted!;
                 const rowBusy = isRowPending(inv.id);
                 const isSubmitted = ['submitted', 'reported', 'cleared', 'compliance_passed'].includes(inv.zatca_status || '');
                 const hasXml = !!inv.zatca_xml;

@@ -53,7 +53,7 @@ const ExportMenu = ({ onPrint, onExportPdf, onExportCsv, hidePrint, hidePdf, ext
 
   // إذا خيار واحد فقط، عرض زر مباشر
   if (options.length === 1) {
-    const opt = options[0];
+    const opt = options[0]!;
     const Icon = opt.icon;
     return (
       <Button variant="outline" size="sm" onClick={opt.action} className="gap-2">

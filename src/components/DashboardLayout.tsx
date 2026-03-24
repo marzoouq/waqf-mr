@@ -100,14 +100,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    sidebarTouchStartX.current = e.touches[0].clientX;
+    sidebarTouchStartX.current = e.touches[0]!.clientX;
     isDragging.current = true;
     dragOffsetRef.current = 0;
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current) return;
-    const delta = Math.max(0, e.touches[0].clientX - sidebarTouchStartX.current);
+    const delta = Math.max(0, e.touches[0]!.clientX - sidebarTouchStartX.current);
     if (delta < 10) return; // dead zone to prevent accidental drags during taps
     dragOffsetRef.current = delta;
     applyTransform(delta, SIDEBAR_W);
@@ -130,7 +130,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const isEdgeSwiping = useRef(false);
 
   const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
-    const x = e.touches[0].clientX;
+    const x = e.touches[0]!.clientX;
     if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
       edgeStartX.current = x;
       isEdgeSwiping.current = true;
@@ -140,7 +140,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isEdgeSwiping.current) return;
-    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0].clientX));
+    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0]!.clientX));
     edgeDragRef.current = delta;
     applyTransform(SIDEBAR_W - delta, SIDEBAR_W);
   }, [applyTransform]);
@@ -194,8 +194,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
           if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
-          const key = ADMIN_ROUTE_PERM_KEYS[link.to];
-          return !key || perms[key] !== false;
+      const key = ADMIN_ROUTE_PERM_KEYS[link.to];
+          return !key || perms?.[key] !== false;
         })
         .map(link => {
           const labelKey = linkLabelKeys[link.to];

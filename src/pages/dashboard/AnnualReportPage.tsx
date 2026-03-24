@@ -108,8 +108,8 @@ const AnnualReportPage = () => {
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sectionItems.length) return;
     try {
-      await updateItem.mutateAsync({ id: sectionItems[idx].id, sort_order: sectionItems[swapIdx].sort_order });
-      await updateItem.mutateAsync({ id: sectionItems[swapIdx].id, sort_order: sectionItems[idx].sort_order });
+      await updateItem.mutateAsync({ id: sectionItems[idx]!.id, sort_order: sectionItems[swapIdx]!.sort_order });
+      await updateItem.mutateAsync({ id: sectionItems[swapIdx]!.id, sort_order: sectionItems[idx]!.sort_order });
     } catch {
       // خطأ يُعالج في onError الخاص بالـ mutation
     }

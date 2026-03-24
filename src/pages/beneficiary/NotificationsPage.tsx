@@ -96,7 +96,7 @@ const NotificationsPage = () => {
     }
     
     if (!groups[key]) groups[key] = [];
-    groups[key].push(n);
+    groups[key]!.push(n);
     return groups;
   }, {} as Record<string, typeof notifications>), [filtered]);
 
@@ -220,7 +220,7 @@ const NotificationsPage = () => {
                   const cat = NOTIFICATION_CATEGORIES.find(c => c.id === categoryFilter);
                   return cat?.types.includes(t);
                 })).map((t) => {
-                  const config = typeConfig[t] || typeConfig.info;
+                  const config = typeConfig[t] ?? typeConfig.info!;
                   return (
                     <SelectItem key={t} value={t}>
                       <span className="flex items-center gap-2">
@@ -284,7 +284,7 @@ const NotificationsPage = () => {
                 <Card className="overflow-hidden">
                   <div className="divide-y divide-border">
                     {items.map((n) => {
-                      const config = typeConfig[n.type] || typeConfig.info;
+                      const config = typeConfig[n.type] ?? typeConfig.info!;
                       const Icon = config.icon;
                       return (
                         <div

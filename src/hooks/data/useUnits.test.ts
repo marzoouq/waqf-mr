@@ -25,10 +25,10 @@ vi.mock('@tanstack/react-query', () => ({
     if (enabled === false) return { data: undefined, isLoading: false };
     return { data: [], isLoading: false };
   },
-  useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function>) => ({
+  useMutation: ({ mutationFn, onSuccess, onError }: Record<string, Function | undefined>) => ({
     mutateAsync: async (...args: unknown[]) => {
       try {
-        const r = await mutationFn(...args);
+        const r = await mutationFn!(...args);
         onSuccess?.(r);
         return r;
       } catch (e) {
@@ -36,7 +36,7 @@ vi.mock('@tanstack/react-query', () => ({
         throw e;
       }
     },
-    mutate: (...args: unknown[]) => mutationFn(...args).then(onSuccess).catch(onError),
+    mutate: (...args: unknown[]) => mutationFn!(...args).then(onSuccess).catch(onError),
   }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));

@@ -71,7 +71,7 @@ const BeneficiarySupportPage = () => {
                 {/* Mobile Cards */}
                 <div className="space-y-3 md:hidden">
                   {tickets.map(ticket => {
-                    const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                    const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
                     const Icon = s.icon;
                     return (
                       <Card key={ticket.id} className="shadow-sm">
@@ -122,7 +122,7 @@ const BeneficiarySupportPage = () => {
                     </TableHeader>
                     <TableBody>
                       {tickets.map(ticket => {
-                        const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+                        const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
                         const Icon = s.icon;
                         return (
                           <TableRow key={ticket.id}>
@@ -194,7 +194,7 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
     onClose();
   };
 
-  const s = STATUS_MAP[ticket.status] || STATUS_MAP.open;
+  const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
   const canRate = (ticket.status === 'resolved' || ticket.status === 'closed') && !ticket.rating;
 
   return (
