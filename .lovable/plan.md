@@ -1,102 +1,133 @@
 
 
-# خطة الإصلاح — الجولة الثامنة (التقرير الجنائي الثالث)
+# خطة الإصلاح — الجولة التاسعة (التقرير الجنائي الشامل الثاني)
 
 ---
 
-## تحقق سريع: بنود مُصلحة فعلاً أو خاطئة في التقرير
+## تحقق سريع: بنود خاطئة أو مُصلحة فعلاً
 
 | البند | الحكم | السبب |
 |-------|-------|-------|
-| A-01 CloseYearChecklist لا يمنع الإقفال | ✅ **مُصلح** | `disabled={isClosing \|\| checklist.some(i => !i.passed && i.severity === 'error')}` سطر 92 |
-| A-02 beneficiaryPercentage لا يُمرَّر | ✅ **مُصلح** | `beneficiaryPercentage={totalBenPct}` + `hasAccount` + `pendingAdvances` + `unpaidInvoices` كلها مُمرَّرة (سطور 242-245) |
-| D-06 orphanedContracts limit(50) | ✅ **مُصلح** | `limit(500)` + `staleTime: 60_000` |
-| D-07 FiscalYearWidget Math.min | ✅ **مُصلح** | يعرض `rawFinancialProgress%` + badge "تجاوز الهدف" |
-| D-08 DashboardAlerts truncation | ✅ **مُصلح** | `.slice(0, 3)` + "X آخرين" |
-| D-09 Realtime invalidation | ✅ **مُصلح** | يُبطل فقط `queryKey: [table]` المتغير |
-| PaymentInvoicesTab clearSelection | ✅ **مُصلح** | `onClick={clearSelection}` |
-| I-03 contracts/paymentInvoices غير مستخدمة | ❌ **خطأ** | تُستخدم في `IncomeMonthlyChart` سطر 280 |
-| SEC-01/02/03 سياسات RLS | ✅ **مُصلحة سابقاً** | تم تقييدها في migrations لاحقة (الأدوار المحددة فقط) |
-| D-04 getKpiColor | ❌ **ليس خطأ** | المنطق صحيح: ≤20% أخضر، 21-40% أصفر، >40% أحمر |
+| BD-01 `myShare = 0` في السنة النشطة | ❌ **ليس خطأ** | `BeneficiaryDashboard` يستخدم RPC `useBeneficiaryDashboardData` — لا يستخدم `useMyShare` مباشرة. عرض 0 مع نص "الأرقام النهائية ستتوفر بعد إقفال السنة" هو السلوك المقصود |
+| BD-02 `isAccountMissing` بصمت | ❌ **ليس خطأ** | سطر 288-292 يعرض رسالة واضحة عند `!isClosed` |
+| BD-05 Realtime بدون cleanup | ❌ **ليس خطأ** | يستخدم `useBfcacheSafeChannel` مع `filter: beneficiary_id=eq.${beneficiaryId}` — مُصفى بالمستفيد سطر 97 |
+| WQ-08 `GreetingIcon` بدون useMemo | ❌ **ليس خطأ في BeneficiaryDashboard** | يستخدم `useMemo` سطر 63-67. لكن **WaqifDashboard لا يحتوي useMemo** — مؤكد |
+| INF-02 `private_key` plaintext | ❌ **تصميم مقبول** | RLS يحمي الجدول (admin فقط). نقله لـ Vault تحسين مستقبلي وليس خللاً |
+| HC-01 `useYearData(undefined)` يجلب كل البيانات | ✅ **مؤكد جزئياً** | `useFinancialSummary(undefined)` → `useRawFinancialData(undefined)` → `fyFilter = '__none__'` → **الهوكات تُعطَّل** عبر `shouldSkip`. لا يُجلب شيء. **خطأ في التقرير** |
+| MS-01 `rawNet` خاطئ في PDF | ✅ **مؤكد** | سطر 156: `rawNet = myShare - advances - carryforwardBalance` بينما سطر 155: `actualCarryforward = Math.min(carryforwardBalance, afterAdvances)`. يُمرَّر `actualCarryforward` للـ PDF سطر 166 لكن `rawNet` يستخدم `carryforwardBalance` الكامل — **تناقض حقيقي** |
+| NT-01 `deleteRead` يحذف الأنواع المخفية | ✅ **مؤكد** | سطر 223-227 يحذف كل `is_read = true` بدون فلتر بالنوع |
+| AU-02 تصدير 15 سجل فقط | ✅ **مؤكد** | `filtered = logs` = صفحة واحدة server-side (سطر 153) |
+| ZT-01 limit(200) | ✅ **مؤكد** | سطر 84 + 96 — limit(200) لكل جدول |
+| HC-02 PDF `net` بدون VAT/Zakat | ✅ **مؤكد** | سطر 124: `net: d0.totalIncome - d0.totalExpenses` — يتجاهل VAT والزكاة |
 
 ---
 
-## البنود القابلة للتنفيذ (12 إصلاح حقيقي)
+## البنود القابلة للتنفيذ (15 إصلاح مؤكد)
 
-### 🔴 فوري
+### 🔴 فوري — يكسر بيانات أو يُضلل
 
-**1. D-01 — `netCashFlow` محسوب بشكل خاطئ**
-- الملف: `src/pages/dashboard/AdminDashboard.tsx` سطر 149
-- المشكلة: يخصم `adminShare + waqifShare + zakatAmount` من `netAfterExpenses` لكنه يفتقد خصم VAT ويتضمن `waqfCorpusPrevious`. في السنة النشطة `adminShare = waqifShare = 0` فيعرض رقماً ضخماً مضلّلاً
-- الإصلاح: `const netCashFlow = safeNumber(waqfRevenue);` — مباشرة من الحسابات الموحدة. في السنة النشطة سيعرض 0 مع ملاحظة "(مؤشر فقط)"
+**1. MS-01 — `handleDownloadDistributionsPDF` يحسب `rawNet` بـ `carryforwardBalance` بدلاً من `actualCarryforward`**
+- الملف: `src/hooks/financial/useMySharePage.ts` سطر 156
+- المشكلة: `rawNet = myShare - advances - carryforwardBalance` بينما `actualCarryforward` محسوب بالفعل في السطر السابق
+- الإصلاح: `const rawNet = myShare - advances - actualCarryforward;`
 
-**2. D-02 — `distributionRatio` مضلّل في السنة النشطة**
-- نفس الملف سطر 152
-- المشكلة: `netAfterZakat` ليس المقام الصحيح لأن الحصص لم تُحسب بعد
-- الإصلاح: في السنة النشطة عرض "—" أو 0 بدلاً من نسبة لا معنى لها
+**2. WQ-01 — `activeContracts = relevantContracts` يشمل العقود المنتهية والملغاة**
+- الملف: `src/pages/beneficiary/WaqifDashboard.tsx` سطر 64
+- المشكلة: عند `isSpecificYear = true`، `relevantContracts = contracts` (كل الحالات)
+- الإصلاح: `const activeContracts = contracts.filter(c => c.status === 'active');` — فلتر مستقل دائماً
 
-**3. D-03 — `collectionRate` 0% عند عدم وجود فواتير مستحقة**
-- سطر 185 + عرض KPI
-- الإصلاح: عند `collectionSummary.total === 0` عرض "—" بدلاً من "0%"
+**3. AU-02 — تصدير سجل المراجعة PDF يصدّر صفحة واحدة (15 سجل)**
+- الملف: `src/pages/dashboard/AuditLogPage.tsx` سطر 183
+- المشكلة: `logs: filtered` = الصفحة الحالية فقط
+- الإصلاح: إضافة دالة `fetchAllForExport` تجلب كل السجلات (بحد 1000) بدون pagination قبل التصدير
 
-**4. I-01 — إضافة دخل بدون `fiscal_year_id` عند `'all'`**
-- الملف: `src/pages/dashboard/IncomePage.tsx` سطر 81
-- المشكلة: `fiscalYear?.id` = `undefined` عند "جميع السنوات" → دخل يتيم
-- الإصلاح: إضافة تحقق مبكر: `if (!editingIncome && !fiscalYear?.id) { toast.error('يرجى اختيار سنة مالية محددة'); return; }`
+**4. HC-02 — تصدير PDF للمقارنة يحسب `net` بدون VAT/Zakat**
+- الملف: `src/pages/dashboard/HistoricalComparisonPage.tsx` سطر 124
+- المشكلة: `net: d0.totalIncome - d0.totalExpenses` يتجاهل الضريبة والزكاة
+- الإصلاح: `net: (d0.waqfRevenue ?? (d0.totalIncome - d0.totalExpenses))` — استخدام `waqfRevenue` الموحد
 
-**5. C-01 — `handleBulkRenew` بدون حماية من النقر المزدوج**
-- الملف: `src/hooks/page/useContractsPage.ts` سطر 201
-- المشكلة: `setBulkRenewing(true)` موجود لكن الزر قد لا يكون مرتبطاً بـ `bulkRenewing` → duplicate contracts
-- الإصلاح: التحقق من ربط `disabled={bulkRenewing}` في الـ UI + إضافة early return إذا `bulkRenewing`
+**5. ZT-01 — `allInvoices` محدودة 200 سجل — فواتير مخفية عن ZATCA**
+- الملف: `src/pages/dashboard/ZatcaManagementPage.tsx` سطر 84 + 96
+- الإصلاح: رفع `limit` لـ 1000 أو إزالته + إضافة pagination للعرض
 
-**6. A-05 — `handleExportPdf` بدون error handling**
-- الملف: `src/hooks/financial/useAccountsActions.ts` سطر 221
-- الإصلاح: تغليف بـ `try/catch` + `toast.error` + loading state
+### 🟠 عالي — يؤثر على المنطق والثقة
 
-### 🟠 هذا الأسبوع
+**6. WQ-03 — `collectionSummary` يشمل كل السنوات التاريخية**
+- الملف: `src/pages/beneficiary/WaqifDashboard.tsx` سطر 79
+- المشكلة: `computeCollectionSummary(contracts, ...)` يستخدم `contracts` بدلاً من `relevantContracts`
+- الإصلاح: `computeCollectionSummary(activeContracts, paymentInvoices)` — العقود النشطة فقط
 
-**7. C-03 — `selectedForRenewal` لا تُصفَّر عند تغيير FY**
-- الملف: `src/hooks/page/useContractsPage.ts`
-- الإصلاح: `useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId])`
+**7. BD-03 — `lastPaid` يعرض أول توزيع في المصفوفة وليس الأحدث**
+- الملف: `src/pages/beneficiary/BeneficiaryDashboard.tsx` سطر 251
+- المشكلة: `distributions.find(d => d.status === 'paid')` بدون ترتيب مضمون
+- الإصلاح: `[...distributions].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).find(d => d.status === 'paid')`
 
-**8. C-04 — لا يوجد تحقق `end_date > start_date`**
-- الملف: `src/hooks/page/useContractsPage.ts` سطر 106
-- الإصلاح: إضافة validation قبل الحفظ
+**8. NT-01 — `deleteRead` يحذف الأنواع المخفية أيضاً**
+- الملف: `src/hooks/data/useNotifications.ts` سطر 220-228
+- المشكلة: يحذف كل `is_read = true` بدون استثناء الأنواع المعطَّلة
+- الإصلاح: تمرير `disabledTypes` وإضافة فلتر `.not('type', 'in', disabledArray)` أو عرض التحذير في UI
 
-**9. B-02 — `share_percentage` يقبل 0 أو سالب**
-- الملف: `src/components/beneficiaries/BeneficiaryFormDialog.tsx` سطر 67
-- الإصلاح: إضافة `min="0.01"` + validation في `handleSubmit`
+**9. ZT-02 — ترقية الإنتاج بدون AlertDialog تأكيد**
+- الملف: `src/pages/dashboard/ZatcaManagementPage.tsx` سطر 195
+- المشكلة: النقر المباشر ينفذ ترقية لا رجعة فيها
+- الإصلاح: إضافة `AlertDialog` تأكيد قبل التنفيذ + `disabled={productionLoading}` على الزر
 
-**10. GS-01 — استعلامات البحث متسلسلة**
-- الملف: `src/components/GlobalSearch.tsx` سطور 123-190
-- الإصلاح: تحويل لـ `Promise.all`
+**10. ZT-05 — `pendingAction` مشترك يسمح بعمليتين متزامنتين**
+- الملف: `src/pages/dashboard/ZatcaManagementPage.tsx`
+- المشكلة: حالة واحدة `pendingAction` تحمي صفاً واحداً فقط
+- الإصلاح: تحويل لـ `Set<string>` أو تعطيل كل الأزرار عند وجود أي عملية جارية
 
-**11. P-01 — حذف وحدة بدون عرض عدد العقود المرتبطة**
-- الملف: `src/components/properties/units/DeleteUnitDialog.tsx`
-- الإصلاح: إضافة prop `relatedContractsCount` وعرضه في التحذير
+**11. WQ-05 — `collectionRate` 0% بالأحمر عند بداية السنة**
+- الملف: `src/pages/beneficiary/WaqifDashboard.tsx` سطر 90
+- المشكلة: نفس مشكلة AdminDashboard D-03 — 0% تعرض بالأحمر بلا سياق
+- الإصلاح: عند `collectionSummary.total === 0` عرض "—" بدلاً من 0%
 
-**12. D-11 — `sharesNote` "(مؤشر فقط)" مبهم**
-- الملف: `src/pages/dashboard/AdminDashboard.tsx`
-- الإصلاح: إضافة tooltip يشرح أن الحصص تُحسب عند إقفال السنة
+**12. WQ-08 — `GreetingIcon` و`hijriDate` تُحسب في كل render**
+- الملف: `src/pages/beneficiary/WaqifDashboard.tsx` سطور 100+ (في body المكوّن)
+- المشكلة: `toLocaleDateString('ar-SA-u-ca-islamic')` مكلفة وتُنفَّذ كل render
+- الإصلاح: تغليف بـ `useMemo` كما في `BeneficiaryDashboard`
+
+### 🟡 متوسط
+
+**13. ZT-06 — لا تحذير عند غياب شهادة ZATCA نشطة**
+- الملف: `src/pages/dashboard/ZatcaManagementPage.tsx`
+- المشكلة: أزرار رمادية بصمت بدون توجيه
+- الإصلاح: إضافة `Alert` banner عند `!activeCert`
+
+**14. AU-03 — `ArchiveLogTab` لا يُصفّر `currentPage` عند تغيير الفلتر**
+- الملف: `src/components/audit/ArchiveLogTab.tsx`
+- الإصلاح: إضافة reset عند تغيير `eventFilter`
+
+**15. HC-02b — جدول المقارنة الرسم البياني يحسب `net` بسيط أيضاً**
+- الملف: `src/pages/dashboard/HistoricalComparisonPage.tsx` سطر 92
+- الإصلاح: `row[fy.label] = d?.waqfRevenue ?? ((d?.totalIncome ?? 0) - (d?.totalExpenses ?? 0))`
 
 ---
 
-## لن يُعدَّل
+## لن يُعدَّل (مع السبب)
 
 | البند | السبب |
 |-------|-------|
-| D-05 `Date.now()` في expiringContracts | العقود المنتهية قريباً تعتمد على التاريخ الحالي بطبيعتها |
-| D-10 ErrorBoundary بدون retry | تحسين UX غير حرج |
-| A-03 ZATCA check قبل الإقفال | الإقفال لا يمنع إرسال ZATCA لاحقاً |
-| A-04 paramsRef stale closure | خطر نظري — الـ effect يُنفَّذ قبل أي تفاعل مستخدم |
-| P-03 نسبة إشغال عقار كامل | سلوك مقصود: عقد "كامل" = كل الوحدات |
-| B-01 حذف مستفيد بدون تحقق | `ON DELETE CASCADE` مقصود — الناظر مسؤول |
-| AD-01/02 تحقق السلف | تحسين مستقبلي — الناظر يملك صلاحية مطلقة |
-| I-02 تاريخ خارج نطاق FY | تحسين UX — لا يكسر بيانات |
-| C-02 حساب تواريخ هجرية | يتطلب مكتبة تقويم هجري كاملة |
-| R-01/R-02 ReportsPage | تحسينات منفصلة |
-| N-01/AU-01 pagination | مُنفَّذة أصلاً أو كافية حالياً |
-| GS-02 إضافة income للبحث | تحسين مستقبلي |
+| HC-01 `useYearData(undefined)` يجلب كل البيانات | **خطأ في التقرير** — `shouldSkip` يُعطّل الاستعلامات |
+| BD-01/BD-02 `myShare = 0` | سلوك مقصود مع رسالة واضحة |
+| BD-05 Realtime بدون filter | **خطأ** — مُصفى بـ `beneficiary_id` |
+| INF-02 `private_key` plaintext | تحسين مستقبلي — RLS يحمي |
+| INF-03 حذف Storage عند rollback | تحسين مستقبلي — storage leak بسيط |
+| INF-04 cache key collision | `queryKey: ['income', undefined]` ≠ `['income']` في React Query |
+| AU-01 البحث محدود | تحسين مستقبلي — يتطلب full-text search |
+| AU-04 DataDiff يعرض PII | البيانات مشفّرة في DB — الـ diff يعرض النص المشفّر |
+| AU-05 فلتر التاريخ | تحسين مستقبلي |
+| BD-04 `estimatedShare=0` | متعمد — السُلف في السنة النشطة يُحدد مبلغها يدوياً |
+| WQ-07 تفاصيل المصروفات | مقصود — الواقف له حق الاطلاع |
+| WQ-09 رابط التواصل | تحسين UX مستقبلي |
+| UX-01 إلى UX-05 | تحسينات UX منفصلة |
+| NT-02/NT-03/NT-04 | تحسينات بسيطة غير حرجة |
+| MS-02/MS-03/MS-04 | خطر نظري — React Query يُحدّث atomically |
+| INF-01 AI rate limiting | تحسين مستقبلي — Edge Function لها CPU timeout طبيعي |
+| SD-01/SD-02/SD-03 | تحسينات غير حرجة |
+| ZT-03 `inv.source` | مُعرَّف ضمنياً في `.map()` سطر 89/101 — دائماً `'invoices'` أو `'payment_invoices'` |
+| ZT-04 chain بدون FY | السلسلة عابرة للسنوات بطبيعتها |
+| HC-03 CAGR | تحسين مستقبلي |
 
 ---
 
@@ -104,11 +135,12 @@
 
 | الملف | التغييرات |
 |-------|----------|
-| `src/pages/dashboard/AdminDashboard.tsx` | إصلاح `netCashFlow` + `distributionRatio` + `collectionRate` KPI + tooltip لـ sharesNote |
-| `src/pages/dashboard/IncomePage.tsx` | منع إضافة دخل بدون FY |
-| `src/hooks/page/useContractsPage.ts` | حماية bulk renew + reset selection + date validation |
-| `src/hooks/financial/useAccountsActions.ts` | try/catch لـ handleExportPdf |
-| `src/components/beneficiaries/BeneficiaryFormDialog.tsx` | min validation لنسبة الحصة |
-| `src/components/GlobalSearch.tsx` | Promise.all للاستعلامات |
-| `src/components/properties/units/DeleteUnitDialog.tsx` | عرض عدد العقود المرتبطة |
+| `src/hooks/financial/useMySharePage.ts` | إصلاح `rawNet` |
+| `src/pages/beneficiary/WaqifDashboard.tsx` | `activeContracts` فلتر + `collectionSummary` + `collectionRate "—"` + `useMemo` للتاريخ |
+| `src/pages/beneficiary/BeneficiaryDashboard.tsx` | `lastPaid` ترتيب |
+| `src/pages/dashboard/AuditLogPage.tsx` | تصدير PDF كامل |
+| `src/pages/dashboard/HistoricalComparisonPage.tsx` | `net` بـ `waqfRevenue` |
+| `src/pages/dashboard/ZatcaManagementPage.tsx` | رفع limit + AlertDialog تأكيد + `pendingIds` Set + banner غياب شهادة |
+| `src/hooks/data/useNotifications.ts` | `deleteRead` بفلتر الأنواع |
+| `src/components/audit/ArchiveLogTab.tsx` | reset page عند تغيير فلتر |
 
