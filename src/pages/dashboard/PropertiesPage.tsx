@@ -91,7 +91,10 @@ const PropertiesPage = () => {
 
     const occupancyBase = totalRented + totalVacant;
     const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
-    const contractualRevenue = contracts.reduce((s, c) => s + Number(c.rent_amount), 0);
+    const contractualRevenue = contracts.reduce((s, c) => {
+      const alloc = allocationMap.get(c.id);
+      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
+    }, 0);
 
     // في السنة المغلقة: استخدم بيانات الحساب الختامي بدلاً من العقود النشطة
     const currentAccount = accounts?.[0];
