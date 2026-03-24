@@ -145,12 +145,12 @@ const AdminDashboard = () => {
     const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
     const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
 
-    // KPI جديد: التدفق النقدي الصافي
-    const netCashFlow = safeNumber(netAfterExpenses) - safeNumber(adminShare) - safeNumber(waqifShare) - safeNumber(zakatAmount);
+    // KPI: التدفق النقدي الصافي — مباشرة من الحسابات الموحدة
+    const netCashFlow = safeNumber(waqfRevenue);
 
-    // KPI جديد: نسبة التوزيع الفعلي
-    const distributable = isYearActive ? safeNumber(netAfterZakat) : safeNumber(availableAmount);
-    const distributionRatio = distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0;
+    // KPI: نسبة التوزيع الفعلي — لا معنى لها في السنة النشطة
+    const distributable = isYearActive ? 0 : safeNumber(availableAmount);
+    const distributionRatio = isYearActive ? 0 : (distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0);
 
     return [
       { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
