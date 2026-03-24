@@ -30,9 +30,11 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
   const timeProgress = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
 
   // نسبة الإنجاز المالي = الدخل الفعلي / الإيرادات التعاقدية
-  const financialProgress = contractualRevenue > 0
-    ? Math.min(100, Math.round((totalIncome / contractualRevenue) * 100))
+  const rawFinancialProgress = contractualRevenue > 0
+    ? Math.round((totalIncome / contractualRevenue) * 100)
     : 0;
+  const exceededTarget = rawFinancialProgress > 100;
+  const financialProgress = Math.min(100, rawFinancialProgress);
 
   return (
     <Card className="shadow-sm">
