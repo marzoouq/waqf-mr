@@ -88,6 +88,8 @@
       </div>
       <style>#splash{transition:opacity .3s}@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}</style>
     </div>
+    <!-- حماية Clickjacking — frame-busting (بديل لـ frame-ancestors التي لا تعمل عبر meta) -->
+    <script>if(window.top!==window.self){window.top.location=window.self.location}</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
