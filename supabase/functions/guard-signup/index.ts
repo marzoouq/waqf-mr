@@ -65,6 +65,15 @@ Deno.serve(async (req) => {
       });
     }
 
+    // فحص تعقيد كلمة المرور: حرف كبير أو رقم على الأقل
+    const hasUpperOrDigit = /(?=.*[A-Z])|(?=.*\d)/.test(password);
+    if (!hasUpperOrDigit) {
+      return new Response(JSON.stringify({ error: "كلمة المرور يجب أن تحتوي على حرف كبير أو رقم على الأقل" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Check registration_enabled setting
     const { data: setting } = await supabaseAdmin
       .from("app_settings")

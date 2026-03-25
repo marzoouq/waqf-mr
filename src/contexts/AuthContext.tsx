@@ -225,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch { /* storage unavailable */ }
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
+      clearPageLoadEntries();
       clearToasts();
     }
   };
