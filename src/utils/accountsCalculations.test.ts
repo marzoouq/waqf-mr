@@ -102,10 +102,11 @@ describe('calculateFinancials – التسلسل المالي الهرمي', () 
     expect(r.remainingBalance).toBe(0);
   });
 
-  it('isClosed افتراضي = true', () => {
+  it('isClosed افتراضي = false (سنة نشطة)', () => {
     const { isClosed: _, ...withoutClosed } = base;
     const r = calculateFinancials(withoutClosed);
-    expect(r.adminShare).toBe(8_800);
+    // الافتراضي false → الحصص صفرية
+    expect(r.adminShare).toBe(0);
   });
 });
 
@@ -348,6 +349,7 @@ describe('حالات حدية للحسابات المالية', () => {
       waqifPercent: 5,
       waqfCorpusManual: 20_000_000,
       manualDistributions: 50_000_000,
+      isClosed: true,
     });
     expect(r.grandTotal).toBeCloseTo(1_049_999_999.99, 2);
     expect(r.shareBase).toBeCloseTo(894_999_999.99, 2);
@@ -368,6 +370,7 @@ describe('حالات حدية للحسابات المالية', () => {
       waqifPercent: 5,
       waqfCorpusManual: 0,
       manualDistributions: 999_999,
+      isClosed: true,
     });
     expect(r.remainingBalance).toBeLessThan(0);
   });
