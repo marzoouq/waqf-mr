@@ -301,12 +301,12 @@ const ChartOfAccountsPage = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>النوع</Label>
+              <Label htmlFor="chart-category-type">النوع</Label>
               <Select
                 value={form.category_type}
                 onValueChange={(v) => setForm(p => ({ ...p, category_type: v as CategoryType }))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="chart-category-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
