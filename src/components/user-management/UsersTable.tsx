@@ -44,7 +44,7 @@ const UsersTable = ({
   isLoading, isError, error, pendingConfirmId, orphanedBeneficiaries,
   isSelf, onConfirmEmail, onEdit, onPasswordChange, onDelete, onRetry,
 }: Props) => (
-  <Card className="shadow-xs">
+  <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         <Users className="w-5 h-5" />
@@ -56,7 +56,7 @@ const UsersTable = ({
         <>
           <div className="space-y-3 p-4 md:hidden">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="shadow-xs">
+              <Card key={i} className="shadow-sm">
                 <CardContent className="p-4 space-y-3">
                   <div className="h-5 w-2/3 rounded bg-muted animate-pulse" />
                   <div className="grid grid-cols-2 gap-2">
@@ -84,7 +84,7 @@ const UsersTable = ({
           {/* Mobile */}
           <div className="space-y-3 p-4 md:hidden">
             {users.map((user) => (
-              <Card key={user.id} className="shadow-xs">
+              <Card key={user.id} className="shadow-sm">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">

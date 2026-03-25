@@ -228,7 +228,7 @@ const ExpensesPage = () => {
           />
         </div>
 
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-0">
             {isLoading ? (
               <TableSkeleton rows={5} cols={5} />
@@ -241,7 +241,7 @@ const ExpensesPage = () => {
                 {filteredExpenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => {
                   const attachCount = expenseInvoiceMap.get(item.id) || 0;
                   return (
-                    <Card key={item.id} className="shadow-xs">
+                    <Card key={item.id} className="shadow-sm">
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">

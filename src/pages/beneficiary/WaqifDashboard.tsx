@@ -189,7 +189,7 @@ const WaqifDashboard = () => {
             { title: 'المستفيدون', value: allBeneficiaries.length, icon: Users, bg: 'bg-secondary/10 text-secondary' },
             { title: 'القابل للتوزيع', value: fiscalYear?.status === 'active' ? 'تُحسب عند الإقفال' : `${fmt(safeNumber(availableAmount))} ر.س`, icon: TrendingUp, bg: 'bg-primary/10 text-primary' },
           ].map((stat, i) => (
-            <Card key={i} className="shadow-xs">
+            <Card key={i} className="shadow-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center gap-3">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stat.bg}`}><stat.icon className="w-5 h-5" /></div>
@@ -201,7 +201,7 @@ const WaqifDashboard = () => {
         </div>
 
         {/* ═══ KPI Panel ═══ */}
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Gauge className="w-5 h-5" />
@@ -224,7 +224,7 @@ const WaqifDashboard = () => {
 
         {/* ═══ Financial Summary + Contracts Status ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card className="shadow-xs">
+          <Card className="shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Wallet className="w-5 h-5" /> التسلسل المالي
@@ -245,7 +245,7 @@ const WaqifDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xs">
+          <Card className="shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-5 h-5" /> حالة العقود والتحصيل</CardTitle>
             </CardHeader>
@@ -282,7 +282,7 @@ const WaqifDashboard = () => {
 
         {/* ═══ Charts ═══ */}
         {(monthlyData.length > 0 || (expensesByTypeExcludingVat && Object.keys(expensesByTypeExcludingVat).length > 0)) && (
-          <Card className="shadow-xs">
+          <Card className="shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><BarChart3 className="w-5 h-5" /> الرسوم البيانية</CardTitle>
             </CardHeader>
@@ -302,7 +302,7 @@ const WaqifDashboard = () => {
           <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             {quickLinks.map((link) => (
-              <Card key={link.path} className="shadow-xs cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
+              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex flex-col items-center text-center gap-2">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}><link.icon className="w-5 h-5" /></div>

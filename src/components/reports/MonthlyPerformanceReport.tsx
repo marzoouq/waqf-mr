@@ -79,7 +79,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
 
   if (monthlyData.length === 0) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="p-8 text-center text-muted-foreground">
           لا توجد بيانات مالية للسنة المالية المحددة
         </CardContent>
@@ -91,19 +91,19 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[11px] sm:text-xs text-muted-foreground">متوسط الدخل الشهري</p>
             <p className="text-base sm:text-xl font-bold text-success">{fmt(Math.round(avgMonthlyIncome))} ر.س</p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[11px] sm:text-xs text-muted-foreground">متوسط المصروفات الشهرية</p>
             <p className="text-base sm:text-xl font-bold text-destructive">{fmt(Math.round(avgMonthlyExpenses))} ر.س</p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[11px] sm:text-xs text-muted-foreground">أفضل شهر (صافي)</p>
             <div className="flex items-center gap-1">
@@ -113,7 +113,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
             <p className="text-xs text-success">{fmt(bestMonth?.net ?? 0)} ر.س</p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-[11px] sm:text-xs text-muted-foreground">أضعف شهر (صافي)</p>
             <div className="flex items-center gap-1">
@@ -126,7 +126,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       </div>
 
       {/* Bar Chart: Income vs Expenses */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-sm sm:text-base">مقارنة الدخل والمصروفات الشهرية</CardTitle>
         </CardHeader>
@@ -155,7 +155,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       </Card>
 
       {/* Area Chart: Net Trend */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-sm sm:text-base">اتجاه صافي الدخل الشهري</CardTitle>
         </CardHeader>
@@ -191,7 +191,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
       </Card>
 
       {/* Monthly Table */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-sm sm:text-base">التفصيل الشهري</CardTitle>
         </CardHeader>

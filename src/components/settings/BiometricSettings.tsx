@@ -30,7 +30,7 @@ const BiometricSettings = () => {
 
   if (!isSupported) {
     return (
-      <Card className="shadow-xs border-muted">
+      <Card className="shadow-sm border-muted">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Fingerprint className="w-5 h-5" />
@@ -58,7 +58,7 @@ const BiometricSettings = () => {
   }
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Fingerprint className="w-5 h-5" />

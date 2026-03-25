@@ -29,7 +29,7 @@ const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit
   const progressPercent = (paidMonths / 12) * 100;
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">

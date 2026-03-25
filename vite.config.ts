@@ -60,7 +60,7 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkOnly', // بيانات مالية حساسة — لا تُخزَّن في كاش PWA. React Query يتولى الكاش في الذاكرة
+            handler: 'NetworkOnly',
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
@@ -68,7 +68,7 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/functions\/v1\/.*/i,
-            handler: 'NetworkOnly', // Edge Functions — بيانات حساسة لا تُكَّش
+            handler: 'NetworkOnly',
           },
         ],
       },
@@ -115,57 +115,24 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // — React core —
           if (id.includes('node_modules/react-dom')) return 'vendor-react';
           if (id.includes('node_modules/react/')) return 'vendor-react';
-
-          // — Router (منفصل لأنه أكبر) —
           if (id.includes('node_modules/react-router') || id.includes('node_modules/turbo-stream') || id.includes('node_modules/@remix-run/')) return 'vendor-router';
-
-          // — Radix UI —
           if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
-
-          // — مكتبات بيانات —
           if (id.includes('node_modules/@supabase/')) return 'vendor-supabase';
           if (id.includes('node_modules/@tanstack/')) return 'vendor-query';
-
-          // — أيقونات —
           if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
-
-          // — نماذج وتحقق —
           if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/@hookform/') || id.includes('node_modules/zod')) return 'vendor-form';
-
-          // — تواريخ —
           if (id.includes('node_modules/date-fns')) return 'vendor-date';
-
-          // — إشعارات —
           if (id.includes('node_modules/sonner')) return 'vendor-sonner';
-
-          // — سحب وإفلات —
           if (id.includes('node_modules/@dnd-kit/')) return 'vendor-dnd';
-
-          // — PDF وتبعياتها —
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/canvg') || id.includes('node_modules/rgbcolor') || id.includes('node_modules/stackblur-canvas')) return 'vendor-pdf';
-
-          // — HTML to Canvas (تبعية PDF ثقيلة) —
           if (id.includes('node_modules/html2canvas') || id.includes('node_modules/css-line-break')) return 'vendor-html2canvas';
-
-          // — رسوم بيانية —
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-') || id.includes('node_modules/victory-vendor')) return 'vendor-charts';
-
-          // — Markdown —
           if (id.includes('node_modules/react-markdown') || id.includes('node_modules/remark-') || id.includes('node_modules/rehype-') || id.includes('node_modules/unified') || id.includes('node_modules/mdast-') || id.includes('node_modules/micromark') || id.includes('node_modules/hast-') || id.includes('node_modules/unist-')) return 'vendor-markdown';
-
-          // — QR —
           if (id.includes('node_modules/qrcode')) return 'vendor-qr';
-
-          // — أدوات UI مساعدة —
           if (id.includes('node_modules/class-variance-authority') || id.includes('node_modules/clsx') || id.includes('node_modules/tailwind-merge') || id.includes('node_modules/cmdk') || id.includes('node_modules/vaul') || id.includes('node_modules/input-otp') || id.includes('node_modules/embla-carousel') || id.includes('node_modules/next-themes') || id.includes('node_modules/react-resizable-panels')) return 'vendor-ui-utils';
-
-          // — مصادقة بيومترية —
           if (id.includes('node_modules/@simplewebauthn/')) return 'vendor-webauthn';
-
-          // — عربي —
           if (id.includes('node_modules/arabic-reshaper')) return 'vendor-arabic';
         },
       },

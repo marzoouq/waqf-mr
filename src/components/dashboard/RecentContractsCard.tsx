@@ -23,7 +23,7 @@ interface RecentContractsCardProps {
 const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps) => {
   if (isLoading) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-8 w-20" />
@@ -42,7 +42,7 @@ const RecentContractsCard = ({ contracts, isLoading }: RecentContractsCardProps)
     .slice(0, 5);
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>آخر العقود</CardTitle>
         <Link to="/dashboard/contracts">

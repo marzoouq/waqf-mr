@@ -25,7 +25,7 @@ const CollectionSummaryCard = ({ collectionSummary, collectionColor }: Collectio
   if (collectionSummary.total <= 0) return null;
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Banknote className="w-5 h-5" />

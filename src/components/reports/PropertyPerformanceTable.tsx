@@ -31,7 +31,7 @@ interface Props {
 }
 
 const PropertyPerformanceTable = ({ propertyPerformance, perfTotals }: Props) => (
-  <Card className="shadow-xs">
+  <Card className="shadow-sm">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
         <TrendingUp className="w-5 h-5" />
@@ -44,7 +44,7 @@ const PropertyPerformanceTable = ({ propertyPerformance, perfTotals }: Props) =>
         {propertyPerformance.map((p) => {
           const occupancyColor = p.occupancy >= 80 ? 'text-success' : p.occupancy >= 50 ? 'text-warning' : 'text-destructive';
           return (
-            <Card key={p.id} className="shadow-xs">
+            <Card key={p.id} className="shadow-sm">
               <CardContent className="p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm">{p.name}</span>

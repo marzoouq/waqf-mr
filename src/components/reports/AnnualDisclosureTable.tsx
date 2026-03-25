@@ -53,7 +53,7 @@ const AnnualDisclosureTable = ({
   remainingBalance,
 }: AnnualDisclosureTableProps) => {
   return (
-    <Card className="shadow-xs print:break-before-page">
+    <Card className="shadow-sm print:break-before-page">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />

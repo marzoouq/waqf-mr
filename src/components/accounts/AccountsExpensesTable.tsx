@@ -11,7 +11,7 @@ interface AccountsExpensesTableProps {
 
 const AccountsExpensesTable = ({ expensesCount, expensesByType, totalExpenses }: AccountsExpensesTableProps) => {
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingDown className="w-5 h-5" />

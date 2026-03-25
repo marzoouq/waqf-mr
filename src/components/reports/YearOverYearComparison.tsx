@@ -118,7 +118,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
 
   if (fiscalYears.length < 2) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="p-8 text-center text-muted-foreground">
           يجب وجود سنتين ماليتين على الأقل لإجراء المقارنة
         </CardContent>
@@ -130,7 +130,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
     const isPositive = invertColor ? change < 0 : change > 0;
     const isNegative = invertColor ? change > 0 : change < 0;
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="p-3 sm:p-4">
           <p className="text-[11px] sm:text-xs text-muted-foreground mb-1">{label}</p>
           <div className="flex items-center gap-2">
@@ -154,7 +154,7 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
   return (
     <div className="space-y-6">
       {/* اختيار السنوات */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-2 flex-1 w-full">

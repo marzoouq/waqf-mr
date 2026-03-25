@@ -163,7 +163,7 @@ const BeneficiarySettingsPage = () => {
         >
           {/* Account Info Tab - removed share percentage */}
           <TabsContent value="account">
-            <Card className="shadow-xs">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <User className="w-5 h-5" />
@@ -201,7 +201,7 @@ const BeneficiarySettingsPage = () => {
 
           {/* Password Tab */}
           <TabsContent value="password">
-            <Card className="shadow-xs">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Lock className="w-5 h-5" />
@@ -260,7 +260,7 @@ const BeneficiarySettingsPage = () => {
 
           {/* Notifications Tab */}
           <TabsContent value="notifications">
-            <Card className="shadow-xs">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Bell className="w-5 h-5" />

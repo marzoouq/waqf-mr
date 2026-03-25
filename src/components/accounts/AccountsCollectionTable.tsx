@@ -58,7 +58,7 @@ const AccountsCollectionTable = ({
   isUpdatePending, isUpsertPending,
 }: AccountsCollectionTableProps) => {
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="w-5 h-5" />

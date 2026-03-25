@@ -200,7 +200,7 @@ const Index = () => {
                 style={{ animationDelay: `${index * 100 + 200}ms` }}
               >
                 <CardHeader className="p-6 md:p-8">
-                  <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-xs">
+                  <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm">
                     <feature.icon className="w-7 h-7 text-primary-foreground" />
                   </div>
                   <CardTitle className="text-lg font-bold text-card-foreground mb-2">

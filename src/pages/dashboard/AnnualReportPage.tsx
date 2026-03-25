@@ -243,7 +243,7 @@ const AnnualReportPage = () => {
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="property_status">حالة العقارات ({grouped.property_status.length})</option>
                 <option value="achievement">الإنجازات ({grouped.achievement.length})</option>

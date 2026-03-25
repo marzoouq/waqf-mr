@@ -74,7 +74,7 @@ const BeneficiarySupportPage = () => {
                     const s = STATUS_MAP[ticket.status] ?? STATUS_MAP.open!;
                     const Icon = s.icon;
                     return (
-                      <Card key={ticket.id} className="shadow-xs">
+                      <Card key={ticket.id} className="shadow-sm">
                         <CardContent className="p-4 space-y-2">
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">

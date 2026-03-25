@@ -26,7 +26,7 @@ const DashboardStatsGrid = ({ stats, isLoading }: DashboardStatsGridProps) => {
     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {stats.map((stat, index) => (
         <Link key={index} to={stat.link} className="block">
-          <Card className="shadow-xs hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+          <Card className="shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
             <CardContent className="p-3 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
