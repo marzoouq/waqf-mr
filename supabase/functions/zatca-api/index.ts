@@ -703,6 +703,7 @@ Deno.serve(async (req) => {
         const prodData = await prodResponse.json();
 
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
+        const prodExpiry = parseCertExpiry(prodData.binarySecurityToken || "");
         await admin.from("zatca_certificates").insert({
           certificate_type: "production",
           certificate: prodData.binarySecurityToken || "",
@@ -710,6 +711,7 @@ Deno.serve(async (req) => {
           zatca_secret: prodData.secret || "",
           request_id: prodData.requestID || "",
           is_active: true,
+          expires_at: prodExpiry,
         });
 
         await logZatcaOperation(admin, {
