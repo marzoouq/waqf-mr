@@ -6,8 +6,8 @@
  * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
  * تحسين HMR: نقل useAuth و AuthContext إلى ملف مستقل (useAuthContext.ts)
  */
-import { useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { checkNewDeviceLogin } from '@/hooks/data/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
