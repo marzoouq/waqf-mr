@@ -128,12 +128,14 @@ describe('WaqifDashboard', () => {
 
   it('يعرض البطاقات المالية بالقيم الصحيحة', async () => {
     await renderPage();
-    // عدد العقارات
-    expect(await screen.findByText('2')).toBeInTheDocument();
+    // عنوان بطاقة العقارات
+    expect(await screen.findByText('العقارات')).toBeInTheDocument();
     // عدد المستفيدين
     expect(screen.getByText('المستفيدون')).toBeInTheDocument();
-    // عنوان البطاقة
-    expect(screen.getByText('العقارات')).toBeInTheDocument();
+    // العقود النشطة
+    expect(screen.getByText('العقود النشطة')).toBeInTheDocument();
+    // القابل للتوزيع
+    expect(screen.getByText('القابل للتوزيع')).toBeInTheDocument();
   }, 15_000);
 
   it('يعرض مؤشرات الأداء الرئيسية (KPI)', async () => {
