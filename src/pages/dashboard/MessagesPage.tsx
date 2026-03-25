@@ -148,6 +148,14 @@ const MessagesPage = () => {
                 </div>
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
+                    {hasMore && (
+                      <div className="text-center py-2">
+                        <Button variant="ghost" size="sm" onClick={() => loadMore()} disabled={isLoadingMore}>
+                          {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                          تحميل رسائل أقدم
+                        </Button>
+                      </div>
+                    )}
                     {messages.map((msg) => {
                       const isMe = msg.sender_id === user?.id;
                       return (
