@@ -202,11 +202,7 @@ function App() {
                   </Suspense>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <DeferredRender>
-                    <Suspense fallback={null}>
-                      <AiAssistant />
-                    </Suspense>
-                  </DeferredRender>
+                  <RoleGatedAiAssistant />
                 </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>
