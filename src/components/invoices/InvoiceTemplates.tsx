@@ -302,7 +302,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
           <div className="flex flex-col items-center gap-2">
             {qrData ? (
               <>
-                <QRCodeSVG value={qrData} size={120} level="H" className="border p-1 rounded bg-white" />
+                <QrImage data={qrData} size={120} className="border p-1 rounded bg-white" />
                 <p className="text-[11px] text-muted-foreground">رمز QR — ZATCA Phase 2</p>
               </>
             ) : (
