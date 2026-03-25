@@ -41,20 +41,20 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
               <Input id="unit-form-card-field-1" value={form.unit_number} onChange={(e) => onChange({ ...form, unit_number: e.target.value })} placeholder="شقة 1" />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="unit-form-card-field-2" className="text-xs">النوع</Label>
-              <NativeSelect id="unit-form-card-field-2" value={form.unit_type ?? ''} onValueChange={(v) => onChange({ ...form, unit_type: v })} options={UNIT_TYPES.map(t => ({ value: t, label: t }))} />
+              <Label className="text-xs">النوع</Label>
+              <NativeSelect value={form.unit_type ?? ''} onValueChange={(v) => onChange({ ...form, unit_type: v })} options={UNIT_TYPES.map(t => ({ value: t, label: t }))} />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="unit-form-card-field-3" className="text-xs">الدور</Label>
-              <NativeSelect id="unit-form-card-field-3" value={form.floor || ''} onValueChange={(v) => onChange({ ...form, floor: v })} placeholder="اختر الدور" options={FLOORS.map(f => ({ value: f, label: f }))} />
+              <Label className="text-xs">الدور</Label>
+              <NativeSelect value={form.floor || ''} onValueChange={(v) => onChange({ ...form, floor: v })} placeholder="اختر الدور" options={FLOORS.map(f => ({ value: f, label: f }))} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-field-4" className="text-xs">المساحة (م²)</Label>
               <Input id="unit-form-card-field-4" type="number" value={form.area ?? ''} onChange={(e) => onChange({ ...form, area: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="80" />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="unit-form-card-field-5" className="text-xs">الحالة</Label>
-              <NativeSelect id="unit-form-card-field-5" value={form.status ?? ''} onValueChange={(v) => onChange({ ...form, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
+              <Label className="text-xs">الحالة</Label>
+              <NativeSelect value={form.status ?? ''} onValueChange={(v) => onChange({ ...form, status: v })} options={UNIT_STATUSES.map(s => ({ value: s, label: s }))} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-field-6" className="text-xs">ملاحظات</Label>
@@ -75,8 +75,8 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
                   <Input id="unit-form-card-field-8" type="number" value={form.rent_amount || ''} onChange={(e) => onChange({ ...form, rent_amount: e.target.value })} placeholder="50000" />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="unit-form-card-field-9" className="text-xs">نوع الدفع</Label>
-                  <NativeSelect id="unit-form-card-field-9" value={form.payment_type || 'annual'} onValueChange={(v) => onChange({ ...form, payment_type: v })} options={PAYMENT_TYPES} />
+                  <Label className="text-xs">نوع الدفع</Label>
+                  <NativeSelect value={form.payment_type || 'annual'} onValueChange={(v) => onChange({ ...form, payment_type: v })} options={PAYMENT_TYPES} />
                 </div>
                 {form.payment_type === 'multi' && (
                   <div className="space-y-1">

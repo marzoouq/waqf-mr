@@ -103,8 +103,8 @@ const BulkNotificationsTab = () => {
               <Input id="bulk-notifications-tab-field-1" value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: إشعار توزيع الأرباح" maxLength={100} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="bulk-notifications-tab-field-2">نوع الإشعار</Label>
-              <Select id="bulk-notifications-tab-field-2" value={type} onValueChange={setType}>
+              <Label>نوع الإشعار</Label>
+              <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

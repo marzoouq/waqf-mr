@@ -84,8 +84,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             {errors.national_id && <p className="text-xs text-destructive">{errors.national_id}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="beneficiary-form-dialog-field-5" className="flex items-center gap-2"><Link className="w-4 h-4" />ربط بحساب مستخدم</Label>
-            <NativeSelect id="beneficiary-form-dialog-field-5"
+            <Label className="flex items-center gap-2"><Link className="w-4 h-4" />ربط بحساب مستخدم</Label>
+            <NativeSelect
               value={formData.user_id || '__none__'}
               onValueChange={(value) => setFormData({ ...formData, user_id: value === '__none__' ? '' : value })}
               options={userOptions}

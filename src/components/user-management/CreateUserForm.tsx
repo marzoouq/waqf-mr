@@ -79,8 +79,8 @@ const CreateUserForm = ({ open, onOpenChange, form, setForm, onSubmit, isPending
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="create-user-form-field-4">الدور</Label>
-          <NativeSelect id="create-user-form-field-4" value={form.role} onValueChange={(v) => setForm({ ...form, role: v })} options={[
+          <Label>الدور</Label>
+          <NativeSelect value={form.role} onValueChange={(v) => setForm({ ...form, role: v })} options={[
             { value: 'admin', label: 'ناظر (Admin)' },
             { value: 'accountant', label: 'محاسب' },
             { value: 'beneficiary', label: 'مستفيد' },

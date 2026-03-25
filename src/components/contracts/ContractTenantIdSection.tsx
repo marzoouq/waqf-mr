@@ -19,8 +19,8 @@ const ContractTenantIdSection = ({ formData, onChange }: Props) => (
     <Label className="text-sm font-medium">بيانات هوية المستأجر</Label>
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1">
-        <Label htmlFor="contract-tenant-id-section-field-1" className="text-xs">نوع الهوية</Label>
-        <NativeSelect id="contract-tenant-id-section-field-1"
+        <Label className="text-xs">نوع الهوية</Label>
+        <NativeSelect
           value={formData.tenant_id_type}
           onValueChange={(value) => onChange({ tenant_id_type: value })}
           options={tenantIdTypeOptions}

@@ -272,8 +272,8 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-1.5 max-w-xs">
-                  <Label htmlFor="zatca-settings-tab-field-5">نسبة VAT الافتراضية</Label>
-                  <Select id="zatca-settings-tab-field-5" value={formData.default_vat_rate || '0'} onValueChange={(value) => setFormData((p) => ({ ...p, default_vat_rate: value }))}>
+                  <Label>نسبة VAT الافتراضية</Label>
+                  <Select value={formData.default_vat_rate || '0'} onValueChange={(value) => setFormData((p) => ({ ...p, default_vat_rate: value }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="0">0% — معفاة</SelectItem>
