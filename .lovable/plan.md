@@ -1,63 +1,43 @@
 
 
-# تقرير التحقق — ما تم إصلاحه وما يحتاج عملاً فعلياً
+# خطة الإصلاحات السبعة
 
-## ❌ مشاكل مُدّعاة تم حلّها فعلاً
+## 1. تنظيف `package.json`
+- حذف السطر الفارغ (سطر 53)
+- نقل `@types/qrcode` من `dependencies` إلى `devDependencies`
+- حذف `tw-animate-css` (غير مُستخدمة — `tailwindcss-animate` هي المُفعّلة فعلياً في `tailwind.config.ts`)
 
-| البند | الحقيقة |
-|---|---|
-| `vite-plugin-pwa` في `dependencies` | **خطأ** — موجود فعلاً في `devDependencies` (سطر 112) |
-| `og-image.png` = 903KB | **تم إصلاحه** — يستخدم صورة WebP خارجية في `index.html` |
-| كاش PWA 30 يوم StaleWhileRevalidate | **تم إصلاحه** — غير موجود في الكود الحالي |
-| `coverage.thresholds` غائبة | **تم إصلاحه** — حد 60% موجود في `vitest.config.ts` |
-| ZATCA seller_name مُضمّن | **تم إصلاحه** — يُقرأ من `settings` ديناميكياً |
-| Pagination الرسائل ثابت 50 | **تم إصلاحه** — يستخدم `useInfiniteQuery` مع cursor pagination |
+## 2. إصلاح `signIn` timeout في `src/contexts/AuthContext.tsx`
+- حفظ timeout ID في `useRef` على مستوى المكوّن
+- `clearTimeout` عند وصول حدث `SIGNED_IN`/`INITIAL_SESSION` في `onAuthStateChange` (سطر 48)
+- `clearTimeout` في `signOut` (سطر 189)
+- هذا يحل مشكلتي NEW-BUG-05 و NEW-AUTH-02 معاً
 
-## ✅ مشاكل حقيقية تحتاج إصلاح
+## 3. إصلاح تعارض PWA في `vite.config.ts`
+- تغيير `clientsClaim: true` → `clientsClaim: false` (سطر 31)
+- يتوافق مع `registerType: 'prompt'` + `skipWaiting: false`
 
-### 1. حذف `@tailwindcss/vite` v4 من `dependencies` (دقائق)
+## 4. تثبيت Build ID في `vite.config.ts`
+- تغيير السطر 12 من `${pkg.version}-${Date.now()}` إلى `pkg.version` فقط
+- يمنع إبطال كاش PWA مع كل بناء بدون تغيير فعلي
 
-**الملف:** `package.json`
+## 5. تخفيض `chunkSizeWarningLimit` في `vite.config.ts`
+- من `500` إلى `300` (سطر 141)
 
-المشروع يستخدم Tailwind **v3** عبر PostCSS (`postcss.config.js` + `@tailwind` directives). الحزمة `@tailwindcss/vite` v4 موجودة في `dependencies` (سطر 50) لكنها **غير مستوردة** في أي مكان — وزن ميت يزيد حجم `node_modules`.
+## 6. توثيق `VITE_APP_BUILD_ID` في `.env.example`
+- إضافة سطر تعليق يوضح أنه يُولَّد تلقائياً من `vite.config.ts`
 
-- حذف `"@tailwindcss/vite": "^4.2.2"` من `dependencies`
-- إبقاء `"tailwindcss": "^3.4.17"` في `devDependencies` كما هو (مستخدم فعلياً)
-
-### 2. نقل `autoprefixer` إلى `devDependencies` (دقائق)
-
-**الملف:** `package.json`
-
-`autoprefixer` أداة PostCSS للبناء فقط — لا تُحزَّم مع التطبيق. حالياً في `dependencies` (سطر 54).
-
-- حذفها من `dependencies`
-- إضافتها إلى `devDependencies`
-
-### 3. إضافة FK لـ `invoice_chain.invoice_id` (migration)
-
-**الملف:** migration جديد
-
-حالياً `invoice_chain.invoice_id` بدون foreign key مما يسمح بسجلات يتيمة. لكن بما أن `source_table` يشير إلى جدولين مختلفين (`payment_invoices` أو `invoices`)، لا يمكن استخدام FK تقليدي واحد.
-
-**الحل:** إضافة trigger للتحقق من وجود `invoice_id` في الجدول المناسب حسب `source_table`.
+## 7. نقل `SwUpdateBanner` داخل `BrowserRouter` في `src/App.tsx`
+- نقل كتلة `ErrorBoundary > Suspense > SwUpdateBanner` (أسطر 130-134) إلى داخل `BrowserRouter` بعد `PagePerformanceTracker`
 
 ---
 
-## 📊 ملخص
-
-```text
-المهمة                                    الحالة
-──────────────────────────────────────────────────
-حذف @tailwindcss/vite من dependencies     ← يحتاج إصلاح
-نقل autoprefixer → devDependencies         ← يحتاج إصلاح
-FK/trigger لـ invoice_chain                ← يحتاج إصلاح
-vite-plugin-pwa في dependencies            ← خطأ في التقرير
-og-image 903KB                             ← مُصلَح سابقاً
-كاش PWA 30 يوم                            ← مُصلَح سابقاً
-coverage.thresholds                        ← مُصلَح سابقاً
-seller_name مُضمّن                         ← مُصلَح سابقاً
-Pagination الرسائل                         ← مُصلَح سابقاً
-```
-
-**تحسينات UX المذكورة** (تصدير Excel، مقارنة KPI، فلتر العقود، تصنيف الإشعارات) هي ميزات جديدة صالحة يمكن تنفيذها لاحقاً كمهام منفصلة.
+## الملفات المتأثرة
+| الملف | التغيير |
+|-------|---------|
+| `package.json` | حذف سطر فارغ، نقل `@types/qrcode`، حذف `tw-animate-css` |
+| `src/contexts/AuthContext.tsx` | إضافة `useRef` للـ timeout + `clearTimeout` |
+| `vite.config.ts` | `clientsClaim: false`، Build ID ثابت، `chunkSizeWarningLimit: 300` |
+| `.env.example` | إضافة `VITE_APP_BUILD_ID` |
+| `src/App.tsx` | نقل `SwUpdateBanner` داخل `BrowserRouter` |
 
