@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       p_window_seconds: 60,
     });
     if (rlError) {
-      console.error("admin-manage rate_limit check failed");
+      console.error("admin-manage: rate limit check failed");
       return new Response(JSON.stringify({ error: "خطأ مؤقت في الخادم" }), {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
