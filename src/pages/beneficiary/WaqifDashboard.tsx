@@ -74,7 +74,7 @@ const WaqifDashboard = () => {
     return relevantContracts.reduce((s, c) => s + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
-  /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard — BUG-W1/W2) ── */
+  /* ── Collection summary — بالمبالغ (موحّد مع AdminDashboard) ── */
   const collectionSummary = useMemo(() => {
     const result = computeCollectionSummary(activeContracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };

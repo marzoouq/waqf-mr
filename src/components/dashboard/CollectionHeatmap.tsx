@@ -1,8 +1,7 @@
 /**
  * D-4: خريطة حرارية للتحصيل الشهري — 12 شهر × شدة اللون
  * تعرض المبالغ المحصّلة فعلياً (فواتير مدفوعة) شهرياً بتدرج لوني يعكس حجم التحصيل
- * BUG-M1 fix: تستخدم paymentInvoices (تحصيل فعلي) بدلاً من income (مدخلات محاسبية)
- * H-01 fix: تستخدم fiscalYear لتحديد الأشهر المعروضة بدلاً من تجميع كل السنوات
+ * تستخدم paymentInvoices (تحصيل فعلي) وfiscalYear لتحديد الأشهر المعروضة
  */
 import { useMemo } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
