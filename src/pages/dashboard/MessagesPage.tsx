@@ -213,8 +213,8 @@ const MessagesPage = () => {
               <NativeSelect id="msg-beneficiary" value={newConvBeneficiary} onValueChange={setNewConvBeneficiary} placeholder="اختر المستفيد" options={beneficiaries.filter((b) => b.user_id).map((b) => ({ value: b.user_id!, label: b.name }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>الموضوع</Label>
-              <Input name="newConvSubject" value={newConvSubject} onChange={(e) => setNewConvSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
+              <Label htmlFor="msg-subject">الموضوع</Label>
+              <Input id="msg-subject" name="newConvSubject" value={newConvSubject} onChange={(e) => setNewConvSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
             </div>
             <Button onClick={handleCreateConv} disabled={!newConvBeneficiary} className="w-full">
               بدء المحادثة

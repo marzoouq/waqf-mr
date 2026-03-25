@@ -280,8 +280,8 @@ const BeneficiaryMessagesPage = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>الموضوع</Label>
-              <Input name="supportSubject" value={supportSubject} onChange={(e) => setSupportSubject(e.target.value)} placeholder="صف مشكلتك باختصار" maxLength={200} />
+              <Label htmlFor="support-subject">الموضوع</Label>
+              <Input id="support-subject" name="supportSubject" value={supportSubject} onChange={(e) => setSupportSubject(e.target.value)} placeholder="صف مشكلتك باختصار" maxLength={200} />
             </div>
             <Button onClick={handleNewSupport} className="w-full" disabled={createConversation.isPending}>
               {createConversation.isPending ? 'جاري الإرسال...' : 'إرسال طلب الدعم'}
