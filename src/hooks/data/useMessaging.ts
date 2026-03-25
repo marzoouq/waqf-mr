@@ -65,10 +65,8 @@ export const useMessages = (conversationId: string | null) => {
     },
     initialPageParam: 0,
     getNextPageParam: (_lastPage, allPages) => {
-      // إذا كانت آخر صفحة أقل من الحد فلا توجد صفحات إضافية
       const lastPage = allPages[allPages.length - 1];
-      if (lastPage.length < MESSAGES_PAGE_SIZE) return undefined;
-      // حساب الإزاحة الكلية (offset) للصفحة التالية
+      if (!lastPage || lastPage.length < MESSAGES_PAGE_SIZE) return undefined;
       return allPages.reduce((sum, page) => sum + page.length, 0);
     },
     enabled: !!user && !!conversationId,
