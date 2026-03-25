@@ -1,72 +1,35 @@
 
+# خطة معالجة نتائج التقارير الأمنية
 
-# خطة إصلاح نتائج الفحص الشامل
+## ✅ تم تنفيذه
 
-## تحليل الحالة الراهنة
+| البند | التاريخ |
+|---|---|
+| signIn safety timeout (8s) | 25 مارس 2026 |
+| PWA manifest purpose split | 25 مارس 2026 |
+| ErrorBoundary chunk patterns | 25 مارس 2026 |
+| CORS explicit rejection | 25 مارس 2026 |
+| ExpenseBudgetBar useMemo merge | 25 مارس 2026 |
+| queryClient retry → 2 | 25 مارس 2026 |
+| UUID leak fix | 25 مارس 2026 |
+| ترقية supabase-js → ^2.100.0 | 25 مارس 2026 |
+| ترقية react-query → أحدث patch | 25 مارس 2026 |
+| حذف bun.lock من المستودع | 25 مارس 2026 |
 
-بعد مراجعة الكود الفعلي، إليك ما تم إصلاحه سابقاً وما يحتاج إصلاح:
-
-- **البند 3 (ai-assistant User ID leak)**: ✅ **تم إصلاحه سابقاً** — السطر 75 يُظهر `"ai rate_limit check failed"` بدون UUID
-- **البند 4 (React.ReactNode)**: ⚪ **ليس خطأ حرجاً** — TypeScript يدعم `React.ReactNode` بدون استيراد صريح في مشاريع JSX transform الحديثة (Vite + React 19). هذا تحسين أسلوبي فقط.
-
----
-
-## الإصلاحات المطلوبة (6 بنود)
-
-### الإصلاح 1 — `signIn` loading freeze (حرج)
-**الملف:** `src/contexts/AuthContext.tsx`
-
-إضافة safety timeout بعد نجاح تسجيل الدخول:
-```tsx
-if (error) {
-  setLoading(false);
-} else {
-  setTimeout(() => setLoading(false), 8000);
-}
-```
-
-### الإصلاح 2 — PWA Manifest `purpose` (حرج)
-**الملف:** `vite.config.ts`
-
-فصل الأيقونات إلى اثنتين منفصلتين بدلاً من `"any maskable"`:
-```typescript
-{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-```
-
-### الإصلاح 3 — ErrorBoundary chunk patterns (متوسط)
-**الملف:** `src/components/ErrorBoundary.tsx`
-
-إضافة نمطين إضافيين لأخطاء Vite الحديثة:
-- `'Importing a module script failed'`
-- `'Unable to preload CSS'`
-
-### الإصلاح 4 — CORS رفض صريح (متوسط)
-**الملف:** `supabase/functions/_shared/cors.ts`
-
-تعديل `getAllowedOrigin` لإرجاع `""` (سلسلة فارغة) بدلاً من domain افتراضي عند origin غير معروف — هذا يجعل المتصفح يرفض الطلب صريحاً.
-
-### الإصلاح 5 — ExpenseBudgetBar useMemo (متوسط)
-**الملف:** `src/components/expenses/ExpenseBudgetBar.tsx`
-
-دمج 3 `useMemo` في واحد لتقليل إعادة الحساب.
-
-### الإصلاح 6 — queryClient retry count (متوسط)
-**الملف:** `src/lib/queryClient.ts`
-
-تغيير `failureCount < 1` إلى `failureCount < 2` لمنح محاولتين بدلاً من واحدة.
-
----
-
-## البنود المؤجلة (تحسينات مستقبلية — لا تُنفّذ الآن)
+## ⏸️ مؤجل
 
 | البند | السبب |
 |---|---|
-| React.ReactNode imports | تحسين أسلوبي فقط، لا خطأ فعلي |
-| sourcemap: 'hidden' | يحتاج تكامل مع خدمة error tracking أولاً |
+| Tailwind v4 | تغيير بنيوي كبير — يحتاج إعادة كتابة tailwind.config.ts |
+| React 19.2 | يحتاج اختبار شامل قبل الترقية |
 | QR مكتبتان | يحتاج تحليل أين تُستخدم كل واحدة |
+| sourcemap: 'hidden' | يحتاج تكامل مع خدمة error tracking |
 | localStorage prefix | تغيير بنيوي يحتاج اختبار شامل |
-| DeferredRender delay | يحتاج قياس أداء على أجهزة حقيقية |
-| Tailwind v4 | ترقية كبيرة، ليست أولوية حالياً |
-| refreshRole state | تحسين UX بسيط |
 
+## ❌ مرفوض
+
+| البند | السبب |
+|---|---|
+| .env خطر أمني | الملف يُدار تلقائياً — مفاتيح عامة فقط |
+| تدوير مفاتيح Supabase | غير مطلوب — anon key عام |
+| git filter-repo | لا أسرار حقيقية في التاريخ |
