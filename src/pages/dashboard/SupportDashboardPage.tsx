@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { useState, useMemo, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import {
   useSupportTickets, useTicketReplies, useCreateTicket,
   useUpdateTicketStatus, useAddTicketReply, useClientErrors,

@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
@@ -62,7 +62,6 @@ const getKpiColor = (value: number, good: number, warn: number, invert = false) 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
   const { fiscalYearId, fiscalYear } = useFiscalYear();
-  
 
   // ═══ Realtime: تحديث فوري للبطاقات عند تغيير البيانات المالية ═══
   useDashboardRealtime('admin-dashboard-realtime', ['income', 'expenses', 'accounts', 'payment_invoices']);
@@ -95,7 +94,7 @@ const AdminDashboard = () => {
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
     netAfterExpenses, netAfterZakat, availableAmount,
-    zakatAmount,
+    zakatAmount: _zakatAmount,
     distributionsAmount,
     usingFallbackPct,
     isLoading: finLoading,
@@ -108,7 +107,10 @@ const AdminDashboard = () => {
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   const { isSpecificYear } = useFiscalYear();
-  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const relevantContracts = useMemo(
+    () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),
+    [contracts, isSpecificYear]
+  );
   const activeContractsCount = relevantContracts.length;
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
@@ -161,15 +163,15 @@ const AdminDashboard = () => {
       { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
       { title: `صافي الريع${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
       { title: isYearActive ? `صافي متاح (قبل الحصص)${sharesNote}` : `المتاح للتوزيع`, value: `${fmtInt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-      { title: isYearActive ? 'حصة الناظر' : 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-      { title: isYearActive ? 'حصة الواقف' : 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-      { title: isYearActive ? 'ريع الوقف' : 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
+      { title: 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
+      { title: 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
+      { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
       { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => (b.share_percentage ?? 0) > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
       // بطاقتان جديدتان
       { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
       { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
     ];
-  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, zakatAmount, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
+  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
 
   const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
