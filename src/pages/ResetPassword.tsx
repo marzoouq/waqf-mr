@@ -31,7 +31,7 @@ const ResetPassword = () => {
       setIsRecovery(true);
     }
 
-    // BUG-6 fix: Also check query params for PKCE flow (Supabase v2+)
+    // فحص معاملات URL لدعم تدفق PKCE
     const params = new URLSearchParams(window.location.search);
     if (params.get('type') === 'recovery') {
       setIsRecovery(true);

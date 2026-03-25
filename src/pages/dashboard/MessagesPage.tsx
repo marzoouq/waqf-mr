@@ -18,7 +18,7 @@ import { ar } from 'date-fns/locale';
 
 const MessagesPage = () => {
   const { user, role } = useAuth();
-  // G5 fix: الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
+  // الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
   const { data: conversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
@@ -31,9 +31,9 @@ const MessagesPage = () => {
   const [newConvSubject, setNewConvSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages = [] } = useMessages(selectedConv?.id || null);
+  const { data: messages = [], hasMore, loadMore, isLoadingMore } = useMessages(selectedConv?.id || null);
 
-  // Scroll to bottom on new messages
+  // التمرير للأسفل عند وصول رسائل جديدة
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -148,6 +148,14 @@ const MessagesPage = () => {
                 </div>
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
+                    {hasMore && (
+                      <div className="text-center py-2">
+                        <Button variant="ghost" size="sm" onClick={() => loadMore()} disabled={isLoadingMore}>
+                          {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                          تحميل رسائل أقدم
+                        </Button>
+                      </div>
+                    )}
                     {messages.map((msg) => {
                       const isMe = msg.sender_id === user?.id;
                       return (

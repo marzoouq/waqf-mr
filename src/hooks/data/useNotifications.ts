@@ -225,7 +225,7 @@ export const useNotifications = () => {
         .delete()
         .eq('user_id', user.id)
         .eq('is_read', true);
-      // استثناء الأنواع المعطَّلة من الحذف (NT-01)
+      // استثناء الأنواع المعطَّلة من الحذف
       if (disabledTypes.size > 0) {
         query = query.not('type', 'in', `(${[...disabledTypes].join(',')})`);
       }

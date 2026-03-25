@@ -72,7 +72,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
   doc.text(rs(`السنة المالية: ${data.fiscalYear}`), 105, startY + 16, { align: 'center' });
   doc.text(rs(`المستفيد: ${data.beneficiaryName}`), 105, startY + 24, { align: 'center' });
 
-  // DEFER-12: علامة تقديرية للسنة النشطة
+  // علامة تقديرية للسنة النشطة
   let disclaimerOffset = 0;
   if (data.isFiscalYearActive) {
     doc.setFontSize(9);

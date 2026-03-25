@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Send, Plus, ArrowLeft, Headphones, AlertCircle, RefreshCw } from 'lucide-react';
+import { MessageSquare, Send, Plus, ArrowLeft, Headphones, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -39,7 +39,7 @@ const BeneficiaryMessagesPage = () => {
   const allChatConversations = [...chatConversations, ...broadcastConversations]
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
   const conversations = activeTab === 'chat' ? allChatConversations : supportConversations;
-  const { data: messages = [] } = useMessages(selectedConv?.id || null);
+  const { data: messages = [], hasMore, loadMore, isLoadingMore } = useMessages(selectedConv?.id || null);
   const isLoading = chatLoading || supportLoading;
 
   useEffect(() => {
@@ -196,6 +196,14 @@ const BeneficiaryMessagesPage = () => {
                 </div>
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
+                    {hasMore && (
+                      <div className="text-center py-2">
+                        <Button variant="ghost" size="sm" onClick={() => loadMore()} disabled={isLoadingMore}>
+                          {isLoadingMore ? <Loader2 className="w-4 h-4 animate-spin ml-1" /> : null}
+                          تحميل رسائل أقدم
+                        </Button>
+                      </div>
+                    )}
                     {messages.map((msg) => {
                       const isMe = msg.sender_id === user?.id;
                       return (

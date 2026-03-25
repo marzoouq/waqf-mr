@@ -10,13 +10,13 @@ import { useAppSettings } from '@/hooks/page/useAppSettings';
  * Now accepts optional fiscalYearLabel for server-side account filtering.
  */
 export const useRawFinancialData = (fiscalYearId?: string, fiscalYearLabel?: string) => {
-  // INT-01 fix: '__none__' is truthy, so explicit check needed
-  // BUG-R2 fix: '__skip__' must map to '__none__' (not 'all') so child hooks disable their queries
+  // القيمة الخاصة تحتاج فحصاً صريحاً
+  // تحويل __skip__ إلى __none__ لتعطيل الاستعلامات الفرعية
   const shouldSkip = !fiscalYearId || fiscalYearId === '__none__' || fiscalYearId === '__skip__';
   const fyFilter = shouldSkip ? '__none__' : fiscalYearId;
   const { data: income = [], isLoading: incLoading, isError: incError } = useIncomeByFiscalYear(fyFilter);
   const { data: expenses = [], isLoading: expLoading, isError: expError } = useExpensesByFiscalYear(fyFilter);
-  // BUG-R3 fix: pass sanitized fyFilter to prevent '__skip__' reaching Supabase as UUID
+  // تمرير القيمة المعقّمة لمنع وصول قيمة غير صالحة كـ UUID
   const { data: accounts = [], isLoading: accLoading, isError: accError } = useAccountByFiscalYear(
     shouldSkip ? undefined : fiscalYearLabel,
     fyFilter,

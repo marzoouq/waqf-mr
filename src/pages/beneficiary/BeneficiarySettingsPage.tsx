@@ -126,7 +126,7 @@ const BeneficiarySettingsPage = () => {
     );
   }
 
-  // J-05: guard — مستفيد بدون user_id مربوط
+  // حماية — مستفيد بدون user_id مربوط
   if (!currentBeneficiary) {
     return (
       <DashboardLayout>

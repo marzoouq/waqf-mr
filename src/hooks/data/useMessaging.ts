@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCallback, useRef } from 'react';
@@ -8,6 +8,8 @@ import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
 
 export type { Conversation, Message };
+
+const MESSAGES_PAGE_SIZE = 50;
 
 export const useConversations = (type?: string) => {
   const { user } = useAuth();
@@ -23,7 +25,7 @@ export const useConversations = (type?: string) => {
       return (data || []) as Conversation[];
     },
     enabled: !!user,
-    staleTime: 30_000, // BUG-8 fix: conversations list relies on Realtime for updates
+    staleTime: 30_000,
   });
 
   const queryClientRef = useRef(queryClient);
@@ -48,21 +50,27 @@ export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: ['messages', conversationId],
-    queryFn: async (): Promise<Message[]> => {
+    queryFn: async ({ pageParam = 0 }): Promise<Message[]> => {
       if (!conversationId) return [];
       const { data, error } = await supabase
         .from('messages')
         .select('id, conversation_id, sender_id, content, is_read, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .range(pageParam, pageParam + MESSAGES_PAGE_SIZE - 1);
       if (error) throw error;
       return ((data || []) as Message[]).reverse();
     },
+    initialPageParam: 0,
+    getNextPageParam: (_lastPage, allPages) => {
+      const lastPage = allPages[allPages.length - 1];
+      if (!lastPage || lastPage.length < MESSAGES_PAGE_SIZE) return undefined;
+      return allPages.reduce((sum, page) => sum + page.length, 0);
+    },
     enabled: !!user && !!conversationId,
-    staleTime: 5_000, // H12 fix: reduced from 30s for better chat responsiveness
+    staleTime: 5_000,
   });
 
   const queryClientRef = useRef(queryClient);
@@ -80,7 +88,16 @@ export const useMessages = (conversationId: string | null) => {
     !!user && !!conversationId,
   );
 
-  return query;
+  // تسطيح الصفحات في مصفوفة واحدة مرتبة زمنياً
+  const allMessages = query.data?.pages.flat() ?? [];
+
+  return {
+    ...query,
+    data: allMessages,
+    hasMore: query.hasNextPage ?? false,
+    loadMore: query.fetchNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+  };
 };
 
 export const useSendMessage = () => {
@@ -99,7 +116,7 @@ export const useSendMessage = () => {
       const { error: updateError } = await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
       if (updateError) logger.warn('Failed to update conversation timestamp:', updateError.message);
 
-      // H6 fix: notify beneficiary when admin OR accountant sends a message
+      // إشعار المستفيد عند إرسال رسالة من المسؤول أو المحاسب
       if (role === 'admin' || role === 'accountant') {
         try {
           const { data: conv } = await supabase
@@ -117,7 +134,7 @@ export const useSendMessage = () => {
             );
           }
         } catch {
-          // Silent fail — notification is non-critical
+          // فشل الإشعار غير حرج
         }
       }
     },
@@ -133,7 +150,6 @@ export const useCreateConversation = () => {
   const pendingRef = useRef(false);
   return useMutation({
     mutationFn: async ({ type, subject, createdBy, participantId }: { type: string; subject?: string; createdBy: string; participantId?: string }) => {
-      // Idempotency guard: prevent duplicate conversation creation on double-click
       if (pendingRef.current) throw new Error('طلب قيد المعالجة');
       pendingRef.current = true;
       try {
