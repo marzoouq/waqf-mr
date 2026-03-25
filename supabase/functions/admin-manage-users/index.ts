@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
           }
           throw updError;
         }
-        console.log("updateUserById success");
+        console.log("update_password: success");
 
         // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
         const userEmail = updResult?.user?.email;
