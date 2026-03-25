@@ -48,7 +48,7 @@ export const useContractsPage = () => {
   useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'cancelled' | 'overdue'>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('contracts');
@@ -289,14 +289,15 @@ export const useContractsPage = () => {
   }, [paymentInvoices]);
 
   const statusCounts = useMemo(() => {
-    let active = 0, expired = 0;
+    let active = 0, expired = 0, cancelled = 0;
     for (const [, group] of groupedContracts) {
       const latestStatus = group[0]!.status;
       if (latestStatus === 'active') active++;
+      else if (latestStatus === 'cancelled') cancelled++;
       else expired++;
     }
     const overdue = groupedContracts.filter(([, group]) => group.some(c => overdueContractIds.has(c.id))).length;
-    return { active, expired, all: groupedContracts.length, overdue };
+    return { active, expired, cancelled, all: groupedContracts.length, overdue };
   }, [groupedContracts, overdueContractIds]);
 
   // فلترة المجموعات
@@ -307,7 +308,9 @@ export const useContractsPage = () => {
     } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
         const latestStatus = group[0]!.status;
-        return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
+        if (statusFilter === 'active') return latestStatus === 'active';
+        if (statusFilter === 'cancelled') return latestStatus === 'cancelled';
+        return latestStatus !== 'active' && latestStatus !== 'cancelled';
       });
     }
     if (propertyFilter !== 'all') {
