@@ -192,8 +192,8 @@ Deno.serve(async (req) => {
           });
 
           if (!verifyRes.ok) {
-            const verifyBody = await verifyRes.text();
-            console.error("Password verify login FAILED:", verifyRes.status, verifyBody);
+            await verifyRes.text(); // استهلاك الجسم
+            console.error("update_password: verification failed", verifyRes.status);
             // كلمة المرور لم تتغير فعلياً
             throw new Error("فشل تحديث كلمة المرور — قد تكون كلمة المرور مرفوضة من نظام الحماية. جرّب كلمة مرور أطول وأكثر تعقيداً");
           }
