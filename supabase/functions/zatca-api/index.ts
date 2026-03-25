@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -19,7 +20,7 @@ async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Pr
   return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
 }
 
-import { getCorsHeaders } from "../_shared/cors.ts";
+
 
 // ─── تسجيل عمليات ZATCA في السجل التاريخي ───
 async function logZatcaOperation(
@@ -355,7 +356,7 @@ Deno.serve(async (req) => {
       const { data: otpRows } = await admin.from("app_settings").select("key, value")
         .in("key", ["zatca_otp_1"]);
       if (otpRows?.length) {
-        otp = otpRows[0].value || "";
+        otp = otpRows[0]?.value || "";
       }
       if (!otp) {
         otp = Deno.env.get("ZATCA_OTP") || "";
