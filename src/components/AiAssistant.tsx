@@ -56,7 +56,7 @@ const AiAssistant = () => {
   };
 
   const send = async () => {
-    const trimmed = input.trim();
+    const trimmed = input.trim().slice(0, 1000);
     if (!trimmed || isLoading) return;
 
     // حماية من الإرسال المتكرر — cooldown بين الرسائل
