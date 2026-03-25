@@ -56,9 +56,8 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
         <DialogHeader><DialogTitle>{isEditing ? 'تعديل المصروف' : 'إضافة مصروف جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل مصروف</DialogDescription></DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>نوع المصروف *</Label>
-            <NativeSelect
-              value={formData.expense_type}
+            <Label htmlFor="expense-form-dialog-select-1">نوع المصروف *</Label>
+            <NativeSelect id="expense-form-dialog-select-1" value={formData.expense_type}
               onValueChange={(value) => setFormData({ ...formData, expense_type: value })}
               options={expenseTypeOptions}
               placeholder="اختر نوع المصروف"
@@ -83,9 +82,8 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
 
           <div className="space-y-2"><Label>التاريخ *</Label><Input id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
-            <Label>العقار (اختياري)</Label>
-            <NativeSelect
-              value={formData.property_id}
+            <Label htmlFor="expense-form-dialog-select-2">العقار (اختياري)</Label>
+            <NativeSelect id="expense-form-dialog-select-2" value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value })}
               options={propertyOptions}
               placeholder="اختر العقار"

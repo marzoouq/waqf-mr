@@ -48,8 +48,8 @@ export const UserEditDialog = ({
           </Button>
         </div>
         <div className="space-y-2">
-          <Label>الدور</Label>
-          <NativeSelect value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
+          <Label htmlFor="user-dialogs-select-1">الدور</Label>
+          <NativeSelect id="user-dialogs-select-1" value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
             { value: 'admin', label: 'ناظر (Admin)' },
             { value: 'accountant', label: 'محاسب' },
             { value: 'beneficiary', label: 'مستفيد' },
@@ -67,9 +67,8 @@ export const UserEditDialog = ({
         </div>
         {editingUser && (editingUser.role === 'beneficiary' || editRole === 'beneficiary') && unlinkedBeneficiaries.length > 0 && (
           <div className="space-y-2 border-t pt-4">
-            <Label className="flex items-center gap-2"><Link2 className="w-4 h-4" />ربط بمستفيد</Label>
-            <NativeSelect
-              value=""
+            <Label htmlFor="user-dialogs-select-2" className="flex items-center gap-2"><Link2 className="w-4 h-4" />ربط بمستفيد</Label>
+            <NativeSelect id="user-dialogs-select-2" value=""
               onValueChange={(beneficiaryId) => {
                 if (beneficiaryId && editingUser) onLinkBeneficiary({ beneficiaryId, userId: editingUser.id });
               }}

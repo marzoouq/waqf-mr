@@ -57,8 +57,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({
       {/* الجوال: NativeSelect */}
       {isMobile && (
         <div className="mb-3 print:hidden">
-          <NativeSelect
-            value={currentValue}
+          <NativeSelect id="responsive-tabs-select-1" value={currentValue}
             onValueChange={handleChange}
             options={selectOptions}
             triggerClassName="text-sm font-medium"
