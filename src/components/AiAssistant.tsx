@@ -286,7 +286,7 @@ const AiAssistant = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={currentConfig.placeholder}
-            maxLength={2000}
+            maxLength={1000}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
             disabled={isLoading}
           />

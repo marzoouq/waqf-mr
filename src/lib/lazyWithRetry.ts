@@ -31,5 +31,3 @@ export function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }
   );
 }
 
-// مسح حارس إعادة المحاولة عند التحميل الناجح
-sessionStorage.removeItem('chunk_retry');
