@@ -26,12 +26,14 @@ interface NativeSelectProps {
 }
 
 const NativeSelect = React.forwardRef<HTMLDivElement, NativeSelectProps>(
-  ({ value, onValueChange, options, placeholder, className, triggerClassName, disabled }, ref) => {
+  ({ value, onValueChange, options, placeholder, className, triggerClassName, disabled, id, name }, ref) => {
     const selectedOption = options.find((o) => o.value === value);
 
     return (
       <div ref={ref} className={cn("relative", className)}>
         <select
+          id={id}
+          name={name}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
           disabled={disabled}
