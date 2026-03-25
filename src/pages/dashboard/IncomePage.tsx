@@ -1,8 +1,8 @@
 import { fmt } from '@/utils/format';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/csv';
-import IncomeMonthlyChart from '@/components/dashboard/IncomeMonthlyChart';
+const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
 import DashboardLayout from '@/components/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
