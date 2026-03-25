@@ -1,75 +1,51 @@
 
 
-# فحص صفحات العقود والدخل والمصروفات — النتائج
+# إضافة سمة `name` لجميع حقول Input المفقودة
 
-## الحالة العامة
-الصفحات الثلاث مبنية بشكل متسق ومنظم: فصل المنطق في hooks مخصصة (ContractsPage تستخدم `useContractsPage`)، دعم mobile/desktop، فلاتر متقدمة، تصدير PDF/CSV، وإدارة السنوات المقفلة. لكن هناك ملاحظات تستحق المعالجة:
+## الوضع الحالي
+- **103 حقل Input** في **11 ملف** تحتوي بالفعل على `name=`
+- **~400 حقل Input** في **~34 ملف** تفتقد سمة `name`
+- الحقول بدون `name` تستخدم معرّفات `id` مثل `"expense-form-dialog-field-1"` — وهي غير مفيدة للإكمال التلقائي
 
----
+## المنهجية
+- لكل حقل Input بدون `name`، سيتم إضافة `name` بقيمة وصفية مناسبة بناءً على السياق (مثلاً `name="amount"`, `name="date"`, `name="tenant_name"`)
+- استخدام أسماء متوافقة مع معايير الإكمال التلقائي حيثما أمكن (مثل `email`, `password`, `name`, `tel`)
+- حقول البحث تأخذ `name="search"`، حقول التاريخ `name="date_from"` / `name="date_to"`
 
-## المشاكل المكتشفة
+## الملفات المتأثرة (~34 ملف)
 
-### 1. ContractsPage: تصدير CSV يفتقد حالة `cancelled` (وظيفي)
-- **السطر 60**: `'الحالة': c.status === 'active' ? 'ساري' : 'منتهي'` — لا يتعامل مع `cancelled`
-- **الإصلاح**: إضافة حالة "ملغي" كما تم في `RecentContractsCard`
+| المجموعة | الملفات | عدد الحقول التقريبي |
+|-----------|---------|---------------------|
+| الإعدادات | AppearanceTab, NotificationsTab, BulkNotificationsTab | ~5 |
+| المصروفات | ExpenseFormDialog | ~4 |
+| الفواتير | CreateInvoiceFromTemplate, InvoicesPage + مكونات فرعية | ~15 |
+| العقود | ContractsPage, ContractFormDialog + مكونات فرعية | ~20 |
+| إدارة المستخدمين | UserDialogs, CreateUserForm | ~5 |
+| الفلاتر | AdvancedFiltersBar | ~2 |
+| المحاسبة | AccountsCollectionTable | ~6 |
+| المستفيدين | BeneficiariesPage + مكونات فرعية | ~10 |
+| التوزيعات/الزكاة | DistributionsPage, ZakatPage | ~10 |
+| صفحات أخرى | MessagesPage, SupportDashboard, وغيرها | ~20+ |
 
-### 2. ContractsPage: فلتر الحالة لا يشمل `cancelled` (وظيفي)
-- **السطر 115-118**: خيارات الفلتر: all, active, expired, overdue — لا يوجد خيار "ملغي"
-- **`statusCounts`** في `useContractsPage.ts` سطر 291-300: يعدّ فقط `active` والباقي كـ `expired`
-- **الإصلاح**: إضافة فلتر `cancelled` مع عدّاد مناسب
+## أمثلة على التسمية
 
-### 3. IncomePage: `totalIncome` بدون `useMemo` (أداء)
-- **السطر 124**: `const totalIncome = income.reduce(...)` — يُحسب في كل render
-- يُستخدم في `summaryCards` useMemo كـ dependency مما يُبطل التخزين
-- **الإصلاح**: لفّه بـ `useMemo`
+```
+// قبل
+<Input id="expense-form-dialog-field-1" type="number" value={formData.amount} .../>
 
-### 4. ExpensesPage: `totalExpenses` بدون `useMemo` (أداء)
-- **السطر 119**: نفس المشكلة — `const totalExpenses = expenses.reduce(...)`
-- **الإصلاح**: لفّه بـ `useMemo`
+// بعد
+<Input id="expense-form-dialog-field-1" name="amount" type="number" value={formData.amount} .../>
+```
 
-### 5. IncomePage: لا يتحقق من وجود سنة مالية عند عدم التعديل (منطقي)
-- **السطر 81-86**: يتحقق من `fiscalYear?.id` لكن لا يمنع الإضافة إذا لم تكن موجودة (يعيّن `fiscal_year_id` فقط إذا وجدت)
-- **الإصلاح**: موجود بالفعل في السطر 82-85 ✅
+```
+// قبل
+<Input id="advanced-filters-bar-field-1" type="date" value={filters.dateFrom} .../>
 
-### 6. ExpensesPage: لا يمنع الإضافة بدون سنة مالية (منطقي)
-- **السطر 81**: `if (!editingExpense && fiscalYear?.id)` — إذا لم تكن هناك سنة مالية، يُنشئ المصروف بدون `fiscal_year_id`
-- **الإصلاح**: إضافة تحقق مماثل لصفحة الدخل (toast خطأ + return)
+// بعد  
+<Input id="advanced-filters-bar-field-1" name="date_from" type="date" value={filters.dateFrom} .../>
+```
 
-### 7. `useContractsPage`: `allExpanded` ليس في `useMemo` (أداء طفيف)
-- **السطر 329**: يُحسب في كل render. تأثير محدود لأنه عملية بسيطة لكنه يستحق التنظيف.
-
-### 8. ContractsPage: `handleBulkRenew` بدون `useCallback` (أداء طفيف)
-- **السطر 208**: دالة async كبيرة تُعاد إنشاؤها في كل render
-- **ملاحظة**: تأثير محدود لأنها لا تُمرر كـ prop. يمكن تأجيله.
-
----
-
-## خطة التنفيذ
-
-### الملف 1: `src/pages/dashboard/ContractsPage.tsx`
-- إصلاح تصدير CSV ليشمل حالة `cancelled` → "ملغي"
-- إضافة خيار فلتر "ملغي" في القائمة المنسدلة
-
-### الملف 2: `src/hooks/page/useContractsPage.ts`
-- إضافة عدّاد `cancelled` في `statusCounts`
-- تعديل فلترة `filteredGroups` لدعم حالة `cancelled`
-
-### الملف 3: `src/pages/dashboard/IncomePage.tsx`
-- لف `totalIncome` بـ `useMemo`
-
-### الملف 4: `src/pages/dashboard/ExpensesPage.tsx`
-- لف `totalExpenses` بـ `useMemo`
-- إضافة تحقق من وجود سنة مالية قبل إنشاء مصروف جديد (مماثل لصفحة الدخل)
-
----
-
-## تقييم المخاطر
-
-| البند | خطورة | تأثير | جهد |
-|-------|--------|-------|-----|
-| CSV بدون cancelled | منخفض | دقة تصدير | دقيقة |
-| فلتر cancelled مفقود | متوسط | وظيفي | 5 دقائق |
-| totalIncome بدون memo | منخفض | أداء | دقيقة |
-| totalExpenses بدون memo | منخفض | أداء | دقيقة |
-| مصروف بدون سنة مالية | متوسط | سلامة بيانات | دقيقتان |
+## ملاحظات
+- لا تغيير في السلوك الوظيفي — فقط تحسين تجربة المستخدم مع الإكمال التلقائي
+- حقول كلمة المرور والبريد ستُعطى أسماء قياسية (`password`, `email`) لتفعيل الإكمال التلقائي بشكل أفضل
 
