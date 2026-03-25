@@ -22,7 +22,7 @@ import { AuthContext } from '@/hooks/auth/useAuthContext';
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
 export { useAuth } from '@/hooks/auth/useAuthContext';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
