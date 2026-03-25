@@ -1,60 +1,63 @@
 
 
-# تحليل وتقليل أحجام chunks الكبيرة
+# تقرير التحقق — ما تم إصلاحه وما يحتاج عملاً فعلياً
 
-## الوضع الحالي
+## ❌ مشاكل مُدّعاة تم حلّها فعلاً
 
-| Chunk | الحجم | المحتويات |
-|---|---|---|
-| `vendor-pdf` | ~582KB | `jspdf` + `canvg` + `rgbcolor` + `stackblur-canvas` |
-| `vendor-charts` | ~402KB | `recharts` + `d3-*` + `victory-vendor` |
-
-## التحليل
-
-### vendor-pdf (582KB)
-- **8 ملفات** تستورد `jspdf` مباشرة في `src/utils/pdf/`
-- معظم الاستخدامات تتم عبر **dynamic import** (`await import('@/utils/pdf')`) — وهذا جيد
-- **لكن** `src/utils/pdf/core.ts` يستورد `jsPDF` بشكل ثابت (static import) في السطر الأول
-- `InvoicePreviewDialog.tsx` يستخدم dynamic import بشكل صحيح
-- **المشكلة الرئيسية**: `core.ts` هو نقطة الدخول المشتركة — إذا استورده أي ملف بشكل ثابت سيسحب كامل jsPDF
-
-### vendor-charts (402KB)
-- **12 ملف** يستورد من `recharts` بشكل ثابت
-- بعضها محمّل كسولاً (WaqifChartsInner, FinancialChartsInner, ReportsChartsInner, HistoricalComparisonChartInner, ExpensePieChartInner)
-- **3 ملفات في Dashboard غير كسولة بشكل كامل**:
-  - `DashboardCharts.tsx` — محمّل كسولاً ✅
-  - `CollectionSummaryChart.tsx` — محمّل كسولاً ✅
-  - `IncomeMonthlyChart.tsx` — **مستورد بشكل ثابت** في `IncomePage.tsx` ❌
-- `MonthlyPerformanceReport.tsx`, `CashFlowReport.tsx`, `YoYChartsSection.tsx`, `IncomeComparisonChart.tsx` — مستوردة في صفحات lazy-loaded فتُحمّل مع الصفحة
-
-## الخطة المقترحة
-
-### 1. تقليل vendor-pdf — Dynamic import لـ jsPDF في core.ts
-
-**الملف:** `src/utils/pdf/core.ts`
-- تغيير `import jsPDF from 'jspdf'` إلى dynamic import داخل `createPdfDocument()`
-- هذا يضمن أن `vendor-pdf` يُحمّل فقط عند طلب توليد PDF فعلياً
-- **التأثير المتوقع**: إزالة 582KB من الحزمة الأولية بالكامل (يُحمّل on-demand فقط)
-
-### 2. تقليل vendor-charts — تحميل كسول لـ IncomeMonthlyChart
-
-**الملف:** `src/pages/dashboard/IncomePage.tsx`
-- تغيير `import IncomeMonthlyChart` من static إلى `lazy(() => import(...))`
-- لف المكوّن بـ `<Suspense>`
-
-### 3. تقسيم vendor-charts في vite.config.ts
-
-**الملف:** `vite.config.ts`
-- فصل `d3-*` عن `recharts` في `manualChunks`:
-  - `vendor-recharts` → `recharts` + `victory-vendor` (~200KB)
-  - `vendor-d3` → `d3-*` (~200KB)
-- هذا يسمح بتحميل متوازٍ وتخزين مؤقت أفضل
-
-### الملخص
-
-| الإجراء | التأثير |
+| البند | الحقيقة |
 |---|---|
-| Dynamic import لـ jsPDF في core.ts | vendor-pdf (582KB) يُحمّل فقط عند توليد PDF |
-| Lazy load لـ IncomeMonthlyChart | يقلل الحزمة الأولية لصفحة الدخل |
-| فصل d3 عن recharts | تحميل متوازٍ + تخزين مؤقت أفضل |
+| `vite-plugin-pwa` في `dependencies` | **خطأ** — موجود فعلاً في `devDependencies` (سطر 112) |
+| `og-image.png` = 903KB | **تم إصلاحه** — يستخدم صورة WebP خارجية في `index.html` |
+| كاش PWA 30 يوم StaleWhileRevalidate | **تم إصلاحه** — غير موجود في الكود الحالي |
+| `coverage.thresholds` غائبة | **تم إصلاحه** — حد 60% موجود في `vitest.config.ts` |
+| ZATCA seller_name مُضمّن | **تم إصلاحه** — يُقرأ من `settings` ديناميكياً |
+| Pagination الرسائل ثابت 50 | **تم إصلاحه** — يستخدم `useInfiniteQuery` مع cursor pagination |
+
+## ✅ مشاكل حقيقية تحتاج إصلاح
+
+### 1. حذف `@tailwindcss/vite` v4 من `dependencies` (دقائق)
+
+**الملف:** `package.json`
+
+المشروع يستخدم Tailwind **v3** عبر PostCSS (`postcss.config.js` + `@tailwind` directives). الحزمة `@tailwindcss/vite` v4 موجودة في `dependencies` (سطر 50) لكنها **غير مستوردة** في أي مكان — وزن ميت يزيد حجم `node_modules`.
+
+- حذف `"@tailwindcss/vite": "^4.2.2"` من `dependencies`
+- إبقاء `"tailwindcss": "^3.4.17"` في `devDependencies` كما هو (مستخدم فعلياً)
+
+### 2. نقل `autoprefixer` إلى `devDependencies` (دقائق)
+
+**الملف:** `package.json`
+
+`autoprefixer` أداة PostCSS للبناء فقط — لا تُحزَّم مع التطبيق. حالياً في `dependencies` (سطر 54).
+
+- حذفها من `dependencies`
+- إضافتها إلى `devDependencies`
+
+### 3. إضافة FK لـ `invoice_chain.invoice_id` (migration)
+
+**الملف:** migration جديد
+
+حالياً `invoice_chain.invoice_id` بدون foreign key مما يسمح بسجلات يتيمة. لكن بما أن `source_table` يشير إلى جدولين مختلفين (`payment_invoices` أو `invoices`)، لا يمكن استخدام FK تقليدي واحد.
+
+**الحل:** إضافة trigger للتحقق من وجود `invoice_id` في الجدول المناسب حسب `source_table`.
+
+---
+
+## 📊 ملخص
+
+```text
+المهمة                                    الحالة
+──────────────────────────────────────────────────
+حذف @tailwindcss/vite من dependencies     ← يحتاج إصلاح
+نقل autoprefixer → devDependencies         ← يحتاج إصلاح
+FK/trigger لـ invoice_chain                ← يحتاج إصلاح
+vite-plugin-pwa في dependencies            ← خطأ في التقرير
+og-image 903KB                             ← مُصلَح سابقاً
+كاش PWA 30 يوم                            ← مُصلَح سابقاً
+coverage.thresholds                        ← مُصلَح سابقاً
+seller_name مُضمّن                         ← مُصلَح سابقاً
+Pagination الرسائل                         ← مُصلَح سابقاً
+```
+
+**تحسينات UX المذكورة** (تصدير Excel، مقارنة KPI، فلتر العقود، تصنيف الإشعارات) هي ميزات جديدة صالحة يمكن تنفيذها لاحقاً كمهام منفصلة.
 
