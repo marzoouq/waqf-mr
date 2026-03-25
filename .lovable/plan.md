@@ -179,6 +179,13 @@
 | 2 | تعميم رسالة خطأ التوقيع في zatca-signer | ✅ تم |
 | 3 | إضافة bun.lock إلى .gitignore | ✅ تم |
 | 4 | حذف bun.lock من Git tracking (يدوي) | ✅ تم |
+| 5 | تقييد سياسة advance_carryforward لـ authenticated | ✅ تم |
+| 6 | تعزيز GRANT/REVOKE على العروض الآمنة | ✅ تم |
+| 7 | تحليل Security Definer Views — التصميم الحالي مقصود وآمن | ✅ موثّق |
+
+**ملاحظة بند 7**: تحويل العروض لـ `security_invoker=true` يتطلب `GRANT SELECT` على الجداول الأصلية، مما يُتيح للمستفيد/الواقف تجاوز العرض والوصول لبيانات PII الخام. التصميم الحالي (`security_definer` + `security_barrier` + `CASE WHEN` masking + `GRANT SELECT TO authenticated` فقط على العرض) هو النمط الأصح لحماية الخصوصية.
+
+
 
 **الحالة النهائية: جميع البنود مكتملة — لا توجد إجراءات معلّقة.**
 
