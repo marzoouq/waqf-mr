@@ -78,7 +78,8 @@ const ExpensesPage = () => {
       expense_type: formData.expense_type, amount, date: formData.date,
       property_id: formData.property_id || undefined, description: formData.description || undefined,
     };
-    if (!editingExpense && fiscalYear?.id) {
+    if (!editingExpense) {
+      if (!fiscalYear?.id) { toast.error('يرجى اختيار سنة مالية محددة قبل إضافة مصروف'); return; }
       expenseData.fiscal_year_id = fiscalYear.id;
     }
     try {

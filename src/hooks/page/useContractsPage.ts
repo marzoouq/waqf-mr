@@ -308,7 +308,9 @@ export const useContractsPage = () => {
     } else if (statusFilter !== 'all') {
       result = result.filter(([, group]) => {
         const latestStatus = group[0]!.status;
-        return statusFilter === 'active' ? latestStatus === 'active' : latestStatus !== 'active';
+        if (statusFilter === 'active') return latestStatus === 'active';
+        if (statusFilter === 'cancelled') return latestStatus === 'cancelled';
+        return latestStatus !== 'active' && latestStatus !== 'cancelled';
       });
     }
     if (propertyFilter !== 'all') {

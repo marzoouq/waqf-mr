@@ -121,7 +121,7 @@ const IncomePage = () => {
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
-  const totalIncome = income.reduce((sum, item) => sum + safeNumber(item.amount), 0);
+  const totalIncome = useMemo(() => income.reduce((sum, item) => sum + safeNumber(item.amount), 0), [income]);
 
   // قائمة المصادر الفريدة للفلتر
   const uniqueSources = useMemo(() => {
