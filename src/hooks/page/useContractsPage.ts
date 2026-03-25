@@ -48,7 +48,7 @@ export const useContractsPage = () => {
   useEffect(() => setSelectedForRenewal(new Set()), [fiscalYearId]);
   const [formInitialData, setFormInitialData] = useState<ContractFormData>(emptyFormData);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'cancelled' | 'overdue'>('all');
   const [propertyFilter, setPropertyFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('contracts');
