@@ -115,7 +115,7 @@ const WaqfSettingsTab = () => {
             return (
               <div key={f.key} className="space-y-1.5">
                 <Label htmlFor="waqf-settings-tab-field-2">{f.label}</Label>
-                <Input name="field" id="waqf-settings-tab-field-2"
+                <Input name="waqf_setting" id="waqf-settings-tab-field-2"
                   type={isPercentField ? 'number' : 'text'}
                   min={isPercentField ? 0 : undefined}
                   max={isPercentField ? 100 : undefined}

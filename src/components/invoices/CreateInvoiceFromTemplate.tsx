@@ -282,7 +282,7 @@ export default function CreateInvoiceFromTemplate({
                     {computedItems.map((item) => (
                       <tr key={item.id} className="border-t">
                         <td className="p-1.5">
-                          <Input name="field" id="create-invoice-from-template-field-1" value={item.description}
+                          <Input name="item_description" id="create-invoice-from-template-field-1" value={item.description}
                             onChange={e => updateItem(item.id, 'description', e.target.value)}
                             placeholder="وصف البند"
                             className="h-8 text-xs"

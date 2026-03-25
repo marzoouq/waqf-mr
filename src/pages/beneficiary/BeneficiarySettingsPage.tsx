@@ -180,7 +180,7 @@ const BeneficiarySettingsPage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
-                    <Input name="field" value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+                    <Input name="email" value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs flex items-center gap-1">
