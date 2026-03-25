@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       p_window_seconds: 60,
     });
     if (rlError) {
-      console.error("admin-manage rate_limit check failed");
+      console.error("admin-manage: rate limit check failed");
       return new Response(JSON.stringify({ error: "خطأ مؤقت في الخادم" }), {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -170,14 +170,14 @@ Deno.serve(async (req) => {
         // 1) تحديث كلمة المرور
         const { data: updResult, error: updError } = await adminClient.auth.admin.updateUserById(userId, { password });
         if (updError) {
-          console.error("updateUserById error:", JSON.stringify(updError));
+          console.error("update_password: operation failed");
           // رسالة واضحة إذا رُفضت كلمة المرور
           if (updError.message?.includes("banned") || updError.message?.includes("pwned") || updError.message?.includes("compromised")) {
             throw new Error("كلمة المرور مرفوضة لأنها شائعة أو مُسربة — اختر كلمة مرور أقوى");
           }
           throw updError;
         }
-        console.log("updateUserById success");
+        console.log("update_password: success");
 
         // 2) تحقق تجريبي: محاولة تسجيل دخول بالبيانات الجديدة
         const userEmail = updResult?.user?.email;
@@ -192,8 +192,8 @@ Deno.serve(async (req) => {
           });
 
           if (!verifyRes.ok) {
-            const verifyBody = await verifyRes.text();
-            console.error("Password verify login FAILED:", verifyRes.status, verifyBody);
+            await verifyRes.text(); // استهلاك الجسم
+            console.error("update_password: verification failed", verifyRes.status);
             // كلمة المرور لم تتغير فعلياً
             throw new Error("فشل تحديث كلمة المرور — قد تكون كلمة المرور مرفوضة من نظام الحماية. جرّب كلمة مرور أطول وأكثر تعقيداً");
           }
@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
               },
             }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
           }
-          console.log("Password verify login SUCCESS");
+          console.log("update_password: verified");
         }
 
         return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {
@@ -369,7 +369,7 @@ Deno.serve(async (req) => {
             p_message: `تم تسجيل مستفيد جديد: ${safeName(body.name || email)}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          }); } catch (_error) { console.warn('notify_admins failed after single user creation', _error); }
+          }); } catch { /* إشعار فشل — غير حرج */ }
         }
 
         return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
@@ -444,7 +444,7 @@ Deno.serve(async (req) => {
               p_message: `تم تسجيل مستفيد جديد: ${safeName(u.name)}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
-            }); } catch (_error) { console.warn('notify_admins failed after bulk user creation', _error); }
+            }); } catch { /* إشعار فشل — غير حرج */ }
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch {
@@ -471,7 +471,7 @@ Deno.serve(async (req) => {
     }
   } catch (error) {
     const msg = (error as Error).message;
-    console.error("admin-manage-users error:", msg);
+    console.error("admin-manage-users: request failed");
     // تعقيم رسالة الخطأ — لا نكشف تفاصيل DB الداخلية للمتصفح
     const safeMessages: Record<string, string> = {
       "email and password required": "البريد وكلمة المرور مطلوبان",

@@ -6,8 +6,8 @@
  * إصلاح: استخدام roleRef لحل مشكلة stale closure في onAuthStateChange
  * تحسين HMR: نقل useAuth و AuthContext إلى ملف مستقل (useAuthContext.ts)
  */
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
+import type { User, Session } from '@supabase/supabase-js';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { checkNewDeviceLogin } from '@/hooks/data/useSecurityAlerts';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +22,7 @@ import { AuthContext } from '@/hooks/auth/useAuthContext';
 // إعادة تصدير useAuth للتوافقية مع الاستيراد القديم
 export { useAuth } from '@/hooks/auth/useAuthContext';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
@@ -169,6 +169,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
+    } else {
+      // شبكة أمان: إذا لم يصل onAuthStateChange خلال 8 ثوانٍ
+      setTimeout(() => setLoading(false), 8000);
     }
     return { error };
   };
