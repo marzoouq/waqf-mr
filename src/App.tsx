@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { FiscalYearProvider } from "@/contexts/FiscalYearContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -74,7 +74,7 @@ const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("./pages/beneficiary/AnnualReportViewPage"));
 
-// AI Assistant & Security - Lazy loaded
+// AI Assistant (admin/accountant فقط) & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
@@ -106,7 +106,18 @@ function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode;
   if (!ready) return null;
   return <>{children}</>;
 }
-
+/** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
+function RoleGatedAiAssistant() {
+  const { role } = useAuth();
+  if (!role || !['admin', 'accountant'].includes(role)) return null;
+  return (
+    <DeferredRender>
+      <Suspense fallback={null}>
+        <AiAssistant />
+      </Suspense>
+    </DeferredRender>
+  );
+}
 function App() {
   return (
     <ErrorBoundary>
@@ -191,11 +202,7 @@ function App() {
                   </Suspense>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <DeferredRender>
-                    <Suspense fallback={null}>
-                      <AiAssistant />
-                    </Suspense>
-                  </DeferredRender>
+                  <RoleGatedAiAssistant />
                 </ErrorBoundary>
               </BrowserRouter>
             </TooltipProvider>

@@ -86,5 +86,14 @@ createRoot(rootEl).render(
   </StrictMode>
 );
 
+// إزالة splash screen بعد تحميل React
+const splash = document.getElementById('splash');
+if (splash) {
+  splash.style.opacity = '0';
+  splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+  // fallback في حال لم يعمل transitionend
+  setTimeout(() => splash.remove(), 500);
+}
+
 // مراقبة أداء التحميل
 reportPageLoadMetrics();
