@@ -62,4 +62,14 @@ queryClient.getQueryCache().subscribe((event) => {
       activeTimers.delete(qHash);
     }
   }
+
+  // تنظيف المؤقت عند حذف query من الكاش (منع تسرب الذاكرة)
+  if (event.type === 'removed') {
+    const qHash = event.query.queryHash;
+    const endTimer = activeTimers.get(qHash);
+    if (endTimer) {
+      endTimer();
+      activeTimers.delete(qHash);
+    }
+  }
 });

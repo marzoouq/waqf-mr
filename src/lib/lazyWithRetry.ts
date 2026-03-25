@@ -3,7 +3,11 @@ import { lazy, type ComponentType } from 'react';
 // ─── تعافي تلقائي عند فشل تحميل chunk قديم ───
 export function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }>) {
   return lazy(() =>
-    importFn().catch((error: Error) => {
+    importFn().then(mod => {
+      // مسح حارس إعادة المحاولة عند التحميل الناجح فقط
+      sessionStorage.removeItem('chunk_retry');
+      return mod;
+    }).catch((error: Error) => {
       const isChunkError =
         error.message.includes('Failed to fetch dynamically imported module') ||
         error.message.includes('Loading chunk') ||
@@ -27,5 +31,3 @@ export function lazyWithRetry(importFn: () => Promise<{ default: ComponentType }
   );
 }
 
-// مسح حارس إعادة المحاولة عند التحميل الناجح
-sessionStorage.removeItem('chunk_retry');
