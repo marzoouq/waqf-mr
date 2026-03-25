@@ -27,11 +27,6 @@ const SEND_COOLDOWN_MS = 2000;
 const AiAssistant = () => {
   const { user, role } = useAuth();
 
-  // تحميل المساعد فقط للأدوار الإدارية
-  if (!user || !role || !['admin', 'accountant'].includes(role)) {
-    return null;
-  }
-
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
