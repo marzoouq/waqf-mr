@@ -370,6 +370,7 @@ describe('حالات حدية للحسابات المالية', () => {
       waqifPercent: 5,
       waqfCorpusManual: 0,
       manualDistributions: 999_999,
+      isClosed: true,
     });
     expect(r.remainingBalance).toBeLessThan(0);
   });
