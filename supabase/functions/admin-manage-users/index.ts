@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
         // 1) تحديث كلمة المرور
         const { data: updResult, error: updError } = await adminClient.auth.admin.updateUserById(userId, { password });
         if (updError) {
-          console.error("updateUserById error:", JSON.stringify(updError));
+          console.error("update_password: operation failed");
           // رسالة واضحة إذا رُفضت كلمة المرور
           if (updError.message?.includes("banned") || updError.message?.includes("pwned") || updError.message?.includes("compromised")) {
             throw new Error("كلمة المرور مرفوضة لأنها شائعة أو مُسربة — اختر كلمة مرور أقوى");
