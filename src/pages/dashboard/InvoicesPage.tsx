@@ -135,7 +135,7 @@ const InvoicesPage = () => {
                     <Label>العقد (اختياري)</Label>
                     <NativeSelect value={h.formData.contract_id} onValueChange={(v) => h.setFormData({ ...h.formData, contract_id: v })} placeholder="اختر العقد" options={h.contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
                   </div>
-                  <div className="space-y-2"><Label>وصف</Label><Input name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+                  <div className="space-y-2"><Label htmlFor="invoice-description">وصف</Label><Input id="invoice-description" name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div> value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={h.uploading || h.createInvoice.isPending || h.updateInvoice.isPending}>{h.uploading ? 'جاري الحفظ...' : h.editingInvoice ? 'تحديث' : 'رفع الفاتورة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { h.setIsOpen(false); h.resetForm(); }}>إلغاء</Button>

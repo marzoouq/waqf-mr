@@ -291,8 +291,9 @@ const ChartOfAccountsPage = () => {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>اسم الحساب</Label>
+              <Label htmlFor="chart-name">اسم الحساب</Label>
               <Input
+                id="chart-name"
                 value={form.name}
                 onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
                 placeholder="مثال: إيجارات تجارية"

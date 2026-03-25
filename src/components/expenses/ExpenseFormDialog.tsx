@@ -89,7 +89,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
               placeholder="اختر العقار"
             />
           </div>
-          <div className="space-y-2"><Label>الوصف</Label><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-3">الوصف</Label><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>{isEditing ? 'تحديث' : 'إضافة'}</Button>
             <Button type="button" variant="outline" onClick={() => { setIsOpen(false); onReset(); }}>إلغاء</Button>
