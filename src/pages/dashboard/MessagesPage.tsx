@@ -31,9 +31,9 @@ const MessagesPage = () => {
   const [newConvSubject, setNewConvSubject] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages = [] } = useMessages(selectedConv?.id || null);
+  const { data: messages = [], hasMore, loadMore, isLoadingMore } = useMessages(selectedConv?.id || null);
 
-  // Scroll to bottom on new messages
+  // التمرير للأسفل عند وصول رسائل جديدة
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
