@@ -7,8 +7,18 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
-import { QRCodeSVG } from 'qrcode.react';
-import { generateZatcaQrTLV } from '@/utils/zatcaQr';
+import { useState, useEffect } from 'react';
+import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+
+/** مكوّن QR موحّد — يولّد صورة PNG عبر مكتبة qrcode */
+function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    generateQrDataUrl(data).then(setSrc);
+  }, [data]);
+  if (!src) return <div style={{ width: size, height: size }} className="animate-pulse bg-muted rounded" />;
+  return <img src={src} width={size} height={size} alt="QR Code" className={className} />;
+}
 import { FileText, Receipt, AlertCircle } from 'lucide-react';
 
 // --- الأنواع المشتركة ---
