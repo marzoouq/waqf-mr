@@ -516,6 +516,7 @@ Deno.serve(async (req) => {
         const csrData = await csrResponse.json();
 
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
+        const complianceExpiry = parseCertExpiry(csrData.binarySecurityToken || "");
         await admin.from("zatca_certificates").insert({
           certificate_type: "compliance",
           certificate: csrData.binarySecurityToken || "",
@@ -523,6 +524,7 @@ Deno.serve(async (req) => {
           zatca_secret: csrData.secret || "",
           request_id: csrData.requestID || "",
           is_active: true,
+          expires_at: complianceExpiry,
         });
 
         // مسح رموز OTP بعد نجاح التهيئة لمنع إعادة الاستخدام
