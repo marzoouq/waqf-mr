@@ -1639,6 +1639,7 @@ export type Database = {
           certificate: string
           certificate_type: string
           created_at: string | null
+          expires_at: string | null
           id: string
           is_active: boolean | null
           private_key: string
@@ -1649,6 +1650,7 @@ export type Database = {
           certificate: string
           certificate_type: string
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           is_active?: boolean | null
           private_key: string
@@ -1659,6 +1661,7 @@ export type Database = {
           certificate?: string
           certificate_type?: string
           created_at?: string | null
+          expires_at?: string | null
           id?: string
           is_active?: boolean | null
           private_key?: string
@@ -1887,6 +1890,7 @@ export type Database = {
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_check_late_payments: { Args: never; Returns: undefined }
       cron_check_slow_queries: { Args: never; Returns: undefined }
+      cron_check_zatca_cert_expiry: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
       cron_update_overdue_invoices: { Args: never; Returns: undefined }
       decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
