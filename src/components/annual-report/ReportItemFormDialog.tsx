@@ -75,8 +75,8 @@ const ReportItemFormDialog: React.FC<Props> = ({
         <div className="space-y-4 py-2">
           {sectionType === 'property_status' && properties && (
             <div className="space-y-1.5">
-              <Label>العقار</Label>
-              <Select value={propertyId} onValueChange={setPropertyId}>
+              <Label htmlFor="report-item-form-dialog-field-1">العقار</Label>
+              <Select id="report-item-form-dialog-field-1" value={propertyId} onValueChange={setPropertyId}>
                 <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
                 <SelectContent>
                   {properties.map(p => (
@@ -89,12 +89,12 @@ const ReportItemFormDialog: React.FC<Props> = ({
             </div>
           )}
           <div className="space-y-1.5">
-            <Label>العنوان</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان العنصر" />
+            <Label htmlFor="report-item-form-dialog-field-2">العنوان</Label>
+            <Input id="report-item-form-dialog-field-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان العنصر" />
           </div>
           <div className="space-y-1.5">
-            <Label>التفاصيل</Label>
-            <Textarea
+            <Label htmlFor="report-item-form-dialog-field-3">التفاصيل</Label>
+            <Textarea id="report-item-form-dialog-field-3"
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="اكتب التفاصيل هنا..."

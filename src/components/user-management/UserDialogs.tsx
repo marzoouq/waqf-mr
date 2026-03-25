@@ -41,15 +41,15 @@ export const UserEditDialog = ({
       </DialogHeader>
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label>البريد الإلكتروني</Label>
-          <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} dir="ltr" />
+          <Label htmlFor="user-dialogs-field-1">البريد الإلكتروني</Label>
+          <Input id="user-dialogs-field-1" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} dir="ltr" />
           <Button size="sm" className="gap-1" onClick={() => editingUser && onUpdateEmail({ userId: editingUser.id, email: editEmail })} disabled={isEmailPending || editEmail === editingUser?.email}>
             <Mail className="w-3 h-3" />تحديث البريد
           </Button>
         </div>
         <div className="space-y-2">
-          <Label>الدور</Label>
-          <NativeSelect value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
+          <Label htmlFor="user-dialogs-field-2">الدور</Label>
+          <NativeSelect id="user-dialogs-field-2" value={editRole} onValueChange={setEditRole} placeholder="اختر الدور" options={[
             { value: 'admin', label: 'ناظر (Admin)' },
             { value: 'accountant', label: 'محاسب' },
             { value: 'beneficiary', label: 'مستفيد' },
@@ -67,8 +67,8 @@ export const UserEditDialog = ({
         </div>
         {editingUser && (editingUser.role === 'beneficiary' || editRole === 'beneficiary') && unlinkedBeneficiaries.length > 0 && (
           <div className="space-y-2 border-t pt-4">
-            <Label className="flex items-center gap-2"><Link2 className="w-4 h-4" />ربط بمستفيد</Label>
-            <NativeSelect
+            <Label htmlFor="user-dialogs-field-3" className="flex items-center gap-2"><Link2 className="w-4 h-4" />ربط بمستفيد</Label>
+            <NativeSelect id="user-dialogs-field-3"
               value=""
               onValueChange={(beneficiaryId) => {
                 if (beneficiaryId && editingUser) onLinkBeneficiary({ beneficiaryId, userId: editingUser.id });

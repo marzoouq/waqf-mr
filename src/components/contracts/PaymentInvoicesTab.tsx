@@ -94,8 +94,8 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
               <span className="font-bold">{fmt(Number(payDialog?.inv.amount || 0))} ر.س</span>
             </div>
             <div className="space-y-1">
-              <Label>المبلغ المدفوع (ر.س)</Label>
-              <Input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} min={0} max={Number(payDialog?.inv.amount || 0)} step="0.01" />
+              <Label htmlFor="payment-invoices-tab-field-1">المبلغ المدفوع (ر.س)</Label>
+              <Input id="payment-invoices-tab-field-1" type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} min={0} max={Number(payDialog?.inv.amount || 0)} step="0.01" />
             </div>
           </div>
           <DialogFooter className="gap-2">

@@ -42,8 +42,8 @@ const NotificationsTab = () => {
         </div>
         {settings.contract_expiry && (
           <div className="space-y-1.5 pr-4">
-            <Label>عدد الأيام قبل الانتهاء</Label>
-            <Input
+            <Label htmlFor="notifications-tab-field-1">عدد الأيام قبل الانتهاء</Label>
+            <Input id="notifications-tab-field-1"
               type="number"
               value={expiryDays}
               onChange={(e) => setExpiryDays(parseInt(e.target.value) || 30)}

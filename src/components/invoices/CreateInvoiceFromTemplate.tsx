@@ -199,24 +199,24 @@ export default function CreateInvoiceFromTemplate({
             {/* بيانات أساسية */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>رقم الفاتورة</Label>
-                <Input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="INV-001 (تلقائي)" />
+                <Label htmlFor="create-invoice-from-template-field-1">رقم الفاتورة</Label>
+                <Input id="create-invoice-from-template-field-1" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} placeholder="INV-001 (تلقائي)" />
               </div>
               <div className="space-y-2">
-                <Label>التاريخ *</Label>
-                <Input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} />
+                <Label htmlFor="create-invoice-from-template-field-2">التاريخ *</Label>
+                <Input id="create-invoice-from-template-field-2" type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>نوع الفاتورة *</Label>
-                <NativeSelect value={invoiceType} onValueChange={setInvoiceType} options={INVOICE_TYPES} />
+                <Label htmlFor="create-invoice-from-template-field-3">نوع الفاتورة *</Label>
+                <NativeSelect id="create-invoice-from-template-field-3" value={invoiceType} onValueChange={setInvoiceType} options={INVOICE_TYPES} />
               </div>
             </div>
 
             {/* ربط العقد والعقار */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>العقد (تعبئة تلقائية لبيانات المشتري)</Label>
-                <NativeSelect
+                <Label htmlFor="create-invoice-from-template-field-4">العقد (تعبئة تلقائية لبيانات المشتري)</Label>
+                <NativeSelect id="create-invoice-from-template-field-4"
                   value={contractId}
                   onValueChange={handleContractChange}
                   placeholder="اختر العقد"
@@ -224,8 +224,8 @@ export default function CreateInvoiceFromTemplate({
                 />
               </div>
               <div className="space-y-2">
-                <Label>العقار</Label>
-                <NativeSelect
+                <Label htmlFor="create-invoice-from-template-field-5">العقار</Label>
+                <NativeSelect id="create-invoice-from-template-field-5"
                   value={propertyId}
                   onValueChange={setPropertyId}
                   placeholder="اختر العقار"
@@ -349,8 +349,8 @@ export default function CreateInvoiceFromTemplate({
 
             {/* ملاحظات */}
             <div className="space-y-2">
-              <Label>ملاحظات</Label>
-              <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات إضافية..." rows={2} />
+              <Label htmlFor="create-invoice-from-template-field-6">ملاحظات</Label>
+              <Textarea id="create-invoice-from-template-field-6" value={notes} onChange={e => setNotes(e.target.value)} placeholder="ملاحظات إضافية..." rows={2} />
             </div>
 
             {/* خصومات ورسوم إضافية */}

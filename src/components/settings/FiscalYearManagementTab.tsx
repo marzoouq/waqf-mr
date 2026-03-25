@@ -61,8 +61,8 @@ const ReopenDialog = ({ fy, onConfirm, loading }: {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-1.5 px-1 pb-1">
-          <Label>سبب إعادة الفتح <span className="text-destructive">*</span></Label>
-          <Textarea
+          <Label htmlFor="fiscal-year-management-tab-field-1">سبب إعادة الفتح <span className="text-destructive">*</span></Label>
+          <Textarea id="fiscal-year-management-tab-field-1"
             value={reason}
             onChange={e => setReason(e.target.value)}
             placeholder="مثال: تصحيح خطأ في قيد دخل الوحدة 3 بتاريخ ..."
@@ -221,16 +221,16 @@ const FiscalYearManagementTab = () => {
               <CardContent className="p-4 space-y-3">
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
-                    <Label>المسمى</Label>
-                    <Input value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" />
+                    <Label htmlFor="fiscal-year-management-tab-field-2">المسمى</Label>
+                    <Input id="fiscal-year-management-tab-field-2" value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>تاريخ البداية</Label>
-                    <Input type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} />
+                    <Label htmlFor="fiscal-year-management-tab-field-3">تاريخ البداية</Label>
+                    <Input id="fiscal-year-management-tab-field-3" type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>تاريخ النهاية</Label>
-                    <Input type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
+                    <Label htmlFor="fiscal-year-management-tab-field-4">تاريخ النهاية</Label>
+                    <Input id="fiscal-year-management-tab-field-4" type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
                   </div>
                 </div>
                 <p className="text-xs text-caution-foreground">

@@ -139,8 +139,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2"><Label htmlFor="contract-number">رقم العقد *</Label><Input id="contract-number" name="contract_number" value={formData.contract_number} onChange={(e) => setFormData({ ...formData, contract_number: e.target.value })} placeholder="مثال: C-2024-001" /></div>
           <div className="space-y-2">
-            <Label>العقار *</Label>
-            <NativeSelect
+            <Label htmlFor="contract-form-dialog-field-1">العقار *</Label>
+            <NativeSelect id="contract-form-dialog-field-1"
               value={formData.property_id}
               onValueChange={(value) => setFormData({ ...formData, property_id: value, unit_id: '', selected_unit_ids: [], rent_per_unit: {} })}
               options={propertyOptions}
@@ -179,8 +179,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {/* Single unit select */}
           {formData.property_id && formData.rental_mode === 'single' && (
             <div className="space-y-2">
-              <Label>الوحدة</Label>
-              <NativeSelect
+              <Label htmlFor="contract-form-dialog-field-2">الوحدة</Label>
+              <NativeSelect id="contract-form-dialog-field-2"
                 value={formData.unit_id}
                 onValueChange={(value) => setFormData({ ...formData, unit_id: value })}
                 options={unitOptions}
@@ -192,8 +192,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {/* Editing mode - keep original unit select */}
           {formData.property_id && editingContract && (
             <div className="space-y-2">
-              <Label>الوحدة</Label>
-              <NativeSelect
+              <Label htmlFor="contract-form-dialog-field-3">الوحدة</Label>
+              <NativeSelect id="contract-form-dialog-field-3"
                 value={formData.unit_id || 'full'}
                 onValueChange={(value) => setFormData({ ...formData, unit_id: value === 'full' ? '' : value })}
                 options={unitEditOptions}
@@ -309,8 +309,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {/* Rent amount */}
           {(!isMulti || formData.pricing_mode === 'total') && (
             <div className="space-y-2">
-              <Label>{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
-              <Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
+              <Label htmlFor="contract-form-dialog-field-4">{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
+              <Input id="contract-form-dialog-field-4" type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
               {isMulti && perUnitAmount > 0 && (
                 <p className="text-xs text-muted-foreground">= {fmt(perUnitAmount)} ر.س لكل وحدة</p>
               )}
@@ -318,8 +318,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           )}
 
           <div className="space-y-2">
-            <Label>نوع الدفع *</Label>
-            <NativeSelect
+            <Label htmlFor="contract-form-dialog-field-5">نوع الدفع *</Label>
+            <NativeSelect id="contract-form-dialog-field-5"
               value={formData.payment_type}
               onValueChange={(value) => setFormData({ ...formData, payment_type: value, payment_count: value === 'monthly' ? '12' : value === 'quarterly' ? '4' : value === 'semi_annual' ? '2' : value === 'annual' ? '1' : formData.payment_count })}
               options={paymentTypeOptions}
@@ -327,8 +327,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           </div>
           {formData.payment_type === 'multi' && (
             <div className="space-y-2">
-              <Label>عدد الدفعات *</Label>
-              <Input type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
+              <Label htmlFor="contract-form-dialog-field-6">عدد الدفعات *</Label>
+              <Input id="contract-form-dialog-field-6" type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
             </div>
           )}
           {/* VAT Toggle */}
@@ -423,8 +423,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           })()}
 
           <div className="space-y-2">
-            <Label>الحالة</Label>
-            <NativeSelect
+            <Label htmlFor="contract-form-dialog-field-7">الحالة</Label>
+            <NativeSelect id="contract-form-dialog-field-7"
               value={formData.status}
               onValueChange={(value) => setFormData({ ...formData, status: value })}
               options={statusOptions}

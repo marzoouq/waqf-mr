@@ -60,20 +60,20 @@ const LandingPageTab = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>العنوان الرئيسي</Label>
-            <Input value={form.hero_title} onChange={e => handleChange('hero_title', e.target.value)} maxLength={100} />
+            <Label htmlFor="landing-page-tab-field-1">العنوان الرئيسي</Label>
+            <Input id="landing-page-tab-field-1" value={form.hero_title} onChange={e => handleChange('hero_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
-            <Label>الوصف</Label>
-            <Textarea value={form.hero_subtitle} onChange={e => handleChange('hero_subtitle', e.target.value)} maxLength={300} rows={2} />
+            <Label htmlFor="landing-page-tab-field-2">الوصف</Label>
+            <Textarea id="landing-page-tab-field-2" value={form.hero_subtitle} onChange={e => handleChange('hero_subtitle', e.target.value)} maxLength={300} rows={2} />
           </div>
           <div className="space-y-1.5">
-            <Label>الشعار النصي</Label>
-            <Input value={form.hero_tagline} onChange={e => handleChange('hero_tagline', e.target.value)} maxLength={100} />
+            <Label htmlFor="landing-page-tab-field-3">الشعار النصي</Label>
+            <Input id="landing-page-tab-field-3" value={form.hero_tagline} onChange={e => handleChange('hero_tagline', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
-            <Label>نص زر الدخول</Label>
-            <Input value={form.cta_text} onChange={e => handleChange('cta_text', e.target.value)} maxLength={50} />
+            <Label htmlFor="landing-page-tab-field-4">نص زر الدخول</Label>
+            <Input id="landing-page-tab-field-4" value={form.cta_text} onChange={e => handleChange('cta_text', e.target.value)} maxLength={50} />
           </div>
         </CardContent>
       </Card>
@@ -84,12 +84,12 @@ const LandingPageTab = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>عنوان القسم</Label>
-            <Input value={form.features_title} onChange={e => handleChange('features_title', e.target.value)} maxLength={100} />
+            <Label htmlFor="landing-page-tab-field-5">عنوان القسم</Label>
+            <Input id="landing-page-tab-field-5" value={form.features_title} onChange={e => handleChange('features_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
-            <Label>وصف القسم</Label>
-            <Input value={form.features_subtitle} onChange={e => handleChange('features_subtitle', e.target.value)} maxLength={200} />
+            <Label htmlFor="landing-page-tab-field-6">وصف القسم</Label>
+            <Input id="landing-page-tab-field-6" value={form.features_subtitle} onChange={e => handleChange('features_subtitle', e.target.value)} maxLength={200} />
           </div>
         </CardContent>
       </Card>
@@ -100,16 +100,16 @@ const LandingPageTab = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
-            <Label>عنوان الدعوة</Label>
-            <Input value={form.cta_section_title} onChange={e => handleChange('cta_section_title', e.target.value)} maxLength={100} />
+            <Label htmlFor="landing-page-tab-field-7">عنوان الدعوة</Label>
+            <Input id="landing-page-tab-field-7" value={form.cta_section_title} onChange={e => handleChange('cta_section_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
-            <Label>وصف الدعوة</Label>
-            <Input value={form.cta_section_subtitle} onChange={e => handleChange('cta_section_subtitle', e.target.value)} maxLength={200} />
+            <Label htmlFor="landing-page-tab-field-8">وصف الدعوة</Label>
+            <Input id="landing-page-tab-field-8" value={form.cta_section_subtitle} onChange={e => handleChange('cta_section_subtitle', e.target.value)} maxLength={200} />
           </div>
           <div className="space-y-1.5">
-            <Label>نص التذييل</Label>
-            <Input value={form.footer_text} onChange={e => handleChange('footer_text', e.target.value)} maxLength={200} placeholder="استخدم {year} لإدراج السنة تلقائياً" />
+            <Label htmlFor="landing-page-tab-field-9">نص التذييل</Label>
+            <Input id="landing-page-tab-field-9" value={form.footer_text} onChange={e => handleChange('footer_text', e.target.value)} maxLength={200} placeholder="استخدم {year} لإدراج السنة تلقائياً" />
           </div>
         </CardContent>
       </Card>
