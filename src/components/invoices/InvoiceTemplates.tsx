@@ -445,7 +445,7 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
         {/* QR مركزي */}
         <div className="flex justify-center pt-2">
           {qrData ? (
-            <QRCodeSVG value={qrData} size={140} level="H" className="border p-1.5 rounded bg-white" />
+            <QrImage data={qrData} size={140} className="border p-1.5 rounded bg-white" />
           ) : (
             <div className="w-[140px] h-[140px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">
               QR غير متاح
