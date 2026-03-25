@@ -47,9 +47,10 @@ describe('CloseYearDialog', () => {
   });
 
   it('يستدعي onConfirm عند النقر', () => {
-    render(<CloseYearDialog {...defaultProps} />);
+    const onConfirm = vi.fn();
+    render(<CloseYearDialog {...defaultProps} onConfirm={onConfirm} hasAccount={true} beneficiaryPercentage={100} distributionsAmount={60000} />);
     const btn = screen.getByText('تأكيد الإقفال');
     fireEvent.click(btn);
-    expect(defaultProps.onConfirm).toHaveBeenCalled();
+    expect(onConfirm).toHaveBeenCalled();
   });
 });
