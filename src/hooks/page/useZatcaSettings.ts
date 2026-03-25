@@ -55,6 +55,19 @@ export const useZatcaSettings = () => {
   });
 
   const activeCert = certificates.find(c => c.is_active);
+
+  // حساب تحذير انتهاء الصلاحية
+  const certExpiryWarning = (() => {
+    if (!activeCert?.expires_at) return null;
+    const expiresAt = new Date(activeCert.expires_at);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysLeft < 0) return { daysLeft, level: 'expired' as const, message: 'شهادة ZATCA منتهية الصلاحية. يجب تجديدها فوراً.' };
+    if (daysLeft <= 14) return { daysLeft, level: 'critical' as const, message: `شهادة ZATCA ستنتهي خلال ${daysLeft} يوماً. يُرجى تجديدها.` };
+    if (daysLeft <= 30) return { daysLeft, level: 'warning' as const, message: `شهادة ZATCA ستنتهي خلال ${daysLeft} يوماً.` };
+    return null;
+  })();
+
   const isEnabled = formData.zatca_enabled === 'true';
   const selectedPhase = formData.zatca_phase || 'phase2';
   const selectedPlatform = formData.zatca_platform || 'production';
