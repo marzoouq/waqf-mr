@@ -32,6 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const lastUserIdRef = useRef<string | null>(null);
   // إصلاح stale closure: roleRef يقرأ القيمة الحالية دائماً
   const roleRef = useRef<AppRole | null>(null);
+  // مرجع لـ timeout شبكة أمان signIn — يُلغى عند وصول الحدث أو signOut
+  const signInTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearSignInTimeout = useCallback(() => {
+    if (signInTimeoutRef.current) {
+      clearTimeout(signInTimeoutRef.current);
+      signInTimeoutRef.current = null;
+    }
+  }, []);
 
   const setRoleWithRef = useCallback((newRole: AppRole | null) => {
     roleRef.current = newRole;
@@ -57,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         logger.info('[Auth] onAuthStateChange:', event);
+        // إلغاء timeout شبكة الأمان عند وصول أي حدث مصادقة
+        clearSignInTimeout();
         lastUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -73,8 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      clearSignInTimeout();
     };
-  }, [setRoleWithRef]);
+  }, [setRoleWithRef, clearSignInTimeout]);
 
   // === الخطوة 2: useEffect منفصل لجلب الدور عند تغيّر user ===
   useEffect(() => {
@@ -171,7 +183,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     } else {
       // شبكة أمان: إذا لم يصل حدث onAuthStateChange خلال 8 ثوانٍ
-      setTimeout(() => setLoading(false), 8000);
+      clearSignInTimeout();
+      signInTimeoutRef.current = setTimeout(() => {
+        signInTimeoutRef.current = null;
+        setLoading(false);
+      }, 8000);
     }
     return { error };
   };
@@ -187,6 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    clearSignInTimeout();
     try {
       await supabase.auth.signOut();
     } catch (err) {
