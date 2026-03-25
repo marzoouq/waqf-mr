@@ -902,6 +902,7 @@ Deno.serve(async (req) => {
 
         // تحديث الشهادة النشطة
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
+        const renewExpiry = parseCertExpiry(prodData.binarySecurityToken || "");
         await admin.from("zatca_certificates").insert({
           certificate_type: "production",
           certificate: prodData.binarySecurityToken || "",
@@ -909,6 +910,7 @@ Deno.serve(async (req) => {
           zatca_secret: prodData.secret || "",
           request_id: prodData.requestID || "",
           is_active: true,
+          expires_at: renewExpiry,
         });
 
         // مسح OTP بعد النجاح
