@@ -33,6 +33,38 @@ const ZatcaSettingsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* ─── تحذير انتهاء صلاحية الشهادة ─── */}
+      {certExpiryWarning && (
+        <Card className={cn(
+          'shadow-sm border',
+          certExpiryWarning.level === 'expired' ? 'border-destructive/50 bg-destructive/5' :
+          certExpiryWarning.level === 'critical' ? 'border-warning/50 bg-warning/5' :
+          'border-warning/30 bg-warning/5'
+        )}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className={cn(
+                'w-5 h-5 shrink-0',
+                certExpiryWarning.level === 'expired' ? 'text-destructive' : 'text-warning'
+              )} />
+              <div className="flex-1">
+                <p className={cn(
+                  'text-sm font-bold',
+                  certExpiryWarning.level === 'expired' ? 'text-destructive' : 'text-warning'
+                )}>
+                  {certExpiryWarning.message}
+                </p>
+              </div>
+              {activeCert?.certificate_type === 'production' && (
+                <Button size="sm" variant="outline" onClick={handleRenewCertificate} disabled={renewLoading} className="shrink-0">
+                  {renewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  <span className="mr-1">تجديد</span>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* ─── تفعيل الفاتورة الإلكترونية ─── */}
       <Card>
         <CardContent className="pt-6">
