@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import type jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { reshapeArabic as rs } from './arabicReshaper';
