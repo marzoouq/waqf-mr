@@ -103,7 +103,7 @@ const DesktopUnitsTable = ({ units, contracts, wholePropertyContracts, tenantPay
                   {!tenant ? <span className="text-muted-foreground">-</span> : (
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
+                        <span className={`min-w-12 text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paid}/12</span>
                       </div>
                       <Progress value={progressPercent} className={`h-2 ${isComplete ? '[&>div]:bg-success' : paid >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
                       <p className="text-[10px] text-muted-foreground">يتم التحصيل عبر الفواتير</p>

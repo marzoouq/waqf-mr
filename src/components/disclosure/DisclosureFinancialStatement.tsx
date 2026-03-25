@@ -37,7 +37,7 @@ const DisclosureFinancialStatement = (props: Props) => {
   } = props;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />

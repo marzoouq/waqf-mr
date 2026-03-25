@@ -194,7 +194,7 @@ const InvoicesPage = () => {
         {h.viewMode === 'grid' ? (
           <InvoiceGridView invoices={h.filteredInvoices} onEdit={h.handleEdit} readOnly={isLocked} />
         ) : (
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="p-0">
               {h.isLoading ? (
                 <TableSkeleton rows={5} cols={5} />

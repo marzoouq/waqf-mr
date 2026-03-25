@@ -23,7 +23,7 @@ const ContractStatsCards = ({ stats, isLoading }: ContractStatsCardsProps) => {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="shadow-sm">
+          <Card key={i} className="shadow-xs">
             <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
               <Skeleton className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg" />
               <div className="space-y-2 flex-1">

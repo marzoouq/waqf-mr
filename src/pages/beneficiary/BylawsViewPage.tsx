@@ -126,7 +126,7 @@ const BylawsViewPage = () => {
             <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {visibleBylaws.map((item) => (
                 <a key={item.id} href={`#bylaw-${item.id}`} className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-primary/5 transition-colors text-sm group">
-                  <Badge variant="outline" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors min-w-[2.5rem] justify-center">
+                  <Badge variant="outline" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors min-w-10 justify-center">
                     {item.part_number === 0 ? '٠' : item.part_number}
                   </Badge>
                   <span className="truncate text-foreground/80 group-hover:text-foreground transition-colors">

@@ -140,7 +140,7 @@ const WaqfInfoBar = () => {
 
   return (
     <>
-      <div className="flex-1 gradient-gold px-4 py-2 shadow-sm">
+      <div className="flex-1 gradient-gold px-4 py-2 shadow-xs">
         <div className="flex items-center justify-center">
           <Popover>
             <PopoverTrigger asChild>
@@ -180,7 +180,7 @@ const WaqfInfoBar = () => {
                   if (!value) return null;
                   return (
                     <div key={field.key} className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                         <field.icon className="w-3.5 h-3.5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">

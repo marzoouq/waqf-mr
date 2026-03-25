@@ -95,7 +95,7 @@ const DisclosurePage = () => {
 
           {/* تنبيه السنة النشطة */}
           {myShare === 0 && !isAccountMissing && selectedFY?.status !== 'closed' && currentBeneficiary && (
-            <Card className="shadow-sm border-info/30 bg-info/5">
+            <Card className="shadow-xs border-info/30 bg-info/5">
               <CardContent className="p-4 flex items-start gap-3">
                 <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
                 <div>

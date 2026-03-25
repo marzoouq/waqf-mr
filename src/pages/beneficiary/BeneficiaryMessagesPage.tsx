@@ -152,7 +152,7 @@ const BeneficiaryMessagesPage = () => {
 
         <div className="flex-1 flex gap-4 min-h-0">
           {/* Conversations List */}
-          <Card className={cn('w-full md:w-72 flex-shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
+          <Card className={cn('w-full md:w-72 shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
             <ScrollArea className="flex-1">
               {conversations.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground text-sm">

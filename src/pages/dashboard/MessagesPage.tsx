@@ -95,7 +95,7 @@ const MessagesPage = () => {
 
         <div className="flex-1 flex gap-2 sm:gap-4 min-h-0">
           {/* Conversations List */}
-          <Card className={cn('w-full md:w-80 flex-shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
+          <Card className={cn('w-full md:w-80 shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
             <div className="p-3 border-b border-border">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />

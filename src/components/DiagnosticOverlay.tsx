@@ -19,7 +19,7 @@ export default function DiagnosticOverlay() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-20 left-4 z-[60] rounded-full w-10 h-10 shadow-lg bg-background/90 backdrop-blur-sm border-primary/30 hover:bg-primary/10 print:hidden"
+        className="fixed bottom-20 left-4 z-60 rounded-full w-10 h-10 shadow-lg bg-background/90 backdrop-blur-xs border-primary/30 hover:bg-primary/10 print:hidden"
         onClick={() => setOpen(true)}
         title="تشخيص النظام"
       >

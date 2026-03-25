@@ -287,7 +287,7 @@ const PropertiesPage = () => {
         {isLoading ? (
           <StatsGridSkeleton count={6} />
         ) : filteredProperties.length === 0 ? (
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="py-12 text-center">
               <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا توجد عقارات مسجلة'}</p>
@@ -308,7 +308,7 @@ const PropertiesPage = () => {
               const { totalUnits, rented, vacant, maintenance, statusMismatch, occupancy, occupancyColor, progressColor, monthlyRent, activeAnnualRent, totalExpenses, netIncome, contractualRevenue } = pf;
 
               return (
-              <Card key={property.id} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
+              <Card key={property.id} className="shadow-xs hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProperty(property)}>
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">

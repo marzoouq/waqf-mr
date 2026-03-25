@@ -252,25 +252,25 @@ const IncomePage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-success/10 shrink-0"><TrendingUp className="w-5 h-5 text-success" /></div>
                 <div className="min-w-0"><p className="text-xs text-muted-foreground">إجمالي الدخل</p><p className="text-base sm:text-xl font-bold text-success tabular-nums truncate">{fmt(totalIncome)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Hash className="w-5 h-5 text-primary" /></div>
                 <div className="min-w-0"><p className="text-xs text-muted-foreground">عدد السجلات</p><p className="text-base sm:text-xl font-bold tabular-nums">{summaryCards.count}</p></div>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-accent/50 shrink-0"><Calculator className="w-5 h-5 text-accent-foreground" /></div>
                 <div className="min-w-0"><p className="text-xs text-muted-foreground">متوسط الدخل</p><p className="text-base sm:text-xl font-bold tabular-nums truncate">{fmt(summaryCards.avg)} <span className="text-xs font-normal">ريال</span></p></div>
               </CardContent>
             </Card>
-            <Card className="shadow-sm">
+            <Card className="shadow-xs">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-warning/10 shrink-0"><Star className="w-5 h-5 text-warning" /></div>
                 <div className="min-w-0"><p className="text-xs text-muted-foreground">أعلى مصدر</p><p className="text-sm font-bold truncate">{summaryCards.topSource}</p><p className="text-xs text-muted-foreground tabular-nums truncate">{fmt(summaryCards.topSourceAmount)} ريال</p></div>
@@ -286,7 +286,7 @@ const IncomePage = () => {
 
         {/* I-4: تنبيه الإيراد الناقص */}
         {!isLoading && lowIncomeMonths.length > 0 && (
-          <Card className="shadow-sm border-warning/50 bg-warning/5">
+          <Card className="shadow-xs border-warning/50 bg-warning/5">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
@@ -322,7 +322,7 @@ const IncomePage = () => {
           />
         </div>
 
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-0">
             {isLoading ? (
               <TableSkeleton rows={5} cols={5} />
@@ -333,7 +333,7 @@ const IncomePage = () => {
               {/* Mobile Cards */}
               <div className="space-y-3 md:hidden px-3 py-2">
                 {filteredIncome.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
-                  <Card key={item.id} className="shadow-sm">
+                  <Card key={item.id} className="shadow-xs">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">

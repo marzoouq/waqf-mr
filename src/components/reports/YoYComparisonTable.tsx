@@ -18,7 +18,7 @@ const YoYComparisonTable = ({ comparisonData, year1Label, year2Label, yearTotals
   const netDiff = yearTotals.year2.net - yearTotals.year1.net;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="text-sm sm:text-base">جدول المقارنة التفصيلي</CardTitle>
       </CardHeader>

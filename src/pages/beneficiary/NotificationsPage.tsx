@@ -152,25 +152,25 @@ const NotificationsPage = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-xs">
             <CardContent className="p-3 text-center">
               <p className="text-xl sm:text-2xl font-bold">{notifications.length}</p>
               <p className="text-xs text-muted-foreground">الإجمالي</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-xs">
             <CardContent className="p-3 text-center">
               <p className="text-xl sm:text-2xl font-bold text-primary">{unreadCount}</p>
               <p className="text-xs text-muted-foreground">غير مقروء</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-xs">
             <CardContent className="p-3 text-center">
               <p className="text-xl sm:text-2xl font-bold text-success">{readCount}</p>
               <p className="text-xs text-muted-foreground">مقروء</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-xs">
             <CardContent className="p-3 text-center">
               <p className="text-xl sm:text-2xl font-bold">{uniqueTypes.length}</p>
               <p className="text-xs text-muted-foreground">أنواع</p>
@@ -189,7 +189,7 @@ const NotificationsPage = () => {
                 key={cat.id}
                 variant={categoryFilter === cat.id ? 'default' : 'outline'}
                 size="sm"
-                className="gap-1.5 flex-shrink-0"
+                className="gap-1.5 shrink-0"
                 onClick={() => {
                   setCategoryFilter(cat.id);
                   setTypeFilter('all');
@@ -197,7 +197,7 @@ const NotificationsPage = () => {
               >
                 {cat.label}
                 {count > 0 && (
-                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline'} className="text-xs px-1.5 min-w-[1.25rem] h-5">
+                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline'} className="text-xs px-1.5 min-w-5 h-5">
                     {count}
                   </Badge>
                 )}
@@ -292,11 +292,11 @@ const NotificationsPage = () => {
                           className={cn(
                             'group relative flex items-start gap-3 p-4 transition-all cursor-pointer',
                             'hover:bg-muted/50',
-                            !n.is_read && 'bg-primary/[0.03]'
+                            !n.is_read && 'bg-primary/3'
                           )}
                           onClick={() => handleClick(n)}
                         >
-                          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5', config.bg)}>
+                          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5', config.bg)}>
                             <Icon className={cn('w-5 h-5', config.color)} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -305,7 +305,7 @@ const NotificationsPage = () => {
                                 {n.title}
                               </p>
                               {!n.is_read && (
-                                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+                                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shrink-0" />
                               )}
                             </div>
                             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{n.message}</p>
@@ -323,7 +323,7 @@ const NotificationsPage = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive flex-shrink-0"
+                                className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteOne.mutate(n.id);

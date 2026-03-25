@@ -39,7 +39,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
       {/* Logo */}
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className={cn('flex items-center gap-3', !sidebarOpen && 'lg:justify-center')}>
-          <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center flex-shrink-0 shadow-gold overflow-hidden">
+          <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shrink-0 shadow-gold overflow-hidden">
             {waqfInfo?.waqf_logo_url ? (
               <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-full h-full object-contain rounded-xl p-0.5" />
             ) : (
@@ -91,7 +91,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 !sidebarOpen && 'lg:justify-center'
               )}
             >
-              <link.icon className="w-5 h-5 flex-shrink-0" />
+              <link.icon className="w-5 h-5 shrink-0" />
               <span className={cn(!sidebarOpen && 'lg:hidden')}>{link.label}</span>
               {/* عداد الرسائل غير المقروءة */}
               {link.to.includes('/messages') && unreadCount > 0 && (
@@ -177,7 +177,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 </AlertDialogTrigger>
               </div>
             )}
-            <AlertDialogContent className="z-[70]" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
+            <AlertDialogContent className="z-70" onTouchStart={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()} onTouchEnd={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>تأكيد تسجيل الخروج</AlertDialogTitle>
                 <AlertDialogDescription>هل أنت متأكد من رغبتك في تسجيل الخروج من النظام؟</AlertDialogDescription>

@@ -153,7 +153,7 @@ const AccountsViewPage = () => {
         />
 
         {/* Summary */}
-        <Card className="shadow-sm gradient-hero text-primary-foreground">
+        <Card className="shadow-xs gradient-hero text-primary-foreground">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
               <Calculator className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -188,7 +188,7 @@ const AccountsViewPage = () => {
 
         {/* My Share Highlight */}
         {currentBeneficiary && (
-          <Card className="shadow-sm bg-primary/10 border-primary/20">
+          <Card className="shadow-xs bg-primary/10 border-primary/20">
             <CardContent className="p-4 sm:p-6">
               <div className="flex justify-between items-center">
                 <div className="min-w-0">
@@ -202,7 +202,7 @@ const AccountsViewPage = () => {
         )}
 
         {/* Link to Disclosure for full details */}
-        <Card className="shadow-sm border-primary/20 bg-primary/5">
+        <Card className="shadow-xs border-primary/20 bg-primary/5">
           <CardContent className="p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>

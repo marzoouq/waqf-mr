@@ -33,7 +33,7 @@ const ExpensesPieChart: React.FC<ExpensesPieChartProps> = ({ expenses, isLoading
   }
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <PieChartIcon className="w-5 h-5" />

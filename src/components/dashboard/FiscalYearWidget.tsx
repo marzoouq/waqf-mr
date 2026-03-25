@@ -37,7 +37,7 @@ const FiscalYearWidget: React.FC<FiscalYearWidgetProps> = ({
   const financialProgress = Math.min(100, rawFinancialProgress);
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Calendar className="w-5 h-5" />

@@ -26,7 +26,7 @@ const PrintHeader = () => {
           {/* الشعار والمعلومات */}
           <div className="flex items-center gap-5">
             <div
-              className="w-20 h-20 rounded-xl flex items-center justify-center flex-shrink-0 p-1"
+              className="w-20 h-20 rounded-xl flex items-center justify-center shrink-0 p-1"
               style={{
                 border: '2px solid hsl(var(--secondary))',
                 background: 'linear-gradient(135deg, hsl(var(--secondary) / 0.15), hsl(var(--secondary) / 0.25))',
@@ -59,7 +59,7 @@ const PrintHeader = () => {
           </div>
 
           {/* تاريخ الطباعة */}
-          <div className="text-start text-xs text-muted-foreground flex-shrink-0">
+          <div className="text-start text-xs text-muted-foreground shrink-0">
             <p className="font-bold mb-1 text-foreground/70">تاريخ الطباعة</p>
             <p>{gregorianDate} م</p>
           </div>
