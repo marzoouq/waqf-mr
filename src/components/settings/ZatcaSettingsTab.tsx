@@ -272,9 +272,9 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-1.5 max-w-xs">
-                  <Label>نسبة VAT الافتراضية</Label>
+                  <Label htmlFor="zatca-vat-rate">نسبة VAT الافتراضية</Label>
                   <Select value={formData.default_vat_rate || '0'} onValueChange={(value) => setFormData((p) => ({ ...p, default_vat_rate: value }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="zatca-vat-rate"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="0">0% — معفاة</SelectItem>
                       <SelectItem value="15">15% — خاضعة</SelectItem>

@@ -318,12 +318,12 @@ const ChartOfAccountsPage = () => {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>الفئة الأب (اختياري)</Label>
+              <Label htmlFor="chart-parent">الفئة الأب (اختياري)</Label>
               <Select
                 value={form.parent_id ?? '__none__'}
                 onValueChange={(v) => setForm(p => ({ ...p, parent_id: v === '__none__' ? null : v }))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="chart-parent">
                   <SelectValue placeholder="بدون فئة أب" />
                 </SelectTrigger>
                 <SelectContent>
