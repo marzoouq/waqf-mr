@@ -29,7 +29,7 @@ const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit
   const progressPercent = (paidMonths / 12) * 100;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
@@ -69,7 +69,7 @@ const MobileUnitCard = ({ unit, tenant, paidMonths, paymentInvoices = [], onEdit
               </div>
             </div>
             <div className="flex items-center gap-2 pt-1">
-              <span className={`min-w-[3rem] text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paidMonths}/12</span>
+              <span className={`min-w-12 text-center font-semibold ${isComplete ? 'text-success' : 'text-destructive'}`}>{paidMonths}/12</span>
               <Progress value={progressPercent} className={`flex-1 h-2 ${isComplete ? '[&>div]:bg-success' : paidMonths >= 6 ? '[&>div]:bg-warning' : '[&>div]:bg-destructive'}`} />
             </div>
             <p className="text-[10px] text-muted-foreground">يتم التحصيل عبر الفواتير</p>

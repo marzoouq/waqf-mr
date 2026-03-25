@@ -22,7 +22,7 @@ const ThemeColorPicker = () => {
   };
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Palette className="w-5 h-5" />
@@ -39,7 +39,7 @@ const ThemeColorPicker = () => {
               className={cn(
                 'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:shadow-md',
                 activeId === theme.id
-                  ? 'border-primary bg-primary/5 shadow-sm'
+                  ? 'border-primary bg-primary/5 shadow-xs'
                   : 'border-transparent bg-muted/30 hover:border-muted-foreground/20'
               )}
             >

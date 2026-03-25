@@ -150,7 +150,7 @@ const BeneficiaryDashboard = () => {
     return (
       <DashboardLayout>
         <div className="p-3 sm:p-6 space-y-4">
-          <Card className="shadow-sm border-warning/30 bg-warning/5">
+          <Card className="shadow-xs border-warning/30 bg-warning/5">
             <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
               <AlertCircle className="w-12 h-12 text-warning" />
               <h2 className="text-lg font-bold text-foreground">حسابك غير مرتبط</h2>
@@ -220,7 +220,7 @@ const BeneficiaryDashboard = () => {
         {/* ═══ Stats row ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* My share amount */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
@@ -239,7 +239,7 @@ const BeneficiaryDashboard = () => {
           </Card>
 
           {/* Total received */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-success/10 rounded-xl flex items-center justify-center shrink-0">
@@ -268,7 +268,7 @@ const BeneficiaryDashboard = () => {
           </Card>
 
           {/* Fiscal year progress */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="p-4 sm:p-5 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">السنة المالية</p>
@@ -294,7 +294,7 @@ const BeneficiaryDashboard = () => {
 
         {/* ═══ بطاقة طلب السُلفة ═══ */}
         {advanceEnabled && role !== 'waqif' && currentBeneficiary && fiscalYearId && fiscalYearId !== '__none__' && (
-          <Card className="shadow-sm border-accent/30">
+          <Card className="shadow-xs border-accent/30">
             <CardContent className="p-4 sm:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -328,7 +328,7 @@ const BeneficiaryDashboard = () => {
           <h2 className="text-base sm:text-lg font-bold mb-3">الوصول السريع</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {quickLinks.map((link) => (
-              <Card key={link.path} className="shadow-sm cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
+              <Card key={link.path} className="shadow-xs cursor-pointer hover:shadow-md transition-shadow group" onClick={() => navigate(link.path)}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${link.color}`}>
@@ -349,7 +349,7 @@ const BeneficiaryDashboard = () => {
         {/* ═══ Bottom grid: Distributions + Notifications ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Recent distributions */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Wallet className="w-5 h-5" />
@@ -378,7 +378,7 @@ const BeneficiaryDashboard = () => {
           </Card>
 
           {/* Notifications */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Bell className="w-5 h-5" />

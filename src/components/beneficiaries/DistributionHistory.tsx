@@ -69,7 +69,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
 
   if (isLoading) {
     return (
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-4 space-y-3">
           <Skeleton className="h-5 w-40" />
           <Skeleton className="h-24 w-full" />
@@ -80,7 +80,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
 
   if (yearlyData.length === 0) {
     return (
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-6 text-center">
           <History className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">لا توجد توزيعات سابقة لـ {beneficiary.name}</p>
@@ -90,7 +90,7 @@ const DistributionHistory = ({ beneficiary }: Props) => {
   }
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <History className="w-4 h-4" />

@@ -236,7 +236,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
     <div className="space-y-5">
       {/* بطاقات الملخص */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Banknote className="w-5 h-5 text-primary" />
@@ -247,7 +247,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-success" />
@@ -258,7 +258,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
               <TrendingDown className="w-5 h-5 text-destructive" />
@@ -269,7 +269,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
               <FileWarning className="w-5 h-5 text-warning" />
@@ -283,7 +283,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
       </div>
 
       {/* شريط التحصيل العام */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">معدل التحصيل العام</span>
@@ -329,7 +329,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
       </div>
 
       {/* جدول التفاصيل */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-0">
           {filteredRows.length === 0 ? (
             <div className="py-12 text-center">
@@ -341,7 +341,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
               {/* Mobile Cards */}
               <div className="space-y-3 md:hidden px-3 py-2">
                 {filteredRows.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map(row => (
-                  <Card key={row.contract.id} className={`shadow-sm ${row.overdue > 0 ? 'border-destructive/30' : ''}`}>
+                  <Card key={row.contract.id} className={`shadow-xs ${row.overdue > 0 ? 'border-destructive/30' : ''}`}>
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>

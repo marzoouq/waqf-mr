@@ -21,7 +21,7 @@ const MyShareSummaryCards = ({
 }: Props) => (
   <div className={`grid grid-cols-2 ${advancesEnabled ? 'lg:grid-cols-5' : 'sm:grid-cols-4'} gap-3 sm:gap-4`}>
     {/* نسبة الحصة */}
-    <Card className="shadow-sm border-primary/20">
+    <Card className="shadow-xs border-primary/20">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -36,7 +36,7 @@ const MyShareSummaryCards = ({
     </Card>
 
     {/* الحصة المستحقة */}
-    <Card className="shadow-sm gradient-primary text-primary-foreground">
+    <Card className="shadow-xs gradient-primary text-primary-foreground">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -55,7 +55,7 @@ const MyShareSummaryCards = ({
     </Card>
 
     {/* المبالغ المستلمة */}
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -70,7 +70,7 @@ const MyShareSummaryCards = ({
     </Card>
 
     {/* المبالغ المعلقة */}
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="w-9 h-9 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -86,7 +86,7 @@ const MyShareSummaryCards = ({
 
     {/* السُلف المصروفة */}
     {advancesEnabled && (
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-3 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
             <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">

@@ -230,7 +230,7 @@ const AiAssistant = () => {
               {(Object.entries(MODE_CONFIG) as [ChatMode, typeof MODE_CONFIG['chat']][]).map(([key, cfg]) => {
                 const Icon = cfg.icon;
                 return (
-                  <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-sm" disabled={isLoading}>
+                  <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-xs" disabled={isLoading}>
                     <Icon className="w-3 h-3" />
                     {cfg.label}
                   </TabsTrigger>

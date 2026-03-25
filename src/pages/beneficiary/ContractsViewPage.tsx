@@ -22,7 +22,7 @@ import { fmt } from '@/utils/format';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline-solid' }> = {
   active: { label: 'نشط', variant: 'default' },
   expired: { label: 'منتهي', variant: 'destructive' },
   cancelled: { label: 'ملغي', variant: 'secondary' },
@@ -87,7 +87,7 @@ const ContractsViewPage = () => {
       <DashboardLayout>
         <div className="p-4 md:p-6 space-y-6">
           <PageHeaderCard title="العقود" icon={FileText} description="عرض عقود الإيجار" />
-          <Card className="shadow-sm border-destructive/30 bg-destructive/5">
+          <Card className="shadow-xs border-destructive/30 bg-destructive/5">
             <CardContent className="p-6 flex flex-col items-center justify-center gap-3 min-h-[30vh]">
               <AlertCircle className="w-12 h-12 text-destructive" />
               <h2 className="text-lg font-bold text-foreground">حدث خطأ أثناء تحميل العقود</h2>

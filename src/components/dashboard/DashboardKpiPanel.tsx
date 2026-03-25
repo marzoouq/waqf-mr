@@ -25,7 +25,7 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
   if (isLoading) return <KpiSkeleton />;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Gauge className="w-5 h-5" />

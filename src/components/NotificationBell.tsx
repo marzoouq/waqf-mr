@@ -99,13 +99,13 @@ const NotificationBell = () => {
                       notif.link && 'cursor-pointer'
                     )}
                   >
-                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5', colorClass)}>
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5', colorClass)}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate">{notif.title}</p>
-                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
+                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-primary shrink-0" />}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
                       <p className="text-xs text-muted-foreground/60 mt-1">

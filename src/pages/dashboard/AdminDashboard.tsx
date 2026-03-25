@@ -257,7 +257,7 @@ const AdminDashboard = () => {
 
         {/* إجراءات سريعة */}
         {(role === 'accountant' || role === 'admin') && (
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="w-5 h-5" />
@@ -382,7 +382,7 @@ const AdminDashboard = () => {
         {allFiscalYears.length >= 2 ? (
           <ErrorBoundary>
             <Suspense fallback={<ChartSkeleton />}>
-              <Card className="shadow-sm">
+              <Card className="shadow-xs">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ArrowUpDown className="w-5 h-5" />
@@ -399,7 +399,7 @@ const AdminDashboard = () => {
             </Suspense>
           </ErrorBoundary>
         ) : (
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ArrowUpDown className="w-5 h-5" />

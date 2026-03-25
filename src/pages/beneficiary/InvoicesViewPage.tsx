@@ -46,7 +46,7 @@ const InvoicesViewPage = () => {
     );
   });
 
-  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline' => {
+  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline-solid' => {
     if (status === 'paid') return 'default';
     if (status === 'cancelled' || status === 'overdue') return 'destructive';
     return 'secondary';
@@ -136,7 +136,7 @@ const InvoicesViewPage = () => {
               ) : (
                 <>
                   {filteredInvoices.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((item) => (
-                    <Card key={item.id} className="shadow-sm">
+                    <Card key={item.id} className="shadow-xs">
                       <CardContent className="p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-sm">{INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</span>
@@ -170,7 +170,7 @@ const InvoicesViewPage = () => {
             </div>
 
             {/* Desktop: جدول */}
-            <Card className="shadow-sm hidden md:block">
+            <Card className="shadow-xs hidden md:block">
               <CardContent className="p-0">
                 {isLoading ? (
                   <div className="p-4"><TableSkeleton rows={5} cols={5} /></div>

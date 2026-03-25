@@ -96,7 +96,7 @@ const LogoManager = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden flex-shrink-0">
+          <div className="w-24 h-24 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted/30 overflow-hidden shrink-0">
             {logoUrl ? (
               <img
                 src={logoUrl}

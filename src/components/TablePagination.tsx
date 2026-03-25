@@ -44,7 +44,7 @@ const TablePagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }
               <span key={page} className="flex items-center">
                 {showEllipsis && <span className="px-1 text-muted-foreground">...</span>}
                 <Button
-                  variant={currentPage === page ? 'default' : 'outline'}
+                  variant={currentPage === page ? 'default' : 'outline-solid'}
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => onPageChange(page)}

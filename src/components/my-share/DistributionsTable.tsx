@@ -33,7 +33,7 @@ interface Props {
 }
 
 const DistributionsTable = ({ distributions }: Props) => (
-  <Card className="shadow-sm">
+  <Card className="shadow-xs">
     <CardHeader>
       <CardTitle>سجل التوزيعات</CardTitle>
     </CardHeader>

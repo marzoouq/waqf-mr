@@ -73,7 +73,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
             <div className={cn('h-1', config.bg.replace('/10', ''))} />
 
             {/* منطقة المصغر / الأيقونة */}
-            <div className="h-28 bg-gradient-to-b from-muted/40 to-muted/10 flex items-center justify-center relative overflow-hidden">
+            <div className="h-28 bg-linear-to-b from-muted/40 to-muted/10 flex items-center justify-center relative overflow-hidden">
               {isImage(inv.file_name) && inv.file_path ? (
                 <div className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
                   <ImageIcon className="h-8 w-8" />
@@ -88,7 +88,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1 shadow-sm"
+                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1 shadow-xs"
                   onClick={(e) => {
                     e.stopPropagation();
                     setViewerFile({ path: inv.file_path!, name: inv.file_name });

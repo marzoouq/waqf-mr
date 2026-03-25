@@ -39,7 +39,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Income vs Expenses Chart */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle>الدخل والمصروفات الشهرية</CardTitle>
         </CardHeader>
@@ -65,7 +65,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
       </Card>
 
       {/* Expense Distribution */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle>توزيع المصروفات</CardTitle>
         </CardHeader>

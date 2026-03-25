@@ -73,7 +73,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
   if (actions.length === 0) return null;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <ClipboardList className="w-5 h-5 text-warning" />
@@ -87,7 +87,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
           {actions.map((action, i) => (
             <div key={`${action.type}-${i}`} className="flex items-center justify-between gap-2 border rounded-lg p-3">
               <div className="min-w-0 flex-1 space-y-1">
-                <Badge variant={action.type === 'advance' ? 'default' : 'outline'} className="text-xs">
+                <Badge variant={action.type === 'advance' ? 'default' : 'outline-solid'} className="text-xs">
                   {action.label}
                 </Badge>
                 <p className="text-xs text-muted-foreground truncate">{action.detail}</p>
@@ -125,7 +125,7 @@ const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingAction
               {actions.map((action, i) => (
                 <TableRow key={`${action.type}-${i}`}>
                   <TableCell>
-                    <Badge variant={action.type === 'advance' ? 'default' : 'outline'} className="text-xs">
+                    <Badge variant={action.type === 'advance' ? 'default' : 'outline-solid'} className="text-xs">
                       {action.label}
                     </Badge>
                   </TableCell>

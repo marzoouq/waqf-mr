@@ -113,7 +113,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
           { icon: TrendingDown, color: 'destructive', label: 'متأخرة', value: summary.overdue, sub: `${fmt(summary.overdueAmount)} ر.س` },
           { icon: FileWarning, color: 'warning', label: 'نسبة التحصيل', value: `${summary.collectionRate.toFixed(0)}%`, sub: undefined },
         ].map(({ icon: Icon, color, label, value, sub }) => (
-          <Card key={label} className="shadow-sm">
+          <Card key={label} className="shadow-xs">
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`w-10 h-10 rounded-lg bg-${color}/10 flex items-center justify-center`}>
                 <Icon className={`w-5 h-5 text-${color}`} />
@@ -129,7 +129,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       </div>
 
       {/* شريط التحصيل */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">تقدم التحصيل</span>
@@ -214,7 +214,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       )}
 
       {/* الجدول */}
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-0">
           {sorted.length === 0 ? (
             <div className="py-12 text-center">
@@ -236,7 +236,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
                         <span className="text-xs text-muted-foreground">— {first?.contract?.tenant_name}</span>
                       </div>
                       {invs.map(inv => (
-                        <Card key={inv.id} className={`shadow-sm border-r-4 ${
+                        <Card key={inv.id} className={`shadow-xs border-r-4 ${
                           inv.status === 'paid' ? 'border-r-success/60' :
                           inv.status === 'overdue' ? 'border-r-destructive/60' :
                           inv.status === 'partially_paid' ? 'border-r-warning/60' : 'border-r-muted-foreground/30'

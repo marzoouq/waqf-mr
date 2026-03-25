@@ -23,7 +23,7 @@ const CarryforwardsTable = ({ carryforwards }: Props) => {
   if (carryforwards.length === 0) return null;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />

@@ -43,25 +43,25 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
   return (
     <div className="space-y-4 animate-slide-up">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><Building2 className="w-5 h-5 text-primary" /></div>
             <div><p className="text-xs text-muted-foreground">إجمالي العقارات</p><p className="text-xl font-bold">{summary.totalProperties}</p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-accent/50"><Layers className="w-5 h-5 text-accent-foreground" /></div>
             <div><p className="text-xs text-muted-foreground">إجمالي الوحدات</p><p className="text-xl font-bold">{summary.totalUnitsCount}</p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-success/10"><div className="w-5 h-5 rounded-full bg-success" /></div>
             <div><p className="text-xs text-muted-foreground">مؤجرة</p><p className="text-xl font-bold text-success">{summary.totalRented}</p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-warning/10"><div className="w-5 h-5 rounded-full bg-warning" /></div>
             <div><p className="text-xs text-muted-foreground">شاغرة</p><p className="text-xl font-bold text-warning">{summary.totalVacant}</p></div>
@@ -70,25 +70,25 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10"><TrendingUp className="w-5 h-5 text-primary" /></div>
             <div><p className="text-xs text-muted-foreground">الإيرادات التعاقدية</p><p className="text-lg font-bold">{fmt(summary.contractualRevenue)} <span className="text-xs font-normal">ريال</span></p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-success/10"><CircleDollarSign className="w-5 h-5 text-success" /></div>
             <div><p className="text-xs text-muted-foreground">{summary.isClosed ? 'دخل السنة' : 'الدخل النشط'}</p><p className="text-lg font-bold text-success">{fmt(summary.activeIncome)} <span className="text-xs font-normal">ريال</span></p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-destructive/10"><Receipt className="w-5 h-5 text-destructive" /></div>
             <div><p className="text-xs text-muted-foreground">المصروفات</p><p className="text-lg font-bold">{fmt(summary.totalExpensesAll)} <span className="text-xs font-normal">ريال</span></p></div>
           </CardContent>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-muted"><Wallet className="w-5 h-5 text-foreground" /></div>
             <div><p className="text-xs text-muted-foreground">صافي الدخل</p><p className={`text-lg font-bold ${summary.netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(summary.netIncome)} <span className="text-xs font-normal">ريال</span></p></div>
@@ -96,7 +96,7 @@ const PropertySummaryCards = ({ summary, isLoading }: PropertySummaryCardsProps)
         </Card>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">نسبة الإشغال الإجمالية</span>

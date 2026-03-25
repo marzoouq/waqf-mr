@@ -19,7 +19,7 @@ const BeneficiaryCard = ({ beneficiary, onEdit, onDelete }: BeneficiaryCardProps
 
   return (
     <div className="space-y-2">
-      <Card className="shadow-sm hover:shadow-md transition-shadow">
+      <Card className="shadow-xs hover:shadow-md transition-shadow">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">

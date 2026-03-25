@@ -76,7 +76,7 @@ const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragD
                 <GripVertical className="w-4 h-4" />
               </div>
             )}
-            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-[3.5rem] justify-center">
+            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-14 justify-center">
               {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
             </Badge>
             {item.chapter_number && (
@@ -288,7 +288,7 @@ const BylawsPage = () => {
         {/* Warning if not published */}
         {!isPublished && (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-warning/40 bg-warning/5 text-warning text-sm">
-            <Lock className="w-5 h-5 flex-shrink-0" />
+            <Lock className="w-5 h-5 shrink-0" />
             <span>اللائحة التنظيمية <strong>محجوبة</strong> حالياً عن المستفيدين. قم بتفعيل النشر أدناه لإتاحتها.</span>
           </div>
         )}

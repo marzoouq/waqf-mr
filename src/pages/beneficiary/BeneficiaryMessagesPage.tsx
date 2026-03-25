@@ -142,17 +142,17 @@ const BeneficiaryMessagesPage = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4">
-          <Button variant={activeTab === 'chat' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
+          <Button variant={activeTab === 'chat' ? 'default' : 'outline-solid'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
             <MessageSquare className="w-4 h-4 ml-1" /> المحادثات
           </Button>
-          <Button variant={activeTab === 'support' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
+          <Button variant={activeTab === 'support' ? 'default' : 'outline-solid'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
             <Headphones className="w-4 h-4 ml-1" /> الدعم الفني
           </Button>
         </div>
 
         <div className="flex-1 flex gap-4 min-h-0">
           {/* Conversations List */}
-          <Card className={cn('w-full md:w-72 flex-shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
+          <Card className={cn('w-full md:w-72 shrink-0 flex flex-col', selectedConv && 'hidden md:flex')}>
             <ScrollArea className="flex-1">
               {conversations.length === 0 ? (
                 <div className="p-6 text-center text-muted-foreground text-sm">

@@ -15,7 +15,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
     return (
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="shadow-sm">
+          <Card key={i} className="shadow-xs">
             <CardContent className="p-3 sm:p-4 space-y-2">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-7 w-24" />
@@ -90,7 +90,7 @@ const InvoiceSummaryCards = ({ invoices, isLoading }: InvoiceSummaryCardsProps) 
       {cards.map((card, i) => {
         const Icon = card.icon;
         return (
-          <Card key={i} className={cn('shadow-sm border transition-colors', card.border)}>
+          <Card key={i} className={cn('shadow-xs border transition-colors', card.border)}>
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">

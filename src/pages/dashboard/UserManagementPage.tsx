@@ -21,7 +21,7 @@ const UserManagementPage = () => {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         {/* إعداد التسجيل العام */}
-        <Card className="shadow-sm border-dashed">
+        <Card className="shadow-xs border-dashed">
           <CardContent className="flex items-center justify-between py-4 px-6">
             <div className="flex items-center gap-3">
               {mgmt.registrationEnabled ? <Unlock className="w-5 h-5 text-success" /> : <Lock className="w-5 h-5 text-destructive" />}

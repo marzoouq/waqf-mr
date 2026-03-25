@@ -131,7 +131,7 @@ const MySharePage = () => {
 
           {/* تنبيه السنة النشطة */}
           {!isClosed && (
-            <Card className="shadow-sm border-info/30 bg-info/5">
+            <Card className="shadow-xs border-info/30 bg-info/5">
               <CardContent className="p-4 flex items-start gap-3">
                 <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
                 <div>
@@ -146,7 +146,7 @@ const MySharePage = () => {
 
           {/* تنبيه الفروق المرحّلة */}
           {carryforwardBalance > 0 && (
-            <Card className="shadow-sm border-warning/30 bg-warning/5">
+            <Card className="shadow-xs border-warning/30 bg-warning/5">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
@@ -163,7 +163,7 @@ const MySharePage = () => {
           )}
 
           {/* رابط الإفصاح */}
-          <Card className="shadow-sm">
+          <Card className="shadow-xs">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">

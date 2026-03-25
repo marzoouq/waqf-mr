@@ -105,7 +105,7 @@ export function TreeBranch({
               <CollapsibleTrigger asChild>
                 <div className="cursor-pointer">
                   <div className="flex items-center gap-1">
-                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=closed]:rotate-90 rtl:group-data-[state=closed]:-rotate-90" />
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-data-[state=closed]:rotate-90 group-data-[state=closed]:rtl:-rotate-90" />
                     <div className="flex-1">
                       <CategoryRow
                         node={node}

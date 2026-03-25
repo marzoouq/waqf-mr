@@ -127,7 +127,7 @@ const Auth = () => {
             <span>لا يوجد اتصال بالإنترنت — تحقق من الشبكة وحاول مرة أخرى</span>
           </div>
         )}
-        <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-sm bg-card/95">
+        <Card className="shadow-elegant animate-slide-up border-border/50 backdrop-blur-xs bg-card/95">
           <CardHeader className="text-center space-y-5 pb-2">
             <div className="mx-auto w-20 h-20 gradient-gold rounded-2xl flex items-center justify-center shadow-gold animate-glow">
               <Building2 className="w-10 h-10 text-primary-foreground" />
@@ -176,7 +176,7 @@ const Auth = () => {
         {!isAppInstalled && (
           <Button
             variant="outline"
-            className="w-full mt-4 gap-2 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-accent"
+            className="w-full mt-4 gap-2 bg-card/80 backdrop-blur-xs border-border/50 hover:bg-accent"
             onClick={() => {
               if (installPrompt) {
                 installPrompt.prompt();

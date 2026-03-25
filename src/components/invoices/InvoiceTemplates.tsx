@@ -101,12 +101,12 @@ const statusLabel = (s: string) => {
     default: return s;
   }
 };
-const statusColor = (s: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+const statusColor = (s: string): 'default' | 'secondary' | 'destructive' | 'outline-solid' => {
   switch (s) {
     case 'paid': return 'default';
     case 'pending': return 'secondary';
     case 'overdue': return 'destructive';
-    default: return 'outline';
+    default: return 'outline-solid';
   }
 };
 
@@ -144,7 +144,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
   if (!data.sellerVatNumber) missingFields.push('الرقم الضريبي للبائع');
 
   return (
-    <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground" dir="rtl">
+    <div className="bg-white dark:bg-card border rounded-lg shadow-xs text-foreground" dir="rtl">
       {/* تحذير الحقول الناقصة */}
       {missingFields.length > 0 && (
         <div className="m-4 mb-0 flex items-start gap-2 bg-destructive/10 text-destructive border border-destructive/30 rounded-lg p-3 text-xs">
@@ -374,7 +374,7 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
   const qrData = generateQR(data, grandTotal, totalVat);
 
   return (
-    <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground max-w-md mx-auto" dir="rtl">
+    <div className="bg-white dark:bg-card border rounded-lg shadow-xs text-foreground max-w-md mx-auto" dir="rtl">
       {/* ترويسة مختصرة */}
       <div className="rounded-t-lg px-5 py-4 bg-accent/30 border-b-2 border-accent text-center space-y-1">
         <h2 className="text-base font-bold text-foreground">{data.sellerName}</h2>
@@ -458,7 +458,7 @@ export function TemplateSelector({ value, onChange }: { value: 'professional' | 
   return (
     <div className="flex gap-2 justify-center">
       <Button
-        variant={value === 'professional' ? 'default' : 'outline'}
+        variant={value === 'professional' ? 'default' : 'outline-solid'}
         size="sm"
         className="gap-1.5"
         onClick={() => onChange('professional')}
@@ -467,7 +467,7 @@ export function TemplateSelector({ value, onChange }: { value: 'professional' | 
         الاحترافي
       </Button>
       <Button
-        variant={value === 'simplified' ? 'default' : 'outline'}
+        variant={value === 'simplified' ? 'default' : 'outline-solid'}
         size="sm"
         className="gap-1.5"
         onClick={() => onChange('simplified')}

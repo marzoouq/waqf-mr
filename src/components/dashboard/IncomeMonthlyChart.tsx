@@ -83,7 +83,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
   const achievementRate = totalExpected > 0 ? Math.round((totalActual / totalExpected) * 100) : 0;
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">

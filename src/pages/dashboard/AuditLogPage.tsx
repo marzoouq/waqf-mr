@@ -376,7 +376,7 @@ const AuditLogPage = () => {
                                 : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
                           return (
                             <Collapsible key={log.id} open={expandedRows.has(log.id)} onOpenChange={() => toggleRow(log.id)}>
-                              <Card className="shadow-sm">
+                              <Card className="shadow-xs">
                                 <CollapsibleTrigger asChild>
                                   <CardContent className="p-3 space-y-2 cursor-pointer">
                                     <div className="flex items-center justify-between">

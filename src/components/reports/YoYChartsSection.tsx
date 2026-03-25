@@ -29,7 +29,7 @@ const YoYChartsSection = ({
 }: YoYChartsSectionProps) => (
   <>
     {/* مقارنة الدخل الشهري */}
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="text-sm sm:text-base">مقارنة الدخل الشهري</CardTitle>
       </CardHeader>
@@ -51,7 +51,7 @@ const YoYChartsSection = ({
     </Card>
 
     {/* مقارنة صافي الدخل الشهري */}
-    <Card className="shadow-sm">
+    <Card className="shadow-xs">
       <CardHeader>
         <CardTitle className="text-sm sm:text-base">مقارنة صافي الدخل الشهري</CardTitle>
       </CardHeader>
@@ -74,7 +74,7 @@ const YoYChartsSection = ({
 
     {/* توزيع المصروفات */}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <Badge variant="outline">{year1Label}</Badge>
@@ -100,7 +100,7 @@ const YoYChartsSection = ({
           )}
         </CardContent>
       </Card>
-      <Card className="shadow-sm">
+      <Card className="shadow-xs">
         <CardHeader>
           <CardTitle className="text-sm sm:text-base flex items-center gap-2">
             <Badge variant="secondary">{year2Label}</Badge>

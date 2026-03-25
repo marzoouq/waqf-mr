@@ -128,7 +128,7 @@ const Index = () => {
           <div className="text-center max-w-4xl mx-auto">
             <div className="mb-10">
               {waqfInfo?.waqf_logo_url ? (
-                <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <div className="mx-auto w-24 h-24 rounded-3xl overflow-hidden shadow-gold animate-glow mb-8 bg-white/10 backdrop-blur-xs flex items-center justify-center">
                   <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-20 h-20 object-contain" loading="eager" />
                 </div>
               ) : (
@@ -137,9 +137,9 @@ const Index = () => {
                 </div>
               )}
               <div className="flex items-center justify-center gap-4 mb-8">
-                <div className="h-px w-16 bg-gradient-to-l from-secondary/60 to-transparent" />
+                <div className="h-px w-16 bg-linear-to-l from-secondary/60 to-transparent" />
                 <Star className="w-4 h-4 text-secondary fill-secondary/30" />
-                <div className="h-px w-16 bg-gradient-to-r from-secondary/60 to-transparent" />
+                <div className="h-px w-16 bg-linear-to-r from-secondary/60 to-transparent" />
               </div>
               <h1 className="font-arabic text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                 {content.hero_title}
@@ -200,7 +200,7 @@ const Index = () => {
                 style={{ animationDelay: `${index * 100 + 200}ms` }}
               >
                 <CardHeader className="p-6 md:p-8">
-                  <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-xs">
                     <feature.icon className="w-7 h-7 text-primary-foreground" />
                   </div>
                   <CardTitle className="text-lg font-bold text-card-foreground mb-2">
@@ -216,7 +216,7 @@ const Index = () => {
         </div>
       </section>
       <section className="py-16 gradient-primary pattern-islamic relative overflow-hidden" aria-label="دعوة للبدء">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-primary/20" aria-hidden="true" />
         <div className="container mx-auto px-4 text-center relative z-10">
           <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
             {content.cta_section_title}
