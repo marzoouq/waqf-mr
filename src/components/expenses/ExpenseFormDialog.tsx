@@ -80,7 +80,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
             </div>
           )}
 
-          <div className="space-y-2"><Label>التاريخ *</Label><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-2">التاريخ *</Label><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
             <Label htmlFor="expense-form-dialog-select-2">العقار (اختياري)</Label>
             <NativeSelect id="expense-form-dialog-select-2" value={formData.property_id}
