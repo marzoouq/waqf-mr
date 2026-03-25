@@ -15,6 +15,7 @@ import { AppRole } from '@/types/database';
 import { logger } from '@/lib/logger';
 import { getSafeErrorMessage } from '@/utils/safeErrorMessage';
 import { clearSlowQueries } from '@/lib/performanceMonitor';
+import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker';
 import { queryClient } from '@/lib/queryClient';
 import { clearToasts, toast } from '@/hooks/ui/use-toast';
 import { AuthContext } from '@/hooks/auth/useAuthContext';
@@ -224,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch { /* storage unavailable */ }
       try { sessionStorage.removeItem('nidLockedUntil'); } catch { /* silent */ }
       clearSlowQueries();
+      clearPageLoadEntries();
       clearToasts();
     }
   };

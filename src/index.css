@@ -349,6 +349,10 @@
     display: none !important;
   }
 
+  [data-sensitive] {
+    visibility: hidden !important;
+  }
+
   .fixed:not([role="dialog"]):not(:has([role="dialog"])) {
     display: none !important;
   }
