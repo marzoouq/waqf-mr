@@ -108,7 +108,10 @@ const AdminDashboard = () => {
   const isLoading = propsLoading || contractsLoading || unitsLoading || paymentsLoading || finLoading || fyListLoading;
 
   const { isSpecificYear } = useFiscalYear();
-  const relevantContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
+  const relevantContracts = useMemo(
+    () => isSpecificYear ? contracts : contracts.filter(c => c.status === 'active'),
+    [contracts, isSpecificYear]
+  );
   const activeContractsCount = relevantContracts.length;
   const contractualRevenue = useMemo(() => {
     if (isSpecificYear && contractAllocations.length > 0) {
