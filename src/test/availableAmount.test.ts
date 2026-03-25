@@ -17,6 +17,7 @@ describe('availableAmount – توحيد الحسابات في صفحات الم
     waqifPercent: 5,
     waqfCorpusManual: 174_388.543,
     manualDistributions: 0,
+    isClosed: true,
   };
 
   it('availableAmount = waqfRevenue - waqfCorpusManual', () => {

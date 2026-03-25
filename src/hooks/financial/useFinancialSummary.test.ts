@@ -115,6 +115,7 @@ describe('useFinancialSummary – تكامل مع حساب مخزن', () => {
       waqifPercent: 5,
       waqfCorpusManual: 174_388.543,
       manualDistributions: 1_024_426.89,
+      isClosed: true,
     });
 
     // الحساب الديناميكي يجب أن يطابق المخزن

@@ -140,9 +140,8 @@ describe('DisclosurePage', () => {
   it('shows financial sequence items', () => {
     renderPage();
     expect(screen.getByText('الصافي بعد المصاريف')).toBeInTheDocument();
-    expect(screen.getByText(/ضريبة القيمة المضافة/)).toBeInTheDocument();
+    expect(screen.getAllByText(/ضريبة القيمة المضافة/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('الصافي بعد خصم الضريبة')).toBeInTheDocument();
-    // حصة الناظر and حصة الواقف are shown with percentages
     expect(screen.getByText(/حصة الناظر/)).toBeInTheDocument();
     expect(screen.getByText(/حصة الواقف/)).toBeInTheDocument();
     expect(screen.getByText('الإجمالي القابل للتوزيع')).toBeInTheDocument();

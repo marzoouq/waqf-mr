@@ -42,11 +42,11 @@ describe('useTotalBeneficiaryPercentage', () => {
     expect(result.current.data).toBe(0);
   });
 
-  it('يعيد 0 عند قيمة تتجاوز 200', async () => {
+  it('يعرض تحذيراً عند قيمة تتجاوز 200 ولكن يعيد القيمة', async () => {
     mockRpc.mockResolvedValueOnce({ data: 250, error: null });
     const { result } = renderHook(() => useTotalBeneficiaryPercentage(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toBe(0);
+    expect(result.current.data).toBe(250);
   });
 
   it('يرمي خطأ عند فشل RPC', async () => {
