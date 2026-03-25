@@ -32,6 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const lastUserIdRef = useRef<string | null>(null);
   // إصلاح stale closure: roleRef يقرأ القيمة الحالية دائماً
   const roleRef = useRef<AppRole | null>(null);
+  // مرجع لـ timeout شبكة أمان signIn — يُلغى عند وصول الحدث أو signOut
+  const signInTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearSignInTimeout = useCallback(() => {
+    if (signInTimeoutRef.current) {
+      clearTimeout(signInTimeoutRef.current);
+      signInTimeoutRef.current = null;
+    }
+  }, []);
 
   const setRoleWithRef = useCallback((newRole: AppRole | null) => {
     roleRef.current = newRole;
