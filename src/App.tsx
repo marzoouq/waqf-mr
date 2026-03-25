@@ -12,6 +12,11 @@ import { Suspense, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { usePagePerformance } from "@/hooks/ui/usePagePerformance";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { setPerformanceToast } from "@/lib/performanceMonitor";
+import { toast as sonnerToast } from "sonner";
+
+// ربط دالة التنبيه بمراقب الأداء
+setPerformanceToast((msg, opts) => sonnerToast.warning(msg, opts));
 
 /** مكوّن يتتبع أداء تحميل الصفحات */
 function PagePerformanceTracker() {
