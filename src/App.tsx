@@ -106,8 +106,20 @@ function DeferredRender({ children, delay = 3000 }: { children: React.ReactNode;
   if (!ready) return null;
   return <>{children}</>;
 }
+/** يحمّل AiAssistant فقط لأدوار admin/accountant لتوفير JS */
+function RoleGatedAiAssistant() {
+  const { role } = useAuth();
+  if (!role || !['admin', 'accountant'].includes(role)) return null;
+  return (
+    <DeferredRender>
+      <Suspense fallback={null}>
+        <AiAssistant />
+      </Suspense>
+    </DeferredRender>
+  );
+}
 
-function App() {
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
