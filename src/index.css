@@ -15,7 +15,7 @@
   }
 }
 
-@theme {
+@theme inline {
   --font-arabic: Tajawal, sans-serif;
   --font-display: Amiri, serif;
 
