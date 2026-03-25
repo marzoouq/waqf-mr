@@ -1,40 +1,43 @@
 
-# خطة معالجة نتائج التقارير الأمنية
 
-## ✅ تم تنفيذه
+# استبدال qrcode.react بـ img + generateQrDataUrl
 
-| البند | التاريخ |
+## الهدف
+حذف مكتبة `qrcode.react` واستخدام `generateQrDataUrl` من `src/utils/zatcaQr.ts` (مكتبة `qrcode`) لتوليد صورة QR كـ `<img>` بدلاً من `<QRCodeSVG>`. هذا يوحّد المكتبتين في واحدة.
+
+## الملفات المتأثرة
+
+| الملف | التغيير |
 |---|---|
-| signIn safety timeout (8s) | 25 مارس 2026 |
-| PWA manifest purpose split | 25 مارس 2026 |
-| ErrorBoundary chunk patterns | 25 مارس 2026 |
-| CORS explicit rejection | 25 مارس 2026 |
-| ExpenseBudgetBar useMemo merge | 25 مارس 2026 |
-| queryClient retry → 2 | 25 مارس 2026 |
-| UUID leak fix | 25 مارس 2026 |
-| ترقية supabase-js → ^2.100.0 | 25 مارس 2026 |
-| ترقية react-query → أحدث patch | 25 مارس 2026 |
-| حذف bun.lock من المستودع | 25 مارس 2026 |
-| **Pagination للرسائل (useInfiniteQuery)** | **25 مارس 2026** |
-| **تنظيف 37 تعليق إصلاح قديم (BUG-xx/INT-xx) من 13 ملف** | **25 مارس 2026** |
+| `src/components/invoices/InvoiceTemplates.tsx` | استبدال `QRCodeSVG` بـ `<img>` مع `useEffect`/`useState` لتوليد data URL |
+| `package.json` | حذف `qrcode.react` و `@types/qrcode.react` |
 
-## ⚠️ Tailwind v4 — تم التراجع
+## التفاصيل التقنية
 
-محاولة الترقية لـ v4 فشلت وتم التراجع الكامل لـ v3.4.17. المشروع مستقر على v3.
+### 1. تعديل `InvoiceTemplates.tsx`
 
-## ⏸️ مؤجل
+- حذف `import { QRCodeSVG } from 'qrcode.react'`
+- إضافة `import { generateQrDataUrl } from '@/utils/zatcaQr'`
+- إنشاء مكوّن داخلي `QrImage` يستخدم `useState` + `useEffect` لتوليد صورة QR:
 
-| البند | السبب |
-|---|---|
-| React 19.2 | الإصدار غير موجود حالياً — آخر مستقر 19.1 |
-| QR مكتبتان | يحتاج تحليل أين تُستخدم كل واحدة |
-| sourcemap: 'hidden' | يحتاج تكامل مع خدمة error tracking |
-| localStorage prefix | تغيير بنيوي يحتاج اختبار شامل |
+```tsx
+function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    generateQrDataUrl(data).then(setSrc);
+  }, [data]);
+  if (!src) return <div style={{ width: size, height: size }} className="animate-pulse bg-muted rounded" />;
+  return <img src={src} width={size} height={size} alt="QR Code" className={className} />;
+}
+```
 
-## ❌ مرفوض
+- استبدال 3 استخدامات لـ `<QRCodeSVG value={qrData} size={X} level="H" className="..." />` بـ `<QrImage data={qrData} size={X} className="..." />`
 
-| البند | السبب |
-|---|---|
-| .env خطر أمني | الملف يُدار تلقائياً — مفاتيح عامة فقط |
-| تدوير مفاتيح Supabase | غير مطلوب — anon key عام |
-| git filter-repo | لا أسرار حقيقية في التاريخ |
+### 2. حذف الحزمة
+- إزالة `qrcode.react` من `dependencies` في `package.json`
+
+## التأثير
+- توفير ~15-20KB gzipped من حجم الحزمة
+- توحيد على مكتبة `qrcode` واحدة فقط
+- الفرق البصري: PNG بدلاً من SVG (بدقة 300px كافية للعرض)
+
