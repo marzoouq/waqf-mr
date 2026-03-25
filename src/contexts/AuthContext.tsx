@@ -203,6 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    clearSignInTimeout();
     try {
       await supabase.auth.signOut();
     } catch (err) {
