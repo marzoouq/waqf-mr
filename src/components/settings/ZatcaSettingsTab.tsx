@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History } from 'lucide-react';
+import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useZatcaSettings } from '@/hooks/page/useZatcaSettings';
 import ZatcaOperationsLog from './ZatcaOperationsLog';
@@ -23,9 +23,9 @@ const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
 
 const ZatcaSettingsTab = () => {
   const {
-    isLoading, formData, setFormData, saving, onboardLoading,
+    isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
     connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
-    handleSave, handleSetupAndOnboard, handleTestConnection,
+    handleSave, handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
   } = useZatcaSettings();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
@@ -378,6 +378,32 @@ const ZatcaSettingsTab = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              {/* زر تجديد الشهادة — يظهر فقط عند وجود شهادة إنتاج نشطة */}
+              {activeCert && activeCert.certificate_type === 'production' && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" disabled={renewLoading} className="gap-2">
+                      {renewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                      تجديد الشهادة
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>🔄 تجديد شهادة الإنتاج</AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2">
+                        <p>سيتم توليد شهادة إنتاج جديدة واستبدال الشهادة الحالية.</p>
+                        <p>تأكد من إدخال رمز OTP جديد (الحقل الثاني) من بوابة فاتورة قبل المتابعة.</p>
+                        <p className="text-destructive font-medium">⚠️ الشهادة الحالية ستتوقف عن العمل فور نجاح التجديد.</p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-2">
+                      <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleRenewCertificate}>تأكيد التجديد</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </TabsContent>
         </Tabs>
