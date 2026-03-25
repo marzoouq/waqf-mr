@@ -349,6 +349,7 @@ describe('حالات حدية للحسابات المالية', () => {
       waqifPercent: 5,
       waqfCorpusManual: 20_000_000,
       manualDistributions: 50_000_000,
+      isClosed: true,
     });
     expect(r.grandTotal).toBeCloseTo(1_049_999_999.99, 2);
     expect(r.shareBase).toBeCloseTo(894_999_999.99, 2);
