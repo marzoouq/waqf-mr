@@ -74,7 +74,7 @@ const WaqifDashboard = lazyWithRetry(() => import("./pages/beneficiary/WaqifDash
 const BeneficiarySupportPage = lazyWithRetry(() => import("./pages/beneficiary/SupportPage"));
 const AnnualReportViewPage = lazyWithRetry(() => import("./pages/beneficiary/AnnualReportViewPage"));
 
-// AI Assistant & Security - Lazy loaded
+// AI Assistant (admin/accountant فقط) & Security - Lazy loaded
 const AiAssistant = lazyWithRetry(() => import("./components/AiAssistant"));
 const SecurityGuard = lazyWithRetry(() => import("./components/SecurityGuard"));
 const PwaUpdateNotifier = lazyWithRetry(() => import("./components/PwaUpdateNotifier"));
