@@ -18,7 +18,7 @@ import { ar } from 'date-fns/locale';
 
 const MessagesPage = () => {
   const { user, role } = useAuth();
-  // G5 fix: الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
+  // الأدمين يرى كل الأنواع، المحاسب يرى chat فقط
   const { data: conversations = [] } = useConversations(role === 'admin' ? undefined : 'chat');
   const { data: beneficiaries = [] } = useBeneficiaries();
   const sendMessage = useSendMessage();
