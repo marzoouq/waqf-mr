@@ -50,7 +50,42 @@ async function logZatcaOperation(
   }
 }
 
-// ─── ASN.1 DER Encoding Helpers ───
+// ─── استخراج تاريخ انتهاء صلاحية شهادة X.509 من BST ───
+function parseCertExpiry(base64Cert: string): string | null {
+  try {
+    const binary = atob(base64Cert);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    // البحث عن UTCTime (0x17) أو GeneralizedTime (0x18) — ثاني ظهور = notAfter
+    const times: string[] = [];
+    for (let i = 0; i < bytes.length - 2; i++) {
+      const tag = bytes[i];
+      if (tag !== 0x17 && tag !== 0x18) continue;
+      const len = bytes[i + 1];
+      if (len === undefined || len < 10 || len > 20) continue;
+      if (i + 2 + len > bytes.length) continue;
+
+      const timeStr = new TextDecoder().decode(bytes.slice(i + 2, i + 2 + len));
+      let iso: string;
+      if (tag === 0x17) {
+        // UTCTime: YYMMDDHHMMSSZ
+        const yy = parseInt(timeStr.slice(0, 2));
+        const year = yy >= 50 ? 1900 + yy : 2000 + yy;
+        iso = `${year}-${timeStr.slice(2, 4)}-${timeStr.slice(4, 6)}T${timeStr.slice(6, 8)}:${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}Z`;
+      } else {
+        // GeneralizedTime: YYYYMMDDHHMMSSZ
+        iso = `${timeStr.slice(0, 4)}-${timeStr.slice(4, 6)}-${timeStr.slice(6, 8)}T${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}:${timeStr.slice(12, 14)}Z`;
+      }
+      if (!isNaN(new Date(iso).getTime())) times.push(iso);
+      if (times.length >= 2) break;
+    }
+    return times.length >= 2 ? times[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 
 function asn1Length(len: number): Uint8Array {
   if (len < 128) return new Uint8Array([len]);
