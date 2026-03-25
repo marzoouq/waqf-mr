@@ -19,7 +19,7 @@ function getAllowedOrigin(req?: Request): string {
   ) {
     return origin;
   }
-  return ALLOWED_ORIGINS[0];
+  return ""; // رفض صريح — المتصفح يرفض الطلب عندما يختلف الـ origin عن الـ header
 }
 
 export function getCorsHeaders(req?: Request) {
