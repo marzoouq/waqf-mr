@@ -102,10 +102,11 @@ describe('calculateFinancials – التسلسل المالي الهرمي', () 
     expect(r.remainingBalance).toBe(0);
   });
 
-  it('isClosed افتراضي = true', () => {
+  it('isClosed افتراضي = false (سنة نشطة)', () => {
     const { isClosed: _, ...withoutClosed } = base;
     const r = calculateFinancials(withoutClosed);
-    expect(r.adminShare).toBe(8_800);
+    // الافتراضي false → الحصص صفرية
+    expect(r.adminShare).toBe(0);
   });
 });
 
