@@ -25,6 +25,7 @@ const ZatcaSettingsTab = () => {
   const {
     isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
     connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
+    certExpiryWarning,
     handleSave, handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
   } = useZatcaSettings();
 
