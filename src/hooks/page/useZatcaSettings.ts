@@ -42,6 +42,7 @@ export const useZatcaSettings = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [onboardLoading, setOnboardLoading] = useState(false);
+  const [renewLoading, setRenewLoading] = useState(false);
   const [connectionTest, setConnectionTest] = useState<ConnectionTestResult>({ loading: false, result: null });
 
   const { data: certificates = [] } = useQuery({
@@ -137,6 +138,33 @@ export const useZatcaSettings = () => {
     }
   };
 
+  // تجديد شهادة الإنتاج (API #5)
+  const handleRenewCertificate = async () => {
+    const otp = formData.zatca_otp_2?.trim() || formData.zatca_otp_1?.trim();
+    if (!otp) {
+      toast.error('رمز التفعيل OTP مطلوب للتجديد');
+      return;
+    }
+
+    setRenewLoading(true);
+    try {
+      await handleSave();
+      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'renew' } });
+      if (error) throw error;
+      if (data?.success) {
+        toast.success('تم تجديد شهادة الإنتاج بنجاح');
+      } else {
+        throw new Error(data?.error || 'فشل التجديد');
+      }
+      queryClient.invalidateQueries({ queryKey: ['zatca-certificates'] });
+      queryClient.invalidateQueries({ queryKey: ['zatca-operation-log'] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'فشل تجديد الشهادة');
+    } finally {
+      setRenewLoading(false);
+    }
+  };
+
   const handleTestConnection = async () => {
     setConnectionTest({ loading: true, result: null });
     try {
@@ -161,8 +189,8 @@ export const useZatcaSettings = () => {
   };
 
   return {
-    isLoading, formData, setFormData, saving, onboardLoading,
+    isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
     connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
-    handleSave, handleSetupAndOnboard, handleTestConnection,
+    handleSave, handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
   };
 };
