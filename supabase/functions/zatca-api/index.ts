@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
       const { data: otpRows } = await admin.from("app_settings").select("key, value")
         .in("key", ["zatca_otp_1"]);
       if (otpRows?.length) {
-        otp = otpRows[0].value || "";
+        otp = otpRows[0]?.value || "";
       }
       if (!otp) {
         otp = Deno.env.get("ZATCA_OTP") || "";
