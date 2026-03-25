@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import type jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { reshapeArabic as rs } from './arabicReshaper';
@@ -280,7 +280,8 @@ export const createPdfDocument = async (
   waqfInfo?: PdfWaqfInfo,
   options?: ConstructorParameters<typeof jsPDF>[0]
 ): Promise<PdfDocResult> => {
-  const doc = new jsPDF(options);
+  const { default: JsPDF } = await import('jspdf');
+  const doc = new JsPDF(options);
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
   const startY = await addHeader(doc, fontFamily, waqfInfo);
