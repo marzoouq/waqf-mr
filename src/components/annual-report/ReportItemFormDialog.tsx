@@ -75,9 +75,9 @@ const ReportItemFormDialog: React.FC<Props> = ({
         <div className="space-y-4 py-2">
           {sectionType === 'property_status' && properties && (
             <div className="space-y-1.5">
-              <Label>العقار</Label>
+              <Label htmlFor="report-item-property">العقار</Label>
               <Select value={propertyId} onValueChange={setPropertyId}>
-                <SelectTrigger><SelectValue placeholder="اختر العقار" /></SelectTrigger>
+                <SelectTrigger id="report-item-property"><SelectValue placeholder="اختر العقار" /></SelectTrigger>
                 <SelectContent>
                   {properties.map(p => (
                     <SelectItem key={p.id} value={p.id}>
