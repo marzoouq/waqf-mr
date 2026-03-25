@@ -66,6 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         logger.info('[Auth] onAuthStateChange:', event);
+        // إلغاء timeout شبكة الأمان عند وصول أي حدث مصادقة
+        clearSignInTimeout();
         lastUserIdRef.current = newUserId;
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
