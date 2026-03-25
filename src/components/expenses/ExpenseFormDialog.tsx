@@ -63,7 +63,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
               placeholder="اختر نوع المصروف"
             />
           </div>
-          <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-1">المبلغ (ر.س) *</Label><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
 
           {/* VAT Toggle */}
           {onVatChange && (
