@@ -20,7 +20,7 @@ async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Pr
   return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
 }
 
-import { getCorsHeaders } from "../_shared/cors.ts";
+
 
 // ─── تسجيل عمليات ZATCA في السجل التاريخي ───
 async function logZatcaOperation(
