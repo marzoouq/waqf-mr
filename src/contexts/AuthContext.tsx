@@ -183,7 +183,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     } else {
       // شبكة أمان: إذا لم يصل حدث onAuthStateChange خلال 8 ثوانٍ
-      setTimeout(() => setLoading(false), 8000);
+      clearSignInTimeout();
+      signInTimeoutRef.current = setTimeout(() => {
+        signInTimeoutRef.current = null;
+        setLoading(false);
+      }, 8000);
     }
     return { error };
   };
