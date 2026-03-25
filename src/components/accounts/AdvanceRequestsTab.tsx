@@ -175,7 +175,7 @@ const AdvanceRequestsTab = () => {
             <DialogTitle>رفض طلب السلفة</DialogTitle>
             <DialogDescription>يرجى إدخال سبب الرفض</DialogDescription>
           </DialogHeader>
-          <Textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="سبب الرفض..." />
+          <Textarea id="advance-requests-tab-field-1" value={rejectionReason} onChange={e => setRejectionReason(e.target.value)} placeholder="سبب الرفض..." />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectTarget(null)}>إلغاء</Button>
             <Button variant="destructive" onClick={handleReject} disabled={!rejectionReason.trim() || updateStatus.isPending}>تأكيد الرفض</Button>

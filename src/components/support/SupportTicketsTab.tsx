@@ -81,7 +81,7 @@ export default function SupportTicketsTab({
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative w-full sm:w-auto">
               <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
-              <Input placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-8 w-full sm:w-[180px]" />
+              <Input id="support-tickets-tab-field-1" placeholder="بحث بالعنوان أو الرقم..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-8 w-full sm:w-[180px]" />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-[calc(50%-0.25rem)] sm:w-[120px]"><SelectValue /></SelectTrigger>

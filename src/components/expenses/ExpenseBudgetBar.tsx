@@ -137,8 +137,7 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
                   {!isClosed && (
                     editingType === type ? (
                       <div className="flex items-center gap-1">
-                        <Input
-                          type="number"
+                        <Input id="expense-budget-bar-field-1" type="number"
                           value={editValue}
                           onChange={e => setEditValue(e.target.value)}
                           className="w-24 h-7 text-xs"

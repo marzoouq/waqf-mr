@@ -34,7 +34,7 @@ export default function SupportErrorsTab({ filteredErrors, errorSearch, setError
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute right-2.5 top-2.5 text-muted-foreground" />
-              <Input placeholder="بحث في الأخطاء..." value={errorSearch} onChange={e => setErrorSearch(e.target.value)} className="pr-8 w-[180px]" />
+              <Input id="support-errors-tab-field-1" placeholder="بحث في الأخطاء..." value={errorSearch} onChange={e => setErrorSearch(e.target.value)} className="pr-8 w-[180px]" />
             </div>
             <Button size="sm" variant="outline" onClick={onExport} disabled={filteredErrors.length === 0}>
               <Download className="w-4 h-4 ml-1" />

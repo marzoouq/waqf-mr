@@ -209,7 +209,7 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>اسم الشركة/المؤسسة <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="zatca-settings-tab-field-1">اسم الشركة/المؤسسة <span className="text-destructive">*</span></Label>
                   <p className="text-sm text-muted-foreground">يُقرأ من إعدادات الوقف (اسم الوقف)</p>
                 </div>
                 <div className="space-y-1.5">
@@ -258,7 +258,7 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-1.5 max-w-md">
-                  <Input value={formData.zatca_activity_code || ''} onChange={(e) => setFormData((p) => ({ ...p, zatca_activity_code: e.target.value }))} placeholder="مثال: 681001 — تأجير وإدارة العقارات المملوكة" dir="ltr" />
+                  <Input id="zatca-settings-tab-field-1" value={formData.zatca_activity_code || ''} onChange={(e) => setFormData((p) => ({ ...p, zatca_activity_code: e.target.value }))} placeholder="مثال: 681001 — تأجير وإدارة العقارات المملوكة" dir="ltr" />
                   <p className="text-xs text-muted-foreground">كود التصنيف الدولي ISIC — لنشاط التأجير العقاري عادةً: <code className="bg-muted px-1 rounded">681001</code></p>
                 </div>
               </CardContent>
@@ -296,7 +296,7 @@ const ZatcaSettingsTab = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-1.5 max-w-md">
-                  <Input value={formData.zatca_device_serial || ''} onChange={(e) => setFormData((p) => ({ ...p, zatca_device_serial: e.target.value }))} placeholder="1-WAQF|2-POS01|3-SN001" dir="ltr" className="font-mono" />
+                  <Input id="zatca-settings-tab-field-2" value={formData.zatca_device_serial || ''} onChange={(e) => setFormData((p) => ({ ...p, zatca_device_serial: e.target.value }))} placeholder="1-WAQF|2-POS01|3-SN001" dir="ltr" className="font-mono" />
                   <p className="text-xs text-muted-foreground">الصيغة: <code className="bg-muted px-1 rounded">1-اسم_المزود|2-الموديل|3-الرقم_التسلسلي</code></p>
                   {formData.zatca_device_serial && !DEVICE_SERIAL_REGEX.test(formData.zatca_device_serial.trim()) && (
                     <p className="text-xs text-destructive">⚠️ الصيغة غير صحيحة</p>
