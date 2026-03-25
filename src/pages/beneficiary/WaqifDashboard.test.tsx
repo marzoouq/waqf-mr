@@ -128,13 +128,11 @@ describe('WaqifDashboard', () => {
 
   it('يعرض البطاقات المالية بالقيم الصحيحة', async () => {
     await renderPage();
-    // عنوان بطاقة العقارات
-    expect(await screen.findByText('العقارات')).toBeInTheDocument();
-    // عدد المستفيدين
+    // العقارات تظهر في بطاقة الإحصاء + الوصول السريع
+    const propElements = await screen.findAllByText('العقارات');
+    expect(propElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('المستفيدون')).toBeInTheDocument();
-    // العقود النشطة
     expect(screen.getByText('العقود النشطة')).toBeInTheDocument();
-    // القابل للتوزيع
     expect(screen.getByText('القابل للتوزيع')).toBeInTheDocument();
   }, 15_000);
 
