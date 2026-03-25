@@ -1,72 +1,73 @@
 
 
-# خطة إصلاح نتائج الفحص الشامل
+# خطة معالجة نتائج التقرير الخارجي
 
-## تحليل الحالة الراهنة
+## تحليل الحالة الفعلية
 
-بعد مراجعة الكود الفعلي، إليك ما تم إصلاحه سابقاً وما يحتاج إصلاح:
+بعد فحص الكود الحالي، إليك الوضع الحقيقي لكل بند:
 
-- **البند 3 (ai-assistant User ID leak)**: ✅ **تم إصلاحه سابقاً** — السطر 75 يُظهر `"ai rate_limit check failed"` بدون UUID
-- **البند 4 (React.ReactNode)**: ⚪ **ليس خطأ حرجاً** — TypeScript يدعم `React.ReactNode` بدون استيراد صريح في مشاريع JSX transform الحديثة (Vite + React 19). هذا تحسين أسلوبي فقط.
+### بنود **تم إصلاحها سابقاً** — لا تحتاج عمل:
 
----
-
-## الإصلاحات المطلوبة (6 بنود)
-
-### الإصلاح 1 — `signIn` loading freeze (حرج)
-**الملف:** `src/contexts/AuthContext.tsx`
-
-إضافة safety timeout بعد نجاح تسجيل الدخول:
-```tsx
-if (error) {
-  setLoading(false);
-} else {
-  setTimeout(() => setLoading(false), 8000);
-}
-```
-
-### الإصلاح 2 — PWA Manifest `purpose` (حرج)
-**الملف:** `vite.config.ts`
-
-فصل الأيقونات إلى اثنتين منفصلتين بدلاً من `"any maskable"`:
-```typescript
-{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-{ src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-```
-
-### الإصلاح 3 — ErrorBoundary chunk patterns (متوسط)
-**الملف:** `src/components/ErrorBoundary.tsx`
-
-إضافة نمطين إضافيين لأخطاء Vite الحديثة:
-- `'Importing a module script failed'`
-- `'Unable to preload CSS'`
-
-### الإصلاح 4 — CORS رفض صريح (متوسط)
-**الملف:** `supabase/functions/_shared/cors.ts`
-
-تعديل `getAllowedOrigin` لإرجاع `""` (سلسلة فارغة) بدلاً من domain افتراضي عند origin غير معروف — هذا يجعل المتصفح يرفض الطلب صريحاً.
-
-### الإصلاح 5 — ExpenseBudgetBar useMemo (متوسط)
-**الملف:** `src/components/expenses/ExpenseBudgetBar.tsx`
-
-دمج 3 `useMemo` في واحد لتقليل إعادة الحساب.
-
-### الإصلاح 6 — queryClient retry count (متوسط)
-**الملف:** `src/lib/queryClient.ts`
-
-تغيير `failureCount < 1` إلى `failureCount < 2` لمنح محاولتين بدلاً من واحدة.
-
----
-
-## البنود المؤجلة (تحسينات مستقبلية — لا تُنفّذ الآن)
-
-| البند | السبب |
+| البند | الحالة |
 |---|---|
-| React.ReactNode imports | تحسين أسلوبي فقط، لا خطأ فعلي |
-| sourcemap: 'hidden' | يحتاج تكامل مع خدمة error tracking أولاً |
-| QR مكتبتان | يحتاج تحليل أين تُستخدم كل واحدة |
-| localStorage prefix | تغيير بنيوي يحتاج اختبار شامل |
-| DeferredRender delay | يحتاج قياس أداء على أجهزة حقيقية |
-| Tailwind v4 | ترقية كبيرة، ليست أولوية حالياً |
-| refreshRole state | تحسين UX بسيط |
+| `.env` في `.gitignore` | ✅ موجود بالفعل (سطر 27) — `.env` و `.env.*` مستبعدان |
+| `signIn` loading freeze | ✅ تم إصلاحه — safety timeout 8 ثوانٍ موجود (سطر 174) |
+| `bun.lock` في `.gitignore` | ✅ تم التعامل معه |
+| UUID leak في Edge Functions | ✅ تم إصلاحه سابقاً |
+
+### بنود تحتاج تنفيذ:
+
+**ملاحظة مهمة**: ملف `.env` في Lovable يُدار تلقائياً ولا يحتوي على أسرار حقيقية — فقط `VITE_SUPABASE_URL` و `VITE_SUPABASE_PUBLISHABLE_KEY` وهما مفاتيح عامة (anon key). هذا **ليس** خطراً أمنياً.
+
+---
+
+## الإصلاحات المقترحة (3 بنود فعلية)
+
+### 1. ترقية الحزم ذات الأولوية العالية
+**الملف:** `package.json`
+
+ترقية الحزم التالية:
+- `@supabase/supabase-js`: `^2.98.0` → `^2.100.0`
+- `@tanstack/react-query`: `^5.90.21` → أحدث patch
+
+> **ملاحظة**: ترقية `react`/`react-dom` من `19.1` → `19.2` تحتاج اختبار شامل أولاً. ترقية Tailwind v4 مؤجلة (تغيير بنيوي كبير).
+
+### 2. حذف `bun.lock` من المستودع
+إذا كان ملف `bun.lock` لا يزال موجوداً في المستودع (رغم إضافته لـ `.gitignore`)، يجب حذفه من Git tracking. هذا يحتاج commit عبر GitHub مباشرة.
+
+### 3. توثيق قرارات التأجيل
+تحديث `.lovable/plan.md` لتوثيق:
+- Tailwind v4: مؤجل — يحتاج إعادة كتابة `tailwind.config.ts`
+- React 19.2: مؤجل — يحتاج اختبار شامل
+- QR مكتبتان: مؤجل — يحتاج تحليل استخدام
+
+---
+
+## البنود المرفوضة / غير المطبقة
+
+| البند من التقرير | السبب |
+|---|---|
+| `.env` خطر أمني | ❌ **غير صحيح** في بيئة Lovable — الملف يُدار تلقائياً ويحتوي فقط على مفاتيح عامة (anon key) |
+| تدوير مفاتيح Supabase | ❌ غير مطلوب — المفاتيح العامة لا تحتاج تدوير |
+| `git filter-repo` | ❌ غير مطلوب — لا توجد أسرار حقيقية في التاريخ |
+| Tailwind v4 | ⏸️ مؤجل — تغيير بنيوي كبير، v3 لا يزال مدعوماً |
+
+---
+
+## ملخص
+
+```text
+╔══════════════════════════════════╦════════╗
+║ البند                            ║ الإجراء ║
+╠══════════════════════════════════╬════════╣
+║ .env أمان                        ║ ✅ آمن  ║
+║ signIn freeze                    ║ ✅ مُصلح ║
+║ bun.lock                         ║ ✅ مُعالج║
+║ ترقية supabase-js                ║ 🔧 تنفيذ ║
+║ ترقية react-query                ║ 🔧 تنفيذ ║
+║ حذف bun.lock من tracking         ║ 🔧 تنفيذ ║
+║ Tailwind v4                      ║ ⏸️ مؤجل ║
+║ React 19.2                       ║ ⏸️ مؤجل ║
+╚══════════════════════════════════╩════════╝
+```
 
