@@ -1886,6 +1886,7 @@ export type Database = {
       cron_auto_expire_contracts: { Args: never; Returns: undefined }
       cron_check_contract_expiry: { Args: never; Returns: undefined }
       cron_check_late_payments: { Args: never; Returns: undefined }
+      cron_check_slow_queries: { Args: never; Returns: undefined }
       cron_cleanup_old_notifications: { Args: never; Returns: undefined }
       cron_update_overdue_invoices: { Args: never; Returns: undefined }
       decrypt_pii: { Args: { p_encrypted: string }; Returns: string }
