@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (!roleData?.role) {
-      console.error("ai-assistant: failed to fetch role for user", userData.user.id);
+      console.error("ai-assistant: failed to fetch role for authenticated user");
       return new Response(
         JSON.stringify({ error: "لم يتم التعرف على صلاحياتك. يرجى التواصل مع الناظر." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
