@@ -204,6 +204,7 @@ export const useZatcaSettings = () => {
   return {
     isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
     connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
+    certExpiryWarning,
     handleSave, handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
   };
 };
