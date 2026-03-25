@@ -1,48 +1,27 @@
 
 
-# إصلاح نتائج الفحص الجنائي — الجولة الثانية
+# نتائج الفحص الأمني الشامل
 
-## تصحيحات على التقرير (مشاكل غير موجودة فعلاً)
+## ملخص
+تم تشغيل فحص أمني شامل على المشروع. أسفر عن **6 نتائج** — جميعها إما إيجابيات كاذبة (false positives) أو ملاحظات غير قابلة للاستغلال.
 
-| المشكلة المُبلّغة | الحالة الفعلية |
-|---|---|
-| CRITICAL-1: `check-contract-expiry` بدون auth guard | ✅ **مُصلح بالفعل** — سطر 37-73 يتحقق من `isServiceRole`، وإذا false يتحقق من JWT + دور admin، ويرجع 401/403 |
-| ISSUE-8: `abortControllerRef` لا يُلغى عند الإغلاق | ✅ **مُصلح بالفعل** — `useEffect(() => () => abortControllerRef.current?.abort(), [])` موجود بسطر 43-45 |
-| ISSUE-9: `useBfcacheSafeChannel` race condition | ✅ **صحيح** — `channelName` في dependency array |
-| QUALITY-5: `auth-email-hook` بدون HMAC | ✅ **محمي بالفعل** — يستخدم `verifyWebhookRequest` مع HMAC signature |
-| CRITICAL-2: migrations متضاربة | ✅ **آخر migration يسري** — الترتيب الزمني يضمن أن `REVOKE` هو النهائي |
+## تحليل النتائج
 
-## التغييرات المطلوبة فعلاً (4 إصلاحات)
+| # | النتيجة | الخطورة | التقييم |
+|---|---------|---------|---------|
+| 1-2 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | 🔴 خطأ | ✅ **تصميم مقصود** — `security_barrier=true` + `CASE WHEN has_role()` يقنّع PII. موثق في ذاكرة المشروع |
+| 3-4 | Missing RLS على العروض الآمنة | 🔴 خطأ | ✅ **إيجابية كاذبة** — Views لا تدعم RLS في PostgreSQL. الحماية عبر GRANT/REVOKE + تقنيع CASE WHEN |
+| 5 | Extension `pgcrypto` في public schema | 🟡 تحذير | ⚠️ **تحسين طفيف** — غير قابل للاستغلال لكن يُفضّل نقله |
+| 6 | تصعيد صلاحيات عبر `user_roles` | 🟡 تحذير | ✅ **إيجابية كاذبة** — لا توجد دوال SECURITY DEFINER تُدخل أدواراً بدون فحص. سياسات RESTRICTIVE تمنع الإدخال المباشر |
 
-### 1. ISSUE-6: إضافة `clearPageLoadEntries()` عند تسجيل الخروج
-- **الملف**: `src/contexts/AuthContext.tsx`
-- إضافة `import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker'`
-- استدعاء `clearPageLoadEntries()` في دالة `signOut()` بجانب `clearSlowQueries()` و `clearToasts()`
+## الإجراء الوحيد المقترح
 
-### 2. ISSUE-5: فحص تعقيد كلمة المرور في `guard-signup`
-- **الملف**: `supabase/functions/guard-signup/index.ts`
-- إضافة فحص بعد التحقق من الطول:
-```typescript
-const hasUpperOrDigit = /(?=.*[A-Z])|(?=.*\d)/.test(password);
-if (!hasUpperOrDigit) {
-  return error("كلمة المرور يجب أن تحتوي على حرف كبير أو رقم على الأقل");
-}
-```
+### نقل `pgcrypto` من public schema إلى extensions schema
+- **الملف**: migration جديد
+- **التغيير**: `DROP EXTENSION IF EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;`
+- **السبب**: أفضل ممارسة لعزل الإضافات عن schema التطبيق
+- **الخطر**: منخفض جداً — لكن يحتاج التأكد أن دوال `encrypt_pii`/`decrypt_pii` تُحدّث مراجعها
 
-### 3. QUALITY-2: إخفاء `[data-sensitive]` عند الطباعة
-- **الملف**: `src/index.css`
-- إضافة داخل `@media print` الموجود:
-```css
-[data-sensitive] {
-  visibility: hidden !important;
-}
-```
-
-### 4. QUALITY-1: تصحيح التوثيق
-- **الملف**: `docs/API.md` سطر 377
-- تغيير "بين 6 و 128" إلى "بين 8 و 128"
-
-## ملاحظات إضافية
-- **QUALITY-3** (`pg_stat_statements`): تحسين دفاعي لكن الـ extension مفعلة في Supabase Cloud افتراضياً — خطر منخفض جداً
-- **QUALITY-6** (`detectSessionInUrl`): لا يمكن تعطيلها بشكل عملي في Supabase — الـ fragment لا يُرسل للخادم أصلاً
+## الخلاصة
+المشروع في حالة أمنية ممتازة. جميع النتائج الحرجة المُبلّغة هي إيجابيات كاذبة ناتجة عن نمط `SECURITY DEFINER` المقصود. هل تريد تنفيذ نقل `pgcrypto` للـ extensions schema؟
 
