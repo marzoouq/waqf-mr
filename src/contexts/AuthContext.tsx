@@ -169,6 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
+    } else {
+      // شبكة أمان: إذا لم يصل onAuthStateChange خلال 8 ثوانٍ
+      setTimeout(() => setLoading(false), 8000);
     }
     return { error };
   };

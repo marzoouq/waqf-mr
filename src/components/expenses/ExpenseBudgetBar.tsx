@@ -49,28 +49,26 @@ const ExpenseBudgetBar = ({ expenses, fiscalYearId, isClosed }: ExpenseBudgetBar
     },
   });
 
-  // حساب المصروف الفعلي لكل فئة
-  const spentByType = useMemo(() => {
-    const map = new Map<string, number>();
+  // حساب المصروف الفعلي + الأنواع + خريطة الميزانيات في useMemo واحد
+  const { spentByType, allTypes, budgetMap } = useMemo(() => {
+    const spent = new Map<string, number>();
     expenses.forEach(e => {
-      map.set(e.expense_type, (map.get(e.expense_type) || 0) + safeNumber(e.amount));
+      spent.set(e.expense_type, (spent.get(e.expense_type) || 0) + safeNumber(e.amount));
     });
-    return map;
-  }, [expenses]);
 
-  // كل الأنواع (ميزانية + فعلي)
-  const allTypes = useMemo(() => {
     const types = new Set<string>();
     budgets.forEach(b => types.add(b.expense_type));
     expenses.forEach(e => types.add(e.expense_type));
-    return Array.from(types).sort();
-  }, [budgets, expenses]);
 
-  const budgetMap = useMemo(() => {
-    const map = new Map<string, BudgetRow>();
-    budgets.forEach(b => map.set(b.expense_type, b));
-    return map;
-  }, [budgets]);
+    const bMap = new Map<string, BudgetRow>();
+    budgets.forEach(b => bMap.set(b.expense_type, b));
+
+    return {
+      spentByType: spent,
+      allTypes: Array.from(types).sort(),
+      budgetMap: bMap,
+    };
+  }, [expenses, budgets]);
 
   // حفظ/تحديث ميزانية
   const saveBudget = useMutation({

@@ -471,7 +471,7 @@ Deno.serve(async (req) => {
     }
   } catch (error) {
     const msg = (error as Error).message;
-    console.error("admin-manage-users error:", msg);
+    console.error("admin-manage-users: request failed");
     // تعقيم رسالة الخطأ — لا نكشف تفاصيل DB الداخلية للمتصفح
     const safeMessages: Record<string, string> = {
       "email and password required": "البريد وكلمة المرور مطلوبان",
