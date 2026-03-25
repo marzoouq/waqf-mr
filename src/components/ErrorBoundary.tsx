@@ -64,7 +64,9 @@ class ErrorBoundary extends Component<Props, State> {
   private isChunkError(): boolean {
     const msg = this.state.error?.message ?? '';
     return msg.includes('Failed to fetch dynamically imported module') ||
-           msg.includes('Loading chunk');
+           msg.includes('Loading chunk') ||
+           msg.includes('Importing a module script failed') ||
+           msg.includes('Unable to preload CSS');
   }
 
   // تحديث التطبيق: مسح كاش الأصول + إعادة تحميل
