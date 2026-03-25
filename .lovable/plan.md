@@ -1,51 +1,65 @@
 
 
-# إضافة سمة `name` لجميع حقول Input المفقودة
+# إضافة `htmlFor` للعناصر `<Label>` المفقودة
 
-## الوضع الحالي
-- **103 حقل Input** في **11 ملف** تحتوي بالفعل على `name=`
-- **~400 حقل Input** في **~34 ملف** تفتقد سمة `name`
-- الحقول بدون `name` تستخدم معرّفات `id` مثل `"expense-form-dialog-field-1"` — وهي غير مفيدة للإكمال التلقائي
+## المشكلة
+142 عنصر `<Label>` بدون سمة `htmlFor` في 13 ملف — النقر عليها لا يُركّز الحقل المقابل.
 
-## المنهجية
-- لكل حقل Input بدون `name`، سيتم إضافة `name` بقيمة وصفية مناسبة بناءً على السياق (مثلاً `name="amount"`, `name="date"`, `name="tenant_name"`)
-- استخدام أسماء متوافقة مع معايير الإكمال التلقائي حيثما أمكن (مثل `email`, `password`, `name`, `tel`)
-- حقول البحث تأخذ `name="search"`، حقول التاريخ `name="date_from"` / `name="date_to"`
+## التصنيف
 
-## الملفات المتأثرة (~34 ملف)
+### حقول Input — يمكن ربطها مباشرة (إضافة `htmlFor` + `id` إن لزم)
 
-| المجموعة | الملفات | عدد الحقول التقريبي |
-|-----------|---------|---------------------|
-| الإعدادات | AppearanceTab, NotificationsTab, BulkNotificationsTab | ~5 |
-| المصروفات | ExpenseFormDialog | ~4 |
-| الفواتير | CreateInvoiceFromTemplate, InvoicesPage + مكونات فرعية | ~15 |
-| العقود | ContractsPage, ContractFormDialog + مكونات فرعية | ~20 |
-| إدارة المستخدمين | UserDialogs, CreateUserForm | ~5 |
-| الفلاتر | AdvancedFiltersBar | ~2 |
-| المحاسبة | AccountsCollectionTable | ~6 |
-| المستفيدين | BeneficiariesPage + مكونات فرعية | ~10 |
-| التوزيعات/الزكاة | DistributionsPage, ZakatPage | ~10 |
-| صفحات أخرى | MessagesPage, SupportDashboard, وغيرها | ~20+ |
+| الملف | السطر | Label | الربط المطلوب |
+|-------|-------|-------|---------------|
+| `ExpenseFormDialog.tsx` | 66 | المبلغ | `htmlFor="expense-form-dialog-field-1"` |
+| `ExpenseFormDialog.tsx` | 83 | التاريخ | `htmlFor="expense-form-dialog-field-2"` |
+| `ExpenseFormDialog.tsx` | 92 | الوصف | `htmlFor="expense-form-dialog-field-3"` |
+| `InvoicesPage.tsx` | 120 | رقم الفاتورة | إضافة `id="invoice-number"` + `htmlFor` |
+| `InvoicesPage.tsx` | 121 | المبلغ | إضافة `id="invoice-amount"` + `htmlFor` |
+| `InvoicesPage.tsx` | 124 | التاريخ | إضافة `id="invoice-date"` + `htmlFor` |
+| `InvoicesPage.tsx` | 138 | وصف | إضافة `id="invoice-description"` + `htmlFor` |
+| `ChartOfAccountsPage.tsx` | 274 | الكود | إضافة `id="chart-code"` + `htmlFor` |
+| `ChartOfAccountsPage.tsx` | 283 | الترتيب | إضافة `id="chart-sort"` + `htmlFor` |
+| `ChartOfAccountsPage.tsx` | 292 | اسم الحساب | إضافة `id="chart-name"` + `htmlFor` |
+| `ContractFormDialog.tsx` | 427 | ملاحظات | `htmlFor="contract-form-dialog-field-4"` |
+| `BeneficiaryFormDialog.tsx` | 94 | ملاحظات | إضافة `id="beneficiary-notes"` + `htmlFor` |
 
-## أمثلة على التسمية
+### حقول NativeSelect — يمكن ربطها (NativeSelect يدعم `id`)
 
-```
-// قبل
-<Input id="expense-form-dialog-field-1" type="number" value={formData.amount} .../>
+| الملف | السطر | Label | الربط المطلوب |
+|-------|-------|-------|---------------|
+| `IncomePage.tsx` | 220 | العقار | إضافة `id` على NativeSelect + `htmlFor` |
+| `InvoicesPage.tsx` | 126-127 | نوع الفاتورة | إضافة `id` + `htmlFor` |
+| `InvoicesPage.tsx` | 131-132 | العقار | إضافة `id` + `htmlFor` |
+| `InvoicesPage.tsx` | 135-136 | العقد | إضافة `id` + `htmlFor` |
 
-// بعد
-<Input id="expense-form-dialog-field-1" name="amount" type="number" value={formData.amount} .../>
-```
+### حقول Select (Radix) — لا يدعم `htmlFor` مباشرة
 
-```
-// قبل
-<Input id="advanced-filters-bar-field-1" type="date" value={filters.dateFrom} .../>
+هذه لا يمكن ربطها بسهولة عبر `htmlFor` لأن `Select` من Radix لا يكشف `id` على عنصر input أصلي. سنتركها كما هي (مذكورة في الذاكرة السابقة):
+- `BulkNotificationsTab.tsx` سطر 106
+- `ZatcaSettingsTab.tsx` سطر 275
+- `ChartOfAccountsPage.tsx` سطر 301، 318
+- `ReportItemFormDialog.tsx` سطر 78
 
-// بعد  
-<Input id="advanced-filters-bar-field-1" name="date_from" type="date" value={filters.dateFrom} .../>
-```
+### حالات خاصة — لا تحتاج `htmlFor`
 
-## ملاحظات
-- لا تغيير في السلوك الوظيفي — فقط تحسين تجربة المستخدم مع الإكمال التلقائي
-- حقول كلمة المرور والبريد ستُعطى أسماء قياسية (`password`, `email`) لتفعيل الإكمال التلقائي بشكل أفضل
+- `ContractFormDialog.tsx` سطر 153 (RadioGroup — Labels تعمل كأغلفة)
+- `ContractFormDialog.tsx` سطور 160-171, 253, 260, 264 (Labels تلف RadioGroupItem — تعمل بالفعل)
+- `WaqfInfoBar.tsx` سطر 208 (Label لمنطقة رفع ملف — لا حقل مباشر)
+- `BannerSettingsTab.tsx` سطور 63, 84, 117 (Labels لأزرار ألوان/مواقع/معاينة)
+- `InvoicesPage.tsx` سطر 92 (Label لمنطقة رفع ملف)
+
+## خطة التنفيذ
+
+### الملفات المطلوب تعديلها: 6 ملفات
+
+1. **`ExpenseFormDialog.tsx`** — إضافة `htmlFor` لـ 3 Labels (المبلغ، التاريخ، الوصف)
+2. **`InvoicesPage.tsx`** — إضافة `id` + `htmlFor` لـ 7 حقول (Input + NativeSelect)
+3. **`ChartOfAccountsPage.tsx`** — إضافة `id` + `htmlFor` لـ 3 حقول Input
+4. **`ContractFormDialog.tsx`** — إضافة `htmlFor` لـ Label الملاحظات
+5. **`BeneficiaryFormDialog.tsx`** — إضافة `id` + `htmlFor` لحقل الملاحظات
+6. **`IncomePage.tsx`** — إضافة `id` على NativeSelect + `htmlFor` على Label
+
+## ملاحظة
+حقول Radix `Select` (5 حالات) تبقى بدون ربط — تحتاج تغييراً في مكوّن Select نفسه وهو خارج نطاق هذه المهمة.
 
