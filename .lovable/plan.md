@@ -1,12 +1,25 @@
-## إصلاحات تقرير الفحص — مكتمل ✅
 
-### ما تم تنفيذه:
 
-1. **`signIn` safety timeout** — إضافة `setTimeout(8s)` عند النجاح لمنع بقاء `loading=true` إذا تأخر `onAuthStateChange`
-2. **إزالة `React` غير المستخدم** — استبدال `import React` بـ `import type { ReactNode }`
-3. **تنظيف console.log في Edge Functions** — إزالة `JSON.stringify(updError)` و `verifyBody` وتفاصيل PII من `admin-manage-users` و `auth-email-hook`
-4. **دمج `useMemo`** — دمج 3 `useMemo` منفصلة في واحدة في `ExpenseBudgetBar.tsx`
+## الخطة
 
-### خارج النطاق (يدوي):
-- `.gitignore` محمي — أضف `bun.lock` يدوياً
-- حذف `.env` و `bun.lock` من تاريخ Git: `git rm --cached .env bun.lock && git commit`
+### 1. إضافة `bun.lock` إلى `.gitignore` (تغيير في الكود)
+**الملف:** `.gitignore`
+
+إضافة `bun.lock` بجانب `bun.lockb` الموجودة:
+```
+# Bun lockfiles (not used — npm is preferred)
+bun.lockb
+bun.lock
+```
+
+### 2. حذف `.env` و `bun.lock` من تاريخ Git (يدوي)
+هذا **خارج نطاق Lovable** — يجب تنفيذه من Terminal على جهازك:
+
+```bash
+git rm --cached .env bun.lock
+git commit -m "chore: remove .env and bun.lock from tracking"
+git push
+```
+
+> ملاحظة: هذا يزيلهما من التتبع فقط. لحذفهما من **كامل التاريخ**، استخدم `git filter-repo` أو `BFG Repo-Cleaner`.
+
