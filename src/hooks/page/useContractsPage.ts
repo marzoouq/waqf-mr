@@ -289,14 +289,15 @@ export const useContractsPage = () => {
   }, [paymentInvoices]);
 
   const statusCounts = useMemo(() => {
-    let active = 0, expired = 0;
+    let active = 0, expired = 0, cancelled = 0;
     for (const [, group] of groupedContracts) {
       const latestStatus = group[0]!.status;
       if (latestStatus === 'active') active++;
+      else if (latestStatus === 'cancelled') cancelled++;
       else expired++;
     }
     const overdue = groupedContracts.filter(([, group]) => group.some(c => overdueContractIds.has(c.id))).length;
-    return { active, expired, all: groupedContracts.length, overdue };
+    return { active, expired, cancelled, all: groupedContracts.length, overdue };
   }, [groupedContracts, overdueContractIds]);
 
   // فلترة المجموعات
