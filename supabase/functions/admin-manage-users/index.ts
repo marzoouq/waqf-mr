@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
               },
             }).catch(() => { /* تجاهل أخطاء تسجيل الخروج */ });
           }
-          console.log("Password verify login SUCCESS");
+          console.log("update_password: verified");
         }
 
         return new Response(JSON.stringify({ success: true, verified: !!userEmail }), {
