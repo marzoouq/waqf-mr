@@ -38,7 +38,7 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-field-1" className="text-xs">رقم الوحدة *</Label>
-              <Input id="unit-form-card-field-1" value={form.unit_number} onChange={(e) => onChange({ ...form, unit_number: e.target.value })} placeholder="شقة 1" />
+              <Input name="unit_number" id="unit-form-card-field-1" value={form.unit_number} onChange={(e) => onChange({ ...form, unit_number: e.target.value })} placeholder="شقة 1" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-select-1" className="text-xs">النوع</Label>
@@ -50,7 +50,7 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-field-4" className="text-xs">المساحة (م²)</Label>
-              <Input id="unit-form-card-field-4" type="number" value={form.area ?? ''} onChange={(e) => onChange({ ...form, area: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="80" />
+              <Input name="area" id="unit-form-card-field-4" type="number" value={form.area ?? ''} onChange={(e) => onChange({ ...form, area: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="80" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-select-3" className="text-xs">الحالة</Label>
@@ -58,7 +58,7 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
             </div>
             <div className="space-y-1">
               <Label htmlFor="unit-form-card-field-6" className="text-xs">ملاحظات</Label>
-              <Input id="unit-form-card-field-6" value={form.notes || ''} onChange={(e) => onChange({ ...form, notes: e.target.value })} placeholder="ملاحظات" />
+              <Input name="notes" id="unit-form-card-field-6" value={form.notes || ''} onChange={(e) => onChange({ ...form, notes: e.target.value })} placeholder="ملاحظات" />
             </div>
           </div>
 
@@ -68,11 +68,11 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label htmlFor="unit-form-card-field-7" className="text-xs">اسم المستأجر *</Label>
-                  <Input id="unit-form-card-field-7" value={form.tenant_name || ''} onChange={(e) => onChange({ ...form, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
+                  <Input name="tenant_name" id="unit-form-card-field-7" value={form.tenant_name || ''} onChange={(e) => onChange({ ...form, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="unit-form-card-field-8" className="text-xs">قيمة الإيجار السنوي *</Label>
-                  <Input id="unit-form-card-field-8" type="number" value={form.rent_amount || ''} onChange={(e) => onChange({ ...form, rent_amount: e.target.value })} placeholder="50000" />
+                  <Input name="rent_amount" id="unit-form-card-field-8" type="number" value={form.rent_amount || ''} onChange={(e) => onChange({ ...form, rent_amount: e.target.value })} placeholder="50000" />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="unit-form-card-select-4" className="text-xs">نوع الدفع</Label>
@@ -81,16 +81,16 @@ const UnitFormCard = ({ form, onChange, onSubmit, onCancel, isEditing, isPending
                 {form.payment_type === 'multi' && (
                   <div className="space-y-1">
                     <Label htmlFor="unit-form-card-field-10" className="text-xs">عدد الدفعات</Label>
-                    <Input id="unit-form-card-field-10" type="number" value={form.payment_count || '1'} onChange={(e) => onChange({ ...form, payment_count: e.target.value })} placeholder="4" min="1" />
+                    <Input name="payment_count" id="unit-form-card-field-10" type="number" value={form.payment_count || '1'} onChange={(e) => onChange({ ...form, payment_count: e.target.value })} placeholder="4" min="1" />
                   </div>
                 )}
                 <div className="space-y-1">
                   <Label htmlFor="unit-form-card-field-11" className="text-xs">تاريخ بداية العقد *</Label>
-                  <Input id="unit-form-card-field-11" type="date" value={form.contract_start_date || ''} onChange={(e) => onChange({ ...form, contract_start_date: e.target.value })} />
+                  <Input name="contract_start_date" id="unit-form-card-field-11" type="date" value={form.contract_start_date || ''} onChange={(e) => onChange({ ...form, contract_start_date: e.target.value })} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="unit-form-card-field-12" className="text-xs">تاريخ نهاية العقد *</Label>
-                  <Input id="unit-form-card-field-12" type="date" value={form.contract_end_date || ''} onChange={(e) => onChange({ ...form, contract_end_date: e.target.value })} />
+                  <Input name="contract_end_date" id="unit-form-card-field-12" type="date" value={form.contract_end_date || ''} onChange={(e) => onChange({ ...form, contract_end_date: e.target.value })} />
                 </div>
               </div>
               {form.rent_amount && (

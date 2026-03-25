@@ -253,7 +253,7 @@ const GlobalSearch = () => {
             {/* حقل البحث */}
             <div className="flex items-center gap-2 p-3 border-b border-border">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
-              <Input id="global-search-field-1" ref={mobileInputRef}
+              <Input name="query" id="global-search-field-1" ref={mobileInputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="بحث في العقارات والعقود..."
@@ -292,7 +292,7 @@ const GlobalSearch = () => {
     <div ref={containerRef} className="relative">
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input id="global-search-field-2" ref={inputRef}
+        <Input name="query" id="global-search-field-2" ref={inputRef}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
           onFocus={() => setIsOpen(true)}

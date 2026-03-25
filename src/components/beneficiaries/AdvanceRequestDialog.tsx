@@ -159,7 +159,7 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
 
               <div className="space-y-2">
                 <Label htmlFor="advance-request-dialog-field-1">المبلغ المطلوب (ر.س)</Label>
-                <Input id="advance-request-dialog-field-1"
+                <Input name="amount" id="advance-request-dialog-field-1"
                   type="number"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}

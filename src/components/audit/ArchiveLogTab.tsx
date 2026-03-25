@@ -113,7 +113,7 @@ const ArchiveLogTab = () => {
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input id="archive-log-tab-field-1" placeholder="بحث بالبريد أو المسار..."
+          <Input name="searchQuery" id="archive-log-tab-field-1" placeholder="بحث بالبريد أو المسار..."
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="pr-9"

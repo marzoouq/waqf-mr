@@ -90,7 +90,7 @@ const ReportItemFormDialog: React.FC<Props> = ({
           )}
           <div className="space-y-1.5">
             <Label htmlFor="report-item-form-dialog-field-2">العنوان</Label>
-            <Input id="report-item-form-dialog-field-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان العنصر" />
+            <Input name="title" id="report-item-form-dialog-field-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان العنصر" />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="report-item-form-dialog-field-3">التفاصيل</Label>

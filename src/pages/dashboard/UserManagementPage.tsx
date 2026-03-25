@@ -74,7 +74,7 @@ const UserManagementPage = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative max-w-sm flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="بحث بالبريد الإلكتروني..." value={mgmt.userSearch} onChange={(e) => mgmt.setUserSearch(e.target.value)} className="pr-10" dir="ltr" />
+            <Input name="user_search" placeholder="بحث بالبريد الإلكتروني..." value={mgmt.userSearch} onChange={(e) => mgmt.setUserSearch(e.target.value)} className="pr-10" dir="ltr" />
           </div>
           <NativeSelect
             value={mgmt.roleFilter}

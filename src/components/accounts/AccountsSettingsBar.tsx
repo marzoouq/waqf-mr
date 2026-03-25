@@ -45,7 +45,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="accounts-settings-bar-field-1" className="text-sm whitespace-nowrap">السنة المالية:</Label>
-            <Input id="accounts-settings-bar-field-1"
+            <Input name="fiscalYear" id="accounts-settings-bar-field-1"
               value={fiscalYear}
               onChange={(e) => onFiscalYearChange(e.target.value)}
               className="h-8 w-52"
@@ -53,7 +53,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="accounts-settings-bar-field-2" className="text-sm whitespace-nowrap">نسبة الناظر (%):</Label>
-            <Input id="accounts-settings-bar-field-2"
+            <Input name="adminPercent" id="accounts-settings-bar-field-2"
               type="number"
               value={adminPercent}
               onChange={(e) => onAdminPercentChange(e.target.value)}
@@ -64,7 +64,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="accounts-settings-bar-field-3" className="text-sm whitespace-nowrap">نسبة الواقف (%):</Label>
-            <Input id="accounts-settings-bar-field-3"
+            <Input name="waqifPercent" id="accounts-settings-bar-field-3"
               type="number"
               value={waqifPercent}
               onChange={(e) => onWaqifPercentChange(e.target.value)}
@@ -77,7 +77,7 @@ const AccountsSettingsBar = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3 pt-3 border-t">
           <div className="space-y-1">
             <Label htmlFor="accounts-settings-bar-field-4" className="text-xs text-muted-foreground">رقبة وقف مرحّلة من عام سابق (ر.س)</Label>
-            <Input id="accounts-settings-bar-field-4"
+            <Input name="waqfCorpusPrevious" id="accounts-settings-bar-field-4"
               type="number"
               value={waqfCorpusPrevious}
               onChange={(e) => onWaqfCorpusPreviousChange(safeNumber(e.target.value))}
@@ -87,7 +87,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="space-y-1">
             <Label htmlFor="accounts-settings-bar-field-5" className="text-xs text-muted-foreground">ضريبة القيمة المضافة (ر.س)</Label>
-            <Input id="accounts-settings-bar-field-5"
+            <Input name="manualVat" id="accounts-settings-bar-field-5"
               type="number"
               value={manualVat}
               onChange={(e) => onManualVatChange(safeNumber(e.target.value))}
@@ -97,7 +97,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="space-y-1">
             <Label htmlFor="accounts-settings-bar-field-6" className="text-xs text-muted-foreground">مبلغ الزكاة (ر.س)</Label>
-            <Input id="accounts-settings-bar-field-6"
+            <Input name="zakatAmount" id="accounts-settings-bar-field-6"
               type="number"
               value={zakatAmount}
               onChange={(e) => onZakatAmountChange(safeNumber(e.target.value))}
@@ -107,7 +107,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="space-y-1">
             <Label htmlFor="accounts-settings-bar-field-7" className="text-xs text-muted-foreground">رقبة الوقف للعام الحالي (ر.س)</Label>
-            <Input id="accounts-settings-bar-field-7"
+            <Input name="waqfCorpusManual" id="accounts-settings-bar-field-7"
               type="number"
               value={waqfCorpusManual}
               onChange={(e) => onWaqfCorpusManualChange(safeNumber(e.target.value))}
@@ -117,7 +117,7 @@ const AccountsSettingsBar = ({
           </div>
           <div className="space-y-1">
             <Label htmlFor="accounts-settings-bar-field-8" className="text-xs text-muted-foreground">مبلغ التوزيعات (ر.س)</Label>
-            <Input id="accounts-settings-bar-field-8"
+            <Input name="manualDistributions" id="accounts-settings-bar-field-8"
               type="number"
               value={manualDistributions}
               onChange={(e) => onManualDistributionsChange(safeNumber(e.target.value))}

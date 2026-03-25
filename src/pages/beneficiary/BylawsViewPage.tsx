@@ -106,7 +106,7 @@ const BylawsViewPage = () => {
         {/* Search */}
         <div className="relative">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input placeholder="ابحث في بنود اللائحة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 pl-9" dir="rtl" />
+          <Input name="search" placeholder="ابحث في بنود اللائحة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-9 pl-9" dir="rtl" />
           {search && (
             <button onClick={() => setSearch('')} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="w-4 h-4" />

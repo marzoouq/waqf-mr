@@ -49,7 +49,7 @@ const BannerSettingsTab = () => {
           {/* Text */}
           <div className="space-y-1.5">
             <Label htmlFor="banner-settings-tab-field-1">نص الشريط</Label>
-            <Input id="banner-settings-tab-field-1"
+            <Input name="text" id="banner-settings-tab-field-1"
               value={form.text}
               onChange={(e) => setForm((p) => ({ ...p, text: e.target.value }))}
               onBlur={() => save({ text: form.text })}

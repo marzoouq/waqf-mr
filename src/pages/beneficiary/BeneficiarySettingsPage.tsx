@@ -176,18 +176,18 @@ const BeneficiarySettingsPage = () => {
                     <Label className="text-muted-foreground text-xs flex items-center gap-1">
                       <Lock className="w-3 h-3" /> الاسم
                     </Label>
-                    <Input value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+                    <Input name="field" value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
-                    <Input value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+                    <Input name="field" value={user?.email || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs flex items-center gap-1">
                       <Lock className="w-3 h-3" /> رقم الهوية
                     </Label>
                     <div className="flex items-center gap-2">
-                      <Input value={maskedId} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+                      <Input name="maskedId" value={maskedId} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                       <Shield className="w-4 h-4 text-muted-foreground shrink-0" />
                     </div>
                   </div>
