@@ -129,8 +129,8 @@ const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePro
                   <Input id="whole-property-tab-field-2" type="number" value={form.rent_amount} onChange={(e) => setForm({ ...form, rent_amount: e.target.value })} placeholder="50000" />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">نوع الدفع</Label>
-                  <NativeSelect value={form.payment_type} onValueChange={(v) => setForm({ ...form, payment_type: v })} options={PAYMENT_TYPES} />
+                  <Label htmlFor="whole-property-tab-select-1" className="text-xs">نوع الدفع</Label>
+                  <NativeSelect id="whole-property-tab-select-1" value={form.payment_type} onValueChange={(v) => setForm({ ...form, payment_type: v })} options={PAYMENT_TYPES} />
                 </div>
                 {form.payment_type === 'multi' && (
                   <div className="space-y-1">

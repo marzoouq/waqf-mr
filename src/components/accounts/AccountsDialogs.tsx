@@ -103,9 +103,8 @@ const AccountsDialogs = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label>الحالة</Label>
-                <NativeSelect
-                  value={editingContractData.status}
+                <Label htmlFor="accounts-dialogs-select-1">الحالة</Label>
+                <NativeSelect id="accounts-dialogs-select-1" value={editingContractData.status}
                   onValueChange={(val) => setEditingContractData((prev) => prev ? { ...prev, status: val } : prev)}
                   options={statusOptions}
                 />

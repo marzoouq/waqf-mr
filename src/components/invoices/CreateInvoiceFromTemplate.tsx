@@ -207,26 +207,24 @@ export default function CreateInvoiceFromTemplate({
                 <Input id="create-invoice-from-template-field-2" type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>نوع الفاتورة *</Label>
-                <NativeSelect value={invoiceType} onValueChange={setInvoiceType} options={INVOICE_TYPES} />
+                <Label htmlFor="create-invoice-from-template-select-1">نوع الفاتورة *</Label>
+                <NativeSelect id="create-invoice-from-template-select-1" value={invoiceType} onValueChange={setInvoiceType} options={INVOICE_TYPES} />
               </div>
             </div>
 
             {/* ربط العقد والعقار */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>العقد (تعبئة تلقائية لبيانات المشتري)</Label>
-                <NativeSelect
-                  value={contractId}
+                <Label htmlFor="create-invoice-from-template-select-2">العقد (تعبئة تلقائية لبيانات المشتري)</Label>
+                <NativeSelect id="create-invoice-from-template-select-2" value={contractId}
                   onValueChange={handleContractChange}
                   placeholder="اختر العقد"
                   options={contracts.map(c => ({ value: c.id, label: `${c.contract_number} — ${c.tenant_name}` }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>العقار</Label>
-                <NativeSelect
-                  value={propertyId}
+                <Label htmlFor="create-invoice-from-template-select-3">العقار</Label>
+                <NativeSelect id="create-invoice-from-template-select-3" value={propertyId}
                   onValueChange={setPropertyId}
                   placeholder="اختر العقار"
                   options={properties.map(p => ({ value: p.id, label: `${p.property_number} — ${p.location}` }))}

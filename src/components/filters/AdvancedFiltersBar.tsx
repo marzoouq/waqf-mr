@@ -46,8 +46,7 @@ const AdvancedFiltersBar: React.FC<AdvancedFiltersBarProps> = ({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* فلتر المصدر/النوع */}
-        <NativeSelect
-          value={filters.category}
+        <NativeSelect id="advanced-filters-bar-select-1" value={filters.category}
           onValueChange={(v) => update({ category: v })}
           placeholder={categoryPlaceholder}
           options={[
@@ -57,8 +56,7 @@ const AdvancedFiltersBar: React.FC<AdvancedFiltersBarProps> = ({
         />
 
         {/* فلتر العقار */}
-        <NativeSelect
-          value={filters.propertyId}
+        <NativeSelect id="advanced-filters-bar-select-2" value={filters.propertyId}
           onValueChange={(v) => update({ propertyId: v })}
           placeholder="كل العقارات"
           options={[
