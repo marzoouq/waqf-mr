@@ -369,7 +369,7 @@ Deno.serve(async (req) => {
             p_message: `تم تسجيل مستفيد جديد: ${safeName(body.name || email)}`,
             p_type: 'info',
             p_link: '/dashboard/beneficiaries',
-          }); } catch (_error) { console.warn('notify_admins failed after single user creation', _error); }
+          }); } catch { /* إشعار فشل — غير حرج */ }
         }
 
         return new Response(JSON.stringify({ success: true, user: { id: newUser.user.id, email: newUser.user.email } }), {
