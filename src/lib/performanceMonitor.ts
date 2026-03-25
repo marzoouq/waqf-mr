@@ -1,9 +1,9 @@
 /**
- * مراقبة أداء أساسية — تتبع بطء الاستعلامات وتحذر عند تجاوز الحد
+ * مراقبة أداء شاملة — تتبع بطء الاستعلامات وتنبّه المستخدم عند تجاوز الحد (5 ثوانٍ)
  */
 import { logger } from '@/lib/logger';
 
-const SLOW_QUERY_THRESHOLD_MS = 3000;
+const SLOW_QUERY_THRESHOLD_MS = 5000;
 
 interface PerfEntry {
   label: string;
@@ -13,6 +13,16 @@ interface PerfEntry {
 }
 
 const recentSlowQueries: PerfEntry[] = [];
+
+// مرجع لدالة التنبيه — يُضبط من App لتجنب الاستيراد الدائري
+let _toastFn: ((msg: string, opts?: { description?: string }) => void) | null = null;
+
+/**
+ * يضبط دالة التنبيه (toast) — يُستدعى مرة واحدة من App
+ */
+export function setPerformanceToast(fn: (msg: string, opts?: { description?: string }) => void): void {
+  _toastFn = fn;
+}
 
 /**
  * يبدأ قياس أداء عملية معينة ويُعيد دالة لإنهائها
@@ -25,8 +35,15 @@ export function startPerfTimer(label: string): () => void {
     entry.durationMs = entry.endTime - entry.startTime;
 
     if (entry.durationMs > SLOW_QUERY_THRESHOLD_MS) {
+      const durationSec = (entry.durationMs / 1000).toFixed(1);
       logger.warn(`[Perf] عملية بطيئة: "${label}" استغرقت ${Math.round(entry.durationMs)}ms`);
       recentSlowQueries.push(entry);
+
+      // تنبيه المستخدم
+      _toastFn?.('⚠️ عملية بطيئة', {
+        description: `"${label}" استغرقت ${durationSec} ثانية`,
+      });
+
       // احتفظ بآخر 50 فقط
       if (recentSlowQueries.length > 50) recentSlowQueries.shift();
     }
@@ -61,8 +78,11 @@ export function reportPageLoadMetrics(): void {
     const loadTime = Math.round(nav.loadEventEnd - nav.startTime);
     const domInteractive = Math.round(nav.domInteractive - nav.startTime);
 
-    if (loadTime > 5000) {
+    if (loadTime > SLOW_QUERY_THRESHOLD_MS) {
       logger.warn(`[Perf] تحميل الصفحة بطيء: ${loadTime}ms (DOM interactive: ${domInteractive}ms)`);
+      _toastFn?.('⚠️ تحميل الصفحة بطيء', {
+        description: `استغرق التحميل ${(loadTime / 1000).toFixed(1)} ثانية`,
+      });
     }
   };
 
