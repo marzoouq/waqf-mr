@@ -36,17 +36,17 @@ const ContractTenantIdSection = ({ formData, onChange }: Props) => (
       </div>
       <div className="space-y-1">
         <Label htmlFor="contract-tenant-id-section-field-2" className="text-xs">رقم السجل التجاري</Label>
-        <Input id="contract-tenant-id-section-field-2" className="h-9" value={formData.tenant_crn} onChange={(e) => onChange({ tenant_crn: e.target.value })} placeholder="رقم السجل التجاري" maxLength={15} />
+        <Input name="tenant_crn" id="contract-tenant-id-section-field-2" className="h-9" value={formData.tenant_crn} onChange={(e) => onChange({ tenant_crn: e.target.value })} placeholder="رقم السجل التجاري" maxLength={15} />
       </div>
     </div>
     <details className="text-xs">
       <summary className="cursor-pointer text-muted-foreground hover:text-foreground">عنوان المستأجر (اختياري — مطلوب للفواتير القياسية)</summary>
       <div className="grid grid-cols-2 gap-2 mt-2">
-        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-2" className="text-xs">الشارع</Label><Input id="contract-tenant-id-section-field-1" className="h-8 text-xs" value={formData.tenant_street} onChange={(e) => onChange({ tenant_street: e.target.value })} maxLength={100} /></div>
-        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-3" className="text-xs">المبنى</Label><Input id="contract-tenant-id-section-field-2" className="h-8 text-xs" value={formData.tenant_building} onChange={(e) => onChange({ tenant_building: e.target.value })} maxLength={50} /></div>
-        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-4" className="text-xs">الحي</Label><Input id="contract-tenant-id-section-field-3" className="h-8 text-xs" value={formData.tenant_district} onChange={(e) => onChange({ tenant_district: e.target.value })} maxLength={100} /></div>
-        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-5" className="text-xs">المدينة</Label><Input id="contract-tenant-id-section-field-4" className="h-8 text-xs" value={formData.tenant_city} onChange={(e) => onChange({ tenant_city: e.target.value })} maxLength={100} /></div>
-        <div className="space-y-1"><Label className="text-xs">الرمز البريدي</Label><Input id="contract-tenant-id-section-field-5" className="h-8 text-xs" value={formData.tenant_postal_code} onChange={(e) => onChange({ tenant_postal_code: e.target.value })} maxLength={10} /></div>
+        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-2" className="text-xs">الشارع</Label><Input name="tenant_street" id="contract-tenant-id-section-field-1" className="h-8 text-xs" value={formData.tenant_street} onChange={(e) => onChange({ tenant_street: e.target.value })} maxLength={100} /></div>
+        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-3" className="text-xs">المبنى</Label><Input name="tenant_building" id="contract-tenant-id-section-field-2" className="h-8 text-xs" value={formData.tenant_building} onChange={(e) => onChange({ tenant_building: e.target.value })} maxLength={50} /></div>
+        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-4" className="text-xs">الحي</Label><Input name="tenant_district" id="contract-tenant-id-section-field-3" className="h-8 text-xs" value={formData.tenant_district} onChange={(e) => onChange({ tenant_district: e.target.value })} maxLength={100} /></div>
+        <div className="space-y-1"><Label htmlFor="contract-tenant-id-section-field-5" className="text-xs">المدينة</Label><Input name="tenant_city" id="contract-tenant-id-section-field-4" className="h-8 text-xs" value={formData.tenant_city} onChange={(e) => onChange({ tenant_city: e.target.value })} maxLength={100} /></div>
+        <div className="space-y-1"><Label className="text-xs">الرمز البريدي</Label><Input name="tenant_postal_code" id="contract-tenant-id-section-field-5" className="h-8 text-xs" value={formData.tenant_postal_code} onChange={(e) => onChange({ tenant_postal_code: e.target.value })} maxLength={10} /></div>
       </div>
     </details>
   </div>

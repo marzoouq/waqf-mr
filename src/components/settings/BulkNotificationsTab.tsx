@@ -100,7 +100,7 @@ const BulkNotificationsTab = () => {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="bulk-notifications-tab-field-1">عنوان الإشعار *</Label>
-              <Input id="bulk-notifications-tab-field-1" value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: إشعار توزيع الأرباح" maxLength={100} />
+              <Input name="title" id="bulk-notifications-tab-field-1" value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: إشعار توزيع الأرباح" maxLength={100} />
             </div>
             <div className="space-y-1.5">
               <Label>نوع الإشعار</Label>
@@ -125,7 +125,7 @@ const BulkNotificationsTab = () => {
 
           <div className="space-y-1.5">
             <Label htmlFor="bulk-notifications-tab-field-4">رابط (اختياري)</Label>
-            <Input id="bulk-notifications-tab-field-4" value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/my-share" maxLength={200} />
+            <Input name="link" id="bulk-notifications-tab-field-4" value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/my-share" maxLength={200} />
           </div>
 
           <div className="space-y-3 border-t pt-4">

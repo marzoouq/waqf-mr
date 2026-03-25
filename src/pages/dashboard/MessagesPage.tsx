@@ -214,7 +214,7 @@ const MessagesPage = () => {
             </div>
             <div className="space-y-1.5">
               <Label>الموضوع</Label>
-              <Input value={newConvSubject} onChange={(e) => setNewConvSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
+              <Input name="newConvSubject" value={newConvSubject} onChange={(e) => setNewConvSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
             </div>
             <Button onClick={handleCreateConv} disabled={!newConvBeneficiary} className="w-full">
               بدء المحادثة

@@ -222,15 +222,15 @@ const FiscalYearManagementTab = () => {
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="fiscal-year-management-tab-field-2">المسمى</Label>
-                    <Input id="fiscal-year-management-tab-field-2" value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" />
+                    <Input name="new_f_y" id="fiscal-year-management-tab-field-2" value={newFY.label} onChange={e => setNewFY(p => ({ ...p, label: e.target.value }))} placeholder="مثال: 2025-2026م" />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="fiscal-year-management-tab-field-3">تاريخ البداية</Label>
-                    <Input id="fiscal-year-management-tab-field-3" type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} />
+                    <Input name="new_f_y" id="fiscal-year-management-tab-field-3" type="date" value={newFY.start_date} onChange={e => setNewFY(p => ({ ...p, start_date: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="fiscal-year-management-tab-field-4">تاريخ النهاية</Label>
-                    <Input id="fiscal-year-management-tab-field-4" type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
+                    <Input name="new_f_y" id="fiscal-year-management-tab-field-4" type="date" value={newFY.end_date} onChange={e => setNewFY(p => ({ ...p, end_date: e.target.value }))} />
                   </div>
                 </div>
                 <p className="text-xs text-caution-foreground">

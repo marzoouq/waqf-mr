@@ -142,7 +142,7 @@ const BulkMessagingTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="bulk-messaging-tab-field-1">موضوع الرسالة</Label>
-            <Input id="bulk-messaging-tab-field-1"
+            <Input name="subject" id="bulk-messaging-tab-field-1"
               value={subject}
               onChange={e => setSubject(e.target.value)}
               placeholder="مثال: تحديث بشأن التوزيعات"

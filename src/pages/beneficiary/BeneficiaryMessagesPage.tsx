@@ -262,7 +262,7 @@ const BeneficiaryMessagesPage = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>الموضوع</Label>
-              <Input value={chatSubject} onChange={(e) => setChatSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
+              <Input name="chatSubject" value={chatSubject} onChange={(e) => setChatSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
             </div>
             <Button onClick={handleNewChat} className="w-full" disabled={createConversation.isPending}>
               {createConversation.isPending ? 'جاري الإنشاء...' : 'بدء المحادثة'}
@@ -281,7 +281,7 @@ const BeneficiaryMessagesPage = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>الموضوع</Label>
-              <Input value={supportSubject} onChange={(e) => setSupportSubject(e.target.value)} placeholder="صف مشكلتك باختصار" maxLength={200} />
+              <Input name="supportSubject" value={supportSubject} onChange={(e) => setSupportSubject(e.target.value)} placeholder="صف مشكلتك باختصار" maxLength={200} />
             </div>
             <Button onClick={handleNewSupport} className="w-full" disabled={createConversation.isPending}>
               {createConversation.isPending ? 'جاري الإرسال...' : 'إرسال طلب الدعم'}

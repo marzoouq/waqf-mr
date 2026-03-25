@@ -56,11 +56,11 @@ const CreateUserForm = ({ open, onOpenChange, form, setForm, onSubmit, isPending
       >
         <div className="space-y-2">
           <Label htmlFor="create-user-form-field-1">اسم المستخدم</Label>
-          <Input id="create-user-form-field-1" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="أدخل اسم المستخدم" required />
+          <Input name="name" id="create-user-form-field-1" type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="أدخل اسم المستخدم" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="create-user-form-field-2">البريد الإلكتروني</Label>
-          <Input id="create-user-form-field-2" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" dir="ltr" required />
+          <Input name="email" id="create-user-form-field-2" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="user@example.com" dir="ltr" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="create-user-password">كلمة المرور</Label>
@@ -68,7 +68,7 @@ const CreateUserForm = ({ open, onOpenChange, form, setForm, onSubmit, isPending
         </div>
         <div className="space-y-2">
           <Label htmlFor="create-user-form-field-3">رقم الهوية الوطنية</Label>
-          <Input id="create-user-form-field-3"
+          <Input name="nationalId" id="create-user-form-field-3"
             type="text"
             value={form.nationalId}
             onChange={(e) => {

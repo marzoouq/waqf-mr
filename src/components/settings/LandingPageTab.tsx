@@ -61,7 +61,7 @@ const LandingPageTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-1">العنوان الرئيسي</Label>
-            <Input id="landing-page-tab-field-1" value={form.hero_title} onChange={e => handleChange('hero_title', e.target.value)} maxLength={100} />
+            <Input name="hero_title" id="landing-page-tab-field-1" value={form.hero_title} onChange={e => handleChange('hero_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-2">الوصف</Label>
@@ -69,11 +69,11 @@ const LandingPageTab = () => {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-3">الشعار النصي</Label>
-            <Input id="landing-page-tab-field-3" value={form.hero_tagline} onChange={e => handleChange('hero_tagline', e.target.value)} maxLength={100} />
+            <Input name="hero_tagline" id="landing-page-tab-field-3" value={form.hero_tagline} onChange={e => handleChange('hero_tagline', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-4">نص زر الدخول</Label>
-            <Input id="landing-page-tab-field-4" value={form.cta_text} onChange={e => handleChange('cta_text', e.target.value)} maxLength={50} />
+            <Input name="cta_text" id="landing-page-tab-field-4" value={form.cta_text} onChange={e => handleChange('cta_text', e.target.value)} maxLength={50} />
           </div>
         </CardContent>
       </Card>
@@ -85,11 +85,11 @@ const LandingPageTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-5">عنوان القسم</Label>
-            <Input id="landing-page-tab-field-5" value={form.features_title} onChange={e => handleChange('features_title', e.target.value)} maxLength={100} />
+            <Input name="features_title" id="landing-page-tab-field-5" value={form.features_title} onChange={e => handleChange('features_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-6">وصف القسم</Label>
-            <Input id="landing-page-tab-field-6" value={form.features_subtitle} onChange={e => handleChange('features_subtitle', e.target.value)} maxLength={200} />
+            <Input name="features_subtitle" id="landing-page-tab-field-6" value={form.features_subtitle} onChange={e => handleChange('features_subtitle', e.target.value)} maxLength={200} />
           </div>
         </CardContent>
       </Card>
@@ -101,15 +101,15 @@ const LandingPageTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-7">عنوان الدعوة</Label>
-            <Input id="landing-page-tab-field-7" value={form.cta_section_title} onChange={e => handleChange('cta_section_title', e.target.value)} maxLength={100} />
+            <Input name="cta_section_title" id="landing-page-tab-field-7" value={form.cta_section_title} onChange={e => handleChange('cta_section_title', e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-8">وصف الدعوة</Label>
-            <Input id="landing-page-tab-field-8" value={form.cta_section_subtitle} onChange={e => handleChange('cta_section_subtitle', e.target.value)} maxLength={200} />
+            <Input name="cta_section_subtitle" id="landing-page-tab-field-8" value={form.cta_section_subtitle} onChange={e => handleChange('cta_section_subtitle', e.target.value)} maxLength={200} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="landing-page-tab-field-9">نص التذييل</Label>
-            <Input id="landing-page-tab-field-9" value={form.footer_text} onChange={e => handleChange('footer_text', e.target.value)} maxLength={200} placeholder="استخدم {year} لإدراج السنة تلقائياً" />
+            <Input name="footer_text" id="landing-page-tab-field-9" value={form.footer_text} onChange={e => handleChange('footer_text', e.target.value)} maxLength={200} placeholder="استخدم {year} لإدراج السنة تلقائياً" />
           </div>
         </CardContent>
       </Card>

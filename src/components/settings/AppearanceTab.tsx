@@ -30,7 +30,7 @@ const AppearanceTab = () => {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="appearance-tab-field-1">اسم النظام</Label>
-            <Input id="appearance-tab-field-1" value={form.system_name} onChange={(e) => setForm((p: typeof form) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
+            <Input name="system_name" id="appearance-tab-field-1" value={form.system_name} onChange={(e) => setForm((p: typeof form) => ({ ...p, system_name: e.target.value }))} maxLength={100} />
           </div>
           <Button onClick={() => updateJsonSetting('appearance_settings', form)} className="gap-2">
             <Save className="w-4 h-4" />

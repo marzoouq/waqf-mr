@@ -99,7 +99,7 @@ const WaqfSettingsTab = () => {
           {waqfFields.map((f) => (
             <div key={f.key} className="space-y-1.5">
               <Label htmlFor="waqf-settings-tab-field-1">{f.label}</Label>
-              <Input id="waqf-settings-tab-field-1" value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
+              <Input name="form_data" id="waqf-settings-tab-field-1" value={formData[f.key] || ''} onChange={(e) => setFormData((p) => ({ ...p, [f.key]: e.target.value }))} maxLength={500} />
             </div>
           ))}
         </CardContent>
@@ -115,7 +115,7 @@ const WaqfSettingsTab = () => {
             return (
               <div key={f.key} className="space-y-1.5">
                 <Label htmlFor="waqf-settings-tab-field-2">{f.label}</Label>
-                <Input id="waqf-settings-tab-field-2"
+                <Input name="waqf_setting" id="waqf-settings-tab-field-2"
                   type={isPercentField ? 'number' : 'text'}
                   min={isPercentField ? 0 : undefined}
                   max={isPercentField ? 100 : undefined}

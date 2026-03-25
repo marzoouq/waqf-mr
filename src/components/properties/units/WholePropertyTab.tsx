@@ -122,11 +122,11 @@ const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePro
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label htmlFor="whole-property-tab-field-1" className="text-xs">اسم المستأجر *</Label>
-                  <Input id="whole-property-tab-field-1" value={form.tenant_name} onChange={(e) => setForm({ ...form, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
+                  <Input name="tenant_name" id="whole-property-tab-field-1" value={form.tenant_name} onChange={(e) => setForm({ ...form, tenant_name: e.target.value })} placeholder="اسم المستأجر" />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="whole-property-tab-field-2" className="text-xs">قيمة الإيجار السنوي *</Label>
-                  <Input id="whole-property-tab-field-2" type="number" value={form.rent_amount} onChange={(e) => setForm({ ...form, rent_amount: e.target.value })} placeholder="50000" />
+                  <Input name="rent_amount" id="whole-property-tab-field-2" type="number" value={form.rent_amount} onChange={(e) => setForm({ ...form, rent_amount: e.target.value })} placeholder="50000" />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="whole-property-tab-select-1" className="text-xs">نوع الدفع</Label>
@@ -135,16 +135,16 @@ const WholePropertyTab = ({ wholePropertyContract, onSave, isPending }: WholePro
                 {form.payment_type === 'multi' && (
                   <div className="space-y-1">
                     <Label htmlFor="whole-property-tab-field-4" className="text-xs">عدد الدفعات</Label>
-                    <Input id="whole-property-tab-field-4" type="number" value={form.payment_count} onChange={(e) => setForm({ ...form, payment_count: e.target.value })} placeholder="4" min="1" />
+                    <Input name="payment_count" id="whole-property-tab-field-4" type="number" value={form.payment_count} onChange={(e) => setForm({ ...form, payment_count: e.target.value })} placeholder="4" min="1" />
                   </div>
                 )}
                 <div className="space-y-1">
                   <Label htmlFor="whole-property-tab-field-5" className="text-xs">تاريخ بداية العقد *</Label>
-                  <Input id="whole-property-tab-field-5" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+                  <Input name="start_date" id="whole-property-tab-field-5" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="whole-property-tab-field-6" className="text-xs">تاريخ نهاية العقد *</Label>
-                  <Input id="whole-property-tab-field-6" type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
+                  <Input name="end_date" id="whole-property-tab-field-6" type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
                 </div>
               </div>
               {form.rent_amount && (

@@ -95,7 +95,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
             </div>
             <div className="space-y-1">
               <Label htmlFor="payment-invoices-tab-field-1">المبلغ المدفوع (ر.س)</Label>
-              <Input id="payment-invoices-tab-field-1" type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} min={0} max={Number(payDialog?.inv.amount || 0)} step="0.01" />
+              <Input name="payAmount" id="payment-invoices-tab-field-1" type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} min={0} max={Number(payDialog?.inv.amount || 0)} step="0.01" />
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -152,7 +152,7 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap">
         <div className="relative max-w-xs flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input id="payment-invoices-tab-field-1" placeholder="بحث بالفاتورة أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+          <Input name="search" id="payment-invoices-tab-field-1" placeholder="بحث بالفاتورة أو المستأجر..." value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
         </div>
         <Select value={filter} onValueChange={v => setFilter(v as FilterStatus)}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -169,9 +169,9 @@ export default function PaymentInvoicesTab({ fiscalYearId, isClosed }: PaymentIn
 
         <div className="flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
-          <Input id="payment-invoices-tab-field-2" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36 text-xs" placeholder="من" />
+          <Input name="dateFrom" id="payment-invoices-tab-field-2" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36 text-xs" placeholder="من" />
           <span className="text-muted-foreground text-xs">—</span>
-          <Input id="payment-invoices-tab-field-3" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-xs" placeholder="إلى" />
+          <Input name="dateTo" id="payment-invoices-tab-field-3" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36 text-xs" placeholder="إلى" />
           {(dateFrom || dateTo) && (
             <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => { setDateFrom(''); setDateTo(''); }} title="مسح التاريخ">
               <X className="w-3.5 h-3.5" />

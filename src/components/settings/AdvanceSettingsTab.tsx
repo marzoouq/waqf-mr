@@ -65,7 +65,7 @@ const AdvanceSettingsTab = () => {
         {/* الحد الأدنى */}
         <div className="space-y-1.5">
           <Label htmlFor="advance-settings-tab-field-1">الحد الأدنى للسلفة (ر.س)</Label>
-          <Input id="advance-settings-tab-field-1"
+          <Input name="min_amount" id="advance-settings-tab-field-1"
             type="number"
             min={0}
             value={form.min_amount}
@@ -79,7 +79,7 @@ const AdvanceSettingsTab = () => {
         {/* الحد الأقصى */}
         <div className="space-y-1.5">
           <Label htmlFor="advance-settings-tab-field-2">الحد الأقصى (% من الحصة التقديرية)</Label>
-          <Input id="advance-settings-tab-field-2"
+          <Input name="max_percentage" id="advance-settings-tab-field-2"
             type="number"
             min={1}
             max={100}

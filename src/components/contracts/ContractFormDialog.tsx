@@ -274,7 +274,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
                         return (
                           <div key={unitId} className="flex items-center gap-2">
                             <span className="text-xs min-w-[80px]">{unit?.unit_type} {unit?.unit_number}:</span>
-                            <Input id="contract-form-dialog-field-1" type="number"
+                            <Input name="rent_per_unit" id="contract-form-dialog-field-1" type="number"
                               value={formData.rent_per_unit[unitId] || ''}
                               onChange={(e) => setFormData({ ...formData, rent_per_unit: { ...formData.rent_per_unit, [unitId]: e.target.value } })}
                               placeholder="الإيجار"
@@ -298,15 +298,15 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
 
           <ContractTenantIdSection formData={formData} onChange={(patch) => setFormData(prev => ({ ...prev, ...patch }))} />
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-3">تاريخ البداية *</Label><Input id="contract-form-dialog-field-2" type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
-            <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-4">تاريخ النهاية *</Label><Input id="contract-form-dialog-field-3" type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-3">تاريخ البداية *</Label><Input name="start_date" id="contract-form-dialog-field-2" type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-4">تاريخ النهاية *</Label><Input name="end_date" id="contract-form-dialog-field-3" type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} /></div>
           </div>
 
           {/* Rent amount */}
           {(!isMulti || formData.pricing_mode === 'total') && (
             <div className="space-y-2">
               <Label htmlFor="contract-form-dialog-field-4">{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
-              <Input id="contract-form-dialog-field-4" type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
+              <Input name="rent_amount" id="contract-form-dialog-field-4" type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
               {isMulti && perUnitAmount > 0 && (
                 <p className="text-xs text-muted-foreground">= {fmt(perUnitAmount)} ر.س لكل وحدة</p>
               )}
@@ -323,7 +323,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {formData.payment_type === 'multi' && (
             <div className="space-y-2">
               <Label htmlFor="contract-form-dialog-field-6">عدد الدفعات *</Label>
-              <Input id="contract-form-dialog-field-6" type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
+              <Input name="payment_count" id="contract-form-dialog-field-6" type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
             </div>
           )}
           {/* VAT Toggle */}
@@ -424,7 +424,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               options={statusOptions}
             />
           </div>
-          <div className="space-y-2"><Label>ملاحظات</Label><Input id="contract-form-dialog-field-4" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
+          <div className="space-y-2"><Label>ملاحظات</Label><Input name="notes" id="contract-form-dialog-field-4" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>
               {isMulti && selectedCount > 1 ? `إنشاء ${selectedCount} عقود` : editingContract ? 'تحديث' : 'إضافة'}

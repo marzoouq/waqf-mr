@@ -117,11 +117,11 @@ const InvoicesPage = () => {
                     <input ref={h.fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) h.validateAndSetFile(file); }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>رقم الفاتورة</Label><Input value={h.formData.invoice_number} onChange={(e) => h.setFormData({ ...h.formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
-                    <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
+                    <div className="space-y-2"><Label>رقم الفاتورة</Label><Input name="invoice_number" value={h.formData.invoice_number} onChange={(e) => h.setFormData({ ...h.formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
+                    <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input name="amount" type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>التاريخ *</Label><Input type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>التاريخ *</Label><Input name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
                     <div className="space-y-2">
                       <Label>نوع الفاتورة *</Label>
                       <NativeSelect value={h.formData.invoice_type} onValueChange={(v) => h.setFormData({ ...h.formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(h.INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
@@ -135,7 +135,7 @@ const InvoicesPage = () => {
                     <Label>العقد (اختياري)</Label>
                     <NativeSelect value={h.formData.contract_id} onValueChange={(v) => h.setFormData({ ...h.formData, contract_id: v })} placeholder="اختر العقد" options={h.contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
                   </div>
-                  <div className="space-y-2"><Label>وصف</Label><Input value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+                  <div className="space-y-2"><Label>وصف</Label><Input name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={h.uploading || h.createInvoice.isPending || h.updateInvoice.isPending}>{h.uploading ? 'جاري الحفظ...' : h.editingInvoice ? 'تحديث' : 'رفع الفاتورة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { h.setIsOpen(false); h.resetForm(); }}>إلغاء</Button>
@@ -165,7 +165,7 @@ const InvoicesPage = () => {
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="بحث في الفواتير..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="pr-10" />
+            <Input name="search_query" placeholder="بحث في الفواتير..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="pr-10" />
           </div>
           <Select value={h.filterType} onValueChange={(v) => { h.setFilterType(v); h.setCurrentPage(1); }}>
             <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="نوع الفاتورة" /></SelectTrigger>
