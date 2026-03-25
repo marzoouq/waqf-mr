@@ -7,8 +7,18 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
-import { QRCodeSVG } from 'qrcode.react';
-import { generateZatcaQrTLV } from '@/utils/zatcaQr';
+import { useState, useEffect } from 'react';
+import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+
+/** مكوّن QR موحّد — يولّد صورة PNG عبر مكتبة qrcode */
+function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    generateQrDataUrl(data).then(setSrc);
+  }, [data]);
+  if (!src) return <div style={{ width: size, height: size }} className="animate-pulse bg-muted rounded" />;
+  return <img src={src} width={size} height={size} alt="QR Code" className={className} />;
+}
 import { FileText, Receipt, AlertCircle } from 'lucide-react';
 
 // --- الأنواع المشتركة ---
@@ -292,7 +302,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
           <div className="flex flex-col items-center gap-2">
             {qrData ? (
               <>
-                <QRCodeSVG value={qrData} size={120} level="H" className="border p-1 rounded bg-white" />
+                <QrImage data={qrData} size={120} className="border p-1 rounded bg-white" />
                 <p className="text-[11px] text-muted-foreground">رمز QR — ZATCA Phase 2</p>
               </>
             ) : (
@@ -435,7 +445,7 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
         {/* QR مركزي */}
         <div className="flex justify-center pt-2">
           {qrData ? (
-            <QRCodeSVG value={qrData} size={140} level="H" className="border p-1.5 rounded bg-white" />
+            <QrImage data={qrData} size={140} className="border p-1.5 rounded bg-white" />
           ) : (
             <div className="w-[140px] h-[140px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">
               QR غير متاح
