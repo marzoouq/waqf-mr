@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAllUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useFiscalYears } from '@/hooks/financial/useFiscalYears';
 import { useContractAllocations } from '@/hooks/financial/useContractAllocations';
