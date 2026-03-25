@@ -271,8 +271,9 @@ const ChartOfAccountsPage = () => {
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>الكود</Label>
+                <Label htmlFor="chart-code">الكود</Label>
                 <Input
+                  id="chart-code"
                   value={form.code}
                   onChange={(e) => setForm(p => ({ ...p, code: e.target.value }))}
                   placeholder="مثال: 110"
