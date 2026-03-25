@@ -765,7 +765,7 @@ Deno.serve(async (req) => {
       } catch (rollbackErr) {
         console.error("Rollback failed:", rollbackErr);
       }
-      return json({ error: `فشل التوقيع: ${signErr instanceof Error ? signErr.message : "خطأ غير معروف"}` }, 500, corsHeaders);
+      return json({ error: "فشل التوقيع الإلكتروني. يرجى المحاولة لاحقاً أو التواصل مع الدعم." }, 500, corsHeaders);
     }
 
   } catch (e) {
