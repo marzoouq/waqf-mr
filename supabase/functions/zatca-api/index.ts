@@ -702,6 +702,279 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ─── Renew Production Certificate (API #5) ───
+    if (action === "renew") {
+      // جلب OTP الثاني للتجديد
+      let otp = "";
+      const { data: otpRows } = await admin.from("app_settings").select("key, value")
+        .in("key", ["zatca_otp_2", "zatca_otp_1"]);
+      if (otpRows?.length) {
+        // أولوية لـ OTP الثاني
+        const otp2 = otpRows.find((r: { key: string; value: string }) => r.key === "zatca_otp_2");
+        const otp1 = otpRows.find((r: { key: string; value: string }) => r.key === "zatca_otp_1");
+        otp = otp2?.value || otp1?.value || "";
+      }
+      if (!otp) otp = Deno.env.get("ZATCA_OTP") || "";
+
+      if (!otp) {
+        await logZatcaOperation(admin, {
+          operation_type: "renew",
+          status: "error",
+          error_message: "رمز التفعيل OTP مطلوب للتجديد",
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: "رمز التفعيل OTP مطلوب للتجديد. أدخله من صفحة إعدادات ZATCA." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: settingsRows } = await admin.from("app_settings").select("key, value")
+        .in("key", ["waqf_name", "vat_registration_number", "zatca_device_serial", "zatca_solution_name"]);
+      const settings: Record<string, string> = {};
+      (settingsRows || []).forEach((s: { key: string; value: string }) => { settings[s.key] = s.value; });
+
+      const orgName = settings.waqf_name || "";
+      const vatNumber = settings.vat_registration_number || "";
+      const deviceSerial = settings.zatca_device_serial || "";
+      const solutionName = settings.zatca_solution_name || "WaqfManagement";
+      const isProduction = ZATCA_API_URL.includes("gw-fatoora.zatca.gov.sa");
+
+      const missingFields: string[] = [];
+      if (!deviceSerial) missingFields.push("zatca_device_serial");
+      if (!vatNumber) missingFields.push("vat_registration_number");
+      if (!orgName) missingFields.push("waqf_name");
+
+      if (missingFields.length > 0) {
+        await logZatcaOperation(admin, {
+          operation_type: "renew",
+          status: "error",
+          error_message: `حقول مفقودة: ${missingFields.join("، ")}`,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: `حقول مطلوبة مفقودة: ${missingFields.join("، ")}` }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // الخطوة 1: توليد CSR جديد
+      let csrPem: string;
+      let privKeyHex: string;
+      try {
+        const privBytes = p256.utils.randomPrivateKey();
+        privKeyHex = Array.from(privBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+        const pubKey = p256.getPublicKey(privBytes, false);
+
+        const subject = buildDistinguishedName([
+          { oid: [2, 5, 4, 6], value: "SA" },
+          { oid: [2, 5, 4, 10], value: orgName },
+          { oid: [2, 5, 4, 3], value: deviceSerial },
+          { oid: [2, 5, 4, 5], value: vatNumber },
+        ]);
+
+        const spki = buildEcSpki(pubKey);
+        const extensions = buildCsrExtensions(solutionName, isProduction, deviceSerial);
+
+        const certReqInfo = asn1Sequence([
+          asn1Integer(0),
+          subject,
+          spki,
+          extensions,
+        ]);
+
+        const hashBytes = await sha256Async(certReqInfo);
+        const signature = p256.sign(hashBytes, privBytes);
+        const sigDer = signature.toDERRawBytes();
+
+        const csrDer = asn1Sequence([
+          certReqInfo,
+          asn1Sequence([asn1Oid([1, 2, 840, 10045, 4, 3, 2])]),
+          asn1BitString(sigDer),
+        ]);
+
+        csrPem = btoa(String.fromCharCode(...csrDer));
+      } catch (csrErr) {
+        console.error("Renew CSR generation error:", csrErr);
+        await logZatcaOperation(admin, {
+          operation_type: "renew",
+          status: "error",
+          error_message: "فشل توليد CSR للتجديد",
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR) للتجديد" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        // الخطوة 2: الحصول على Compliance CSID جديد
+        const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, {
+          method: "POST",
+          headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp },
+          body: JSON.stringify({ csr: csrPem }),
+        });
+
+        if (!csrResponse.ok) {
+          const errText = await csrResponse.text();
+          await logZatcaOperation(admin, {
+            operation_type: "renew",
+            status: "error",
+            request_summary: { step: "compliance", url: `${ZATCA_API_URL}/compliance` },
+            response_summary: { status_code: csrResponse.status },
+            error_message: errText,
+            user_id: user.id,
+          });
+          return new Response(JSON.stringify({ error: `فشل الحصول على شهادة امتثال للتجديد: ${errText}` }), {
+            status: csrResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const csrData = await csrResponse.json();
+        const renewBst = csrData.binarySecurityToken || "";
+        const renewSecret = csrData.secret || "";
+        const renewRequestId = csrData.requestID || "";
+
+        // الخطوة 3: الحصول على Production CSID جديد باستخدام شهادة الامتثال الجديدة
+        const prodResponse = await fetch(`${ZATCA_API_URL}/production/csids`, {
+          method: "PATCH",
+          headers: {
+            ...ZATCA_COMMON_HEADERS,
+            "Authorization": `Basic ${btoa(`${renewBst}:${renewSecret}`)}`,
+            "OTP": otp,
+          },
+          body: JSON.stringify({ compliance_request_id: renewRequestId }),
+        });
+
+        if (!prodResponse.ok) {
+          const errText = await prodResponse.text();
+          await logZatcaOperation(admin, {
+            operation_type: "renew",
+            status: "error",
+            request_summary: { step: "production", url: `${ZATCA_API_URL}/production/csids` },
+            response_summary: { status_code: prodResponse.status },
+            error_message: errText,
+            user_id: user.id,
+          });
+          return new Response(JSON.stringify({ error: `فشل تجديد شهادة الإنتاج: ${errText}` }), {
+            status: prodResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const prodData = await prodResponse.json();
+
+        // تحديث الشهادة النشطة
+        await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
+        await admin.from("zatca_certificates").insert({
+          certificate_type: "production",
+          certificate: prodData.binarySecurityToken || "",
+          private_key: privKeyHex,
+          zatca_secret: prodData.secret || "",
+          request_id: prodData.requestID || "",
+          is_active: true,
+        });
+
+        // مسح OTP بعد النجاح
+        await admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]);
+
+        await logZatcaOperation(admin, {
+          operation_type: "renew",
+          status: "success",
+          request_summary: { platform: isProduction ? "production" : "sandbox" },
+          response_summary: { request_id: prodData.requestID, certificate_type: "production" },
+          user_id: user.id,
+        });
+
+        return new Response(JSON.stringify({
+          success: true,
+          request_id: prodData.requestID,
+          certificate_type: "production",
+          message: "تم تجديد شهادة الإنتاج بنجاح",
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (fetchErr) {
+        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
+        await logZatcaOperation(admin, {
+          operation_type: "renew",
+          status: "error",
+          error_message: errMsg,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // ─── Compliance Buyer QRs (API #6) ───
+    if (action === "compliance-buyer-qr" || action === "compliance-seller-qr") {
+      const { invoice_id, table } = body;
+      if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
+        return new Response(JSON.stringify({ error: "invoice_id and table are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const { data: certData } = await admin.rpc("get_active_zatca_certificate");
+      if (!certData || certData.error || certData.certificate_type !== "compliance") {
+        return new Response(JSON.stringify({ error: "فحص QR يتطلب شهادة compliance نشطة" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: inv } = await admin.from(table).select("*").eq("id", invoice_id).single();
+      if (!inv || !inv.zatca_xml || !inv.invoice_hash) {
+        return new Response(JSON.stringify({ error: "الفاتورة غير موجودة أو لم يتم توقيعها" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const qrEndpoint = action === "compliance-buyer-qr" ? "buyer-qrs" : "seller-qrs";
+      const bst = certData.certificate || "";
+      const secret = certData.zatca_secret || "";
+
+      try {
+        const qrRes = await fetch(`${ZATCA_API_URL}/compliance/${qrEndpoint}`, {
+          method: "POST",
+          headers: {
+            ...ZATCA_COMMON_HEADERS,
+            "Authorization": `Basic ${btoa(`${bst}:${secret}`)}`,
+            "Accept-Language": "ar",
+          },
+          body: JSON.stringify({
+            invoiceHash: inv.invoice_hash,
+            uuid: inv.zatca_uuid || "",
+            invoice: btoa(inv.zatca_xml),
+          }),
+        });
+
+        const qrData = await qrRes.json().catch(() => ({}));
+
+        await logZatcaOperation(admin, {
+          operation_type: action,
+          status: qrRes.ok ? "success" : "error",
+          request_summary: { invoice_id, table, endpoint: qrEndpoint },
+          response_summary: { status_code: qrRes.status },
+          error_message: qrRes.ok ? undefined : JSON.stringify(qrData).slice(0, 500),
+          invoice_id,
+          user_id: user.id,
+        });
+
+        return new Response(JSON.stringify({
+          success: qrRes.ok,
+          status: qrRes.status,
+          data: qrData,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (fetchErr) {
+        const errMsg = `ZATCA API unreachable: ${(fetchErr as Error).message}`;
+        await logZatcaOperation(admin, {
+          operation_type: action,
+          status: "error",
+          error_message: errMsg,
+          invoice_id,
+          user_id: user.id,
+        });
+        return new Response(JSON.stringify({ error: errMsg }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // ─── Report / Clearance ───
     if (action === "report" || action === "clearance") {
       const { invoice_id, table } = body;
@@ -761,6 +1034,24 @@ Deno.serve(async (req) => {
           }),
         });
 
+        // التعامل مع الردّ 303: آلية الاعتماد غير مفعّلة
+        if (zatcaRes.status === 303 && action === "clearance") {
+          await logZatcaOperation(admin, {
+            operation_type: "clearance",
+            status: "redirect",
+            request_summary: { invoice_id, table },
+            response_summary: { status_code: 303, message: "Clearance disabled — use Reporting API" },
+            invoice_id,
+            user_id: user.id,
+          });
+          return new Response(JSON.stringify({
+            success: false,
+            status: "redirect_to_reporting",
+            message: "آلية الاعتماد (Clearance) غير مفعّلة حالياً. استخدم الإرسال (Reporting) بدلاً من الاعتماد لتقديم هذه الفاتورة.",
+            zatca_status_code: 303,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
         const zatcaData = await zatcaRes.json().catch(() => ({}));
         const newStatus = zatcaRes.ok ? (action === "clearance" ? "cleared" : "reported") : "rejected";
 
@@ -801,7 +1092,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, report, clearance, test-connection" }), {
+    return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, renew, report, clearance, compliance-buyer-qr, compliance-seller-qr, test-connection" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
