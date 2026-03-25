@@ -14,7 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History } from 'lucide-react';
+import { Save, FileText, Cpu, Landmark, ShieldCheck, CheckCircle, Loader2, Radio, Wifi, WifiOff, History, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useZatcaSettings } from '@/hooks/page/useZatcaSettings';
 import ZatcaOperationsLog from './ZatcaOperationsLog';
