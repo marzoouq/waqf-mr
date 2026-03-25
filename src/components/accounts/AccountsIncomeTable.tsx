@@ -11,7 +11,7 @@ interface AccountsIncomeTableProps {
 
 const AccountsIncomeTable = ({ incomeCount, incomeBySource, totalIncome }: AccountsIncomeTableProps) => {
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />

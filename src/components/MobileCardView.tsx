@@ -40,7 +40,7 @@ function MobileCardView<T>({
     return (
       <div className="space-y-3 md:hidden">
         {Array.from({ length: skeletonCount }).map((_, i) => (
-          <Card key={i} className="shadow-xs">
+          <Card key={i} className="shadow-sm">
             <CardContent className="p-4 space-y-3">
               <Skeleton className="h-5 w-2/3" />
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -61,7 +61,7 @@ function MobileCardView<T>({
   return (
     <div className="space-y-3 md:hidden">
       {items.map((item) => (
-        <Card key={getKey(item)} className="shadow-xs">
+        <Card key={getKey(item)} className="shadow-sm">
           <CardContent className="p-4 space-y-3">
             {/* Header */}
             <div className="flex items-start justify-between gap-2">

@@ -164,7 +164,7 @@ const BeneficiariesPage = () => {
             {isLoading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Card key={i} className="shadow-xs">
+                  <Card key={i} className="shadow-sm">
                     <CardContent className="p-3 sm:p-6 flex items-center gap-2 sm:gap-4">
                       <Skeleton className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl" />
                       <div className="space-y-2 flex-1">
@@ -177,7 +177,7 @@ const BeneficiariesPage = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <Card className="shadow-xs">
+                <Card className="shadow-sm">
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center"><Users className="w-4 h-4 sm:w-6 sm:h-6 text-primary" /></div>
@@ -185,7 +185,7 @@ const BeneficiariesPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-xs">
+                <Card className="shadow-sm">
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-success/10 rounded-xl flex items-center justify-center"><UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-success" /></div>
@@ -193,7 +193,7 @@ const BeneficiariesPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className={`shadow-xs ${percentageExceeds ? 'border-destructive/50' : ''}`}>
+                <Card className={`shadow-sm ${percentageExceeds ? 'border-destructive/50' : ''}`}>
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className={`w-9 h-9 sm:w-12 sm:h-12 ${percentageExceeds ? 'bg-destructive/10' : 'bg-secondary/20'} rounded-xl flex items-center justify-center`}>
@@ -207,7 +207,7 @@ const BeneficiariesPage = () => {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="shadow-xs">
+                <Card className="shadow-sm">
                   <CardContent className="p-3 sm:p-6">
                     <div className="flex items-center gap-2 sm:gap-4">
                       <div className="w-9 h-9 sm:w-12 sm:h-12 bg-accent/20 rounded-xl flex items-center justify-center"><Wallet className="w-4 h-4 sm:w-6 sm:h-6 text-accent-foreground" /></div>
@@ -226,7 +226,7 @@ const BeneficiariesPage = () => {
             {isLoading ? (
               <div className="text-center py-12"><p className="text-muted-foreground">جاري التحميل...</p></div>
             ) : filteredBeneficiaries.length === 0 ? (
-              <Card className="shadow-xs">
+              <Card className="shadow-sm">
                 <CardContent className="py-12 text-center">
                   <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">{searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستفيدين مسجلين'}</p>

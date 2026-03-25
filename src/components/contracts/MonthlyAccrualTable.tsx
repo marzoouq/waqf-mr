@@ -182,7 +182,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
 
   if (isLoading) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-3">
             {[1, 2, 3].map(i => <div key={i} className="h-8 bg-muted rounded" />)}
@@ -194,7 +194,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
 
   if (activeContracts.length === 0) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="py-12 text-center">
           <CalendarDays className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">لا توجد عقود لعرض الاستحقاقات</p>
@@ -204,7 +204,7 @@ const MonthlyAccrualTable = ({ contracts, paymentInvoices = [], isLoading, fisca
   }
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarDays className="w-5 h-5 text-primary" />

@@ -58,7 +58,7 @@ const ZakatEstimationReport = ({
   ];
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calculator className="w-5 h-5 text-primary" />

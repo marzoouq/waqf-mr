@@ -51,7 +51,7 @@ const BalanceSheetReport = ({
   const fmt = (n: number) => fmtNum(n);
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Scale className="w-5 h-5" />

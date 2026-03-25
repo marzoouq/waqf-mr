@@ -37,7 +37,7 @@ const AdvancesTable = ({ advances }: Props) => {
   if (advances.length === 0) return null;
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Banknote className="w-5 h-5" />

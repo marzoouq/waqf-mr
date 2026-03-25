@@ -24,7 +24,7 @@ interface AccountsSavedTableProps {
 
 const AccountsSavedTable = ({ accounts, isLoading, onDeleteAccount }: AccountsSavedTableProps) => {
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>السجلات السابقة</CardTitle>
       </CardHeader>

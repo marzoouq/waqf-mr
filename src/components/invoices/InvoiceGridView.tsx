@@ -88,7 +88,7 @@ const InvoiceGridView = ({ invoices, onEdit, readOnly = false }: InvoiceGridView
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1 shadow-xs"
+                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1 shadow-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     setViewerFile({ path: inv.file_path!, name: inv.file_name });

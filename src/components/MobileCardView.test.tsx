@@ -63,7 +63,7 @@ describe('MobileCardView', () => {
 
   it('renders empty when no items', () => {
     const { container } = render(<MobileCardView {...defaultProps} items={[]} />);
-    expect(container.querySelectorAll('.shadow-xs')).toHaveLength(0);
+    expect(container.querySelectorAll('.shadow-sm')).toHaveLength(0);
   });
 
   it('renders multiple fields per item', () => {

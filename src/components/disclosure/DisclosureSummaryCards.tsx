@@ -13,7 +13,7 @@ interface Props {
 
 const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalReceived, pendingAmount, waqfCorpusPrevious }: Props) => (
   <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <Card className="shadow-xs bg-success/10 border-success/20">
+    <Card className="shadow-sm bg-success/10 border-success/20">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -28,7 +28,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
     </Card>
 
     {waqfCorpusPrevious > 0 && (
-      <Card className="shadow-xs bg-info/10 border-info/20">
+      <Card className="shadow-sm bg-info/10 border-info/20">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -43,7 +43,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
       </Card>
     )}
 
-    <Card className="shadow-xs bg-destructive/10 border-destructive/20">
+    <Card className="shadow-sm bg-destructive/10 border-destructive/20">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-destructive/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -57,7 +57,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
       </CardContent>
     </Card>
 
-    <Card className="shadow-xs gradient-primary text-primary-foreground">
+    <Card className="shadow-sm gradient-primary text-primary-foreground">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-foreground/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -71,7 +71,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
       </CardContent>
     </Card>
 
-    <Card className="shadow-xs bg-success/10 border-success/20">
+    <Card className="shadow-sm bg-success/10 border-success/20">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
@@ -86,7 +86,7 @@ const DisclosureSummaryCards = ({ totalIncome, totalExpenses, myShare, totalRece
     </Card>
 
     {pendingAmount > 0 && (
-      <Card className="shadow-xs bg-warning/10 border-warning/20">
+      <Card className="shadow-sm bg-warning/10 border-warning/20">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-warning/20 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">

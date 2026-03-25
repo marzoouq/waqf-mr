@@ -216,7 +216,7 @@ function HistoricalComparisonPage() {
                       {comparisonRows.map(row => {
                         const values = yearData.map(d => row.getValue(d));
                         return (
-                          <Card key={row.key} className="shadow-xs">
+                          <Card key={row.key} className="shadow-sm">
                             <CardContent className="p-3 space-y-2">
                               <p className="font-bold text-sm">{row.label}</p>
                               <div className="grid grid-cols-2 gap-2">

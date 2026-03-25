@@ -94,7 +94,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
 
   if (overdueData.length === 0) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardContent className="py-12 text-center">
           <Clock className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">لا يوجد مستأجرين متأخرين عن السداد</p>
@@ -104,7 +104,7 @@ const OverdueTenantsReport = ({ contracts, paymentInvoices, properties }: Overdu
   }
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
           <span className="flex items-center gap-2">

@@ -38,7 +38,7 @@ const PagePerformanceCard = () => {
 
   if (summaries.length === 0) {
     return (
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Activity className="w-5 h-5 text-primary" />
@@ -58,7 +58,7 @@ const PagePerformanceCard = () => {
   const globalStatus = getStatusLabel(globalAvg);
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <Activity className="w-5 h-5 text-primary" />

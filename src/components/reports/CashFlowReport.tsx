@@ -81,19 +81,19 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
     <div className="space-y-6">
       {/* بطاقات ملخصة */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-xs text-muted-foreground">إجمالي التدفقات الداخلة</p>
             <p className="text-lg font-bold text-success">{fmt(totals.totalIncome)} ر.س</p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-xs text-muted-foreground">إجمالي التدفقات الخارجة</p>
             <p className="text-lg font-bold text-destructive">{fmt(totals.totalExpenses)} ر.س</p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-xs text-muted-foreground">صافي التدفق النقدي</p>
             <p className={`text-lg font-bold ${totals.totalNet >= 0 ? 'text-success' : 'text-destructive'}`}>
@@ -101,7 +101,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-xs">
+        <Card className="shadow-sm">
           <CardContent className="p-3 sm:p-4">
             <p className="text-xs text-muted-foreground">أشهر موجبة / سالبة</p>
             <div className="flex items-center gap-2 mt-1">
@@ -118,7 +118,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
       </div>
 
       {/* الرسم البياني */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Banknote className="w-5 h-5" />
@@ -154,7 +154,7 @@ const CashFlowReport = ({ income, expenses, fiscalYear }: CashFlowReportProps) =
       </Card>
 
       {/* الجدول التفصيلي */}
-      <Card className="shadow-xs">
+      <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="text-base">جدول التدفق النقدي الشهري</CardTitle>
         </CardHeader>

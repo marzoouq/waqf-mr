@@ -110,7 +110,7 @@ const ZatcaSettingsTab = () => {
                       key={value}
                       onClick={() => setFormData(p => ({ ...p, zatca_platform: value }))}
                       className={cn(
-                        'cursor-pointer rounded-xl border-2 p-5 text-center transition-all hover:shadow-xs',
+                        'cursor-pointer rounded-xl border-2 p-5 text-center transition-all hover:shadow-sm',
                         selectedPlatform === value ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
                       )}
                     >

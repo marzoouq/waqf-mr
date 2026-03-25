@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 export const StatsGridSkeleton = ({ count = 9 }: { count?: number }) => (
   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
     {Array.from({ length: count }).map((_, i) => (
-      <Card key={i} className="shadow-xs">
+      <Card key={i} className="shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2 flex-1">
@@ -22,7 +22,7 @@ export const StatsGridSkeleton = ({ count = 9 }: { count?: number }) => (
 
 /** Skeleton for a data table */
 export const TableSkeleton = ({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) => (
-  <Card className="shadow-xs">
+  <Card className="shadow-sm">
     <CardHeader>
       <Skeleton className="h-6 w-40" />
     </CardHeader>
@@ -49,7 +49,7 @@ export const TableSkeleton = ({ rows = 5, cols = 4 }: { rows?: number; cols?: nu
 
 /** Skeleton for KPI panel */
 export const KpiSkeleton = () => (
-  <Card className="shadow-xs">
+  <Card className="shadow-sm">
     <CardHeader>
       <Skeleton className="h-6 w-56" />
     </CardHeader>
@@ -69,7 +69,7 @@ export const KpiSkeleton = () => (
 
 /** Skeleton for chart cards */
 export const ChartSkeleton = () => (
-  <Card className="shadow-xs">
+  <Card className="shadow-sm">
     <CardHeader>
       <Skeleton className="h-6 w-48" />
     </CardHeader>

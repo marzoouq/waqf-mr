@@ -191,7 +191,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             htmlFor={`method-email${idSuffix}`}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
               loginMethod === 'email'
-                ? 'border-primary bg-accent shadow-xs'
+                ? 'border-primary bg-accent shadow-sm'
                 : 'border-border hover:border-primary/30'
             }`}
           >
@@ -203,7 +203,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
             htmlFor={`method-id${idSuffix}`}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-all ${
               loginMethod === 'national_id'
-                ? 'border-primary bg-accent shadow-xs'
+                ? 'border-primary bg-accent shadow-sm'
                 : 'border-border hover:border-primary/30'
             }`}
           >

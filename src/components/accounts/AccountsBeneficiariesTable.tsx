@@ -35,7 +35,7 @@ const AccountsBeneficiariesTable = ({
       : 0;
 
   return (
-    <Card className="shadow-xs">
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
