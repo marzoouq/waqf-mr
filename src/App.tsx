@@ -118,8 +118,7 @@ function RoleGatedAiAssistant() {
     </DeferredRender>
   );
 }
-
-
+function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
