@@ -444,7 +444,7 @@ Deno.serve(async (req) => {
               p_message: `تم تسجيل مستفيد جديد: ${safeName(u.name)}`,
               p_type: 'info',
               p_link: '/dashboard/beneficiaries',
-            }); } catch (_error) { console.warn('notify_admins failed after bulk user creation', _error); }
+            }); } catch { /* إشعار فشل — غير حرج */ }
 
             results.push({ email: u.email, userId: newUser.user.id, success: true });
           } catch {
