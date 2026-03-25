@@ -281,7 +281,9 @@ const IncomePage = () => {
 
         {/* I-3 + I-8: رسم بياني الدخل الشهري */}
         {!isLoading && income.length > 0 && (
-          <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} paymentInvoices={paymentInvoices} />
+          <Suspense fallback={<Skeleton className="h-[320px]" />}>
+            <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} paymentInvoices={paymentInvoices} />
+          </Suspense>
         )}
 
         {/* I-4: تنبيه الإيراد الناقص */}
