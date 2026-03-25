@@ -176,7 +176,7 @@ const BeneficiarySettingsPage = () => {
                     <Label className="text-muted-foreground text-xs flex items-center gap-1">
                       <Lock className="w-3 h-3" /> الاسم
                     </Label>
-                    <Input name="field" value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
+                    <Input name="beneficiary_name" value={currentBeneficiary?.name || '—'} readOnly disabled className="bg-muted/50 cursor-not-allowed" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-muted-foreground text-xs">البريد الإلكتروني</Label>
