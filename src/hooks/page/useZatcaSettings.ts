@@ -42,6 +42,7 @@ export const useZatcaSettings = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [onboardLoading, setOnboardLoading] = useState(false);
+  const [renewLoading, setRenewLoading] = useState(false);
   const [connectionTest, setConnectionTest] = useState<ConnectionTestResult>({ loading: false, result: null });
 
   const { data: certificates = [] } = useQuery({
