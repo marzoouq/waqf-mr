@@ -57,7 +57,7 @@ const ContractsPage = () => {
                 'رقم العقد': c.contract_number, 'المستأجر': c.tenant_name,
                 'الإيجار السنوي': safeNumber(c.rent_amount), 'تاريخ البداية': c.start_date,
                 'تاريخ النهاية': c.end_date, 'نوع الدفع': getPaymentTypeLabel(c.payment_type),
-                'الحالة': c.status === 'active' ? 'ساري' : 'منتهي',
+                'الحالة': c.status === 'active' ? 'ساري' : c.status === 'cancelled' ? 'ملغي' : 'منتهي',
               })));
               downloadCsv(csv, 'عقود.csv');
               toast.success('تم تصدير العقود بنجاح');
