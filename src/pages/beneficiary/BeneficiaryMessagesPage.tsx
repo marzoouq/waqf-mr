@@ -261,8 +261,8 @@ const BeneficiaryMessagesPage = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>الموضوع</Label>
-              <Input name="chatSubject" value={chatSubject} onChange={(e) => setChatSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
+              <Label htmlFor="chat-subject">الموضوع</Label>
+              <Input id="chat-subject" name="chatSubject" value={chatSubject} onChange={(e) => setChatSubject(e.target.value)} placeholder="موضوع المحادثة" maxLength={200} />
             </div>
             <Button onClick={handleNewChat} className="w-full" disabled={createConversation.isPending}>
               {createConversation.isPending ? 'جاري الإنشاء...' : 'بدء المحادثة'}
