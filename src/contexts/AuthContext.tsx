@@ -84,8 +84,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      clearSignInTimeout();
     };
-  }, [setRoleWithRef]);
+  }, [setRoleWithRef, clearSignInTimeout]);
 
   // === الخطوة 2: useEffect منفصل لجلب الدور عند تغيّر user ===
   useEffect(() => {
