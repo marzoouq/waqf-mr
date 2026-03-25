@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [
+    tailwindcss(),
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
