@@ -284,16 +284,14 @@ export default function CreateInvoiceFromTemplate({
                     {computedItems.map((item) => (
                       <tr key={item.id} className="border-t">
                         <td className="p-1.5">
-                          <Input
-                            value={item.description}
+                          <Input id="create-invoice-from-template-field-1" value={item.description}
                             onChange={e => updateItem(item.id, 'description', e.target.value)}
                             placeholder="وصف البند"
                             className="h-8 text-xs"
                           />
                         </td>
                         <td className="p-1.5">
-                          <Input
-                            type="number"
+                          <Input id="create-invoice-from-template-field-2" type="number"
                             value={item.quantity}
                             onChange={e => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                             className="h-8 text-xs text-center"
@@ -301,8 +299,7 @@ export default function CreateInvoiceFromTemplate({
                           />
                         </td>
                         <td className="p-1.5">
-                          <Input
-                            type="number"
+                          <Input id="create-invoice-from-template-field-3" type="number"
                             value={item.unitPrice || ''}
                             onChange={e => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                             className="h-8 text-xs text-center"
@@ -310,8 +307,7 @@ export default function CreateInvoiceFromTemplate({
                           />
                         </td>
                         <td className="p-1.5">
-                          <Input
-                            type="number"
+                          <Input id="create-invoice-from-template-field-4" type="number"
                             value={item.vatRate}
                             onChange={e => updateItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
                             className="h-8 text-xs text-center"
@@ -369,8 +365,8 @@ export default function CreateInvoiceFromTemplate({
               {allowances.map((a, i) => (
                 <div key={`a-${i}`} className="flex gap-2 items-center bg-green-50 dark:bg-green-950/20 rounded p-2">
                   <span className="text-xs text-green-700 dark:text-green-400 font-medium shrink-0">خصم</span>
-                  <Input value={a.reason} onChange={e => { const n = [...allowances]; n[i] = { ...a, reason: e.target.value }; setAllowances(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
-                  <Input type="number" value={a.amount || ''} onChange={e => { const n = [...allowances]; n[i] = { ...a, amount: parseFloat(e.target.value) || 0 }; setAllowances(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
+                  <Input id="create-invoice-from-template-field-5" value={a.reason} onChange={e => { const n = [...allowances]; n[i] = { ...a, reason: e.target.value }; setAllowances(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
+                  <Input id="create-invoice-from-template-field-6" type="number" value={a.amount || ''} onChange={e => { const n = [...allowances]; n[i] = { ...a, amount: parseFloat(e.target.value) || 0 }; setAllowances(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
                   <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setAllowances(prev => prev.filter((_, j) => j !== i))}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
@@ -379,8 +375,8 @@ export default function CreateInvoiceFromTemplate({
               {charges.map((c, i) => (
                 <div key={`c-${i}`} className="flex gap-2 items-center bg-orange-50 dark:bg-orange-950/20 rounded p-2">
                   <span className="text-xs text-orange-700 dark:text-orange-400 font-medium shrink-0">رسوم</span>
-                  <Input value={c.reason} onChange={e => { const n = [...charges]; n[i] = { ...c, reason: e.target.value }; setCharges(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
-                  <Input type="number" value={c.amount || ''} onChange={e => { const n = [...charges]; n[i] = { ...c, amount: parseFloat(e.target.value) || 0 }; setCharges(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
+                  <Input id="create-invoice-from-template-field-7" value={c.reason} onChange={e => { const n = [...charges]; n[i] = { ...c, reason: e.target.value }; setCharges(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
+                  <Input id="create-invoice-from-template-field-8" type="number" value={c.amount || ''} onChange={e => { const n = [...charges]; n[i] = { ...c, amount: parseFloat(e.target.value) || 0 }; setCharges(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
                   <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setCharges(prev => prev.filter((_, j) => j !== i))}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>

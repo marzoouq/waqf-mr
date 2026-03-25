@@ -71,15 +71,13 @@ const AdvancedFiltersBar: React.FC<AdvancedFiltersBarProps> = ({
         />
 
         {/* نطاق التاريخ */}
-        <Input
-          type="date"
+        <Input id="advanced-filters-bar-field-1" type="date"
           value={filters.dateFrom}
           onChange={(e) => update({ dateFrom: e.target.value })}
           placeholder="من تاريخ"
           className="text-sm"
         />
-        <Input
-          type="date"
+        <Input id="advanced-filters-bar-field-2" type="date"
           value={filters.dateTo}
           onChange={(e) => update({ dateTo: e.target.value })}
           placeholder="إلى تاريخ"

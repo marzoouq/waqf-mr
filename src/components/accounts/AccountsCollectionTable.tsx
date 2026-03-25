@@ -85,8 +85,7 @@ const AccountsCollectionTable = ({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           {isEditing ? (
-                            <Input
-                              value={editData?.tenantName ?? ''}
+                            <Input id="accounts-collection-table-field-1" value={editData?.tenantName ?? ''}
                               onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
                               className="h-8 w-full"
                             />
@@ -137,8 +136,7 @@ const AccountsCollectionTable = ({
                       <div>
                         <p className="text-[11px] text-muted-foreground">الإيجار الشهري</p>
                         {isEditing ? (
-                          <Input
-                            type="number"
+                          <Input id="accounts-collection-table-field-2" type="number"
                             value={editData?.monthlyRent ?? 0}
                             onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
                             className="h-8 w-full mt-0.5"
@@ -150,8 +148,7 @@ const AccountsCollectionTable = ({
                       <div>
                         <p className="text-[11px] text-muted-foreground">الدفعات المحصّلة</p>
                         {isEditing ? (
-                          <Input
-                            type="number"
+                          <Input id="accounts-collection-table-field-3" type="number"
                             min={0}
                             max={item.expectedPayments}
                             value={editData?.paidMonths ?? 0}
@@ -228,8 +225,7 @@ const AccountsCollectionTable = ({
                       <TableCell className="text-muted-foreground">{item.index}</TableCell>
                       <TableCell className="font-medium">
                         {isEditing ? (
-                          <Input
-                            value={editData?.tenantName ?? ''}
+                          <Input id="accounts-collection-table-field-4" value={editData?.tenantName ?? ''}
                             onChange={(e) => setEditData(prev => prev ? { ...prev, tenantName: e.target.value } : prev)}
                             className="h-8 w-32"
                           />
@@ -237,8 +233,7 @@ const AccountsCollectionTable = ({
                       </TableCell>
                       <TableCell className="font-bold text-primary">
                         {isEditing ? (
-                          <Input
-                            type="number"
+                          <Input id="accounts-collection-table-field-5" type="number"
                             value={editData?.monthlyRent ?? 0}
                             onChange={(e) => setEditData(prev => prev ? { ...prev, monthlyRent: Number(e.target.value) } : prev)}
                             className="h-8 w-24"
@@ -270,8 +265,7 @@ const AccountsCollectionTable = ({
                       </TableCell>
                       <TableCell className="text-center">
                         {isEditing ? (
-                          <Input
-                            type="number"
+                          <Input id="accounts-collection-table-field-6" type="number"
                             min={0}
                             max={item.expectedPayments}
                             value={editData?.paidMonths ?? 0}
