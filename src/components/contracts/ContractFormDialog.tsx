@@ -309,8 +309,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           {/* Rent amount */}
           {(!isMulti || formData.pricing_mode === 'total') && (
             <div className="space-y-2">
-              <Label>{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
-              <Input type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
+              <Label htmlFor="contract-form-dialog-field-4">{isMulti ? 'الإيجار الإجمالي (ر.س) *' : 'قيمة الإيجار السنوي (ر.س) *'}</Label>
+              <Input id="contract-form-dialog-field-4" type="number" value={formData.rent_amount} onChange={(e) => setFormData({ ...formData, rent_amount: e.target.value })} placeholder="10000" />
               {isMulti && perUnitAmount > 0 && (
                 <p className="text-xs text-muted-foreground">= {fmt(perUnitAmount)} ر.س لكل وحدة</p>
               )}
@@ -327,8 +327,8 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
           </div>
           {formData.payment_type === 'multi' && (
             <div className="space-y-2">
-              <Label>عدد الدفعات *</Label>
-              <Input type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
+              <Label htmlFor="contract-form-dialog-field-6">عدد الدفعات *</Label>
+              <Input id="contract-form-dialog-field-6" type="number" min="2" max="12" value={formData.payment_count} onChange={(e) => setFormData({ ...formData, payment_count: e.target.value })} placeholder="2-12" />
             </div>
           )}
           {/* VAT Toggle */}

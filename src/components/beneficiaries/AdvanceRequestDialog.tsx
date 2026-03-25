@@ -158,8 +158,8 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
               )}
 
               <div className="space-y-2">
-                <Label>المبلغ المطلوب (ر.س)</Label>
-                <Input
+                <Label htmlFor="advance-request-dialog-field-1">المبلغ المطلوب (ر.س)</Label>
+                <Input id="advance-request-dialog-field-1"
                   type="number"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
@@ -176,8 +176,8 @@ const AdvanceRequestDialog = ({ beneficiaryId, fiscalYearId, estimatedShare, pai
               </div>
 
               <div className="space-y-2">
-                <Label>السبب (اختياري)</Label>
-                <Textarea value={reason} onChange={e => setReason(e.target.value)} placeholder="سبب الطلب..." />
+                <Label htmlFor="advance-request-dialog-field-2">السبب (اختياري)</Label>
+                <Textarea id="advance-request-dialog-field-2" value={reason} onChange={e => setReason(e.target.value)} placeholder="سبب الطلب..." />
               </div>
             </>
           )}

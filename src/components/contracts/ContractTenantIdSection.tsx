@@ -28,16 +28,16 @@ const ContractTenantIdSection = ({ formData, onChange }: Props) => (
         />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">رقم الهوية</Label>
+        <Label htmlFor="tenant-id-number" className="text-xs">رقم الهوية</Label>
         <Input id="tenant-id-number" name="tenant_id_number" className="h-9" value={formData.tenant_id_number} onChange={(e) => onChange({ tenant_id_number: e.target.value })} placeholder="رقم الهوية" maxLength={20} />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">الرقم الضريبي (VAT)</Label>
+        <Label htmlFor="tenant-tax-number" className="text-xs">الرقم الضريبي (VAT)</Label>
         <Input id="tenant-tax-number" name="tenant_tax_number" className="h-9" value={formData.tenant_tax_number} onChange={(e) => onChange({ tenant_tax_number: e.target.value })} placeholder="3xxxxxxxxxx0003" maxLength={15} />
       </div>
       <div className="space-y-1">
-        <Label className="text-xs">رقم السجل التجاري</Label>
-        <Input className="h-9" value={formData.tenant_crn} onChange={(e) => onChange({ tenant_crn: e.target.value })} placeholder="رقم السجل التجاري" maxLength={15} />
+        <Label htmlFor="contract-tenant-id-section-field-2" className="text-xs">رقم السجل التجاري</Label>
+        <Input id="contract-tenant-id-section-field-2" className="h-9" value={formData.tenant_crn} onChange={(e) => onChange({ tenant_crn: e.target.value })} placeholder="رقم السجل التجاري" maxLength={15} />
       </div>
     </div>
     <details className="text-xs">

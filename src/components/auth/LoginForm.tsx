@@ -180,7 +180,7 @@ export default function LoginForm({ signIn, loading, onResetPassword, idSuffix =
   return (
     <form onSubmit={handleSignIn} className="space-y-5">
       <div className="space-y-3">
-        <Label className="text-sm font-medium">طريقة تسجيل الدخول</Label>
+        <Label id="login-method-label" className="text-sm font-medium">طريقة تسجيل الدخول</Label>
         <RadioGroup
           value={loginMethod}
           onValueChange={(v) => setLoginMethod(v as 'email' | 'national_id')}

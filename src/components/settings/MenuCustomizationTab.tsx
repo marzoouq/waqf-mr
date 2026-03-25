@@ -103,8 +103,8 @@ const MenuCustomizationTab = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {items.map(item => (
               <div key={item.key} className="space-y-1">
-                <Label className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
-                <Input
+                <Label htmlFor="menu-customization-tab-field-1" className="text-xs text-muted-foreground">{item.defaultLabel}</Label>
+                <Input id="menu-customization-tab-field-1"
                   value={form[item.key]}
                   onChange={e => handleChange(item.key, e.target.value)}
                   maxLength={30}

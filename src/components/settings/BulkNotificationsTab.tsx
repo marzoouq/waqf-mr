@@ -99,8 +99,8 @@ const BulkNotificationsTab = () => {
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>عنوان الإشعار *</Label>
-              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: إشعار توزيع الأرباح" maxLength={100} />
+              <Label htmlFor="bulk-notifications-tab-field-1">عنوان الإشعار *</Label>
+              <Input id="bulk-notifications-tab-field-1" value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: إشعار توزيع الأرباح" maxLength={100} />
             </div>
             <div className="space-y-1.5">
               <Label>نوع الإشعار</Label>
@@ -119,13 +119,13 @@ const BulkNotificationsTab = () => {
           </div>
 
           <div className="space-y-1.5">
-            <Label>نص الإشعار *</Label>
-            <Textarea value={message} onChange={e => setMessage(e.target.value)} placeholder="اكتب نص الإشعار هنا..." rows={3} maxLength={500} />
+            <Label htmlFor="bulk-notifications-tab-field-3">نص الإشعار *</Label>
+            <Textarea id="bulk-notifications-tab-field-3" value={message} onChange={e => setMessage(e.target.value)} placeholder="اكتب نص الإشعار هنا..." rows={3} maxLength={500} />
           </div>
 
           <div className="space-y-1.5">
-            <Label>رابط (اختياري)</Label>
-            <Input value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/my-share" maxLength={200} />
+            <Label htmlFor="bulk-notifications-tab-field-4">رابط (اختياري)</Label>
+            <Input id="bulk-notifications-tab-field-4" value={link} onChange={e => setLink(e.target.value)} placeholder="/beneficiary/my-share" maxLength={200} />
           </div>
 
           <div className="space-y-3 border-t pt-4">

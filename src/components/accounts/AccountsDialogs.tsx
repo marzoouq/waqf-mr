@@ -88,15 +88,15 @@ const AccountsDialogs = ({
           {editingContractData && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>اسم المستأجر</Label>
-                <Input
+                <Label htmlFor="accounts-dialogs-field-1">اسم المستأجر</Label>
+                <Input id="accounts-dialogs-field-1"
                   value={editingContractData.tenant_name}
                   onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, tenant_name: e.target.value } : prev)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>قيمة الإيجار (ر.س)</Label>
-                <Input
+                <Label htmlFor="accounts-dialogs-field-2">قيمة الإيجار (ر.س)</Label>
+                <Input id="accounts-dialogs-field-2"
                   type="number"
                   value={editingContractData.rent_amount}
                   onChange={(e) => setEditingContractData((prev) => prev ? { ...prev, rent_amount: Number(e.target.value) } : prev)}

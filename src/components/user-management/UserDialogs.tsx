@@ -41,8 +41,8 @@ export const UserEditDialog = ({
       </DialogHeader>
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label>البريد الإلكتروني</Label>
-          <Input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} dir="ltr" />
+          <Label htmlFor="user-dialogs-field-1">البريد الإلكتروني</Label>
+          <Input id="user-dialogs-field-1" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} dir="ltr" />
           <Button size="sm" className="gap-1" onClick={() => editingUser && onUpdateEmail({ userId: editingUser.id, email: editEmail })} disabled={isEmailPending || editEmail === editingUser?.email}>
             <Mail className="w-3 h-3" />تحديث البريد
           </Button>

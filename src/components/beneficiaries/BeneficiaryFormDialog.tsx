@@ -62,25 +62,25 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
         <DialogHeader><DialogTitle>{isEditing ? 'تعديل المستفيد' : 'إضافة مستفيد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل بيانات مستفيد</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pl-2">
           <div className="space-y-2">
-            <Label>الاسم *</Label>
-            <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" maxLength={100} />
+            <Label htmlFor="beneficiary-form-dialog-field-1">الاسم *</Label>
+            <Input id="beneficiary-form-dialog-field-1" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="اسم المستفيد" maxLength={100} />
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>
           <div className="space-y-2">
-            <Label>نسبة الحصة (%) *</Label>
-            <Input type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
+            <Label htmlFor="beneficiary-form-dialog-field-2">نسبة الحصة (%) *</Label>
+            <Input id="beneficiary-form-dialog-field-2" type="number" step="0.01" min="0.01" value={formData.share_percentage} onChange={(e) => setFormData({ ...formData, share_percentage: e.target.value })} placeholder="7.14" />
             {errors.share_percentage && <p className="text-xs text-destructive">{errors.share_percentage}</p>}
           </div>
           <div className="space-y-2"><Label>رقم الهاتف</Label><Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" maxLength={15} /></div>
           <div className="space-y-2"><Label>البريد الإلكتروني</Label><Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" dir="ltr" maxLength={255} /></div>
           <div className="space-y-2">
-            <Label>رقم الحساب البنكي (IBAN)</Label>
-            <Input value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA0000000000000000000000" dir="ltr" maxLength={24} />
+            <Label htmlFor="beneficiary-form-dialog-field-3">رقم الحساب البنكي (IBAN)</Label>
+            <Input id="beneficiary-form-dialog-field-3" value={formData.bank_account} onChange={(e) => setFormData({ ...formData, bank_account: e.target.value })} placeholder="SA0000000000000000000000" dir="ltr" maxLength={24} />
             {errors.bank_account && <p className="text-xs text-destructive">{errors.bank_account}</p>}
           </div>
           <div className="space-y-2">
-            <Label className="flex items-center gap-2"><IdCard className="w-4 h-4" />رقم الهوية الوطنية</Label>
-            <Input value={formData.national_id} onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })} placeholder="1234567890" dir="ltr" maxLength={10} />
+            <Label htmlFor="beneficiary-form-dialog-field-4" className="flex items-center gap-2"><IdCard className="w-4 h-4" />رقم الهوية الوطنية</Label>
+            <Input id="beneficiary-form-dialog-field-4" value={formData.national_id} onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })} placeholder="1234567890" dir="ltr" maxLength={10} />
             {errors.national_id && <p className="text-xs text-destructive">{errors.national_id}</p>}
           </div>
           <div className="space-y-2">
