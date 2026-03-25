@@ -208,7 +208,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
     return allBeneficiaryLinks
       .map(link => {
-        // BUG-G1-3 fix: Replace /beneficiary home with /waqif for waqif role
+        // استبدال مسار الصفحة الرئيسية للواقف
         if (role === 'waqif' && link.to === '/beneficiary') {
           return { ...link, to: '/waqif' };
         }

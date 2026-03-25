@@ -22,7 +22,7 @@ interface ComputedParams {
   fiscalYearStatus?: string;
 }
 
-// H5 fix: exact VAT keywords only — 'ضريبة' alone is too broad
+// كلمات الضريبة المحددة فقط
 const VAT_KEYWORDS = ['ضريبة القيمة المضافة', 'vat', 'ضريبة قيمة مضافة'] as const;
 
 /**
@@ -51,7 +51,7 @@ export const useComputedFinancials = ({
     if (fiscalYearLabel) {
       return accounts.find(a => a.fiscal_year === fiscalYearLabel) || null;
     }
-    // J-09 fix: removed dead BUG-03 code — byId already handles specific FY lookup above
+    
     return null;
   }, [accounts, fiscalYearId, fiscalYearLabel]);
 
@@ -62,7 +62,7 @@ export const useComputedFinancials = ({
   } = useMemo(() => {
     const _adminPct = safePercent(settings?.admin_share_percentage, 10);
     const _waqifPct = safePercent(settings?.waqif_share_percentage, 5);
-    // F5: تتبع استخدام القيم الافتراضية
+    // تتبع استخدام القيم الافتراضية
     const _usingFallback = (settings?.admin_share_percentage == null || settings.admin_share_percentage === '')
       || (settings?.waqif_share_percentage == null || settings.waqif_share_percentage === '');
     const _zakatAmount = currentAccount ? safeNumber(currentAccount.zakat_amount) : 0;
@@ -85,9 +85,9 @@ export const useComputedFinancials = ({
   if (currentAccount) {
       const grandTotal = totalIncome + waqfCorpusPrevious;
 
-      // BUG-02 fix: when year is not closed, compute from live data instead of stale account values
+      // في السنة النشطة: حساب من البيانات الحية بدلاً من القيم المخزنة
       if (!isClosed) {
-        // G1 fix: netAfterExpenses يجب أن يشمل waqfCorpusPrevious لتتناسق مع grandTotal
+        // netAfterExpenses يجب أن يشمل waqfCorpusPrevious لتتناسق مع grandTotal
         const liveNetAfterExpenses = grandTotal - totalExpenses;
         const liveNetAfterVat = liveNetAfterExpenses - vatAmount;
         const liveNetAfterZakat = liveNetAfterVat - zakatAmount;
@@ -96,21 +96,21 @@ export const useComputedFinancials = ({
           netAfterExpenses: liveNetAfterExpenses,
           netAfterVat: liveNetAfterVat,
           netAfterZakat: liveNetAfterZakat,
-          shareBase: Math.max(0, totalIncome - totalExpenses - zakatAmount), // J-07 fix
+          shareBase: Math.max(0, totalIncome - totalExpenses - zakatAmount),
           adminShare: 0,
           waqifShare: 0,
           waqfRevenue: 0,
           availableAmount: 0,
           remainingBalance: 0,
-          isDeficit: false, // BUG-C1 fix: الحصص مصفّرة في السنة النشطة فلا عجز
+          isDeficit: false,
         };
       }
 
       // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
       const storedNetAfterVat = safeNumber(currentAccount.net_after_vat);
       const storedZakat = safeNumber(currentAccount.zakat_amount);
-      // H3 fix: use stored values for shareBase in closed years to match stored adminShare
-      // K-08 fix: consistent variable naming for stored values
+      // استخدام القيم المخزنة في السنوات المقفلة
+      
       const storedAdminShare = safeNumber(currentAccount.admin_share);
       const storedWaqifShare = safeNumber(currentAccount.waqif_share);
       const storedWaqfRevenue = safeNumber(currentAccount.waqf_revenue);
@@ -148,7 +148,7 @@ export const useComputedFinancials = ({
 
   const incomeBySource = useMemo(() => groupIncomeBySource(income), [income]);
   const expensesByType = useMemo(() => groupExpensesByType(expenses), [expenses]);
-  // DEFER-4: ثابت خارج useMemo لتجنب إعادة الإنشاء
+  
   const expensesByTypeExcludingVat = useMemo(() => {
     const filtered = expenses.filter(e => {
       const desc = (e.description || '').trim().toLowerCase();

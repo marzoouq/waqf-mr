@@ -49,7 +49,7 @@ const INTENSITY_CLASSES: Record<number, string> = {
   4: 'bg-success/90 text-success-foreground',
 };
 
-// H-02: تنسيق k بدقة — toFixed(1) بدل toFixed(0)
+// تنسيق k بدقة — toFixed(1) بدل toFixed(0)
 const formatCompactAmount = (amount: number): string => {
   if (amount === 0) return '—';
   if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`;
@@ -57,7 +57,7 @@ const formatCompactAmount = (amount: number): string => {
 };
 
 const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: CollectionHeatmapProps) => {
-  // H-01 fix: تحديد نطاق السنة المالية لفلترة الأشهر
+  // تحديد نطاق السنة المالية لفلترة الأشهر
   const yearRange = useMemo(() => {
     if (fiscalYearStart && fiscalYearEnd) {
       return {
@@ -68,7 +68,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
     return null;
   }, [fiscalYearStart, fiscalYearEnd]);
 
-  // H-01 fix: تجميع التحصيل الفعلي حسب الشهر مع فلترة بالسنة المالية
+  // تجميع التحصيل الفعلي حسب الشهر مع فلترة بالسنة المالية
   const monthlyAmounts = useMemo(() => {
     const amounts = new Array(12).fill(0);
     paymentInvoices.forEach(inv => {
@@ -78,7 +78,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
       const dateObj = new Date(dateStr);
       const year = dateObj.getFullYear();
 
-      // H-01: فلترة بالسنة المالية — تجاهل الفواتير خارج النطاق
+      // فلترة بالسنة المالية — تجاهل الفواتير خارج النطاق
       if (yearRange) {
         if (year < yearRange.startYear || year > yearRange.endYear) return;
       }
@@ -95,7 +95,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
   const maxAmount = useMemo(() => Math.max(...monthlyAmounts, 1), [monthlyAmounts]);
   const totalCollected = monthlyAmounts.reduce((s, v) => s + v, 0);
 
-  // H-04: تحديد الشهر الحالي
+  // تحديد الشهر الحالي
   const currentMonth = new Date().getMonth();
 
   if (totalCollected === 0) return null;
@@ -114,7 +114,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
             {MONTH_LABELS.map((label, i) => {
               const amount = monthlyAmounts[i];
               const intensity = getIntensity(amount, maxAmount);
-              // H-04: تمييز الشهر الحالي بحلقة بارزة
+              // تمييز الشهر الحالي بحلقة بارزة
               const isCurrentMonth = i === currentMonth;
               return (
                 <Tooltip key={`month-${i}`}>

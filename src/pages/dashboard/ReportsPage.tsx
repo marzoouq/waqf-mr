@@ -57,14 +57,14 @@ const ReportsPage = () => {
   } = useFinancialSummary(fiscalYearId || undefined, selectedFiscalYearLabel, { fiscalYearStatus: fiscalYear?.status });
 
   const beneficiariesShare = availableAmount;
-  // N6 fix: "صافي الريع" should reflect after zakat, not just after expenses
+  // صافي الريع = بعد الزكاة
   const netRevenue = netAfterZakat;
 
   const incomeSourceData = Object.entries(incomeBySource).map(([name, value]) => ({ name, value }));
   const expenseTypeData = Object.entries(expensesByTypeExcludingVat).map(([name, value]) => ({ name, value }));
 
   // Beneficiary distributions
-  // G2 fix: حساب الحصة كنسبة تناسبية من مجموع النسب (متوافق مع MySharePage)
+  // حساب الحصة كنسبة تناسبية من مجموع النسب (متوافق مع MySharePage)
   const totalBeneficiaryPercentage = beneficiaries.reduce((sum, b) => sum + Number(b.share_percentage ?? 0), 0);
   const distributionData = beneficiaries.map((b) => ({
     name: b.name ?? 'غير معروف',
@@ -101,7 +101,7 @@ const ReportsPage = () => {
     properties, contracts, expenses, allUnits, isSpecificYear
   );
 
-  // G4: إضافة فحص حالة السنة — الحصص = 0 في السنوات النشطة فلا يُقارن
+  // فحص حالة السنة — الحصص = 0 في السنوات النشطة فلا يُقارن
   const isYearClosed = fiscalYear?.status === 'closed';
   const auditChecks = [
     { key: 'account', ok: !!currentAccount },
@@ -144,7 +144,7 @@ const ReportsPage = () => {
       },
       {
         category: 'اتساق معادلة الحصص',
-        // J-08 fix: skip check for active years where shares are 0
+        // تجاوز الفحص في السنوات النشطة حيث الحصص = 0
         status: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? 'سليم' : 'ملاحظة',
         details: !isYearClosed ? 'السنة نشطة — لم تُحسب الحصص بعد.' : 'تمت مقارنة مجموع الحصص مع صافي ما بعد الزكاة للتحقق من سلامة الحساب.',
         score: !isYearClosed || Math.abs((adminShare + waqifShare + waqfRevenue) - netAfterZakat) < 1 ? '10/10' : '5/10',

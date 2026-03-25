@@ -25,7 +25,7 @@ interface PendingActionsTableProps {
 }
 
 const PendingActionsTable = ({ advanceRequests, paymentInvoices }: PendingActionsTableProps) => {
-  // BUG-M2 fix: حساب العدد الكلي للفواتير غير المُرسلة قبل القطع
+  // حساب العدد الكلي للفواتير غير المُرسلة قبل القطع
   const unsubmittedZatcaTotal = useMemo(() => {
     return paymentInvoices.filter(
       inv => inv.zatca_status === 'not_submitted' || !inv.zatca_status

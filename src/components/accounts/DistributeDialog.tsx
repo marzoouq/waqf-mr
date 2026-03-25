@@ -45,7 +45,7 @@ const DistributeDialog = ({
   const { data: paidAdvances = [] } = useQuery({
     queryKey: ['advance_requests', 'paid_all', fiscalYearId],
     queryFn: async () => {
-      // G2 fix: إزالة as any واستخدام النوع الصحيح
+      
       let query = supabase
         .from('advance_requests')
         .select('beneficiary_id, amount')
@@ -63,7 +63,7 @@ const DistributeDialog = ({
   const { data: activeCarryforwards = [] } = useQuery({
     queryKey: ['advance_carryforward', 'active_for_distribution', fiscalYearId],
     queryFn: async () => {
-      // G2 fix: إزالة as any واستخدام النوع الصحيح
+      
       let query = supabase
         .from('advance_carryforward')
         .select('beneficiary_id, amount')
@@ -97,7 +97,7 @@ const DistributeDialog = ({
 
   const distributions = useMemo(() => {
     // === Largest Remainder algorithm for precise share allocation ===
-    // F-AUDIT: استخدام مجموع النسب الفعلي (totalPercentage) بدلاً من 100 الثابتة
+    // استخدام مجموع النسب الفعلي (totalPercentage) بدلاً من 100 الثابتة
     // لضمان التناسق مع get_max_advance_amount و validate_advance_request_amount في DB
     const totalPercentage = beneficiaries.reduce((s, b) => s + safeNumber(b.share_percentage), 0);
     if (totalPercentage === 0 || availableAmount === 0) {
@@ -109,7 +109,7 @@ const DistributeDialog = ({
     }
 
     // Step 1: Calculate raw shares and floor them to 2 decimals
-    // F-AUDIT fix: normalize by totalPercentage (not hardcoded 100) to match DB RPC behavior
+    // تطبيع بالنسبة الكلية بدلاً من 100 الثابتة
     const rawShares = beneficiaries.map(b => {
       const exact = availableAmount * safeNumber(b.share_percentage) / totalPercentage;
       const floored = Math.floor(exact * 100) / 100;
@@ -136,10 +136,10 @@ const DistributeDialog = ({
       const totalDeductions = advances + carryforward;
       const rawNet = shareAmount - totalDeductions;
       const net = Math.max(0, Math.round(rawNet * 100) / 100);
-      // L-02 fix: deficit is simply the negative portion of rawNet — no double counting
+      // العجز = الجزء السالب من صافي الحصة
       const deficit = rawNet < 0 ? Math.round(Math.abs(rawNet) * 100) / 100 : 0;
 
-      // G3 fix: حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
+      // حساب carryforward_deducted بشكل صحيح — يُخصم بعد السُلف
       const afterAdvances = Math.max(0, shareAmount - advances);
       const actualCarryforward = Math.min(carryforward, afterAdvances);
 

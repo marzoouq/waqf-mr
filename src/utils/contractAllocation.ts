@@ -37,7 +37,7 @@ export function generatePaymentDueDates(contract: ContractInfo): string[] {
   const dates: string[] = [];
 
   if (paymentCount === 1) {
-    // L-01 fix: single payment (any type with 1 due date) — due at start + 1 month grace
+    // دفعة واحدة — تاريخ الاستحقاق بعد شهر من البداية
     const due = safeAddMonths(start, 1);
     dates.push(toISODate(due));
   } else {
@@ -145,7 +145,7 @@ function monthsBetween(a: Date, b: Date): number {
 }
 
 function getPaymentAmount(contract: ContractInfo): number {
-  if (contract.payment_amount != null) return safeNumber(contract.payment_amount); // L-08 fix: respect 0
+  if (contract.payment_amount != null) return safeNumber(contract.payment_amount);
   const count = getPaymentCount(contract);
   return safeNumber(contract.rent_amount) / count;
 }
