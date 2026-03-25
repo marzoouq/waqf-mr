@@ -1,51 +1,48 @@
 
 
-# إصلاح نتائج الفحص الجنائي — 4 مشاكل متبقية
+# إصلاح نتائج الفحص الجنائي — الجولة الثانية
 
-## ملخص الاكتشافات
-- **BUG-1 (dataCache)**: مُصلح بالفعل — `SimpleCache` مع TTL 60 ثانية موجود
-- **ISSUE-2 (clearSlowQueries)**: مُستدعاة بالفعل عند تسجيل الخروج في `AuthContext.tsx`
+## تصحيحات على التقرير (مشاكل غير موجودة فعلاً)
 
-## التغييرات المطلوبة
+| المشكلة المُبلّغة | الحالة الفعلية |
+|---|---|
+| CRITICAL-1: `check-contract-expiry` بدون auth guard | ✅ **مُصلح بالفعل** — سطر 37-73 يتحقق من `isServiceRole`، وإذا false يتحقق من JWT + دور admin، ويرجع 401/403 |
+| ISSUE-8: `abortControllerRef` لا يُلغى عند الإغلاق | ✅ **مُصلح بالفعل** — `useEffect(() => () => abortControllerRef.current?.abort(), [])` موجود بسطر 43-45 |
+| ISSUE-9: `useBfcacheSafeChannel` race condition | ✅ **صحيح** — `channelName` في dependency array |
+| QUALITY-5: `auth-email-hook` بدون HMAC | ✅ **محمي بالفعل** — يستخدم `verifyWebhookRequest` مع HMAC signature |
+| CRITICAL-2: migrations متضاربة | ✅ **آخر migration يسري** — الترتيب الزمني يضمن أن `REVOKE` هو النهائي |
 
-### 1. BUG-2: إضافة `diagnostics_run` لقائمة أنواع الأحداث المسموحة
-- **Migration SQL**: تحديث دالة `log_access_event` لإضافة `'diagnostics_run'` في قائمة `IF p_event_type NOT IN (...)`
+## التغييرات المطلوبة فعلاً (4 إصلاحات)
 
-### 2. BUG-3: تسرب `activeTimers` في `queryClient.ts`
-- **الملف**: `src/lib/queryClient.ts`
-- إضافة معالجة حدث `removed` لتنظيف المؤقتات عند حذف query من الكاش:
+### 1. ISSUE-6: إضافة `clearPageLoadEntries()` عند تسجيل الخروج
+- **الملف**: `src/contexts/AuthContext.tsx`
+- إضافة `import { clearPageLoadEntries } from '@/lib/pagePerformanceTracker'`
+- استدعاء `clearPageLoadEntries()` في دالة `signOut()` بجانب `clearSlowQueries()` و `clearToasts()`
+
+### 2. ISSUE-5: فحص تعقيد كلمة المرور في `guard-signup`
+- **الملف**: `supabase/functions/guard-signup/index.ts`
+- إضافة فحص بعد التحقق من الطول:
 ```typescript
-if (event.type === 'removed') {
-  const endTimer = activeTimers.get(event.query.queryHash);
-  if (endTimer) {
-    endTimer();
-    activeTimers.delete(event.query.queryHash);
-  }
+const hasUpperOrDigit = /(?=.*[A-Z])|(?=.*\d)/.test(password);
+if (!hasUpperOrDigit) {
+  return error("كلمة المرور يجب أن تحتوي على حرف كبير أو رقم على الأقل");
 }
 ```
 
-### 3. BUG-4: `sessionStorage.removeItem` في module scope في `lazyWithRetry.ts`
-- **الملف**: `src/lib/lazyWithRetry.ts`
-- حذف السطر الأخير `sessionStorage.removeItem('chunk_retry');`
-- نقل المسح إلى داخل `.then()` عند النجاح:
-```typescript
-return lazy(() =>
-  importFn()
-    .then(mod => {
-      sessionStorage.removeItem('chunk_retry');
-      return mod;
-    })
-    .catch(...)
-);
+### 3. QUALITY-2: إخفاء `[data-sensitive]` عند الطباعة
+- **الملف**: `src/index.css`
+- إضافة داخل `@media print` الموجود:
+```css
+[data-sensitive] {
+  visibility: hidden !important;
+}
 ```
 
-### 4. ISSUE-1: تحديد حجم رسالة المساعد الذكي
-- **الملف**: `src/components/AiAssistant.tsx`
-- إضافة `maxLength={1000}` على `<Input>`
-- تقطيع النص: `const trimmed = input.trim().slice(0, 1000);`
+### 4. QUALITY-1: تصحيح التوثيق
+- **الملف**: `docs/API.md` سطر 377
+- تغيير "بين 6 و 128" إلى "بين 8 و 128"
 
-## ما لا يحتاج تعديل (مُصلح بالفعل)
-- ~~BUG-1: dataCache~~ — `SimpleCache` مع TTL موجود
-- ~~ISSUE-2: clearSlowQueries~~ — مُستدعاة في `AuthContext.tsx`
-- ~~ISSUE-4: pagePerformanceTracker~~ — unsubscribe موجود
+## ملاحظات إضافية
+- **QUALITY-3** (`pg_stat_statements`): تحسين دفاعي لكن الـ extension مفعلة في Supabase Cloud افتراضياً — خطر منخفض جداً
+- **QUALITY-6** (`detectSessionInUrl`): لا يمكن تعطيلها بشكل عملي في Supabase — الـ fragment لا يُرسل للخادم أصلاً
 
