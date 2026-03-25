@@ -23,9 +23,9 @@ const DEVICE_SERIAL_REGEX = /^1-.+\|2-.+\|3-.+$/;
 
 const ZatcaSettingsTab = () => {
   const {
-    isLoading, formData, setFormData, saving, onboardLoading,
+    isLoading, formData, setFormData, saving, onboardLoading, renewLoading,
     connectionTest, activeCert, isEnabled, selectedPhase, selectedPlatform,
-    handleSave, handleSetupAndOnboard, handleTestConnection,
+    handleSave, handleSetupAndOnboard, handleRenewCertificate, handleTestConnection,
   } = useZatcaSettings();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
