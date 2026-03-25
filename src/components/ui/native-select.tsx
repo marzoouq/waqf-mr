@@ -21,6 +21,8 @@ interface NativeSelectProps {
   className?: string;
   triggerClassName?: string;
   disabled?: boolean;
+  id?: string;
+  name?: string;
 }
 
 const NativeSelect = React.forwardRef<HTMLDivElement, NativeSelectProps>(
