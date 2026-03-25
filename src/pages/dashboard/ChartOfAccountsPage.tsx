@@ -281,8 +281,9 @@ const ChartOfAccountsPage = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>الترتيب</Label>
+                <Label htmlFor="chart-sort">الترتيب</Label>
                 <Input
+                  id="chart-sort"
                   type="number"
                   value={form.sort_order}
                   onChange={(e) => setForm(p => ({ ...p, sort_order: Number(e.target.value) }))}
