@@ -173,7 +173,7 @@ function HistoricalComparisonPage() {
                   return (
                     <Button
                       key={fy.id}
-                      variant={isSelected ? 'default' : 'outline-solid'}
+                      variant={isSelected ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => toggleYear(fy.id)}
                       className="gap-1"

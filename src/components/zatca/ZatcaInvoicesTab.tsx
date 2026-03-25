@@ -11,7 +11,7 @@ import TablePagination from '@/components/TablePagination';
 import { FileCode, PenTool, Send, RefreshCw, Loader2, ClipboardCheck } from 'lucide-react';
 import { fmt } from '@/utils/format';
 
-const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline-solid' }> = {
+const ZATCA_STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   not_submitted: { label: 'لم تُرسل', variant: 'outline' },
   pending: { label: 'قيد المعالجة', variant: 'secondary' },
   submitted: { label: 'مُرسلة', variant: 'default' },
@@ -154,7 +154,7 @@ export default function ZatcaInvoicesTab({
                           <TooltipProvider delayDuration={200}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button size="sm" variant={hasXml ? 'ghost' : 'outline-solid'} onClick={() => onGenerateXml(inv.id, inv.source)} disabled={rowBusy || hasSig}>
+                                <Button size="sm" variant={hasXml ? 'ghost' : 'outline'} onClick={() => onGenerateXml(inv.id, inv.source)} disabled={rowBusy || hasSig}>
                                   {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileCode className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">XML</span>
                                 </Button>
@@ -167,7 +167,7 @@ export default function ZatcaInvoicesTab({
                           <TooltipProvider delayDuration={200}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button size="sm" variant={hasSig ? 'ghost' : 'outline-solid'} onClick={() => onSignInvoice(inv.id, inv.source)} disabled={rowBusy || !canSign}>
+                                <Button size="sm" variant={hasSig ? 'ghost' : 'outline'} onClick={() => onSignInvoice(inv.id, inv.source)} disabled={rowBusy || !canSign}>
                                   {rowBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <PenTool className="w-3 h-3" />}
                                   <span className="mr-1 text-xs">توقيع</span>
                                 </Button>

@@ -46,7 +46,7 @@ const InvoicesViewPage = () => {
     );
   });
 
-  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline-solid' => {
+  const statusBadgeVariant = (status: string): 'default' | 'destructive' | 'secondary' | 'outline' => {
     if (status === 'paid') return 'default';
     if (status === 'cancelled' || status === 'overdue') return 'destructive';
     return 'secondary';

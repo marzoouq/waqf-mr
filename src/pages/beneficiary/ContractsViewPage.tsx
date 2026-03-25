@@ -22,7 +22,7 @@ import { fmt } from '@/utils/format';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline-solid' }> = {
+const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'نشط', variant: 'default' },
   expired: { label: 'منتهي', variant: 'destructive' },
   cancelled: { label: 'ملغي', variant: 'secondary' },

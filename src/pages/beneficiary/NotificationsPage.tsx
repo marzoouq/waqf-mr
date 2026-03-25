@@ -187,7 +187,7 @@ const NotificationsPage = () => {
             return (
               <Button
                 key={cat.id}
-                variant={categoryFilter === cat.id ? 'default' : 'outline-solid'}
+                variant={categoryFilter === cat.id ? 'default' : 'outline'}
                 size="sm"
                 className="gap-1.5 shrink-0"
                 onClick={() => {
@@ -197,7 +197,7 @@ const NotificationsPage = () => {
               >
                 {cat.label}
                 {count > 0 && (
-                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline-solid'} className="text-xs px-1.5 min-w-5 h-5">
+                  <Badge variant={categoryFilter === cat.id ? 'secondary' : 'outline'} className="text-xs px-1.5 min-w-5 h-5">
                     {count}
                   </Badge>
                 )}

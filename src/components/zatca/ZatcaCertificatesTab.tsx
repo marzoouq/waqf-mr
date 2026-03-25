@@ -132,7 +132,7 @@ export default function ZatcaCertificatesTab({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={cert.is_active ? 'default' : 'outline-solid'}>
+                        <Badge variant={cert.is_active ? 'default' : 'outline'}>
                           {cert.is_active ? 'نشطة' : 'غير نشطة'}
                         </Badge>
                       </TableCell>

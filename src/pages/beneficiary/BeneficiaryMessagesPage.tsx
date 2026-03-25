@@ -142,10 +142,10 @@ const BeneficiaryMessagesPage = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4">
-          <Button variant={activeTab === 'chat' ? 'default' : 'outline-solid'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
+          <Button variant={activeTab === 'chat' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('chat'); setSelectedConv(null); }}>
             <MessageSquare className="w-4 h-4 ml-1" /> المحادثات
           </Button>
-          <Button variant={activeTab === 'support' ? 'default' : 'outline-solid'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
+          <Button variant={activeTab === 'support' ? 'default' : 'outline'} size="sm" onClick={() => { setActiveTab('support'); setSelectedConv(null); }}>
             <Headphones className="w-4 h-4 ml-1" /> الدعم الفني
           </Button>
         </div>

@@ -168,14 +168,14 @@ const BulkMessagingTab = () => {
             </Label>
             <div className="flex gap-3">
               <Button
-                variant={target === 'all' ? 'default' : 'outline-solid'}
+                variant={target === 'all' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTarget('all')}
               >
                 جميع المستفيدين ({beneficiaries.length})
               </Button>
               <Button
-                variant={target === 'selected' ? 'default' : 'outline-solid'}
+                variant={target === 'selected' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTarget('selected')}
               >

@@ -15,6 +15,6 @@ export const statusColor = (status: string) => {
     case 'مؤجرة': return 'default' as const;
     case 'شاغرة': return 'secondary' as const;
     case 'صيانة': return 'destructive' as const;
-    default: return 'outline-solid' as const;
+    default: return 'outline' as const;
   }
 };

@@ -101,12 +101,12 @@ const statusLabel = (s: string) => {
     default: return s;
   }
 };
-const statusColor = (s: string): 'default' | 'secondary' | 'destructive' | 'outline-solid' => {
+const statusColor = (s: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (s) {
     case 'paid': return 'default';
     case 'pending': return 'secondary';
     case 'overdue': return 'destructive';
-    default: return 'outline-solid';
+    default: return 'outline';
   }
 };
 
@@ -458,7 +458,7 @@ export function TemplateSelector({ value, onChange }: { value: 'professional' | 
   return (
     <div className="flex gap-2 justify-center">
       <Button
-        variant={value === 'professional' ? 'default' : 'outline-solid'}
+        variant={value === 'professional' ? 'default' : 'outline'}
         size="sm"
         className="gap-1.5"
         onClick={() => onChange('professional')}
@@ -467,7 +467,7 @@ export function TemplateSelector({ value, onChange }: { value: 'professional' | 
         الاحترافي
       </Button>
       <Button
-        variant={value === 'simplified' ? 'default' : 'outline-solid'}
+        variant={value === 'simplified' ? 'default' : 'outline'}
         size="sm"
         className="gap-1.5"
         onClick={() => onChange('simplified')}

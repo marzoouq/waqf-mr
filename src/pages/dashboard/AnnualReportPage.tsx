@@ -193,7 +193,7 @@ const AnnualReportPage = () => {
               {isPublished ? 'منشور' : 'مسودة'}
             </Badge>
             <Button
-              variant={isPublished ? 'outline-solid' : 'default'}
+              variant={isPublished ? 'outline' : 'default'}
               size="sm"
               onClick={handleTogglePublish}
               disabled={togglePublish.isPending}
