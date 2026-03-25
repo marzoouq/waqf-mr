@@ -56,18 +56,18 @@ const formatCompactAmount = (amount: number): string => {
 };
 
 const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: CollectionHeatmapProps) => {
-  // تحديد نطاق السنة المالية لفلترة الأشهر
-  const yearRange = useMemo(() => {
+  // تحديد نطاق السنة المالية لفلترة بالتاريخ الكامل
+  const dateRange = useMemo(() => {
     if (fiscalYearStart && fiscalYearEnd) {
       return {
-        startYear: new Date(fiscalYearStart).getFullYear(),
-        endYear: new Date(fiscalYearEnd).getFullYear(),
+        start: new Date(fiscalYearStart),
+        end: new Date(fiscalYearEnd),
       };
     }
     return null;
   }, [fiscalYearStart, fiscalYearEnd]);
 
-  // تجميع التحصيل الفعلي حسب الشهر مع فلترة بالسنة المالية
+  // تجميع التحصيل الفعلي حسب الشهر مع فلترة بالتاريخ الكامل
   const monthlyAmounts = useMemo(() => {
     const amounts = new Array(12).fill(0);
     paymentInvoices.forEach(inv => {
@@ -75,11 +75,10 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
       const dateStr = inv.paid_date;
       if (!dateStr) return;
       const dateObj = new Date(dateStr);
-      const year = dateObj.getFullYear();
 
-      // فلترة بالسنة المالية — تجاهل الفواتير خارج النطاق
-      if (yearRange) {
-        if (year < yearRange.startYear || year > yearRange.endYear) return;
+      // فلترة بالتاريخ الكامل — تجاهل الفواتير خارج النطاق
+      if (dateRange) {
+        if (dateObj < dateRange.start || dateObj > dateRange.end) return;
       }
 
       const month = dateObj.getMonth();
@@ -89,7 +88,7 @@ const CollectionHeatmap = ({ paymentInvoices, fiscalYearStart, fiscalYearEnd }: 
       amounts[month] += collected;
     });
     return amounts;
-  }, [paymentInvoices, yearRange]);
+  }, [paymentInvoices, dateRange]);
 
   const maxAmount = useMemo(() => Math.max(...monthlyAmounts, 1), [monthlyAmounts]);
   const totalCollected = monthlyAmounts.reduce((s, v) => s + v, 0);

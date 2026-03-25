@@ -7,7 +7,7 @@ import PageHeaderCard from '@/components/PageHeaderCard';
 import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { useAccountsPage } from '@/hooks/financial/useAccountsPage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
 import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
 import { useAdvanceRequests } from '@/hooks/financial/useAdvanceRequests';
 import { useTotalBeneficiaryPercentage } from '@/hooks/financial/useTotalBeneficiaryPercentage';
