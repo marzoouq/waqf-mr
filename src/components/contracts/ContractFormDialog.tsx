@@ -424,7 +424,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
               options={statusOptions}
             />
           </div>
-          <div className="space-y-2"><Label>ملاحظات</Label><Input name="notes" id="contract-form-dialog-field-4" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
+          <div className="space-y-2"><Label htmlFor="contract-form-dialog-field-5">ملاحظات</Label><Input name="notes" id="contract-form-dialog-field-5" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>
               {isMulti && selectedCount > 1 ? `إنشاء ${selectedCount} عقود` : editingContract ? 'تحديث' : 'إضافة'}

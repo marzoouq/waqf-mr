@@ -63,7 +63,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
               placeholder="اختر نوع المصروف"
             />
           </div>
-          <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-1">المبلغ (ر.س) *</Label><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div><Input name="amount" id="expense-form-dialog-field-1" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="1000" /></div>
 
           {/* VAT Toggle */}
           {onVatChange && (
@@ -80,7 +80,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
             </div>
           )}
 
-          <div className="space-y-2"><Label>التاريخ *</Label><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-2">التاريخ *</Label><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div><Input name="date" id="expense-form-dialog-field-2" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></div>
           <div className="space-y-2">
             <Label htmlFor="expense-form-dialog-select-2">العقار (اختياري)</Label>
             <NativeSelect id="expense-form-dialog-select-2" value={formData.property_id}
@@ -89,7 +89,7 @@ const ExpenseFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEditing
               placeholder="اختر العقار"
             />
           </div>
-          <div className="space-y-2"><Label>الوصف</Label><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+          <div className="space-y-2"><div className="space-y-2"><Label htmlFor="expense-form-dialog-field-3">الوصف</Label><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div><Input name="description" id="expense-form-dialog-field-3" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>{isEditing ? 'تحديث' : 'إضافة'}</Button>
             <Button type="button" variant="outline" onClick={() => { setIsOpen(false); onReset(); }}>إلغاء</Button>

@@ -91,7 +91,7 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             />
             <p className="text-xs text-muted-foreground">اختر حساب المستفيد لربطه بملفه الشخصي</p>
           </div>
-          <div className="space-y-2"><Label>ملاحظات</Label><Input name="notes" id="beneficiary-form-dialog-field-3" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" maxLength={500} /></div>
+          <div className="space-y-2"><Label htmlFor="beneficiary-form-dialog-field-3">ملاحظات</Label><Input name="notes" id="beneficiary-form-dialog-field-3" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" maxLength={500} /></div>
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>{isEditing ? 'تحديث' : 'إضافة'}</Button>
             <Button type="button" variant="outline" onClick={() => { setIsOpen(false); onReset(); setErrors({}); }}>إلغاء</Button>

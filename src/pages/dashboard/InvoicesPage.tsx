@@ -117,25 +117,25 @@ const InvoicesPage = () => {
                     <input ref={h.fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) h.validateAndSetFile(file); }} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>رقم الفاتورة</Label><Input name="invoice_number" value={h.formData.invoice_number} onChange={(e) => h.setFormData({ ...h.formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
-                    <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input name="amount" type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
+                    <div className="space-y-2"><Label htmlFor="invoice-number">رقم الفاتورة</Label><Input id="invoice-number" name="invoice_number" value={h.formData.invoice_number} onChange={(e) => h.setFormData({ ...h.formData, invoice_number: e.target.value })} placeholder="INV-001" /></div>
+                    <div className="space-y-2"><Label htmlFor="invoice-amount">المبلغ (ر.س) *</Label><Input id="invoice-amount" name="amount" type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>التاريخ *</Label><Input name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
+                    <div className="space-y-2"><Label htmlFor="invoice-date">التاريخ *</Label><Input id="invoice-date" name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
                     <div className="space-y-2">
-                      <Label>نوع الفاتورة *</Label>
-                      <NativeSelect value={h.formData.invoice_type} onValueChange={(v) => h.setFormData({ ...h.formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(h.INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
+                      <Label htmlFor="invoice-type">نوع الفاتورة *</Label>
+                      <NativeSelect id="invoice-type" value={h.formData.invoice_type} onValueChange={(v) => h.setFormData({ ...h.formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(h.INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>العقار (اختياري)</Label>
-                    <NativeSelect value={h.formData.property_id} onValueChange={(v) => h.setFormData({ ...h.formData, property_id: v })} placeholder="اختر العقار" options={h.properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
+                    <Label htmlFor="invoice-property">العقار (اختياري)</Label>
+                    <NativeSelect id="invoice-property" value={h.formData.property_id} onValueChange={(v) => h.setFormData({ ...h.formData, property_id: v })} placeholder="اختر العقار" options={h.properties.map((p) => ({ value: p.id, label: `${p.property_number} - ${p.location}` }))} />
                   </div>
                   <div className="space-y-2">
-                    <Label>العقد (اختياري)</Label>
-                    <NativeSelect value={h.formData.contract_id} onValueChange={(v) => h.setFormData({ ...h.formData, contract_id: v })} placeholder="اختر العقد" options={h.contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
+                    <Label htmlFor="invoice-contract">العقد (اختياري)</Label>
+                    <NativeSelect id="invoice-contract" value={h.formData.contract_id} onValueChange={(v) => h.setFormData({ ...h.formData, contract_id: v })} placeholder="اختر العقد" options={h.contracts.map((c) => ({ value: c.id, label: `${c.contract_number} - ${c.tenant_name}` }))} />
                   </div>
-                  <div className="space-y-2"><Label>وصف</Label><Input name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
+                  <div className="space-y-2"><Label htmlFor="invoice-description">وصف</Label><Input id="invoice-description" name="description" value={h.formData.description} onChange={(e) => h.setFormData({ ...h.formData, description: e.target.value })} placeholder="وصف إضافي" /></div>
                   <div className="flex gap-2 pt-4">
                     <Button type="submit" className="flex-1 gradient-primary" disabled={h.uploading || h.createInvoice.isPending || h.updateInvoice.isPending}>{h.uploading ? 'جاري الحفظ...' : h.editingInvoice ? 'تحديث' : 'رفع الفاتورة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { h.setIsOpen(false); h.resetForm(); }}>إلغاء</Button>
