@@ -94,7 +94,7 @@ const AdminDashboard = () => {
     totalIncome, totalExpenses,
     adminShare, waqifShare, waqfRevenue,
     netAfterExpenses, netAfterZakat, availableAmount,
-    zakatAmount,
+    zakatAmount: _zakatAmount,
     distributionsAmount,
     usingFallbackPct,
     isLoading: finLoading,
