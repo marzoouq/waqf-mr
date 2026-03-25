@@ -209,8 +209,8 @@ const MessagesPage = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label>المستفيد</Label>
-              <NativeSelect value={newConvBeneficiary} onValueChange={setNewConvBeneficiary} placeholder="اختر المستفيد" options={beneficiaries.filter((b) => b.user_id).map((b) => ({ value: b.user_id!, label: b.name }))} />
+              <Label htmlFor="msg-beneficiary">المستفيد</Label>
+              <NativeSelect id="msg-beneficiary" value={newConvBeneficiary} onValueChange={setNewConvBeneficiary} placeholder="اختر المستفيد" options={beneficiaries.filter((b) => b.user_id).map((b) => ({ value: b.user_id!, label: b.name }))} />
             </div>
             <div className="space-y-1.5">
               <Label>الموضوع</Label>
