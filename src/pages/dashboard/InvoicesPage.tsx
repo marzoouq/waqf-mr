@@ -121,7 +121,7 @@ const InvoicesPage = () => {
                     <div className="space-y-2"><Label>المبلغ (ر.س) *</Label><Input name="amount" type="number" value={h.formData.amount} onChange={(e) => h.setFormData({ ...h.formData, amount: e.target.value })} placeholder="10000" /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2"><Label>التاريخ *</Label><Input name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
+                    <div className="space-y-2"><Label htmlFor="invoice-date">التاريخ *</Label><Input id="invoice-date" name="date" type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div> type="date" value={h.formData.date} onChange={(e) => h.setFormData({ ...h.formData, date: e.target.value })} /></div>
                     <div className="space-y-2">
                       <Label>نوع الفاتورة *</Label>
                       <NativeSelect value={h.formData.invoice_type} onValueChange={(v) => h.setFormData({ ...h.formData, invoice_type: v })} placeholder="اختر النوع" options={Object.entries(h.INVOICE_TYPE_LABELS).map(([key, label]) => ({ value: key, label }))} />
