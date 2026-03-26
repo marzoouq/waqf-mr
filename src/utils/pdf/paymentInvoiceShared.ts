@@ -161,10 +161,11 @@ export const renderInvoiceMeta = (
 };
 
 // رسم جدول البنود (8 أعمدة) — يدعم بنوداً متعددة
-export const renderLineItemsTable = (
+export const renderLineItemsTable = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number,
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   // بناء صفوف البنود: إذا وُجدت lineItems نستخدمها، وإلا صف إيجار واحد
   const rows: string[][] = [];
   if (invoice.lineItems && invoice.lineItems.length > 0) {
