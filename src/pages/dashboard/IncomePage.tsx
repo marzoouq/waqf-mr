@@ -1,5 +1,5 @@
 import { fmt } from '@/utils/format';
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 const IncomeMonthlyChart = lazy(() => import('@/components/dashboard/IncomeMonthlyChart'));
@@ -10,19 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/useIncome';
-import { useProperties } from '@/hooks/data/useProperties';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useAuth } from '@/hooks/auth/useAuthContext';
-import { Income } from '@/types/database';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUpDown, ArrowUp, ArrowDown, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Edit, Search, Lock, Hash, Calculator, Star, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, ShieldCheck } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
-import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
@@ -32,162 +24,27 @@ import { TableSkeleton } from '@/components/SkeletonLoaders';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-type SortField = 'amount' | 'date' | 'source' | null;
-type SortDir = 'asc' | 'desc';
+import { useIncomePage, type SortField } from '@/hooks/page/useIncomePage';
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
-  const { role } = useAuth();
-  const isLocked = isClosed && role !== 'admin';
-
-  const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
-  const { data: properties = [] } = useProperties();
-  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
-  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
-  const createIncome = useCreateIncome();
-  const updateIncome = useUpdateIncome();
-  const deleteIncome = useDeleteIncome();
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const [sortField, setSortField] = useState<SortField>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
-  const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
-
-  const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };
-
-  const handleEdit = (item: Income) => {
-    setEditingIncome(item);
-    setFormData({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
-    setIsOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
-    const amount = parseFloat(formData.amount);
-    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
-    const incomeData: Record<string, unknown> = {
-      source: formData.source, amount, date: formData.date,
-      property_id: formData.property_id || undefined, notes: formData.notes || undefined,
-    };
-    if (!editingIncome) {
-      if (!fiscalYear?.id) {
-        toast.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
-        return;
-      }
-      incomeData.fiscal_year_id = fiscalYear.id;
-    }
-    try {
-      if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
-      setIsOpen(false);
-      resetForm();
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteIncome.mutateAsync(deleteTarget.id);
-      setDeleteTarget(null);
-      setCurrentPage(1);
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
-
-  // ترتيب حسب العمود
-  const handleSort = useCallback((field: SortField) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('desc');
-    }
-    setCurrentPage(1);
-  }, [sortField]);
+  const {
+    income, isLoading, properties, contracts, paymentInvoices,
+    fiscalYearId, fiscalYear, isClosed, role, isLocked,
+    isOpen, setIsOpen, editingIncome, formData, setFormData,
+    resetForm, handleEdit, handleSubmit,
+    createPending, updatePending,
+    deleteTarget, setDeleteTarget, handleConfirmDelete,
+    sortField, sortDir, handleSort,
+    searchQuery, setSearchQuery, filters, setFilters,
+    currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
+  } = useIncomePage();
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
     return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
-
-  const totalIncome = useMemo(() => income.reduce((sum, item) => sum + safeNumber(item.amount), 0), [income]);
-
-  // قائمة المصادر الفريدة للفلتر
-  const uniqueSources = useMemo(() => {
-    const sources = new Set(income.map((i) => i.source));
-    return Array.from(sources).sort();
-  }, [income]);
-
-  // I-4: تنبيه الإيراد الناقص — كشف أشهر أقل من 20% من المتوسط
-  const lowIncomeMonths = useMemo(() => {
-    if (income.length < 3) return []; // لا فائدة من المقارنة مع أقل من 3 سجلات
-    const monthMap = new Map<string, number>();
-    income.forEach((i) => {
-      const month = i.date.slice(0, 7); // YYYY-MM
-      monthMap.set(month, (monthMap.get(month) || 0) + safeNumber(i.amount));
-    });
-    if (monthMap.size < 2) return [];
-    const values = Array.from(monthMap.values());
-    const avg = values.reduce((s, v) => s + v, 0) / values.length;
-    const threshold = avg * 0.2; // 20% من المتوسط
-    return Array.from(monthMap.entries())
-      .filter(([, amount]) => amount < threshold)
-      .map(([month, amount]) => ({ month, amount, avg: Math.round(avg) }));
-  }, [income]);
-
-  const summaryCards = useMemo(() => {
-    const count = income.length;
-    const avg = count > 0 ? Math.round(totalIncome / count) : 0;
-    const sourceMap = new Map<string, number>();
-    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + safeNumber(i.amount)));
-    let topSource = '-';
-    let topSourceAmount = 0;
-    sourceMap.forEach((amount, source) => { if (amount > topSourceAmount) { topSourceAmount = amount; topSource = source; } });
-    return { count, avg, topSource, topSourceAmount };
-  }, [income, totalIncome]);
-
-  // تطبيق الفلاتر + البحث + الترتيب
-  const filteredIncome = useMemo(() => {
-    let result = income.filter((item) => {
-      // بحث نصي
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        if (!item.source.toLowerCase().includes(q) && !(item.notes || '').toLowerCase().includes(q) && !item.date.includes(q)) return false;
-      }
-      // فلتر المصدر
-      if (filters.category && item.source !== filters.category) return false;
-      // فلتر العقار
-      if (filters.propertyId && item.property_id !== filters.propertyId) return false;
-      // نطاق التاريخ
-      if (filters.dateFrom && item.date < filters.dateFrom) return false;
-      if (filters.dateTo && item.date > filters.dateTo) return false;
-      return true;
-    });
-
-    // ترتيب
-    if (sortField) {
-      result = [...result].sort((a, b) => {
-        let cmp = 0;
-        if (sortField === 'amount') cmp = safeNumber(a.amount) - safeNumber(b.amount);
-        else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
-        else if (sortField === 'source') cmp = a.source.localeCompare(b.source, 'ar');
-        return sortDir === 'asc' ? cmp : -cmp;
-      });
-    }
-
-    return result;
-  }, [income, searchQuery, filters, sortField, sortDir]);
 
   return (
     <DashboardLayout>
@@ -222,7 +79,7 @@ const IncomePage = () => {
                   </div>
                   <div className="space-y-2"><Label htmlFor="income-notes">ملاحظات</Label><Input id="income-notes" name="income-notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="ملاحظات إضافية" /></div>
                   <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createIncome.isPending || updateIncome.isPending}>{editingIncome ? 'تحديث' : 'إضافة'}</Button>
+                    <Button type="submit" className="flex-1 gradient-primary" disabled={createPending || updatePending}>{editingIncome ? 'تحديث' : 'إضافة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
                   </div>
                 </form>
@@ -279,14 +136,14 @@ const IncomePage = () => {
           </div>
         )}
 
-        {/* I-3 + I-8: رسم بياني الدخل الشهري */}
+        {/* رسم بياني الدخل الشهري */}
         {!isLoading && income.length > 0 && (
           <Suspense fallback={<Skeleton className="h-[320px]" />}>
             <IncomeMonthlyChart income={income} contracts={contracts} fiscalYear={fiscalYear} isSpecificYear={!!(fiscalYearId && fiscalYearId !== 'all')} paymentInvoices={paymentInvoices} />
           </Suspense>
         )}
 
-        {/* I-4: تنبيه الإيراد الناقص */}
+        {/* تنبيه الإيراد الناقص */}
         {!isLoading && lowIncomeMonths.length > 0 && (
           <Card className="shadow-sm border-warning/50 bg-warning/5">
             <CardContent className="p-4">
