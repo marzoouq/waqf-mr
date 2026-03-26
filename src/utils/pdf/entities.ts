@@ -119,6 +119,7 @@ export const generateUnitsPDF = async (
   units: UnitPdfRow[],
   waqfInfo?: PdfWaqfInfo
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   doc.setFont(fontFamily, 'bold');
