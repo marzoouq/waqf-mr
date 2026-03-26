@@ -35,7 +35,7 @@ const YoYChartsSection = ({
       </CardHeader>
       <CardContent>
         <div className="h-[300px] sm:h-[400px]" style={{ minWidth: 0 }}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={1}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -57,7 +57,7 @@ const YoYChartsSection = ({
       </CardHeader>
       <CardContent>
         <div className="h-[250px] sm:h-[300px]" style={{ minWidth: 0 }}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={1}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <LineChart data={comparisonData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
               <XAxis dataKey="month" tick={{ fontSize: 11 }} />
@@ -83,7 +83,7 @@ const YoYChartsSection = ({
         </CardHeader>
         <CardContent>
           {expensesByType1.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280} minWidth={1}>
+            <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie data={expensesByType1} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
                   label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>
@@ -109,7 +109,7 @@ const YoYChartsSection = ({
         </CardHeader>
         <CardContent>
           {expensesByType2.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280} minWidth={1}>
+            <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie data={expensesByType2} cx="50%" cy="50%" labelLine outerRadius={85} dataKey="value" style={{ fontSize: '11px' }}
                   label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}>

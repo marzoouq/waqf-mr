@@ -28,7 +28,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
     {monthlyData.length > 0 && (
       <div className="h-[280px]" style={{ minWidth: 0 }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" tickFormatter={formatArabicMonth} tick={{ fontSize: 11 }} />
@@ -43,7 +43,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
 
     {expenseData.length > 0 && (
       <div className="h-[280px]" style={{ minWidth: 0 }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <Pie
               data={expenseData}
