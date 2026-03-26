@@ -1,8 +1,7 @@
 /**
  * القالب المختصر للفاتورة
  */
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { fmt } from '@/utils/format';

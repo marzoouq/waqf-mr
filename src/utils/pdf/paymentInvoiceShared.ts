@@ -1,8 +1,7 @@
 /**
  * دوال مشتركة بين قوالب فواتير الدفعات الثلاثة
  */
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type jsPDF from 'jspdf';
 import {
   PdfWaqfInfo,
   TABLE_HEAD_GREEN,

@@ -3,7 +3,6 @@
  * القوالب الفعلية في: paymentInvoiceClassic, paymentInvoiceProfessional, paymentInvoiceCompact
  * الدوال المشتركة في: paymentInvoiceShared
  */
-import jsPDF from 'jspdf';
 import { loadArabicFont, addFooter } from './core';
 import type { PdfWaqfInfo } from './core';
 import { supabase } from '@/integrations/supabase/client';

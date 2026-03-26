@@ -1,5 +1,5 @@
-import { jsPDF } from 'jspdf';
-import autoTable, { type CellHookData } from 'jspdf-autotable';
+import type { jsPDF } from 'jspdf';
+import type { CellHookData } from 'jspdf-autotable';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
