@@ -286,7 +286,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
                     <tr key={`c-${i}`} className="border-b bg-surcharge-muted">
                       <td className="p-2 text-xs text-surcharge-foreground font-medium">رسوم إضافية</td>
                       <td className="p-2 text-xs">{c.reason}</td>
-                      <td className="p-2 text-center text-xs text-orange-700 dark:text-orange-400">+{fmtNum(safeNumber(c.amount))}</td>
+                      <td className="p-2 text-center text-xs text-surcharge-foreground">+{fmtNum(safeNumber(c.amount))}</td>
                       <td className="p-2 text-center text-xs">{c.vatRate}%</td>
                       <td className="p-2 text-center text-xs text-orange-700 dark:text-orange-400">+{fmtNum(vat)}</td>
                     </tr>
