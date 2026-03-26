@@ -1,4 +1,4 @@
-import autoTable, { type CellHookData } from 'jspdf-autotable';
+import type { CellHookData } from 'jspdf-autotable';
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED, TABLE_HEAD_GOLD,
@@ -23,6 +23,7 @@ export const generateDistributionsPDF = async (data: {
     deficit: number;
   }>;
 }, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -127,6 +128,7 @@ export const generateAccountsPDF = async (data: {
   availableAmount?: number;
   remainingBalance?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');

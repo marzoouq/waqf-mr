@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable is dynamically imported inside each function
 import { maskBankAccount, maskNationalId } from '@/utils/maskData';
 import { safeNumber } from '@/utils/safeNumber';
 import {
@@ -11,6 +11,7 @@ import {
 import { fmt, fmtInt } from '@/utils/format';
 
 export const generatePropertiesPDF = async (properties: Array<{ property_number: string; property_type: string; location: string; area: number; description?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -37,6 +38,7 @@ export const generatePropertiesPDF = async (properties: Array<{ property_number:
 };
 
 export const generateContractsPDF = async (contracts: Array<{ contract_number: string; tenant_name: string; start_date: string; end_date: string; rent_amount: number; status: string }>, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -80,6 +82,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
 };
 
 export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: string; share_percentage: number; phone?: string | null; email?: string | null; bank_account?: string | null; national_id?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -116,6 +119,7 @@ export const generateUnitsPDF = async (
   units: UnitPdfRow[],
   waqfInfo?: PdfWaqfInfo
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   doc.setFont(fontFamily, 'bold');

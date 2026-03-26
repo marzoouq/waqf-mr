@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable is dynamically imported inside each function
 import {
   createPdfDocument,
   finalizePdf,
@@ -68,6 +68,7 @@ const getSummary = (log: AuditLogEntry): string => {
 
 export const generateAuditLogPDF = async (options: AuditLogPdfOptions) => {
   const { logs, waqfInfo, tableFilter, opFilter } = options;
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo, 'landscape');
 
   // Title
