@@ -78,7 +78,7 @@ const WaqifDashboard = () => {
   const collectionSummary = useMemo(() => {
     const result = computeCollectionSummary(activeContracts, paymentInvoices);
     return { onTime: result.paidCount + result.partialCount, late: result.unpaidCount, total: result.total, percentage: result.percentage };
-  }, [contracts, paymentInvoices]);
+  }, [activeContracts, contracts, paymentInvoices]);
 
   /* ── KPIs ── */
   const kpis = useMemo(() => {
