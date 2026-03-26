@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { useUnits } from '@/hooks/data/useUnits';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { Contract } from '@/types/database';
-import { emptyFormData, type ContractFormData, type RentalMode, type PricingMode } from '@/components/contracts/contractForm.types';
+import { emptyFormData, type ContractFormData } from '@/components/contracts/contractForm.types';
 import { toast } from 'sonner';
 
 interface UseContractFormDialogParams {
