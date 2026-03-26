@@ -4,7 +4,7 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from './core';
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل الدالة لمنع تحميل vendor-pdf مبكراً
 
 export interface BylawPdfEntry {
   part_number: number;
