@@ -6,124 +6,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
 import { useState, useEffect } from 'react';
-import { generateZatcaQrTLV, generateQrDataUrl } from '@/utils/zatcaQr';
+import { generateQrDataUrl } from '@/utils/zatcaQr';
+import { FileText, Receipt, AlertCircle } from 'lucide-react';
+import {
+  computeInvoiceTotals, generateQR, statusLabel, statusColor,
+  ID_TYPE_LABELS, fmtNum,
+  type InvoiceTemplateData, type AllowanceChargeItem,
+} from './invoiceTemplateUtils';
 
-/** مكوّن QR موحّد — يولّد صورة PNG عبر مكتبة qrcode */
+// إعادة تصدير الأنواع للاستخدام الخارجي
+export type { InvoiceTemplateData, AllowanceChargeItem };
+
+/** مكوّن QR موحّد */
 function QrImage({ data, size, className }: { data: string; size: number; className?: string }) {
   const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => {
-    generateQrDataUrl(data).then(setSrc);
-  }, [data]);
+  useEffect(() => { generateQrDataUrl(data).then(setSrc); }, [data]);
   if (!src) return <div style={{ width: size, height: size }} className="animate-pulse bg-muted rounded" />;
   return <img src={src} width={size} height={size} alt="QR Code" className={className} />;
 }
-import { FileText, Receipt, AlertCircle } from 'lucide-react';
-
-// --- الأنواع المشتركة ---
-export interface AllowanceChargeItem {
-  reason: string;
-  amount: number;
-  vatRate: number;
-}
-
-export interface InvoiceTemplateData {
-  id?: string;
-  invoiceNumber: string;
-  date: string;
-  type: 'simplified' | 'standard';
-  sellerName: string;
-  sellerAddress?: string;
-  sellerVatNumber?: string;
-  sellerCR?: string;
-  sellerLogo?: string;
-  buyerName: string;
-  buyerAddress?: string;
-  buyerVatNumber?: string;
-  buyerCR?: string;
-  buyerIdType?: string;
-  buyerIdNumber?: string;
-  buyerStreet?: string;
-  buyerDistrict?: string;
-  buyerCity?: string;
-  buyerPostalCode?: string;
-  buyerBuilding?: string;
-  items: Array<{
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    vatRate: number;
-  }>;
-  allowances?: AllowanceChargeItem[];
-  charges?: AllowanceChargeItem[];
-  notes?: string;
-  status: string;
-  bankName?: string;
-  bankIBAN?: string;
-  zatcaUuid?: string;
-  icv?: number;
-  zatcaStatus?: string;
-  qrTlvBase64?: string;
-}
-
-// --- حسابات مشتركة ---
-function computeInvoiceTotals(data: InvoiceTemplateData) {
-  const items = data.items.map(item => {
-    const subtotal = safeNumber(item.quantity) * safeNumber(item.unitPrice);
-    const vatAmount = Math.round(subtotal * (safeNumber(item.vatRate) / 100) * 100) / 100;
-    const total = Math.round((subtotal + vatAmount) * 100) / 100;
-    return { ...item, subtotal, vatAmount, total };
-  });
-
-  const lineExtension = items.reduce((s, i) => s + i.subtotal, 0);
-  const totalAllowances = (data.allowances || []).reduce((s, a) => s + safeNumber(a.amount), 0);
-  const totalCharges = (data.charges || []).reduce((s, c) => s + safeNumber(c.amount), 0);
-  const taxExclusive = lineExtension - totalAllowances + totalCharges;
-
-  // حساب الضريبة الصافية (بنود + رسوم - خصومات)
-  const itemsVat = items.reduce((s, i) => s + i.vatAmount, 0);
-  const allowancesVat = (data.allowances || []).reduce((s, a) => s + Math.round(safeNumber(a.amount) * safeNumber(a.vatRate) / 100 * 100) / 100, 0);
-  const chargesVat = (data.charges || []).reduce((s, c) => s + Math.round(safeNumber(c.amount) * safeNumber(c.vatRate) / 100 * 100) / 100, 0);
-  const totalVat = Math.round((itemsVat - allowancesVat + chargesVat) * 100) / 100;
-  const grandTotal = Math.round((taxExclusive + totalVat) * 100) / 100;
-
-  return { items, lineExtension, totalAllowances, totalCharges, taxExclusive, totalVat, grandTotal };
-}
-
-function generateQR(data: InvoiceTemplateData, grandTotal: number, totalVat: number) {
-  return data.qrTlvBase64 || (data.sellerVatNumber ? generateZatcaQrTLV({
-    sellerName: data.sellerName,
-    vatNumber: data.sellerVatNumber,
-    timestamp: new Date(data.date).toISOString(),
-    totalWithVat: grandTotal,
-    vatAmount: totalVat,
-  }) : null);
-}
-
-// --- حالة الفاتورة ---
-const statusLabel = (s: string) => {
-  switch (s) {
-    case 'paid': return 'مسددة';
-    case 'pending': return 'قيد الانتظار';
-    case 'overdue': return 'متأخرة';
-    case 'cancelled': return 'ملغاة';
-    default: return s;
-  }
-};
-const statusColor = (s: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (s) {
-    case 'paid': return 'default';
-    case 'pending': return 'secondary';
-    case 'overdue': return 'destructive';
-    default: return 'outline';
-  }
-};
-
-const ID_TYPE_LABELS: Record<string, string> = {
-  NAT: 'هوية وطنية', IQA: 'إقامة', PAS: 'جواز سفر',
-  CRN: 'سجل تجاري', GCC: 'هوية خليجية', OTH: 'أخرى',
-};
 
 const InfoRow = ({ label, value, mono, warn }: { label: string; value: string; mono?: boolean; warn?: boolean }) => (
   <div className="flex items-center gap-2 text-xs">
@@ -131,8 +32,6 @@ const InfoRow = ({ label, value, mono, warn }: { label: string; value: string; m
     <span className={cn("font-medium", mono && "font-mono text-[11px]", warn ? "text-destructive font-semibold" : "text-foreground")} dir={mono ? "ltr" : undefined}>{value}</span>
   </div>
 );
-
-const fmtNum = (n: number) => fmt(n);
 
 // =========================================
 // القالب الاحترافي (Standard B2B)
@@ -155,7 +54,6 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
 
   return (
     <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground" dir="rtl">
-      {/* تحذير الحقول الناقصة */}
       {missingFields.length > 0 && (
         <div className="m-4 mb-0 flex items-start gap-2 bg-destructive/10 text-destructive border border-destructive/30 rounded-lg p-3 text-xs">
           <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
@@ -385,17 +283,13 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
 
   return (
     <div className="bg-white dark:bg-card border rounded-lg shadow-sm text-foreground max-w-md mx-auto" dir="rtl">
-      {/* ترويسة مختصرة */}
       <div className="rounded-t-lg px-5 py-4 bg-accent/30 border-b-2 border-accent text-center space-y-1">
         <h2 className="text-base font-bold text-foreground">{data.sellerName}</h2>
         {data.sellerVatNumber && <p className="text-xs text-muted-foreground">الرقم الضريبي: <span className="font-mono" dir="ltr">{data.sellerVatNumber}</span></p>}
-        <div className="inline-block rounded px-3 py-1 bg-accent text-accent-foreground text-xs font-bold mt-1">
-          فاتورة ضريبية مبسطة
-        </div>
+        <div className="inline-block rounded px-3 py-1 bg-accent text-accent-foreground text-xs font-bold mt-1">فاتورة ضريبية مبسطة</div>
       </div>
 
       <div className="p-5 space-y-4">
-        {/* بيانات أساسية */}
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>رقم: {data.invoiceNumber}</span>
           <span>التاريخ: {data.date}</span>
@@ -404,7 +298,6 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
           <p className="text-xs">العميل: <span className="font-medium">{data.buyerName}</span></p>
         )}
 
-        {/* جدول بنود مختصر */}
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="border-b-2 border-foreground/20">
@@ -426,7 +319,6 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
           </tbody>
         </table>
 
-        {/* إجماليات مختصرة */}
         <div className="space-y-1 text-xs border-t pt-2">
           {totalAllowances > 0 && (
             <div className="flex justify-between text-discount-foreground"><span>خصومات</span><span>-{fmtNum(totalAllowances)}</span></div>
@@ -442,20 +334,15 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
           </div>
         </div>
 
-        {/* QR مركزي */}
         <div className="flex justify-center pt-2">
           {qrData ? (
             <QrImage data={qrData} size={140} className="border p-1.5 rounded bg-white" />
           ) : (
-            <div className="w-[140px] h-[140px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">
-              QR غير متاح
-            </div>
+            <div className="w-[140px] h-[140px] border-2 border-dashed rounded flex items-center justify-center text-xs text-muted-foreground text-center p-2">QR غير متاح</div>
           )}
         </div>
 
-        <p className="text-[9px] text-center text-muted-foreground pt-2">
-          فاتورة إلكترونية — هيئة الزكاة والضريبة والجمارك
-        </p>
+        <p className="text-[9px] text-center text-muted-foreground pt-2">فاتورة إلكترونية — هيئة الزكاة والضريبة والجمارك</p>
       </div>
     </div>
   );
@@ -467,23 +354,11 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
 export function TemplateSelector({ value, onChange }: { value: 'professional' | 'simplified'; onChange: (v: 'professional' | 'simplified') => void }) {
   return (
     <div className="flex gap-2 justify-center">
-      <Button
-        variant={value === 'professional' ? 'default' : 'outline'}
-        size="sm"
-        className="gap-1.5"
-        onClick={() => onChange('professional')}
-      >
-        <FileText className="w-4 h-4" />
-        الاحترافي
+      <Button variant={value === 'professional' ? 'default' : 'outline'} size="sm" className="gap-1.5" onClick={() => onChange('professional')}>
+        <FileText className="w-4 h-4" />الاحترافي
       </Button>
-      <Button
-        variant={value === 'simplified' ? 'default' : 'outline'}
-        size="sm"
-        className="gap-1.5"
-        onClick={() => onChange('simplified')}
-      >
-        <Receipt className="w-4 h-4" />
-        المبسط
+      <Button variant={value === 'simplified' ? 'default' : 'outline'} size="sm" className="gap-1.5" onClick={() => onChange('simplified')}>
+        <Receipt className="w-4 h-4" />المبسط
       </Button>
     </div>
   );
