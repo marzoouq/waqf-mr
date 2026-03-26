@@ -1,7 +1,7 @@
 /**
  * مكونات ودوال مساعدة لسجل المراجعة — DataDiff + ثوابت
  */
-import { Badge } from '@/components/ui/badge';
+
 
 // ─── ألوان العمليات ───
 export const operationColor = (op: string) => {
