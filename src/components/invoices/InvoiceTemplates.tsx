@@ -94,7 +94,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
             <InfoRow label="رقم الفاتورة" value={data.invoiceNumber} />
             <InfoRow label="تاريخ الإصدار" value={data.date} />
             {data.zatcaUuid && <InfoRow label="UUID" value={data.zatcaUuid} mono />}
-            {data.icv != null && <InfoRow label="ICV" value={String(data.icv)} />}
+            {data.icv !== null && data.icv !== undefined && <InfoRow label="ICV" value={String(data.icv)} />}
             {data.zatcaStatus && data.zatcaStatus !== 'not_submitted' && (
               <InfoRow label="حالة ZATCA" value={
                 data.zatcaStatus === 'reported' ? 'تم الإبلاغ' :

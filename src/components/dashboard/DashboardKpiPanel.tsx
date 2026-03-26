@@ -40,7 +40,7 @@ const DashboardKpiPanel = ({ kpis, isLoading }: DashboardKpiPanelProps) => {
               <p className={`text-lg sm:text-xl md:text-3xl font-bold ${kpi.color}`}>
                 {kpi.value === 0 && !kpi.suffix ? '—' : <>{fmt(kpi.value)}{kpi.suffix}</>}
               </p>
-              {kpi.yoyChange != null && (
+              {kpi.yoyChange !== null && kpi.yoyChange !== undefined && (
                 <div className={`flex items-center justify-center gap-1 text-xs font-medium ${
                   kpi.yoyChange === 0 ? 'text-muted-foreground' :
                   (kpi.invertColor ? kpi.yoyChange > 0 : kpi.yoyChange > 0) 

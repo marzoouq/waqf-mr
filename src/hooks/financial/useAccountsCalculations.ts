@@ -77,7 +77,7 @@ export function useAccountsCalculations({
     if (allocation && allocation.allocated_payments > 0) {
       return allocation.allocated_amount / allocation.allocated_payments;
     }
-    if (contract.payment_amount != null) return Number(contract.payment_amount);
+    if (contract.payment_amount !== null && contract.payment_amount !== undefined) return Number(contract.payment_amount);
     const count = contract.payment_count || 1;
     return Number(contract.rent_amount) / count;
   }, [allocationMap]);

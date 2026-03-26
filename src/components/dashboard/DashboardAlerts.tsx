@@ -39,7 +39,7 @@ const DashboardAlerts = ({ usingFallbackPct, expiringContracts, orphanedContract
       )}
 
       {/* معدل تحصيل منخفض */}
-      {collectionRate != null && collectionRate > 0 && collectionRate < 50 && (
+      {collectionRate !== null && collectionRate !== undefined && collectionRate > 0 && collectionRate < 50 && (
         <Alert variant="destructive" className="animate-fade-in">
           <TrendingDown className="h-4 w-4" />
           <AlertTitle>معدل التحصيل منخفض</AlertTitle>

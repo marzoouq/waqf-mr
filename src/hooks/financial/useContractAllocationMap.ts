@@ -32,7 +32,7 @@ export function useContractAllocationMap(contracts: ContractLike[]) {
           rent_amount: Number(c.rent_amount ?? 0),
           payment_type: c.payment_type || 'annual',
           payment_count: c.payment_count || 1,
-          payment_amount: c.payment_amount != null ? Number(c.payment_amount) : undefined,
+          payment_amount: c.payment_amount !== null && c.payment_amount !== undefined ? Number(c.payment_amount) : undefined,
         },
         fiscalYears
       );
