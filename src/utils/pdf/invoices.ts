@@ -19,6 +19,8 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   property_number: string;
   status: string;
 }>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
+  const { default: autoTable } = await import('jspdf-autotable');
+  const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
