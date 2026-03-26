@@ -1,0 +1,179 @@
+/**
+ * هوك منطق صفحة الدخل — الحالة والفلترة والترتيب
+ */
+import { useState, useMemo, useCallback } from 'react';
+import { safeNumber } from '@/utils/safeNumber';
+import { useCreateIncome, useUpdateIncome, useDeleteIncome, useIncomeByFiscalYear } from '@/hooks/data/useIncome';
+import { useProperties } from '@/hooks/data/useProperties';
+import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
+import { usePaymentInvoices } from '@/hooks/data/usePaymentInvoices';
+import { useFiscalYear } from '@/contexts/FiscalYearContext';
+import { useAuth } from '@/hooks/auth/useAuthContext';
+import type { Income } from '@/types/database';
+import { EMPTY_FILTERS, type FilterState } from '@/components/filters/advancedFilters.types';
+import { toast } from 'sonner';
+
+type SortField = 'amount' | 'date' | 'source' | null;
+type SortDir = 'asc' | 'desc';
+
+export function useIncomePage() {
+  const { fiscalYearId, fiscalYear, isClosed } = useFiscalYear();
+  const { role } = useAuth();
+  const isLocked = isClosed && role !== 'admin';
+
+  const { data: income = [], isLoading } = useIncomeByFiscalYear(fiscalYearId);
+  const { data: properties = [] } = useProperties();
+  const { data: contracts = [] } = useContractsByFiscalYear(fiscalYearId);
+  const { data: paymentInvoices = [] } = usePaymentInvoices(fiscalYearId);
+  const createIncome = useCreateIncome();
+  const updateIncome = useUpdateIncome();
+  const deleteIncome = useDeleteIncome();
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  const [formData, setFormData] = useState({ source: '', amount: '', date: '', property_id: '', notes: '' });
+
+  const resetForm = () => { setFormData({ source: '', amount: '', date: '', property_id: '', notes: '' }); setEditingIncome(null); };
+
+  const handleEdit = (item: Income) => {
+    setEditingIncome(item);
+    setFormData({ source: item.source, amount: item.amount.toString(), date: item.date, property_id: item.property_id || '', notes: item.notes || '' });
+    setIsOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.source || !formData.amount || !formData.date) { toast.error('يرجى ملء جميع الحقول المطلوبة'); return; }
+    const amount = parseFloat(formData.amount);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 999_999_999) { toast.error('المبلغ يجب أن يكون رقماً موجباً ولا يتجاوز 999,999,999'); return; }
+    const incomeData: Record<string, unknown> = {
+      source: formData.source, amount, date: formData.date,
+      property_id: formData.property_id || undefined, notes: formData.notes || undefined,
+    };
+    if (!editingIncome) {
+      if (!fiscalYear?.id) {
+        toast.error('يرجى اختيار سنة مالية محددة لإضافة سجل دخل');
+        return;
+      }
+      incomeData.fiscal_year_id = fiscalYear.id;
+    }
+    try {
+      if (editingIncome) { await updateIncome.mutateAsync({ id: editingIncome.id, ...incomeData } as unknown as Parameters<typeof updateIncome.mutateAsync>[0]); } else { await createIncome.mutateAsync(incomeData as unknown as Parameters<typeof createIncome.mutateAsync>[0]); }
+      setIsOpen(false);
+      resetForm();
+    } catch {
+      // onError in the mutation already shows a toast
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteIncome.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+      setCurrentPage(1);
+    } catch {
+      // handled by mutation
+    }
+  };
+
+  const handleSort = useCallback((field: SortField) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+    setCurrentPage(1);
+  }, [sortField]);
+
+  const totalIncome = useMemo(() => income.reduce((sum, item) => sum + safeNumber(item.amount), 0), [income]);
+
+  const uniqueSources = useMemo(() => {
+    const sources = new Set(income.map((i) => i.source));
+    return Array.from(sources).sort();
+  }, [income]);
+
+  const lowIncomeMonths = useMemo(() => {
+    if (income.length < 3) return [];
+    const monthMap = new Map<string, number>();
+    income.forEach((i) => {
+      const month = i.date.slice(0, 7);
+      monthMap.set(month, (monthMap.get(month) || 0) + safeNumber(i.amount));
+    });
+    if (monthMap.size < 2) return [];
+    const values = Array.from(monthMap.values());
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const threshold = avg * 0.2;
+    return Array.from(monthMap.entries())
+      .filter(([, amount]) => amount < threshold)
+      .map(([month, amount]) => ({ month, amount, avg: Math.round(avg) }));
+  }, [income]);
+
+  const summaryCards = useMemo(() => {
+    const count = income.length;
+    const avg = count > 0 ? Math.round(totalIncome / count) : 0;
+    const sourceMap = new Map<string, number>();
+    income.forEach(i => sourceMap.set(i.source, (sourceMap.get(i.source) || 0) + safeNumber(i.amount)));
+    let topSource = '-';
+    let topSourceAmount = 0;
+    sourceMap.forEach((amount, source) => { if (amount > topSourceAmount) { topSourceAmount = amount; topSource = source; } });
+    return { count, avg, topSource, topSourceAmount };
+  }, [income, totalIncome]);
+
+  const filteredIncome = useMemo(() => {
+    let result = income.filter((item) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!item.source.toLowerCase().includes(q) && !(item.notes || '').toLowerCase().includes(q) && !item.date.includes(q)) return false;
+      }
+      if (filters.category && item.source !== filters.category) return false;
+      if (filters.propertyId && item.property_id !== filters.propertyId) return false;
+      if (filters.dateFrom && item.date < filters.dateFrom) return false;
+      if (filters.dateTo && item.date > filters.dateTo) return false;
+      return true;
+    });
+
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let cmp = 0;
+        if (sortField === 'amount') cmp = safeNumber(a.amount) - safeNumber(b.amount);
+        else if (sortField === 'date') cmp = a.date.localeCompare(b.date);
+        else if (sortField === 'source') cmp = a.source.localeCompare(b.source, 'ar');
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return result;
+  }, [income, searchQuery, filters, sortField, sortDir]);
+
+  return {
+    // بيانات
+    income, isLoading, properties, contracts, paymentInvoices,
+    fiscalYearId, fiscalYear, isClosed, role, isLocked,
+    // حالة النموذج
+    isOpen, setIsOpen, editingIncome, formData, setFormData,
+    resetForm, handleEdit, handleSubmit,
+    createPending: createIncome.isPending,
+    updatePending: updateIncome.isPending,
+    // حذف
+    deleteTarget, setDeleteTarget, handleConfirmDelete,
+    // ترتيب
+    sortField, sortDir, handleSort,
+    // فلاتر
+    searchQuery, setSearchQuery, filters, setFilters,
+    // صفحات
+    currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    // حسابات
+    totalIncome, uniqueSources, lowIncomeMonths, summaryCards, filteredIncome,
+  };
+}
+
+export type { SortField };
