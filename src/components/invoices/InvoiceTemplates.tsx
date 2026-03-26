@@ -271,8 +271,8 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
                 {(data.allowances || []).map((a, i) => {
                   const vat = Math.round(safeNumber(a.amount) * safeNumber(a.vatRate) / 100 * 100) / 100;
                   return (
-                    <tr key={`a-${i}`} className="border-b bg-green-50 dark:bg-green-950/20">
-                      <td className="p-2 text-xs text-green-700 dark:text-green-400 font-medium">خصم</td>
+                    <tr key={`a-${i}`} className="border-b bg-discount-muted">
+                      <td className="p-2 text-xs text-discount-foreground font-medium">خصم</td>
                       <td className="p-2 text-xs">{a.reason}</td>
                       <td className="p-2 text-center text-xs text-green-700 dark:text-green-400">-{fmtNum(safeNumber(a.amount))}</td>
                       <td className="p-2 text-center text-xs">{a.vatRate}%</td>
