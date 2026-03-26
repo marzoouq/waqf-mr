@@ -33,18 +33,18 @@ export const getTenantFromContracts = (unitId: string, contracts: Contract[]): T
   const sorted = contracts
     .filter(c => c.unit_id === unitId)
     .sort((a, b) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime());
-  const any = sorted[0];
-  if (any) {
+  const latestContract = sorted[0];
+  if (latestContract) {
     return {
-      name: any.tenant_name,
-      status: any.status,
-      start_date: any.start_date,
-      end_date: any.end_date,
-      rent_amount: any.rent_amount,
-      contract_id: any.id,
-      payment_type: any.payment_type || 'annual',
-      payment_amount: any.payment_amount ?? null,
-      payment_count: any.payment_count || 1,
+      name: latestContract.tenant_name,
+      status: latestContract.status,
+      start_date: latestContract.start_date,
+      end_date: latestContract.end_date,
+      rent_amount: latestContract.rent_amount,
+      contract_id: latestContract.id,
+      payment_type: latestContract.payment_type || 'annual',
+      payment_amount: latestContract.payment_amount ?? null,
+      payment_count: latestContract.payment_count || 1,
     };
   }
   return null;
