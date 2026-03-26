@@ -72,7 +72,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
         <CardContent className="min-h-[300px]">
           {expenseTypes.length > 0 ? (
             <div style={{ minWidth: 0, minHeight: 0 }}>
-              <ResponsiveContainer width="100%" height={300} minWidth={1}>
+              <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie
                     data={expenseTypes}
