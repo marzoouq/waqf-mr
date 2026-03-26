@@ -1,25 +1,41 @@
 
 
-# إصلاح تحميل vendor-pdf المبكر — المرحلة الثانية
+# فحص جنائي شامل — استيرادات vendor-pdf المتبقية
 
-## المشكلة
-رغم تحويل 6 ملفات إلى dynamic import في المرحلة السابقة، لا تزال **5 ملفات** تستخدم `import autoTable from 'jspdf-autotable'` كاستيراد ثابت. مكتبة `jspdf-autotable` تعتمد على `jspdf`، مما يسحب `vendor-pdf` (~186KB gzip) إلى التحميل الأولي.
+## نتائج الفحص
 
-## الملفات المطلوب تعديلها
+بعد فحص شامل لجميع ملفات المشروع، تبيّن أن **5 ملفات إضافية** لا تزال تستخدم `import autoTable from 'jspdf-autotable'` كاستيراد ثابت، مما يسحب `vendor-pdf` (~186KB gzip) إلى التحميل الأولي:
 
-| الملف | الاستيراد الحالي | التغيير |
-|-------|-----------------|---------|
-| `src/utils/pdf/reports.ts` | `import autoTable from 'jspdf-autotable'` | حذف السطر + `const { default: autoTable } = await import('jspdf-autotable')` داخل كل دالة تستخدمه |
-| `src/utils/pdf/invoices.ts` | `import autoTable from 'jspdf-autotable'` | نفس التغيير |
-| `src/utils/pdf/forensicAudit.ts` | `import autoTable from 'jspdf-autotable'` | نفس التغيير |
-| `src/utils/pdf/bylaws.ts` | `import autoTable from 'jspdf-autotable'` | نفس التغيير |
-| `src/utils/pdf/comparison.ts` | `import autoTable from 'jspdf-autotable'` | نفس التغيير |
+| # | الملف | الاستيراد الثابت |
+|---|-------|-----------------|
+| 1 | `src/utils/pdf/accounts.ts` | `import autoTable, { type CellHookData } from 'jspdf-autotable'` |
+| 2 | `src/utils/pdf/entities.ts` | `import autoTable from 'jspdf-autotable'` |
+| 3 | `src/utils/pdf/beneficiary.ts` | `import autoTable from 'jspdf-autotable'` |
+| 4 | `src/utils/pdf/auditLog.ts` | `import autoTable from 'jspdf-autotable'` |
+| 5 | `src/utils/pdf/expenses.ts` | `import autoTable from 'jspdf-autotable'` |
 
-## ملاحظة مهمة
-بعد التعديل، يجب **نشر التطبيق** (Update) ثم إعادة فحص الموقع المنشور للتأكد أن `vendor-pdf` لم يعد يظهر في طلبات الشبكة عند التحميل الأولي.
+### لماذا هذا مهم؟
 
-## النتيجة المتوقعة
-- `vendor-pdf` يُحمّل **فقط** عند طلب تصدير PDF فعلياً
-- توفير ~186KB gzip (~500KB raw) من التحميل الأولي
-- تحسّن ملحوظ في سرعة الصفحة الأولى
+ملف `src/utils/pdf/index.ts` (barrel file) يعيد تصدير دوال من هذه الملفات بشكل ثابت. أي صفحة تستورد دالة واحدة من `@/utils/pdf` تُجبر Vite على تضمين الاستيرادات الثابتة لـ `jspdf-autotable` → `jspdf` → `vendor-pdf` في الحزمة.
 
+### ملاحظة إيجابية
+
+- استيرادات `import type jsPDF from 'jspdf'` في 6 ملفات أخرى — **سليمة** ✅ (تُحذف عند البناء)
+- الملفات التي تم إصلاحها سابقًا (reports, invoices, forensicAudit, bylaws, comparison) — **سليمة** ✅
+
+## خطة الإصلاح
+
+### لكل ملف من الخمسة:
+
+1. **حذف** سطر `import autoTable from 'jspdf-autotable'` من أعلى الملف
+2. **إضافة** `const { default: autoTable } = await import('jspdf-autotable')` داخل كل دالة تصدير تستخدم `autoTable`
+3. لملف `accounts.ts` خصوصًا: نقل `type CellHookData` إلى `import type { CellHookData } from 'jspdf-autotable'` (استيراد نوع فقط — لا يؤثر على الحزمة)
+
+### التفاصيل التقنية
+
+```text
+الملف                    الدوال المتأثرة
+─────────────────────    ─────────────────────────────────
+accounts.ts              generateAccountsPDF, generateDistributionsPDF
+entities.ts              generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF
+beneficiary.ts
