@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -6,20 +6,19 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, CheckCircle2, Clock, Search, TrendingDown, TrendingUp, Banknote, FileWarning, Bell, CalendarRange } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock, Search, Bell, CalendarRange } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Contract } from '@/types/database';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ExportMenu from '@/components/ExportMenu';
 import TablePagination from '@/components/TablePagination';
+import { fmt } from '@/utils/format';
 
-import { allocateContractToFiscalYears } from '@/utils/contractAllocation';
 import type { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
-import { getPaymentCount } from '@/utils/contractHelpers';
-import { safeNumber } from '@/utils/safeNumber';
-import { fmt } from '@/utils/format';
+import { useCollectionData, type FilterStatus, type CollectionRow } from '@/hooks/page/useCollectionData';
+import CollectionSummaryCards from './CollectionSummaryCards';
 
 interface CollectionReportProps {
   contracts: Contract[];
@@ -29,177 +28,18 @@ interface CollectionReportProps {
   fiscalYearId?: string;
 }
 
-type FilterStatus = 'all' | 'overdue' | 'partial' | 'complete';
-
-interface CollectionRow {
-  contract: Contract;
-  paymentCount: number;
-  totalContractPayments: number;
-  spansMultipleYears: boolean;
-  paid: number;
-  expected: number;
-  overdue: number;
-  overdueAmount: number;
-  collectedAmount: number;
-  totalAmount: number;
-  paymentAmount: number;
-  status: 'complete' | 'partial' | 'overdue' | 'not_started';
-}
-
-/**
- * @deprecated هذه الدالة تحسب من today - start_date وهو محظور بالقاعدة #15.
- * تُستخدم فقط كـ fallback عند عرض "جميع السنوات" حيث لا يوجد تخصيص.
- * يُفضل الاعتماد على الفواتير الفعلية و allocateContractToFiscalYears.
- */
-function getExpectedPaymentsFallback(contract: Contract): number {
-  const start = new Date(contract.start_date);
-  const end = new Date(contract.end_date);
-  const now = new Date();
-  if (now < start) return 0;
-
-  const paymentCount = getPaymentCount(contract);
-
-  const contractDurationMonths = Math.max(1, Math.round(
-    (end.getTime() - start.getTime()) / (1000 * 3600 * 24 * 30.44)
-  ));
-
-  if (contract.payment_type === 'monthly') {
-    const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-    return Math.min(Math.max(0, months), contractDurationMonths);
-  }
-
-  if (contract.payment_type === 'annual') {
-    const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
-    return monthsSinceStart >= 1 ? 1 : 0;
-  }
-
-  const totalDays = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 3600 * 24));
-  const elapsedDays = Math.max(0, (now.getTime() - start.getTime()) / (1000 * 3600 * 24));
-  return Math.min(Math.floor(paymentCount * elapsedDays / totalDays), paymentCount);
-}
+const ITEMS_PER_PAGE = 15;
 
 export default function CollectionReport({ contracts, paymentInvoices, isLoading, fiscalYears = [], fiscalYearId = 'all' }: CollectionReportProps) {
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<FilterStatus>('all');
   const [sendingAlerts, setSendingAlerts] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
-  
 
-  const useDynamicAllocation = fiscalYearId !== 'all' && fiscalYears.length > 0;
-
-  // بناء خريطة الدفعات المسددة من الفواتير (المصدر الوحيد للحقيقة)
-  const invoicePaidMap = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const inv of paymentInvoices) {
-      if (inv.status === 'paid') {
-        map.set(inv.contract_id, (map.get(inv.contract_id) ?? 0) + 1);
-      }
-    }
-    return map;
-  }, [paymentInvoices]);
-
-  // مجموعة العقود التي لها فواتير غير مسددة (لتشمل العقود المنتهية)
-  const contractsWithUnpaidInvoices = useMemo(() => {
-    const ids = new Set<string>();
-    for (const inv of paymentInvoices) {
-      if (inv.status !== 'paid') ids.add(inv.contract_id);
-    }
-    return ids;
-  }, [paymentInvoices]);
-
-  // شمول العقود النشطة + العقود المنتهية التي لها فواتير غير مسددة
-  const relevantContracts = useMemo(() => contracts.filter(c =>
-    c.status === 'active' || contractsWithUnpaidInvoices.has(c.id)
-  ), [contracts, contractsWithUnpaidInvoices]);
-
-  const rows: CollectionRow[] = useMemo(() => {
-    return relevantContracts.map(contract => {
-      const contractPaymentCount = getPaymentCount(contract);
-      const perPayment = contract.payment_amount || (safeNumber(contract.rent_amount) / contractPaymentCount);
-      const paid = invoicePaidMap.get(contract.id) ?? 0;
-
-      let allocatedPayments: number;
-      let allocatedAmount: number;
-
-      if (useDynamicAllocation) {
-        const allocations = allocateContractToFiscalYears(
-          {
-            id: contract.id,
-            start_date: contract.start_date,
-            end_date: contract.end_date,
-            rent_amount: safeNumber(contract.rent_amount),
-            payment_type: contract.payment_type,
-            payment_count: contract.payment_count,
-            payment_amount: contract.payment_amount ?? undefined,
-          },
-          fiscalYears
-        );
-        const fyAlloc = allocations.find(a => a.fiscal_year_id === fiscalYearId);
-        allocatedPayments = fyAlloc?.allocated_payments ?? 0;
-        allocatedAmount = fyAlloc?.allocated_amount ?? 0;
-      } else {
-        allocatedPayments = contractPaymentCount;
-        allocatedAmount = safeNumber(contract.rent_amount);
-      }
-
-      const expected = useDynamicAllocation ? allocatedPayments : getExpectedPaymentsFallback(contract);
-      const overdue = Math.max(0, expected - paid);
-      const overdueAmount = overdue * perPayment;
-      const collectedAmount = paid * perPayment;
-
-      let status: CollectionRow['status'];
-      // عقد بدون تخصيص في هذه السنة (allocatedPayments === 0) لا يُعتبر مكتملاً
-      if (allocatedPayments > 0 && paid >= allocatedPayments) status = 'complete';
-      else if (overdue > 0) status = 'overdue';
-      else if (paid > 0) status = 'partial';
-      else status = 'not_started';
-
-      const contractPaymentCountTotal = getPaymentCount(contract);
-      const spansMultipleYears = useDynamicAllocation && allocatedPayments < contractPaymentCountTotal;
-
-      return {
-        contract,
-        paymentCount: allocatedPayments,
-        totalContractPayments: contractPaymentCountTotal,
-        spansMultipleYears,
-        paid,
-        expected,
-        overdue,
-        overdueAmount,
-        collectedAmount,
-        totalAmount: allocatedAmount,
-        paymentAmount: perPayment,
-        status,
-      };
-    });
-  }, [relevantContracts, invoicePaidMap, useDynamicAllocation, fiscalYears, fiscalYearId]);
-
-  const filteredRows = useMemo(() => {
-    let result = rows;
-    if (filter === 'overdue') result = result.filter(r => r.overdue > 0);
-    else if (filter === 'partial') result = result.filter(r => r.status === 'partial');
-    else if (filter === 'complete') result = result.filter(r => r.status === 'complete');
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(r =>
-        r.contract.contract_number.toLowerCase().includes(q) ||
-        r.contract.tenant_name.toLowerCase().includes(q)
-      );
-    }
-    return result.sort((a, b) => b.overdue - a.overdue);
-  }, [rows, filter, search]);
-
-  const summary = useMemo(() => {
-    const totalExpected = rows.reduce((s, r) => s + r.totalAmount, 0);
-    const totalCollected = rows.reduce((s, r) => s + r.collectedAmount, 0);
-    const totalOverdue = rows.reduce((s, r) => s + r.overdueAmount, 0);
-    const overdueCount = rows.filter(r => r.overdue > 0).length;
-    const completeCount = rows.filter(r => r.status === 'complete').length;
-    const collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0;
-    return { totalExpected, totalCollected, totalOverdue, overdueCount, completeCount, collectionRate, total: rows.length };
-  }, [rows]);
+  const {
+    rows, filteredRows, summary,
+    filter, setFilter,
+    search, setSearch,
+    currentPage, setCurrentPage,
+    useDynamicAllocation,
+  } = useCollectionData({ contracts, paymentInvoices, fiscalYears, fiscalYearId });
 
   const handleSendAlerts = async () => {
     const overdueRows = rows.filter(r => r.overdue > 0);
@@ -234,74 +74,7 @@ export default function CollectionReport({ contracts, paymentInvoices, isLoading
 
   return (
     <div className="space-y-5">
-      {/* بطاقات الملخص */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Banknote className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{expectedLabel}</p>
-              <p className="text-lg font-bold">{fmt(summary.totalExpected)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">المحصّل</p>
-              <p className="text-lg font-bold text-success">{fmt(summary.totalCollected)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">المتأخر</p>
-              <p className="text-lg font-bold text-destructive">{fmt(summary.totalOverdue)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <FileWarning className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">نسبة التحصيل</p>
-              <p className="text-lg font-bold">{summary.collectionRate.toFixed(0)}%</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* شريط التحصيل العام */}
-      <Card className="shadow-sm">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">معدل التحصيل العام</span>
-            <span className="text-sm text-muted-foreground">
-              {summary.completeCount} مكتمل من {summary.total} عقد
-              {summary.overdueCount > 0 && <span className="text-destructive mr-2">• {summary.overdueCount} متأخر</span>}
-            </span>
-          </div>
-          <Progress
-            value={summary.collectionRate}
-            className={`h-3 ${
-              summary.collectionRate >= 80 ? '[&>div]:bg-success' :
-              summary.collectionRate >= 50 ? '[&>div]:bg-warning' :
-              '[&>div]:bg-destructive'
-            }`}
-          />
-        </CardContent>
-      </Card>
+      <CollectionSummaryCards summary={summary} expectedLabel={expectedLabel} />
 
       {/* أدوات الفلترة */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
