@@ -13,7 +13,7 @@ export const safeNumber = (value: unknown): number => {
  * يُستخدم لنسب الناظر والواقف من الإعدادات.
  */
 export const safePercent = (value: unknown, fallback: number): number => {
-  if (value == null || value === '') return fallback;
+  if (value === null || value === undefined || value === '') return fallback;
   const n = parseFloat(String(value));
   return Number.isFinite(n) ? n : fallback;
 };
