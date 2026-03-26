@@ -40,7 +40,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
     </div>
     <div style={{ minWidth: 0 }}>
       {expenseTypeData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
           <BarChart data={expenseTypeData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
