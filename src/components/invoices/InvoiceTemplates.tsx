@@ -429,7 +429,7 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
         {/* إجماليات مختصرة */}
         <div className="space-y-1 text-xs border-t pt-2">
           {totalAllowances > 0 && (
-            <div className="flex justify-between text-green-700 dark:text-green-400"><span>خصومات</span><span>-{fmtNum(totalAllowances)}</span></div>
+            <div className="flex justify-between text-discount-foreground"><span>خصومات</span><span>-{fmtNum(totalAllowances)}</span></div>
           )}
           {totalCharges > 0 && (
             <div className="flex justify-between text-orange-700 dark:text-orange-400"><span>رسوم إضافية</span><span>+{fmtNum(totalCharges)}</span></div>
