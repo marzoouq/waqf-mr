@@ -132,7 +132,7 @@ const MonthlyPerformanceReport = ({ income, expenses }: MonthlyPerformanceReport
         </CardHeader>
         <CardContent>
           <div className="h-[300px] sm:h-[400px]" style={{ minWidth: 0 }}>
-            <ResponsiveContainer width="100%" height="100%" minWidth={1}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
