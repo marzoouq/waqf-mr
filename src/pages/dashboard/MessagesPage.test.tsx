@@ -75,7 +75,7 @@ describe('MessagesPage', () => {
   });
 
   it('hides new conversation button for beneficiary', async () => {
-    const { useAuth } = await import('@/contexts/AuthContext');
+    const { useAuth } = await import('@/hooks/auth/useAuthContext');
     (useAuth as any).mockReturnValue({ user: { id: 'user-1' }, role: 'beneficiary' });
     renderPage();
     expect(screen.queryByText('محادثة جديدة')).not.toBeInTheDocument();
