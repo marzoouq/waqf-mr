@@ -1,34 +1,35 @@
 
 
-# إصلاح تحذير Recharts المتبقي
+# إصلاح تحذيرات Recharts المتبقية — ملفان إضافيان
 
 ## المشكلة
-تحذير `width(-1) and height(-1)` لا يزال يظهر في الكونسول. بعد مراجعة جميع الملفات، تبيّن أن **ملفاً واحداً فاته الإصلاح السابق**:
+التحذير `width(-1) and height(-1)` لا يزال يظهر. بعد فحص جميع ملفات المشروع، تبيّن وجود **ملفين** لم يُصلحا في الجولات السابقة.
 
-**`src/components/reports/CashFlowReport.tsx`** — سطر 130:
+## الملفات والتغييرات
+
+| # | الملف | المواقع | التغيير |
+|---|-------|---------|---------|
+| 1 | `src/components/reports/MonthlyPerformanceReport.tsx` | سطر 135، 164 | إضافة `minHeight={1}` |
+| 2 | `src/components/reports/ReportsChartsInner.tsx` | سطر 26، 43 | إضافة `minWidth={1} minHeight={1}` |
+
+### أمثلة
+
+**MonthlyPerformanceReport.tsx** (سطر 135):
 ```tsx
-// الحالي (بدون minHeight)
+// قبل
 <ResponsiveContainer width="100%" height="100%" minWidth={1}>
-
-// المطلوب
+// بعد
 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
 ```
 
-## الحالة الكاملة
-| الملف | الحالة |
-|-------|--------|
-| `chart.tsx` (ChartContainer) | ✅ مُصلح |
-| `DashboardCharts.tsx` | ✅ مُصلح |
-| `IncomeMonthlyChart.tsx` | ✅ مُصلح |
-| `CollectionSummaryChart.tsx` | ✅ مُصلح |
-| `FinancialChartsInner.tsx` | ✅ مُصلح |
-| `YoYChartsSection.tsx` | ✅ مُصلح |
-| `HistoricalComparisonChartInner.tsx` | ✅ مُصلح |
-| `IncomeComparisonChart.tsx` | ✅ مُصلح |
-| `WaqifChartsInner.tsx` | ✅ مُصلح |
-| `ExpensePieChartInner.tsx` | ✅ مُصلح |
-| **`CashFlowReport.tsx`** | ❌ **مفقود — يحتاج إصلاح** |
+**ReportsChartsInner.tsx** (سطر 26):
+```tsx
+// قبل
+<ResponsiveContainer width="100%" height={300}>
+// بعد
+<ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
+```
 
-## التغيير
-إضافة `minHeight={1}` في سطر 130 من `CashFlowReport.tsx`.
+## الحالة الكاملة بعد الإصلاح
+جميع 19 `ResponsiveContainer` في المشروع ستحتوي على `minWidth={1} minHeight={1}` — لن يتبقى أي مصدر للتحذير.
 
