@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { TrendingUp } from 'lucide-react';
 import { safeNumber } from '@/utils/safeNumber';
 import { fmt } from '@/utils/format';
+import { logger } from '@/lib/logger';
 
 const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -47,7 +48,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
       const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
       linearMonthlyExpected = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount) / 12, 0);
       if (activeContracts.length > 0) {
-        console.warn('[IncomeMonthlyChart] استخدام fallback خطي (rent/12) — لا توجد فواتير دفعات. النتائج تقريبية.');
+        logger.warn('[IncomeMonthlyChart] استخدام fallback خطي (rent/12) — لا توجد فواتير دفعات. النتائج تقريبية.');
       }
     }
 
