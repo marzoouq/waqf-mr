@@ -63,8 +63,8 @@ export const useComputedFinancials = ({
     const _adminPct = safePercent(settings?.admin_share_percentage, 10);
     const _waqifPct = safePercent(settings?.waqif_share_percentage, 5);
     // تتبع استخدام القيم الافتراضية
-    const _usingFallback = (settings?.admin_share_percentage == null || settings.admin_share_percentage === '')
-      || (settings?.waqif_share_percentage == null || settings.waqif_share_percentage === '');
+    const _usingFallback = (settings?.admin_share_percentage === null || settings?.admin_share_percentage === undefined || settings.admin_share_percentage === '')
+      || (settings?.waqif_share_percentage === null || settings?.waqif_share_percentage === undefined || settings.waqif_share_percentage === '');
     const _zakatAmount = currentAccount ? safeNumber(currentAccount.zakat_amount) : 0;
     const _vatAmount = currentAccount ? safeNumber(currentAccount.vat_amount) : 0;
     const _waqfCorpusPrevious = currentAccount ? safeNumber(currentAccount.waqf_corpus_previous) : 0;
