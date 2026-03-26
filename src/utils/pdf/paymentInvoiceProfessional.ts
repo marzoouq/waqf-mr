@@ -148,11 +148,11 @@ export const renderTaxProfessional = async (
   y += 4;
 
   // === جدول البنود ===
-  renderLineItemsTable(doc, fontFamily, invoice, y);
+  await renderLineItemsTable(doc, fontFamily, invoice, y);
   let tableEndY = getLastAutoTableY(doc, y + 40);
 
   // === جدول الخصومات/الرسوم ===
-  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
+  tableEndY = await renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
 
   // ملخص ضريبي
   let summaryEndY = renderVatSummary(doc, fontFamily, invoice, tableEndY + 4, pageW);

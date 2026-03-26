@@ -63,6 +63,7 @@ export const renderClassic = async (
   if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${fmt(invoice.paidAmount)} ر.س`)]);
   if (invoice.notes) rows.push([rs('ملاحظات'), rs(invoice.notes)]);
 
+  const { default: autoTable } = await import('jspdf-autotable');
   autoTable(doc, {
     startY: y,
     head: [reshapeRow(['البيان', 'التفاصيل'])],

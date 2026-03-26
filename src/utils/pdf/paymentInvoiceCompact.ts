@@ -82,7 +82,7 @@ export const renderCompact = async (
   let tableEndY = getLastAutoTableY(doc, y + 25);
 
   // خصومات/رسوم إضافية
-  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
+  tableEndY = await renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
 
   let endY = tableEndY + 4;
 

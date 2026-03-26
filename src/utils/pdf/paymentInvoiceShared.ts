@@ -257,10 +257,11 @@ export const computePdfTotals = (invoice: PaymentInvoicePdfData) => {
 };
 
 // رسم جدول الخصومات والرسوم الإضافية (AllowanceCharge)
-export const renderAllowanceChargeTable = (
+export const renderAllowanceChargeTable = async (
   doc: jsPDF, fontFamily: string, invoice: PaymentInvoicePdfData,
   startY: number,
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const allowances = invoice.allowances || [];
   const charges = invoice.charges || [];
   if (allowances.length === 0 && charges.length === 0) return startY;
