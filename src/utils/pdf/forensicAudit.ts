@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل كل دالة لمنع تحميل vendor-pdf مبكراً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   baseTableStyles, headStyles, TABLE_HEAD_GREEN, TABLE_HEAD_GOLD,
@@ -47,6 +47,7 @@ const SEVERITY_COLORS: Record<string, [number, number, number]> = {
 };
 
 export const generateForensicAuditPDF = async (data: ForensicAuditData, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: font, startY: headerY } = await createPdfDocument(waqfInfo, 'portrait');
   const pageW = doc.internal.pageSize.width;
   const margin = 18;

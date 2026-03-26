@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل كل دالة لمنع تحميل vendor-pdf مبكراً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_GOLD, TABLE_HEAD_RED,
@@ -29,6 +29,7 @@ interface ReportData {
 }
 
 export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -81,6 +82,7 @@ export const generateAnnualReportPDF = async (data: ReportData, waqfInfo?: PdfWa
 };
 
 export const generateBeneficiaryStatementPDF = async (beneficiaryName: string, sharePercentage: number, shareAmount: number, fiscalYear: string, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -131,6 +133,7 @@ export const generateAnnualDisclosurePDF = async (data: {
   adminPct: number;
   waqifPct: number;
 }, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');

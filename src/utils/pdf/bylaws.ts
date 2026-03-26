@@ -4,7 +4,7 @@ import {
   baseTableStyles, headStyles,
   reshapeArabic as rs, reshapeRow,
 } from './core';
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل الدالة لمنع تحميل vendor-pdf مبكراً
 
 export interface BylawPdfEntry {
   part_number: number;
@@ -32,6 +32,7 @@ export const generateBylawsPDF = async (
   entries: BylawPdfEntry[],
   waqfInfo?: PdfWaqfInfo,
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
   const pageW = doc.internal.pageSize.width;
   const margin = 18;

@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل كل دالة لمنع تحميل vendor-pdf مبكراً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
@@ -26,6 +26,7 @@ export interface YearComparisonPdfData {
 }
 
 export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(f, 'bold');

@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable يُحمّل ديناميكياً داخل كل دالة لمنع تحميل vendor-pdf مبكراً
 import {
   PdfWaqfInfo, createPdfDocument, finalizePdf,
   TABLE_HEAD_GREEN, TABLE_HEAD_RED,
@@ -19,6 +19,7 @@ export const generateInvoicesViewPDF = async (invoices: Array<{
   property_number: string;
   status: string;
 }>, waqfInfo?: PdfWaqfInfo, fiscalYearLabel?: string) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
@@ -73,6 +74,7 @@ export const generateOverdueInvoicesPDF = async (
     return;
   }
 
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
