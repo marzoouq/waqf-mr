@@ -12,7 +12,6 @@ import { fmt } from '@/utils/format';
 import { toast } from 'sonner';
 
 export const generateInvoicesViewPDF = async (invoices: Array<{
-// @ts-ignore — dynamic import line added below
   invoice_type: string;
   invoice_number: string | null;
   amount: number;
