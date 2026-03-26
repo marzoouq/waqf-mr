@@ -57,10 +57,10 @@ const AnnualReportViewPage = () => {
   const activeContracts = useMemo(() => contracts.filter(c => c.status === 'active').length, [contracts]);
 
   const summaryCards = [
-    { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-emerald-600' },
-    { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-red-500' },
-    { label: 'العقود النشطة', value: String(activeContracts), icon: FileText, color: 'text-blue-600' },
-    { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-amber-600' },
+    { label: 'إجمالي الدخل', value: formatCurrency(totalIncome) + ' ر.س', icon: DollarSign, color: 'text-success' },
+    { label: 'إجمالي المصروفات', value: formatCurrency(totalExpenses) + ' ر.س', icon: Receipt, color: 'text-destructive' },
+    { label: 'العقود النشطة', value: String(activeContracts), icon: FileText, color: 'text-info' },
+    { label: 'عدد العقارات', value: String(properties.length), icon: Building2, color: 'text-warning' },
   ];
 
   const handleExportPdf = async () => {

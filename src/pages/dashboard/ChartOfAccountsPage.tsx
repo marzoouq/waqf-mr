@@ -190,9 +190,9 @@ const ChartOfAccountsPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: 'إجمالي الحسابات', value: stats.total, color: 'text-foreground' },
-            { label: 'إيرادات', value: stats.income, color: 'text-emerald-600' },
-            { label: 'مصروفات', value: stats.expense, color: 'text-red-600' },
-            { label: 'نشطة / معطلة', value: `${stats.active} / ${stats.inactive}`, color: 'text-blue-600' },
+            { label: 'إيرادات', value: stats.income, color: 'text-success' },
+            { label: 'مصروفات', value: stats.expense, color: 'text-destructive' },
+            { label: 'نشطة / معطلة', value: `${stats.active} / ${stats.inactive}`, color: 'text-info' },
           ].map((s) => (
             <Card key={s.label}>
               <CardContent className="p-4 text-center">
