@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable is dynamically imported inside each function
 import { maskBankAccount, maskNationalId } from '@/utils/maskData';
 import { safeNumber } from '@/utils/safeNumber';
 import {

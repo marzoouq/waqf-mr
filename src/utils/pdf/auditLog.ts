@@ -1,4 +1,4 @@
-import autoTable from 'jspdf-autotable';
+// autoTable is dynamically imported inside each function
 import {
   createPdfDocument,
   finalizePdf,
