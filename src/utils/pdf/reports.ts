@@ -133,6 +133,7 @@ export const generateAnnualDisclosurePDF = async (data: {
   adminPct: number;
   waqifPct: number;
 }, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
