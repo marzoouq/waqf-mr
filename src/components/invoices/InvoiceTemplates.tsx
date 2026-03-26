@@ -276,7 +276,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
                       <td className="p-2 text-xs">{a.reason}</td>
                       <td className="p-2 text-center text-xs text-discount-foreground">-{fmtNum(safeNumber(a.amount))}</td>
                       <td className="p-2 text-center text-xs">{a.vatRate}%</td>
-                      <td className="p-2 text-center text-xs text-green-700 dark:text-green-400">-{fmtNum(vat)}</td>
+                      <td className="p-2 text-center text-xs text-discount-foreground">-{fmtNum(vat)}</td>
                     </tr>
                   );
                 })}
