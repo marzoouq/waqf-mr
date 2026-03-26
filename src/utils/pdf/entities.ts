@@ -82,6 +82,7 @@ export const generateContractsPDF = async (contracts: Array<{ contract_number: s
 };
 
 export const generateBeneficiariesPDF = async (beneficiaries: Array<{ name: string; share_percentage: number; phone?: string | null; email?: string | null; bank_account?: string | null; national_id?: string | null }>, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
