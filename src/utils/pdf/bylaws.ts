@@ -32,6 +32,7 @@ export const generateBylawsPDF = async (
   entries: BylawPdfEntry[],
   waqfInfo?: PdfWaqfInfo,
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
   const pageW = doc.internal.pageSize.width;
   const margin = 18;

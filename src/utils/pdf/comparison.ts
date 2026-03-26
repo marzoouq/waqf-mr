@@ -26,6 +26,7 @@ export interface YearComparisonPdfData {
 }
 
 export const generateYearComparisonPDF = async (data: YearComparisonPdfData, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(f, 'bold');
