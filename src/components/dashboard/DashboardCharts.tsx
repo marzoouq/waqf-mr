@@ -45,7 +45,7 @@ const DashboardCharts = ({ monthlyData, expenseTypes }: DashboardChartsProps) =>
         </CardHeader>
         <CardContent className="min-h-[300px]">
           {monthlyData.length > 0 ? (
-            <div style={{ minWidth: 0, minHeight: 0 }}>
+            <div className="min-w-0 min-h-[1px]">
               <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
