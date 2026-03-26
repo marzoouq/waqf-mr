@@ -25,7 +25,7 @@ const PropertiesViewPage = () => {
     isClosed, isSpecificYear,
     expandedId, setExpandedId,
     pdfWaqfInfo, allocationMap,
-    totalUnits, occupiedUnits, rentedUnitIds, wholePropertyIds,
+    totalUnits, occupiedUnits,
     summaryData,
   } = usePropertiesViewData();
 
