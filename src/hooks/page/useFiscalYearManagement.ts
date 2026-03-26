@@ -1,0 +1,114 @@
+/**
+ * هوك منطق إدارة السنوات المالية
+ */
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useFiscalYears, type FiscalYear } from '@/hooks/financial/useFiscalYears';
+
+export function useFiscalYearManagement() {
+  const { data: fiscalYears = [], isLoading } = useFiscalYears();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const [newFY, setNewFY] = useState({ label: '', start_date: '', end_date: '' });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleCreate = async () => {
+    if (!newFY.label || !newFY.start_date || !newFY.end_date) {
+      toast.error('يرجى تعبئة جميع الحقول');
+      return;
+    }
+    setActionLoading('create');
+    try {
+      const { error } = await supabase.from('fiscal_years').insert({
+        label: newFY.label,
+        start_date: newFY.start_date,
+        end_date: newFY.end_date,
+        status: 'active',
+        published: false,
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success('تم إنشاء السنة المالية (محجوبة عن المستفيدين — يمكنك نشرها لاحقاً)');
+      setNewFY({ label: '', start_date: '', end_date: '' });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء الإنشاء');
+    } finally {
+      setActionLoading(null);
+      setCreating(false);
+    }
+  };
+
+  const handleClose = async (fy: FiscalYear) => {
+    if (fy.status !== 'active') return;
+    toast.warning('لإقفال السنة المالية بشكل صحيح مع حفظ الحساب الختامي وترحيل الرصيد، يرجى استخدام صفحة "الحسابات الختامية".', {
+      duration: 6000,
+      action: { label: 'فتح الحسابات', onClick: () => navigate('/dashboard/accounts') },
+    });
+  };
+
+  const handleReopen = async (fy: FiscalYear, reason: string) => {
+    setActionLoading(fy.id);
+    try {
+      const { data, error } = await supabase.rpc('reopen_fiscal_year', {
+        p_fiscal_year_id: fy.id,
+        p_reason: reason,
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success(`تم إعادة فتح السنة: ${(data as { label: string }).label}`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'حدث خطأ أثناء إعادة الفتح');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const togglePublished = async (fy: FiscalYear) => {
+    const newVal = !fy.published;
+    setActionLoading(`pub-${fy.id}`);
+    try {
+      const { error } = await supabase.from('fiscal_years').update({ published: newVal }).eq('id', fy.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success(newVal ? `تم نشر السنة "${fy.label}" للمستفيدين` : `تم حجب السنة "${fy.label}" عن المستفيدين`);
+    } catch {
+      toast.error('حدث خطأ أثناء تحديث حالة النشر');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleDelete = async (fy: FiscalYear) => {
+    if (fy.status === 'active') {
+      toast.error('لا يمكن حذف سنة نشطة — أقفلها أولاً قبل الحذف');
+      return;
+    }
+    setActionLoading(fy.id);
+    try {
+      const { error } = await supabase.from('fiscal_years').delete().eq('id', fy.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['fiscal_years'] });
+      toast.success(`تم حذف السنة: ${fy.label}`);
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error && err.message?.includes('violates foreign key')
+          ? 'لا يمكن حذف سنة مرتبطة ببيانات مالية'
+          : 'حدث خطأ أثناء الحذف',
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  return {
+    fiscalYears, isLoading,
+    creating, setCreating,
+    newFY, setNewFY,
+    actionLoading,
+    handleCreate, handleClose, handleReopen, togglePublished, handleDelete,
+  };
+}
