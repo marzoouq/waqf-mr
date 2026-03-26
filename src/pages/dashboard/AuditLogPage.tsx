@@ -20,112 +20,9 @@ import ArchiveLogTab from '@/components/audit/ArchiveLogTab';
 import { generateAuditLogPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { toast } from 'sonner';
-
+import { operationColor, DataDiff } from '@/components/audit/AuditLogHelpers';
 
 const ITEMS_PER_PAGE = 15;
-
-const operationColor = (op: string) => {
-  switch (op) {
-    case 'INSERT': return 'bg-success/15 text-success border-success/30';
-    case 'UPDATE': return 'bg-warning/15 text-warning border-warning/30';
-    case 'DELETE': return 'bg-destructive/15 text-destructive border-destructive/30';
-    case 'REOPEN': return 'bg-info/15 text-info border-info/30';
-    case 'CLOSE': return 'bg-status-special/15 text-status-special-foreground border-status-special/30';
-    default: return '';
-  }
-};
-
-const formatValue = (val: unknown): string => {
-  if (val === null || val === undefined) return '—';
-  if (typeof val === 'object') return JSON.stringify(val, null, 2);
-  return String(val);
-};
-
-const FIELD_LABELS: Record<string, string> = {
-  amount: 'المبلغ', source: 'المصدر', date: 'التاريخ', description: 'الوصف',
-  expense_type: 'نوع المصروف', notes: 'ملاحظات', property_id: 'العقار',
-  fiscal_year_id: 'السنة المالية', contract_id: 'العقد', created_at: 'تاريخ الإنشاء',
-  updated_at: 'تاريخ التحديث', id: 'المعرف', total_income: 'إجمالي الدخل',
-  total_expenses: 'إجمالي المصروفات', admin_share: 'حصة الناظر',
-  waqif_share: 'حصة الواقف', waqf_revenue: 'ريع الوقف',
-  name: 'الاسم', share_percentage: 'نسبة الحصة', status: 'الحالة',
-  beneficiary_id: 'المستفيد', account_id: 'الحساب',
-  reason: 'السبب', label: 'التسمية',
-};
-
-const getFieldLabel = (key: string) => FIELD_LABELS[key] || key;
-
-const DataDiff = ({ oldData, newData, operation }: {
-  oldData: Record<string, unknown> | null;
-  newData: Record<string, unknown> | null;
-  operation: string;
-}) => {
-  if (operation === 'REOPEN' && newData) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-        {oldData && Object.entries(oldData).map(([key, val]) => (
-          <div key={`old-${key}`} className="flex gap-2">
-            <span className="font-medium text-muted-foreground">{getFieldLabel(key)} (قبل):</span>
-            <span className="text-destructive line-through">{formatValue(val)}</span>
-          </div>
-        ))}
-        {Object.entries(newData).map(([key, val]) => (
-          <div key={`new-${key}`} className="flex gap-2">
-            <span className="font-medium text-muted-foreground">{getFieldLabel(key)} (بعد):</span>
-            <span className="text-success">{formatValue(val)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (operation === 'INSERT' && newData) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-        {Object.entries(newData).filter(([k]) => !['id', 'created_at', 'updated_at'].includes(k)).map(([key, val]) => (
-          <div key={key} className="flex gap-2">
-            <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-success">{formatValue(val)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (operation === 'DELETE' && oldData) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-        {Object.entries(oldData).filter(([k]) => !['id', 'created_at', 'updated_at'].includes(k)).map(([key, val]) => (
-          <div key={key} className="flex gap-2">
-            <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-destructive line-through">{formatValue(val)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (operation === 'UPDATE' && oldData && newData) {
-    const changedKeys = Object.keys(newData).filter(
-      k => !['id', 'created_at', 'updated_at'].includes(k) && JSON.stringify(oldData[k]) !== JSON.stringify(newData[k])
-    );
-    if (changedKeys.length === 0) return <p className="text-sm text-muted-foreground">لا توجد تغييرات ظاهرة</p>;
-    return (
-      <div className="space-y-2 text-sm">
-        {changedKeys.map(key => (
-          <div key={key} className="flex flex-wrap gap-2 items-center">
-            <span className="font-medium text-muted-foreground">{getFieldLabel(key)}:</span>
-            <span className="text-destructive line-through">{formatValue(oldData[key])}</span>
-            <span>←</span>
-            <span className="text-success">{formatValue(newData[key])}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return <p className="text-sm text-muted-foreground">لا توجد بيانات</p>;
-};
 
 const AuditLogPage = () => {
   const [tableFilter, setTableFilter] = useState<string>('all');
@@ -139,7 +36,6 @@ const AuditLogPage = () => {
   const [exporting, setExporting] = useState(false);
   
   const waqfInfo = usePdfWaqfInfo();
-
   const hasDateFilter = dateFrom !== '' || dateTo !== '';
 
   const clearDateFilters = () => {
@@ -160,9 +56,8 @@ const AuditLogPage = () => {
 
   const logs = auditData?.logs ?? [];
   const totalCount = auditData?.totalCount ?? 0;
-
   const paginated = logs;
-  const filtered = logs; // alias for export/empty-state checks
+  const filtered = logs;
 
   const { data: todayCount = 0 } = useQuery({
     queryKey: ['audit_log_today_count'],
@@ -192,7 +87,6 @@ const AuditLogPage = () => {
     }
     setExporting(true);
     try {
-      // جلب كل السجلات بدون pagination للتصدير الكامل
       let exportQuery = supabase
         .from('audit_log')
         .select('id, table_name, operation, record_id, old_data, new_data, user_id, created_at')
@@ -217,6 +111,16 @@ const AuditLogPage = () => {
     }
   };
 
+  const getSummary = (log: typeof logs[0]) => {
+    return log.operation === 'INSERT'
+      ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
+      : log.operation === 'DELETE'
+        ? `حذف سجل من ${getTableNameAr(log.table_name)}`
+        : log.operation === 'REOPEN'
+          ? `إعادة فتح ${getTableNameAr(log.table_name)}`
+          : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
+  };
+
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-6 space-y-6">
@@ -225,13 +129,7 @@ const AuditLogPage = () => {
            icon={ShieldCheck}
            description="تتبع جميع العمليات والتغييرات على النظام"
            actions={
-             <Button
-               variant="outline"
-               size="sm"
-               onClick={handleExportPdf}
-               disabled={exporting || filtered.length === 0}
-               className="gap-2"
-             >
+             <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={exporting || filtered.length === 0} className="gap-2">
                <FileDown className="w-4 h-4" />
                {exporting ? 'جاري التصدير...' : 'تصدير PDF'}
              </Button>
@@ -239,12 +137,9 @@ const AuditLogPage = () => {
          />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-          {/* Mobile: Select */}
           <div className="mb-4 md:hidden">
             <Select value={activeTab} onValueChange={setActiveTab}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="operations">سجل العمليات</SelectItem>
                 <SelectItem value="access">محاولات الوصول</SelectItem>
@@ -252,41 +147,22 @@ const AuditLogPage = () => {
               </SelectContent>
             </Select>
           </div>
-          {/* Desktop: TabsList */}
           <TabsList className="mb-4 hidden md:inline-flex">
-            <TabsTrigger value="operations" className="gap-2">
-              <Activity className="w-4 h-4" />
-              سجل العمليات
-            </TabsTrigger>
-            <TabsTrigger value="access" className="gap-2">
-              <ShieldAlert className="w-4 h-4" />
-              محاولات الوصول
-            </TabsTrigger>
-            <TabsTrigger value="archive" className="gap-2">
-              <Archive className="w-4 h-4" />
-              الأرشيف
-            </TabsTrigger>
+            <TabsTrigger value="operations" className="gap-2"><Activity className="w-4 h-4" />سجل العمليات</TabsTrigger>
+            <TabsTrigger value="access" className="gap-2"><ShieldAlert className="w-4 h-4" />محاولات الوصول</TabsTrigger>
+            <TabsTrigger value="archive" className="gap-2"><Archive className="w-4 h-4" />الأرشيف</TabsTrigger>
           </TabsList>
 
           <TabsContent value="operations">
-            {/* Stats */}
             <div className="space-y-6">
+              {/* بطاقات الإحصائيات */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader>
-                  <CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader>
-                  <CardContent><p className="text-2xl font-bold">{todayCount}</p></CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="w-4 h-4" />آخر عملية</CardTitle></CardHeader>
-                  <CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].created_at).toLocaleString('ar-SA') : '—'}</p></CardContent>
-                </Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Activity className="w-4 h-4" />إجمالي العمليات</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{totalCount}</p></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" />عمليات اليوم</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold">{todayCount}</p></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground flex items-center gap-2"><Clock className="w-4 h-4" />آخر عملية</CardTitle></CardHeader><CardContent><p className="text-sm font-medium">{logs[0] ? new Date(logs[0].created_at).toLocaleString('ar-SA') : '—'}</p></CardContent></Card>
               </div>
 
-              {/* Filters */}
+              {/* الفلاتر */}
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                   <div className="relative flex-1 min-w-0">
@@ -323,39 +199,25 @@ const AuditLogPage = () => {
                     </Select>
                   </div>
                 </div>
-                {/* فلتر التاريخ */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   <div className="flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
                     <span className="text-sm text-muted-foreground whitespace-nowrap">من:</span>
-                    <Input
-                      type="date"
-                      value={dateFrom}
-                      onChange={e => { setDateFrom(e.target.value); setCurrentPage(1); }}
-                      className="w-[160px]"
-                      aria-label="تاريخ البداية"
-                    />
+                    <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ البداية" />
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground whitespace-nowrap">إلى:</span>
-                    <Input
-                      type="date"
-                      value={dateTo}
-                      onChange={e => { setDateTo(e.target.value); setCurrentPage(1); }}
-                      className="w-[160px]"
-                      aria-label="تاريخ النهاية"
-                    />
+                    <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setCurrentPage(1); }} className="w-[160px]" aria-label="تاريخ النهاية" />
                   </div>
                   {hasDateFilter && (
                     <Button variant="ghost" size="sm" onClick={clearDateFilters} className="gap-1 text-muted-foreground hover:text-destructive">
-                      <X className="w-4 h-4" />
-                      مسح التاريخ
+                      <X className="w-4 h-4" />مسح التاريخ
                     </Button>
                   )}
                 </div>
               </div>
 
-              {/* Table */}
+              {/* الجدول */}
               <Card>
                 <CardContent className="p-0">
                   {isLoading ? (
@@ -364,51 +226,36 @@ const AuditLogPage = () => {
                     <div className="p-8 text-center text-muted-foreground">لا توجد سجلات</div>
                   ) : (
                     <>
-                      {/* Mobile Cards */}
+                      {/* بطاقات الموبايل */}
                       <div className="block md:hidden space-y-3 p-3">
-                        {paginated.map(log => {
-                          const summary = log.operation === 'INSERT'
-                            ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
-                            : log.operation === 'DELETE'
-                              ? `حذف سجل من ${getTableNameAr(log.table_name)}`
-                              : log.operation === 'REOPEN'
-                                ? `إعادة فتح ${getTableNameAr(log.table_name)}`
-                                : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
-                          return (
-                            <Collapsible key={log.id} open={expandedRows.has(log.id)} onOpenChange={() => toggleRow(log.id)}>
-                              <Card className="shadow-sm">
-                                <CollapsibleTrigger asChild>
-                                  <CardContent className="p-3 space-y-2 cursor-pointer">
-                                    <div className="flex items-center justify-between">
-                                      <Badge className={operationColor(log.operation)} variant="outline">
-                                        {getOperationNameAr(log.operation)}
-                                      </Badge>
-                                      <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                      <span className="font-medium">{getTableNameAr(log.table_name)}</span>
-                                      <span className="h-6 w-6 flex items-center justify-center">
-                                        {expandedRows.has(log.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                      </span>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">{summary}</p>
-                                  </CardContent>
-                                </CollapsibleTrigger>
-                                <CollapsibleContent>
-                                  <div className="px-3 pb-3 pt-2 border-t">
-                                    <DataDiff
-                                      oldData={log.old_data as Record<string, unknown> | null}
-                                      newData={log.new_data as Record<string, unknown> | null}
-                                      operation={log.operation}
-                                    />
+                        {paginated.map(log => (
+                          <Collapsible key={log.id} open={expandedRows.has(log.id)} onOpenChange={() => toggleRow(log.id)}>
+                            <Card className="shadow-sm">
+                              <CollapsibleTrigger asChild>
+                                <CardContent className="p-3 space-y-2 cursor-pointer">
+                                  <div className="flex items-center justify-between">
+                                    <Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge>
+                                    <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString('ar-SA')}</span>
                                   </div>
-                                </CollapsibleContent>
-                              </Card>
-                            </Collapsible>
-                          );
-                        })}
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="font-medium">{getTableNameAr(log.table_name)}</span>
+                                    <span className="h-6 w-6 flex items-center justify-center">
+                                      {expandedRows.has(log.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">{getSummary(log)}</p>
+                                </CardContent>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <div className="px-3 pb-3 pt-2 border-t">
+                                  <DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} />
+                                </div>
+                              </CollapsibleContent>
+                            </Card>
+                          </Collapsible>
+                        ))}
                       </div>
-                      {/* Desktop Table */}
+                      {/* جدول سطح المكتب */}
                       <div className="overflow-x-auto hidden md:block">
                       <Table className="min-w-[600px]">
                         <TableHeader>
@@ -423,13 +270,6 @@ const AuditLogPage = () => {
                         <TableBody>
                           {paginated.map(log => {
                             const isExpanded = expandedRows.has(log.id);
-                            const summary = log.operation === 'INSERT'
-                              ? `إضافة سجل جديد في ${getTableNameAr(log.table_name)}`
-                              : log.operation === 'DELETE'
-                                ? `حذف سجل من ${getTableNameAr(log.table_name)}`
-                                : log.operation === 'REOPEN'
-                                  ? `إعادة فتح ${getTableNameAr(log.table_name)}`
-                                  : `تعديل سجل في ${getTableNameAr(log.table_name)}`;
                             return (
                               <Collapsible key={log.id} open={isExpanded} onOpenChange={() => toggleRow(log.id)} asChild>
                                 <>
@@ -443,21 +283,15 @@ const AuditLogPage = () => {
                                       <TableCell className="text-sm">{new Date(log.created_at).toLocaleString('ar-SA')}</TableCell>
                                       <TableCell>{getTableNameAr(log.table_name)}</TableCell>
                                       <TableCell>
-                                        <Badge className={operationColor(log.operation)} variant="outline">
-                                          {getOperationNameAr(log.operation)}
-                                        </Badge>
+                                        <Badge className={operationColor(log.operation)} variant="outline">{getOperationNameAr(log.operation)}</Badge>
                                       </TableCell>
-                                      <TableCell className="text-sm text-muted-foreground">{summary}</TableCell>
+                                      <TableCell className="text-sm text-muted-foreground">{getSummary(log)}</TableCell>
                                     </TableRow>
                                   </CollapsibleTrigger>
                                   <CollapsibleContent asChild>
                                     <tr>
                                       <td colSpan={5} className="bg-muted/30 p-4 border-b">
-                                        <DataDiff
-                                          oldData={log.old_data as Record<string, unknown> | null}
-                                          newData={log.new_data as Record<string, unknown> | null}
-                                          operation={log.operation}
-                                        />
+                                        <DataDiff oldData={log.old_data as Record<string, unknown> | null} newData={log.new_data as Record<string, unknown> | null} operation={log.operation} />
                                       </td>
                                     </tr>
                                   </CollapsibleContent>
@@ -468,12 +302,7 @@ const AuditLogPage = () => {
                         </TableBody>
                       </Table>
                       </div>
-                      <TablePagination
-                        currentPage={currentPage}
-                        totalItems={totalCount}
-                        itemsPerPage={ITEMS_PER_PAGE}
-                        onPageChange={setCurrentPage}
-                      />
+                      <TablePagination currentPage={currentPage} totalItems={totalCount} itemsPerPage={ITEMS_PER_PAGE} onPageChange={setCurrentPage} />
                     </>
                   )}
                 </CardContent>
@@ -481,13 +310,8 @@ const AuditLogPage = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="access">
-            <AccessLogTab />
-          </TabsContent>
-
-          <TabsContent value="archive">
-            <ArchiveLogTab />
-          </TabsContent>
+          <TabsContent value="access"><AccessLogTab /></TabsContent>
+          <TabsContent value="archive"><ArchiveLogTab /></TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
