@@ -1,13 +1,12 @@
 /**
  * التخطيط العام للوحة التحكم (DashboardLayout)
- * يوفر الشريط الجانبي (قابل للطي) مع التنقل الديناميكي حسب دور المستخدم.
  */
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu, Lock, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
 import NotificationBell from '@/components/NotificationBell';
@@ -27,6 +26,7 @@ import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
 import { useRealtimeAlerts } from '@/hooks/data/useRealtimeAlerts';
+import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
@@ -38,6 +38,8 @@ import {
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
+
+const SIDEBAR_W = 256;
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, role, signOut } = useAuth();
@@ -57,120 +59,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }, [sidebarOpen]);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Fix: إغلاق القائمة الجانبية تلقائياً عند تغيير المسار
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
 
-  // ─── Interactive swipe (rAF-based, no re-renders during drag) ───
-  const SIDEBAR_W = 256;
-  const CLOSE_THRESHOLD = 80;
-  const sidebarRef = useRef<HTMLElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const dragOffsetRef = useRef(0);
-  const isDragging = useRef(false);
-  const sidebarTouchStartX = useRef(0);
-  const rafId = useRef(0);
+  // ─── Swipe gesture handling ───
+  const {
+    sidebarRef, overlayRef,
+    handleTouchStart, handleTouchMove, handleTouchEnd,
+    handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd,
+    overlayOpacity, sidebarTranslateX,
+  } = useSidebarSwipe({
+    sidebarWidth: SIDEBAR_W,
+    mobileSidebarOpen,
+    setMobileSidebarOpen,
+  });
 
-  const applyTransform = useCallback((offset: number, total: number) => {
-    cancelAnimationFrame(rafId.current);
-    rafId.current = requestAnimationFrame(() => {
-      if (sidebarRef.current) {
-        sidebarRef.current.style.transform = `translateX(${offset}px)`;
-        sidebarRef.current.style.willChange = 'transform';
-      }
-      if (overlayRef.current) {
-        const progress = Math.max(0, 1 - offset / total);
-        overlayRef.current.style.opacity = String(progress * 0.5);
-        overlayRef.current.style.willChange = 'opacity';
-      }
-    });
-  }, []);
-
-  const clearInlineStyles = useCallback(() => {
-    cancelAnimationFrame(rafId.current);
-    if (sidebarRef.current) {
-      sidebarRef.current.style.transform = '';
-      sidebarRef.current.style.willChange = '';
-    }
-    if (overlayRef.current) {
-      overlayRef.current.style.opacity = '';
-      overlayRef.current.style.willChange = '';
-    }
-  }, []);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    sidebarTouchStartX.current = e.touches[0]!.clientX;
-    isDragging.current = true;
-    dragOffsetRef.current = 0;
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const delta = Math.max(0, e.touches[0]!.clientX - sidebarTouchStartX.current);
-    if (delta < 10) return; // dead zone to prevent accidental drags during taps
-    dragOffsetRef.current = delta;
-    applyTransform(delta, SIDEBAR_W);
-  }, [applyTransform]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    clearInlineStyles();
-    if (dragOffsetRef.current > CLOSE_THRESHOLD) {
-      navigator.vibrate?.(15);
-      setMobileSidebarOpen(false);
-    }
-    dragOffsetRef.current = 0;
-  }, [clearInlineStyles]);
-
-  // ─── Edge swipe-to-open from right edge (rAF-based) ───
-  const edgeStartX = useRef(0);
-  const edgeDragRef = useRef(0);
-  const isEdgeSwiping = useRef(false);
-
-  const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
-    const x = e.touches[0]!.clientX;
-    if (x > window.innerWidth - 25 && !mobileSidebarOpen) {
-      edgeStartX.current = x;
-      isEdgeSwiping.current = true;
-      edgeDragRef.current = 0;
-    }
-  }, [mobileSidebarOpen]);
-
-  const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isEdgeSwiping.current) return;
-    const delta = Math.max(0, Math.min(SIDEBAR_W, edgeStartX.current - e.touches[0]!.clientX));
-    edgeDragRef.current = delta;
-    applyTransform(SIDEBAR_W - delta, SIDEBAR_W);
-  }, [applyTransform]);
-
-  const handleMainTouchEnd = useCallback(() => {
-    if (!isEdgeSwiping.current) return;
-    isEdgeSwiping.current = false;
-    clearInlineStyles();
-    if (edgeDragRef.current > CLOSE_THRESHOLD) {
-      navigator.vibrate?.(15);
-      setMobileSidebarOpen(true);
-    }
-    edgeDragRef.current = 0;
-  }, [clearInlineStyles]);
-
-  // Compute overlay opacity for non-dragging states
-  const overlayOpacity = mobileSidebarOpen ? 0.5 : 0;
-
-  // Compute sidebar translateX for non-dragging states
-  const sidebarTranslateX = mobileSidebarOpen ? 0 : SIDEBAR_W;
   const { getJsonSetting } = useAppSettings();
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
-
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
-
-  // إعدادات إظهار/إخفاء الأقسام — دمج المحفوظ مع الافتراضي لضمان ظهور الأقسام الجديدة
   const sectionsVisibility = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
-
-  // إعدادات إظهار/إخفاء أقسام المستفيد — دمج المحفوظ مع الافتراضي
   const beneficiarySections = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
 
   const links = useMemo(() => {
@@ -178,7 +87,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       return allAdminLinks
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
-          // If the section has a visibility key, check if it's enabled
           return !sectionKey || (sectionsVisibility as Record<string, boolean>)[sectionKey] !== false;
         })
         .map(link => {
@@ -194,7 +102,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         .filter(link => {
           const sectionKey = ADMIN_SECTION_KEYS[link.to];
           if (sectionKey && (sectionsVisibility as Record<string, boolean>)[sectionKey] === false) return false;
-      const key = ADMIN_ROUTE_PERM_KEYS[link.to];
+          const key = ADMIN_ROUTE_PERM_KEYS[link.to];
           return !key || perms?.[key] !== false;
         })
         .map(link => {
@@ -203,19 +111,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         });
     }
 
-    // beneficiary or waqif
     const roleKey = role === 'waqif' ? 'waqif' : 'beneficiary';
     const perms = rolePermissions[roleKey] || DEFAULT_ROLE_PERMS[roleKey] || {};
     return allBeneficiaryLinks
       .map(link => {
-        // استبدال مسار الصفحة الرئيسية للواقف
         if (role === 'waqif' && link.to === '/beneficiary') {
           return { ...link, to: '/waqif' };
         }
         return link;
       })
       .filter(link => {
-        // Apply beneficiary_sections visibility
         const bsKey = BENEFICIARY_SECTION_KEYS[link.to];
         if (bsKey && (beneficiarySections as Record<string, boolean>)[bsKey] === false) return false;
         const key = BENEFICIARY_ROUTE_PERM_KEYS[link.to];
@@ -230,7 +135,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     navigate('/auth', { replace: true });
   };
 
-  // ─── Idle Timeout (uses shared app_settings from useAppSettings) ───
+  // ─── Idle Timeout ───
   const idleMinutesRaw = getJsonSetting<number>('idle_timeout_minutes', 15);
   const safeIdleMinutes = Math.max(1, Math.min(120, idleMinutesRaw ?? 15));
   const timeoutMs = safeIdleMinutes * 60 * 1000;
@@ -251,12 +156,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     <div className="min-h-screen flex w-full bg-background">
       {/* Mobile Header */}
       <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileSidebarOpen(true)}
-          className="text-sidebar-foreground"
-        >
+        <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="text-sidebar-foreground">
           <Menu className="w-6 h-6" />
         </Button>
         <div className="flex flex-col items-center">
@@ -275,7 +175,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay — rAF updates opacity during drag */}
+      {/* Mobile Sidebar Overlay */}
       <div
         ref={overlayRef}
         className={cn(
@@ -286,7 +186,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onClick={() => setMobileSidebarOpen(false)}
       />
 
-      {/* Sidebar - Mobile — follows finger */}
+      {/* Sidebar - Mobile */}
       <aside
         ref={sidebarRef}
         onTouchStart={handleTouchStart}
@@ -331,7 +231,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           sidebarOpen ? 'lg:mr-64' : 'lg:mr-16'
         )}
       >
-        {/* Print-only Header */}
         <PrintHeader />
         <div className="hidden lg:flex items-center justify-between">
           <WaqfInfoBar />
@@ -349,7 +248,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </Button>
             </Link>
             <NotificationBell />
-            {/* مؤشر المستخدم والدور */}
             {user && (
               <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
@@ -381,14 +279,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
         {(role === 'admin' || role === 'accountant') && <BetaBanner />}
         {children}
-        {/* Print-only Footer */}
         <PrintFooter />
       </main>
 
-      {/* Mobile Bottom Navigation */}
       <BottomNav onOpenSidebar={() => setMobileSidebarOpen(true)} />
 
-      {/* Idle Timeout Warning */}
       {user && (
         <IdleTimeoutWarning
           open={showWarning}

@@ -1,259 +1,40 @@
-import { useMemo, useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { useBylawsList, useCreateBylaw, useUpdateBylaw, useDeleteBylaw, useReorderBylaws, type BylawEntry } from '@/hooks/data/useBylaws';
-import { useAppSettings } from '@/hooks/page/useAppSettings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Accordion } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { BylawAddDialog, BylawEditDialog, BylawDeleteDialog } from '@/components/bylaws/BylawDialogs';
-import { Loader2, Pencil, BookOpen, Eye, EyeOff, Search, X, GripVertical, Plus, Trash2, Globe, Lock, Scale, FileText } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import SortableBylawItem from '@/components/bylaws/SortableBylawItem';
+import { Loader2, BookOpen, Eye, EyeOff, Search, X, Plus, Globe, Lock, Scale, FileText } from 'lucide-react';
 import ExportMenu from '@/components/ExportMenu';
 import { generateBylawsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-
-interface SortableBylawItemProps {
-  item: BylawEntry;
-  openEdit: (item: BylawEntry) => void;
-  toggleVisibility: (item: BylawEntry) => void;
-  onDelete: (item: BylawEntry) => void;
-  isDragDisabled: boolean;
-}
-
-const SortableBylawItem = ({ item, openEdit, toggleVisibility, onDelete, isDragDisabled }: SortableBylawItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id, disabled: isDragDisabled });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : undefined,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <AccordionItem value={item.id} className="border rounded-lg px-4 hover:border-primary/30 transition-colors">
-        <AccordionTrigger className="hover:no-underline py-3">
-          <div className="flex items-center gap-3 flex-1 text-right">
-            {!isDragDisabled && (
-              <div
-                className="cursor-grab active:cursor-grabbing touch-none p-1 rounded hover:bg-muted text-muted-foreground"
-                {...attributes}
-                {...listeners}
-                role="button"
-                tabIndex={0}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <GripVertical className="w-4 h-4" />
-              </div>
-            )}
-            <Badge variant={item.is_visible ? 'default' : 'secondary'} className="shrink-0 min-w-14 justify-center">
-              {item.part_number === 0 ? 'مقدمة' : `جزء ${item.part_number}`}
-            </Badge>
-            {item.chapter_number && (
-              <Badge variant="outline" className="shrink-0 text-xs">
-                فصل {item.chapter_number}
-              </Badge>
-            )}
-            <span className="font-semibold text-sm flex-1">
-              {item.chapter_title || item.part_title}
-            </span>
-            {!item.is_visible && (
-              <Badge variant="outline" className="text-muted-foreground shrink-0 text-xs">
-                <EyeOff className="w-3 h-3 ml-1" /> مخفي
-              </Badge>
-            )}
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="pt-2 pb-4 space-y-4">
-            <div className="prose prose-sm dark:prose-invert max-w-none text-right leading-relaxed prose-headings:text-primary prose-strong:text-foreground" dir="rtl">
-              <ReactMarkdown>{item.content}</ReactMarkdown>
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t print:hidden">
-              <div className="flex items-center gap-3">
-                <Switch
-                  checked={item.is_visible}
-                  onCheckedChange={() => toggleVisibility(item)}
-                />
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                  {item.is_visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  {item.is_visible ? 'ظاهر للمستفيدين' : 'مخفي عن المستفيدين'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onDelete(item)} className="gap-1.5 text-destructive hover:text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">حذف</span>
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => openEdit(item)} className="gap-1.5">
-                  <Pencil className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">تعديل</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </div>
-  );
-};
+import { Switch } from '@/components/ui/switch';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useBylawsPage } from '@/hooks/page/useBylawsPage';
 
 const BylawsPage = () => {
-  const { data: bylaws, isLoading } = useBylawsList();
-  const updateBylaw = useUpdateBylaw();
-  const createBylaw = useCreateBylaw();
-  const deleteBylaw = useDeleteBylaw();
-  const reorderBylaws = useReorderBylaws();
-  const { data: settings, updateSetting } = useAppSettings();
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const [editItem, setEditItem] = useState<BylawEntry | null>(null);
-  const [editContent, setEditContent] = useState('');
-  const [search, setSearch] = useState('');
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [deleteItem, setDeleteItem] = useState<BylawEntry | null>(null);
-  const [newBylaw, setNewBylaw] = useState({ part_title: '', chapter_title: '', content: '', part_number: 0 });
-
-  const isPublished = settings?.bylaws_published === 'true';
-
-  const allBylaws = useMemo(() => bylaws ?? [], [bylaws]);
-
-  const visibleBylaws = useMemo(() => {
-    if (!search.trim()) return allBylaws;
-    const q = search.trim().toLowerCase();
-    return allBylaws.filter(
-      (b) =>
-        b.part_title.toLowerCase().includes(q) ||
-        (b.chapter_title && b.chapter_title.toLowerCase().includes(q)) ||
-        b.content.toLowerCase().includes(q),
-    );
-  }, [allBylaws, search]);
-
-  const isSearching = search.trim().length > 0;
-
-  const stats = useMemo(() => {
-    const total = allBylaws.length;
-    const visible = allBylaws.filter((b) => b.is_visible).length;
-    const hidden = total - visible;
-    return { total, visible, hidden };
-  }, [allBylaws]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-
-      const oldIndex = allBylaws.findIndex((b) => b.id === active.id);
-      const newIndex = allBylaws.findIndex((b) => b.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const reordered = arrayMove(allBylaws, oldIndex, newIndex);
-      const updates = reordered.map((item, idx) => ({ id: item.id, sort_order: idx }));
-      reorderBylaws.mutate(updates);
-    },
-    [allBylaws, reorderBylaws],
-  );
-
-  const [editPartNumber, setEditPartNumber] = useState(0);
-  const [editPartTitle, setEditPartTitle] = useState('');
-  const [editChapterTitle, setEditChapterTitle] = useState('');
-  const [editChapterNumber, setEditChapterNumber] = useState<number | null>(null);
-
-  const openEdit = (item: BylawEntry) => {
-    setEditItem(item);
-    setEditContent(item.content);
-    setEditPartNumber(item.part_number);
-    setEditPartTitle(item.part_title);
-    setEditChapterTitle(item.chapter_title || '');
-    setEditChapterNumber(item.chapter_number);
-  };
-
-  const handleSave = () => {
-    if (!editItem || !editPartTitle.trim()) return;
-    updateBylaw.mutate(
-      {
-        id: editItem.id,
-        content: editContent,
-        part_number: editPartNumber,
-        part_title: editPartTitle.trim(),
-        chapter_title: editChapterTitle.trim() || null,
-        chapter_number: editChapterNumber,
-      },
-      { onSuccess: () => setEditItem(null) },
-    );
-  };
-
-  const toggleVisibility = (item: BylawEntry) => {
-    updateBylaw.mutate({ id: item.id, is_visible: !item.is_visible });
-  };
-
-  const togglePublish = async () => {
-    const newValue = isPublished ? 'false' : 'true';
-    try {
-      await updateSetting.mutateAsync({ key: 'bylaws_published', value: newValue });
-      toast.success(newValue === 'true' ? 'تم نشر اللائحة للمستفيدين' : 'تم حجب اللائحة عن المستفيدين');
-    } catch {
-      toast.error('حدث خطأ أثناء تحديث حالة النشر');
-    }
-  };
-
-  const handleAdd = () => {
-    if (!newBylaw.part_title.trim()) return;
-    createBylaw.mutate(
-      {
-        part_number: newBylaw.part_number,
-        part_title: newBylaw.part_title.trim(),
-        chapter_title: newBylaw.chapter_title.trim() || undefined,
-        content: newBylaw.content.trim(),
-        sort_order: allBylaws.length,
-      },
-      {
-        onSuccess: () => {
-          setShowAddDialog(false);
-          setNewBylaw({ part_title: '', chapter_title: '', content: '', part_number: 0 });
-        },
-      },
-    );
-  };
-
-  const handleDelete = () => {
-    if (!deleteItem) return;
-    deleteBylaw.mutate(deleteItem.id, { onSuccess: () => setDeleteItem(null) });
-  };
+  const {
+    isLoading, visibleBylaws, isSearching, stats, isPublished,
+    sensors, handleDragEnd,
+    search, setSearch,
+    showAddDialog, setShowAddDialog,
+    newBylaw, setNewBylaw, handleAdd, createBylawPending,
+    editItem, setEditItem,
+    editContent, setEditContent,
+    editPartNumber, setEditPartNumber,
+    editPartTitle, setEditPartTitle,
+    editChapterTitle, setEditChapterTitle,
+    editChapterNumber, setEditChapterNumber,
+    openEdit, handleSave, updateBylawPending,
+    deleteItem, setDeleteItem, handleDelete, deleteBylawPending,
+    toggleVisibility, togglePublish,
+    reorderPending,
+  } = useBylawsPage();
 
   if (isLoading) {
     return (
@@ -285,7 +66,6 @@ const BylawsPage = () => {
           }
         />
 
-        {/* Warning if not published */}
         {!isPublished && (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-warning/40 bg-warning/5 text-warning text-sm">
             <Lock className="w-5 h-5 shrink-0" />
@@ -328,7 +108,6 @@ const BylawsPage = () => {
               </div>
             </div>
           </Card>
-          {/* Publish Toggle */}
           <Card className={`p-4 border-2 transition-colors ${isPublished ? 'border-primary/30 bg-accent' : 'border-destructive/30 bg-destructive/5'}`}>
             <div className="flex items-center justify-between h-full">
               <div className="flex items-center gap-3">
@@ -373,7 +152,7 @@ const BylawsPage = () => {
               بنود اللائحة ({visibleBylaws.length} بند)
               {isSearching && <Badge variant="secondary" className="text-xs">نتائج البحث</Badge>}
               {!isSearching && <Badge variant="outline" className="text-xs text-muted-foreground">اسحب لإعادة الترتيب</Badge>}
-              {reorderBylaws.isPending && (
+              {reorderPending && (
                 <Badge variant="outline" className="text-xs gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" /> جاري حفظ الترتيب...
                 </Badge>
@@ -401,17 +180,15 @@ const BylawsPage = () => {
         </Card>
       </div>
 
-      {/* Add Dialog */}
       <BylawAddDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         newBylaw={newBylaw}
         setNewBylaw={setNewBylaw}
         onAdd={handleAdd}
-        isPending={createBylaw.isPending}
+        isPending={createBylawPending}
       />
 
-      {/* Edit Dialog */}
       <BylawEditDialog
         editItem={editItem}
         onClose={() => setEditItem(null)}
@@ -426,15 +203,14 @@ const BylawsPage = () => {
         editChapterNumber={editChapterNumber}
         setEditChapterNumber={setEditChapterNumber}
         onSave={handleSave}
-        isPending={updateBylaw.isPending}
+        isPending={updateBylawPending}
       />
 
-      {/* Delete Confirmation */}
       <BylawDeleteDialog
         deleteItem={deleteItem}
         onClose={() => setDeleteItem(null)}
         onDelete={handleDelete}
-        isPending={deleteBylaw.isPending}
+        isPending={deleteBylawPending}
       />
     </DashboardLayout>
   );
