@@ -19,10 +19,10 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<CheckStatus, { icon: typeof CheckCircle2; color: string; label: string }> = {
-  pass: { icon: CheckCircle2, color: 'text-green-600', label: 'ناجح' },
-  warn: { icon: AlertTriangle, color: 'text-yellow-600', label: 'تحذير' },
-  fail: { icon: XCircle, color: 'text-red-600', label: 'فشل' },
-  info: { icon: Info, color: 'text-blue-600', label: 'معلومة' },
+  pass: { icon: CheckCircle2, color: 'text-success', label: 'ناجح' },
+  warn: { icon: AlertTriangle, color: 'text-warning', label: 'تحذير' },
+  fail: { icon: XCircle, color: 'text-destructive', label: 'فشل' },
+  info: { icon: Info, color: 'text-info', label: 'معلومة' },
 };
 
 function CheckRow({ result }: { result: CheckResult }) {

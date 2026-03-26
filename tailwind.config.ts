@@ -61,9 +61,30 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        success: "hsl(var(--success))",
-        warning: "hsl(var(--warning))",
-        info: "hsl(var(--info))",
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          muted: "hsl(var(--success-muted))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          muted: "hsl(var(--info-muted))",
+        },
+        discount: {
+          DEFAULT: "hsl(var(--discount))",
+          foreground: "hsl(var(--discount-foreground))",
+          muted: "hsl(var(--discount-muted))",
+        },
+        surcharge: {
+          DEFAULT: "hsl(var(--surcharge))",
+          foreground: "hsl(var(--surcharge-foreground))",
+          muted: "hsl(var(--surcharge-muted))",
+        },
         "star-rating": "hsl(var(--star-rating))",
         "status-approved": {
           DEFAULT: "hsl(var(--status-approved))",

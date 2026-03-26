@@ -14,10 +14,10 @@ import type { AccountCategory } from '@/types/database';
 
 // ─── ثوابت الألوان والأنواع ───
 export const TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof DollarSign }> = {
-  income: { label: 'إيراد', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400', icon: DollarSign },
-  expense: { label: 'مصروف', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400', icon: Receipt },
-  tax: { label: 'ضريبة', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400', icon: Calculator },
-  distribution: { label: 'توزيع', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: ArrowDownUp },
+  income: { label: 'إيراد', color: 'bg-success-muted text-success-foreground', icon: DollarSign },
+  expense: { label: 'مصروف', color: 'bg-destructive/10 text-destructive', icon: Receipt },
+  tax: { label: 'ضريبة', color: 'bg-warning/10 text-warning-foreground', icon: Calculator },
+  distribution: { label: 'توزيع', color: 'bg-info-muted text-info-foreground', icon: ArrowDownUp },
 };
 
 // ─── مكوّن الصف الفرعي ───

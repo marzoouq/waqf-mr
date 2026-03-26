@@ -271,24 +271,24 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
                 {(data.allowances || []).map((a, i) => {
                   const vat = Math.round(safeNumber(a.amount) * safeNumber(a.vatRate) / 100 * 100) / 100;
                   return (
-                    <tr key={`a-${i}`} className="border-b bg-green-50 dark:bg-green-950/20">
-                      <td className="p-2 text-xs text-green-700 dark:text-green-400 font-medium">خصم</td>
+                    <tr key={`a-${i}`} className="border-b bg-discount-muted">
+                      <td className="p-2 text-xs text-discount-foreground font-medium">خصم</td>
                       <td className="p-2 text-xs">{a.reason}</td>
-                      <td className="p-2 text-center text-xs text-green-700 dark:text-green-400">-{fmtNum(safeNumber(a.amount))}</td>
+                      <td className="p-2 text-center text-xs text-discount-foreground">-{fmtNum(safeNumber(a.amount))}</td>
                       <td className="p-2 text-center text-xs">{a.vatRate}%</td>
-                      <td className="p-2 text-center text-xs text-green-700 dark:text-green-400">-{fmtNum(vat)}</td>
+                      <td className="p-2 text-center text-xs text-discount-foreground">-{fmtNum(vat)}</td>
                     </tr>
                   );
                 })}
                 {(data.charges || []).map((c, i) => {
                   const vat = Math.round(safeNumber(c.amount) * safeNumber(c.vatRate) / 100 * 100) / 100;
                   return (
-                    <tr key={`c-${i}`} className="border-b bg-orange-50 dark:bg-orange-950/20">
-                      <td className="p-2 text-xs text-orange-700 dark:text-orange-400 font-medium">رسوم إضافية</td>
+                    <tr key={`c-${i}`} className="border-b bg-surcharge-muted">
+                      <td className="p-2 text-xs text-surcharge-foreground font-medium">رسوم إضافية</td>
                       <td className="p-2 text-xs">{c.reason}</td>
-                      <td className="p-2 text-center text-xs text-orange-700 dark:text-orange-400">+{fmtNum(safeNumber(c.amount))}</td>
+                      <td className="p-2 text-center text-xs text-surcharge-foreground">+{fmtNum(safeNumber(c.amount))}</td>
                       <td className="p-2 text-center text-xs">{c.vatRate}%</td>
-                      <td className="p-2 text-center text-xs text-orange-700 dark:text-orange-400">+{fmtNum(vat)}</td>
+                      <td className="p-2 text-center text-xs text-surcharge-foreground">+{fmtNum(vat)}</td>
                     </tr>
                   );
                 })}
@@ -318,13 +318,13 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
               <span className="font-medium">{fmtNum(lineExtension)} ر.س</span>
             </div>
             {totalAllowances > 0 && (
-              <div className="flex justify-between text-sm text-green-700 dark:text-green-400">
+              <div className="flex justify-between text-sm text-discount-foreground">
                 <span>خصومات</span>
                 <span>-{fmtNum(totalAllowances)} ر.س</span>
               </div>
             )}
             {totalCharges > 0 && (
-              <div className="flex justify-between text-sm text-orange-700 dark:text-orange-400">
+              <div className="flex justify-between text-sm text-surcharge-foreground">
                 <span>رسوم إضافية</span>
                 <span>+{fmtNum(totalCharges)} ر.س</span>
               </div>
@@ -429,10 +429,10 @@ export function SimplifiedTemplate({ data }: { data: InvoiceTemplateData }) {
         {/* إجماليات مختصرة */}
         <div className="space-y-1 text-xs border-t pt-2">
           {totalAllowances > 0 && (
-            <div className="flex justify-between text-green-700 dark:text-green-400"><span>خصومات</span><span>-{fmtNum(totalAllowances)}</span></div>
+            <div className="flex justify-between text-discount-foreground"><span>خصومات</span><span>-{fmtNum(totalAllowances)}</span></div>
           )}
           {totalCharges > 0 && (
-            <div className="flex justify-between text-orange-700 dark:text-orange-400"><span>رسوم إضافية</span><span>+{fmtNum(totalCharges)}</span></div>
+            <div className="flex justify-between text-surcharge-foreground"><span>رسوم إضافية</span><span>+{fmtNum(totalCharges)}</span></div>
           )}
           {totalVat > 0 && (
             <div className="flex justify-between"><span className="text-muted-foreground">الضريبة</span><span>{fmtNum(totalVat)} ر.س</span></div>
