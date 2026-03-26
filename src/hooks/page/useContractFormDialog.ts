@@ -94,10 +94,6 @@ export function useContractFormDialog({
 
   const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  const propertyOptions = useMemo(() =>
-    [] as { value: string; label: string }[], // سيُملأ من الـ props
-  []);
-
   const handleClose = () => {
     onOpenChange(false);
     setFormData(emptyFormData);
