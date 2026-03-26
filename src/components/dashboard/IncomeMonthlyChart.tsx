@@ -48,7 +48,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
       const activeContracts = isSpecificYear ? contracts : contracts.filter(c => c.status === 'active');
       linearMonthlyExpected = activeContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount) / 12, 0);
       if (activeContracts.length > 0) {
-        console.warn('[IncomeMonthlyChart] استخدام fallback خطي (rent/12) — لا توجد فواتير دفعات. النتائج تقريبية.');
+        logger.warn('[IncomeMonthlyChart] استخدام fallback خطي (rent/12) — لا توجد فواتير دفعات. النتائج تقريبية.');
       }
     }
 
