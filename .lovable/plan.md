@@ -1,27 +1,67 @@
 
 
-# نتائج الفحص الأمني الشامل
+# تقرير الفحص الجنائي الهجين المتعمق
 
-## ملخص
-تم تشغيل فحص أمني شامل على المشروع. أسفر عن **6 نتائج** — جميعها إما إيجابيات كاذبة (false positives) أو ملاحظات غير قابلة للاستغلال.
+## ملخص تنفيذي
+بعد فحص شامل للتطبيق وقاعدة البيانات والملفات المصدرية، المشروع في حالة أمنية ممتازة. تم اكتشاف **3 مشاكل قابلة للإصلاح** و**4 ملاحظات تحسينية**.
 
-## تحليل النتائج
+---
 
-| # | النتيجة | الخطورة | التقييم |
-|---|---------|---------|---------|
-| 1-2 | Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | 🔴 خطأ | ✅ **تصميم مقصود** — `security_barrier=true` + `CASE WHEN has_role()` يقنّع PII. موثق في ذاكرة المشروع |
-| 3-4 | Missing RLS على العروض الآمنة | 🔴 خطأ | ✅ **إيجابية كاذبة** — Views لا تدعم RLS في PostgreSQL. الحماية عبر GRANT/REVOKE + تقنيع CASE WHEN |
-| 5 | Extension `pgcrypto` في public schema | 🟡 تحذير | ⚠️ **تحسين طفيف** — غير قابل للاستغلال لكن يُفضّل نقله |
-| 6 | تصعيد صلاحيات عبر `user_roles` | 🟡 تحذير | ✅ **إيجابية كاذبة** — لا توجد دوال SECURITY DEFINER تُدخل أدواراً بدون فحص. سياسات RESTRICTIVE تمنع الإدخال المباشر |
+## 🔴 مشاكل تحتاج إصلاح
 
-## الإجراء الوحيد المقترح
+### 1. تحذير Recharts: width/height = -1 (Console Warning متكرر)
+**الملف**: `src/components/ui/chart.tsx` سطر 54
+**المشكلة**: `ChartContainer` يستخدم `ResponsiveContainer` بدون `minWidth` أو `minHeight`. عند تحميل الرسوم في حاويات مخفية أو بحجم صفري (مثل تبويبات غير نشطة)، ينتج التحذير المتكرر `width(-1) and height(-1)`.
+**الإصلاح**: إضافة `minWidth={1} minHeight={1}` على `ResponsiveContainer` داخل `ChartContainer`.
 
-### نقل `pgcrypto` من public schema إلى extensions schema
-- **الملف**: migration جديد
-- **التغيير**: `DROP EXTENSION IF EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;`
-- **السبب**: أفضل ممارسة لعزل الإضافات عن schema التطبيق
-- **الخطر**: منخفض جداً — لكن يحتاج التأكد أن دوال `encrypt_pii`/`decrypt_pii` تُحدّث مراجعها
+### 2. `console.warn` مباشر في `IncomeMonthlyChart`
+**الملف**: `src/components/dashboard/IncomeMonthlyChart.tsx` سطر 50
+**المشكلة**: استخدام `console.warn()` مباشرة بدلاً من `logger.warn()` — يخالف معيار المشروع.
+**الإصلاح**: استبدال `console.warn(...)` بـ `logger.warn(...)`.
+
+### 3. خطأ/تحذير قناة Realtime `notifications` (Channel error/timeout)
+**السجل**: `[BfcacheSafe] Channel notifications-... error/timeout`
+**المشكلة**: قناة الإشعارات تفشل في الاشتراك — قد يكون جدول `notifications` غير مُضاف لـ `supabase_realtime` publication، أو أن RLS تمنع الاشتراك الأولي.
+**الإصلاح**: التحقق من وجود `ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications` في migrations، وإضافته إن لم يكن موجوداً.
+
+---
+
+## 🟡 ملاحظات تحسينية (غير حرجة)
+
+### 4. متغير باسم `any` في `helpers.ts`
+**الملف**: `src/components/properties/units/helpers.ts` سطر 36
+**المشكلة**: `const any = sorted[0]` — اسم متغير يتعارض مع كلمة محجوزة في TypeScript. لا يُسبب خطأ لكنه يُربك القراءة.
+**الإصلاح**: إعادة تسمية إلى `latestContract` أو `firstMatch`.
+
+### 5. نتائج فحص الأمان — جميعها إيجابيات كاذبة مؤكدة
+| النتيجة | التقييم |
+|---------|---------|
+| Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | ✅ مقصود — `security_barrier=true` + تقنيع `CASE WHEN has_role()` |
+| Missing RLS على Views | ✅ إيجابية كاذبة — Views لا تدعم RLS، الحماية عبر GRANT/REVOKE |
+| Extension in Public (`pgcrypto`) | ✅ مُصلح سابقاً — مُنقول إلى `extensions` schema |
+
+### 6. `ChartContainer` (shadcn) لا يمرر `minWidth`
+مذكور في #1 أعلاه — التأثير بصري فقط (تحذيرات console).
+
+### 7. عدم وجود أخطاء شبكة أو فشل API
+تم التحقق من طلبات الشبكة — جميعها ناجحة (200). لا توجد طلبات فاشلة.
+
+---
+
+## التغييرات المطلوبة
+
+| # | الملف | التغيير |
+|---|-------|---------|
+| 1 | `src/components/ui/chart.tsx` | إضافة `minWidth={1} minHeight={1}` لـ `ResponsiveContainer` |
+| 2 | `src/components/dashboard/IncomeMonthlyChart.tsx` | استبدال `console.warn` بـ `logger.warn` |
+| 3 | migration جديد (إن لزم) | إضافة `notifications` لـ `supabase_realtime` |
+| 4 | `src/components/properties/units/helpers.ts` | إعادة تسمية `any` → `latestContract` |
+
+---
 
 ## الخلاصة
-المشروع في حالة أمنية ممتازة. جميع النتائج الحرجة المُبلّغة هي إيجابيات كاذبة ناتجة عن نمط `SECURITY DEFINER` المقصود. هل تريد تنفيذ نقل `pgcrypto` للـ extensions schema؟
+- **الأمان**: ممتاز — لا ثغرات مفتوحة
+- **قاعدة البيانات**: سليمة — RLS مطبق على جميع الجداول
+- **الأداء**: جيد — لا تسربات ذاكرة
+- **جودة الكود**: عالية — 3 ملاحظات طفيفة فقط
 
