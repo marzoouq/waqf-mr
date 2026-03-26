@@ -1,6 +1,4 @@
-import { useState, useMemo } from 'react';
 import { computePropertyFinancials } from '@/hooks/financial/usePropertyFinancials';
-import { useContractAllocationMap } from '@/hooks/financial/useContractAllocationMap';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
@@ -11,21 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useProperties, useCreateProperty, useUpdateProperty, useDeleteProperty } from '@/hooks/data/useProperties';
 import { StatsGridSkeleton } from '@/components/SkeletonLoaders';
-import { useAllUnits } from '@/hooks/data/useUnits';
-import { useExpensesByFiscalYear } from '@/hooks/data/useExpenses';
-import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
-import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { Property } from '@/types/database';
 import { Plus, Edit, Trash2, Building2, MapPin, Ruler, Search, Home, DoorOpen, AlertTriangle } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import { generatePropertiesPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -33,184 +23,23 @@ import {
 import PropertyUnitsDialog from '@/components/properties/PropertyUnitsDialog';
 import PropertySummaryCards from '@/components/properties/PropertySummaryCards';
 import { fmt, fmtInt } from '@/utils/format';
+import { usePropertiesPage } from '@/hooks/page/usePropertiesPage';
 
 const PropertiesPage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
-  const { data: properties = [], isLoading } = useProperties();
-  const { fiscalYearId, fiscalYear, isSpecificYear } = useFiscalYear();
-
-  const isClosed = fiscalYear?.status === 'closed';
-
-  const { data: contracts = [], isLoading: contractsLoading } = useContractsByFiscalYear(fiscalYearId);
-  const { data: allUnits = [], isLoading: unitsLoading } = useAllUnits();
-  const { data: expenses = [], isLoading: expensesLoading } = useExpensesByFiscalYear(fiscalYearId);
-  // بيانات الحساب الختامي للسنة المغلقة
-  const { accounts } = useFinancialSummary(fiscalYearId, fiscalYear?.label, { fiscalYearStatus: fiscalYear?.status });
-  const createProperty = useCreateProperty();
-  const updateProperty = useUpdateProperty();
-  const deleteProperty = useDeleteProperty();
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingProperty, setEditingProperty] = useState<Property | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  // P-8: فلاتر إضافية
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [occupancyFilter, setOccupancyFilter] = useState<string>('all');
-  const ITEMS_PER_PAGE = 9;
-  const [formData, setFormData] = useState({
-    property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false,
-  });
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-
-  const allocationMap = useContractAllocationMap(contracts);
-  const summaryLoading = isLoading || contractsLoading || unitsLoading || expensesLoading;
-
-  const summary = useMemo(() => {
-    const totalProperties = properties.length;
-    const totalUnitsCount = allUnits.length;
-    // إصلاح: استخدام isSpecificYear لتشمل العقود المنتهية في السنوات المقفلة
-    const rentedUnitIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-    const wholePropertyIds = new Set(contracts.filter(c => (isSpecificYear || c.status === 'active') && !c.unit_id).map(c => c.property_id));
-
-    let totalRented = 0;
-    let totalVacant = 0;
-    properties.forEach(p => {
-      const pUnits = allUnits.filter(u => u.property_id === p.id);
-      if (pUnits.length > 0) {
-        const r = pUnits.filter(u => rentedUnitIds.has(u.id)).length;
-        totalRented += wholePropertyIds.has(p.id) ? pUnits.length : r;
-        totalVacant += wholePropertyIds.has(p.id) ? 0 : pUnits.length - r;
-      } else if (wholePropertyIds.has(p.id)) {
-        totalRented += 1;
-      } else {
-        totalVacant += 1;
-      }
-    });
-
-    const occupancyBase = totalRented + totalVacant;
-    const overallOccupancy = occupancyBase > 0 ? Math.round((totalRented / occupancyBase) * 100) : 0;
-    // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
-    const contractualRevenue = contracts.reduce((s, c) => {
-      const alloc = allocationMap.get(c.id);
-      return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
-    }, 0);
-
-    // في السنة المغلقة: استخدم بيانات الحساب الختامي بدلاً من العقود النشطة
-    const currentAccount = accounts?.[0];
-    let activeIncome: number;
-    let totalExpensesCalc: number;
-    if (isClosed && currentAccount) {
-      activeIncome = Number(currentAccount.total_income) || 0;
-      totalExpensesCalc = Number(currentAccount.total_expenses) || 0;
-    } else {
-      // allocationMap.size === 0 يعني عرض "جميع السنوات" — نستخدم rent_amount الكامل كـ fallback
-      activeIncome = contracts.filter(c => isSpecificYear || c.status === 'active').reduce((s, c) => {
-        const alloc = allocationMap.get(c.id);
-        return s + (alloc ? alloc.allocated_amount : (allocationMap.size === 0 ? Number(c.rent_amount) : 0));
-      }, 0);
-      // F2/F11: حساب المصروفات المرتبطة بالعقارات فقط (لا كل المصروفات)
-      totalExpensesCalc = expenses.filter(e => e.property_id).reduce((s, e) => s + Number(e.amount), 0);
-    }
-    const netIncome = activeIncome - totalExpensesCalc;
-
-    return { totalProperties, totalUnitsCount, totalRented, totalVacant, overallOccupancy, contractualRevenue, activeIncome, totalExpensesAll: totalExpensesCalc, netIncome, isClosed: !!isClosed };
-  }, [properties, allUnits, contracts, expenses, isClosed, accounts, isSpecificYear, allocationMap]);
-
-  const resetForm = () => {
-    setFormData({ property_number: '', property_type: '', location: '', area: '', description: '', vat_exempt: false });
-    setEditingProperty(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.property_number || !formData.property_type || !formData.location || !formData.area) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-    const propertyData = {
-      property_number: formData.property_number, property_type: formData.property_type,
-      location: formData.location, area: parseFloat(formData.area), description: formData.description || undefined,
-      vat_exempt: formData.vat_exempt,
-    };
-    try {
-      if (editingProperty) {
-        await updateProperty.mutateAsync({ id: editingProperty.id, ...propertyData });
-      } else {
-        await createProperty.mutateAsync(propertyData);
-      }
-      setIsOpen(false);
-      resetForm();
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
-
-  const handleEdit = (property: Property, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingProperty(property);
-    setFormData({
-      property_number: property.property_number, property_type: property.property_type,
-      location: property.location, area: property.area.toString(), description: property.description || '',
-      vat_exempt: property.vat_exempt ?? false,
-    });
-    setIsOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteProperty.mutateAsync(deleteTarget.id);
-      setDeleteTarget(null);
-    } catch {
-      // onError in the mutation already shows a toast
-    }
-  };
-
-  // P-8: أنواع العقارات الفريدة
-  const uniqueTypes = useMemo(() => {
-    const types = new Set(properties.map(p => p.property_type));
-    return Array.from(types).sort();
-  }, [properties]);
-
-  // حساب نسبة الإشغال لكل عقار (لاستخدامها في الفلتر)
-  const propertyOccupancy = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const p of properties) {
-      const pUnits = allUnits.filter(u => u.property_id === p.id);
-      const propContracts = contracts.filter(c => c.property_id === p.id);
-      const rentedIds = new Set(propContracts.filter(c => (isSpecificYear || c.status === 'active') && c.unit_id).map(c => c.unit_id));
-      const hasWhole = propContracts.some(c => (isSpecificYear || c.status === 'active') && !c.unit_id);
-      const total = pUnits.length;
-      if (total > 0) {
-        const rented = hasWhole && rentedIds.size === 0 ? total : pUnits.filter(u => rentedIds.has(u.id)).length;
-        map.set(p.id, Math.round((rented / total) * 100));
-      } else {
-        map.set(p.id, hasWhole ? 100 : 0);
-      }
-    }
-    return map;
-  }, [properties, allUnits, contracts, isSpecificYear]);
-
-  const filteredProperties = properties.filter((p) => {
-    // بحث نصي
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      if (!p.property_number.toLowerCase().includes(q) && !p.property_type.toLowerCase().includes(q) &&
-        !p.location.toLowerCase().includes(q) && !(p.description || '').toLowerCase().includes(q)) return false;
-    }
-    // P-8: فلتر النوع
-    if (typeFilter !== 'all' && p.property_type !== typeFilter) return false;
-    // P-8: فلتر الإشغال
-    if (occupancyFilter !== 'all') {
-      const occ = propertyOccupancy.get(p.id) ?? 0;
-      if (occupancyFilter === 'full' && occ < 100) return false;
-      if (occupancyFilter === 'partial' && (occ <= 0 || occ >= 100)) return false;
-      if (occupancyFilter === 'empty' && occ > 0) return false;
-    }
-    return true;
-  });
+  const {
+    properties, isLoading, contracts, allUnits, expenses, isSpecificYear,
+    allocationMap, summaryLoading, summary,
+    isOpen, setIsOpen, editingProperty, formData, setFormData,
+    resetForm, handleEdit, handleSubmit,
+    createPending, updatePending,
+    deleteTarget, setDeleteTarget, handleConfirmDelete,
+    searchQuery, setSearchQuery, typeFilter, setTypeFilter,
+    occupancyFilter, setOccupancyFilter, uniqueTypes,
+    currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    selectedProperty, setSelectedProperty,
+    filteredProperties,
+  } = usePropertiesPage();
 
   return (
     <DashboardLayout>
@@ -244,7 +73,7 @@ const PropertiesPage = () => {
                     <Switch checked={formData.vat_exempt} onCheckedChange={(checked) => setFormData({ ...formData, vat_exempt: checked })} />
                   </div>
                   <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1 gradient-primary" disabled={createProperty.isPending || updateProperty.isPending}>{editingProperty ? 'تحديث' : 'إضافة'}</Button>
+                    <Button type="submit" className="flex-1 gradient-primary" disabled={createPending || updatePending}>{editingProperty ? 'تحديث' : 'إضافة'}</Button>
                     <Button type="button" variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>إلغاء</Button>
                   </div>
                 </form>
@@ -258,7 +87,6 @@ const PropertiesPage = () => {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input id="properties-search" name="properties-search" aria-label="بحث" placeholder="بحث في العقارات..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="pr-10" />
           </div>
-          {/* P-8: فلتر نوع العقار */}
           {uniqueTypes.length > 1 && (
             <NativeSelect
               value={typeFilter}
@@ -269,7 +97,6 @@ const PropertiesPage = () => {
               ]}
             />
           )}
-          {/* P-8: فلتر نسبة الإشغال */}
           <NativeSelect
             value={occupancyFilter}
             onValueChange={(v) => { setOccupancyFilter(v); setCurrentPage(1); }}

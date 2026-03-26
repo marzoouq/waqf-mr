@@ -1,4 +1,4 @@
-import { fmtInt } from '@/utils/format';
+
 import { EXPIRING_SOON_DAYS } from '@/constants';
 import { lazy, Suspense, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -6,15 +6,15 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useDashboardRealtime } from '@/hooks/ui/useDashboardRealtime';
 import { safeNumber } from '@/utils/safeNumber';
-import { computeMonthlyData, computeCollectionSummary, computeOccupancy } from '@/utils/dashboardComputations';
+import { computeMonthlyData } from '@/utils/dashboardComputations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProperties } from '@/hooks/data/useProperties';
 import { useContractsByFiscalYear } from '@/hooks/data/useContracts';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
-import { useYoYComparison, calcChangePercent } from '@/hooks/financial/useYoYComparison';
+import { useYoYComparison } from '@/hooks/financial/useYoYComparison';
 import FiscalYearWidget from '@/components/dashboard/FiscalYearWidget';
-import { Building2, FileText, TrendingUp, TrendingDown, Users, Wallet, UserCheck, Crown, Printer, Gauge, ArrowUpDown, DollarSign, Landmark, HandCoins, ArrowDownUp, PercentCircle, GitBranch } from 'lucide-react';
+import { FileText, TrendingUp, TrendingDown, Users, Wallet, Printer, Gauge, ArrowUpDown, Landmark, GitBranch } from 'lucide-react';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -33,8 +33,9 @@ import DashboardStatsGrid from '@/components/dashboard/DashboardStatsGrid';
 import DashboardKpiPanel from '@/components/dashboard/DashboardKpiPanel';
 import CollectionSummaryCard from '@/components/dashboard/CollectionSummaryCard';
 import RecentContractsCard from '@/components/dashboard/RecentContractsCard';
-import type { StatItem } from '@/components/dashboard/DashboardStatsGrid';
-import type { KpiItem } from '@/components/dashboard/DashboardKpiPanel';
+
+// هوك الإحصائيات المستخرج
+import { useAdminDashboardStats } from '@/hooks/page/useAdminDashboardStats';
 
 // Lazy-load heavy below-the-fold components
 const YearOverYearComparison = lazy(() => import('@/components/reports/YearOverYearComparison'));
@@ -49,15 +50,6 @@ const ChartSkeleton = () => (
     <Skeleton className="h-[300px] w-full rounded-lg" />
   </div>
 );
-
-// T-03: دالة مساعدة موحّدة لألوان KPI
-const getKpiColor = (value: number, good: number, warn: number, invert = false) => {
-  const isGood = invert ? value <= good : value >= good;
-  const isWarn = invert ? value <= warn : value >= warn;
-  if (isGood) return { text: 'text-success', bar: '[&>div]:bg-success' };
-  if (isWarn) return { text: 'text-warning', bar: '[&>div]:bg-warning' };
-  return { text: 'text-destructive', bar: '[&>div]:bg-destructive' };
-};
 
 const AdminDashboard = () => {
   const { role, user } = useAuth();
@@ -123,16 +115,8 @@ const AdminDashboard = () => {
     return relevantContracts.reduce((sum, c) => sum + safeNumber(c.rent_amount), 0);
   }, [relevantContracts, contractAllocations, isSpecificYear]);
 
-  const collectionSummary = useMemo(
-    () => computeCollectionSummary(contracts, paymentInvoices),
-    [contracts, paymentInvoices]
-  );
-
   const isYearActive = fiscalYear?.status === 'active';
-  /** ملاحظة: الحصص تُحسب فقط عند إقفال السنة المالية */
   const sharesNote = isYearActive ? ' *تقديري' : '';
-
-  const collectionColor = useMemo(() => getKpiColor(collectionSummary.percentage, 80, 50), [collectionSummary.percentage]);
 
   const expiringContracts = useMemo(() =>
     contracts.filter(c => {
@@ -142,36 +126,14 @@ const AdminDashboard = () => {
     [contracts]
   );
 
-  // ── بطاقات الإحصائيات (مع بطاقتي KPI جديدتين) ──
-  const stats: StatItem[] = useMemo(() => {
-    const incomeChange = yoy.hasPrevYear ? calcChangePercent(totalIncome, yoy.prevTotalIncome) : null;
-    const expenseChange = yoy.hasPrevYear ? calcChangePercent(totalExpenses, yoy.prevTotalExpenses) : null;
-    const netChange = yoy.hasPrevYear ? calcChangePercent(netAfterExpenses, yoy.prevNetAfterExpenses) : null;
-
-    // KPI: التدفق النقدي الصافي — مباشرة من الحسابات الموحدة
-    const netCashFlow = safeNumber(waqfRevenue);
-
-    // KPI: نسبة التوزيع الفعلي — لا معنى لها في السنة النشطة
-    const distributable = isYearActive ? 0 : safeNumber(availableAmount);
-    const distributionRatio = isYearActive ? 0 : (distributable > 0 ? Math.round((safeNumber(distributionsAmount) / distributable) * 100) : 0);
-
-    return [
-      { title: 'إجمالي العقارات', value: properties.length, icon: Building2, color: 'bg-primary', link: '/dashboard/properties' },
-      { title: 'العقود النشطة', value: activeContractsCount, icon: FileText, color: 'bg-secondary', link: '/dashboard/contracts' },
-      { title: 'الإيرادات التعاقدية', value: `${fmtInt(contractualRevenue)} ر.س`, icon: TrendingUp, color: 'bg-success', link: '/dashboard/contracts' },
-      { title: 'إجمالي الدخل الفعلي', value: `${fmtInt(totalIncome)} ر.س`, icon: DollarSign, color: 'bg-primary', link: '/dashboard/income', yoyChange: incomeChange, invertColor: false },
-      { title: 'إجمالي المصروفات', value: `${fmtInt(totalExpenses)} ر.س`, icon: TrendingDown, color: 'bg-destructive', link: '/dashboard/expenses', yoyChange: expenseChange, invertColor: true },
-      { title: `صافي الريع${sharesNote}`, value: `${fmtInt(netAfterExpenses)} ر.س`, icon: Landmark, color: 'bg-success', link: '/dashboard/accounts', yoyChange: netChange, invertColor: false },
-      { title: isYearActive ? `صافي متاح (قبل الحصص)${sharesNote}` : `المتاح للتوزيع`, value: `${fmtInt(Math.max(0, isYearActive ? netAfterZakat : availableAmount))} ر.س`, icon: HandCoins, color: 'bg-primary', link: '/dashboard/accounts' },
-      { title: 'حصة الناظر', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(adminShare)} ر.س`, icon: UserCheck, color: 'bg-accent', link: '/dashboard/accounts' },
-      { title: 'حصة الواقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqifShare)} ر.س`, icon: Crown, color: 'bg-secondary', link: '/dashboard/accounts' },
-      { title: 'ريع الوقف', value: isYearActive ? 'تُحسب عند الإقفال' : `${fmtInt(waqfRevenue)} ر.س`, icon: Wallet, color: 'bg-primary', link: '/dashboard/beneficiaries' },
-      { title: 'المستفيدون النشطون', value: beneficiaries.filter(b => (b.share_percentage ?? 0) > 0).length, icon: Users, color: 'bg-muted', link: '/dashboard/beneficiaries' },
-      // بطاقتان جديدتان
-      { title: `التدفق النقدي الصافي${sharesNote}`, value: isYearActive ? 'يُحسب عند الإقفال' : `${fmtInt(netCashFlow)} ر.س`, icon: ArrowDownUp, color: netCashFlow >= 0 ? 'bg-success' : 'bg-destructive', link: '/dashboard/accounts' },
-      { title: 'نسبة التوزيع الفعلي', value: isYearActive ? '—' : `${distributionRatio}%`, icon: PercentCircle, color: 'bg-accent', link: '/dashboard/beneficiaries' },
-    ];
-  }, [properties.length, activeContractsCount, contractualRevenue, totalIncome, totalExpenses, netAfterExpenses, netAfterZakat, availableAmount, adminShare, waqifShare, waqfRevenue, distributionsAmount, beneficiaries, isYearActive, sharesNote, yoy]);
+  // ── استخدام هوك الإحصائيات المستخرج ──
+  const { stats, kpis, collectionSummary, collectionColor } = useAdminDashboardStats({
+    properties, activeContractsCount, contractualRevenue,
+    totalIncome, totalExpenses, netAfterExpenses, netAfterZakat,
+    availableAmount, adminShare, waqifShare, waqfRevenue,
+    distributionsAmount, beneficiaries, isYearActive, sharesNote,
+    yoy, contracts, paymentInvoices, allUnits, isSpecificYear,
+  });
 
   const monthlyData = useMemo(() => computeMonthlyData(income, expenses), [income, expenses]);
 
@@ -183,32 +145,6 @@ const AdminDashboard = () => {
     });
     return Object.entries(types).map(([name, value]) => ({ name, value }));
   }, [expenses]);
-
-  const kpis: KpiItem[] = useMemo(() => {
-    const collectionRate = collectionSummary.percentage;
-    const { occupancyRate } = computeOccupancy(contracts, allUnits, isSpecificYear);
-    const avgRent = activeContractsCount > 0 ? Math.round(contractualRevenue / activeContractsCount) : 0;
-    const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
-
-    const colColor = getKpiColor(collectionRate, 80, 50);
-    const occColor = getKpiColor(occupancyRate, 80, 50);
-    const expColor = getKpiColor(expenseRatio, 20, 40, true);
-
-    // حساب YoY للمصروفات
-    const prevExpenseRatio = yoy.hasPrevYear && yoy.prevTotalIncome > 0
-      ? Math.round((yoy.prevTotalExpenses / yoy.prevTotalIncome) * 100) : null;
-    const expenseRatioChange = prevExpenseRatio !== null ? calcChangePercent(expenseRatio, prevExpenseRatio) : null;
-
-    // عند عدم وجود فواتير مستحقة، لا نعرض 0% بل "—"
-    const hasInvoicesDue = collectionSummary.total > 0;
-
-    return [
-      { label: 'نسبة التحصيل', value: hasInvoicesDue ? collectionRate : 0, suffix: hasInvoicesDue ? '%' : '', color: hasInvoicesDue ? colColor.text : 'text-muted-foreground', progressColor: hasInvoicesDue ? colColor.bar : '' },
-      { label: 'معدل الإشغال', value: occupancyRate, suffix: '%', color: occColor.text, progressColor: occColor.bar },
-      { label: 'متوسط الإيجار', value: avgRent, suffix: ' ر.س', color: 'text-primary', progressColor: '' },
-      { label: expenseRatio > 100 ? 'عجز مالي' : 'نسبة المصروفات', value: expenseRatio, suffix: '%', color: expenseRatio > 100 ? 'text-destructive font-bold' : expColor.text, progressColor: expenseRatio > 100 ? '[&>div]:bg-destructive' : expColor.bar, yoyChange: expenseRatioChange, invertColor: true },
-    ];
-  }, [collectionSummary, totalIncome, totalExpenses, allUnits, activeContractsCount, contractualRevenue, contracts, isSpecificYear, yoy]);
 
   return (
     <DashboardLayout>

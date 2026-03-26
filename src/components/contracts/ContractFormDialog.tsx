@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,17 +7,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useUnits } from '@/hooks/data/useUnits';
-import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { getContractSpanInfo } from '@/utils/contractAllocation';
 import { Contract } from '@/types/database';
 
 import ContractTenantIdSection from './ContractTenantIdSection';
-import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { Building2, CheckSquare, Info } from 'lucide-react';
-import { emptyFormData, type ContractFormData, type PricingMode, type RentalMode } from './contractForm.types';
+import { type ContractFormData, type PricingMode, type RentalMode } from './contractForm.types';
 import { fmt } from '@/utils/format';
+import { useContractFormDialog } from '@/hooks/page/useContractFormDialog';
 
 interface ContractFormDialogProps {
   open: boolean;
@@ -33,74 +30,26 @@ interface ContractFormDialogProps {
 }
 
 const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, activeContracts = [], onSubmit, onReset, isPending, initialFormData }: ContractFormDialogProps) => {
-  const [formData, setFormData] = useState<ContractFormData>(initialFormData || emptyFormData);
-  const { data: propertyUnits = [] } = useUnits(formData.property_id || undefined);
-  const { fiscalYears } = useFiscalYear();
-
-  const [lastInitial, setLastInitial] = useState(initialFormData);
-  if (initialFormData !== lastInitial) {
-    setLastInitial(initialFormData);
-    if (initialFormData) setFormData(initialFormData);
-  }
-
-  const occupiedUnitIds = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const c of activeContracts) {
-      if (c.unit_id && c.status === 'active' && c.property_id === formData.property_id) {
-        map.set(c.unit_id, c.tenant_name);
-      }
-    }
-    return map;
-  }, [activeContracts, formData.property_id]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.contract_number || !formData.property_id || !formData.tenant_name || !formData.start_date || !formData.end_date) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
-    if (formData.rental_mode === 'multi') {
-      if (formData.selected_unit_ids.length === 0) {
-        toast.error('يرجى اختيار وحدة واحدة على الأقل');
-        return;
-      }
-      if (formData.pricing_mode === 'per_unit') {
-        const allFilled = formData.selected_unit_ids.every(id => parseFloat(formData.rent_per_unit[id] ?? '0') > 0);
-        if (!allFilled) {
-          toast.error('يرجى تحديد قيمة الإيجار لكل وحدة');
-          return;
-        }
-      } else if (!formData.rent_amount || parseFloat(formData.rent_amount) <= 0) {
-        toast.error('يرجى إدخال قيمة الإيجار الإجمالي');
-        return;
-      }
-    } else if (!formData.rent_amount) {
-      toast.error('يرجى إدخال قيمة الإيجار');
-      return;
-    }
-    await onSubmit(formData, !!editingContract);
-    onOpenChange(false);
-    setFormData(emptyFormData);
-    onReset();
-  };
-
-  const toggleUnit = (unitId: string) => {
-    setFormData(prev => {
-      const ids = prev.selected_unit_ids.includes(unitId)
-        ? prev.selected_unit_ids.filter(id => id !== unitId)
-        : [...prev.selected_unit_ids, unitId];
-      return { ...prev, selected_unit_ids: ids };
-    });
-  };
-
-  const isMulti = formData.rental_mode === 'multi';
-  const selectedCount = formData.selected_unit_ids.length;
-
-  const perUnitAmount = isMulti && formData.pricing_mode === 'total' && selectedCount > 0 && formData.rent_amount
-    ? parseFloat(formData.rent_amount) / selectedCount
-    : 0;
-
-  const suffixLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const {
+    formData, setFormData,
+    propertyUnits,
+    fiscalYears,
+    occupiedUnitIds,
+    handleSubmit,
+    toggleUnit,
+    isMulti,
+    selectedCount,
+    perUnitAmount,
+    suffixLetters,
+    handleClose,
+  } = useContractFormDialog({
+    editingContract,
+    activeContracts,
+    onSubmit,
+    onOpenChange,
+    onReset,
+    initialFormData,
+  });
 
   // Build option arrays for NativeSelect
   const propertyOptions = properties.map(p => ({ value: p.id, label: `${p.property_number} - ${p.location}` }));
@@ -115,8 +64,6 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
     { value: 'full', label: 'العقار كامل' },
     ...propertyUnits.map(u => ({ value: u.id, label: `${u.unit_type} ${u.unit_number}` })),
   ];
-
-  
 
   const paymentTypeOptions = [
     { value: 'annual', label: 'دفعة واحدة (سنوي)' },
@@ -133,7 +80,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
   ];
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setFormData(emptyFormData); onReset(); } }}>
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { handleClose(); } }}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{editingContract ? 'تعديل العقد' : 'إضافة عقد جديد'}</DialogTitle><DialogDescription className="sr-only">نموذج إضافة أو تعديل عقد إيجار</DialogDescription></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -429,7 +376,7 @@ const ContractFormDialog = ({ open, onOpenChange, editingContract, properties, a
             <Button type="submit" className="flex-1 gradient-primary" disabled={isPending}>
               {isMulti && selectedCount > 1 ? `إنشاء ${selectedCount} عقود` : editingContract ? 'تحديث' : 'إضافة'}
             </Button>
-            <Button type="button" variant="outline" onClick={() => { onOpenChange(false); setFormData(emptyFormData); onReset(); }}>إلغاء</Button>
+            <Button type="button" variant="outline" onClick={handleClose}>إلغاء</Button>
           </div>
         </form>
       </DialogContent>
