@@ -324,7 +324,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
               </div>
             )}
             {totalCharges > 0 && (
-              <div className="flex justify-between text-sm text-orange-700 dark:text-orange-400">
+              <div className="flex justify-between text-sm text-surcharge-foreground">
                 <span>رسوم إضافية</span>
                 <span>+{fmtNum(totalCharges)} ر.س</span>
               </div>
