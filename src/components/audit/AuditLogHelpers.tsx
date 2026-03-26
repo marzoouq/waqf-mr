@@ -17,6 +17,7 @@ export const operationColor = (op: string) => {
 };
 
 // ─── تنسيق القيم ───
+// eslint-disable-next-line react-refresh/only-export-components
 export const formatValue = (val: unknown): string => {
   if (val === null || val === undefined) return '—';
   if (typeof val === 'object') return JSON.stringify(val, null, 2);
