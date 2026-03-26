@@ -3,7 +3,7 @@
  * يُعيد 0 لأي قيمة `null` أو `undefined` أو غير رقمية.
  */
 export const safeNumber = (value: unknown): number => {
-  if (value == null) return 0;
+  if (value === null || value === undefined) return 0;
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
 };
