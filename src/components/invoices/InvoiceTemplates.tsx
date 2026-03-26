@@ -318,7 +318,7 @@ export function ProfessionalTemplate({ data }: { data: InvoiceTemplateData }) {
               <span className="font-medium">{fmtNum(lineExtension)} ر.س</span>
             </div>
             {totalAllowances > 0 && (
-              <div className="flex justify-between text-sm text-green-700 dark:text-green-400">
+              <div className="flex justify-between text-sm text-discount-foreground">
                 <span>خصومات</span>
                 <span>-{fmtNum(totalAllowances)} ر.س</span>
               </div>
