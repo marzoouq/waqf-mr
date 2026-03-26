@@ -42,7 +42,7 @@ const WaqifChartsInner: React.FC<WaqifChartsInnerProps> = ({ monthlyData, expens
     )}
 
     {expenseData.length > 0 && (
-      <div className="h-[280px]" style={{ minWidth: 0 }}>
+      <div className="h-[280px] min-w-0 min-h-[1px]">
         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <Pie

@@ -38,7 +38,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">لا توجد بيانات</div>
       )}
     </div>
-    <div style={{ minWidth: 0 }}>
+    <div className="min-w-0 min-h-[1px]">
       {expenseTypeData.length > 0 ? (
         <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
           <BarChart data={expenseTypeData}>
