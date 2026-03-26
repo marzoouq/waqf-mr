@@ -9,6 +9,7 @@ import { Activity, Trash2, RotateCcw } from 'lucide-react';
 import { getPagePerfSummaries, clearPageLoadEntries, getStoredEntries, subscribePerfUpdates, getPerfRevision, notifyPerfUpdate, type PagePerfSummary } from '@/lib/pagePerformanceTracker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { notifyPerfUpdate } from '@/lib/pagePerformanceTracker';
 
 /** لون الشريط حسب الوقت */
