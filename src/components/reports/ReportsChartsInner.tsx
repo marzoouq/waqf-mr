@@ -23,7 +23,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:break-before-page">
     <div style={{ minWidth: 0 }}>
       {incomeSourceData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
           <PieChart>
             <Pie data={incomeSourceData} cx="50%" cy="50%" labelLine label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`} outerRadius={90} fill="hsl(var(--primary))" dataKey="value" style={{ fontSize: '12px' }}>
               {incomeSourceData.map((_entry, index) => (
@@ -40,7 +40,7 @@ const ReportsChartsInner: React.FC<ReportsChartsInnerProps> = ({ incomeSourceDat
     </div>
     <div style={{ minWidth: 0 }}>
       {expenseTypeData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
           <BarChart data={expenseTypeData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
