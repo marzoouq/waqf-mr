@@ -55,7 +55,7 @@ export const reshapeArabic = (text: string): string => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const reshapeRow = (row: any[]): any[] =>
   row.map(cell => {
-    if (cell == null) return cell;
+    if (cell === null || cell === undefined) return cell;
     if (typeof cell === 'number') return cell;
     if (typeof cell === 'string') return reshapeArabic(cell);
     if (typeof cell === 'object' && 'content' in cell) {

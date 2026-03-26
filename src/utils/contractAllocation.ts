@@ -145,7 +145,7 @@ function monthsBetween(a: Date, b: Date): number {
 }
 
 function getPaymentAmount(contract: ContractInfo): number {
-  if (contract.payment_amount != null) return safeNumber(contract.payment_amount);
+  if (contract.payment_amount !== null && contract.payment_amount !== undefined) return safeNumber(contract.payment_amount);
   const count = getPaymentCount(contract);
   return safeNumber(contract.rent_amount) / count;
 }
