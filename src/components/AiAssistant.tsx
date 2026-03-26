@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -6,15 +5,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bot, Send, X, Sparkles, Trash2, MessageSquare, BarChart3, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
-
-type Msg = { role: 'user' | 'assistant'; content: string };
-type ChatMode = 'chat' | 'analysis' | 'report';
+import { useAiChat, type ChatMode } from '@/hooks/page/useAiChat';
 
 const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placeholder: string; welcome: string }> = {
   chat: { label: 'محادثة', icon: MessageSquare, placeholder: 'اسأل المساعد الذكي...', welcome: 'اسألني عن أي شيء يتعلق بالوقف' },
@@ -22,144 +14,19 @@ const MODE_CONFIG: Record<ChatMode, { label: string; icon: typeof Bot; placehold
   report: { label: 'إعداد تقرير', icon: FileText, placeholder: 'اطلب إعداد تقرير...', welcome: 'اطلب إعداد تقرير وسأجهزه لك بصياغة احترافية' },
 };
 
-const SEND_COOLDOWN_MS = 2000;
-
 const AiAssistant = () => {
-  const { user, role } = useAuth();
+  const {
+    user, isAvailable,
+    open, setOpen, closePanel,
+    messages, clearMessages,
+    input, setInput,
+    isLoading,
+    mode, handleModeChange,
+    send,
+    endRef,
+  } = useAiChat();
 
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<ChatMode>('chat');
-  const lastSendTimeRef = useRef(0);
-  const endRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, open]);
-
-  useEffect(() => {
-    return () => abortControllerRef.current?.abort();
-  }, []);
-
-  // المساعد الذكي متاح لجميع الأدوار المسجلة
-  if (role !== 'admin' && role !== 'accountant' && role !== 'beneficiary' && role !== 'waqif') return null;
-
-  const handleModeChange = (newMode: string) => {
-    if (newMode === mode) return;
-    abortControllerRef.current?.abort();
-    setMode(newMode as ChatMode);
-    setMessages([]);
-    setIsLoading(false);
-  };
-
-  const send = async () => {
-    const trimmed = input.trim().slice(0, 1000);
-    if (!trimmed || isLoading) return;
-
-    // حماية من الإرسال المتكرر — cooldown بين الرسائل
-    const now = Date.now();
-    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
-    lastSendTimeRef.current = now;
-
-    if (!AI_URL) {
-      setMessages(prev => [...prev, { role: 'user', content: trimmed }, { role: 'assistant', content: '❌ خطأ في إعداد المساعد الذكي — تعذر الاتصال بالخادم.' }]);
-      setInput('');
-      return;
-    }
-
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
-
-    const userMsg: Msg = { role: 'user', content: trimmed };
-    const HISTORY_LIMIT = 10;
-    const allMessages = [...messages, userMsg].slice(-HISTORY_LIMIT);
-    setMessages(allMessages);
-    setInput('');
-    setIsLoading(true);
-
-    let assistantContent = '';
-
-    try {
-      // التحقق من المستخدم — getUser() يتصل بالخادم (آمن)
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
-      if (userError || !currentUser) {
-        throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
-      }
-
-      // استخراج الـ token من التخزين المحلي (الذي يديره supabase-js)
-      // هذا آمن لأننا تحققنا من المستخدم عبر getUser() أعلاه
-      const storageKey = `sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`;
-      const stored = localStorage.getItem(storageKey);
-      const accessToken = stored ? JSON.parse(stored)?.access_token : null;
-      if (!accessToken) {
-        throw new Error('تعذر استخراج رمز المصادقة — أعد تسجيل الدخول');
-      }
-
-      // استدعاء عبر fetch للـ streaming — الـ token مُستخرج بأمان
-      const resp = await fetch(AI_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ messages: allMessages, mode }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!resp.ok || !resp.body) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || 'فشل الاتصال بالمساعد الذكي');
-      }
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        let newlineIdx: number;
-        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
-          let line = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 1);
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (!line.startsWith('data: ')) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                if (last?.role === 'assistant') {
-                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantContent } : m);
-                }
-                return [...prev, { role: 'assistant', content: assistantContent }];
-              });
-            }
-          } catch {
-            buffer = line + '\n' + buffer;
-            break;
-          }
-        }
-      }
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${e instanceof Error ? e.message : 'حدث خطأ'}` }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!user) return null;
+  if (!isAvailable || !user) return null;
 
   const currentConfig = MODE_CONFIG[mode];
   const ModeIcon = currentConfig.icon;
@@ -183,12 +50,9 @@ const AiAssistant = () => {
           open ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
         )}
       >
-        {/* Header */}
         <div className="gradient-hero p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex items-center justify-center">
-              <Bot className="w-4 h-4 text-sidebar-foreground" />
-            </div>
+            <div className="w-8 h-8 rounded-lg bg-sidebar-accent flex items-center justify-center"><Bot className="w-4 h-4 text-sidebar-foreground" /></div>
             <div>
               <p className="text-sm font-bold text-sidebar-foreground">المساعد الذكي</p>
               <p className="text-[11px] text-sidebar-foreground/60 flex items-center gap-1">
@@ -201,29 +65,18 @@ const AiAssistant = () => {
             {messages.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>مسح المحادثة</AlertDialogTitle>
-                    <AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-row-reverse gap-2">
-                    <AlertDialogAction onClick={() => setMessages([])}>مسح</AlertDialogAction>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                  </AlertDialogFooter>
+                  <AlertDialogHeader><AlertDialogTitle>مسح المحادثة</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من مسح المحادثة؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription></AlertDialogHeader>
+                  <AlertDialogFooter className="flex-row-reverse gap-2"><AlertDialogAction onClick={clearMessages}>مسح</AlertDialogAction><AlertDialogCancel>إلغاء</AlertDialogCancel></AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={() => { abortControllerRef.current?.abort(); setOpen(false); }}>
-              <X className="w-4 h-4" />
-            </Button>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50 h-8 w-8" onClick={closePanel}><X className="w-4 h-4" /></Button>
           </div>
         </div>
 
-        {/* Mode Selector */}
         <div className="px-3 pt-2 pb-1 border-b border-border">
           <Tabs value={mode} onValueChange={handleModeChange}>
             <TabsList className="w-full h-8 p-0.5">
@@ -231,8 +84,7 @@ const AiAssistant = () => {
                 const Icon = cfg.icon;
                 return (
                   <TabsTrigger key={key} value={key} className="flex-1 text-[11px] gap-1 h-7 data-[state=active]:shadow-sm" disabled={isLoading}>
-                    <Icon className="w-3 h-3" />
-                    {cfg.label}
+                    <Icon className="w-3 h-3" />{cfg.label}
                   </TabsTrigger>
                 );
               })}
@@ -240,7 +92,6 @@ const AiAssistant = () => {
           </Tabs>
         </div>
 
-        {/* Messages */}
         <ScrollArea className="flex-1 p-3">
           {messages.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
@@ -252,47 +103,24 @@ const AiAssistant = () => {
           <div className="space-y-3">
             {messages.map((msg, i) => (
               <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-start' : 'justify-end')}>
-                <div className={cn(
-                  'max-w-[85%] rounded-xl px-3 py-2 text-sm',
-                  msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                )}>
+                <div className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p>{msg.content}</p>
-                  )}
+                    <div className="prose prose-sm max-w-none dark:prose-invert [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                  ) : <p>{msg.content}</p>}
                 </div>
               </div>
             ))}
             {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-              <div className="flex justify-end">
-                <div className="bg-muted rounded-xl px-4 py-2 text-sm">
-                  <span className="animate-pulse">يفكر...</span>
-                </div>
-              </div>
+              <div className="flex justify-end"><div className="bg-muted rounded-xl px-4 py-2 text-sm"><span className="animate-pulse">يفكر...</span></div></div>
             )}
             <div ref={endRef} />
           </div>
         </ScrollArea>
 
-        {/* Input */}
         <div className="p-3 border-t border-border flex gap-2">
           <label htmlFor="ai-assistant-input" className="sr-only">اسأل المساعد الذكي</label>
-          <Input
-            id="ai-assistant-input"
-            name="ai-assistant-input"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={currentConfig.placeholder}
-            maxLength={1000}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            disabled={isLoading}
-          />
-          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon">
-            <Send className="w-4 h-4" />
-          </Button>
+          <Input id="ai-assistant-input" name="ai-assistant-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={currentConfig.placeholder} maxLength={1000} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} disabled={isLoading} />
+          <Button onClick={send} disabled={!input.trim() || isLoading} size="icon"><Send className="w-4 h-4" /></Button>
         </div>
       </div>
     </>
