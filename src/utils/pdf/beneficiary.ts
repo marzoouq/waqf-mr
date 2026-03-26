@@ -37,6 +37,7 @@ export const generateMySharePDF = async (data: {
   carryforwardDeducted?: number;
   fiscalYear?: string;
 }, waqfInfo?: PdfWaqfInfo) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
