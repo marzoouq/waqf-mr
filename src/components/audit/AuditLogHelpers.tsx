@@ -4,6 +4,7 @@
 
 
 // ─── ألوان العمليات ───
+// eslint-disable-next-line react-refresh/only-export-components
 export const operationColor = (op: string) => {
   switch (op) {
     case 'INSERT': return 'bg-success/15 text-success border-success/30';
@@ -16,6 +17,7 @@ export const operationColor = (op: string) => {
 };
 
 // ─── تنسيق القيم ───
+// eslint-disable-next-line react-refresh/only-export-components
 export const formatValue = (val: unknown): string => {
   if (val === null || val === undefined) return '—';
   if (typeof val === 'object') return JSON.stringify(val, null, 2);
@@ -35,6 +37,7 @@ const FIELD_LABELS: Record<string, string> = {
   reason: 'السبب', label: 'التسمية',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const getFieldLabel = (key: string) => FIELD_LABELS[key] || key;
 
 // ─── مكوّن عرض الفروقات ───

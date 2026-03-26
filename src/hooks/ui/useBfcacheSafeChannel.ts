@@ -65,5 +65,5 @@ export const useBfcacheSafeChannel = (
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('pagehide', handlePageHide);
     };
-  }, [initChannel, enabled]);
+  }, [initChannel, enabled, channelName]);
 };

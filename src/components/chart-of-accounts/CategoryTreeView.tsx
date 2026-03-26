@@ -13,6 +13,7 @@ import type { CategoryTreeNode } from '@/hooks/data/useAccountCategories';
 import type { AccountCategory } from '@/types/database';
 
 // ─── ثوابت الألوان والأنواع ───
+// eslint-disable-next-line react-refresh/only-export-components
 export const TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof DollarSign }> = {
   income: { label: 'إيراد', color: 'bg-success-muted text-success-foreground', icon: DollarSign },
   expense: { label: 'مصروف', color: 'bg-destructive/10 text-destructive', icon: Receipt },
