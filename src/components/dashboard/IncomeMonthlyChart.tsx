@@ -97,7 +97,7 @@ const IncomeMonthlyChart = ({ income, contracts, fiscalYear, isSpecificYear, pay
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[280px] min-h-[280px]" dir="ltr" style={{ minWidth: 0 }}>
+        <div className="h-[280px] min-h-[280px] min-w-0" dir="ltr">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
