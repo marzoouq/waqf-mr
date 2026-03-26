@@ -13,7 +13,7 @@ import { Contract } from '@/types/database';
 import ContractTenantIdSection from './ContractTenantIdSection';
 import { Switch } from '@/components/ui/switch';
 import { Building2, CheckSquare, Info } from 'lucide-react';
-import { emptyFormData, type ContractFormData, type PricingMode, type RentalMode } from './contractForm.types';
+import { type ContractFormData, type PricingMode, type RentalMode } from './contractForm.types';
 import { fmt } from '@/utils/format';
 import { useContractFormDialog } from '@/hooks/page/useContractFormDialog';
 
