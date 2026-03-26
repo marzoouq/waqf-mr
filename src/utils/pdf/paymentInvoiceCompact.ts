@@ -1,8 +1,7 @@
 /**
  * القالب المختصر للفاتورة
  */
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, reshapeArabic as rs } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { fmt } from '@/utils/format';
@@ -52,6 +51,7 @@ export const renderCompact = async (
   const compactVatAmount = invoice.vatAmount ?? 0;
   const compactAmountExVat = invoice.amount - compactVatAmount;
 
+  const { default: autoTable } = await import('jspdf-autotable');
   autoTable(doc, {
     startY: y,
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
@@ -82,7 +82,7 @@ export const renderCompact = async (
   let tableEndY = getLastAutoTableY(doc, y + 25);
 
   // خصومات/رسوم إضافية
-  tableEndY = renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
+  tableEndY = await renderAllowanceChargeTable(doc, fontFamily, invoice, tableEndY + 2);
 
   let endY = tableEndY + 4;
 

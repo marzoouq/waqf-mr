@@ -1,8 +1,7 @@
 /**
  * قالب الفاتورة الكلاسيكي
  */
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type jsPDF from 'jspdf';
 import { PdfWaqfInfo, TABLE_HEAD_GREEN, baseTableStyles, headStyles, reshapeArabic as rs, reshapeRow } from './core';
 import { getLastAutoTableY } from './pdfHelpers';
 import { fmt } from '@/utils/format';
@@ -64,6 +63,7 @@ export const renderClassic = async (
   if (invoice.paidAmount && invoice.paidAmount > 0) rows.push([rs('المبلغ المسدد'), rs(`${fmt(invoice.paidAmount)} ر.س`)]);
   if (invoice.notes) rows.push([rs('ملاحظات'), rs(invoice.notes)]);
 
+  const { default: autoTable } = await import('jspdf-autotable');
   autoTable(doc, {
     startY: y,
     head: [reshapeRow(['البيان', 'التفاصيل'])],

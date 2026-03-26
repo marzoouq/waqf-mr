@@ -3,7 +3,6 @@
  * القوالب الفعلية في: paymentInvoiceClassic, paymentInvoiceProfessional, paymentInvoiceCompact
  * الدوال المشتركة في: paymentInvoiceShared
  */
-import jsPDF from 'jspdf';
 import { loadArabicFont, addFooter } from './core';
 import type { PdfWaqfInfo } from './core';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +22,7 @@ export const generatePaymentInvoicePDF = async (
   waqfInfo?: PdfWaqfInfo,
   template: InvoiceTemplate = 'tax_professional',
 ): Promise<string | null> => {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
