@@ -37,6 +37,7 @@ const FIELD_LABELS: Record<string, string> = {
   reason: 'السبب', label: 'التسمية',
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const getFieldLabel = (key: string) => FIELD_LABELS[key] || key;
 
 // ─── مكوّن عرض الفروقات ───

@@ -79,8 +79,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const menuLabels = getJsonSetting<MenuLabels>('menu_labels', defaultMenuLabels);
   const rolePermissions = getJsonSetting('role_permissions', DEFAULT_ROLE_PERMS);
-  const sectionsVisibility = { ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) };
-  const beneficiarySections = { ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) };
+  const sectionsVisibility = useMemo(() => ({ ...defaultAdminSections, ...getJsonSetting<Record<string, boolean>>('sections_visibility', {}) }), [getJsonSetting]);
+  const beneficiarySections = useMemo(() => ({ ...defaultBeneficiarySections, ...getJsonSetting<Record<string, boolean>>('beneficiary_sections', {}) }), [getJsonSetting]);
 
   const links = useMemo(() => {
     if (role === 'admin') {

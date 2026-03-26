@@ -26,6 +26,8 @@ export const logger = {
       }).catch(() => {});
     }
   },
+  // eslint-disable-next-line no-console
   info: (...args: unknown[]) => { if (isDev) console.info(...args); },
+  // eslint-disable-next-line no-console
   log: (...args: unknown[]) => { if (isDev) console.log(...args); },
 };

@@ -247,7 +247,7 @@ export function useAccountsActions(params: ActionsParams) {
         remainingBalance: p.remainingBalance,
       });
       toast.success('تم تصدير التقرير بنجاح');
-    } catch (err) {
+    } catch (_err) {
       toast.error('حدث خطأ أثناء تصدير التقرير');
     } finally {
       setIsExportingPdf(false);
