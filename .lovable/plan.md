@@ -1,50 +1,60 @@
 
 
-# تقرير الفحص الجنائي الهجين المتعمق
+# تقرير الفحص الهجين المتعمق الإضافي
 
 ## ملخص تنفيذي
-بعد فحص شامل للتطبيق وقاعدة البيانات والملفات المصدرية، المشروع في حالة أمنية ممتازة. تم اكتشاف **3 مشاكل قابلة للإصلاح** و**4 ملاحظات تحسينية**.
+بعد فحص شامل للتبعيات، البنية، قاعدة البيانات، وظائف الحافة، المكونات، والهيكل — المشروع في حالة ممتازة. تم اكتشاف **مشكلة واحدة فعلية** و**3 ملاحظات تحسينية طفيفة**.
 
 ---
 
-## 🔴 مشاكل تحتاج إصلاح
+## المشاكل والملاحظات
 
-### 1. تحذير Recharts: width/height = -1 (Console Warning متكرر)
+### 1. تحذير Recharts لا يزال يظهر (minHeight مفقود)
 **الملف**: `src/components/ui/chart.tsx` سطر 54
-**المشكلة**: `ChartContainer` يستخدم `ResponsiveContainer` بدون `minWidth` أو `minHeight`. عند تحميل الرسوم في حاويات مخفية أو بحجم صفري (مثل تبويبات غير نشطة)، ينتج التحذير المتكرر `width(-1) and height(-1)`.
-**الإصلاح**: إضافة `minWidth={1} minHeight={1}` على `ResponsiveContainer` داخل `ChartContainer`.
+**المشكلة**: تم إضافة `minWidth={1}` سابقاً لكن التحذير لا يزال يظهر لأن `minHeight` غير مُعيّن. التحذير يقول `width(-1) and height(-1)`.
+**الإصلاح**: إضافة `minHeight={1}` بجانب `minWidth={1}` على `ResponsiveContainer`.
 
-### 2. `console.warn` مباشر في `IncomeMonthlyChart`
-**الملف**: `src/components/dashboard/IncomeMonthlyChart.tsx` سطر 50
-**المشكلة**: استخدام `console.warn()` مباشرة بدلاً من `logger.warn()` — يخالف معيار المشروع.
-**الإصلاح**: استبدال `console.warn(...)` بـ `logger.warn(...)`.
+### 2. وظائف الحافة: `console.error` في webauthn يتضمن معلومات قد تكون حساسة
+**الملف**: `supabase/functions/webauthn/index.ts` سطر 307
+**المشكلة**: `console.error("getUserById failed")` — رسالة عامة وآمنة، لكن بعض الدوال الأخرى في Edge Functions تستخدم `console.error` بشكل مقبول لأن السجلات تظهر فقط في Backend Logs.
+**التقييم**: لا إصلاح مطلوب — `console.*` في Edge Functions مقبول لأنها تظهر فقط في سجلات الخادم وليس للعميل.
 
-### 3. خطأ/تحذير قناة Realtime `notifications` (Channel error/timeout)
-**السجل**: `[BfcacheSafe] Channel notifications-... error/timeout`
-**المشكلة**: قناة الإشعارات تفشل في الاشتراك — قد يكون جدول `notifications` غير مُضاف لـ `supabase_realtime` publication، أو أن RLS تمنع الاشتراك الأولي.
-**الإصلاح**: التحقق من وجود `ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications` في migrations، وإضافته إن لم يكن موجوداً.
+### 3. نتائج فحص الأمان — تأكيد الإيجابيات الكاذبة
 
----
-
-## 🟡 ملاحظات تحسينية (غير حرجة)
-
-### 4. متغير باسم `any` في `helpers.ts`
-**الملف**: `src/components/properties/units/helpers.ts` سطر 36
-**المشكلة**: `const any = sorted[0]` — اسم متغير يتعارض مع كلمة محجوزة في TypeScript. لا يُسبب خطأ لكنه يُربك القراءة.
-**الإصلاح**: إعادة تسمية إلى `latestContract` أو `firstMatch`.
-
-### 5. نتائج فحص الأمان — جميعها إيجابيات كاذبة مؤكدة
 | النتيجة | التقييم |
 |---------|---------|
-| Security Definer Views (`beneficiaries_safe`, `contracts_safe`) | ✅ مقصود — `security_barrier=true` + تقنيع `CASE WHEN has_role()` |
-| Missing RLS على Views | ✅ إيجابية كاذبة — Views لا تدعم RLS، الحماية عبر GRANT/REVOKE |
-| Extension in Public (`pgcrypto`) | ✅ مُصلح سابقاً — مُنقول إلى `extensions` schema |
+| Security Definer Views (x2) | ✅ مقصود — `security_barrier=true` + تقنيع PII |
+| Extension in Public | ✅ إيجابية كاذبة — `pgcrypto` مُنقول سابقاً |
+| PII على `beneficiaries_safe` | ✅ إيجابية كاذبة — View يُقنّع PII تلقائياً عبر `CASE WHEN has_role()` |
+| PII على `contracts_safe` | ✅ إيجابية كاذبة — نفس نمط التقنيع |
 
-### 6. `ChartContainer` (shadcn) لا يمرر `minWidth`
-مذكور في #1 أعلاه — التأثير بصري فقط (تحذيرات console).
+### 4. التبعيات
+- جميع التبعيات محدّثة ومتوافقة
+- `overrides` مُعيّنة لإصلاح ثغرات أمنية معروفة (minimatch, dompurify, serialize-javascript)
+- لا تبعيات غير مستخدمة مكتشفة
 
-### 7. عدم وجود أخطاء شبكة أو فشل API
-تم التحقق من طلبات الشبكة — جميعها ناجحة (200). لا توجد طلبات فاشلة.
+### 5. البنية والهيكل
+- جميع الصفحات تستخدم `lazyWithRetry` — تحميل كسول مع إعادة محاولة
+- `ProtectedRoute` مطبق على كل المسارات المحمية مع `allowedRoles` صحيحة
+- `ErrorBoundary` يلف التطبيق والمكونات الفرعية
+- لا `console.*` مباشر في src (فقط عبر `logger`)
+- لا `any` بدون `eslint-disable` مبرّر
+- لا `getSession` في Edge Functions (تستخدم `getUser` فقط)
+- لا `TODO/FIXME/HACK` متبقية
+- لا catch blocks فارغة (المتبقية مبررة: logger fallback + caches cleanup)
+- متغير `any` → `latestContract` مُصلح سابقاً
+
+### 6. قاعدة البيانات
+- RLS مطبق على جميع الجداول
+- سياسات RESTRICTIVE على `user_roles` تمنع تصعيد الصلاحيات
+- `is_fiscal_year_accessible` يحجب السنوات غير المنشورة
+- سجل المراجعة محمي ضد التعديل/الحذف
+
+### 7. وظائف الحافة (11 وظيفة)
+- جميعها تستخدم `getUser()` للمصادقة
+- CORS مُقيّد بنطاقات المشروع فقط
+- Rate limiting مطبق على `guard-signup`
+- لا `getSession` مستخدم
 
 ---
 
@@ -52,16 +62,15 @@
 
 | # | الملف | التغيير |
 |---|-------|---------|
-| 1 | `src/components/ui/chart.tsx` | إضافة `minWidth={1} minHeight={1}` لـ `ResponsiveContainer` |
-| 2 | `src/components/dashboard/IncomeMonthlyChart.tsx` | استبدال `console.warn` بـ `logger.warn` |
-| 3 | migration جديد (إن لزم) | إضافة `notifications` لـ `supabase_realtime` |
-| 4 | `src/components/properties/units/helpers.ts` | إعادة تسمية `any` → `latestContract` |
+| 1 | `src/components/ui/chart.tsx` | إضافة `minHeight={1}` بجانب `minWidth={1}` لـ `ResponsiveContainer` |
 
 ---
 
 ## الخلاصة
-- **الأمان**: ممتاز — لا ثغرات مفتوحة
-- **قاعدة البيانات**: سليمة — RLS مطبق على جميع الجداول
-- **الأداء**: جيد — لا تسربات ذاكرة
-- **جودة الكود**: عالية — 3 ملاحظات طفيفة فقط
+- **الأمان**: ممتاز — لا ثغرات
+- **التبعيات**: محدّثة ومؤمنة
+- **قاعدة البيانات**: سليمة — RLS شامل
+- **وظائف الحافة**: آمنة — `getUser()` + CORS مقيّد
+- **جودة الكود**: عالية — ملاحظة واحدة فقط (minHeight)
+- **الهيكل**: منظم — lazy loading + ErrorBoundary + ProtectedRoute
 
