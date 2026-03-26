@@ -4,6 +4,7 @@
 
 
 // ─── ألوان العمليات ───
+// eslint-disable-next-line react-refresh/only-export-components
 export const operationColor = (op: string) => {
   switch (op) {
     case 'INSERT': return 'bg-success/15 text-success border-success/30';
