@@ -1,41 +1,37 @@
 
 
-# فحص جنائي شامل — استيرادات vendor-pdf المتبقية
+# تنفيذ سكريبت الفحص الشامل وكتابة التقرير
 
-## نتائج الفحص
+## ما سيتم تنفيذه
 
-بعد فحص شامل لجميع ملفات المشروع، تبيّن أن **5 ملفات إضافية** لا تزال تستخدم `import autoTable from 'jspdf-autotable'` كاستيراد ثابت، مما يسحب `vendor-pdf` (~186KB gzip) إلى التحميل الأولي:
+سكريبت Python يعمل بوضع **قراءة فقط** — يمسح جميع ملفات المشروع (`.ts`, `.tsx`, `.sql`) ويكتب تقرير شامل في `/mnt/documents/audit-report.md`.
 
-| # | الملف | الاستيراد الثابت |
-|---|-------|-----------------|
-| 1 | `src/utils/pdf/accounts.ts` | `import autoTable, { type CellHookData } from 'jspdf-autotable'` |
-| 2 | `src/utils/pdf/entities.ts` | `import autoTable from 'jspdf-autotable'` |
-| 3 | `src/utils/pdf/beneficiary.ts` | `import autoTable from 'jspdf-autotable'` |
-| 4 | `src/utils/pdf/auditLog.ts` | `import autoTable from 'jspdf-autotable'` |
-| 5 | `src/utils/pdf/expenses.ts` | `import autoTable from 'jspdf-autotable'` |
+## فئات الفحص الـ 12
 
-### لماذا هذا مهم؟
+1. **أمان — تسريب أسرار** (كلمات مرور/مفاتيح ثابتة في الكود)
+2. **أمان — مصادقة** (`getSession()` في Edge Functions، أدوار في localStorage)
+3. **أمان — XSS/حقن** (`dangerouslySetInnerHTML`, `eval()`, `innerHTML`)
+4. **أداء — حزمة** (استيراد ثابت لـ jspdf/recharts/d3)
+5. **أداء — تحميل** (مكونات بدون lazy، صور بدون loading="lazy")
+6. **جودة الكود** (`as any`, `@ts-ignore`, `console.*`, `TODO/FIXME`)
+7. **أنماط المشروع** (ألوان ثابتة hex/rgb، استيراد بدون `@/`)
+8. **قاعدة البيانات** (FK إلى auth.users، CHECK constraints زمنية)
+9. **Edge Functions** (دوال بدون getUser())
+10. **إمكانية الوصول** (أزرار بلا aria-label، صور بلا alt)
+11. **ملفات كبيرة** (> 400 سطر)
+12. **فحص RLS** (استعلام قاعدة البيانات للجداول بدون سياسات)
 
-ملف `src/utils/pdf/index.ts` (barrel file) يعيد تصدير دوال من هذه الملفات بشكل ثابت. أي صفحة تستورد دالة واحدة من `@/utils/pdf` تُجبر Vite على تضمين الاستيرادات الثابتة لـ `jspdf-autotable` → `jspdf` → `vendor-pdf` في الحزمة.
+## المخرج
 
-### ملاحظة إيجابية
+ملف `/mnt/documents/audit-report.md` يحتوي:
+- ملخص تنفيذي بالأرقام
+- تفاصيل كل مشكلة (ملف + سطر + خطورة)
+- توصيات مرتبة بالأولوية
 
-- استيرادات `import type jsPDF from 'jspdf'` في 6 ملفات أخرى — **سليمة** ✅ (تُحذف عند البناء)
-- الملفات التي تم إصلاحها سابقًا (reports, invoices, forensicAudit, bylaws, comparison) — **سليمة** ✅
+## الخطوات التقنية
 
-## خطة الإصلاح
+1. كتابة سكريبت Python في `/tmp/audit.py`
+2. تنفيذه على ملفات المشروع
+3. استعلام قاعدة البيانات لفحص RLS
+4. كتابة التقرير النهائي في `/mnt/documents/audit-report.md`
 
-### لكل ملف من الخمسة:
-
-1. **حذف** سطر `import autoTable from 'jspdf-autotable'` من أعلى الملف
-2. **إضافة** `const { default: autoTable } = await import('jspdf-autotable')` داخل كل دالة تصدير تستخدم `autoTable`
-3. لملف `accounts.ts` خصوصًا: نقل `type CellHookData` إلى `import type { CellHookData } from 'jspdf-autotable'` (استيراد نوع فقط — لا يؤثر على الحزمة)
-
-### التفاصيل التقنية
-
-```text
-الملف                    الدوال المتأثرة
-─────────────────────    ─────────────────────────────────
-accounts.ts              generateAccountsPDF, generateDistributionsPDF
-entities.ts              generatePropertiesPDF, generateContractsPDF, generateBeneficiariesPDF, generateUnitsPDF
-beneficiary.ts
