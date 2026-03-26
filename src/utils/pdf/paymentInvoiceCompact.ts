@@ -51,6 +51,7 @@ export const renderCompact = async (
   const compactVatAmount = invoice.vatAmount ?? 0;
   const compactAmountExVat = invoice.amount - compactVatAmount;
 
+  const { default: autoTable } = await import('jspdf-autotable');
   autoTable(doc, {
     startY: y,
     head: [['الوصف', 'المبلغ', 'الضريبة', 'الإجمالي']],
