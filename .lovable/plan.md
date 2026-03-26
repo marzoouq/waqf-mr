@@ -1,37 +1,45 @@
 
 
-# تنفيذ سكريبت الفحص الشامل وكتابة التقرير
+# خطة تقسيم CollectionReport.tsx و CreateInvoiceFromTemplate.tsx
 
-## ما سيتم تنفيذه
+## 1. CollectionReport.tsx (475 سطر → ~280 سطر)
 
-سكريبت Python يعمل بوضع **قراءة فقط** — يمسح جميع ملفات المشروع (`.ts`, `.tsx`, `.sql`) ويكتب تقرير شامل في `/mnt/documents/audit-report.md`.
+**استخراج هوك `useCollectionData.ts`** (~120 سطر) إلى `src/hooks/page/useCollectionData.ts`:
+- الدالة `getExpectedPaymentsFallback`
+- النوع `CollectionRow` و `FilterStatus`
+- المنطق الكامل: `invoicePaidMap`, `contractsWithUnpaidInvoices`, `relevantContracts`, `rows`, `filteredRows`, `summary`
+- الهوك يستقبل نفس props المكون ويُرجع: `rows`, `filteredRows`, `summary`, `filter/setFilter`, `search/setSearch`, `currentPage/setCurrentPage`, `useDynamicAllocation`
 
-## فئات الفحص الـ 12
+**استخراج `CollectionSummaryCards.tsx`** (~70 سطر) إلى `src/components/contracts/CollectionSummaryCards.tsx`:
+- بطاقات الملخص الأربع + شريط التحصيل العام (Progress bar)
 
-1. **أمان — تسريب أسرار** (كلمات مرور/مفاتيح ثابتة في الكود)
-2. **أمان — مصادقة** (`getSession()` في Edge Functions، أدوار في localStorage)
-3. **أمان — XSS/حقن** (`dangerouslySetInnerHTML`, `eval()`, `innerHTML`)
-4. **أداء — حزمة** (استيراد ثابت لـ jspdf/recharts/d3)
-5. **أداء — تحميل** (مكونات بدون lazy، صور بدون loading="lazy")
-6. **جودة الكود** (`as any`, `@ts-ignore`, `console.*`, `TODO/FIXME`)
-7. **أنماط المشروع** (ألوان ثابتة hex/rgb، استيراد بدون `@/`)
-8. **قاعدة البيانات** (FK إلى auth.users، CHECK constraints زمنية)
-9. **Edge Functions** (دوال بدون getUser())
-10. **إمكانية الوصول** (أزرار بلا aria-label، صور بلا alt)
-11. **ملفات كبيرة** (> 400 سطر)
-12. **فحص RLS** (استعلام قاعدة البيانات للجداول بدون سياسات)
+**يبقى في الملف الأصلي**: الجدول (mobile + desktop) + أدوات الفلترة + `handleSendAlerts` + `getStatusBadge`
 
-## المخرج
+## 2. CreateInvoiceFromTemplate.tsx (450 سطر → ~280 سطر)
 
-ملف `/mnt/documents/audit-report.md` يحتوي:
-- ملخص تنفيذي بالأرقام
-- تفاصيل كل مشكلة (ملف + سطر + خطورة)
-- توصيات مرتبة بالأولوية
+**استخراج هوك `useCreateInvoiceForm.ts`** (~100 سطر) إلى `src/hooks/page/useCreateInvoiceForm.ts`:
+- جميع الحالات (`useState`) والمنطق: `handleContractChange`, `addItem`, `removeItem`, `updateItem`, `computedItems`, `totalExVat`, `totalVat`, `grandTotal`, `handleSave`, `missingFields`, `buyerAddress`, `isStandard`
+- الثوابت `INVOICE_TYPES`, `ID_TYPE_LABELS` (أو نقلها إلى `invoiceTemplateUtils.ts` حيث `ID_TYPE_LABELS` موجود فعلاً)
 
-## الخطوات التقنية
+**يبقى في الملف الأصلي**: JSX فقط (Dialog + Tabs + Form + Preview)
 
-1. كتابة سكريبت Python في `/tmp/audit.py`
-2. تنفيذه على ملفات المشروع
-3. استعلام قاعدة البيانات لفحص RLS
-4. كتابة التقرير النهائي في `/mnt/documents/audit-report.md`
+## التفاصيل التقنية
+
+### الملفات الجديدة
+| ملف | محتوى |
+|-----|--------|
+| `src/hooks/page/useCollectionData.ts` | أنواع + منطق حساب صفوف التحصيل + الملخص + الفلترة |
+| `src/components/contracts/CollectionSummaryCards.tsx` | 4 بطاقات + شريط Progress |
+| `src/hooks/page/useCreateInvoiceForm.ts` | حالات النموذج + الحسابات + handleSave |
+
+### الملفات المعدّلة
+| ملف | تعديل |
+|-----|-------|
+| `src/components/contracts/CollectionReport.tsx` | استيراد الهوك والبطاقات، حذف المنطق المستخرج |
+| `src/components/invoices/CreateInvoiceFromTemplate.tsx` | استيراد الهوك، حذف المنطق المستخرج، نقل `INVOICE_TYPES` |
+| `src/components/invoices/invoiceTemplateUtils.ts` | إضافة `INVOICE_TYPES` (اختياري — `ID_TYPE_LABELS` موجود فعلاً) |
+
+### ملاحظات
+- لا تغيير في السلوك أو الواجهة — إعادة هيكلة فقط
+- التحقق من نجاح البناء بعد كل ملف
 
