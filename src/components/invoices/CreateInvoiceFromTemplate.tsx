@@ -361,8 +361,8 @@ export default function CreateInvoiceFromTemplate({
                 </div>
               </div>
               {allowances.map((a, i) => (
-                <div key={`a-${i}`} className="flex gap-2 items-center bg-green-50 dark:bg-green-950/20 rounded p-2">
-                  <span className="text-xs text-green-700 dark:text-green-400 font-medium shrink-0">خصم</span>
+                <div key={`a-${i}`} className="flex gap-2 items-center bg-discount-muted rounded p-2">
+                  <span className="text-xs text-discount-foreground font-medium shrink-0">خصم</span>
                   <Input name="allowances" id="create-invoice-from-template-field-5" value={a.reason} onChange={e => { const n = [...allowances]; n[i] = { ...a, reason: e.target.value }; setAllowances(n); }} placeholder="السبب" className="h-8 text-xs flex-1" />
                   <Input name="allowances" id="create-invoice-from-template-field-6" type="number" value={a.amount || ''} onChange={e => { const n = [...allowances]; n[i] = { ...a, amount: parseFloat(e.target.value) || 0 }; setAllowances(n); }} placeholder="المبلغ" className="h-8 text-xs w-24" />
                   <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={() => setAllowances(prev => prev.filter((_, j) => j !== i))}>
