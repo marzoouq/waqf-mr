@@ -61,6 +61,7 @@ export const generateComprehensiveBeneficiaryPDF = async (
   data: ComprehensiveBeneficiaryData,
   waqfInfo?: PdfWaqfInfo,
 ) => {
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily: f, startY } = await createPdfDocument(waqfInfo);
 
   // ═══ Title ═══
