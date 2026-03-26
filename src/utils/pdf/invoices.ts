@@ -75,6 +75,7 @@ export const generateOverdueInvoicesPDF = async (
     return;
   }
 
+  const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
 
   doc.setFont(fontFamily, 'bold');
