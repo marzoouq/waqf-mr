@@ -78,7 +78,7 @@ describe('useSupportDashboardPage', () => {
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     act(() => result.current.setSearchQuery('مالي'));
     expect(result.current.filteredTickets).toHaveLength(1);
-    expect(result.current.filteredTickets[0].id).toBe('t2');
+    expect(result.current.filteredTickets[0]!.id).toBe('t2');
   });
 
   it('يفلتر التذاكر بالبحث النصي (رقم التذكرة)', async () => {
@@ -86,7 +86,7 @@ describe('useSupportDashboardPage', () => {
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     act(() => result.current.setSearchQuery('TK-003'));
     expect(result.current.filteredTickets).toHaveLength(1);
-    expect(result.current.filteredTickets[0].id).toBe('t3');
+    expect(result.current.filteredTickets[0]!.id).toBe('t3');
   });
 
   it('يجمع بين فلتر التصنيف والبحث', async () => {
