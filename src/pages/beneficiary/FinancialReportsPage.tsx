@@ -15,6 +15,7 @@ import { useFiscalYear } from '@/contexts/FiscalYearContext';
 import { useFinancialSummary } from '@/hooks/financial/useFinancialSummary';
 import RequirePublishedYears from '@/components/RequirePublishedYears';
 import { useMyShare } from '@/hooks/financial/useMyShare';
+import { useBeneficiaryDashboardData } from '@/hooks/page/useBeneficiaryDashboardData';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
