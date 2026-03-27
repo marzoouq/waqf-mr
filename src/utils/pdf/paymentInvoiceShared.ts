@@ -269,7 +269,7 @@ export const renderAllowanceChargeTable = async (
   const rows: string[][] = [];
   for (const a of allowances) {
     const vat = Math.round(a.amount * a.vatRate / 100 * 100) / 100;
-    rows.push(reshapeRow(['خصم', a.reason, `-${fmt(a.amount)}`, `${a.vatRate}%`, `-${fmt(vat)}`]));
+    rows.push(reshapeRow(['خصم', a.reason, `-${fmt(a.amount)}`, `${a.vatRate}%`, `-${fmt(vat)}`]) as string[]);
   }
   for (const c of charges) {
     const vat = Math.round(c.amount * c.vatRate / 100 * 100) / 100;
