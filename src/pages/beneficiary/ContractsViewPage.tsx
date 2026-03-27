@@ -208,7 +208,7 @@ const ContractsViewPage = () => {
           <>
             {/* Mobile cards */}
             <div className="space-y-3 md:hidden">
-              {contracts.map(contract => {
+              {paginatedContracts.map(contract => {
                 const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                 return (
                   <Card key={contract.id}>
