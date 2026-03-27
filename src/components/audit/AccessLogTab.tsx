@@ -8,6 +8,7 @@ import { AlertTriangle, CheckCircle, XCircle, LogOut, Search, ShieldAlert, Activ
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import TablePagination from '@/components/TablePagination';
+import { STALE_MESSAGING } from '@/lib/queryStaleTime';
 
 const ITEMS_PER_PAGE = 15;
 
