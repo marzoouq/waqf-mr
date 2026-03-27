@@ -30,7 +30,16 @@ export default defineConfig(({ mode }) => ({
         skipWaiting: false,
         clientsClaim: false,
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /\.(?:png|jpg|jpeg|svg|gif|ico|webp)$/, /^\/fonts\//],
+        navigateFallbackDenylist: [
+          /^\/~oauth/,
+          /^\/api\//,
+          /^\/rest\/v1\//,
+          /^\/auth\/v1\//,
+          /^\/functions\/v1\//,
+          /^\/storage\/v1\//,
+          /\.(?:png|jpg|jpeg|svg|gif|ico|webp|woff2?|ttf)$/,
+          /^\/fonts\//,
+        ],
         globPatterns: ['**/*.{html,js,css,ico,png,svg,woff2,ttf}'],
         runtimeCaching: [
           {
@@ -139,6 +148,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 300,
-    sourcemap: 'hidden',
+    sourcemap: mode === 'production' ? false : 'hidden',
   },
 }));
