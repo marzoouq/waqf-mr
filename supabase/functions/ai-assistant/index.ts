@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 // ─── Cache بسيط في الذاكرة لتقليل استعلامات DB المتكررة ───
