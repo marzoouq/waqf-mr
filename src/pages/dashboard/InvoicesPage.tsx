@@ -12,7 +12,7 @@ import InvoiceSummaryCards from '@/components/invoices/InvoiceSummaryCards';
 import TablePagination from '@/components/TablePagination';
 import MobileCardView from '@/components/MobileCardView';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Search, Upload, Eye, LayoutGrid, List, FileDown, X } from 'lucide-react';
+import { FileText, Search, Eye, LayoutGrid, List, FileDown } from 'lucide-react';
 import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
