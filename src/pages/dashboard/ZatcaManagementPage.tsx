@@ -166,7 +166,7 @@ function ZatcaManagementPage() {
   const complianceCheck = useMutation({
     mutationFn: async ({ invoiceId, table }: { invoiceId: string; table: string }) => {
       addPending(invoiceId);
-      const { data, error } = await supabase.functions.invoke('zatca-api', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
+      const { data, error } = await supabase.functions.invoke('zatca-report', { body: { action: 'compliance-check', invoice_id: invoiceId, table } });
       if (error) throw error;
       return data;
     },
