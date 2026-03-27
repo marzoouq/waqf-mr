@@ -13,9 +13,9 @@ import InvoiceGridView from '@/components/invoices/InvoiceGridView';
 import InvoiceSummaryCards from '@/components/invoices/InvoiceSummaryCards';
 import TablePagination from '@/components/TablePagination';
 import MobileCardView from '@/components/MobileCardView';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, FileText, Search, Upload, Eye, Edit, LayoutGrid, List, FileDown, X } from 'lucide-react';
+import { Plus, FileText, Search, Upload, Eye, LayoutGrid, List, FileDown, X } from 'lucide-react';
+import InvoicesDesktopTable from '@/components/invoices/InvoicesDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import ExportMenu from '@/components/ExportMenu';
@@ -225,46 +225,19 @@ const InvoicesPage = () => {
                       </Button>
                     ) : null}
                   />
-                  <div className="overflow-x-auto hidden md:block"><Table className="min-w-[800px]">
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="text-right">النوع</TableHead><TableHead className="text-right">رقم الفاتورة</TableHead>
-                        <TableHead className="text-right">المبلغ</TableHead><TableHead className="text-right">التاريخ</TableHead>
-                        <TableHead className="text-right">العقار</TableHead><TableHead className="text-right">الحالة</TableHead>
-                        <TableHead className="text-right">الملف</TableHead><TableHead className="text-right">إجراءات</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE).map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">{h.INVOICE_TYPE_LABELS[item.invoice_type] || item.invoice_type}</TableCell>
-                          <TableCell>{item.invoice_number || '-'}</TableCell>
-                          <TableCell className="font-medium">{fmt(safeNumber(item.amount))} ر.س</TableCell>
-                          <TableCell>{item.date}</TableCell>
-                          <TableCell>{item.property?.property_number || '-'}</TableCell>
-                          <TableCell><Badge variant={h.statusBadgeVariant(item.status)}>{h.INVOICE_STATUS_LABELS[item.status] || item.status}</Badge></TableCell>
-                          <TableCell>
-                            {item.file_path ? (
-                              <Button variant="ghost" size="sm" className="gap-1 text-primary" onClick={() => h.setViewerFile({ path: item.file_path!, name: item.file_name })}>
-                                <Eye className="w-4 h-4" /><span className="text-xs truncate max-w-[80px]">{item.file_name}</span>
-                              </Button>
-                            ) : (
-                              <Button variant="ghost" size="sm" className="gap-1 text-warning" disabled={h.generatePdf.isPending} onClick={() => h.generatePdf.mutate([item.id])}>
-                                <FileDown className="w-4 h-4" /><span className="text-xs">توليد PDF</span>
-                              </Button>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => h.setPreviewInvoice(h.buildPreviewData(item))} aria-label="معاينة"><Eye className="w-4 h-4 text-primary" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.handleEdit(item)} disabled={isLocked} aria-label="تعديل"><Edit className="w-4 h-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => h.setDeleteTarget({ id: item.id, name: item.file_name || 'فاتورة', file_path: item.file_path })} className="text-destructive hover:text-destructive" disabled={isLocked} aria-label="حذف"><Trash2 className="w-4 h-4" /></Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table></div>
+                  <InvoicesDesktopTable
+                    items={h.filteredInvoices.slice((h.currentPage - 1) * h.ITEMS_PER_PAGE, h.currentPage * h.ITEMS_PER_PAGE)}
+                    isLocked={isLocked}
+                    generatePdfPending={h.generatePdf.isPending}
+                    typeLabels={h.INVOICE_TYPE_LABELS}
+                    statusLabels={h.INVOICE_STATUS_LABELS}
+                    statusBadgeVariant={h.statusBadgeVariant}
+                    onViewFile={h.setViewerFile}
+                    onGeneratePdf={(ids) => h.generatePdf.mutate(ids)}
+                    onPreview={(item) => h.setPreviewInvoice(h.buildPreviewData(item))}
+                    onEdit={h.handleEdit}
+                    onDelete={h.setDeleteTarget}
+                  />
                 </>
               )}
               <TablePagination currentPage={h.currentPage} totalItems={h.filteredInvoices.length} itemsPerPage={h.ITEMS_PER_PAGE} onPageChange={h.setCurrentPage} />
