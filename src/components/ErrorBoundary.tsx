@@ -69,6 +69,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private resetAttempts = 0;
+  private resetTimerId: ReturnType<typeof setTimeout> | null = null;
 
   // كشف أخطاء تحميل الملفات المجزأة (chunk errors)
   private isChunkError(): boolean {
@@ -95,8 +96,13 @@ class ErrorBoundary extends Component<Props, State> {
     }
     this.setState({ hasError: false, error: null });
     // إعادة ضبط العداد بعد 30 ثانية لتجنب الحظر الدائم
-    setTimeout(() => { this.resetAttempts = 0; }, 30_000);
+    if (this.resetTimerId) clearTimeout(this.resetTimerId);
+    this.resetTimerId = setTimeout(() => { this.resetAttempts = 0; this.resetTimerId = null; }, 30_000);
   };
+
+  componentWillUnmount() {
+    if (this.resetTimerId) clearTimeout(this.resetTimerId);
+  }
 
   render() {
     if (this.state.hasError) {

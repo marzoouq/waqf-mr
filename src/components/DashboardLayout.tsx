@@ -1,19 +1,16 @@
 /**
  * التخطيط العام للوحة التحكم (DashboardLayout)
  */
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BookOpen, Menu, Lock, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Lock } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { cn } from '@/lib/utils';
 import WaqfInfoBar from '@/components/WaqfInfoBar';
-import NotificationBell from '@/components/NotificationBell';
 import { useAppSettings } from '@/hooks/page/useAppSettings';
 import PrintHeader from '@/components/PrintHeader';
 import PrintFooter from '@/components/PrintFooter';
@@ -25,7 +22,6 @@ import SidebarContent from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import GlobalSearch from '@/components/GlobalSearch';
 import IdleTimeoutWarning from '@/components/IdleTimeoutWarning';
-import DiagnosticOverlay from '@/components/DiagnosticOverlay';
 import { useIdleTimeout } from '@/hooks/ui/useIdleTimeout';
 import { DEFAULT_ROLE_PERMS } from '@/constants/rolePermissions';
 import { logAccessEvent } from '@/hooks/data/useAccessLog';
@@ -34,10 +30,17 @@ import { useSidebarSwipe } from '@/hooks/ui/useSidebarSwipe';
 import {
   linkLabelKeys, allAdminLinks, allBeneficiaryLinks,
   SHOW_ALL_ROUTES, ADMIN_ROUTE_PERM_KEYS, BENEFICIARY_ROUTE_PERM_KEYS,
-  ACCOUNTANT_EXCLUDED_ROUTES, ROUTE_TITLES,
+  ACCOUNTANT_EXCLUDED_ROUTES,
   defaultAdminSections, defaultBeneficiarySections,
   ADMIN_SECTION_KEYS, BENEFICIARY_SECTION_KEYS,
 } from '@/components/dashboard-layout/constants';
+import MobileHeader from '@/components/dashboard-layout/MobileHeader';
+import DesktopTopBar from '@/components/dashboard-layout/DesktopTopBar';
+
+// DiagnosticOverlay — يُحمّل فقط في وضع التطوير
+const DiagnosticOverlay = import.meta.env.DEV
+  ? lazy(() => import('@/components/DiagnosticOverlay'))
+  : null;
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -68,7 +71,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setMobileSidebarOpen(false);
   }, [location.pathname]);
 
-  // ─── Swipe gesture handling ───
   const {
     sidebarRef, overlayRef,
     handleTouchStart, handleTouchMove, handleTouchEnd,
@@ -165,25 +167,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Mobile Header */}
-      <div className="fixed top-0 right-0 left-0 z-40 flex items-center justify-between p-3 gradient-hero lg:hidden">
-        <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="text-sidebar-foreground">
-          <Menu className="w-6 h-6" />
-        </Button>
-        <div className="flex flex-col items-center">
-          <span className="font-arabic font-bold text-base text-sidebar-foreground leading-tight">{ROUTE_TITLES[location.pathname] || Object.keys(ROUTE_TITLES).filter(r => location.pathname.startsWith(r + '/')).sort((a, b) => b.length - a.length).map(r => ROUTE_TITLES[r])[0] || 'إدارة الوقف'}</span>
-          {fiscalYear && (
-            <span className="text-[11px] text-sidebar-foreground/70 leading-none">{fiscalYear.label}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
-            <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
-              <BookOpen className="w-5 h-5" />
-            </Button>
-          </Link>
-          <NotificationBell />
-        </div>
-      </div>
+      <MobileHeader
+        onOpenSidebar={() => setMobileSidebarOpen(true)}
+        fiscalYearLabel={fiscalYear?.label}
+      />
 
       {/* Mobile Sidebar Overlay */}
       <div
@@ -242,39 +229,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         )}
       >
         <PrintHeader />
-        <div className="hidden lg:flex items-center justify-between">
-          <WaqfInfoBar />
-          <div className="flex items-center gap-3 px-4 py-2">
-            <GlobalSearch />
-            <FiscalYearSelector value={fiscalYearId} onChange={setFiscalYearId} showAll={showAll} />
-            {isClosed && (
-              <span className="text-xs text-warning dark:text-warning font-medium flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-md border border-warning/30 print:hidden">
-                <Lock className="w-3 h-3" /> مقفلة
-              </span>
-            )}
-            <Link to={(role === 'admin' || role === 'accountant') ? '/dashboard/bylaws' : '/beneficiary/bylaws'}>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent/50">
-                <BookOpen className="w-5 h-5" />
-              </Button>
-            </Link>
-            <NotificationBell />
-            {user && (
-              <div className="flex items-center gap-2 border-r border-border pr-3 mr-1">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-                  <User className="w-4 h-4" />
-                </div>
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-medium text-foreground leading-tight truncate max-w-[120px]">
-                    {user.email?.split('@')[0] || 'مستخدم'}
-                  </span>
-                  <Badge variant="secondary" className="text-[11px] px-1.5 py-0 h-4 leading-none">
-                    {role === 'admin' ? 'ناظر' : role === 'accountant' ? 'محاسب' : role === 'beneficiary' ? 'مستفيد' : role === 'waqif' ? 'واقف' : role || '—'}
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <DesktopTopBar
+          fiscalYearId={fiscalYearId}
+          onFiscalYearChange={setFiscalYearId}
+          showAll={showAll}
+          isClosed={isClosed}
+        />
         <div className="lg:hidden">
           <WaqfInfoBar />
           <div className="flex items-center gap-2 px-3 py-1.5 print:hidden flex-wrap">
@@ -316,7 +276,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           onStayActive={stayActive}
         />
       )}
-      {role === 'admin' && <DiagnosticOverlay />}
+      {DiagnosticOverlay && role === 'admin' && <Suspense fallback={null}><DiagnosticOverlay /></Suspense>}
     </div>
   );
 };

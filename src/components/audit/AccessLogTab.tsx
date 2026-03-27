@@ -41,7 +41,7 @@ const AccessLogTab = () => {
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       let query = supabase
         .from('access_log')
-        .select('*', { count: 'exact' })
+        .select('id, event_type, email, user_id, device_info, target_path, metadata, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, from + ITEMS_PER_PAGE - 1);
 

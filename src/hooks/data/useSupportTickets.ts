@@ -44,6 +44,9 @@ export interface ClientError {
   email: string | null;
 }
 
+/** الأعمدة المطلوبة فقط لعرض التذاكر */
+const TICKET_SELECT = 'id, ticket_number, title, description, category, priority, status, created_by, assigned_to, resolved_at, resolution_notes, rating, rating_comment, created_at, updated_at';
+
 /** جلب التذاكر مع server-side pagination */
 export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20) => {
   return useQuery({
@@ -55,7 +58,7 @@ export const useSupportTickets = (statusFilter?: string, page = 1, pageSize = 20
 
       let query = supabase
         .from('support_tickets')
-        .select('*', { count: 'exact' })
+        .select(TICKET_SELECT, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -84,7 +87,7 @@ export const useTicketReplies = (ticketId?: string) => {
         .select('id, ticket_id, sender_id, content, is_internal, created_at')
         .eq('ticket_id', ticketId!)
         .order('created_at', { ascending: true })
-        .limit(500); // Ticket replies rarely exceed this; prevents unbounded fetch
+        .limit(500);
       if (error) throw error;
       return (data ?? []) as TicketReply[];
     },
@@ -226,22 +229,35 @@ export const useSupportStats = () => {
   });
 };
 
-/**
- * جلب جميع التذاكر بأعمدة خفيفة — للإحصائيات والتصدير
- * يحل مشكلة اعتماد الإحصائيات على أول 20 تذكرة فقط
- */
+/** بيانات تحليلات الدعم المجمّعة — aggregate في قاعدة البيانات */
+export interface SupportAnalyticsData {
+  category_stats: { key: string; count: number }[];
+  priority_stats: { key: string; count: number }[];
+  avg_resolution_hours: number;
+  avg_rating: number;
+  rated_count: number;
+  total_count: number;
+}
+
 export const useSupportAnalytics = () => {
   return useQuery({
     queryKey: ['support_analytics'],
     staleTime: STALE_MESSAGING,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .select('id, ticket_number, title, category, priority, status, created_at, resolved_at, rating, rating_comment')
-        .order('created_at', { ascending: false })
-        .limit(2000);
+      const { data, error } = await supabase.rpc('get_support_analytics');
       if (error) throw error;
-      return (data ?? []) as Pick<SupportTicket, 'id' | 'ticket_number' | 'title' | 'category' | 'priority' | 'status' | 'created_at' | 'resolved_at' | 'rating' | 'rating_comment'>[];
+      return data as unknown as SupportAnalyticsData;
     },
   });
 };
+
+/** تصدير التذاكر — جلب عند الطلب فقط (لا يُحفظ في الكاش) */
+export async function fetchTicketsForExport() {
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select('ticket_number, title, category, priority, status, created_at, resolved_at, rating')
+    .order('created_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return data ?? [];
+}
