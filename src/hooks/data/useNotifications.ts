@@ -265,10 +265,12 @@ export const useNotifications = () => {
 
   const deleteOne = useMutation({
     mutationFn: async (id: string) => {
+      if (!user) return;
       const { error } = await supabase
         .from('notifications')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
