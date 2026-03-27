@@ -69,4 +69,42 @@ describe('useMyShare', () => {
     }));
     expect(result.current.pctLoading).toBe(true);
   });
+
+  it('#9: يُفضّل serverMyShare على الحساب المحلي', () => {
+    const beneficiaries = [
+      { user_id: 'user-1', share_percentage: 30 },
+      { user_id: 'user-2', share_percentage: 70 },
+    ];
+    const { result } = renderHook(() => useMyShare({
+      beneficiaries,
+      availableAmount: 10000,
+      serverMyShare: 2500,
+    }));
+    // القيمة من الخادم (2500) تُفضّل على الحساب المحلي (3000)
+    expect(result.current.myShare).toBe(2500);
+  });
+
+  it('#9: يعود للحساب المحلي عند غياب serverMyShare', () => {
+    const beneficiaries = [
+      { user_id: 'user-1', share_percentage: 30 },
+    ];
+    const { result } = renderHook(() => useMyShare({
+      beneficiaries,
+      availableAmount: 10000,
+      serverMyShare: null,
+    }));
+    expect(result.current.myShare).toBe(3000);
+  });
+
+  it('#9: يعود للحساب المحلي عند serverMyShare = undefined', () => {
+    const beneficiaries = [
+      { user_id: 'user-1', share_percentage: 30 },
+    ];
+    const { result } = renderHook(() => useMyShare({
+      beneficiaries,
+      availableAmount: 10000,
+      serverMyShare: undefined,
+    }));
+    expect(result.current.myShare).toBe(3000);
+  });
 });
