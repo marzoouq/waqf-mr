@@ -14,7 +14,7 @@ import { Building2, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ROLE_LABELS } from '@/constants';
 import { useWaqfInfo } from '@/hooks/page/useAppSettings';
-import { usePrefetchAccounts } from '@/hooks/financial/usePrefetchAccounts';
+import { usePrefetchPages } from '@/hooks/financial/usePrefetchPages';
 import { useUnreadMessages } from '@/hooks/ui/useUnreadMessages';
 
 interface SidebarContentProps {
@@ -31,7 +31,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const { user, role } = useAuth();
   const location = useLocation();
   const { data: waqfInfo } = useWaqfInfo();
-  const prefetchAccounts = usePrefetchAccounts();
+  const { getPrefetchHandler } = usePrefetchPages();
   const { data: unreadCount = 0 } = useUnreadMessages();
 
   return (
@@ -82,7 +82,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               key={link.to}
               to={link.to}
               onClick={() => setMobileSidebarOpen(false)}
-              onMouseEnter={link.to.includes('/accounts') ? prefetchAccounts : undefined}
+              onMouseEnter={() => getPrefetchHandler(link.to)?.()}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                 isActive

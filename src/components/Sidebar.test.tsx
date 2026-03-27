@@ -15,8 +15,8 @@ vi.mock('@/hooks/page/useAppSettings', () => ({
   useWaqfInfo: vi.fn(() => ({ data: { waqf_name: 'وقف تجريبي', waqf_founder: 'مؤسس', waqf_admin: 'ناظر' }, isLoading: false, error: null })),
 }));
 
-vi.mock('@/hooks/financial/usePrefetchAccounts', () => ({
-  usePrefetchAccounts: () => vi.fn(),
+vi.mock('@/hooks/financial/usePrefetchPages', () => ({
+  usePrefetchPages: () => ({ getPrefetchHandler: () => undefined, prefetchAccounts: vi.fn() }),
 }));
 
 vi.mock('@/constants', () => ({
