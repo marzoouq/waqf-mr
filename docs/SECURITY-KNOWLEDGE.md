@@ -84,7 +84,9 @@
 | `ai-assistant` | `getUser()` | نطاق المستخدم |
 | `guard-signup` | عامة + rate limiting | تسجيل حسابات جديدة |
 | `webauthn` | `getUser()` | إدارة بيانات اعتماد |
-| `zatca-api` | `getUser()` + دور admin | تكامل ضريبي مع بوابة فاتورة |
+| `zatca-onboard` | `getUser()` + دور admin | تسجيل واختبار اتصال بوابة فاتورة |
+| `zatca-report` | `getUser()` + دور admin | إرسال/اعتماد فواتير وفحص امتثال |
+| `zatca-renew` | `getUser()` + دور admin | تجديد شهادة ZATCA |
 | `zatca-signer` | `getUser()` + دور admin/accountant | توقيع فواتير رقمياً (ECDSA P-256) |
 | `zatca-xml-generator` | `getUser()` + دور admin/accountant | إنشاء XML بصيغة UBL 2.1 |
 | `check-contract-expiry` | Cron (خادم) | بدون مصادقة مستخدم |

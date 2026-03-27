@@ -17,7 +17,11 @@ project_id = "nuzdeamtujezrsxbvpfi"
     verify_jwt = false
   [functions.webauthn]
     verify_jwt = false
-  [functions.zatca-api]
+  [functions.zatca-onboard]
+    verify_jwt = false
+  [functions.zatca-renew]
+    verify_jwt = false
+  [functions.zatca-report]
     verify_jwt = false
   [functions.zatca-signer]
     verify_jwt = false
