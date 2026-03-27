@@ -1,6 +1,6 @@
 import { fmt } from '@/utils/format';
 import { lazy, Suspense } from 'react';
-import CashFlowReport from '@/components/reports/CashFlowReport';
+const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
