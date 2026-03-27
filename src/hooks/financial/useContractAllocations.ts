@@ -31,7 +31,7 @@ export const useContractAllocations = (fiscalYearId?: string | null) => {
       if (error) throw error;
       return (data ?? []) as ContractFiscalAllocation[];
     },
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
 

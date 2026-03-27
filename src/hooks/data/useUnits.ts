@@ -43,7 +43,7 @@ export const useUpdateUnit = unitsCrud.useUpdate;
 export const useUnits = (propertyId?: string) => {
   return useQuery({
     queryKey: ['units', propertyId],
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('units')

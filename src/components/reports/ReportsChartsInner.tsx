@@ -11,7 +11,7 @@ const REPORT_COLORS = [
   'hsl(var(--accent))', 'hsl(var(--chart-4))',
 ];
 
-const tooltipStyle = { direction: 'rtl' as const, textAlign: 'right' as const, fontFamily: 'inherit' };
+
 
 interface DataItem { name: string; value: number }
 

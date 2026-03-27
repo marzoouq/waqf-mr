@@ -39,7 +39,7 @@ export const useTenantPayments = () => {
       if (error) throw error;
       return data as TenantPayment[];
     },
-    staleTime: 60_000,
+    staleTime: STALE_FINANCIAL,
   });
 };
 
