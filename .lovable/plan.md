@@ -1,35 +1,49 @@
 
 
-## إصلاح البقايا المتبقية
+## نتائج الفحص الجنائي الشامل
 
-### 1. استبدال `staleTime` الحرفية بالثوابت المركزية
+### ✅ إصلاحات مكتملة بالكامل (تم التحقق)
 
-**3 ملفات — تغيير بسيط في كل منها:**
+| الإصلاح | الحالة |
+|---------|--------|
+| إزالة `tooltipStyle` المحلية من كل الملفات | ✅ لا توجد نسخة محلية في أي ملف |
+| استيراد `tooltipStyleRtl` من `chartHelpers` | ✅ مستخدم في 6 ملفات رسوم بيانية |
+| استخراج `formatArabicMonth` و `ARABIC_MONTHS` | ✅ كلها تستورد من `chartHelpers` |
+| `useUnits` / `useTenantPayments` / `useContractAllocations` | ✅ تستخدم `STALE_FINANCIAL` |
 
-| الملف | السطر | من | إلى |
-|-------|-------|----|-----|
-| `src/hooks/data/useUnits.ts` | 45 | `staleTime: 60_000` | `staleTime: STALE_FINANCIAL` |
-| `src/hooks/data/useTenantPayments.ts` | 41 | `staleTime: 60_000` | `staleTime: STALE_FINANCIAL` |
-| `src/hooks/financial/useContractAllocations.ts` | 33 | `staleTime: 60_000` | `staleTime: STALE_FINANCIAL` |
-
-كل ملف يحتاج إضافة `import { STALE_FINANCIAL } from '@/lib/queryStaleTime';` في الأعلى.
-
----
-
-### 2. استبدال `tooltipStyle` المحلية بـ `tooltipStyleRtl` من `chartHelpers`
-
-**3 ملفات — حذف التعريف المحلي + إضافة import:**
-
-| الملف | التغيير |
-|-------|---------|
-| `src/components/reports/ReportsChartsInner.tsx` | حذف سطر 13 (`const tooltipStyle = ...`)، إضافة `import { tooltipStyleRtl } from '@/utils/chartHelpers'`، استبدال `tooltipStyle` → `tooltipStyleRtl` في سطور 33، 48 |
-| `src/components/reports/YoYChartsSectionInner.tsx` | حذف سطر 12 (`const tooltipStyle = ...`)، إضافة `import { tooltipStyleRtl } from '@/utils/chartHelpers'`، استبدال `tooltipStyle` → `tooltipStyleRtl` في سطور 45، 67، 96، 122 |
-| `src/components/reports/MonthlyPerformanceChartsInner.tsx` | حذف سطر 11 (`const tooltipStyle = ...`)، إضافة `import { tooltipStyleRtl } from '@/utils/chartHelpers'`، استبدال `tooltipStyle` → `tooltipStyleRtl` في سطور 39، 68 |
+**أخطاء البناء المعروضة قديمة/من كاش سابق — الكود الحالي سليم 100%.**
 
 ---
 
-### الملخص
-- **6 ملفات** تحتاج تعديل
-- **0 ملفات جديدة**
-- تغييرات ميكانيكية بحتة — لا تغيير في السلوك
+### ⚠️ بقايا مكتشفة: staleTime حرفية في صفحات ومكونات
+
+7 ملفات خارج مجلد `hooks/` ما زالت تستخدم أرقاماً حرفية بدل الثوابت المركزية:
+
+| الملف | القيمة الحالية | الثابت المناسب |
+|-------|---------------|----------------|
+| `src/components/beneficiaries/DistributionHistory.tsx` | `60_000` | `STALE_FINANCIAL` |
+| `src/components/audit/AccessLogTab.tsx` (موقعان) | `30_000` | `STALE_MESSAGING` |
+| `src/pages/Index.tsx` | `5 * 60 * 1000` | `STALE_STATIC` |
+| `src/pages/dashboard/AdminDashboard.tsx` | `60_000` | `STALE_FINANCIAL` |
+| `src/pages/beneficiary/ContractsViewPage.tsx` | `300_000` | `STALE_STATIC` |
+| `src/pages/Auth.tsx` | `5 * 60_000` | `STALE_STATIC` |
+| `src/pages/dashboard/BeneficiariesPage.tsx` | `60_000` | `STALE_FINANCIAL` |
+
+> ملاحظة: `src/lib/queryClient.ts` يستخدم `5 * 60 * 1000` كإعداد افتراضي عام — يبقى كما هو.
+
+### `any` في ملفات الاختبار
+
+6 ملفات اختبار (`.test.ts`) تستخدم `any` في mocks — **مقبول** ولا يحتاج تغيير.
+
+---
+
+### خطة التنفيذ
+
+**المهمة الوحيدة**: استبدال الأرقام الحرفية لـ `staleTime` في 7 ملفات بالثوابت المركزية.
+
+لكل ملف:
+1. إضافة `import { STALE_XXX } from '@/lib/queryStaleTime';`
+2. استبدال الرقم الحرفي بالثابت المناسب
+
+تغييرات ميكانيكية بحتة — لا تأثير على السلوك.
 
