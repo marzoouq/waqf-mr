@@ -112,7 +112,7 @@ export const usePaidAdvancesTotal = (beneficiaryId?: string, fiscalYearId?: stri
 export const useCarryforwardBalance = (beneficiaryId?: string, fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'balance', beneficiaryId, fiscalYearId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return 0;
       let query = supabase
