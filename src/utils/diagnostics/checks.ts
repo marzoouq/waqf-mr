@@ -91,8 +91,7 @@ export async function checkDomNodesCount(): Promise<CheckResult> {
 
 export async function checkDeviceMemory(): Promise<CheckResult> {
   const id = 'perf_memory';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mem = (navigator as any).deviceMemory;
+  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
   if (!mem) return { id, label: 'ذاكرة الجهاز', status: 'info', detail: 'غير متاح في هذا المتصفح' };
   return { id, label: 'ذاكرة الجهاز', status: mem < 4 ? 'warn' : 'pass', detail: `${mem} GB` };
 }
