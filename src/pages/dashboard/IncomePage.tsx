@@ -10,22 +10,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Trash2, TrendingUp, Edit, Search, Lock, ArrowUp, ArrowDown, ArrowUpDown, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Plus, TrendingUp, Search, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
 import IncomeSummaryCards from '@/components/income/IncomeSummaryCards';
+import IncomeMobileCards from '@/components/income/IncomeMobileCards';
+import IncomeDesktopTable from '@/components/income/IncomeDesktopTable';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import TablePagination from '@/components/TablePagination';
 import ExportMenu from '@/components/ExportMenu';
 import AdvancedFiltersBar from '@/components/filters/AdvancedFiltersBar';
 import { generateIncomePDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TableSkeleton } from '@/components/SkeletonLoaders';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useIncomePage, type SortField } from '@/hooks/page/useIncomePage';
+import { useIncomePage } from '@/hooks/page/useIncomePage';
 
 const IncomePage = () => {
   const pdfWaqfInfo = usePdfWaqfInfo();
