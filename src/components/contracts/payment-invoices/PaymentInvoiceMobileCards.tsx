@@ -10,13 +10,13 @@ import { fmt } from '@/utils/format';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceMobileCardsProps {
-  groupedPaginated: Map<string, Invoice[]>;
+  groupedPaginated: Map<string, PaymentInvoice[]>;
   isClosed: boolean;
   selectedIds: Set<string>;
   toggleSelect: (id: string) => void;
   payingInvoiceId: string | null;
-  openPayDialog: (inv: Invoice) => void;
-  handlePreviewTemplate: (inv: Invoice) => void;
+  openPayDialog: (inv: PaymentInvoice) => void;
+  handlePreviewTemplate: (inv: PaymentInvoice) => void;
   markUnpaid: { mutate: (id: string) => void; isPending: boolean };
 }
 

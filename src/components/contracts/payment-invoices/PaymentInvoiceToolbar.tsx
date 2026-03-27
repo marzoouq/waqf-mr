@@ -24,8 +24,7 @@ interface PaymentInvoiceToolbarProps {
   isClosed: boolean;
   fiscalYearId: string;
   generateAll: { mutate: () => void; isPending: boolean };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  invoices: any[];
+  invoices: PaymentInvoice[];
   waqfInfo: PdfWaqfInfo;
 }
 

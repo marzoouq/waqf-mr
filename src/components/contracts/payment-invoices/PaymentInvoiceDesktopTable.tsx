@@ -15,18 +15,18 @@ import type { SortKey } from '@/hooks/page/usePaymentInvoicesTab';
 import type { PaymentInvoice } from '@/hooks/data/usePaymentInvoices';
 
 interface PaymentInvoiceDesktopTableProps {
-  groupedPaginated: Map<string, Invoice[]>;
+  groupedPaginated: Map<string, PaymentInvoice[]>;
   isClosed: boolean;
   selectedIds: Set<string>;
-  unpaidFiltered: Invoice[];
+  unpaidFiltered: PaymentInvoice[];
   toggleSelect: (id: string) => void;
   toggleSelectAll: () => void;
   sortKey: SortKey;
   sortDir: 'asc' | 'desc';
   toggleSort: (key: SortKey) => void;
   payingInvoiceId: string | null;
-  openPayDialog: (inv: Invoice) => void;
-  handlePreviewTemplate: (inv: Invoice) => void;
+  openPayDialog: (inv: PaymentInvoice) => void;
+  handlePreviewTemplate: (inv: PaymentInvoice) => void;
   markUnpaid: { mutate: (id: string) => void; isPending: boolean };
 }
 
