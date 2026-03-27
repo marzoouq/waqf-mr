@@ -64,7 +64,7 @@ export const useAdvanceRequests = (fiscalYearId?: string) => {
 export const useMyAdvanceRequests = (beneficiaryId?: string) => {
   return useQuery({
     queryKey: ['advance_requests', 'my', beneficiaryId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       if (!beneficiaryId) return [];
       const { data, error } = await supabase
