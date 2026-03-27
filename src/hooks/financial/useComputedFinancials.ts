@@ -83,10 +83,9 @@ export const useComputedFinancials = ({
 
   const financials = useMemo(() => {
   if (currentAccount) {
-      const grandTotal = totalIncome + waqfCorpusPrevious;
-
       // في السنة النشطة: حساب من البيانات الحية بدلاً من القيم المخزنة
       if (!isClosed) {
+        const grandTotal = totalIncome + waqfCorpusPrevious;
         // netAfterExpenses يجب أن يشمل waqfCorpusPrevious لتتناسق مع grandTotal
         const liveNetAfterExpenses = grandTotal - totalExpenses;
         const liveNetAfterVat = liveNetAfterExpenses - vatAmount;
@@ -106,20 +105,23 @@ export const useComputedFinancials = ({
         };
       }
 
-      // Use stored net_after_vat and zakat from the closed account to avoid double-deduction (#5)
+      // ✅ إصلاح #2: في السنة المقفلة — استخدام القيم المخزنة بالكامل لمنع التناقض بين live و stored
+      const storedTotalIncome = safeNumber(currentAccount.total_income);
       const storedNetAfterVat = safeNumber(currentAccount.net_after_vat);
       const storedZakat = safeNumber(currentAccount.zakat_amount);
-      // استخدام القيم المخزنة في السنوات المقفلة
-      
       const storedAdminShare = safeNumber(currentAccount.admin_share);
       const storedWaqifShare = safeNumber(currentAccount.waqif_share);
       const storedWaqfRevenue = safeNumber(currentAccount.waqf_revenue);
+      // ✅ إصلاح #2: grandTotal يعتمد على totalIncome المخزن لا الحي
+      const grandTotal = storedTotalIncome + waqfCorpusPrevious;
+      // ✅ إصلاح #1: Math.max(0) لمنع shareBase السالب عند العجز
+      const shareBase = Math.max(0, storedTotalIncome - safeNumber(currentAccount.total_expenses) - storedZakat);
       return {
         grandTotal,
         netAfterExpenses: safeNumber(currentAccount.net_after_expenses),
         netAfterVat: storedNetAfterVat,
         netAfterZakat: storedNetAfterVat - storedZakat,
-        shareBase: safeNumber(currentAccount.total_income) - safeNumber(currentAccount.total_expenses) - storedZakat,
+        shareBase,
         adminShare: storedAdminShare,
         waqifShare: storedWaqifShare,
         waqfRevenue: storedWaqfRevenue,
