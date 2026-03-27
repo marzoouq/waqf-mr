@@ -1,7 +1,7 @@
-import { assertEquals, assert, assertMatch } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { p256 } from "npm:@noble/curves@1.4.0/p256";
-import { sha256 } from "npm:@noble/hashes@1.4.0/sha256";
+import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { c14n } from "./xml-c14n.ts";
+
+// استخدام Web Crypto API بدلاً من npm imports لتجنب مشاكل node_modules
 
 // ═══════════════════════════════════════════════════════════════
 // Crypto Helpers (replicated from zatca-signer/index.ts)
