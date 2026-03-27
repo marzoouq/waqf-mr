@@ -1,9 +1,11 @@
 /**
- * هوك منطق المساعد الذكي
+ * هوك منطق المساعد الذكي مع حفظ المحادثات في قاعدة البيانات
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { logger } from '@/lib/logger';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null;
@@ -11,16 +13,29 @@ const AI_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-assistant` : null
 type Msg = { role: 'user' | 'assistant'; content: string };
 export type ChatMode = 'chat' | 'analysis' | 'report';
 
+interface AiChatSession {
+  id: string;
+  mode: string;
+  title: string | null;
+  messages: Msg[];
+  created_at: string;
+  updated_at: string;
+}
+
 const SEND_COOLDOWN_MS = 2000;
+const SESSIONS_QUERY_KEY = ['ai-chat-sessions'];
 
 export function useAiChat() {
   const { user, role } = useAuth();
+  const queryClient = useQueryClient();
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<ChatMode>('chat');
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const lastSendTimeRef = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -35,13 +50,95 @@ export function useAiChat() {
 
   const isAvailable = role === 'admin' || role === 'accountant' || role === 'beneficiary' || role === 'waqif';
 
+  // ── جلب سجل المحادثات ──
+  const { data: sessions = [] } = useQuery<AiChatSession[]>({
+    queryKey: SESSIONS_QUERY_KEY,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('ai_chat_sessions')
+        .select('id, mode, title, messages, created_at, updated_at')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+      if (error) { logger.error('فشل جلب محادثات AI', error); return []; }
+      return (data ?? []).map(s => ({
+        ...s,
+        messages: (Array.isArray(s.messages) ? s.messages : []) as Msg[],
+      }));
+    },
+    enabled: !!user && isAvailable,
+    staleTime: 2 * 60_000,
+  });
+
+  // ── حفظ الجلسة في قاعدة البيانات ──
+  const saveSession = useCallback(async (msgs: Msg[], sessionMode: ChatMode, sessionId: string | null): Promise<string | null> => {
+    if (!user || msgs.length === 0) return sessionId;
+    // استخراج عنوان من أول رسالة للمستخدم
+    const firstUserMsg = msgs.find(m => m.role === 'user');
+    const title = firstUserMsg?.content.slice(0, 80) ?? null;
+
+    try {
+      if (sessionId) {
+        // تحديث جلسة موجودة
+        await supabase
+          .from('ai_chat_sessions')
+          .update({ messages: msgs as unknown as Record<string, unknown>[], title })
+          .eq('id', sessionId)
+          .eq('user_id', user.id);
+        return sessionId;
+      }
+      // إنشاء جلسة جديدة
+      const { data, error } = await supabase
+        .from('ai_chat_sessions')
+        .insert({ user_id: user.id, mode: sessionMode, messages: msgs as unknown as Record<string, unknown>[], title })
+        .select('id')
+        .single();
+      if (error) { logger.error('فشل حفظ جلسة AI', error); return null; }
+      return data?.id ?? null;
+    } catch (e) {
+      logger.error('خطأ في حفظ جلسة AI', e);
+      return sessionId;
+    }
+  }, [user]);
+
   const handleModeChange = (newMode: string) => {
     if (newMode === mode) return;
     abortControllerRef.current?.abort();
+    // حفظ المحادثة الحالية قبل التبديل
+    if (messages.length > 0) {
+      saveSession(messages, mode, activeSessionId).then(() => {
+        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
+      });
+    }
     setMode(newMode as ChatMode);
     setMessages([]);
+    setActiveSessionId(null);
     setIsLoading(false);
   };
+
+  // ── تحميل جلسة سابقة ──
+  const loadSession = useCallback((session: AiChatSession) => {
+    setMessages(session.messages);
+    setMode(session.mode as ChatMode);
+    setActiveSessionId(session.id);
+    setShowHistory(false);
+  }, []);
+
+  // ── حذف جلسة ──
+  const deleteSession = useCallback(async (sessionId: string) => {
+    if (!user) return;
+    await supabase
+      .from('ai_chat_sessions')
+      .delete()
+      .eq('id', sessionId)
+      .eq('user_id', user.id);
+    if (activeSessionId === sessionId) {
+      setMessages([]);
+      setActiveSessionId(null);
+    }
+    queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
+  }, [user, activeSessionId, queryClient]);
 
   const send = async () => {
     const trimmed = input.trim().slice(0, 1000);
@@ -130,6 +227,15 @@ export function useAiChat() {
           }
         }
       }
+
+      // حفظ المحادثة بعد اكتمال الرد
+      const finalMessages = [...allMessages.filter(m => m.role === 'user'), ...(assistantContent ? [{ role: 'assistant' as const, content: assistantContent }] : [])];
+      // دمج الرسائل القديمة مع الجديدة
+      const mergedMessages = [...messages, userMsg, ...(assistantContent ? [{ role: 'assistant' as const, content: assistantContent }] : [])].slice(-HISTORY_LIMIT);
+      const newId = await saveSession(mergedMessages, mode, activeSessionId);
+      if (newId) setActiveSessionId(newId);
+      queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
+
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') return;
       setMessages((prev) => [...prev, { role: 'assistant', content: `❌ ${e instanceof Error ? e.message : 'حدث خطأ'}` }]);
@@ -138,8 +244,33 @@ export function useAiChat() {
     }
   };
 
-  const closePanel = () => { abortControllerRef.current?.abort(); setOpen(false); };
-  const clearMessages = () => setMessages([]);
+  const closePanel = () => {
+    abortControllerRef.current?.abort();
+    // حفظ المحادثة عند الإغلاق
+    if (messages.length > 0) {
+      saveSession(messages, mode, activeSessionId).then(() => {
+        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
+      });
+    }
+    setOpen(false);
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+    setActiveSessionId(null);
+  };
+
+  const startNewChat = useCallback(() => {
+    // حفظ المحادثة الحالية أولاً
+    if (messages.length > 0) {
+      saveSession(messages, mode, activeSessionId).then(() => {
+        queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
+      });
+    }
+    setMessages([]);
+    setActiveSessionId(null);
+    setShowHistory(false);
+  }, [messages, mode, activeSessionId, saveSession, queryClient]);
 
   return {
     user, role, isAvailable,
@@ -150,7 +281,14 @@ export function useAiChat() {
     mode, handleModeChange,
     send,
     endRef,
+    // جديد: إدارة الجلسات
+    sessions,
+    activeSessionId,
+    showHistory, setShowHistory,
+    loadSession,
+    deleteSession,
+    startNewChat,
   };
 }
 
-export type { Msg };
+export type { Msg, AiChatSession };
