@@ -296,7 +296,9 @@ const AdminDashboard = () => {
         )}
 
         {/* ملخص التحصيل */}
-        <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
+        <ErrorBoundary>
+          <CollectionSummaryCard collectionSummary={collectionSummary} collectionColor={collectionColor} />
+        </ErrorBoundary>
 
         {/* خريطة حرارية — تُخفى عند الطباعة */}
         <div className="print:hidden">
