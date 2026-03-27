@@ -3,6 +3,7 @@
  */
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { fmt } from '@/utils/format';
+import { tooltipStyleRtl } from '@/utils/chartHelpers';
 
 const REPORT_COLORS = [
   'hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--info))',
