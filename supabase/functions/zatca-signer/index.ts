@@ -566,9 +566,7 @@ Deno.serve(async (req) => {
 
       // Block signing without a real certificate
       if (!privateKeyRaw || !certificate || certificate.startsWith("PLACEHOLDER")) {
-        // Rollback: delete the chain record
-        await admin.from("invoice_chain").delete()
-          .eq("invoice_id", invoice_id).eq("icv", icv);
+        // No chain record to rollback — reserve_icv only allocated sequence number
         return json({ error: "لا توجد شهادة ZATCA نشطة حقيقية. أكمل عملية الربط (Onboarding) أولاً." }, 400, corsHeaders);
       }
 
