@@ -131,7 +131,7 @@ export const useReportStatus = (fiscalYearId?: string) => {
       return data as AnnualReportStatus | null;
     },
     enabled: !!fiscalYearId,
-    staleTime: 300_000,
+    staleTime: STALE_STATIC,
   });
 };
 
