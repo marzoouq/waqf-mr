@@ -362,19 +362,19 @@ export async function checkInvoiceChainIntegrity(): Promise<CheckResult> {
     let brokenLinks = 0;
     let icvGaps = 0;
     for (let i = 1; i < chainRecords.length; i++) {
-      const prev = chainRecords[i - 1];
-      const curr = chainRecords[i];
-      // فحص ربط PIH: previous_hash للسجل الحالي = invoice_hash للسجل السابق
+      const prev = chainRecords[i - 1]!;
+      const curr = chainRecords[i]!;
       if (curr.previous_hash !== prev.invoice_hash) {
         brokenLinks++;
       }
-      // فحص فجوات ICV
       if (curr.icv !== prev.icv + 1) {
         icvGaps++;
       }
     }
 
     const total = chainRecords.length;
+    const firstIcv = chainRecords[0]?.icv ?? 0;
+    const lastIcv = chainRecords[total - 1]?.icv ?? 0;
     if (brokenLinks > 0) {
       return { id, label: 'تكامل سلسلة الفواتير', status: 'fail', detail: `${total} سجل — ${brokenLinks} رابط مكسور في سلسلة PIH!` };
     }
