@@ -183,7 +183,7 @@ const AdminDashboard = () => {
           usingFallbackPct={usingFallbackPct}
           expiringContracts={expiringContracts}
           orphanedContracts={orphanedContracts}
-          pendingAdvancesCount={advanceRequests.filter(r => r.status === 'pending').length}
+          pendingAdvancesCount={pendingAdvancesCount}
           collectionRate={collectionSummary.percentage}
         />
 
