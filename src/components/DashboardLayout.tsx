@@ -56,6 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     try { return localStorage.getItem('sidebar-open') === 'true'; }
     catch { return false; }
   });
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem('sidebar-open', String(sidebarOpen)); }

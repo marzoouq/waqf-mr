@@ -18,7 +18,7 @@ interface SidebarContentProps {
   sidebarOpen: boolean;
   setSidebarOpen: (v: boolean) => void;
   setMobileSidebarOpen: (v: boolean) => void;
-  onSignOut: () => Promise<void>;
+  onSignOut: () => void;
 }
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
