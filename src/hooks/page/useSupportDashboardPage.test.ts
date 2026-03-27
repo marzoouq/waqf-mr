@@ -134,8 +134,8 @@ describe('useSupportDashboardPage', () => {
     const { useSupportDashboardPage } = await import('./useSupportDashboardPage');
     const { result } = renderHook(() => useSupportDashboardPage(), { wrapper: createWrapper() });
     expect(result.current.categoryStats).toHaveLength(3);
-    expect(result.current.categoryStats[0]).toMatchObject({ key: 'technical', label: 'تقني', count: 5, pct: 50 });
-    expect(result.current.categoryStats[1]).toMatchObject({ key: 'financial', label: 'مالي', count: 3, pct: 30 });
+    expect(result.current.categoryStats[0]!).toMatchObject({ key: 'technical', label: 'تقني', count: 5, pct: 50 });
+    expect(result.current.categoryStats[1]!).toMatchObject({ key: 'financial', label: 'مالي', count: 3, pct: 30 });
   });
 
   // --- إحصائيات الأولوية ---
