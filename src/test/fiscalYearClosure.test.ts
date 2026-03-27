@@ -380,8 +380,9 @@ describe('close → reopen دورة كاملة', () => {
     expect(reopenResult.label).toBe('1445/1446');
   });
 
-  it('المحاسب يمكنه إقفال لكن لا يمكنه إعادة الفتح', () => {
-    const closeResult = simulateCloseFiscalYear({
+  it('المحاسب لا يمكنه إقفال ولا إعادة فتح السنة', () => {
+    // المحاسب لم يعد يملك صلاحية الإقفال (#10)
+    expect(() => simulateCloseFiscalYear({
       fiscal_year_id: 'fy-cycle-2',
       account_data: { total_income: 100000 },
       waqf_corpus_manual: 0,
@@ -392,7 +393,7 @@ describe('close → reopen دورة كاملة', () => {
       unpaid_invoices: 0,
       existing_account_id: null,
       existing_next_fy: null,
-    });
+    })).toThrow('فقط الناظر يملك صلاحية إقفال السنة المالية');
     expect(closeResult.success).toBe(true);
 
     expect(() => simulateReopenFiscalYear({
