@@ -13,7 +13,6 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const RequestSchema = z.object({
   fiscal_year_id: z.string().min(1),
-  fiscal_year_label: z.string().optional(),
 });
 
 Deno.serve(async (req) => {
@@ -59,7 +58,7 @@ Deno.serve(async (req) => {
     if (!parsed.success) {
       return new Response(JSON.stringify({ error: "بيانات غير صالحة", details: parsed.error.flatten().fieldErrors }), { status: 400, headers: jsonHeaders });
     }
-    const { fiscal_year_id, fiscal_year_label } = parsed.data;
+    const { fiscal_year_id } = parsed.data;
     const isAll = fiscal_year_id === "all";
 
     // ── الخطوة 1: جلب السنوات المالية (مطلوبة لتحديد السنة السابقة) ──
@@ -79,11 +78,6 @@ Deno.serve(async (req) => {
     }
 
     // ── الخطوة 2: جلب كل البيانات بالتوازي ──
-    const buildFyFilter = <T>(query: T & { eq: (col: string, val: string) => T; limit: (n: number) => T }, col: string): T => {
-      if (!isAll) return (query as any).eq(col, fiscal_year_id);
-      return (query as any).limit(1000);
-    };
-
     const [
       propertiesRes,
       contractsRes,

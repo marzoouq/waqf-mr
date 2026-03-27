@@ -14,7 +14,7 @@ import { FileText, CheckCircle, XCircle, DollarSign, AlertTriangle, AlertCircle,
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import TablePagination from '@/components/TablePagination';
 import { generateContractsPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
@@ -90,8 +90,10 @@ const ContractsViewPage = () => {
     return contracts.slice(start, start + ITEMS_PER_PAGE);
   }, [contracts, currentPage]);
 
-  // إعادة ضبط الصفحة عند تغيير البيانات
-  useMemo(() => setCurrentPage(1), [fiscalYearId]);
+  // إعادة ضبط الصفحة عند تغيير السنة المالية
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [fiscalYearId]);
 
   
   const formatCurrency = (n: number) => fmt(n) + ' ر.س';
