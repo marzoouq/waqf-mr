@@ -163,7 +163,7 @@ export const useMyCarryforwards = (beneficiaryId?: string) => {
 export const useAllCarryforwards = (fiscalYearId?: string) => {
   return useQuery({
     queryKey: ['advance_carryforward', 'all', fiscalYearId],
-    staleTime: 10_000,
+    staleTime: STALE_REALTIME,
     queryFn: async () => {
       let query = supabase
         .from('advance_carryforward')
