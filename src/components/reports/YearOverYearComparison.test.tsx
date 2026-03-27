@@ -78,7 +78,7 @@ describe('YearOverYearComparison', () => {
     expect(screen.getByText('التغير في الصافي')).toBeInTheDocument();
   });
 
-  it('renders chart titles', () => {
+  it('renders comparison table (sync) and PDF export button', () => {
     render(
       <YearOverYearComparison
         fiscalYears={[
@@ -89,7 +89,9 @@ describe('YearOverYearComparison', () => {
       />,
       { wrapper }
     );
-    expect(screen.getByText('مقارنة الدخل الشهري')).toBeInTheDocument();
+    // جدول المقارنة يُعرض مباشرة (ليس lazy)
     expect(screen.getByText('جدول المقارنة التفصيلي')).toBeInTheDocument();
+    // زر تصدير PDF
+    expect(screen.getByText('تصدير PDF')).toBeInTheDocument();
   });
 });
