@@ -274,6 +274,8 @@ function TicketViewDialog({ ticket, onClose }: { ticket: SupportTicket; onClose:
                 <button
                   key={i}
                   type="button"
+                  aria-label={`تقييم ${i} من 5 نجوم`}
+                  aria-pressed={rating === i}
                   onMouseEnter={() => setHoverRating(i)}
                   onMouseLeave={() => setHoverRating(0)}
                   onTouchStart={() => setHoverRating(i)}
