@@ -230,7 +230,8 @@ const ChartLegend = RechartsPrimitive.Legend;
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-      payload?: Array<{ value: string | number; color?: string; dataKey?: string | number }>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Recharts Legend payload is untyped
+      payload?: any[];
       verticalAlign?: "top" | "bottom" | "middle";
       hideIcon?: boolean;
       nameKey?: string;
