@@ -79,8 +79,8 @@ const BeneficiaryFormDialog = ({ isOpen, setIsOpen, formData, setFormData, isEdi
             {errors.bank_account && <p className="text-xs text-destructive">{errors.bank_account}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="beneficiary-form-dialog-field-4" className="flex items-center gap-2"><IdCard className="w-4 h-4" />رقم الهوية الوطنية</Label>
-            <Input name="national_id" id="beneficiary-form-dialog-field-4" value={formData.national_id} onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })} placeholder="1234567890" dir="ltr" maxLength={10} />
+            <Label htmlFor="beneficiary-form-dialog-field-6" className="flex items-center gap-2"><IdCard className="w-4 h-4" />رقم الهوية الوطنية</Label>
+            <Input name="national_id" id="beneficiary-form-dialog-field-6" value={formData.national_id} onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })} placeholder="1234567890" dir="ltr" maxLength={10} />
             {errors.national_id && <p className="text-xs text-destructive">{errors.national_id}</p>}
           </div>
           <div className="space-y-2">
