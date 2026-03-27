@@ -30,9 +30,12 @@ const statusMap: Record<string, { label: string; variant: 'default' | 'secondary
   cancelled: { label: 'ملغي', variant: 'secondary' },
 };
 
+const ITEMS_PER_PAGE = 10;
+
 const ContractsViewPage = () => {
   const { fiscalYearId } = useFiscalYear();
   const { data: contracts, isLoading, isError, refetch } = useContractsSafeByFiscalYear(fiscalYearId);
+  const [currentPage, setCurrentPage] = useState(1);
   
   // جلب أسماء العقارات لعرضها بدل property_id
   const propertyIds = useMemo(() => {
