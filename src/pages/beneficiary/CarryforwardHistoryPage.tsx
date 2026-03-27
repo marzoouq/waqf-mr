@@ -62,9 +62,10 @@ const CarryforwardHistoryPage = () => {
     return fiscalYears?.find(f => f.id === id)?.label ?? id;
   };
 
-  const { data: carryforwards = [], isLoading: loadingCF } = useMyCarryforwards(beneficiary?.id ?? undefined);
-  const { data: advances = [], isLoading: loadingAdv } = useMyAdvanceRequests(beneficiary?.id ?? undefined);
-  const { data: activeBalance = 0 } = useCarryforwardBalance(beneficiary?.id ?? undefined);
+  const { data: benFinance, isLoading: loadingFinance } = useMyBeneficiaryFinance(beneficiary?.id ?? undefined);
+  const carryforwards = benFinance?.myCarryforwards ?? [];
+  const advances = benFinance?.myAdvances ?? [];
+  const activeBalance = benFinance?.carryforwardBalance ?? 0;
 
   const paidAdvances = advances.filter(a => a.status === 'paid');
   const totalPaidAdvances = paidAdvances.reduce((s, a) => s + safeNumber(a.amount), 0);
