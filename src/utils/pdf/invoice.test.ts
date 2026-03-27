@@ -35,7 +35,7 @@ import type { Invoice } from '@/hooks/data/useInvoices';
 describe('generateInvoiceClientPDF', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  const baseInvoice = {
+  const baseInvoice: Invoice = {
     id: 'inv-001',
     invoice_type: 'إيجار',
     invoice_number: 'INV-2024-001',
@@ -53,13 +53,10 @@ describe('generateInvoiceClientPDF', () => {
     property_id: 'prop-1',
     contract_id: 'con-1',
     expense_id: null,
-    icv: null,
-    invoice_hash: null,
-    zatca_status: null,
+    zatca_status: 'none',
     zatca_uuid: null,
-    zatca_xml: null,
     amount_excluding_vat: 10000,
-  } as Invoice;
+  };
 
   const baseContract = {
     contract_number: 'W-001',
