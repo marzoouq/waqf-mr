@@ -1,49 +1,71 @@
 
 
-## نتائج الفحص الجنائي الشامل
-
-### ✅ إصلاحات مكتملة بالكامل (تم التحقق)
-
-| الإصلاح | الحالة |
-|---------|--------|
-| إزالة `tooltipStyle` المحلية من كل الملفات | ✅ لا توجد نسخة محلية في أي ملف |
-| استيراد `tooltipStyleRtl` من `chartHelpers` | ✅ مستخدم في 6 ملفات رسوم بيانية |
-| استخراج `formatArabicMonth` و `ARABIC_MONTHS` | ✅ كلها تستورد من `chartHelpers` |
-| `useUnits` / `useTenantPayments` / `useContractAllocations` | ✅ تستخدم `STALE_FINANCIAL` |
-
-**أخطاء البناء المعروضة قديمة/من كاش سابق — الكود الحالي سليم 100%.**
+# خطة تنفيذ التحسينات المتبقية: #45، #49، #52
 
 ---
 
-### ⚠️ بقايا مكتشفة: staleTime حرفية في صفحات ومكونات
+## التحسين #45: Server-side Pagination للفواتير
 
-7 ملفات خارج مجلد `hooks/` ما زالت تستخدم أرقاماً حرفية بدل الثوابت المركزية:
+**الوضع الحالي:** `usePaymentInvoices` يجلب حتى 1000 فاتورة دفعة واحدة مع join كامل. التصفح موجود بالفعل في `usePaymentInvoicesTab` (15 عنصر/صفحة) لكنه client-side فقط.
 
-| الملف | القيمة الحالية | الثابت المناسب |
-|-------|---------------|----------------|
-| `src/components/beneficiaries/DistributionHistory.tsx` | `60_000` | `STALE_FINANCIAL` |
-| `src/components/audit/AccessLogTab.tsx` (موقعان) | `30_000` | `STALE_MESSAGING` |
-| `src/pages/Index.tsx` | `5 * 60 * 1000` | `STALE_STATIC` |
-| `src/pages/dashboard/AdminDashboard.tsx` | `60_000` | `STALE_FINANCIAL` |
-| `src/pages/beneficiary/ContractsViewPage.tsx` | `300_000` | `STALE_STATIC` |
-| `src/pages/Auth.tsx` | `5 * 60_000` | `STALE_STATIC` |
-| `src/pages/dashboard/BeneficiariesPage.tsx` | `60_000` | `STALE_FINANCIAL` |
+**التغيير:** تحويل `usePaymentInvoices` إلى `useInfiniteQuery` مع جلب 50 فاتورة في كل صفحة من الخادم، مع الحفاظ على التوافق مع المستهلكين الحاليين.
 
-> ملاحظة: `src/lib/queryClient.ts` يستخدم `5 * 60 * 1000` كإعداد افتراضي عام — يبقى كما هو.
+**لكن** — بالنظر للكود الحالي، `usePaymentInvoicesTab` يحسب `summary` (إجماليات) من كل الفواتير، ويُفلتر ويُرتّب محلياً. تحويل الجلب لـ infinite query يكسر هذا المنطق بالكامل.
 
-### `any` في ملفات الاختبار
+**الحل الأفضل والأقل تأثيراً:** الإبقاء على الجلب الكامل لكن مع **تقليل حجم البيانات المجلوبة** وإضافة **تحذير واضح** عند الاقتراب من الحد:
 
-6 ملفات اختبار (`.test.ts`) تستخدم `any` في mocks — **مقبول** ولا يحتاج تغيير.
+1. **`usePaymentInvoices`**: تقليل الـ join — جلب الحقول المطلوبة فقط بدل `*`
+2. إضافة `count` query منفصل لعرض تنبيه إذا تجاوز العدد 900
+3. عند تجاوز 1000: عرض toast تحذيري للمستخدم
+
+### الملفات المتأثرة
+- `src/hooks/data/usePaymentInvoices.ts`
 
 ---
 
-### خطة التنفيذ
+## التحسين #49: نسبة الزكاة القابلة للتغيير
 
-**المهمة الوحيدة**: استبدال الأرقام الحرفية لـ `staleTime` في 7 ملفات بالثوابت المركزية.
+**الوضع الحالي:** `ZAKAT_RATE = 0.025` ثابتة في `ZakatEstimationReport.tsx`. تُستخدم فقط في تقرير تقدير الزكاة — الزكاة الفعلية تُدخل يدوياً في الحسابات الختامية.
 
-لكل ملف:
-1. إضافة `import { STALE_XXX } from '@/lib/queryStaleTime';`
-2. استبدال الرقم الحرفي بالثابت المناسب
+**التغيير:**
+1. إضافة `zakat_percentage` في `app_settings` (default: 2.5) عبر migration
+2. قراءة القيمة في `ZakatEstimationReport` عبر `useSetting('zakat_percentage', '2.5')`
+3. إضافة حقل في صفحة الإعدادات لتعديل النسبة
 
-تغييرات ميكانيكية بحتة — لا تأثير على السلوك.
+### الملفات المتأثرة
+- Migration جديد لإضافة القيمة الافتراضية
+- `src/components/reports/ZakatEstimationReport.tsx` — استبدال الثابت بقيمة من الإعدادات
+- صفحة الإعدادات (إضافة حقل نسبة الزكاة)
+
+---
+
+## التحسين #52: تحميل المزيد للإشعارات
+
+**الوضع الحالي:** `useNotifications` يجلب آخر 50 إشعاراً فقط بـ `.limit(50)`. لا يوجد زر "تحميل المزيد".
+
+**التغيير:** تحويل `useNotifications` إلى `useInfiniteQuery` مع 50 إشعار/صفحة وزر "تحميل إشعارات أقدم" في `NotificationBell`.
+
+**التفاصيل:**
+1. **`useNotifications`**: تحويل إلى `useInfiniteQuery` مع `getNextPageParam` يعتمد على `created_at` لآخر عنصر
+2. **`NotificationBell`**: إضافة زر "تحميل المزيد" أسفل القائمة مع `isFetchingNextPage` spinner
+3. الحفاظ على `filteredData` و`filteredUnreadCount` و`markAsRead` وباقي المنطق الحالي
+4. `unreadCount` يعتمد على الصفحة الأولى فقط (آخر 50) — وهذا مقبول لأن الإشعارات القديمة غالباً مقروءة
+
+### الملفات المتأثرة
+- `src/hooks/data/useNotifications.ts`
+- `src/components/NotificationBell.tsx`
+
+---
+
+## ملخص التنفيذ
+
+```text
+┌─────────────────────┬───────────────────────────────────┐
+│ التحسين             │ النطاق                            │
+├─────────────────────┼───────────────────────────────────┤
+│ #45 Pagination      │ تحسين select + تحذير الحد        │
+│ #49 نسبة الزكاة     │ migration + setting + UI          │
+│ #52 تحميل المزيد    │ infiniteQuery + زر في Bell        │
+└─────────────────────┴───────────────────────────────────┘
+```
 
