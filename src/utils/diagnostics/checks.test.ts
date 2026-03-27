@@ -105,7 +105,7 @@ describe('checks — قاعدة البيانات', () => {
   });
 
   it('checkRealtimeChannels يُرجع info مع عدد القنوات', async () => {
-    mockGetChannels.mockReturnValueOnce(['ch1', 'ch2']);
+    mockGetChannels.mockReturnValueOnce(['ch1', 'ch2'] as any);
     const { checkRealtimeChannels } = await import('./checks');
     const result = await checkRealtimeChannels();
     expect(result.status).toBe('info');
