@@ -262,7 +262,7 @@ const ContractsViewPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {contracts.map(contract => {
+                    {paginatedContracts.map(contract => {
                       const st = statusMap[contract.status ?? ''] || { label: contract.status ?? '', variant: 'outline' as const };
                       return (
                         <TableRow key={contract.id}>
