@@ -1,3 +1,7 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 1: Imports & Constants
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { p256 } from "https://esm.sh/@noble/curves@1.4.0/p256";
 import { getCorsHeaders } from "../_shared/cors.ts";
@@ -12,80 +16,16 @@ const ZATCA_URLS: Record<string, string> = {
   sandbox: "https://gw-fatoora.zatca.gov.sa/e-invoicing/simulation",
 };
 
-/** تحديد URL البوابة تلقائياً بناءً على اختيار المنصة في الإعدادات */
-async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
-  if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
-  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
-  const platform = data?.value || "sandbox";
-  return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
-}
+// ترويسات HTTP المشتركة لجميع طلبات ZATCA
+const ZATCA_COMMON_HEADERS = {
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "Accept-Version": "V2",
+};
 
-
-
-// ─── تسجيل عمليات ZATCA في السجل التاريخي ───
-async function logZatcaOperation(
-  admin: ReturnType<typeof createClient>,
-  opts: {
-    operation_type: string;
-    status: string;
-    request_summary?: Record<string, unknown>;
-    response_summary?: Record<string, unknown>;
-    error_message?: string;
-    invoice_id?: string;
-    user_id?: string;
-  },
-) {
-  try {
-    await admin.from("zatca_operation_log").insert({
-      operation_type: opts.operation_type,
-      status: opts.status,
-      request_summary: opts.request_summary || {},
-      response_summary: opts.response_summary || {},
-      error_message: opts.error_message || null,
-      invoice_id: opts.invoice_id || null,
-      user_id: opts.user_id || null,
-    });
-  } catch (e) {
-    console.error("Failed to log ZATCA operation:", e);
-  }
-}
-
-// ─── استخراج تاريخ انتهاء صلاحية شهادة X.509 من BST ───
-function parseCertExpiry(base64Cert: string): string | null {
-  try {
-    const binary = atob(base64Cert);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-    // البحث عن UTCTime (0x17) أو GeneralizedTime (0x18) — ثاني ظهور = notAfter
-    const times: string[] = [];
-    for (let i = 0; i < bytes.length - 2; i++) {
-      const tag = bytes[i];
-      if (tag !== 0x17 && tag !== 0x18) continue;
-      const len = bytes[i + 1];
-      if (len === undefined || len < 10 || len > 20) continue;
-      if (i + 2 + len > bytes.length) continue;
-
-      const timeStr = new TextDecoder().decode(bytes.slice(i + 2, i + 2 + len));
-      let iso: string;
-      if (tag === 0x17) {
-        // UTCTime: YYMMDDHHMMSSZ
-        const yy = parseInt(timeStr.slice(0, 2));
-        const year = yy >= 50 ? 1900 + yy : 2000 + yy;
-        iso = `${year}-${timeStr.slice(2, 4)}-${timeStr.slice(4, 6)}T${timeStr.slice(6, 8)}:${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}Z`;
-      } else {
-        // GeneralizedTime: YYYYMMDDHHMMSSZ
-        iso = `${timeStr.slice(0, 4)}-${timeStr.slice(4, 6)}-${timeStr.slice(6, 8)}T${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}:${timeStr.slice(12, 14)}Z`;
-      }
-      if (!isNaN(new Date(iso).getTime())) times.push(iso);
-      if (times.length >= 2) break;
-    }
-    return times.length >= 2 ? times[1] : null;
-  } catch {
-    return null;
-  }
-}
-
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 2: ASN.1 Encoding Utilities
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function asn1Length(len: number): Uint8Array {
   if (len < 128) return new Uint8Array([len]);
@@ -178,6 +118,10 @@ function asn1Ia5String(str: string): Uint8Array {
   return asn1Wrap(0x16, encoded);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 3: CSR & Crypto Helpers
+// ═══════════════════════════════════════════════════════════════════════════════
+
 function buildCsrExtensions(solutionName: string, isProduction: boolean, deviceSerial: string): Uint8Array {
   const sanValue = deviceSerial || `1-${solutionName}|2-1|3-${crypto.randomUUID()}`;
   const uidAttr = asn1Set([
@@ -262,19 +206,96 @@ function _derToPem(der: Uint8Array, label: string): string {
   return `-----BEGIN ${label}-----\n${lines.join("\n")}\n-----END ${label}-----`;
 }
 
-const ZATCA_COMMON_HEADERS = {
-  "Content-Type": "application/json",
-  "Accept": "application/json",
-  "Accept-Version": "V2",
-};
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 4: Certificate Helpers
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// ─── Main Handler ───
+/** استخراج تاريخ انتهاء صلاحية شهادة X.509 من BST (ASN.1 DER) */
+function parseCertExpiry(base64Cert: string): string | null {
+  try {
+    const binary = atob(base64Cert);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    // البحث عن UTCTime (0x17) أو GeneralizedTime (0x18) — ثاني ظهور = notAfter
+    const times: string[] = [];
+    for (let i = 0; i < bytes.length - 2; i++) {
+      const tag = bytes[i];
+      if (tag !== 0x17 && tag !== 0x18) continue;
+      const len = bytes[i + 1];
+      if (len === undefined || len < 10 || len > 20) continue;
+      if (i + 2 + len > bytes.length) continue;
+
+      const timeStr = new TextDecoder().decode(bytes.slice(i + 2, i + 2 + len));
+      let iso: string;
+      if (tag === 0x17) {
+        // UTCTime: YYMMDDHHMMSSZ
+        const yy = parseInt(timeStr.slice(0, 2));
+        const year = yy >= 50 ? 1900 + yy : 2000 + yy;
+        iso = `${year}-${timeStr.slice(2, 4)}-${timeStr.slice(4, 6)}T${timeStr.slice(6, 8)}:${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}Z`;
+      } else {
+        // GeneralizedTime: YYYYMMDDHHMMSSZ
+        iso = `${timeStr.slice(0, 4)}-${timeStr.slice(4, 6)}-${timeStr.slice(6, 8)}T${timeStr.slice(8, 10)}:${timeStr.slice(10, 12)}:${timeStr.slice(12, 14)}Z`;
+      }
+      if (!isNaN(new Date(iso).getTime())) times.push(iso);
+      if (times.length >= 2) break;
+    }
+    return times.length >= 2 ? times[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 5: ZATCA API Helpers
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** تحديد URL البوابة تلقائياً بناءً على اختيار المنصة في الإعدادات */
+async function resolveZatcaUrl(adminClient: ReturnType<typeof createClient>): Promise<string> {
+  if (ZATCA_API_URL_ENV) return ZATCA_API_URL_ENV;
+  const { data } = await adminClient.from("app_settings").select("value").eq("key", "zatca_platform").single();
+  const platform = data?.value || "sandbox";
+  return ZATCA_URLS[platform] || ZATCA_URLS.sandbox;
+}
+
+/** تسجيل عمليات ZATCA في السجل التاريخي */
+async function logZatcaOperation(
+  admin: ReturnType<typeof createClient>,
+  opts: {
+    operation_type: string;
+    status: string;
+    request_summary?: Record<string, unknown>;
+    response_summary?: Record<string, unknown>;
+    error_message?: string;
+    invoice_id?: string;
+    user_id?: string;
+  },
+) {
+  try {
+    await admin.from("zatca_operation_log").insert({
+      operation_type: opts.operation_type,
+      status: opts.status,
+      request_summary: opts.request_summary || {},
+      response_summary: opts.response_summary || {},
+      error_message: opts.error_message || null,
+      invoice_id: opts.invoice_id || null,
+      user_id: opts.user_id || null,
+    });
+  } catch (e) {
+    console.error("Failed to log ZATCA operation:", e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ██  القسم 6: Main Handler
+// ═══════════════════════════════════════════════════════════════════════════════
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // ─── 6.1 Auth & Rate Limiting ───
     const authHeader = req.headers.get("authorization") || "";
     if (!authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -312,7 +333,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "لم يتم تحديد بوابة ZATCA. اختر المنصة (إنتاج/محاكاة) من الإعدادات أو عيّن ZATCA_API_URL كمتغير بيئي." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ─── اختبار الاتصال ───
+    // ─── 6.2 Action: test-connection ───
     if (action === "test-connection") {
       if (!ZATCA_API_URL) {
         await logZatcaOperation(admin, {
@@ -363,7 +384,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Onboarding ───
+    // ─── 6.3 Action: onboard ───
     if (action === "onboard") {
       if (!ZATCA_API_URL) {
         await admin.from("zatca_certificates").insert({
@@ -559,7 +580,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Compliance Check ───
+    // ─── 6.4 Action: compliance-check ───
     if (action === "compliance-check") {
       const { invoice_id, table } = body;
       if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
@@ -656,7 +677,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Production Certificate ───
+    // ─── 6.5 Action: production ───
     if (action === "production") {
       const { data: certData } = await admin.rpc("get_active_zatca_certificate");
       if (!certData || certData.error) {
@@ -741,7 +762,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Renew Production Certificate (API #5) ───
+    // ─── 6.6 Action: renew ───
     if (action === "renew") {
       // جلب OTP الثاني للتجديد
       let otp = "";
@@ -944,7 +965,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Compliance Buyer QRs (API #6) ───
+    // ─── 6.7 Action: compliance-buyer-qr / compliance-seller-qr ───
     if (action === "compliance-buyer-qr" || action === "compliance-seller-qr") {
       const { invoice_id, table } = body;
       if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
@@ -1016,7 +1037,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ─── Report / Clearance ───
+    // ─── 6.8 Action: report / clearance ───
     if (action === "report" || action === "clearance") {
       const { invoice_id, table } = body;
       if (!invoice_id || !table || !["invoices", "payment_invoices"].includes(table)) {
@@ -1133,6 +1154,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ─── 6.9 Invalid action fallback ───
     return new Response(JSON.stringify({ error: "Invalid action. Use: onboard, compliance-check, production, renew, report, clearance, compliance-buyer-qr, compliance-seller-qr, test-connection" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
