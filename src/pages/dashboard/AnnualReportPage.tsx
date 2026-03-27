@@ -2,7 +2,7 @@
  * صفحة التقرير السنوي — الناظر (admin/accountant)
  * تتضمن: ملخص تلقائي + مقارنة دخل + 4 تبويبات CRUD + نشر
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -28,7 +28,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
-import IncomeComparisonChart from '@/components/annual-report/IncomeComparisonChart';
+const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -229,7 +229,9 @@ const AnnualReportPage = () => {
         </div>
 
         {/* مقارنة الدخل */}
-        <IncomeComparisonChart />
+        <Suspense fallback={null}>
+          <IncomeComparisonChart />
+        </Suspense>
 
         {/* التبويبات */}
         {isLoading ? (

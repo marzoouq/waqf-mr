@@ -2,7 +2,7 @@
  * صفحة التقرير السنوي — المستفيد (قراءة + طباعة + تصدير فقط)
  * تظهر فقط التقارير المنشورة
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, lazy, Suspense } from 'react';
 import { safeNumber } from '@/utils/safeNumber';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeaderCard from '@/components/PageHeaderCard';
@@ -25,7 +25,7 @@ import { useContracts } from '@/hooks/data/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
-import IncomeComparisonChart from '@/components/annual-report/IncomeComparisonChart';
+const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -139,7 +139,9 @@ const AnnualReportViewPage = () => {
           ))}
         </div>
 
-        <IncomeComparisonChart />
+        <Suspense fallback={null}>
+          <IncomeComparisonChart />
+        </Suspense>
 
         <Tabs defaultValue={viewTab} value={viewTab} onValueChange={setViewTab} dir="rtl">
           {/* قائمة Select للجوال */}

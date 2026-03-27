@@ -1,6 +1,6 @@
 import { fmt } from '@/utils/format';
 import { lazy, Suspense } from 'react';
-import CashFlowReport from '@/components/reports/CashFlowReport';
+const CashFlowReport = lazy(() => import('@/components/reports/CashFlowReport'));
 import OverdueTenantsReport from '@/components/reports/OverdueTenantsReport';
 import BalanceSheetReport from '@/components/reports/BalanceSheetReport';
 import ZakatEstimationReport from '@/components/reports/ZakatEstimationReport';
@@ -11,7 +11,7 @@ import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calc
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
-import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
+const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';
@@ -218,11 +218,15 @@ const ReportsPage = () => {
           </TabsContent>
 
           <TabsContent value="monthly" className="space-y-6">
-            <MonthlyPerformanceReport income={income} expenses={expenses} fiscalYear={currentAccount?.fiscal_year} />
+            <Suspense fallback={null}>
+              <MonthlyPerformanceReport income={income} expenses={expenses} fiscalYear={currentAccount?.fiscal_year} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="cashflow" className="space-y-6">
-            <CashFlowReport income={income} expenses={expenses} fiscalYear={fiscalYear} />
+            <Suspense fallback={null}>
+              <CashFlowReport income={income} expenses={expenses} fiscalYear={fiscalYear} />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="balance" className="space-y-6">

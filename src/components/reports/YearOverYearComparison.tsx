@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +9,7 @@ import { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { fmt } from '@/utils/format';
-import YoYChartsSection from '@/components/reports/YoYChartsSection';
+const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 import YoYComparisonTable from '@/components/reports/YoYComparisonTable';
 
 interface YearOverYearComparisonProps {
@@ -196,13 +196,15 @@ const YearOverYearComparison = ({ fiscalYears, currentFiscalYearId }: YearOverYe
       </div>
 
       {/* الرسوم البيانية */}
-      <YoYChartsSection
-        comparisonData={comparisonData}
-        year1Label={year1Label}
-        year2Label={year2Label}
-        expensesByType1={expensesByType1}
-        expensesByType2={expensesByType2}
-      />
+      <Suspense fallback={null}>
+        <YoYChartsSection
+          comparisonData={comparisonData}
+          year1Label={year1Label}
+          year2Label={year2Label}
+          expensesByType1={expensesByType1}
+          expensesByType2={expensesByType2}
+        />
+      </Suspense>
 
       {/* جدول المقارنة */}
       <YoYComparisonTable
