@@ -115,23 +115,28 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "فشل توليد طلب الشهادة (CSR)" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
+      // دالة مساعدة لحذف OTP بعد أي نتيجة
+      const clearOtp = () => admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]).catch(() => {});
+
       try {
         const csrResponse = await fetch(`${ZATCA_API_URL}/compliance`, { method: "POST", headers: { ...ZATCA_COMMON_HEADERS, "OTP": otp }, body: JSON.stringify({ csr: csrPem }) });
         if (!csrResponse.ok) {
           const errText = await csrResponse.text();
           await logZatcaOperation(admin, { operation_type: "onboard", status: "error", request_summary: { url: `${ZATCA_API_URL}/compliance`, org: orgName }, response_summary: { status_code: csrResponse.status }, error_message: errText, user_id: user.id });
+          await clearOtp();
           return new Response(JSON.stringify({ error: `ZATCA API error: ${errText}` }), { status: csrResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         const csrData = await csrResponse.json();
         await admin.from("zatca_certificates").update({ is_active: false }).eq("is_active", true);
         const complianceExpiry = parseCertExpiry(csrData.binarySecurityToken || "");
         await admin.from("zatca_certificates").insert({ certificate_type: "compliance", certificate: csrData.binarySecurityToken || "", private_key: privKeyHex, zatca_secret: csrData.secret || "", request_id: csrData.requestID || "", is_active: true, expires_at: complianceExpiry });
-        await admin.from("app_settings").delete().in("key", ["zatca_otp_1", "zatca_otp_2"]);
+        await clearOtp();
         await logZatcaOperation(admin, { operation_type: "onboard", status: "success", request_summary: { url: `${ZATCA_API_URL}/compliance`, org: orgName, platform: isProduction ? "production" : "sandbox" }, response_summary: { request_id: csrData.requestID, certificate_type: "compliance" }, user_id: user.id });
         return new Response(JSON.stringify({ success: true, request_id: csrData.requestID, certificate_type: "compliance" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       } catch (fetchErr) {
         const errMsg = `Failed to reach ZATCA API: ${(fetchErr as Error).message}`;
         await logZatcaOperation(admin, { operation_type: "onboard", status: "error", error_message: errMsg, user_id: user.id });
+        await clearOtp();
         return new Response(JSON.stringify({ error: errMsg }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
