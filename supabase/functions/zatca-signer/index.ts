@@ -652,13 +652,16 @@ Deno.serve(async (req) => {
       }
 
       // ════════════════════════════════════════════════════════════
-      // Step 7: Update chain with real hash + Save signed XML
+      // Step 7: Commit chain with real hash + Save signed XML (#33 fix)
       // ════════════════════════════════════════════════════════════
-      const { error: hashUpdateError } = await admin.from("invoice_chain")
-        .update({ invoice_hash: invoiceDigest })
-        .eq("invoice_id", invoice_id)
-        .eq("icv", icv);
-      if (hashUpdateError) throw new Error(`فشل تحديث الهاش في السلسلة: ${hashUpdateError.message}`);
+      const { error: commitErr } = await admin.rpc("commit_icv_chain", {
+        p_invoice_id: invoice_id,
+        p_icv: icv,
+        p_invoice_hash: invoiceDigest,
+        p_previous_hash: previousHash,
+        p_source_table: table,
+      });
+      if (commitErr) throw new Error(`فشل تثبيت السلسلة: ${commitErr.message}`);
 
       const updateData: Record<string, unknown> = {
         invoice_hash: invoiceDigest,
@@ -681,14 +684,8 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
 
     } catch (signErr) {
-      // Rollback: delete the PENDING chain record to avoid breaking PIH
-      console.error("Signing failed, rolling back ICV chain:", signErr);
-      try {
-        await admin.from("invoice_chain").delete()
-          .eq("invoice_id", invoice_id).eq("icv", icv);
-      } catch (rollbackErr) {
-        console.error("Rollback failed:", rollbackErr);
-      }
+      // No chain record to rollback — commit_icv_chain only inserts on success
+      console.error("Signing failed:", signErr);
       return json({ error: "فشل التوقيع الإلكتروني. يرجى المحاولة لاحقاً أو التواصل مع الدعم." }, 500, corsHeaders);
     }
 
