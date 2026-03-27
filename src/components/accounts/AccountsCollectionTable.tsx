@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { fmt } from '@/utils/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, Pencil, Check, X, CalendarRange } from 'lucide-react';
+import { Wallet, Pencil, Check, X, CalendarRange, Filter } from 'lucide-react';
 
 export interface CollectionItem {
   index: number;
@@ -54,16 +55,45 @@ interface AccountsCollectionTableProps {
 const AccountsCollectionTable = ({
   contracts, collectionData, editingIndex, editData, setEditData,
   onStartEdit, onCancelEdit, onSaveEdit,
-  totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll, totalArrearsAll,
+  totalExpectedPayments: _tep, totalPaidMonths: _tpm, totalCollectedAll: _tcAll, totalArrearsAll: _taAll,
   isUpdatePending, isUpsertPending,
 }: AccountsCollectionTableProps) => {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // فلترة بيانات التحصيل حسب الحالة
+  const filteredData = useMemo(() => {
+    if (statusFilter === 'all') return collectionData;
+    return collectionData.filter(item => item.status === statusFilter);
+  }, [collectionData, statusFilter]);
+
+  // إعادة حساب الإجماليات بناءً على الفلترة
+  const filteredTotalCollected = useMemo(() => filteredData.reduce((s, d) => s + d.totalCollected, 0), [filteredData]);
+  const filteredTotalArrears = useMemo(() => filteredData.reduce((s, d) => s + d.arrears, 0), [filteredData]);
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Wallet className="w-5 h-5" />
-          تفصيل التحصيل والمتأخرات
-        </CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            تفصيل التحصيل والمتأخرات
+          </CardTitle>
+          {contracts.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-28 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل ({collectionData.length})</SelectItem>
+                  <SelectItem value="مكتمل">مكتمل ({collectionData.filter(d => d.status === 'مكتمل').length})</SelectItem>
+                  <SelectItem value="متأخر">متأخر ({collectionData.filter(d => d.status === 'متأخر').length})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {contracts.length === 0 ? (
@@ -72,7 +102,7 @@ const AccountsCollectionTable = ({
           <>
             {/* Mobile cards */}
             <div className="space-y-3 md:hidden">
-              {collectionData.map((item, idx) => {
+              {filteredData.map((item, idx) => {
                 const isEditing = editingIndex === idx;
                 const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                 const editPaid = editData?.paidMonths ?? item.paidMonths;
@@ -183,15 +213,15 @@ const AccountsCollectionTable = ({
               <div className="p-3 bg-muted/50 rounded-lg space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">عدد المستأجرين</span>
-                  <span className="font-bold">{contracts.length}</span>
+                  <span className="font-bold">{filteredData.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">إجمالي المحصّل</span>
-                  <span className="font-bold text-primary">{fmt(totalCollectedAll)} ريال</span>
+                  <span className="font-bold text-primary">{fmt(filteredTotalCollected)} ريال</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">إجمالي المتأخرات</span>
-                  <span className="font-bold text-destructive">{fmt(totalArrearsAll)} ريال</span>
+                  <span className="font-bold text-destructive">{fmt(filteredTotalArrears)} ريال</span>
                 </div>
               </div>
             </div>
@@ -213,7 +243,7 @@ const AccountsCollectionTable = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {collectionData.map((item, idx) => {
+                {filteredData.map((item, idx) => {
                   const isEditing = editingIndex === idx;
                   const editRent = editData?.monthlyRent ?? item.paymentPerPeriod;
                   const editPaid = editData?.paidMonths ?? item.paidMonths;
@@ -323,12 +353,12 @@ const AccountsCollectionTable = ({
               <TableFooter>
                 <TableRow className="bg-muted/70 font-bold">
                   <TableCell>الإجمالي</TableCell>
-                  <TableCell>{contracts.length} مستأجر</TableCell>
-                  <TableCell className="text-primary font-bold">{fmt(collectionData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
+                  <TableCell>{filteredData.length} مستأجر</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(filteredData.reduce((sum, d) => sum + d.paymentPerPeriod, 0))} ريال</TableCell>
                   <TableCell className="text-center text-muted-foreground">—</TableCell>
                   <TableCell className="text-center text-muted-foreground">—</TableCell>
-                  <TableCell className="text-primary font-bold">{fmt(totalCollectedAll)} ريال</TableCell>
-                  <TableCell className="text-destructive font-bold">{fmt(totalArrearsAll)} ريال</TableCell>
+                  <TableCell className="text-primary font-bold">{fmt(filteredTotalCollected)} ريال</TableCell>
+                  <TableCell className="text-destructive font-bold">{fmt(filteredTotalArrears)} ريال</TableCell>
                   <TableCell></TableCell>
                   <TableCell></TableCell>
                 </TableRow>
