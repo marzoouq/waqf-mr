@@ -6,6 +6,7 @@ import { Conversation, Message } from '@/types/database';
 import { notifyUser } from '@/utils/notifications';
 import { logger } from '@/lib/logger';
 import { useBfcacheSafeChannel } from '@/hooks/ui/useBfcacheSafeChannel';
+import { STALE_MESSAGING, STALE_LIVE } from '@/lib/queryStaleTime';
 
 export type { Conversation, Message };
 
