@@ -15,6 +15,7 @@ import ExportMenu from '@/components/ExportMenu';
 import { buildCsv, downloadCsv } from '@/utils/csv';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { STALE_FINANCIAL } from '@/lib/queryStaleTime';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
