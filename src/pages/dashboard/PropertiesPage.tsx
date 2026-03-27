@@ -38,6 +38,7 @@ const PropertiesPage = () => {
     searchQuery, setSearchQuery, typeFilter, setTypeFilter,
     occupancyFilter, setOccupancyFilter, uniqueTypes,
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    serverPage, serverNextPage, serverPrevPage, serverHasNextPage, serverHasPrevPage, serverPageSize,
     selectedProperty, setSelectedProperty,
     filteredProperties,
   } = usePropertiesPage();
