@@ -191,8 +191,15 @@ export function usePropertiesPage() {
     // فلاتر
     searchQuery, setSearchQuery, typeFilter, setTypeFilter,
     occupancyFilter, setOccupancyFilter, uniqueTypes,
-    // صفحات
+    // صفحات — client-side
     currentPage, setCurrentPage, ITEMS_PER_PAGE,
+    // صفحات — server-side (من useCrudFactory)
+    serverPage: propertiesQuery.page,
+    serverNextPage: propertiesQuery.nextPage,
+    serverPrevPage: propertiesQuery.prevPage,
+    serverHasNextPage: propertiesQuery.hasNextPage,
+    serverHasPrevPage: propertiesQuery.hasPrevPage,
+    serverPageSize: propertiesQuery.pageSize,
     // عقار مختار
     selectedProperty, setSelectedProperty,
     // خصائص محسوبة

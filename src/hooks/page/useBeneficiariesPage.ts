@@ -122,5 +122,12 @@ export function useBeneficiariesPage() {
     deleteTarget, setDeleteTarget, handleConfirmDelete,
     searchQuery, setSearchQuery, currentPage, setCurrentPage, ITEMS_PER_PAGE,
     totalPercentage, activeBeneficiaries, percentageExceeds,
+    // صفحات — server-side (من useCrudFactory)
+    serverPage: beneficiariesQuery.page,
+    serverNextPage: beneficiariesQuery.nextPage,
+    serverPrevPage: beneficiariesQuery.prevPage,
+    serverHasNextPage: beneficiariesQuery.hasNextPage,
+    serverHasPrevPage: beneficiariesQuery.hasPrevPage,
+    serverPageSize: beneficiariesQuery.pageSize,
   };
 }
