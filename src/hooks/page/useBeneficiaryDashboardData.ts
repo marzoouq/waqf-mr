@@ -67,7 +67,11 @@ export const useBeneficiaryDashboardData = (fiscalYearId?: string) => {
         p_fiscal_year_id: fiscalYearId!,
       });
       if (error) throw error;
-      return data as unknown as BeneficiaryDashboardData;
+      // التحقق من أن البيانات المُرجعة كائن صالح قبل التحويل
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error('استجابة غير متوقعة من خادم لوحة المستفيد');
+      }
+      return data as BeneficiaryDashboardData;
     },
   });
 };
