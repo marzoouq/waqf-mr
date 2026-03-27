@@ -69,6 +69,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private resetAttempts = 0;
+  private resetTimerId: ReturnType<typeof setTimeout> | null = null;
 
   // كشف أخطاء تحميل الملفات المجزأة (chunk errors)
   private isChunkError(): boolean {
