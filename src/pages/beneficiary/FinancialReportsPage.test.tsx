@@ -115,31 +115,38 @@ const renderPage = () => {
 describe('FinancialReportsPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('renders page title', () => {
+  it('renders page title', async () => {
     renderPage();
-    expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    });
   });
 
   it('shows chart titles', async () => {
     const { container } = renderPage();
-    // Lazy component renders asynchronously via Suspense
     await vi.waitFor(() => {
       expect(container.textContent).toContain('مقارنة الإيرادات والمصروفات');
     }, { timeout: 3000 });
   });
 
-  it('includes fiscal year selector', () => {
+  it('includes fiscal year selector', async () => {
     renderPage();
-    expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    });
   });
 
-  it('includes export menu', () => {
+  it('includes export menu', async () => {
     renderPage();
-    expect(screen.getByTestId('export-menu')).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('export-menu')).toBeInTheDocument();
+    });
   });
 
-  it('calculates my share correctly (10% of 60000 = 6000)', () => {
+  it('calculates my share correctly (10% of 60000 = 6000)', async () => {
     renderPage();
-    expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    await vi.waitFor(() => {
+      expect(screen.getByText('التقارير المالية')).toBeInTheDocument();
+    });
   });
 });
