@@ -28,7 +28,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import ReportItemFormDialog from '@/components/annual-report/ReportItemFormDialog';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
-import IncomeComparisonChart from '@/components/annual-report/IncomeComparisonChart';
+const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,

@@ -11,7 +11,7 @@ import { CalendarRange, FileText, TrendingUp, ShieldCheck, Banknote, Scale, Calc
 import { toast } from 'sonner';
 import PageHeaderCard from '@/components/PageHeaderCard';
 import { Badge } from '@/components/ui/badge';
-import MonthlyPerformanceReport from '@/components/reports/MonthlyPerformanceReport';
+const MonthlyPerformanceReport = lazy(() => import('@/components/reports/MonthlyPerformanceReport'));
 import ExportMenu from '@/components/ExportMenu';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { ResponsiveTabs, TabsContent } from '@/components/ui/responsive-tabs';

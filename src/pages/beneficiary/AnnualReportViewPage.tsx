@@ -25,7 +25,7 @@ import { useContracts } from '@/hooks/data/useContracts';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import ReportItemCard from '@/components/annual-report/ReportItemCard';
 import PropertyStatusSection from '@/components/annual-report/PropertyStatusSection';
-import IncomeComparisonChart from '@/components/annual-report/IncomeComparisonChart';
+const IncomeComparisonChart = lazy(() => import('@/components/annual-report/IncomeComparisonChart'));
 import { generateAnnualReportPDF, type AnnualReportPdfData } from '@/utils/pdf/annualReport';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 

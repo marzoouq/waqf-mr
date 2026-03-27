@@ -9,7 +9,7 @@ import { FiscalYear } from '@/hooks/financial/useFiscalYears';
 import { generateYearComparisonPDF } from '@/utils/pdf';
 import { usePdfWaqfInfo } from '@/hooks/data/usePdfWaqfInfo';
 import { fmt } from '@/utils/format';
-import YoYChartsSection from '@/components/reports/YoYChartsSection';
+const YoYChartsSection = lazy(() => import('@/components/reports/YoYChartsSection'));
 import YoYComparisonTable from '@/components/reports/YoYComparisonTable';
 
 interface YearOverYearComparisonProps {
